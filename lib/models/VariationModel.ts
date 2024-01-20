@@ -1,0 +1,87 @@
+import { dynamic } from '../types/common';
+import { VariableModel } from './VariableModel';
+
+export class VariationModel {
+  private i: number;
+  private id: number;
+
+  private n: string;
+  private key: string;
+
+  private w: number;
+  private weight: number;
+
+  private startRangeVariation: number;
+  private endRangeVariation: number;
+
+  private var: Array<VariableModel> = [];
+  private variables: Array<VariableModel> = [];
+
+  private seg: Record<string, dynamic>;
+  private segments: Record<string, dynamic>;
+
+  modelFromDictionary(variation: VariationModel): this {
+    this.id = variation.i || variation.id;
+    this.key = variation.n || variation.key;
+    this.weight = variation.w || variation.weight;
+    if (variation.seg || variation.segments) {
+      this.segments = variation.seg || variation.segments;
+    }
+
+    if (variation.var || variation.variables) {
+      if (
+        (variation.var && variation.var.constructor === {}.constructor) ||
+        variation.variables.constructor === {}.constructor
+      ) {
+        this.variables = [];
+      } else {
+        const variableList: Array<VariableModel> = variation.var || variation.variables;
+        variableList.forEach(variable => {
+          this.variables.push(new VariableModel().modelFromDictionary(variable));
+        });
+      }
+    }
+
+    return this;
+  }
+
+  setStartRange(startRange: number): void {
+    this.startRangeVariation = startRange;
+  }
+
+  setEndRange(endRange: number): void {
+    this.endRangeVariation = endRange;
+  }
+
+  setWeight(weight: number): void {
+    this.weight = weight;
+  }
+
+  getId(): number {
+    return this.id;
+  }
+
+  getKey(): string {
+    return this.key;
+  }
+
+  getWeight(): number {
+    return this.weight;
+  }
+
+  getSegments(): Record<string, dynamic> {
+    return this.segments;
+  }
+
+  getStartRangeVariation(): number {
+    return this.startRangeVariation;
+  }
+
+  getEndRangeVariation(): number {
+    return this.endRangeVariation;
+  }
+
+  getVariables(): Array<VariableModel> {
+    return this.variables;
+  }
+}

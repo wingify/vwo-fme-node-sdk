@@ -1,0 +1,65 @@
+{
+  "name": "vwo-sdk",
+  "version": "2.0.0",
+  "description": "VWO Node SDK for FullStack Testing",
+  "scripts": {
+    "check:versions": "node -e 'require(\"./scripts/check-versions\")'",
+    "tsc": "yarn check:versions && tsc -w",
+    "example": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules example/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wingify/vwo-node-sdk"
+  },
+  "author": "dev@wingify.com",
+  "license": "Apache-2.0",
+  "files": [
+    "dist/",
+    "package.json",
+    "yarn.lock",
+    "lib/**/*",
+    "LICENSE",
+    "README.md",
+    "CONTRIBUTING.md",
+    "CHANGELOG.md",
+    "NOTICE"
+  ],
+  "dependencies": {
+    "murmurhash": "^2.0.1",
+    "superstruct": "^1.0.4",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "nodemon": "^3.1.0",
+    "prettier": "^3.2.5",
+    "semver": "^7.6.0",
+    "shelljs": "^0.8.5",
+    "typescript": "^5.4.5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "globOptions": {
+      "matchBase": false
+    },
+    "linters": {
+      "**/*.js": [
+        "yarn lint",
+        "prettier",
+        "git add"
+      ],
+      "**/*.{json,md}": [
+        "prettier",
+        "git add"
+      ]
+    }
+  },
+  "engineStrict": true,
+  "engines": {
+    "node": ">= 6.10.0"
+  }
+}

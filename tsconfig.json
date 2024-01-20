@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "noEmit": false,
+    "moduleResolution":"Node",
+    "baseUrl": "./lib",
+    "paths": {
+      "*": ["node_modules", "lib"]
+    },
+    "outDir": "dist/",
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "module": "commonjs",
+    "target": "es5",
+    "removeComments": false,
+    "sourceMap": true,
+    "lib": [
+      "ES5",
+      "DOM"
+    ],
+    "plugins": [{
+      "name": "typescript-tslint-plugin"
+    }]
+  },
+  "include": ["./lib/**/*"],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "*.js"
+  ],
+  "baseUrl": "types",
+  "typeRoots": ["types", "./node_modules/@types"]
+}

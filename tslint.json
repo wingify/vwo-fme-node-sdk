@@ -1,0 +1,24 @@
+{
+  "extends": [
+    "tslint:latest"
+  ],
+  "jsRules": {},
+  "rules": {
+    "no-empty": false,
+    "prefer-const": [true, {
+      "destructuring": "all"
+    }],
+    "jsx-no-multiline-js": false,
+    "jsx-wrap-multiline": false,
+    "jsdoc-format": [true, "check-multiline-start"],
+    "completed-docs": true,
+    "no-console": false
+  },
+  "rulesDirectory": [],
+  "linterOptions": {
+    "exclude": [
+      "*.js",
+      "**/*.d.ts"
+    ]
+  }
+}

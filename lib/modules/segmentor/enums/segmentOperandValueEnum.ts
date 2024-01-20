@@ -1,0 +1,8 @@
+export enum SegmentOperandValueEnum {
+  LOWER_VALUE = 1,
+  STARTING_ENDING_STAR_VALUE = 2,
+  STARTING_STAR_VALUE = 3,
+  ENDING_STAR_VALUE = 4,
+  REGEX_VALUE = 5,
+  EQUAL_VALUE = 6
+}

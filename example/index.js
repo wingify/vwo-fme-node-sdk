@@ -3,8 +3,16 @@ const vwo = require('../dist');
 async function start() {
   const vwoClient = await vwo.init({ sdkKey: 'abc'});
 
-  console.log('client: ', vwoClient.settings);
-  console.log('Flag: ', await vwoClient.getFlag('feature-key'));
+  // settingsFIle -> rollout rule whitelisting pass, ab will fail with value abhishek, and will pass with value abhishek132
+  const getFlag = await vwoClient.getFlag('feature-key', {user: {id: 'ab4', customVariables: {name: 'abhishek'}, variationTargetingVariables: {name: 'abhishek'}}});
+  console.log('Flag: ', getFlag.getVariation());
+
+  // settingsFIle 1 -> no rollout rules enabled as status for all rules are off
+  // console.log('Flag: ', await vwoClient.getFlag('feature-key-2', {user: {id: 'ab4', customVariables: {name: 'abhishek123'}, variationTargetingVariables: {name: 'abhishek'}}}));
+
+  // settingsFIle 2 -> 
+  //console.log('Flag: ', await vwoClient.getFlag('feature-key-2', {user: {id: 'ab4', customVariables: {name: 'abhishek'}, variationTargetingVariables: {name: 'marvel'}}}));
+  //const result = await vwoClient.getFlag('feature-key-2', {user: {id: 'ab4', customVariables: {name: 'abhishek'}, variationTargetingVariables: {name: 'marvel'}}});
 }
 
 start();

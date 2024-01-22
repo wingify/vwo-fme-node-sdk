@@ -17,11 +17,13 @@ export class SettingsModel {
 
   private v: number;
   private version: number;
+  collectionPrefix: string;
 
   constructor(settings: SettingsModel) {
     this.sdkKey = settings.sK || settings.sdkKey;
     this.accountId = settings.a || settings.accountId;
     this.version = settings.v || settings.version;
+    this.collectionPrefix = settings.collectionPrefix;
 
     if ((settings.f && settings.f.constructor !== {}.constructor) || settings.features.constructor !== {}.constructor) {
       const featureList: Array<FeatureModel> = settings.f || settings.features;

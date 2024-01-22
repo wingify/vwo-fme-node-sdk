@@ -7,6 +7,7 @@ export class VariationModel {
 
   private n: string;
   private key: string;
+  private name: string;
 
   private w: number;
   private weight: number;
@@ -22,8 +23,10 @@ export class VariationModel {
 
   modelFromDictionary(variation: VariationModel): this {
     this.id = variation.i || variation.id;
-    this.key = variation.n || variation.key;
+    this.key = variation.n || variation.key || variation.name;
     this.weight = variation.w || variation.weight;
+    this.setStartRange(variation.startRangeVariation);
+    this.setEndRange(variation.endRangeVariation);
     if (variation.seg || variation.segments) {
       this.segments = variation.seg || variation.segments;
     }

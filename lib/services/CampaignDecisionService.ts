@@ -7,14 +7,16 @@ import { VariationModel } from '../models/VariationModel';
 import { Constants } from '../constants';
 
 import { isObject } from '../utils/DataTypeUtil';
+import { CampaignModel } from '../models/CampaignModel';
+import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
 
 interface ICampaignDecisionService {
-  isUserPartOfCampaign(campaign: any): boolean;
+  isUserPartOfCampaign(userId: any, campaign: CampaignModel): boolean;
   getVariation(variations: Array<VariationModel>, bucketValue: number): VariationModel;
   checkInRange(variation: VariationModel, bucketValue: number): VariationModel;
-  bucketUserToVariation(campaign: any): VariationModel;
-  getDecision(campaign: any): VariationModel;
-  getVariationAlloted(campaign: any): VariationModel;
+  bucketUserToVariation(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
+  getDecision(campaign: CampaignModel, dsl: any, properties: any): VariationModel;
+  getVariationAlloted(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
 }
 
 export class CampaignDecisionService implements ICampaignDecisionService {
@@ -26,18 +28,21 @@ export class CampaignDecisionService implements ICampaignDecisionService {
    *
    * @return {Boolean} if User is a part of Campaign or not
    */
-  isUserPartOfCampaign(campaign: any): boolean {
+  isUserPartOfCampaign(userId: any, campaign: CampaignModel): boolean {
     // if (!ValidateUtil.isValidValue(userId) || !campaign) {
     //   return false;
     // }
 
-    if (!campaign || !campaign.getUser()) {
+    if (!campaign || !userId) {
       return false;
     }
-
-    const userId = campaign.getUser().userId;
-    const trafficAllocation = campaign.getTraffic();
-    const valueAssignedToUser = new DecisionMaker().getBucketValueForUser(`${userId}${campaign.getKey()}`);
+    let trafficAllocation;
+    if (campaign.getType() === CampaignTypeEnum.ROLLOUT) {
+      trafficAllocation = campaign.getVariations()[0].getWeight();
+    } else {
+      trafficAllocation = campaign.getTraffic();
+    }
+    const valueAssignedToUser = new DecisionMaker().getBucketValueForUser(`${campaign.getId()}_${userId}`);
     const isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
 
     LogManager.Instance.debug(`user:${userId} part of campaign? ${isUserPart}`);
@@ -56,7 +61,6 @@ export class CampaignDecisionService implements ICampaignDecisionService {
   getVariation(variations: Array<VariationModel>, bucketValue: number): VariationModel {
     for (let i = 0; i < variations.length; i++) {
       const variation = variations[i];
-
       if (bucketValue >= variation.getStartRangeVariation() && bucketValue <= variation.getEndRangeVariation()) {
         return variation;
       }
@@ -79,62 +83,58 @@ export class CampaignDecisionService implements ICampaignDecisionService {
    *
    * @return {Object|null} variation data into which user is bucketed in or null if not
    */
-  bucketUserToVariation(campaign: any): VariationModel {
+  bucketUserToVariation(userId: any, accountId: any, campaign: CampaignModel): VariationModel {
     let multiplier;
     // if (!ValidateUtil.isValidValue(userId)) {
     //   return null;
     // }
 
-    if (!campaign || !campaign.getUser()) {
+    if (!campaign || !userId) {
       return null;
     }
-    if (campaign.getTraffic()) {
-      multiplier = Constants.MAX_TRAFFIC_VALUE / campaign.getTraffic() / 100;
+    if (campaign.getTraffic() || campaign.getVariations()[0].getWeight()) {
+      multiplier = 1;
     }
-    const userId = campaign.getUser().userId;
-    const hashValue = new DecisionMaker().generateHashValue(`${userId}${campaign.getKey()}`);
+    const percentTraffic = campaign.getTraffic() || campaign.getVariations()[0].getWeight();
+    const hashValue = new DecisionMaker().generateHashValue(`${campaign.getId()}_${accountId}_${userId}`);
     const bucketValue = new DecisionMaker().generateBucketValue(hashValue, Constants.MAX_TRAFFIC_VALUE, multiplier);
     LogManager.Instance.debug(
-      `user:${userId} for campaign:${campaign.getKey()} having percenttraffic:${campaign.getTraffic()} got bucketValue as ${bucketValue} and hashvalue:${hashValue}`
+      `user:${userId} for campaign:${campaign.getKey()} having percenttraffic:${percentTraffic} got bucketValue as ${bucketValue} and hashvalue:${hashValue}`
     );
 
     return this.getVariation(campaign.getVariations(), bucketValue);
   }
 
-  getDecision(campaign: any): VariationModel {
+  getDecision(campaign: CampaignModel, userId: any, customVariables: any): any {
     // validate segmentation
     if (isObject(campaign.getSegments()) && !Object.keys(campaign.getSegments()).length) {
       LogManager.Instance.debug(
         `For userId:${
-          campaign.getUser().userId
+          userId
         } of Campaign:${campaign.getKey()}, segment was missing, hence skipping segmentation`
       );
+      return true;
     } else {
       const preSegmentationResult = SegmentationManager.Instance.validateSegmentation(
         campaign.getSegments(),
-        campaign.getUser().getProperties()
+        customVariables
       );
       if (!preSegmentationResult) {
         LogManager.Instance.info(
-          `Segmentation failed for userId:${campaign.getUser().userId} of Campaign:${campaign.getKey()}`
+          `Segmentation failed for userId:${userId} of Campaign:${campaign.getKey()}`
         );
-        campaign.setDecision(null);
-        return null;
+        return false;
       }
       LogManager.Instance.info(
-        `Segmentation passed for userId:${campaign.getUser().userId} of Campaign:${campaign.getKey()}`
+        `Segmentation passed for userId:${userId} of Campaign:${campaign.getKey()}`
       );
+      return true;
     }
-
-    const variation: VariationModel = this.getVariationAlloted(campaign);
-    campaign.setDecision(variation);
-    campaign.setWhitelistedStatus(false);
-    return variation;
   }
 
-  getVariationAlloted(campaign: any): VariationModel {
-    if (this.isUserPartOfCampaign(campaign)) {
-      return this.bucketUserToVariation(campaign) || null;
+  getVariationAlloted(userId: any, accountId: any, campaign: CampaignModel): VariationModel {
+    if (this.isUserPartOfCampaign(userId, campaign)) {
+      return this.bucketUserToVariation(userId, accountId, campaign) || null;
     } else {
       return null;
     }

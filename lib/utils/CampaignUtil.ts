@@ -1,23 +1,40 @@
 import { VariationModel } from '../models/VariationModel';
 import { VariableModel } from '../models/VariableModel';
 import { Constants } from '../constants';
+import { CampaignModel } from '../models/CampaignModel';
+import { LogManager } from '../modules/logger';
+import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
 
-export function setVariationAllocation(
-  variationList: Array<VariationModel>,
-  variables: Array<VariableModel> = undefined
-): void {
-  let stepFactor = 0;
-  let currentAllocation = 0;
+export function setVariationAllocation(campaign: CampaignModel): void {
+  if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
+    // Handle special logic for rollout or personalize campaigns
+    handleRolloutCampaign(campaign);
+  } else {
+    let stepFactor = 0;
+    const numberOfVariations = campaign.getVariations().length;
+    for (let i = 0, currentAllocation = 0; i < numberOfVariations; i++) {
+      let variation = campaign.getVariations()[i];
 
-  // assign rangel values to variations based on their weight
-  variationList.forEach((variation: VariationModel) => {
-    // TODO: need to optimize the code here by creating a featureVariableMap and then run a loop on variation variables.
-    if (variables) {
-      copyVariableData(variation.getVariables(), variables);
+      stepFactor = assignRangeValues(variation, currentAllocation);
+      currentAllocation += stepFactor;
+      LogManager.Instance.debug(
+        `VARIATION_RANGE_ALLOCATION: Variation:${variation.getKey()} of Campaign:${campaign.getKey()} having weight:${variation.getWeight()} got bucketing range: ( ${variation.getStartRangeVariation()} - ${variation.getEndRangeVariation()} )`,
+      );
     }
-    stepFactor = assignRangeValues(variation, currentAllocation);
-    currentAllocation += stepFactor;
-  });
+  }
+}
+
+function handleRolloutCampaign(campaign: CampaignModel): void {
+  // Set start and end ranges for all variations in the campaign
+  for (let i = 0; i < campaign.getVariations().length; i++) {
+    let variation = campaign.getVariations()[i];
+    let endRange = campaign.getVariations()[i].getWeight() * 100;
+    variation.setStartRange(1);
+    variation.setEndRange(endRange);
+    LogManager.Instance.debug(
+      `VARIATION_RANGE_ALLOCATION: Variation:${variation.getKey()} of Campaign:${campaign.getKey()} got bucketing range: ( ${1} - ${endRange} )`,
+    );
+  }
 }
 
 function copyVariableData(variationVariable: Array<VariableModel>, featureVariable: Array<VariableModel>): void {
@@ -35,7 +52,7 @@ function copyVariableData(variationVariable: Array<VariableModel>, featureVariab
   });
 }
 
-function assignRangeValues(data: VariationModel, currentAllocation: number) {
+export function assignRangeValues(data: VariationModel, currentAllocation: number) {
   const stepFactor: number = getVariationBucketRange(data.getWeight());
 
   if (stepFactor) {
@@ -56,4 +73,23 @@ function getVariationBucketRange(variationWeight: number) {
   const startRange = Math.ceil(variationWeight * 100);
 
   return Math.min(startRange, Constants.MAX_TRAFFIC_VALUE);
+}
+
+export function scaleVariationWeights(variations: any) {
+  const totalWeight = variations.reduce((acc, variation) => {
+    return acc + variation.weight;
+  }, 0);
+  if (!totalWeight) {
+    const weight = 100 / variations.length;
+    variations.forEach((variation) => (variation.weight = weight));
+  } else {
+    variations.forEach((variation) => (variation.weight = (variation.weight / totalWeight) * 100));
+  }
+}
+
+export function getBucketingSeed(userId, campaign, groupId) {
+  if (groupId) {
+    return `${groupId}_${userId}`;
+  }
+  return `${campaign.id}_${userId}`;
 }

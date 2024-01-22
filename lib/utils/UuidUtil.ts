@@ -13,6 +13,9 @@ export function getRandomUUID(apiKey: string): string {
 }
 
 export function getUUID(userId: string, accountId: string): string {
+  // type case userId to string
+  userId = String(userId);
+  accountId = String(accountId);
   const userIdNamespace = generateUUID(accountId, VWO_NAMESPACE);
   const uuidForUserIdAccountId = generateUUID(userId, userIdNamespace);
 

@@ -15,8 +15,11 @@
  */
 
 import * as Hasher from 'murmurHash';
+import { getBucketingSeed } from '../../utils/CampaignUtil';
+import { LogManager } from '../../modules/logger';
 
 const SEED_VALUE = 1;
+const MAX_TRAFFIC_VALUE = 10000;
 
 export class DecisionMaker {
   /**
@@ -47,17 +50,6 @@ export class DecisionMaker {
   getBucketValueForUser(hashKey: string, maxValue = 100): number {
     const hashValue = Hasher.v3(hashKey, SEED_VALUE);
     const bucketValue = this.generateBucketValue(hashValue, maxValue);
-
-    // logger.log(
-    //   LogLevelEnum.DEBUG,
-    //   LogMessageUtil.build(LogMessageEnum.DEBUG_MESSAGES.USER_HASH_BUCKET_VALUE, {
-    //     file: FileNameEnum.BucketingService,
-    //     hashValue,
-    //     bucketValue,
-    //     userId
-    //   })
-    // );
-
     return bucketValue;
   }
 

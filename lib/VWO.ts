@@ -22,7 +22,7 @@ export class VWO {
       .initPolling()
       // .getSettings()
       // .setAnalyticsCallback()
-
+    
     return this.vwoBuilder.getSettings().then(settings => {
       return this.vwoBuilder.build(settings);
     })

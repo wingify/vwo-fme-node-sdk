@@ -19,6 +19,7 @@ import { isString, isObject, getType, isBoolean, isNumber, isUndefined, isArray,
 import { buildMessage } from './utils/LogMessageUtil';
 import { cloneObject } from './utils/FunctionUtil';
 import { Deferred } from './utils/PromiseUtil';
+import UrlService from './services/UrlService';
 
 interface IVWOClient {
   // readonly apiKey: string;
@@ -30,7 +31,7 @@ interface IVWOClient {
 
   // getSettings(force: boolean): SettingsModel | Promise<SettingsModel>;
 
-  getFlag(featureKey: string): Record<any, any>;
+  getFlag(featureKey: string, context: any): Record<any, any>;
   getVariable(featureKey: string, variableSpecifier: dynamic, key?: string): Promise<VariableModel>;
   getVariables(featureKey: string): Promise<Array<VariableModel>>;
 
@@ -63,6 +64,7 @@ export class VWOClient implements IVWOClient {
     // LogManager.Instance.debug(`VWO Client initialized with userId:${userId}`);
 
     this.settings = settings;
+    UrlService.init({ collectionPrefix: this.settings.collectionPrefix });
     LogManager.Instance.info('VWO Client initialized');
     return this;
   }
@@ -224,7 +226,7 @@ export class VWOClient implements IVWOClient {
     }
   } */
 
-  getFlag(featureKey: string): Record<any, any> {
+  getFlag(featureKey: string, context: any): Record<any, any> {
     const apiName = 'getFlag';
     const deferredObject = new Deferred();
 
@@ -242,13 +244,13 @@ export class VWOClient implements IVWOClient {
         throw new TypeError('TypeError: variableSpecifier should be a string');
       }
 
-      if (!this.settings) { // || !new SettingsSchema().isSettingsValid(this.settings)) {
+      if (!this.settings ) {//|| !new SettingsSchema().isSettingsValid(this.settings)) {
         LogManager.Instance.debug(`settings are not valid. Got ${getType(this.settings)}`);
         throw new Error('Invalid Settings');
       }
 
       new FlagApi()
-        .get(featureKey, this.settings, 'userid')
+        .get(featureKey, this.settings, context.user)
         .then((data: any) => {
           deferredObject.resolve(data);
         });

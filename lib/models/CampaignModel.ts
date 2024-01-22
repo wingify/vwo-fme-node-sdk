@@ -60,11 +60,10 @@ export class CampaignModel {
     }
 
     if (
-      // (campaign.m && campaign.m.constructor === {}.constructor) ||
-      campaign.metrics.constructor === {}.constructor) {
+      campaign.metrics && campaign.metrics.constructor === {}.constructor) {
       this.metrics = [];
     } else {
-      const metricsList: Array<MetricModel> = campaign.metrics; // campaign.m ||
+      const metricsList: Array<MetricModel> = campaign.metrics || [];
       metricsList.forEach((metric: any) => {
         this.metrics.push(new MetricModel().modelFromDictionary(metric));
       });

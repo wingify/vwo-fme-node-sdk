@@ -1,8 +1,17 @@
 import { getUUID } from './UuidUtil';
-import { getRandomNumber, getCurrentUnixTimestamp } from './FunctionUtil';
+import { getRandomNumber, getCurrentUnixTimestamp, getCurrentUnixTimestampInMillis } from './FunctionUtil';
 
 import { dynamic } from '../types/common';
 import { Constants } from '../constants';
+import { SettingsModel } from '../models/SettingsModel';
+import UrlService from '../services/UrlService';
+import { UrlEnum } from '../enums/UrlEnum';
+import { LogManager } from '../modules/logger';
+import { EventEnum } from '../enums/EventEnum';
+import { NetworkManager } from '../modules/networking';
+import { RequestModel } from '../modules/networking';
+import { HTTPS_PROTOCOL } from '../constants/url';
+import { ResponseModel } from '../modules/networking';
 
 
 export class NetworkUtil {
@@ -48,4 +57,126 @@ export class NetworkUtil {
 
     return path;
   }
+
+  /**
+   * Builds generic properties for different tracking calls required by VWO servers.
+   * @param {Object} configObj
+   * @param {String} eventName
+   * @returns properties
+   */
+  getEventsBaseProperties(setting: any, eventName, visitorUserAgent = '', userIpAddress = ''): any {
+    const sdkKey = setting.sdkKey;
+
+    let properties = Object.assign(
+      {
+        en: eventName,
+        a: setting.accountId,
+        env: sdkKey,
+        eTime: getCurrentUnixTimestampInMillis(),
+        random: getRandomNumber(),
+        p: 'FS',
+        visitor_ua: visitorUserAgent,
+        visitor_ip: userIpAddress
+      }
+    );
+
+    properties.url = Constants.HTTPS_PROTOCOL + UrlService.getBaseUrl() + UrlEnum.EVENTS;
+    return properties;
+  }
+
+  /**
+   * Builds generic payload required by all the different tracking calls.
+   * @param {Object} settings   settings file
+   * @param {String} userId     user id
+   * @param {String} eventName  event name
+   * @returns properties
+   */
+  getEventBasePayload(settings: any, userId: any, eventName: string) {
+    const uuid = getUUID(userId, settings.accountId);
+    const sdkKey = settings.sdkKey;
+
+    let props: {
+      vwo_sdkName: string;
+      vwo_sdkVersion: string;
+      vwo_envKey: any;
+      id?: any,
+      variation?: any,
+      isFirst?: any;
+    } = {
+      vwo_sdkName: Constants.SDK_NAME,
+      vwo_sdkVersion: Constants.SDK_VERSION,
+      vwo_envKey: sdkKey
+    };
+
+    let properties = {
+      d: {
+        msgId: `${uuid}-${getCurrentUnixTimestampInMillis()}`,
+        visId: uuid,
+        sessionId: getCurrentUnixTimestamp(),
+        event: {
+          props: props,
+          name: eventName,
+          time: getCurrentUnixTimestampInMillis()
+        },
+        visitor: {
+          props: {
+            vwo_fs_environment: sdkKey
+          }
+        }
+      }
+    };
+
+    return properties;
+  }
+
+  /**
+   * Builds payload to track the visitor.
+   * @param {Object} configObj
+   * @param {String} userId
+   * @param {String} eventName
+   * @param {String} campaignId
+   * @param {Number} variationId
+   * @returns track-user payload
+   */
+  getTrackUserPayloadData(settings: any, userId: any, eventName: string, campaignId: any, variationId: any) {
+    const properties = this.getEventBasePayload(settings, userId, eventName);
+
+    properties.d.event.props.id = campaignId;
+    properties.d.event.props.variation = variationId;
+    properties.d.event.props.isFirst = 1;
+
+    LogManager.Instance.debug(
+      `IMPRESSION_FOR_EVENT_ARCH_TRACK_USER: Impression built for vwo_variationShown event for Account ID:${settings.accountId}, User ID:${userId}, and Campaign ID:${campaignId}`);
+
+    return properties;
+  }
+
+  /**
+ * Get variation and send post call
+ * @param settings     settingsFile
+ * @param ruleToTrack  rule to track
+ * @param user         user object
+ * @returns
+ */
+createaAndSendPostApiRequest(settings: any, campaign: any, user: any, variation: any) {
+  const properties = this.getEventsBaseProperties(
+    settings,
+    EventEnum.VWO_VARIATION_SHOWN,
+    user.userAgent,
+    user.userIpAddress,
+  );
+  const payload = this.getTrackUserPayloadData(
+    settings,
+    user.id,
+    EventEnum.VWO_VARIATION_SHOWN,
+    campaign.id,
+    variation.id,
+  );
+  console.log('payload', JSON.stringify(payload));
+  NetworkManager.Instance.attachClient();
+  const request: RequestModel = new RequestModel(UrlService.getBaseUrl(), UrlEnum.EVENTS, properties, payload, null, null);
+  NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
+    console.log('error', err);
+  });
+};
 }

@@ -3,7 +3,7 @@ import { Storage } from './modules/storage';
 import { LogManager } from './modules/logger';
 
 import { FlagApi } from './api/GetFlag';
-// import { Track } from './api/track';
+import { TrackApi } from './api/Track';
 
 // import { VWOBuilder } from './VWOBuilder';
 import { SettingsModel } from './models/SettingsModel';
@@ -34,6 +34,7 @@ interface IVWOClient {
   getFlag(featureKey: string, context: any): Record<any, any>;
   getVariable(featureKey: string, variableSpecifier: dynamic, key?: string): Promise<VariableModel>;
   getVariables(featureKey: string): Promise<Array<VariableModel>>;
+  track(eventName: string, context: any, eventProperties: Record<string, dynamic>): Promise<Record<string, boolean>>;
 
   // flushEvents(): Promise<Record<string, dynamic>>;
 
@@ -343,13 +344,12 @@ export class VWOClient implements IVWOClient {
     }
   }
 
-  /* track(
+  track(
     eventName: string,
-    eventProperties: Record<string, dynamic> = {},
-    campaignKey?: string | Array<string> | null | undefined
+    context: any,
+    eventProperties: Record<string, dynamic> = {}
   ): Promise<Record<string, boolean>> {
     const apiName = 'track';
-
     try {
       LogManager.Instance.debug(
         buildMessage(DebugLogMessageEnum.API_CALLED, {
@@ -366,20 +366,19 @@ export class VWOClient implements IVWOClient {
         LogManager.Instance.debug(
           `eventProperties passed to track API is not of valid type. Got ${getType(eventProperties)}`
         );
-        throw new TypeError('TypeError: eventProperties should be an object');
+        // throw new TypeError('TypeError: eventProperties should be an object');
       }
 
-      if (!this.settings || !new SettingsSchema().isSettingsValid(this.settings)) {
+      if (!this.settings ) {// || !new SettingsSchema().isSettingsValid(this.settings)) {
         LogManager.Instance.debug(`settings are not valid. Got ${getType(this.settings)}`);
         throw new Error('Invalid Settings');
       }
 
-      return new Track().trackEvent(
-        eventName,
-        eventProperties,
-        this.user.getUser(),
+      return new TrackApi().track(
         this.settings,
-        campaignKey
+        eventName,
+        context,
+        eventProperties,
       );
     } catch (err) {
       LogManager.Instance.error(
@@ -389,5 +388,5 @@ export class VWOClient implements IVWOClient {
         })
       );
     }
-  } */
+  }
 }

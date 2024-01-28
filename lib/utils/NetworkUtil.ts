@@ -12,13 +12,13 @@ import { NetworkManager } from '../modules/networking';
 import { RequestModel } from '../modules/networking';
 import { HTTPS_PROTOCOL } from '../constants/url';
 import { ResponseModel } from '../modules/networking';
-
+import { isObject } from './DataTypeUtil';
 
 export class NetworkUtil {
   getBasePropertiesForBulk(accountId: string, userId: string): Record<string, dynamic> {
     const path: Record<string, dynamic> = {
       sId: getCurrentUnixTimestamp(),
-      u: getUUID(userId, accountId)
+      u: getUUID(userId, accountId),
     };
     return path;
   }
@@ -26,7 +26,7 @@ export class NetworkUtil {
   getSettingsPath(apikey: string): Record<string, dynamic> {
     const path: Record<string, dynamic> = {
       i: `${apikey}`,
-      r: Math.random()
+      r: Math.random(),
     };
     return path;
   }
@@ -42,7 +42,7 @@ export class NetworkUtil {
       random: getRandomNumber(),
       ap: Constants.AP,
       sId: getCurrentUnixTimestamp(),
-      ed: JSON.stringify({ p: 'server' })
+      ed: JSON.stringify({ p: 'server' }),
     };
 
     return path;
@@ -52,7 +52,7 @@ export class NetworkUtil {
     const path: Record<string, dynamic> = {
       a: accountId,
       sd: Constants.SDK_NAME,
-      sv: Constants.SDK_VERSION
+      sv: Constants.SDK_VERSION,
     };
 
     return path;
@@ -67,18 +67,16 @@ export class NetworkUtil {
   getEventsBaseProperties(setting: any, eventName, visitorUserAgent = '', userIpAddress = ''): any {
     const sdkKey = setting.sdkKey;
 
-    let properties = Object.assign(
-      {
-        en: eventName,
-        a: setting.accountId,
-        env: sdkKey,
-        eTime: getCurrentUnixTimestampInMillis(),
-        random: getRandomNumber(),
-        p: 'FS',
-        visitor_ua: visitorUserAgent,
-        visitor_ip: userIpAddress
-      }
-    );
+    let properties = Object.assign({
+      en: eventName,
+      a: setting.accountId,
+      env: sdkKey,
+      eTime: getCurrentUnixTimestampInMillis(),
+      random: getRandomNumber(),
+      p: 'FS',
+      visitor_ua: visitorUserAgent,
+      visitor_ip: userIpAddress,
+    });
 
     properties.url = Constants.HTTPS_PROTOCOL + UrlService.getBaseUrl() + UrlEnum.EVENTS;
     return properties;
@@ -99,13 +97,14 @@ export class NetworkUtil {
       vwo_sdkName: string;
       vwo_sdkVersion: string;
       vwo_envKey: any;
-      id?: any,
-      variation?: any,
-      isFirst?: any;
+      id?: any;
+      variation?: any;
+      isFirst?: any,
+      isCustomEvent?: boolean;
     } = {
       vwo_sdkName: Constants.SDK_NAME,
       vwo_sdkVersion: Constants.SDK_VERSION,
-      vwo_envKey: sdkKey
+      vwo_envKey: sdkKey,
     };
 
     let properties = {
@@ -116,14 +115,14 @@ export class NetworkUtil {
         event: {
           props: props,
           name: eventName,
-          time: getCurrentUnixTimestampInMillis()
+          time: getCurrentUnixTimestampInMillis(),
         },
         visitor: {
           props: {
-            vwo_fs_environment: sdkKey
-          }
-        }
-      }
+            vwo_fs_environment: sdkKey,
+          },
+        },
+      },
     };
 
     return properties;
@@ -146,37 +145,42 @@ export class NetworkUtil {
     properties.d.event.props.isFirst = 1;
 
     LogManager.Instance.debug(
-      `IMPRESSION_FOR_EVENT_ARCH_TRACK_USER: Impression built for vwo_variationShown event for Account ID:${settings.accountId}, User ID:${userId}, and Campaign ID:${campaignId}`);
+      `IMPRESSION_FOR_EVENT_ARCH_TRACK_USER: Impression built for vwo_variationShown event for Account ID:${settings.accountId}, User ID:${userId}, and Campaign ID:${campaignId}`,
+    );
 
     return properties;
   }
 
-  /**
- * Get variation and send post call
- * @param settings     settingsFile
- * @param ruleToTrack  rule to track
- * @param user         user object
- * @returns
- */
-createaAndSendPostApiRequest(settings: any, campaign: any, user: any, variation: any) {
-  const properties = this.getEventsBaseProperties(
-    settings,
-    EventEnum.VWO_VARIATION_SHOWN,
-    user.userAgent,
-    user.userIpAddress,
-  );
-  const payload = this.getTrackUserPayloadData(
-    settings,
-    user.id,
-    EventEnum.VWO_VARIATION_SHOWN,
-    campaign.id,
-    variation.id,
-  );
-  console.log('payload', JSON.stringify(payload));
-  NetworkManager.Instance.attachClient();
-  const request: RequestModel = new RequestModel(UrlService.getBaseUrl(), UrlEnum.EVENTS, properties, payload, null, null);
-  NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
-    console.log('error', err);
-  });
-};
+  getTrackGoalPayloadData(settings: any, userId: any, eventName: string, eventProperties: any) {
+    const properties = this.getEventBasePayload(settings, userId, eventName);
+    properties.d.event.props.isCustomEvent = true;
+
+    if (eventProperties && isObject(eventProperties) && Object.keys(eventProperties).length > 0) {
+      for (const prop in eventProperties) {
+        properties.d.event.props[prop] = eventProperties[prop];
+      }
+    }
+
+    LogManager.Instance.debug(
+      `IMPRESSION_FOR_EVENT_ARCH_TRACK_GOAL: Impression built for ${eventName} event for Account ID:${settings.accountId}, User ID:${userId}`,
+    );
+
+    return properties;
+  }
+
+  sendPostApiRequest(properties: any, payload: any) {
+    NetworkManager.Instance.attachClient();
+    const request: RequestModel = new RequestModel(
+      UrlService.getBaseUrl(),
+      UrlEnum.EVENTS,
+      properties,
+      payload,
+      null,
+      null,
+    );
+    request.setPort(443);
+    NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
+      console.log('error', err);
+    });
+  }
 }

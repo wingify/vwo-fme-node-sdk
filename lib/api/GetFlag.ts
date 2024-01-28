@@ -10,11 +10,6 @@ import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
 import { NetworkUtil } from '../utils/NetworkUtil';
 import { EventEnum } from '../enums/EventEnum';
 import { isObject } from '../utils/DataTypeUtil';
-import { RequestModel } from '../modules/networking/models/requestModel';
-import { NetworkManager, ResponseModel } from '../modules/networking';
-import { HTTPS_PROTOCOL } from '../constants/url';
-import { UrlEnum } from '../enums/UrlEnum';
-import UrlService from '../services/UrlService';
 import { LogManager } from '../modules/logger';
 
 interface IGetFlag {
@@ -97,15 +92,16 @@ export class FlagApi implements IGetFlag {
         const variation = evaluateTrafficAndGetVariation(settings, campaign, user.id);
         variationToReturn = variation;
         if (isObject(variation) && Object.keys(variation).length > 0) {
-          new NetworkUtil().createaAndSendPostApiRequest(settings, campaign, user, variation);
+          createImpressionForVariationShown(settings, campaign, user, variation);
         }
       }
     }
 
     deferredObject.resolve({
       isEnabled: isEnabled,
-      getVariation: () => variationToReturn,
       getVariables: () => variationToReturn?.variables,
+      getVariable: (key: string, defaultValue: string) => // loop over all variables object and return the value where key is equal to given key else return given default value
+        variationToReturn?.variables.find((variable) => variable.key === key)?.value || defaultValue,
     });
 
     return deferredObject.promise;
@@ -132,8 +128,25 @@ const evaluateRule = async (settings: any, rule: any, user: any): Promise<[Boole
 
   // if pre segmentation result is true and whitelisted object is present, then send post call
   if (preSegmentationResult && isObject(whitelistedObject) && Object.keys(whitelistedObject).length > 0) {
-    const campaign = new CampaignModel().modelFromDictionary(rule);
-    new NetworkUtil().createaAndSendPostApiRequest(settings, campaign, user, whitelistedObject.variation);
+    createImpressionForVariationShown(settings, campaign, user, whitelistedObject.variation);
   }
   return [preSegmentationResult, whitelistedObject];
 };
+
+const createImpressionForVariationShown = async (settings: any, campaign: any, user: any, variation: any) => {
+  const networkUtil = new NetworkUtil();
+  const properties =networkUtil.getEventsBaseProperties(
+    settings,
+    EventEnum.VWO_VARIATION_SHOWN,
+    user.userAgent,
+    user.userIpAddress,
+  );
+  const payload = networkUtil.getTrackUserPayloadData(
+    settings,
+    user.id,
+    EventEnum.VWO_VARIATION_SHOWN,
+    campaign.id,
+    variation.id,
+  );
+  // networkUtil.sendPostApiRequest(properties, payload);
+}

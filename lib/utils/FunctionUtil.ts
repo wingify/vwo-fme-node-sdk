@@ -28,3 +28,14 @@ export function getSpecificRulesBasedOnType(settingsFile, featureKey, type = nul
   }
   return feature.rulesLinkedCampaign;
 }
+
+export function eventExists(eventName: string, settings: any): boolean {
+  for (const feature of settings.features) {
+    for (const metric of feature.metrics) {
+      if (metric.eventName === eventName) {
+        return true;
+      }
+    }
+  }
+  return false;
+}

@@ -32,6 +32,6 @@ const createImpressionForTrack = async (settings: any, eventName: string, user: 
       eventName,
       eventProperties
     );
-    console.log('track payload is ', JSON.stringify(payload));
+    // console.log('track payload is ', JSON.stringify(payload));
     // networkUtil.sendPostApiRequest(properties, payload);
   }

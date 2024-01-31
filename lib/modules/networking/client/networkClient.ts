@@ -115,7 +115,7 @@ export class NetworkClient implements NetworkClientInterface {
         deferred.reject(responseModel);
       });
 
-      req.write(request.getBody());
+      req.write(JSON.stringify(networkOptions.body));
       req.end();
     } catch (err) {
       responseModel.setError(err);

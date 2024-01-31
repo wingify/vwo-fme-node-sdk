@@ -1,3 +1,7 @@
+const express = require('express');
+const app = express();
+const port = 4000;
+
 const vwo = require('../dist');
 
 async function start() {
@@ -7,8 +11,11 @@ async function start() {
   // settingsFIle -> rollout rule whitelisting pass, ab will fail with value abhishek, and will pass with value abhishek132
   const getFlag = await vwoClient.getFlag('feature-key', {user: {id: 'av1', customVariables: {name: 'abhishek123'}, variationTargetingVariables: {name: 'abhishek'}}});
   console.log('Flag: ', getFlag.getVariable('STRING_VARIABLE', 'abhishek'));
-  vwoClient.track('addToCart', context, {revenueValue: 100, name: "abhishke"});
+  // vwoClient.track('addToCart', context, {revenueValue: 100, name: "abhishke"});
 
+  return {
+    getFlag
+  };
   // settingsFIle 1 -> no rollout rules enabled as status for all rules are off
   // console.log('Flag: ', await vwoClient.getFlag('feature-key-2', {user: {id: 'ab4', customVariables: {name: 'abhishek123'}, variationTargetingVariables: {name: 'abhishek'}}}));
 
@@ -17,4 +24,12 @@ async function start() {
   //const result = await vwoClient.getFlag('feature-key-2', {user: {id: 'ab4', customVariables: {name: 'abhishek'}, variationTargetingVariables: {name: 'marvel'}}});
 }
 
-start();
+// respond with "hello world" when a GET request is made to the homepage
+app.get('/', async (req, res) => {
+  const result = await start();
+  res.send(result);
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+});

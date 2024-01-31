@@ -120,6 +120,7 @@ const evaluateRule = async (settings: any, rule: any, user: any): Promise<[Boole
   campaign.modelFromDictionary(rule);
   // check for whitelisting and pre segmentation
   const [preSegmentationResult, whitelistedObject] = await checkWhitelistingAndPreSeg(
+    settings,
     campaign,
     user.id,
     user.customVariables,
@@ -148,5 +149,5 @@ const createImpressionForVariationShown = async (settings: any, campaign: any, u
     campaign.id,
     variation.id,
   );
-  // networkUtil.sendPostApiRequest(properties, payload);
+  networkUtil.sendPostApiRequest(properties, payload);
 }

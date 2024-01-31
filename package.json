@@ -5,7 +5,8 @@
   "scripts": {
     "check:versions": "node -e 'require(\"./scripts/check-versions\")'",
     "tsc": "yarn check:versions && tsc -w",
-    "example": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules example/index.js"
+    "example": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules example/index.js",
+    "example:server": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules example/server.js"
   },
   "repository": {
     "type": "git",
@@ -31,7 +32,8 @@
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
-    "nodemon": "^3.1.0",
+    "express": "^4.19.2",
+    "nodemon": "^2.0.6",
     "prettier": "^3.2.5",
     "semver": "^7.6.0",
     "shelljs": "^0.8.5",

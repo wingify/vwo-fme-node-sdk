@@ -7,6 +7,7 @@ export class CampaignModel {
   private id: number;
   private segments: Record<string, dynamic>;
   private percentTraffic: number;
+  private isUserListEnabled: boolean;
   // private autoActivate: boolean;
   // private autoTrack: boolean;
   private key: string;
@@ -86,6 +87,7 @@ export class CampaignModel {
     //     ? !campaign.iMTRE
     //     : !campaign.isManualTrackingEnabled;
     this.isForcedVariationEnabled = campaign.isForcedVariationEnabled; // campaign.iFVE ||
+    this.isUserListEnabled = campaign.isUserListEnabled; // campaign.iULE ||
     this.segments = campaign.segments;
     this.key = campaign.key; // campaign.k ||
     // this.priority = campaign.pr || campaign.priority;
@@ -125,6 +127,10 @@ export class CampaignModel {
 
   getIsForcedVariationEnabled(): boolean {
     return this.isForcedVariationEnabled;
+  }
+
+  getIsUserListEnabled(): boolean {
+    return this.isUserListEnabled;
   }
 
   // getAutoTrack(): boolean {

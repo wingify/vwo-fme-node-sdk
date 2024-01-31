@@ -81,6 +81,7 @@ export class SettingsManager implements ISettingsManager {
 
     const request: RequestModel = new RequestModel(
       Constants.HOST_NAME,
+      'GET',
       Constants.SETTINTS_ENDPOINT,
       options,
       null,
@@ -92,16 +93,7 @@ export class SettingsManager implements ISettingsManager {
     networkInstance
       .get(request)
       .then((response: ResponseModel) => {
-        const settingsFile: any = response.getData() as any;
-        for (let i = 0; i < settingsFile.campaigns.length; i++) {
-          let campaign = settingsFile.campaigns[i];
-          let campaignModel = new CampaignModel();
-          campaignModel.modelFromDictionary(campaign);
-          setVariationAllocation(campaignModel);
-          settingsFile.campaigns[i] = campaignModel;
-        }
-        this.addLInkedCampaignsToSettings(settingsFile);
-        deferredObject.resolve(settingsFile);
+        deferredObject.resolve(response.getData());
       })
       .catch((err: ResponseModel) => {
         deferredObject.reject(err);

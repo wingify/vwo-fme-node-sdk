@@ -172,13 +172,14 @@ export class NetworkUtil {
     NetworkManager.Instance.attachClient();
     const request: RequestModel = new RequestModel(
       UrlService.getBaseUrl(),
+      'POST',
       UrlEnum.EVENTS,
       properties,
       payload,
       null,
       null,
     );
-    request.setPort(443);
+    request.setPort(80);
     NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
       console.log('error', err);
     });

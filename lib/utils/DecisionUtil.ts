@@ -12,20 +12,19 @@ import { CampaignModel } from '../models/CampaignModel';
 import { VariationModel } from '../models/VariationModel'; // Import the missing VariationModel type
 
 export const checkWhitelistingAndPreSeg = async (
+  settings: any,
   campaign: CampaignModel,
   userId: any,
   customVariables: any,
   variationTargetingVariables: any,
 ): Promise<[Boolean, any]> => {
 
-  /*
-  let status: StatusEnum;
-  let vwoUserId = getUUID(userId, settingsFile.accountId);
+  let vwoUserId = getUUID(userId, settings.accountId);
 
   variationTargetingVariables = Object.assign({}, variationTargetingVariables, {
-    _vwoUserId: campaign.isUserListEnabled() ? vwoUserId : userId,
+    _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : userId,
   });
-  */
+  
 
   // check if the campaign satisfies the whitelisting
   if (campaign.getIsForcedVariationEnabled()) {

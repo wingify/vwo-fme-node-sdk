@@ -4,6 +4,7 @@ const HTTP = 'http';
 
 export class RequestModel {
   private url: string;
+  private method: string;
   private scheme: string;
   private port: number;
   private path: string;
@@ -14,6 +15,7 @@ export class RequestModel {
 
   constructor(
     url: string,
+    method: string = 'GET',
     path: string,
     query: Record<string, dynamic>,
     body: Record<string, dynamic>,
@@ -27,6 +29,15 @@ export class RequestModel {
     this.headers = headers;
     this.scheme = scheme;
     this.port = 3000; // TODO: remove
+    this.method = method;
+  }
+
+  getMethod(): string {
+    return this.method;
+  }
+
+  setMethod(method: string): void {
+    this.method = method;
   }
 
   getBody(): Record<string, dynamic> {
@@ -119,6 +130,20 @@ export class RequestModel {
     if (this.headers) {
       options.headers = this.headers;
     }
+
+    if (this.method) {
+      options.method = this.method;
+    }
+
+    if (this.body) {
+      const postBody = JSON.stringify(this.body);
+      options.headers = {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postBody),
+      };
+      options.body = this.body;
+    }
+
     if (this.path) {
       if (queryParams !== '') {
         options.path = this.path + '?' + queryParams || '';

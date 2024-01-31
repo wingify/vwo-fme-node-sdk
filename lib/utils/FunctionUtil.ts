@@ -39,3 +39,37 @@ export function eventExists(eventName: string, settings: any): boolean {
   }
   return false;
 }
+
+export function addLInkedCampaignsToSettings(settingsFile: any): void {
+  // loop over all features
+  for (const feature of settingsFile.features) {
+    const { rules } = feature;
+    const campaigns = settingsFile.campaigns;
+    const rulesLinkedCampaign = [];
+
+    // loop over all rules of a feature
+    for (const rule of rules) {
+      const { campaignId, variationId } = rule;
+      if (campaignId) {
+        // find the campaign with the given campaignId
+        const campaign = campaigns.find((c) => c.id === campaignId);
+        if (campaign) {
+          // create a linked campaign object with the rule and campaign
+          const linkedCampaign = { key: campaign.key, ...rule, ...campaign };
+
+          if (variationId) {
+            // find the variation with the given variationId
+            const variation = campaign.variations.find((v) => v.id === variationId);
+            if (variation) {
+              // add the variation to the linked campaign
+              linkedCampaign.variations = [variation];
+            }
+          }
+          // add the linked campaign to the rulesLinkedCampaign array
+          rulesLinkedCampaign.push(linkedCampaign);
+        }
+      }
+    }
+    feature.rulesLinkedCampaign = rulesLinkedCampaign;
+  }
+}

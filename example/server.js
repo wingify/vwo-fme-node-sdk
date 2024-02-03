@@ -6,7 +6,7 @@ const vwo = require('../dist');
 
 async function start() {
   let context = {user: {id: "abhishek"}};
-  const vwoClient = await vwo.init({ sdkKey: 'abc'});
+  const vwoClient = await vwo.init({ sdkKey: 'abc', storage: storageConnector});
 
   // settingsFIle -> rollout rule whitelisting pass, ab will fail with value abhishek, and will pass with value abhishek132
   const getFlag = await vwoClient.getFlag('feature-key', {user: {id: 'av1', customVariables: {name: 'abhishek123'}, variationTargetingVariables: {name: 'abhishek'}}});
@@ -33,3 +33,35 @@ app.get('/', async (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 });
+
+class storageConnector {
+  constructor() {
+    this.map = {}
+  }
+
+  async get(featureKey, userId) {
+    console.log('stored data: ', featureKey, userId);
+    debugger
+    return new Promise((resole, reject) => {
+      resolve(this.map[featureKey + '_' + userId]);
+    });
+  }
+
+  async set(data) {
+    console.log('data to store: ', data);
+    debugger
+    return new Promise((resole, reject) => {
+      this.map = {
+        [data.featureKey + '_' + data.user]: {
+          rolloutKey: data.rolloutKey,
+          rolloutVariationId: data.rolloutVariationId,
+          experimentKey: data.experimentKey,
+          experimentVariationId: data.experimentVariationId
+        }
+      }
+
+      resolve(true);
+    });
+
+  }
+}

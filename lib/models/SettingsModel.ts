@@ -45,6 +45,10 @@ export class SettingsModel {
     return this.features;
   }
 
+  getCampaigns(): Array<CampaignModel> {
+    return this.campaigns;
+  }
+
   getSdkkey(): string {
     return this.sdkKey;
   }

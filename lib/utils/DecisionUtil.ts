@@ -1,5 +1,5 @@
 import { LogManager } from '../modules/logger';
-import { StatusEnum } from '../enums/statusEnum';
+import { StatusEnum } from '../enums/StatusEnum';
 import { isObject } from '../utils/DataTypeUtil';
 import { SegmentEvaluator } from '../modules/segmentor';
 import { getUUID } from './UuidUtil';
@@ -24,7 +24,7 @@ export const checkWhitelistingAndPreSeg = async (
   variationTargetingVariables = Object.assign({}, variationTargetingVariables, {
     _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : userId,
   });
-  
+
 
   // check if the campaign satisfies the whitelisting
   if (campaign.getIsForcedVariationEnabled()) {
@@ -43,7 +43,7 @@ export const checkWhitelistingAndPreSeg = async (
     );
   }
 
-  // check for campaign pre segmentation 
+  // check for campaign pre segmentation
   const preSegmentationResult = await new CampaignDecisionService().getDecision(campaign, userId, customVariables);
   return [preSegmentationResult, null];
 };
@@ -54,7 +54,7 @@ export const checkWhitelistingAndPreSeg = async (
  * @param campaignKey   Campaign key
  * @param userId        User ID
  * @param variationTargetingVariables   Variation targeting variables
- * @returns 
+ * @returns
  */
 const checkForWhitelisting = async (
   campaign: any,

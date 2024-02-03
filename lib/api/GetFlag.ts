@@ -10,7 +10,12 @@ import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
 import { NetworkUtil } from '../utils/NetworkUtil';
 import { EventEnum } from '../enums/EventEnum';
 import { isObject } from '../utils/DataTypeUtil';
+import { getCampaignVariation, getRolloutVariation } from '../utils/CampaignUtil';
 import { LogManager } from '../modules/logger';
+import { StorageDecorator } from '../decorators/StorageDecorator';
+import { StorageService } from '../services/StorageService';
+import { VariationModel } from '../models/VariationModel';
+import { VariableModel } from '../models/VariableModel';
 
 interface IGetFlag {
   get(featureKey: string, settings: SettingsModel, user: any): Promise<FeatureModel>;
@@ -19,8 +24,45 @@ interface IGetFlag {
 export class FlagApi implements IGetFlag {
   async get(featureKey: string, settings: SettingsModel, user: any): Promise<FeatureModel> {
     let isEnabled = false;
-    let variationToReturn = null;
+    let rolloutVariationToReturn = null;
+    let expVariationToReturn = null;
     const deferredObject = new Deferred();
+
+    const storageService = new StorageService();
+    const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(featureKey, user, storageService);
+
+    if (storedData?.experimentVariationId) {
+      if (storedData.campaignKey) {
+        const variation:VariationModel = getCampaignVariation(settings, storedData.campaignKey, storedData.variationId);
+
+        if (variation) {
+          deferredObject.resolve({
+            isEnabled: isEnabled,
+            getVariables: () => variation?.getVariables(),
+            getVariable: (key: string, defaultValue: string) => // loop over all variables object and return the value where key is equal to given key else return given default value
+            variation?.getVariables().find((variable) => (new VariableModel().modelFromDictionary(variable)).getKey() === key)?.getValue() || defaultValue,
+          });
+
+          return deferredObject.promise;
+        }
+      }
+    } else if (storedData?.rolloutKey && storedData.rolloutId) {
+        const variation:VariationModel = getRolloutVariation(settings, storedData.rolloutKey, storedData.rolloutVariationId);
+
+        if (variation) {
+          deferredObject.resolve({
+            isEnabled: isEnabled,
+            getVariables: () => variation?.getVariables(),
+            getVariable: (key: string, defaultValue: string) => // loop over all variables object and return the value where key is equal to given key else return given default value
+            variation?.getVariables().find((variable) => (new VariableModel().modelFromDictionary(variable)).getKey() === key)?.getValue() || defaultValue,
+          });
+
+          return deferredObject.promise;
+        }
+      }
+
+
+
     // if no rollout rules are present, then check for AB
     let shouldCheckForAB = false;
     let ruleToTrack = [];
@@ -46,8 +88,15 @@ export class FlagApi implements IGetFlag {
               // this means user is part of the campaign but is not yet tracked
               ruleToTrack.push(rule);
             } else {
-              variationToReturn = rollOutVariation.variation;
+              rolloutVariationToReturn = rollOutVariation.variation;
             }
+
+            new StorageDecorator().setDataInStorage({
+              featureKey,
+              user,
+              rolloutKey: rule.key,
+              rolloutVariationId: rolloutVariationToReturn.id
+            }, storageService);
             break;
           }
           // if not, then continue to check for other rules
@@ -74,7 +123,7 @@ export class FlagApi implements IGetFlag {
               // this means user is part of the campaign but is not yet tracked
               ruleToTrack.push(rule);
             } else {
-              variationToReturn = experimentVariation.variation;
+              expVariationToReturn = experimentVariation.variation;
             }
             break;
           }
@@ -90,8 +139,16 @@ export class FlagApi implements IGetFlag {
         // get variation and send post call
         const campaign = new CampaignModel().modelFromDictionary(rule);
         const variation = evaluateTrafficAndGetVariation(settings, campaign, user.id);
-        variationToReturn = variation;
+        expVariationToReturn = variation;
         if (isObject(variation) && Object.keys(variation).length > 0) {
+          new StorageDecorator().setDataInStorage({
+            featureKey,
+            user,
+            rolloutKey: rule.key,
+            rolloutVariationId: rolloutVariationToReturn.id,
+            experimentKey: campaign.getKey(),
+            experimentVariationId: expVariationToReturn.id
+          }, storageService);
           createImpressionForVariationShown(settings, campaign, user, variation);
         }
       }
@@ -99,9 +156,9 @@ export class FlagApi implements IGetFlag {
 
     deferredObject.resolve({
       isEnabled: isEnabled,
-      getVariables: () => variationToReturn?.variables,
+      getVariables: () => expVariationToReturn?.variables || rolloutVariationToReturn?.variables,
       getVariable: (key: string, defaultValue: string) => // loop over all variables object and return the value where key is equal to given key else return given default value
-        variationToReturn?.variables.find((variable) => variable.key === key)?.value || defaultValue,
+        (expVariationToReturn?.variables || rolloutVariationToReturn?.variables).find((variable) => variable.key === key)?.value || defaultValue,
     });
 
     return deferredObject.promise;

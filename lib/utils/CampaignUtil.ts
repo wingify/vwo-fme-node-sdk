@@ -93,3 +93,37 @@ export function getBucketingSeed(userId, campaign, groupId) {
   }
   return `${campaign.id}_${userId}`;
 }
+
+export function getCampaignVariation(settings, campaignKey, variationId) {
+  const campaign: CampaignModel = settings.getCampaigns().find((campaign: CampaignModel) => {
+    return campaign.getKey() === campaignKey;
+  });
+
+  if (campaign) {
+    const variation:VariationModel = campaign.getVariations().find((variation: VariationModel) => {
+      return variation.getId() === variationId;
+    });
+
+    if (variation) {
+      return new VariationModel().modelFromDictionary(variation);
+    }
+  }
+  return null;;
+}
+
+export function getRolloutVariation(settings, rolloutKey, variationId) {
+  const rolloutCampaign: CampaignModel = settings.getCampaigns().find((campaign: CampaignModel) => {
+    return campaign.getKey() === rolloutKey;
+  });
+
+  if (rolloutCampaign) {
+    const variation:VariationModel = rolloutCampaign.getVariations().find((variation: VariationModel) => {
+      return variation.getId() === variationId;
+    });
+
+    if (variation) {
+      return new VariationModel().modelFromDictionary(variation);
+    }
+  }
+  return null;;
+}

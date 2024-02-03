@@ -1,5 +1,6 @@
-import { MemoryConnector } from './connectors'; // RedisConnector
+// import { MemoryConnector } from './connectors'; // RedisConnector
 import { dynamic } from '../../types/common';
+import { Connector } from './connector';
 
 // TODO: move to file
 enum ConnectorEnum {
@@ -9,23 +10,24 @@ enum ConnectorEnum {
 
 export class Storage {
   public static instance: Storage;
-  public connector: MemoryConnector; // RedisConnector |
+  public connector: any; // RedisConnector |
   public storageType: dynamic;
 
-  public attachConnector(connector: Record<string, any>): any {
-    this.storageType = connector.name;
+  public attachConnector(connector: any): any {
+    this.storageType = connector?.name;
 
-    switch (connector.name) {
+    this.connector = new connector();
+    // switch (connector.name) {
       // case ConnectorEnum.FILE:
       //   this.connector = new FileConnector(connector.config);
       //   break;
       // case ConnectorEnum.REDIS:
-      //   this.connector = new nnector.config); // RedisConnector(c
+      //   this.connector = new RedisConnector(connector.config);
       //   break;
-      case ConnectorEnum.MEMORY:
-        this.connector = new MemoryConnector(connector.config);
-        break;
-    }
+      // case ConnectorEnum.MEMORY:
+      //   this.connector = new MemoryConnector(connector.config);
+      //   break;
+    // }
 
     return this.connector;
   }
@@ -40,7 +42,7 @@ export class Storage {
     return this.connector.config;
   }
 
-  public getConnector(): MemoryConnector { // RedisConnector |
+  public getConnector(): any { // RedisConnector |
     return this.connector;
   }
 }

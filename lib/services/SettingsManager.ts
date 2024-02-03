@@ -41,18 +41,19 @@ export class SettingsManager implements ISettingsManager {
 
   private fetchSettingsAndCacheInStorage(update = false) {
     const deferredObject = new Deferred();
-    const storageConnector = Storage.Instance.getConnector();
+    // const storageConnector = Storage.Instance.getConnector();
 
     this.fetchSettings()
       .then(async (res) => {
         LogManager.Instance.info('Settings fetched successfully');
 
-        const method = update ? 'update' : 'set';
+        // const method = update ? 'update' : 'set';
 
-        storageConnector[method](Constants.SETTINGS, res).then(() => {
-          LogManager.Instance.info('Settings persisted in cache: memory');
-          deferredObject.resolve(res);
-        });
+        // storageConnector[method](Constants.SETTINGS, res).then(() => {
+        //   LogManager.Instance.info('Settings persisted in cache: memory');
+        //   deferredObject.resolve(res);
+        // });
+        deferredObject.resolve(res);
       })
       .catch((err) => {
         LogManager.Instance.error(`Settings could not be fetched: ${err}`);
@@ -144,24 +145,27 @@ export class SettingsManager implements ISettingsManager {
         deferredObject.resolve(settings);
       });
     } else {
-      const storageConnector = Storage.Instance.getConnector();
+      this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
+        deferredObject.resolve(fetchedSettings);
+      });
+      // const storageConnector = Storage.Instance.getConnector();
 
-      storageConnector
-        .get(Constants.SETTINGS)
-        .then((storedSettings: dynamic) => {
-          if (!isObject(storedSettings)) {
-            this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-              deferredObject.resolve(fetchedSettings);
-            });
-          } else {
-            deferredObject.resolve(storedSettings);
-          }
-        })
-        .catch(() => {
-          this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-            deferredObject.resolve(fetchedSettings);
-          });
-        });
+      // storageConnector
+      //   .get(Constants.SETTINGS)
+      //   .then((storedSettings: dynamic) => {
+      //     if (!isObject(storedSettings)) {
+      //       this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
+      //         deferredObject.resolve(fetchedSettings);
+      //       });
+      //     } else {
+      //       deferredObject.resolve(storedSettings);
+      //     }
+      //   })
+      //   .catch(() => {
+      //     this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
+      //       deferredObject.resolve(fetchedSettings);
+      //     });
+      //   });
     }
 
     return deferredObject.promise;

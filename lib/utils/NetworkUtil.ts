@@ -180,7 +180,11 @@ export class NetworkUtil {
       null,
     );
     request.setPort(80);
-    NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
+    NetworkManager.Instance.post(request)
+    .then(data => {
+      console.log('Request sent to VWO server: ', request)
+    })
+    .catch((err: ResponseModel) => {
       console.log('error', err);
     });
   }

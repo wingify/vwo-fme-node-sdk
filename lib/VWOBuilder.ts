@@ -112,18 +112,11 @@ export class VWOBuilder implements IVWOBuilder {
   }
 
   setStorage(): this {
-    let storageConfig: any = {
-      name: 'memory',
-      config: {
-        maxKeys: 20
-      }
-    };
-
     if (this.options.storage) {
-      storageConfig = this.options.storage;
+      this.storage = Storage.Instance.attachConnector(this.options.storage);
+    } else {
+      this.storage = null;
     }
-
-    this.storage = Storage.Instance.attachConnector(storageConfig);
 
     return this;
   }

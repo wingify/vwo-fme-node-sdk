@@ -1,6 +1,7 @@
 import { VWOBuilder } from './VWOBuilder';
 import { isObject, isString } from './utils/DataTypeUtil';
 import { dynamic } from './types/common';
+import { SettingsModel } from './models/SettingsModel';
 
 export class VWO {
   private static vwoBuilder: VWOBuilder;
@@ -23,7 +24,7 @@ export class VWO {
       // .getSettings()
       // .setAnalyticsCallback()
 
-    return this.vwoBuilder.getSettings().then(settings => {
+    return this.vwoBuilder.getSettings().then((settings: SettingsModel) => {
       return this.vwoBuilder.build(settings);
     })
 
@@ -42,6 +43,10 @@ export async function init(options: Record<string, dynamic> = {}) {
 
   if (!options.sdkKey || !isString(options.sdkKey)) {
     throw new Error('Please provide the sdkKey in the options and should be a of type string');
+  }
+
+  if (!options.accountId) {
+    throw new Error('Please provide VWO account ID in the options and should be a of type string|number');
   }
 
   const instance = await new VWO(options);

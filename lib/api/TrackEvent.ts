@@ -2,15 +2,21 @@ import { NetworkUtil } from "../utils/NetworkUtil";
 import { eventExists } from "../utils/FunctionUtil";
 import { EventEnum } from "../enums/EventEnum";
 import { LogManager } from "../modules/logger";
+import HooksManager from "../services/HooksManager";
+import { ApiEnum } from "../enums/ApiEnum";
 
 interface ITrack {
-    track(settings: any, eventName: string, context: any, eventProperties: any): Promise<Record<string, boolean>>;
+    track(settings: any, eventName: string, eventProperties: any, context: any, hookManager: HooksManager): Promise<Record<string, boolean>>;
 }
 
 export class TrackApi implements ITrack {
-    async track(settings: any, eventName: string, context: any, eventProperties: any): Promise<Record<string, boolean>> {
+    async track(settings: any, eventName: string, eventProperties: any, context: any, hookManager: HooksManager): Promise<Record<string, boolean>> {
         if (eventExists(eventName, settings)) {
+            // create impression for track
             createImpressionForTrack(settings, eventName, context.user, eventProperties);
+            // integeration callback for track
+            hookManager.set({ eventName: eventName, api: ApiEnum.TRACK});
+            hookManager.execute(hookManager.get());
             return { [eventName]: true };
         }
         LogManager.Instance.error(`Event ${eventName} not found in any of the features`);
@@ -24,14 +30,16 @@ const createImpressionForTrack = async (settings: any, eventName: string, user: 
       settings,
       eventName,
       user.userAgent,
-      user.userIpAddress,
+      user.ipAddress,
     );
     const payload = networkUtil.getTrackGoalPayloadData(
       settings,
       user.id,
       eventName,
-      eventProperties
+      eventProperties,
+      user.userAgent,
+      user.ipAddress,
     );
     // console.log('track payload is ', JSON.stringify(payload));
-    // networkUtil.sendPostApiRequest(properties, payload);
+    networkUtil.sendPostApiRequest(properties, payload);
   }

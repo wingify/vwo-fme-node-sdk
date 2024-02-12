@@ -4,6 +4,7 @@ import { Constants } from '../constants';
 import { CampaignModel } from '../models/CampaignModel';
 import { LogManager } from '../modules/logger';
 import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
+import { SettingsModel } from '../models/SettingsModel';
 
 export function setVariationAllocation(campaign: CampaignModel): void {
   if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
@@ -126,4 +127,110 @@ export function getRolloutVariation(settings, rolloutKey, variationId) {
     }
   }
   return null;;
+}
+
+export function setCampaignAllocation (campaigns: any[]) {
+  let stepFactor = 0;
+  for (let i = 0, currentAllocation = 0; i < campaigns.length; i++) {
+    let campaign = campaigns[i];
+
+    stepFactor = assignRangeValuesMEG(campaign, currentAllocation);
+    currentAllocation += stepFactor;
+  }
+}
+
+export function isPartOfGroup(settings: any, campaignId: any) {
+  if (settings.campaignGroups && settings.campaignGroups.hasOwnProperty(campaignId)) {
+    return {
+      groupId: settings.campaignGroups[campaignId],
+      groupName: settings.groups[settings.campaignGroups[campaignId]].name
+    };
+  }
+  return {};
+}
+
+export function findGroupsFeaturePartOf(settings: any, featureKey: string) {
+  const campaignIds: Array<number> = [];
+  // loop over all rules inside feature where feature key is given featureKey and get all campaignIds
+  settings.features.forEach((feature) => {
+    if (feature.key === featureKey) {
+      feature.rules.forEach((rule) => {
+        if (campaignIds.indexOf(rule.campaignId) === -1) {
+          campaignIds.push(rule.campaignId);
+        }
+      });
+    }
+  });
+
+  // loop over all campaigns and find the group for the campaign
+  const groups: Array<any> = [];
+  campaignIds.forEach((campaignId) => {
+    const group = isPartOfGroup(settings, campaignId);
+    if (group.groupId) {
+      // check if group is already added to groups array
+      const groupIndex = groups.findIndex((grp) => grp.groupId === group.groupId);
+      if (groupIndex === -1) {
+        groups.push(group);
+      }
+    }
+  });
+  return groups;
+}
+
+export function getCampaignsByGroupId(settings: SettingsModel, groupId: any) {
+  const group = settings.getGroups()[groupId];
+  if (group) {
+    return group.campaigns;
+  } else {
+    return []; // Return an empty array if the group ID is not found
+  }
+}
+
+export function getFeatureKeysFromCampaignIds(settings: SettingsModel, campaignIds: any) {
+  const featureKeys = [];
+  for (const campaignId of campaignIds) {
+    settings.getFeatures().forEach((feature) => {
+      feature.getRules().forEach((rule) => {
+        if (rule.getCampaignId() === campaignId) {
+          featureKeys.push(feature.getKey());
+        }
+      });
+    }
+  )}
+  return featureKeys;
+}
+
+export function getCampaignIdsFromFeatureKey(settings: SettingsModel, featureKey: string) {
+  const campaignIds = [];
+  settings.getFeatures().forEach((feature) => {
+    if (feature.getKey() === featureKey) {
+      feature.getRules().forEach((rule) => {
+        campaignIds.push(rule.getCampaignId());
+      });
+    }
+  });
+  return campaignIds;
+}
+
+export function assignRangeValuesMEG(data: any, currentAllocation: number) {
+  const stepFactor: number = getVariationBucketRange(data.weight);
+
+  if (stepFactor) {
+    data.startRangeVariation = currentAllocation + 1;
+    data.endRangeVariation = currentAllocation + stepFactor;
+  } else {
+    data.startRangeVariation = -1;
+    data.endRangeVariation = -1;
+  }
+  return stepFactor;
+}
+
+export function getRuleTypeUsingCampaignIdFromFeature(feature:any, campaignId: number) {
+  let ruleType = '';
+  feature.rules.forEach((rule) => {
+    if (rule.campaignId === campaignId) {
+      ruleType = rule.type;
+    }
+  });
+  return ruleType;
 }

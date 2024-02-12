@@ -11,16 +11,30 @@ import { Constants } from '../constants';
 import { NetworkUtil } from '../utils/NetworkUtil';
 import { setVariationAllocation } from '../utils/CampaignUtil';
 import { CampaignModel } from '../models/CampaignModel';
+import { SettingsModel } from '../models/SettingsModel';
+import UrlService from './UrlService';
 
 export class SettingsManager implements ISettingsManager {
   sdkKey: string;
+  accountId: any;
   expiry: number;
   networkTimeout: number;
+  settingsFileUrl: string;
+  settingsFilePort: number;
 
   constructor(options: Record<string, any>) {
     this.sdkKey = options.sdkKey;
+    this.accountId = options.accountId;
     this.expiry = options?.settings?.expiry || Constants.SETTINGS_EXPIRY;
     this.networkTimeout = options?.settings?.timeout || Constants.SETTINGS_TIMEOUT;
+
+    if (options?.webService?.url) {
+      const parsedUrl = new URL(`https://${options.webService.url}`);
+      this.settingsFileUrl = parsedUrl.hostname;
+      this.settingsFilePort = parseInt(parsedUrl.port);
+    } else {
+      this.settingsFileUrl = Constants.HOST_NAME;
+    }
 
     // if (this.expiry > 0) {
     //   this.setSettingsExpiry();
@@ -63,81 +77,53 @@ export class SettingsManager implements ISettingsManager {
     return deferredObject.promise;
   }
 
-  fetchSettings(): Promise<dynamic> {
+  fetchSettings(): Promise<SettingsModel> {
     const deferredObject = new Deferred();
 
-    if (!this.sdkKey) {
+    if (!this.sdkKey || !this.accountId) {
       // console.error('AccountId and sdkKey are required for fetching account settings. Aborting!');
       LogManager.Instance.error('sdkKey is required for fetching account settings. Aborting!');
       deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
     }
 
     const networkInstance = NetworkManager.Instance;
-    const options: Record<string, dynamic> = new NetworkUtil().getSettingsPath(this.sdkKey);
+    const options: Record<string, dynamic> = new NetworkUtil().getSettingsPath(this.sdkKey, this.accountId);
     options.platform = 'server';
     options['api-version'] = 1;
     if (!networkInstance.getConfig().getDevelopmentMode()) {
       options.s = 'prod';
     }
-
-    const request: RequestModel = new RequestModel(
-      Constants.HOST_NAME,
-      'GET',
-      Constants.SETTINTS_ENDPOINT,
-      options,
-      null,
-      null,
-      null,
-    );
-    request.setTimeout(this.networkTimeout);
-
-    networkInstance
-      .get(request)
-      .then((response: ResponseModel) => {
-        deferredObject.resolve(response.getData());
-      })
-      .catch((err: ResponseModel) => {
-        deferredObject.reject(err);
-      });
-
-    return deferredObject.promise;
-  }
-
-  addLInkedCampaignsToSettings(settingsFile: any): void {
-    // loop over all features
-    for (const feature of settingsFile.features) {
-      const { rules } = feature;
-      const campaigns = settingsFile.campaigns;
-      const rulesLinkedCampaign = [];
-
-      // loop over all rules of a feature
-      for (const rule of rules) {
-        const { campaignId, variationId } = rule;
-        if (campaignId) {
-          // find the campaign with the given campaignId
-          const campaign = campaigns.find((c) => c.id === campaignId);
-          if (campaign) {
-            // create a linked campaign object with the rule and campaign
-            const linkedCampaign = { key: campaign.key, ...rule, ...campaign };
-
-            if (variationId) {
-              // find the variation with the given variationId
-              const variation = campaign.variations.find((v) => v.id === variationId);
-              if (variation) {
-                // add the variation to the linked campaign
-                linkedCampaign.variations = [variation];
-              }
-            }
-            // add the linked campaign to the rulesLinkedCampaign array
-            rulesLinkedCampaign.push(linkedCampaign);
-          }
-        }
-      }
-      feature.rulesLinkedCampaign = rulesLinkedCampaign;
+    try {
+      const request: RequestModel = new RequestModel(
+        this.settingsFileUrl,
+        'GET',
+        Constants.SETTINTS_ENDPOINT,
+        options,
+        null,
+        null,
+        null,
+        this.settingsFilePort
+      );
+      request.setTimeout(this.networkTimeout);
+  
+      networkInstance
+        .get(request)
+        .then((response: ResponseModel) => {
+          deferredObject.resolve(response.getData());
+        })
+        .catch((err: ResponseModel) => {
+          deferredObject.reject(err);
+        });
+  
+      return deferredObject.promise;
+    } catch (err) {
+      console.error('Error occurred while fetching settings:', err);
+      deferredObject.reject(err);
+      return deferredObject.promise;
     }
   }
 
-  getSettings(forceFetch = false): Promise<dynamic> {
+  getSettings(forceFetch = false): Promise<SettingsModel> {
     const deferredObject = new Deferred();
 
     if (forceFetch) {

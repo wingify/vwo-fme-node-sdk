@@ -23,8 +23,13 @@ export const Constants = {
 
   SETTINGS: 'settings',
   SETTINGS_EXPIRY: 10000000,
-  SETTINGS_TIMEOUT: 5000,
+  SETTINGS_TIMEOUT: 50000,
 
-  HOST_NAME: 'localhost', // TODO: change
-  SETTINTS_ENDPOINT: '/server-side/v2-settings'
+  HOST_NAME: 'dev.visualwebsiteoptimizer.com', // TODO: change
+  SETTINTS_ENDPOINT: '/server-side/v2-settings',
+  LOCATION_ENDPOINT: '/getLocation',
+
+  VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
+
+  RANDOM_ALGO: 1
 };

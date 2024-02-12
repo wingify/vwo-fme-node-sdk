@@ -29,9 +29,9 @@ interface IVWOBuilder {
 
   build(settings: SettingsModel): VWOClient;
 
-  fetchSettings(): Promise<Record<string, dynamic>>;
+  fetchSettings(): Promise<SettingsModel>;
   setSettingsManager(): this;
-  setSettings(settings: Record<string, dynamic>): void;
+  setSettings(settings: SettingsModel): void;
   getSettings(force: boolean): Promise<dynamic>;
   setStorage(): this;
   setNetworkManager(): this;
@@ -70,13 +70,13 @@ export class VWOBuilder implements IVWOBuilder {
     return this;
   }
 
-  fetchSettings(force?: boolean): Promise<Record<string, dynamic>> {
+  fetchSettings(force?: boolean): Promise<SettingsModel> {
     const deferredObject = new Deferred();
 
     // If one call is in progress, wait for it to complete and use the response
     if (!this.isSettingsFetchInProgress) {
       this.isSettingsFetchInProgress = true;
-      this.settingFileManager.getSettings(force).then((settings: Record<string, dynamic>) => {
+      this.settingFileManager.getSettings(force).then((settings: SettingsModel) => {
         this.originalSettings = settings;
 
         this.isSettingsFetchInProgress = false;
@@ -97,14 +97,14 @@ export class VWOBuilder implements IVWOBuilder {
     this.settings = processSettings(this.settings);
   }
 
-  getSettings(force?: boolean): Promise<Record<string, dynamic>> {
+  getSettings(force?: boolean): Promise<SettingsModel> {
     const deferredObject = new Deferred();
 
     if (!force && this.settings) {
       LogManager.Instance.info('Using already fetched and cached settings');
       deferredObject.resolve(this.settings);
     } else {
-      this.fetchSettings(force).then((settings: Record<string, dynamic>) => {
+      this.fetchSettings(force).then((settings: SettingsModel) => {
         deferredObject.resolve(settings);
       });
     }
@@ -211,14 +211,14 @@ export class VWOBuilder implements IVWOBuilder {
     return this;
   }
 
-  build(settings): VWOClient {
-    return new VWOClient(settings);
+  build(settings: SettingsModel): VWOClient {
+    return new VWOClient(settings, this.options);
   }
 
   checkAndPoll(pollingInterval: number): void {
     setInterval(() => {
       this.getSettings(true)
-        .then((latestSettingsFile: Record<string, dynamic>) => {
+        .then((latestSettingsFile: SettingsModel) => {
           const lastSettingsFile = JSON.stringify(this.originalSettings);
           const stringifiedLatestSettingsFile = JSON.stringify(latestSettingsFile);
           if (stringifiedLatestSettingsFile !== lastSettingsFile) {

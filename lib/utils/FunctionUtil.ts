@@ -1,3 +1,5 @@
+import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
+import { SettingsModel } from '../models/SettingsModel';
 import { dynamic } from '../types/common';
 import { isString } from './DataTypeUtil';
 
@@ -21,18 +23,32 @@ export function getRandomNumber(): number {
   return Math.random();
 }
 
-export function getSpecificRulesBasedOnType(settingsFile, featureKey, type = null) {
-  let feature = settingsFile.features.find(feature => feature.key === featureKey);
-  if (type && isString(type)){
+export function getSpecificRulesBasedOnType(settings, featureKey, type = null) {
+  let feature = getFeatureFromKey(settings, featureKey);
+  if(feature && !feature.rulesLinkedCampaign){
+    return [];
+  }
+  
+  if (feature && feature.rulesLinkedCampaign && type && isString(type)){
     return feature.rulesLinkedCampaign.filter(rule => rule.type === type);
   }
+
   return feature.rulesLinkedCampaign;
+}
+
+export function getAllAbAndPersonaliseRules(settings, featureKey) {
+  let feature = getFeatureFromKey(settings, featureKey);
+  return feature.rulesLinkedCampaign.filter(rule => rule.type === CampaignTypeEnum.AB || rule.type === CampaignTypeEnum.PERSONALIZE);
+}
+
+export function getFeatureFromKey(settings, featureKey) {
+  return settings?.features?.find(feature => feature.key === featureKey);
 }
 
 export function eventExists(eventName: string, settings: any): boolean {
   for (const feature of settings.features) {
     for (const metric of feature.metrics) {
-      if (metric.eventName === eventName) {
+      if (metric.identifier === eventName) {
         return true;
       }
     }
@@ -72,4 +88,16 @@ export function addLInkedCampaignsToSettings(settingsFile: any): void {
     }
     feature.rulesLinkedCampaign = rulesLinkedCampaign;
   }
+}
+
+// get feature name from feature key using settings
+export function getFeatureNameFromKey(settings: SettingsModel, featureKey: string): string {
+  const feature = settings.getFeatures().find((f) => f.getKey() === featureKey);
+  return feature ? feature.getName() : '';
+}
+
+// get feature id from feature key using settings
+export function getFeatureIdFromKey(settings: SettingsModel, featureKey: string): number {
+  const feature = settings.getFeatures().find((f) => f.getKey() === featureKey);
+  return feature ? feature.getId() : null;
 }

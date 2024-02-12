@@ -13,6 +13,7 @@ import { RequestModel } from '../modules/networking';
 import { HTTPS_PROTOCOL } from '../constants/url';
 import { ResponseModel } from '../modules/networking';
 import { isObject } from './DataTypeUtil';
+import { HeadersEnum } from '../enums/HeadersEnum';
 
 export class NetworkUtil {
   getBasePropertiesForBulk(accountId: string, userId: string): Record<string, dynamic> {
@@ -23,10 +24,11 @@ export class NetworkUtil {
     return path;
   }
 
-  getSettingsPath(apikey: string): Record<string, dynamic> {
+  getSettingsPath(apikey: string, accountId: any): Record<string, dynamic> {
     const path: Record<string, dynamic> = {
       i: `${apikey}`,
       r: Math.random(),
+      a: accountId
     };
     return path;
   }
@@ -64,7 +66,7 @@ export class NetworkUtil {
    * @param {String} eventName
    * @returns properties
    */
-  getEventsBaseProperties(setting: any, eventName, visitorUserAgent = '', userIpAddress = ''): any {
+  getEventsBaseProperties(setting: any, eventName, visitorUserAgent = '', ipAddress = ''): any {
     const sdkKey = setting.sdkKey;
 
     let properties = Object.assign({
@@ -75,7 +77,7 @@ export class NetworkUtil {
       random: getRandomNumber(),
       p: 'FS',
       visitor_ua: visitorUserAgent,
-      visitor_ip: userIpAddress,
+      visitor_ip: ipAddress,
     });
 
     properties.url = Constants.HTTPS_PROTOCOL + UrlService.getBaseUrl() + UrlEnum.EVENTS;
@@ -89,7 +91,7 @@ export class NetworkUtil {
    * @param {String} eventName  event name
    * @returns properties
    */
-  getEventBasePayload(settings: any, userId: any, eventName: string) {
+  getEventBasePayload(settings: any, userId: any, eventName: string, visitorUserAgent = '', ipAddress = '') {
     const uuid = getUUID(userId, settings.accountId);
     const sdkKey = settings.sdkKey;
 
@@ -112,6 +114,8 @@ export class NetworkUtil {
         msgId: `${uuid}-${getCurrentUnixTimestampInMillis()}`,
         visId: uuid,
         sessionId: getCurrentUnixTimestamp(),
+        visitor_ua : visitorUserAgent,
+        visitor_ip : ipAddress,
         event: {
           props: props,
           name: eventName,
@@ -137,8 +141,8 @@ export class NetworkUtil {
    * @param {Number} variationId
    * @returns track-user payload
    */
-  getTrackUserPayloadData(settings: any, userId: any, eventName: string, campaignId: any, variationId: any) {
-    const properties = this.getEventBasePayload(settings, userId, eventName);
+  getTrackUserPayloadData(settings: any, userId: any, eventName: string, campaignId: any, variationId: any, visitorUserAgent = '', ipAddress = '' ) {
+    const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
 
     properties.d.event.props.id = campaignId;
     properties.d.event.props.variation = variationId;
@@ -151,9 +155,11 @@ export class NetworkUtil {
     return properties;
   }
 
-  getTrackGoalPayloadData(settings: any, userId: any, eventName: string, eventProperties: any) {
-    const properties = this.getEventBasePayload(settings, userId, eventName);
+  getTrackGoalPayloadData(settings: any, userId: any, eventName: string, eventProperties: any,  visitorUserAgent = '', ipAddress = '' ) {
+    const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
     properties.d.event.props.isCustomEvent = true;
+    properties.d.event.props.variation = 1;  // temporary value
+    properties.d.event.props.id = 1;         // temporary value
 
     if (eventProperties && isObject(eventProperties) && Object.keys(eventProperties).length > 0) {
       for (const prop in eventProperties) {
@@ -168,24 +174,68 @@ export class NetworkUtil {
     return properties;
   }
 
+  getAttributePayloadData(settings: any, userId: any, eventName: string, attributeKey: any, attributeValue: any, visitorUserAgent = '', ipAddress = '' ) {
+    const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
+
+    properties.d.event.props.isCustomEvent = true;
+    properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settings.sdkKey;
+    properties.d.visitor.props[attributeKey] = attributeValue;
+
+    LogManager.Instance.debug(
+      `IMPRESSION_FOR_EVENT_ARCH_SYNC_VISITOR_PROP: Impression built for ${eventName} event for Account ID:${settings.accountId}, User ID:${userId}`,
+    );
+
+    return properties;
+  }
+
   sendPostApiRequest(properties: any, payload: any) {
     NetworkManager.Instance.attachClient();
+    
+    const headers: Record<string, string> = {};
+
+    const userAgent = payload.d.visitor_ua;
+    const ipAddress = payload.d.visitor_ip;
+
+    // Set headers
+    if(userAgent)
+      headers[HeadersEnum.USER_AGENT] = userAgent;
+    if(ipAddress)
+      headers[HeadersEnum.IP] = ipAddress;
+
     const request: RequestModel = new RequestModel(
       UrlService.getBaseUrl(),
       'POST',
       UrlEnum.EVENTS,
       properties,
       payload,
+      headers,
       null,
-      null,
+      UrlService.getPort()
     );
-    request.setPort(80);
-    NetworkManager.Instance.post(request)
-    .then(data => {
-      console.log('Request sent to VWO server: ', request)
-    })
-    .catch((err: ResponseModel) => {
+
+    NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
       console.log('error', err);
     });
+  }
+
+  async sendGetApiRequest(properties: any, endpoint: any): Promise<any> {
+    NetworkManager.Instance.attachClient();
+    const request: RequestModel = new RequestModel(
+      UrlService.getBaseUrl(),
+      'Get',
+      endpoint,
+      properties,
+      null,
+      null,
+      null,
+      UrlService.getPort()
+    );
+    try {
+      const response: ResponseModel = await NetworkManager.Instance.get(request);
+      return response; // Return the response model
+    } catch (err) {
+      console.error('Error occurred while sending GET request:', err);
+      return null;
+    }
   }
 }

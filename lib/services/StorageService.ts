@@ -9,9 +9,10 @@ import { isUndefined, isNull } from '../utils/DataTypeUtil';
 export class StorageService {
   private storageData: Record<string, dynamic> = {};
 
-  getDataInStorage(featureKey: any, user: any): Promise<Record<any, any>> {
+  async getDataInStorage(featureKey: any, user: any): Promise<Record<any, any>> {
     const deferredObject = new Deferred();
     const storageInstance = Storage.Instance.getConnector();
+
 
     if (isNull(storageInstance) || isUndefined(storageInstance)) {
       deferredObject.resolve(StorageEnum.STORAGE_UNDEFINED);
@@ -21,7 +22,8 @@ export class StorageService {
         .then((data: Record<string, any>) => {
           deferredObject.resolve(data);
         })
-        .catch(() => {
+        .catch((err) => {
+          console.log('Error in getting data from storage', err);
           // TODO:- Add logging here
           deferredObject.resolve(StorageEnum.NO_DATA_FOUND);
         });

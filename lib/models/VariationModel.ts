@@ -15,6 +15,7 @@ export class VariationModel {
   private startRangeVariation: number;
   private endRangeVariation: number;
   private variables: Array<VariableModel> = [];
+  private variations: Array<VariationModel> = [];
 
   private seg: Record<string, dynamic>;
   private segments: Record<string, dynamic>;
@@ -38,6 +39,19 @@ export class VariationModel {
         const variableList: Array<VariableModel> = variation.variables;
         variableList.forEach(variable => {
           this.variables.push(new VariableModel().modelFromDictionary(variable));
+        });
+      }
+    }
+
+    if (variation.variations) {
+      if (
+        variation.variations.constructor === {}.constructor
+      ) {
+        this.variations = [];
+      } else {
+        const variationList: Array<VariationModel> = variation.variations;
+        variationList.forEach((variation: any) => {
+          this.variations.push(new VariationModel().modelFromDictionary(variation));
         });
       }
     }
@@ -83,5 +97,9 @@ export class VariationModel {
 
   getVariables(): Array<VariableModel> {
     return this.variables;
+  }
+
+  getVariations(): Array<VariationModel> {
+    return this.variations;
   }
 }

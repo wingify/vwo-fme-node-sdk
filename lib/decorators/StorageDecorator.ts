@@ -20,13 +20,12 @@ interface IStorageDecorator {
 }
 
 export class StorageDecorator implements IStorageDecorator {
-  getFeatureFromStorage(
+  async getFeatureFromStorage(
     featureKey: any,
     user: any,
     storageService: StorageService
   ): Promise<any> {
     const deferredObject = new Deferred();
-
     storageService.getDataInStorage(featureKey, user).then((campaignMap: Record<any, any> | StorageEnum) => {
       switch (campaignMap) {
         case StorageEnum.STORAGE_UNDEFINED:
@@ -61,12 +60,13 @@ export class StorageDecorator implements IStorageDecorator {
     storageService: StorageService
   ): Promise<VariationModel> {
     const deferredObject = new Deferred();
-
     const {
       featureKey,
       user,
+      rolloutId,
       rolloutKey,
       rolloutVariationId,
+      experimentId,
       experimentKey,
       experimentVariationId
     } = data;
@@ -95,8 +95,10 @@ export class StorageDecorator implements IStorageDecorator {
     storageService.setDataInStorage({
       featureKey,
       user: user.id,
+      rolloutId,
       rolloutKey,
       rolloutVariationId,
+      experimentId,
       experimentKey,
       experimentVariationId
     });

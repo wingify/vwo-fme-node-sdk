@@ -1,5 +1,6 @@
 import { SegmentEvaluator } from '../evaluators/segmentEvaluator';
 import { dynamic } from '../../../types/common';
+import { SettingsModel } from '../../../models/SettingsModel';
 
 export class SegmentationManager {
   private static instance: SegmentationManager;
@@ -15,7 +16,7 @@ export class SegmentationManager {
     this.evaluator = evaluator || new SegmentEvaluator();
   }
 
-  validateSegmentation(dsl: Record<string, dynamic>, properties: Record<any, dynamic>): boolean {
-    return this.evaluator.isSegmentationValid(dsl, properties);
+  async validateSegmentation(dsl: Record<string, dynamic>, properties: Record<any, dynamic>, settings: SettingsModel, context?:any): Promise<boolean> {
+    return await this.evaluator.isSegmentationValid(dsl, properties, settings, context);
   }
 }

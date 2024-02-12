@@ -7,5 +7,7 @@ export enum UrlEnum {
     PUSH = '/server-side/push',
     BATCH_EVENTS = '/server-side/batch-events',
     EVENTS = '/events/t',
-    ATTRIBUTE_CHECK = '/attributes/check'
+    ATTRIBUTE_CHECK = '/attributes/check',
+    LOCATION_CHECK = '/getLocation',
+    UAPARSER = '/server-side/ua-parser'
   };

@@ -9,13 +9,14 @@ import { Constants } from '../constants';
 import { isObject } from '../utils/DataTypeUtil';
 import { CampaignModel } from '../models/CampaignModel';
 import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
+import { SettingsModel } from '../models/SettingsModel';
 
 interface ICampaignDecisionService {
   isUserPartOfCampaign(userId: any, campaign: CampaignModel): boolean;
   getVariation(variations: Array<VariationModel>, bucketValue: number): VariationModel;
   checkInRange(variation: VariationModel, bucketValue: number): VariationModel;
   bucketUserToVariation(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
-  getDecision(campaign: CampaignModel, dsl: any, properties: any): VariationModel;
+  getDecision(campaign: CampaignModel, settings:SettingsModel , dsl: any, properties: any): Promise<any>;
   getVariationAlloted(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
 }
 
@@ -37,7 +38,7 @@ export class CampaignDecisionService implements ICampaignDecisionService {
       return false;
     }
     let trafficAllocation;
-    if (campaign.getType() === CampaignTypeEnum.ROLLOUT) {
+    if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
       trafficAllocation = campaign.getVariations()[0].getWeight();
     } else {
       trafficAllocation = campaign.getTraffic();
@@ -45,7 +46,7 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     const valueAssignedToUser = new DecisionMaker().getBucketValueForUser(`${campaign.getId()}_${userId}`);
     const isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
 
-    LogManager.Instance.debug(`user:${userId} part of campaign? ${isUserPart}`);
+    LogManager.Instance.debug(`user:${userId} part of campaign ${campaign.getKey()} ? ${isUserPart}`);
 
     return isUserPart;
   }
@@ -92,10 +93,10 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     if (!campaign || !userId) {
       return null;
     }
-    if (campaign.getTraffic() || campaign.getVariations()[0].getWeight()) {
+    if (campaign.getTraffic()) {
       multiplier = 1;
     }
-    const percentTraffic = campaign.getTraffic() || campaign.getVariations()[0].getWeight();
+    const percentTraffic = campaign.getTraffic();
     const hashValue = new DecisionMaker().generateHashValue(`${campaign.getId()}_${accountId}_${userId}`);
     const bucketValue = new DecisionMaker().generateBucketValue(hashValue, Constants.MAX_TRAFFIC_VALUE, multiplier);
     LogManager.Instance.debug(
@@ -105,38 +106,60 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     return this.getVariation(campaign.getVariations(), bucketValue);
   }
 
-  getDecision(campaign: CampaignModel, userId: any, customVariables: any): any {
+  async getDecision(campaign: CampaignModel, settings: SettingsModel, context: any): Promise<any> {
     // validate segmentation
-    if (isObject(campaign.getSegments()) && !Object.keys(campaign.getSegments()).length) {
+    let segments = {};
+    if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
+      segments = campaign.getVariations()[0].getSegments();
+    } else if (campaign.getType() === CampaignTypeEnum.AB){
+      segments = campaign.getSegments();
+    }
+    if (isObject(segments) && !Object.keys(segments).length) {
       LogManager.Instance.debug(
         `For userId:${
-          userId
+          context.user.id
         } of Campaign:${campaign.getKey()}, segment was missing, hence skipping segmentation`
       );
       return true;
     } else {
-      const preSegmentationResult = SegmentationManager.Instance.validateSegmentation(
-        campaign.getSegments(),
-        customVariables
+      const preSegmentationResult = await SegmentationManager.Instance.validateSegmentation(
+        segments,
+        context.user.customVariables,
+        settings,
+        context.user
+        // {
+        //   ipAddress: context.user.ipAddress, 
+        //   userAgent : context.user.userAgent
+        // }
       );
       if (!preSegmentationResult) {
         LogManager.Instance.info(
-          `Segmentation failed for userId:${userId} of Campaign:${campaign.getKey()}`
+          `Segmentation failed for userId:${context.user.id} of Campaign:${campaign.getKey()}`
         );
         return false;
       }
       LogManager.Instance.info(
-        `Segmentation passed for userId:${userId} of Campaign:${campaign.getKey()}`
+        `Segmentation passed for userId:${context.user.id} of Campaign:${campaign.getKey()}`
       );
       return true;
     }
   }
 
   getVariationAlloted(userId: any, accountId: any, campaign: CampaignModel): VariationModel {
-    if (this.isUserPartOfCampaign(userId, campaign)) {
-      return this.bucketUserToVariation(userId, accountId, campaign) || null;
-    } else {
-      return null;
+    const isUserPart = this.isUserPartOfCampaign(userId, campaign);
+    if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
+      if (isUserPart) {
+        return campaign.getVariations()[0];
+      } else {
+        return null;
+      }
+    }
+    else {
+      if (isUserPart) {
+        return this.bucketUserToVariation(userId, accountId, campaign);
+      } else {
+        return null;
+      }
     }
   }
 }

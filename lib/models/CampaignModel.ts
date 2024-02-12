@@ -2,6 +2,7 @@ import { VariationModel } from './VariationModel';
 import { MetricModel } from './MetricModel';
 import { VariableModel } from './VariableModel';
 import { dynamic } from '../types/common';
+import { RuleModel } from './RuleModel';
 
 export class CampaignModel {
   private id: number;
@@ -13,6 +14,7 @@ export class CampaignModel {
   private key: string;
   // private priority: number;
   private type: string;
+  private name: string;
   private isForcedVariationEnabled: boolean;
   private variations: Array<VariationModel> = [];
   private metrics: Array<MetricModel> = [];
@@ -48,32 +50,37 @@ export class CampaignModel {
       }
     }
 
-    if (
-      // (campaign.v && campaign.v.constructor === {}.constructor) ||
-      campaign.variations.constructor === {}.constructor
-    ) {
-      this.variations = [];
-    } else {
-      const variationList: Array<VariationModel> = campaign.variations; // campaign.v ||
-      variationList.forEach((variation: any) => {
-        this.variations.push(new VariationModel().modelFromDictionary(variation));
-      });
+    if (campaign.variations) {// campaign.v ||
+      if (
+        // (campaign.v && campaign.v.constructor === {}.constructor) ||
+        campaign.variations.constructor === {}.constructor
+      ) {
+        this.variations = [];
+      } else {
+        const variationList: Array<VariationModel> = campaign.variations; // campaign.v ||
+        variationList.forEach((variation: any) => {
+          this.variations.push(new VariationModel().modelFromDictionary(variation));
+        });
+      }
     }
 
-    if (
-      campaign.metrics && campaign.metrics.constructor === {}.constructor) {
-      this.metrics = [];
-    } else {
-      const metricsList: Array<MetricModel> = campaign.metrics || [];
-      metricsList.forEach((metric: any) => {
-        this.metrics.push(new MetricModel().modelFromDictionary(metric));
-      });
+    if (campaign.metrics) {// campaign.m ||
+      if (
+        campaign.metrics && campaign.metrics.constructor === {}.constructor) {
+        this.metrics = [];
+      } else {
+        const metricsList: Array<MetricModel> = campaign.metrics || [];
+        metricsList.forEach((metric: any) => {
+          this.metrics.push(new MetricModel().modelFromDictionary(metric));
+        });
+      }
     }
   }
 
   processCampaignKeys(campaign: CampaignModel): void {
     this.id = campaign.id;
     this.percentTraffic = campaign.percentTraffic; // campaign.pT ||
+    this.name = campaign.name; // campaign.n ||
     // this.autoActivate =
     //   campaign.autoActivate !== undefined
     //     ? campaign.autoActivate
@@ -111,6 +118,10 @@ export class CampaignModel {
 
   getId(): number {
     return this.id;
+  }
+
+  getName(): string {
+    return this.name;
   }
 
   getSegments(): Record<string, dynamic> {

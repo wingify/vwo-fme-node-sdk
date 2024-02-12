@@ -20,7 +20,8 @@ export class RequestModel {
     query: Record<string, dynamic>,
     body: Record<string, dynamic>,
     headers: Record<string, string>,
-    scheme: string = HTTP
+    scheme: string = HTTP,
+    port: number = 80
   ) {
     this.url = url;
     this.path = path;
@@ -28,7 +29,7 @@ export class RequestModel {
     this.body = body;
     this.headers = headers;
     this.scheme = scheme;
-    this.port = 3000; // TODO: remove
+    this.port = port;
     this.method = method;
   }
 

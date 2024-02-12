@@ -3,5 +3,13 @@ export enum SegmentOperatorValueEnum {
   NOT = 'not',
   OR = 'or',
   CUSTOM_VARIABLE = 'custom_variable',
-  USER = 'user'
+  USER = 'user',
+  COUNTRY = 'country',
+  REGION = 'region',
+  CITY = 'city',
+  OPERATING_SYSTEM = 'os',
+  DEVICE_TYPE = 'device_type',
+  BROWSER_AGENT = 'browser_string',
+  UA = 'ua',
+  FEATURE_ID = 'featureId'
 }

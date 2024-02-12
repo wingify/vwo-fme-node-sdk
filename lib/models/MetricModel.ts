@@ -11,7 +11,7 @@ export class MetricModel {
   private type: string;
 
   modelFromDictionary(metric: MetricModel): this {
-    this.key = metric.identifier || metric.key;
+    this.identifier = metric.identifier || metric.key;
     this.id = metric.i || metric.id;
     this.type = metric.t || metric.type;
     return this;
@@ -21,8 +21,8 @@ export class MetricModel {
     return this.id;
   }
 
-  getKey(): string {
-    return this.key;
+  getIdentifier(): string {
+    return this.identifier;
   }
 
   getType(): string {

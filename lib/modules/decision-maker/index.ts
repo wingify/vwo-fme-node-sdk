@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Hasher from 'murmurHash';
+import * as Hasher from 'murmurhash';
 import { getBucketingSeed } from '../../utils/CampaignUtil';
 import { LogManager } from '../../modules/logger';
 

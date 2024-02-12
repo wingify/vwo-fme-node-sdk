@@ -3,9 +3,12 @@ import { SegmentOperandValueEnum } from '../enums/segmentOperandValueEnum';
 import { SegmentOperandRegexEnum } from '../enums/segmentOperandRegexEnum';
 import { isBoolean } from '../../../utils/DataTypeUtil';
 import { dynamic } from '../../../types/common';
+import { getFromWebService } from '../../../utils/WebServiceUtil';
+import { UrlEnum } from '../../../enums/UrlEnum';
+import { LogManager } from '../../../modules/logger';
 
 export class SegmentOperandEvaluator {
-  evaluateCustomVariableDSL(dslOperandValue: Record<string, dynamic>, properties: Record<string, dynamic>): boolean {
+  async evaluateCustomVariableDSL(dslOperandValue: Record<string, dynamic>, properties: Record<string, dynamic>): Promise <boolean> {
     const { key, value } = getKeyValue(dslOperandValue);
     const operandKey = key;
     const operand = value;
@@ -13,22 +16,64 @@ export class SegmentOperandEvaluator {
       return false;
     }
 
-    let tagValue = properties[operandKey];
-    tagValue = this.preProcessTagValue(tagValue);
-    const { operandType, operandValue } = this.preProcessOperandValue(operand);
-    const processedValue = this.processValues(operandValue, tagValue);
-    tagValue = processedValue.tagValue;
-    return this.extractResult(operandType, processedValue.operandValue, tagValue);
+    if (operand.includes('inlist')) {
+      const listIdRegex = /inlist\((\w+:\d+)\)/;
+      const match = operand.match(listIdRegex);
+      if (!match || match.length < 2) {
+        console.error("Invalid 'inList' operand format");
+        return false;
+      }
+
+      const tagValue = properties[operandKey];
+      const attributeValue = this.preProcessTagValue(tagValue);
+
+      const listId = match[1];
+      const queryParamsObj = {
+        attribute: attributeValue,
+        listId: listId
+      };
+      
+      try {
+        const res = await getFromWebService(queryParamsObj, UrlEnum.ATTRIBUTE_CHECK);
+        if (!res || res === undefined || res === 'false' || res.status === 0) {
+          return false;
+        }
+        return res;
+      } catch (error) {
+        console.error("Error while fetching data:", error);
+        return false;
+      } 
+    } else {
+      let tagValue = properties[operandKey];
+      tagValue = this.preProcessTagValue(tagValue);
+      const { operandType, operandValue } = this.preProcessOperandValue(operand);
+      const processedValues = this.processValues(operandValue, tagValue);
+      tagValue = processedValues.tagValue;
+      return this.extractResult(operandType, processedValues.operandValue, tagValue);
+    }
   }
 
   evaluateUserDSL(dslOperandValue: Record<string, any>, properties: Record<string, dynamic>): boolean {
     const users = dslOperandValue.split(',');
     for (let i = 0; i < users.length; i++) {
-      if (users[i].trim() === properties._vwoUserId) {
+      if (users[i].trim() == properties._vwoUserId) {
         return true;
       }
     }
     return false;
+  }
+
+  evaluateUserAgentDSL(dslOperandValue: Record<string, any>, context: any): boolean {
+    const operand = dslOperandValue;
+    if (!context.userAgent || context.userAgent === undefined) {
+      LogManager.Instance.info('To Evaluate UserAgent segmentation, please provide userAgent in context');
+      return false;
+    }
+    let tagValue = decodeURIComponent(context.userAgent);
+    const { operandType, operandValue } = this.preProcessOperandValue(operand);
+    const processedValues = this.processValues(operandValue, tagValue);
+    tagValue = processedValues.tagValue as string; // Fix: Type assertion to ensure tagValue is of type string
+    return this.extractResult(operandType, processedValues.operandValue, tagValue);
   }
 
   preProcessTagValue(tagValue: any): string | boolean {

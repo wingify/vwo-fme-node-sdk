@@ -16,7 +16,7 @@ interface ICampaignDecisionService {
   getVariation(variations: Array<VariationModel>, bucketValue: number): VariationModel;
   checkInRange(variation: VariationModel, bucketValue: number): VariationModel;
   bucketUserToVariation(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
-  getDecision(campaign: CampaignModel, settings:SettingsModel , dsl: any, properties: any): Promise<any>;
+  getDecision(campaign: CampaignModel, settings: SettingsModel, dsl: any, properties: any): Promise<any>;
   getVariationAlloted(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
 }
 
@@ -100,7 +100,7 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     const hashValue = new DecisionMaker().generateHashValue(`${campaign.getId()}_${accountId}_${userId}`);
     const bucketValue = new DecisionMaker().generateBucketValue(hashValue, Constants.MAX_TRAFFIC_VALUE, multiplier);
     LogManager.Instance.debug(
-      `user:${userId} for campaign:${campaign.getKey()} having percenttraffic:${percentTraffic} got bucketValue as ${bucketValue} and hashvalue:${hashValue}`
+      `user:${userId} for campaign:${campaign.getKey()} having percenttraffic:${percentTraffic} got bucketValue as ${bucketValue} and hashvalue:${hashValue}`,
     );
 
     return this.getVariation(campaign.getVariations(), bucketValue);
@@ -111,14 +111,14 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     let segments = {};
     if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
       segments = campaign.getVariations()[0].getSegments();
-    } else if (campaign.getType() === CampaignTypeEnum.AB){
+    } else if (campaign.getType() === CampaignTypeEnum.AB) {
       segments = campaign.getSegments();
     }
     if (isObject(segments) && !Object.keys(segments).length) {
       LogManager.Instance.debug(
         `For userId:${
           context.user.id
-        } of Campaign:${campaign.getKey()}, segment was missing, hence skipping segmentation`
+        } of Campaign:${campaign.getKey()}, segment was missing, hence skipping segmentation`,
       );
       return true;
     } else {
@@ -126,21 +126,17 @@ export class CampaignDecisionService implements ICampaignDecisionService {
         segments,
         context.user.customVariables,
         settings,
-        context.user
+        context.user,
         // {
-        //   ipAddress: context.user.ipAddress, 
+        //   ipAddress: context.user.ipAddress,
         //   userAgent : context.user.userAgent
         // }
       );
       if (!preSegmentationResult) {
-        LogManager.Instance.info(
-          `Segmentation failed for userId:${context.user.id} of Campaign:${campaign.getKey()}`
-        );
+        LogManager.Instance.info(`Segmentation failed for userId:${context.user.id} of Campaign:${campaign.getKey()}`);
         return false;
       }
-      LogManager.Instance.info(
-        `Segmentation passed for userId:${context.user.id} of Campaign:${campaign.getKey()}`
-      );
+      LogManager.Instance.info(`Segmentation passed for userId:${context.user.id} of Campaign:${campaign.getKey()}`);
       return true;
     }
   }
@@ -153,8 +149,7 @@ export class CampaignDecisionService implements ICampaignDecisionService {
       } else {
         return null;
       }
-    }
-    else {
+    } else {
       if (isUserPart) {
         return this.bucketUserToVariation(userId, accountId, campaign);
       } else {

@@ -11,6 +11,7 @@
     "noImplicitThis": false,
     "module": "commonjs",
     "target": "es5",
+    "declaration": true,
     "removeComments": false,
     "sourceMap": true,
     "lib": [

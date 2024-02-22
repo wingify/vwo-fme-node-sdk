@@ -1,4 +1,4 @@
 export enum ApiEnum {
-    GET_FLAG = 'getFlag',
-    TRACK = 'track'
-  };
+  GET_FLAG = 'getFlag',
+  TRACK = 'track',
+}

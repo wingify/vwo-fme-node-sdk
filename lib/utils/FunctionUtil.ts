@@ -25,12 +25,12 @@ export function getRandomNumber(): number {
 
 export function getSpecificRulesBasedOnType(settings, featureKey, type = null) {
   let feature = getFeatureFromKey(settings, featureKey);
-  if(feature && !feature.rulesLinkedCampaign){
+  if (feature && !feature.rulesLinkedCampaign) {
     return [];
   }
-  
-  if (feature && feature.rulesLinkedCampaign && type && isString(type)){
-    return feature.rulesLinkedCampaign.filter(rule => rule.type === type);
+
+  if (feature && feature.rulesLinkedCampaign && type && isString(type)) {
+    return feature.rulesLinkedCampaign.filter((rule) => rule.type === type);
   }
 
   return feature.rulesLinkedCampaign;
@@ -38,11 +38,13 @@ export function getSpecificRulesBasedOnType(settings, featureKey, type = null) {
 
 export function getAllAbAndPersonaliseRules(settings, featureKey) {
   let feature = getFeatureFromKey(settings, featureKey);
-  return feature.rulesLinkedCampaign.filter(rule => rule.type === CampaignTypeEnum.AB || rule.type === CampaignTypeEnum.PERSONALIZE);
+  return feature.rulesLinkedCampaign.filter(
+    (rule) => rule.type === CampaignTypeEnum.AB || rule.type === CampaignTypeEnum.PERSONALIZE,
+  );
 }
 
 export function getFeatureFromKey(settings, featureKey) {
-  return settings?.features?.find(feature => feature.key === featureKey);
+  return settings?.features?.find((feature) => feature.key === featureKey);
 }
 
 export function eventExists(eventName: string, settings: any): boolean {

@@ -3,7 +3,7 @@ import { dynamic } from '../types/common';
 type FunctionType = (val: dynamic) => void;
 
 export function isObject<T>(
-  val: T
+  val: T,
 ): val is Record<any, dynamic> & Exclude<T, Array<dynamic> | FunctionType | RegExp | Promise<dynamic> | Date> {
   return Object.prototype.toString.call(val) === '[object Object]';
 }
@@ -62,26 +62,26 @@ export function getType(val: dynamic): string {
   return isObject(val)
     ? 'Object'
     : isArray(val)
-    ? 'Array'
-    : isNull(val)
-    ? 'Null'
-    : isUndefined(val)
-    ? 'Undefined'
-    : isNaN(val)
-    ? 'NaN'
-    : isNumber(val)
-    ? 'Number'
-    : isString(val)
-    ? 'String'
-    : isBoolean(val)
-    ? 'Boolean'
-    : isDate(val)
-    ? 'Date'
-    : isRegex(val)
-    ? 'Regex'
-    : isFunction(val)
-    ? 'Function'
-    : isPromise(val)
-    ? 'Promise'
-    : 'Unknown Type';
+      ? 'Array'
+      : isNull(val)
+        ? 'Null'
+        : isUndefined(val)
+          ? 'Undefined'
+          : isNaN(val)
+            ? 'NaN'
+            : isNumber(val)
+              ? 'Number'
+              : isString(val)
+                ? 'String'
+                : isBoolean(val)
+                  ? 'Boolean'
+                  : isDate(val)
+                    ? 'Date'
+                    : isRegex(val)
+                      ? 'Regex'
+                      : isFunction(val)
+                        ? 'Function'
+                        : isPromise(val)
+                          ? 'Promise'
+                          : 'Unknown Type';
 }

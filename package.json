@@ -1,18 +1,21 @@
 {
-  "name": "vwo-sdk",
-  "version": "2.0.0",
-  "description": "VWO Node SDK for FullStack Testing",
+  "name": "vwo-fme-node-sdk",
+  "version": "1.0.0",
+  "description": "VWO Node SDK for Feature Management and Experimentation",
+  "main": "dist/index",
+  "types": "dist/index.d.ts",
   "scripts": {
     "check:versions": "node -e 'require(\"./scripts/check-versions\")'",
-    "tsc": "yarn check:versions && tsc -w",
-    "example": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules example/index.js",
-    "example:server": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules example/server.js"
+    "demo": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js",
+    "demo:server": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js",
+    "prettier": "prettier -w lib/**/*.ts *.md",
+    "tsc": "yarn check:versions && tsc -w"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/wingify/vwo-node-sdk"
+    "url": "https://github.com/wingify/vwo-fme-node-sdk"
   },
-  "author": "dev@wingify.com",
+  "author": "VWO developers",
   "license": "Apache-2.0",
   "files": [
     "dist/",
@@ -62,6 +65,6 @@
   },
   "engineStrict": true,
   "engines": {
-    "node": ">= 6.10.0"
+    "node": ">= 8.9.0"
   }
 }

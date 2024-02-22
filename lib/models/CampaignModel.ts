@@ -36,7 +36,8 @@ export class CampaignModel {
   }
 
   processCampaignProperties(campaign: CampaignModel): void {
-    if (campaign.variables) {// campaign.var ||
+    if (campaign.variables) {
+      // campaign.var ||
       if (
         // (campaign.var && campaign.var.constructor === {}.constructor) ||
         campaign.variables.constructor === {}.constructor
@@ -50,7 +51,8 @@ export class CampaignModel {
       }
     }
 
-    if (campaign.variations) {// campaign.v ||
+    if (campaign.variations) {
+      // campaign.v ||
       if (
         // (campaign.v && campaign.v.constructor === {}.constructor) ||
         campaign.variations.constructor === {}.constructor
@@ -64,9 +66,9 @@ export class CampaignModel {
       }
     }
 
-    if (campaign.metrics) {// campaign.m ||
-      if (
-        campaign.metrics && campaign.metrics.constructor === {}.constructor) {
+    if (campaign.metrics) {
+      // campaign.m ||
+      if (campaign.metrics && campaign.metrics.constructor === {}.constructor) {
         this.metrics = [];
       } else {
         const metricsList: Array<MetricModel> = campaign.metrics || [];

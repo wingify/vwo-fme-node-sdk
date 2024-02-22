@@ -101,7 +101,7 @@ export function getCampaignVariation(settings, campaignKey, variationId) {
   });
 
   if (campaign) {
-    const variation:VariationModel = campaign.getVariations().find((variation: VariationModel) => {
+    const variation: VariationModel = campaign.getVariations().find((variation: VariationModel) => {
       return variation.getId() === variationId;
     });
 
@@ -109,7 +109,7 @@ export function getCampaignVariation(settings, campaignKey, variationId) {
       return new VariationModel().modelFromDictionary(variation);
     }
   }
-  return null;;
+  return null;
 }
 
 export function getRolloutVariation(settings, rolloutKey, variationId) {
@@ -118,7 +118,7 @@ export function getRolloutVariation(settings, rolloutKey, variationId) {
   });
 
   if (rolloutCampaign) {
-    const variation:VariationModel = rolloutCampaign.getVariations().find((variation: VariationModel) => {
+    const variation: VariationModel = rolloutCampaign.getVariations().find((variation: VariationModel) => {
       return variation.getId() === variationId;
     });
 
@@ -126,10 +126,10 @@ export function getRolloutVariation(settings, rolloutKey, variationId) {
       return new VariationModel().modelFromDictionary(variation);
     }
   }
-  return null;;
+  return null;
 }
 
-export function setCampaignAllocation (campaigns: any[]) {
+export function setCampaignAllocation(campaigns: any[]) {
   let stepFactor = 0;
   for (let i = 0, currentAllocation = 0; i < campaigns.length; i++) {
     let campaign = campaigns[i];
@@ -143,7 +143,7 @@ export function isPartOfGroup(settings: any, campaignId: any) {
   if (settings.campaignGroups && settings.campaignGroups.hasOwnProperty(campaignId)) {
     return {
       groupId: settings.campaignGroups[campaignId],
-      groupName: settings.groups[settings.campaignGroups[campaignId]].name
+      groupName: settings.groups[settings.campaignGroups[campaignId]].name,
     };
   }
   return {};
@@ -195,8 +195,8 @@ export function getFeatureKeysFromCampaignIds(settings: SettingsModel, campaignI
           featureKeys.push(feature.getKey());
         }
       });
-    }
-  )}
+    });
+  }
   return featureKeys;
 }
 
@@ -225,7 +225,7 @@ export function assignRangeValuesMEG(data: any, currentAllocation: number) {
   return stepFactor;
 }
 
-export function getRuleTypeUsingCampaignIdFromFeature(feature:any, campaignId: number) {
+export function getRuleTypeUsingCampaignIdFromFeature(feature: any, campaignId: number) {
   let ruleType = '';
   feature.rules.forEach((rule) => {
     if (rule.campaignId === campaignId) {

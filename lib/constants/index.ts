@@ -31,5 +31,5 @@ export const Constants = {
 
   VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
 
-  RANDOM_ALGO: 1
+  RANDOM_ALGO: 1,
 };

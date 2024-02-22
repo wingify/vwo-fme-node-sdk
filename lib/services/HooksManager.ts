@@ -12,7 +12,6 @@ class HooksManager {
   private isCallBackFunction: boolean;
   private decision: Record<string, any>;
 
-
   constructor(options: Options = {}) {
     this.callback = options.integrations?.callback;
     this.isCallBackFunction = isFunction(this.callback);

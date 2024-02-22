@@ -106,8 +106,8 @@ export class FlagApi implements IGetFlag {
         const featureInfo = {
           rolloutId: storedData.rolloutId,
           rolloutKey: storedData.rolloutKey,
-          rolloutVariationId: storedData.rolloutVariationId
-        }
+          rolloutVariationId: storedData.rolloutVariationId,
+        };
         evaluatedFeatureMap.set(featureKey, featureInfo);
         Object.assign(rulesInformation, featureInfo);
       }
@@ -121,10 +121,7 @@ export class FlagApi implements IGetFlag {
       deferredObject.resolve({
         isEnabled: () => false,
         getVariables: () => [],
-        getVariable: (
-          key: string,
-          defaultValue: string,
-        ) => defaultValue,
+        getVariable: (key: string, defaultValue: string) => defaultValue,
       });
       return deferredObject.promise;
     }
@@ -133,11 +130,22 @@ export class FlagApi implements IGetFlag {
       // if rollout rules are present and shouldCheckForAB is false, then check for rollout rules only
       for (const rule of rollOutRules) {
         // evaluateRuleResult - true/ false (based pre segment condition)
-        const [evaluateRuleResult, temp , tempCampArray] = await evaluateRule(settings, feature, rule, context, false, decision);
+        const [evaluateRuleResult, temp, tempCampArray] = await evaluateRule(
+          settings,
+          feature,
+          rule,
+          context,
+          false,
+          decision,
+        );
         campArray = campArray.concat(tempCampArray);
         if (evaluateRuleResult) {
           ruleToTrack.push(rule);
-          evaluatedFeatureMap.set(featureKey, { rolloutId: rule.id, rolloutKey: rule.key, rolloutVariationId: rule.variations[0].id});
+          evaluatedFeatureMap.set(featureKey, {
+            rolloutId: rule.id,
+            rolloutKey: rule.key,
+            rolloutVariationId: rule.variations[0].id,
+          });
           break;
         }
         continue; // if rule does not satisfy, then check for other rule
@@ -149,7 +157,14 @@ export class FlagApi implements IGetFlag {
 
     if (ruleToTrack.length > 0) {
       const campaign = new CampaignModel().modelFromDictionary(ruleToTrack.pop());
-      const [variation, tempCampArray] = this.trafficCheckAndReturnVariation(settings, feature, campaign, context, rulesInformation, decision);
+      const [variation, tempCampArray] = this.trafficCheckAndReturnVariation(
+        settings,
+        feature,
+        campaign,
+        context,
+        rulesInformation,
+        decision,
+      );
       campArray = campArray.concat(tempCampArray);
       if (isObject(variation) && Object.keys(variation).length > 0) {
         isEnabled = true;
@@ -161,47 +176,19 @@ export class FlagApi implements IGetFlag {
     if (shouldCheckForAbPersonalise) {
       // if rollout rule is passed, get all ab and personalise rules
       const allRules = getAllAbAndPersonaliseRules(settings, featureKey);
-      let listOfMegCampaignsGroups = [];    // to store megGroups
+      let listOfMegCampaignsGroups = []; // to store megGroups
       let ruleIndex = 0;
       let campaignToSkip = [];
-      for (const rule of allRules) {              // loop over all ab and personalize rules
+      for (const rule of allRules) {
+        // loop over all ab and personalize rules
         ruleIndex++;
-        const group = isPartOfGroup(settings, rule.id);      // check if rule is part of any group
-          if (isObject(group) && Object.keys(group).length > 0) {
-            if (listOfMegCampaignsGroups.indexOf(group.groupId) === -1) {
-              listOfMegCampaignsGroups.push(group.groupId);
-            }
-            if (ruleIndex === allRules.length) {        // if last rule, then evaluate MEG campaigns
-              LogManager.Instance.debug(`Evaluating MEG campaigns for the user ${context.user.id}`);
-              const [megResult, whitelistedVariationInfoWithCampaign, winnerCampaign] = await evaluateGroups(
-                settings,
-                featureKey,
-                feature,
-                listOfMegCampaignsGroups,
-                evaluatedFeatureMap,
-                context,
-                storageService,
-                campaignToSkip,
-                decision,
-              );
-              if (megResult) {         // if MEG campaign passed
-                if (winnerCampaign !== null) {
-                  const winnerCampaignToPush = allRules.find(rule => rule.id === winnerCampaign.id);
-                  ruleToTrack.push(winnerCampaignToPush);
-                } else {
-                  isEnabled = true;
-                  experimentVariationToReturn = whitelistedVariationInfoWithCampaign.variation;
-                  Object.assign(rulesInformation, {
-                    experimentId: whitelistedVariationInfoWithCampaign.experimentId,
-                    experimentKey: whitelistedVariationInfoWithCampaign.experimentKey,
-                    experimentVariationId: whitelistedVariationInfoWithCampaign.variationId,
-                  });
-                }
-              }
-              break;
-            }
-            continue;
-          } else if (listOfMegCampaignsGroups.length > 0) {     // if group is not present and MEG groups are present, then evaluate MEG campaigns
+        const group = isPartOfGroup(settings, rule.id); // check if rule is part of any group
+        if (isObject(group) && Object.keys(group).length > 0) {
+          if (listOfMegCampaignsGroups.indexOf(group.groupId) === -1) {
+            listOfMegCampaignsGroups.push(group.groupId);
+          }
+          if (ruleIndex === allRules.length) {
+            // if last rule, then evaluate MEG campaigns
             LogManager.Instance.debug(`Evaluating MEG campaigns for the user ${context.user.id}`);
             const [megResult, whitelistedVariationInfoWithCampaign, winnerCampaign] = await evaluateGroups(
               settings,
@@ -215,8 +202,9 @@ export class FlagApi implements IGetFlag {
               decision,
             );
             if (megResult) {
+              // if MEG campaign passed
               if (winnerCampaign !== null) {
-                const winnerCampaignToPush = allRules.find(rule => rule.id === winnerCampaign.id);
+                const winnerCampaignToPush = allRules.find((rule) => rule.id === winnerCampaign.id);
                 ruleToTrack.push(winnerCampaignToPush);
               } else {
                 isEnabled = true;
@@ -227,43 +215,81 @@ export class FlagApi implements IGetFlag {
                   experimentVariationId: whitelistedVariationInfoWithCampaign.variationId,
                 });
               }
-              break;
             }
-            campaignToSkip.push(rule.id);
+            break;
           }
-
-          // abPersonalizeResult - true/ false (based on whitelisting condition || pre segment condition)
-          const [abPersonalizeResult, whitelistedVariation, tempCampArray] = await evaluateRule(
+          continue;
+        } else if (listOfMegCampaignsGroups.length > 0) {
+          // if group is not present and MEG groups are present, then evaluate MEG campaigns
+          LogManager.Instance.debug(`Evaluating MEG campaigns for the user ${context.user.id}`);
+          const [megResult, whitelistedVariationInfoWithCampaign, winnerCampaign] = await evaluateGroups(
             settings,
+            featureKey,
             feature,
-            rule,
+            listOfMegCampaignsGroups,
+            evaluatedFeatureMap,
             context,
-            false,
+            storageService,
+            campaignToSkip,
             decision,
           );
-        campArray = campArray.concat(tempCampArray);
-          if (abPersonalizeResult) {
-            if (whitelistedVariation === null) {
-              // whitelistedVariation will be null if pre segment passed but whitelisting failed
-              ruleToTrack.push(rule);
+          if (megResult) {
+            if (winnerCampaign !== null) {
+              const winnerCampaignToPush = allRules.find((rule) => rule.id === winnerCampaign.id);
+              ruleToTrack.push(winnerCampaignToPush);
             } else {
               isEnabled = true;
-              experimentVariationToReturn = whitelistedVariation.variation;
+              experimentVariationToReturn = whitelistedVariationInfoWithCampaign.variation;
               Object.assign(rulesInformation, {
-                experimentId: rule.id,
-                experimentKey: whitelistedVariation.experimentKey,
-                experimentVariationId: whitelistedVariation.variationId,
+                experimentId: whitelistedVariationInfoWithCampaign.experimentId,
+                experimentKey: whitelistedVariationInfoWithCampaign.experimentKey,
+                experimentVariationId: whitelistedVariationInfoWithCampaign.variationId,
               });
             }
             break;
           }
           campaignToSkip.push(rule.id);
-          continue;
+        }
+
+        // abPersonalizeResult - true/ false (based on whitelisting condition || pre segment condition)
+        const [abPersonalizeResult, whitelistedVariation, tempCampArray] = await evaluateRule(
+          settings,
+          feature,
+          rule,
+          context,
+          false,
+          decision,
+        );
+        campArray = campArray.concat(tempCampArray);
+        if (abPersonalizeResult) {
+          if (whitelistedVariation === null) {
+            // whitelistedVariation will be null if pre segment passed but whitelisting failed
+            ruleToTrack.push(rule);
+          } else {
+            isEnabled = true;
+            experimentVariationToReturn = whitelistedVariation.variation;
+            Object.assign(rulesInformation, {
+              experimentId: rule.id,
+              experimentKey: whitelistedVariation.experimentKey,
+              experimentVariationId: whitelistedVariation.variationId,
+            });
+          }
+          break;
+        }
+        campaignToSkip.push(rule.id);
+        continue;
       }
     }
     if (ruleToTrack.length > 0) {
-      const campaign = new CampaignModel().modelFromDictionary(ruleToTrack.pop()); 
-      const [variation, tempCampArray] = this.trafficCheckAndReturnVariation(settings, feature, campaign, context, rulesInformation, decision);
+      const campaign = new CampaignModel().modelFromDictionary(ruleToTrack.pop());
+      const [variation, tempCampArray] = this.trafficCheckAndReturnVariation(
+        settings,
+        feature,
+        campaign,
+        context,
+        rulesInformation,
+        decision,
+      );
       campArray = campArray.concat(tempCampArray);
       if (isObject(variation) && Object.keys(variation).length > 0) {
         isEnabled = true;
@@ -278,21 +304,23 @@ export class FlagApi implements IGetFlag {
           user: context.user,
           ...rulesInformation,
         },
-      storageService,
+        storageService,
       );
       hookManager.set(decision);
       hookManager.execute(hookManager.get());
     }
     if (feature.impactCampaign?.campaignId) {
-      LogManager.Instance.info(`Sending data for Impact Campaign for the user ${context.user.id}`)
-      campArray = campArray.concat(createImpressionForVariationShown(
-        settings,
-        feature,
-        { id: feature.impactCampaign?.campaignId },
-        context.user,
-        { id: isEnabled? 2 : 1},
-        true,
-      ));
+      LogManager.Instance.info(`Sending data for Impact Campaign for the user ${context.user.id}`);
+      campArray = campArray.concat(
+        createImpressionForVariationShown(
+          settings,
+          feature,
+          { id: feature.impactCampaign?.campaignId },
+          context.user,
+          { id: isEnabled ? 2 : 1 },
+          true,
+        ),
+      );
     }
     deferredObject.resolve({
       isEnabled: () => isEnabled,
@@ -305,7 +333,7 @@ export class FlagApi implements IGetFlag {
         const variable = variables.find((variable) => variable.key === key);
         return variable?.value ?? defaultValue;
       },
-        campArray: campArray
+      campArray: campArray,
     });
 
     return deferredObject.promise;
@@ -321,7 +349,14 @@ export class FlagApi implements IGetFlag {
     };
   }
 
-  private trafficCheckAndReturnVariation(settings: any, feature, campaign: any, context:any, rulesInformation: any, decision: any): [VariationModel, any] {
+  private trafficCheckAndReturnVariation(
+    settings: any,
+    feature,
+    campaign: any,
+    context: any,
+    rulesInformation: any,
+    decision: any,
+  ): [VariationModel, any] {
     const variation = evaluateTrafficAndGetVariation(settings, campaign, context.user.id);
     let campArray = [];
     if (isObject(variation) && Object.keys(variation).length > 0) {
@@ -329,20 +364,20 @@ export class FlagApi implements IGetFlag {
         Object.assign(rulesInformation, {
           rolloutId: campaign.getId(),
           rolloutKey: campaign.getKey(),
-          rolloutVariationId: variation.getId()
+          rolloutVariationId: variation.getId(),
         });
       } else {
         Object.assign(rulesInformation, {
           experimentId: campaign.getId(),
           experimentKey: campaign.getKey(),
-          experimentVariationId: variation.getId()
+          experimentVariationId: variation.getId(),
         });
       }
       Object.assign(decision, rulesInformation);
-      campArray =  createImpressionForVariationShown(settings, feature, campaign, context.user, variation);
+      campArray = createImpressionForVariationShown(settings, feature, campaign, context.user, variation);
       return [variation, campArray];
     }
-    return [null,campArray];
+    return [null, campArray];
   }
 }
 
@@ -362,7 +397,7 @@ export const evaluateRule = async (
 ): Promise<[Boolean, any, any]> => {
   // evaluate the dsl
   const campaign: CampaignModel = new CampaignModel();
-  let  campArray = [];
+  let campArray = [];
   campaign.modelFromDictionary(rule);
   // check for whitelisting and pre segmentation
   const [preSegmentationResult, whitelistedObject] = await checkWhitelistingAndPreSeg(
@@ -380,13 +415,19 @@ export const evaluateRule = async (
       experimentKey: campaign.getKey(),
       experimentVariationId: whitelistedObject.variationId,
     });
-    campArray = createImpressionForVariationShown(settings, feature, campaign, context.user, whitelistedObject.variation);
+    campArray = createImpressionForVariationShown(
+      settings,
+      feature,
+      campaign,
+      context.user,
+      whitelistedObject.variation,
+    );
   }
 
   return [preSegmentationResult, whitelistedObject, campArray];
 };
 
-const createImpressionForVariationShown =  (
+const createImpressionForVariationShown = (
   settings: any,
   feature: any,
   campaign: any,
@@ -411,7 +452,7 @@ const createImpressionForVariationShown =  (
     user.userAgent,
     user.ipAddress,
   );
-  campArray.push({campaignId: campaign.id, variationId: variation.id});
+  campArray.push({ campaignId: campaign.id, variationId: variation.id });
   networkUtil.sendPostApiRequest(properties, payload);
   return campArray;
 };

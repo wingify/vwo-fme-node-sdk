@@ -28,7 +28,7 @@ export class NetworkUtil {
     const path: Record<string, dynamic> = {
       i: `${apikey}`,
       r: Math.random(),
-      a: accountId
+      a: accountId,
     };
     return path;
   }
@@ -101,7 +101,7 @@ export class NetworkUtil {
       vwo_envKey: any;
       id?: any;
       variation?: any;
-      isFirst?: any,
+      isFirst?: any;
       isCustomEvent?: boolean;
     } = {
       vwo_sdkName: Constants.SDK_NAME,
@@ -114,8 +114,8 @@ export class NetworkUtil {
         msgId: `${uuid}-${getCurrentUnixTimestampInMillis()}`,
         visId: uuid,
         sessionId: getCurrentUnixTimestamp(),
-        visitor_ua : visitorUserAgent,
-        visitor_ip : ipAddress,
+        visitor_ua: visitorUserAgent,
+        visitor_ip: ipAddress,
         event: {
           props: props,
           name: eventName,
@@ -141,7 +141,15 @@ export class NetworkUtil {
    * @param {Number} variationId
    * @returns track-user payload
    */
-  getTrackUserPayloadData(settings: any, userId: any, eventName: string, campaignId: any, variationId: any, visitorUserAgent = '', ipAddress = '' ) {
+  getTrackUserPayloadData(
+    settings: any,
+    userId: any,
+    eventName: string,
+    campaignId: any,
+    variationId: any,
+    visitorUserAgent = '',
+    ipAddress = '',
+  ) {
     const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
 
     properties.d.event.props.id = campaignId;
@@ -155,11 +163,18 @@ export class NetworkUtil {
     return properties;
   }
 
-  getTrackGoalPayloadData(settings: any, userId: any, eventName: string, eventProperties: any,  visitorUserAgent = '', ipAddress = '' ) {
+  getTrackGoalPayloadData(
+    settings: any,
+    userId: any,
+    eventName: string,
+    eventProperties: any,
+    visitorUserAgent = '',
+    ipAddress = '',
+  ) {
     const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
     properties.d.event.props.isCustomEvent = true;
-    properties.d.event.props.variation = 1;  // temporary value
-    properties.d.event.props.id = 1;         // temporary value
+    properties.d.event.props.variation = 1; // temporary value
+    properties.d.event.props.id = 1; // temporary value
 
     if (eventProperties && isObject(eventProperties) && Object.keys(eventProperties).length > 0) {
       for (const prop in eventProperties) {
@@ -174,7 +189,15 @@ export class NetworkUtil {
     return properties;
   }
 
-  getAttributePayloadData(settings: any, userId: any, eventName: string, attributeKey: any, attributeValue: any, visitorUserAgent = '', ipAddress = '' ) {
+  getAttributePayloadData(
+    settings: any,
+    userId: any,
+    eventName: string,
+    attributeKey: any,
+    attributeValue: any,
+    visitorUserAgent = '',
+    ipAddress = '',
+  ) {
     const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
 
     properties.d.event.props.isCustomEvent = true;
@@ -190,17 +213,15 @@ export class NetworkUtil {
 
   sendPostApiRequest(properties: any, payload: any) {
     NetworkManager.Instance.attachClient();
-    
+
     const headers: Record<string, string> = {};
 
     const userAgent = payload.d.visitor_ua;
     const ipAddress = payload.d.visitor_ip;
 
     // Set headers
-    if(userAgent)
-      headers[HeadersEnum.USER_AGENT] = userAgent;
-    if(ipAddress)
-      headers[HeadersEnum.IP] = ipAddress;
+    if (userAgent) headers[HeadersEnum.USER_AGENT] = userAgent;
+    if (ipAddress) headers[HeadersEnum.IP] = ipAddress;
 
     const request: RequestModel = new RequestModel(
       UrlService.getBaseUrl(),
@@ -210,7 +231,7 @@ export class NetworkUtil {
       payload,
       headers,
       null,
-      UrlService.getPort()
+      UrlService.getPort(),
     );
 
     NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
@@ -228,7 +249,7 @@ export class NetworkUtil {
       null,
       null,
       null,
-      UrlService.getPort()
+      UrlService.getPort(),
     );
     try {
       const response: ResponseModel = await NetworkManager.Instance.get(request);

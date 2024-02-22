@@ -31,16 +31,22 @@ export class SettingsModel {
     this.version = settings.v || settings.version;
     this.collectionPrefix = settings.collectionPrefix;
 
-    if ((settings.f && settings.f.constructor !== {}.constructor) || (settings.features && settings.features.constructor !== {}.constructor)) {
+    if (
+      (settings.f && settings.f.constructor !== {}.constructor) ||
+      (settings.features && settings.features.constructor !== {}.constructor)
+    ) {
       const featureList: Array<FeatureModel> = settings.f || settings.features;
-      featureList.forEach(feature => {
+      featureList.forEach((feature) => {
         this.features.push(new FeatureModel().modelFromDictionary(feature));
       });
     }
 
-    if ((settings.c && settings.c.constructor !== {}.constructor) || (settings.campaigns && settings.campaigns.constructor !== {}.constructor)) {
+    if (
+      (settings.c && settings.c.constructor !== {}.constructor) ||
+      (settings.campaigns && settings.campaigns.constructor !== {}.constructor)
+    ) {
       const campaignList: Array<CampaignModel> = settings.c || settings.campaigns;
-      campaignList.forEach(campaign => {
+      campaignList.forEach((campaign) => {
         this.campaigns.push(new CampaignModel().modelFromDictionary(campaign));
       });
     }

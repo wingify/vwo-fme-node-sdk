@@ -102,10 +102,10 @@ export class SettingsManager implements ISettingsManager {
         null,
         null,
         null,
-        this.settingsFilePort
+        this.settingsFilePort,
       );
       request.setTimeout(this.networkTimeout);
-  
+
       networkInstance
         .get(request)
         .then((response: ResponseModel) => {
@@ -114,7 +114,7 @@ export class SettingsManager implements ISettingsManager {
         .catch((err: ResponseModel) => {
           deferredObject.reject(err);
         });
-  
+
       return deferredObject.promise;
     } catch (err) {
       console.error('Error occurred while fetching settings:', err);

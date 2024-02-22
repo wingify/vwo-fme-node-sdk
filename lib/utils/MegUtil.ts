@@ -33,7 +33,7 @@ export const evaluateGroups = async (
   context: any,
   storageService: StorageService,
   campaignToSkip: any[],
-  decision: any
+  decision: any,
 ): Promise<any> => {
   let featureToSkip = [];
   let eligibleCampaignsForGroup: Map<string, any[]> = new Map();
@@ -71,7 +71,15 @@ export const evaluateGroups = async (
     let campaignList = await getEligbleCampaigns(settings, campaignMap, context, storageService);
     eligibleCampaignsForGroup.set(groupId, campaignList);
   }
-  return await evaluateEligibleCampaigns(settings, featureKey, feature, eligibleCampaignsForGroup, context, campaignToSkip, decision);
+  return await evaluateEligibleCampaigns(
+    settings,
+    featureKey,
+    feature,
+    eligibleCampaignsForGroup,
+    context,
+    campaignToSkip,
+    decision,
+  );
 };
 
 export function getFeatureKeysFromGroup(settings: SettingsModel, groupId: any) {
@@ -85,7 +93,7 @@ const evaluateFeatureRollOutRules = async (
   feature: any,
   evaluatedFeatureMap: Map<string, any>,
   featureToSkip: any[],
-  context: any
+  context: any,
 ): Promise<any> => {
   if (evaluatedFeatureMap.has(feature.key) && evaluatedFeatureMap.get(feature.key).hasOwnProperty('rolloutId')) {
     return true;
@@ -94,7 +102,7 @@ const evaluateFeatureRollOutRules = async (
   if (rollOutRules.length > 0) {
     let ruleToTestForTraffic = null;
     for (const rule of rollOutRules) {
-      const [evaluateRuleResult, ] = await evaluateRule(settings, feature, rule, context, false, {});
+      const [evaluateRuleResult] = await evaluateRule(settings, feature, rule, context, false, {});
       if (evaluateRuleResult) {
         ruleToTestForTraffic = rule;
         break;
@@ -102,12 +110,16 @@ const evaluateFeatureRollOutRules = async (
       continue;
     }
     if (ruleToTestForTraffic !== null) {
-        const campaign = new CampaignModel().modelFromDictionary(ruleToTestForTraffic);
-        const variation = evaluateTrafficAndGetVariation(settings, campaign, context.user.id);
-        if (isObject(variation) && Object.keys(variation).length > 0) {
-            evaluatedFeatureMap.set(feature.key, { rolloutId: ruleToTestForTraffic.id, rolloutKey: ruleToTestForTraffic.key, rolloutVariationId: ruleToTestForTraffic.variations[0].id});
-            return true;
-        }
+      const campaign = new CampaignModel().modelFromDictionary(ruleToTestForTraffic);
+      const variation = evaluateTrafficAndGetVariation(settings, campaign, context.user.id);
+      if (isObject(variation) && Object.keys(variation).length > 0) {
+        evaluatedFeatureMap.set(feature.key, {
+          rolloutId: ruleToTestForTraffic.id,
+          rolloutKey: ruleToTestForTraffic.key,
+          rolloutVariationId: ruleToTestForTraffic.variations[0].id,
+        });
+        return true;
+      }
     }
     // no rollout rule passed
     featureToSkip.push(feature.key);
@@ -152,7 +164,11 @@ const getEligbleCampaigns = async (
         }
       }
       if (
-        (await new CampaignDecisionService().getDecision(new CampaignModel().modelFromDictionary(campaign), settings, context)) &&
+        (await new CampaignDecisionService().getDecision(
+          new CampaignModel().modelFromDictionary(campaign),
+          settings,
+          context,
+        )) &&
         new CampaignDecisionService().isUserPartOfCampaign(context.user.id, campaign)
       ) {
         LogManager.Instance.debug(`MEG: Campaign ${campaign.getKey()} is eligible for user ${context.user.id}`);
@@ -176,7 +192,7 @@ const evaluateEligibleCampaigns = async (
   eligibleCampaignsForGroup: Map<string, any[]>,
   context: any,
   campaignToSkip: any[],
-  decision: any
+  decision: any,
 ): Promise<any> => {
   // getCampaignIds from featureKey
   let winnerFromEachGroup = [];
@@ -209,8 +225,8 @@ const evaluateEligibleCampaigns = async (
       if (campaignList.eligibleCampaigns.length === 1) {
         winnerFromEachGroup.push(campaignList.eligibleCampaigns[0]);
         LogManager.Instance.debug(
-            `MEG: Campaign ${campaignList.eligibleCampaigns[0].getKey()} is the winner for group ${groupId} for user ${context.user.id}`,
-          );
+          `MEG: Campaign ${campaignList.eligibleCampaigns[0].getKey()} is the winner for group ${groupId} for user ${context.user.id}`,
+        );
       } else if (campaignList.eligibleCampaigns.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
         winnerFromEachGroup.push(
           normalizeAndFindWinningCampaign(campaignList.eligibleCampaigns, context, campaignIds, groupId),
@@ -222,7 +238,16 @@ const evaluateEligibleCampaigns = async (
       }
     }
   });
-  return await campaignToReturn(settings, feature, eligibleCampaignsForGroup, winnerFromEachGroup, context, campaignIds, campaignToSkip, decision);
+  return await campaignToReturn(
+    settings,
+    feature,
+    eligibleCampaignsForGroup,
+    winnerFromEachGroup,
+    context,
+    campaignIds,
+    campaignToSkip,
+    decision,
+  );
 };
 
 const normalizeAndFindWinningCampaign = (
@@ -246,7 +271,9 @@ const normalizeAndFindWinningCampaign = (
     new DecisionMaker().calculateBucketValue(getBucketingSeed(context.user.id, undefined, groupId)),
   );
 
-  LogManager.Instance.debug(`MEG Random: Campaign ${winnerCampaign.getKey()} is the winner for group ${groupId} for user ${context.user.id}`);
+  LogManager.Instance.debug(
+    `MEG Random: Campaign ${winnerCampaign.getKey()} is the winner for group ${groupId} for user ${context.user.id}`,
+  );
 
   if (winnerCampaign && calledCampaignIds.includes(winnerCampaign.getId())) {
     return winnerCampaign;
@@ -297,7 +324,9 @@ const advancedAlgoFindWinningCampaign = (
       */
 
     // make participatingCampaignList as array of VariationModel
-    participatingCampaignList = participatingCampaignList.map((campaign) => new VariationModel().modelFromDictionary(campaign));
+    participatingCampaignList = participatingCampaignList.map((campaign) =>
+      new VariationModel().modelFromDictionary(campaign),
+    );
     setCampaignAllocation(participatingCampaignList);
     winnerCampaign = new CampaignDecisionService().getVariation(
       participatingCampaignList,
@@ -306,7 +335,9 @@ const advancedAlgoFindWinningCampaign = (
   }
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
   // also shortlistedCampaigns and wt array does not have a single campaign id in common
-  LogManager.Instance.debug(`MEG Advance: Campaign ${winnerCampaign.key} is the winner for group ${groupId} for user ${context.user.id}`);
+  LogManager.Instance.debug(
+    `MEG Advance: Campaign ${winnerCampaign.key} is the winner for group ${groupId} for user ${context.user.id}`,
+  );
   if (calledCampaignIds.includes(winnerCampaign.id)) {
     return winnerCampaign;
   }
@@ -314,50 +345,64 @@ const advancedAlgoFindWinningCampaign = (
 };
 
 const campaignToReturn = async (
-    settings: any,
-    feature: any,
-    eligibleCampaignsForGroup: any,
-    winnerCampaigns: any, 
-    context: any,
-    priorityCampaignIds: any,
-    campaignToSkip: any[],
-    decision: any,
+  settings: any,
+  feature: any,
+  eligibleCampaignsForGroup: any,
+  winnerCampaigns: any,
+  context: any,
+  priorityCampaignIds: any,
+  campaignToSkip: any[],
+  decision: any,
 ): Promise<any> => {
-    const eligibleCampaignsForGroupArray = Array.from<[string, any[]]>(eligibleCampaignsForGroup);
-    for (const [groupId, campaignList] of eligibleCampaignsForGroupArray) {
-        let winnerFound = false;
-        let campaignToReturn = null;
-        for (const campaignId of priorityCampaignIds) {
-            const winnerCampaign = winnerCampaigns.find(campaign => campaign?.id === campaignId);
-            if (winnerCampaign) {
-                campaignToReturn = winnerCampaign;
-                winnerFound = true;
-                break;
-            }
-            if (campaignToSkip.includes(campaignId) || getRuleTypeUsingCampaignIdFromFeature(feature, campaignId) === CampaignTypeEnum.ROLLOUT) {
-                continue;
-            }
-            // check if campaignId is present in eligibleCampaignsWithStorage or eligibleCampaigns or inEligibleCampaigns
-            const campaign = campaignList['eligibleCampaignsWithStorage'].find(campaign => campaign.id === campaignId) ||
-                campaignList['eligibleCampaigns'].find(campaign => campaign.id === campaignId) ||
-                campaignList['inEligibleCampaigns'].find(campaign => campaign.id === campaignId);
-            if (campaign) {
-                continue;
-            } else {
-                campaignToSkip.push(campaignId);
-                return [false , null, null];
-            }
-        }
-        if (winnerFound) {
-            LogManager.Instance.info(`MEG: Campaign ${campaignToReturn.key} is the winner for user ${context.user.id}`);
-            const [megResult, whitelistedVariationInfoWithCampaign, ] = await evaluateRule(settings, feature, campaignToReturn, context, true, decision);
-            if (isObject(whitelistedVariationInfoWithCampaign) && Object.keys(whitelistedVariationInfoWithCampaign).length > 0) {
-                whitelistedVariationInfoWithCampaign.experiementId = campaignToReturn.id;
-                whitelistedVariationInfoWithCampaign.experiementKey = campaignToReturn.key;
-                return [true, whitelistedVariationInfoWithCampaign, null];
-            }
-            return [true, whitelistedVariationInfoWithCampaign, campaignToReturn];
-        }
+  const eligibleCampaignsForGroupArray = Array.from<[string, any[]]>(eligibleCampaignsForGroup);
+  for (const [groupId, campaignList] of eligibleCampaignsForGroupArray) {
+    let winnerFound = false;
+    let campaignToReturn = null;
+    for (const campaignId of priorityCampaignIds) {
+      const winnerCampaign = winnerCampaigns.find((campaign) => campaign?.id === campaignId);
+      if (winnerCampaign) {
+        campaignToReturn = winnerCampaign;
+        winnerFound = true;
+        break;
+      }
+      if (
+        campaignToSkip.includes(campaignId) ||
+        getRuleTypeUsingCampaignIdFromFeature(feature, campaignId) === CampaignTypeEnum.ROLLOUT
+      ) {
+        continue;
+      }
+      // check if campaignId is present in eligibleCampaignsWithStorage or eligibleCampaigns or inEligibleCampaigns
+      const campaign =
+        campaignList['eligibleCampaignsWithStorage'].find((campaign) => campaign.id === campaignId) ||
+        campaignList['eligibleCampaigns'].find((campaign) => campaign.id === campaignId) ||
+        campaignList['inEligibleCampaigns'].find((campaign) => campaign.id === campaignId);
+      if (campaign) {
+        continue;
+      } else {
+        campaignToSkip.push(campaignId);
+        return [false, null, null];
+      }
     }
-    return [false , null, null];
-}
+    if (winnerFound) {
+      LogManager.Instance.info(`MEG: Campaign ${campaignToReturn.key} is the winner for user ${context.user.id}`);
+      const [megResult, whitelistedVariationInfoWithCampaign] = await evaluateRule(
+        settings,
+        feature,
+        campaignToReturn,
+        context,
+        true,
+        decision,
+      );
+      if (
+        isObject(whitelistedVariationInfoWithCampaign) &&
+        Object.keys(whitelistedVariationInfoWithCampaign).length > 0
+      ) {
+        whitelistedVariationInfoWithCampaign.experiementId = campaignToReturn.id;
+        whitelistedVariationInfoWithCampaign.experiementKey = campaignToReturn.key;
+        return [true, whitelistedVariationInfoWithCampaign, null];
+      }
+      return [true, whitelistedVariationInfoWithCampaign, campaignToReturn];
+    }
+  }
+  return [false, null, null];
+};

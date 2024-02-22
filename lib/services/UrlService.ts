@@ -5,19 +5,19 @@ interface UrlServiceType {
   collectionPrefix?: string;
   webServiceUrl?: string;
   port?: number;
-  init({ collectionPrefix, webServiceUrl }?: { collectionPrefix?: string, webServiceUrl?: string }): UrlServiceType;
+  init({ collectionPrefix, webServiceUrl }?: { collectionPrefix?: string; webServiceUrl?: string }): UrlServiceType;
   getBaseUrl(): string;
   getPort(): number;
 }
 
 const UrlService: UrlServiceType = {
-  init({ collectionPrefix, webServiceUrl }: { collectionPrefix?: string, webServiceUrl?: any } = {}) {
+  init({ collectionPrefix, webServiceUrl }: { collectionPrefix?: string; webServiceUrl?: any } = {}) {
     if (collectionPrefix && isString(collectionPrefix)) {
       UrlService.collectionPrefix = collectionPrefix;
     }
 
     if (webServiceUrl && isString(webServiceUrl)) {
-      // parse the url 
+      // parse the url
       const parsedUrl = new URL(`https://${webServiceUrl}`);
       UrlService.webServiceUrl = parsedUrl.hostname;
       UrlService.port = parseInt(parsedUrl.port);
@@ -44,7 +44,7 @@ const UrlService: UrlServiceType = {
 
   getPort() {
     return UrlService.port;
-  }
+  },
 };
 
 export default UrlService;

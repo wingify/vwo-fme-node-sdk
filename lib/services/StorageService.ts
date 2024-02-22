@@ -13,7 +13,6 @@ export class StorageService {
     const deferredObject = new Deferred();
     const storageInstance = Storage.Instance.getConnector();
 
-
     if (isNull(storageInstance) || isUndefined(storageInstance)) {
       deferredObject.resolve(StorageEnum.STORAGE_UNDEFINED);
     } else {

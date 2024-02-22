@@ -8,23 +8,12 @@ import { StorageService } from '../services/StorageService';
 import { Deferred } from '../utils/PromiseUtil';
 
 interface IStorageDecorator {
-  setDataInStorage(
-    data: Record<any, any>,
-    storageService: StorageService
-  ): Promise<VariationModel>;
-  getFeatureFromStorage(
-    featureKey: FeatureModel,
-    user: any,
-    storageService: StorageService
-  ): Promise<any>;
+  setDataInStorage(data: Record<any, any>, storageService: StorageService): Promise<VariationModel>;
+  getFeatureFromStorage(featureKey: FeatureModel, user: any, storageService: StorageService): Promise<any>;
 }
 
 export class StorageDecorator implements IStorageDecorator {
-  async getFeatureFromStorage(
-    featureKey: any,
-    user: any,
-    storageService: StorageService
-  ): Promise<any> {
+  async getFeatureFromStorage(featureKey: any, user: any, storageService: StorageService): Promise<any> {
     const deferredObject = new Deferred();
     storageService.getDataInStorage(featureKey, user).then((campaignMap: Record<any, any> | StorageEnum) => {
       switch (campaignMap) {
@@ -55,10 +44,7 @@ export class StorageDecorator implements IStorageDecorator {
     return deferredObject.promise;
   }
 
-  setDataInStorage(
-    data: Record<any, any>,
-    storageService: StorageService
-  ): Promise<VariationModel> {
+  setDataInStorage(data: Record<any, any>, storageService: StorageService): Promise<VariationModel> {
     const deferredObject = new Deferred();
     const {
       featureKey,
@@ -68,7 +54,7 @@ export class StorageDecorator implements IStorageDecorator {
       rolloutVariationId,
       experimentId,
       experimentKey,
-      experimentVariationId
+      experimentVariationId,
     } = data;
 
     if (!featureKey) {
@@ -82,15 +68,17 @@ export class StorageDecorator implements IStorageDecorator {
       return;
     }
     if (rolloutKey && !experimentKey && !rolloutVariationId) {
-        LogManager.Instance.error(`Variation is not valid for Rollout rule passed. Not able to store data into storage`);
-        deferredObject.reject();
-        return;
-    }
-    if (experimentKey && !experimentVariationId) {
-      LogManager.Instance.error(`Variation is not valid for Experiment rule passed. Not able to store data into storage`);
+      LogManager.Instance.error(`Variation is not valid for Rollout rule passed. Not able to store data into storage`);
       deferredObject.reject();
       return;
-  }
+    }
+    if (experimentKey && !experimentVariationId) {
+      LogManager.Instance.error(
+        `Variation is not valid for Experiment rule passed. Not able to store data into storage`,
+      );
+      deferredObject.reject();
+      return;
+    }
 
     storageService.setDataInStorage({
       featureKey,
@@ -100,7 +88,7 @@ export class StorageDecorator implements IStorageDecorator {
       rolloutVariationId,
       experimentId,
       experimentKey,
-      experimentVariationId
+      experimentVariationId,
     });
 
     deferredObject.resolve();

@@ -6,7 +6,6 @@ import { RuleModel } from './RuleModel';
 import { ImpactCapmaignModel } from './ImpactCampaignModel';
 
 export class FeatureModel {
-
   private m: Array<MetricModel> = [];
   private metrics: Array<MetricModel> = [];
 
@@ -28,13 +27,11 @@ export class FeatureModel {
       this.impactCampaign = new ImpactCapmaignModel().modelFromDictionary(feature.impactCampaign);
     }
 
-    if (
-      (feature.m && feature.m.constructor === {}.constructor) ||
-    feature.metrics.constructor === {}.constructor) {
+    if ((feature.m && feature.m.constructor === {}.constructor) || feature.metrics.constructor === {}.constructor) {
       this.metrics = [];
     } else {
       const metricList: Array<MetricModel> = feature.m || feature.metrics;
-      metricList.forEach(metric => {
+      metricList.forEach((metric) => {
         this.metrics.push(new MetricModel().modelFromDictionary(metric));
       });
     }
@@ -43,16 +40,14 @@ export class FeatureModel {
       this.rules = [];
     } else {
       const ruleList: Array<RuleModel> = feature.rules;
-      ruleList.forEach(rule => {
+      ruleList.forEach((rule) => {
         this.rules.push(new RuleModel().modelFromDictionary(rule));
       });
     }
 
-    if (
-      feature.rulesLinkedCampaign && feature.rulesLinkedCampaign.constructor !== {}.constructor
-    ) {
+    if (feature.rulesLinkedCampaign && feature.rulesLinkedCampaign.constructor !== {}.constructor) {
       const linkedCampaignList: Array<CampaignModel> = feature.rulesLinkedCampaign;
-      linkedCampaignList.forEach(linkedCampaign => {
+      linkedCampaignList.forEach((linkedCampaign) => {
         this.rulesLinkedCampaign.push(new CampaignModel().modelFromDictionary(linkedCampaign));
       });
     }
@@ -79,7 +74,7 @@ export class FeatureModel {
   getRules(): Array<RuleModel> {
     return this.rules;
   }
-  
+
   getImpactCampaign(): ImpactCapmaignModel {
     return this.impactCampaign;
   }

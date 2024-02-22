@@ -40,7 +40,7 @@ export class LogMessageBuilder implements ILogMessageBuilder {
       RED: '\x1b[31m',
       RESET: '\x1b[0m',
       WHITE: '\x1b[30m',
-      YELLOW: '\x1b[33m'
+      YELLOW: '\x1b[33m',
     };
 
     const LogLevelColorInfoEnum = {
@@ -48,7 +48,7 @@ export class LogMessageBuilder implements ILogMessageBuilder {
       [LogLevelEnum.DEBUG]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.LIGHTBLUE}${upperCaseLevel} ${AnsiColorEnum.RESET}`,
       [LogLevelEnum.INFO]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.CYAN}${upperCaseLevel}  ${AnsiColorEnum.RESET}`,
       [LogLevelEnum.WARN]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.YELLOW}${upperCaseLevel}  ${AnsiColorEnum.RESET}`,
-      [LogLevelEnum.ERROR]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.RED}${upperCaseLevel} ${AnsiColorEnum.RESET}`
+      [LogLevelEnum.ERROR]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.RED}${upperCaseLevel} ${AnsiColorEnum.RESET}`,
     };
 
     return LogLevelColorInfoEnum[level];

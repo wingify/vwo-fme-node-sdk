@@ -18,9 +18,9 @@ import { StatusEnum } from '../enums/StatusEnum';
 export const checkWhitelistingAndPreSeg = async (
   settings: any,
   campaign: CampaignModel,
-  context:any,
+  context: any,
   isMegWinnerRule: Boolean,
-  decision: any
+  decision: any,
 ): Promise<[Boolean, any]> => {
   let vwoUserId = getUUID(context.user.id, settings.accountId);
 
@@ -111,7 +111,7 @@ const _evaluateWhitelisting = async (
       const SegmentEvaluatorResult = SegmentationManager.Instance.validateSegmentation(
         variation.getSegments(),
         context.user.variationTargetingVariables,
-        settings
+        settings,
       );
       const promise = isPromise(SegmentEvaluatorResult)
         ? SegmentEvaluatorResult.then((evaluationResult) => {

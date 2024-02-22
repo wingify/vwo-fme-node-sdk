@@ -30,23 +30,19 @@ export class VariationModel {
       this.segments = variation.seg || variation.segments;
     }
 
-    if ( variation.variables) {
-      if (
-        variation.variables.constructor === {}.constructor
-      ) {
+    if (variation.variables) {
+      if (variation.variables.constructor === {}.constructor) {
         this.variables = [];
       } else {
         const variableList: Array<VariableModel> = variation.variables;
-        variableList.forEach(variable => {
+        variableList.forEach((variable) => {
           this.variables.push(new VariableModel().modelFromDictionary(variable));
         });
       }
     }
 
     if (variation.variations) {
-      if (
-        variation.variations.constructor === {}.constructor
-      ) {
+      if (variation.variations.constructor === {}.constructor) {
         this.variations = [];
       } else {
         const variationList: Array<VariationModel> = variation.variations;

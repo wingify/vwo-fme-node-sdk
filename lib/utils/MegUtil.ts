@@ -48,16 +48,16 @@ export const evaluateGroups = async (
   campaignToSkip: any[],
   decision: any,
 ): Promise<any> => {
-  let featureToSkip = [];
-  let eligibleCampaignsForGroup: Map<string, any[]> = new Map();
+  const featureToSkip = [];
+  const eligibleCampaignsForGroup: Map<string, any[]> = new Map();
 
   // get all feature keys from the list of meg campaigns
   // evaluate each feature and get all campaigns for the feature
   // add the campaigns if they are present in the groupto campaignMap
   // check the eligible campaigns
   for (let i = 0; i < listOfMegCampaignsGroups.length; i++) {
-    let campaignMap: Map<string, any[]> = new Map();
-    let groupId = listOfMegCampaignsGroups[i];
+    const campaignMap: Map<string, any[]> = new Map();
+    const groupId = listOfMegCampaignsGroups[i];
     const { featureKeys, groupCampaignIds } = getFeatureKeysFromGroup(settings, groupId);
     for (const featureKey of featureKeys) {
       const feature = getFeatureFromKey(settings, featureKey);
@@ -81,7 +81,7 @@ export const evaluateGroups = async (
         });
       }
     }
-    let campaignList = await getEligbleCampaigns(settings, campaignMap, context, storageService);
+    const campaignList = await getEligbleCampaigns(settings, campaignMap, context, storageService);
     eligibleCampaignsForGroup.set(groupId, campaignList);
   }
   return await evaluateEligibleCampaigns(
@@ -96,8 +96,8 @@ export const evaluateGroups = async (
 };
 
 export function getFeatureKeysFromGroup(settings: SettingsModel, groupId: any) {
-  let groupCampaignIds = getCampaignsByGroupId(settings, groupId);
-  let featureKeys = getFeatureKeysFromCampaignIds(settings, groupCampaignIds);
+  const groupCampaignIds = getCampaignsByGroupId(settings, groupId);
+  const featureKeys = getFeatureKeysFromCampaignIds(settings, groupCampaignIds);
   return { featureKeys, groupCampaignIds };
 }
 
@@ -149,9 +149,9 @@ const getEligbleCampaigns = async (
   context: any,
   storageService: StorageService,
 ): Promise<any> => {
-  let eligibleCampaigns = [];
-  let eligibleCampaignsWithStorage = [];
-  let inEligibleCampaigns = [];
+  const eligibleCampaigns = [];
+  const eligibleCampaignsWithStorage = [];
+  const inEligibleCampaigns = [];
   const campaignMapArray = Array.from<[string, CampaignModel[]]>(campaignMap);
   for (const [featureKey, campaigns] of campaignMapArray) {
     for (const campaign of campaigns) {
@@ -208,10 +208,10 @@ const evaluateEligibleCampaigns = async (
   decision: any,
 ): Promise<any> => {
   // getCampaignIds from featureKey
-  let winnerFromEachGroup = [];
+  const winnerFromEachGroup = [];
   const campaignIds = getCampaignIdsFromFeatureKey(settings, featureKey);
   eligibleCampaignsForGroup.forEach((campaignList: any, groupId) => {
-    let megAlgoNumber =
+    const megAlgoNumber =
       typeof settings.groups[groupId].et !== 'undefined' ? settings.groups[groupId].et : Constants.RANDOM_ALGO;
     if (campaignList.eligibleCampaignsWithStorage.length === 1) {
       winnerFromEachGroup.push(campaignList.eligibleCampaignsWithStorage[0]);
@@ -279,7 +279,7 @@ const normalizeAndFindWinningCampaign = (
 
   // re-distribute the traffic for each camapign
   setCampaignAllocation(shortlistedCampaigns);
-  let winnerCampaign = new CampaignDecisionService().getVariation(
+  const winnerCampaign = new CampaignDecisionService().getVariation(
     shortlistedCampaigns,
     new DecisionMaker().calculateBucketValue(getBucketingSeed(context.user.id, undefined, groupId)),
   );
@@ -303,8 +303,8 @@ const advancedAlgoFindWinningCampaign = (
 ) => {
   let winnerCampaign = null;
   let found = false; // flag to check whether winnerCampaign has been found or not and helps to break from the outer loop
-  let priorityOrder = typeof settings.groups[groupId].p !== 'undefined' ? settings.groups[groupId].p : {};
-  let wt = typeof settings.groups[groupId].wt !== 'undefined' ? settings.groups[groupId].wt : {};
+  const priorityOrder = typeof settings.groups[groupId].p !== 'undefined' ? settings.groups[groupId].p : {};
+  const wt = typeof settings.groups[groupId].wt !== 'undefined' ? settings.groups[groupId].wt : {};
 
   for (let i = 0; i < priorityOrder.length; i++) {
     for (let j = 0; j < shortlistedCampaigns.length; j++) {
@@ -323,9 +323,9 @@ const advancedAlgoFindWinningCampaign = (
     let participatingCampaignList = [];
     // iterate over shortlisted campaigns and add weights from the weight array
     for (let i = 0; i < shortlistedCampaigns.length; i++) {
-      let campaignId = shortlistedCampaigns[i].id;
+      const campaignId = shortlistedCampaigns[i].id;
       if (typeof wt[campaignId] !== 'undefined') {
-        let clonedCampaign = cloneObject(shortlistedCampaigns[i]);
+        const clonedCampaign = cloneObject(shortlistedCampaigns[i]);
         clonedCampaign.weight = wt[campaignId];
         participatingCampaignList.push(clonedCampaign);
       }

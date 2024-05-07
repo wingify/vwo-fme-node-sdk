@@ -77,7 +77,7 @@ export class VWOClient implements IVWOClient {
       webServiceUrl: options?.webService?.url,
     });
     for (let i = 0; i < this.settings.getCampaigns().length; i++) {
-      let campaign = this.settings.getCampaigns()[i];
+      const campaign = this.settings.getCampaigns()[i];
       setVariationAllocation(campaign);
       this.settings.getCampaigns()[i] = campaign;
     }

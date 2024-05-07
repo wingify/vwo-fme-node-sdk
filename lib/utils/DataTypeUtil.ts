@@ -53,7 +53,7 @@ export function isBoolean(val: dynamic): val is boolean {
 }
 
 export function isNaN(val: dynamic): val is number {
-  // eslint-disable-next-line no-self-compare
+   
   return val !== val;
 }
 

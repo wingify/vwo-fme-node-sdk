@@ -39,7 +39,7 @@ export function getRandomNumber(): number {
 }
 
 export function getSpecificRulesBasedOnType(settings, featureKey, type = null) {
-  let feature = getFeatureFromKey(settings, featureKey);
+  const feature = getFeatureFromKey(settings, featureKey);
   if (feature && !feature.rulesLinkedCampaign) {
     return [];
   }
@@ -52,7 +52,7 @@ export function getSpecificRulesBasedOnType(settings, featureKey, type = null) {
 }
 
 export function getAllAbAndPersonaliseRules(settings, featureKey) {
-  let feature = getFeatureFromKey(settings, featureKey);
+  const feature = getFeatureFromKey(settings, featureKey);
   return feature.rulesLinkedCampaign.filter(
     (rule) => rule.type === CampaignTypeEnum.AB || rule.type === CampaignTypeEnum.PERSONALIZE,
   );

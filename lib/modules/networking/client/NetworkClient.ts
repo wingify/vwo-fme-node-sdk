@@ -100,7 +100,7 @@ export class NetworkClient implements NetworkClientInterface {
     try {
       const httpClient = networkOptions.scheme === HTTPS ? https : http;
       const req = httpClient.request(networkOptions, res => {
-        let rawData = ''; // eslint-disable-line no-unused-vars
+        let rawData = '';  
         res.setEncoding('utf8');
         res.on('data', function(chunk) {
           rawData += chunk;

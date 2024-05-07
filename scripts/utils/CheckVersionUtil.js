@@ -43,6 +43,13 @@ function getWarnings(mods) {
       versionRequirement: packageConfig.engines.node
     });
   }
+  if (mods.indexOf('node_lint') !== -1 && ShellUtil.shell.which('node')) {
+    versionRequirements.push({
+      name: 'node',
+      currentVersion: semver.clean(process.version),
+      versionRequirement: packageConfig.engines.node_lint
+    });
+  }
   if (mods.indexOf('yarn') !== -1 && ShellUtil.shell.which('yarn')) {
     versionRequirements.push({
       name: 'yarn',

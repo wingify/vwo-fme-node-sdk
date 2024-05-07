@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-const CheckVersionUtil = require('./utils/CheckVersionUtil');
-const warnings = CheckVersionUtil.verify(['node']);
+module.exports = (tools) => {
+  const CheckVersionUtil = require('./utils/CheckVersionUtil');
+  let warnings;
 
-if (warnings && warnings.length) {
-  process.exit(1);
+  if (tools && tools.length) {
+    warnings = CheckVersionUtil.verify([...tools, 'node']);
+  } else {
+    warnings = CheckVersionUtil.verify(['node']);
+  }
+
+  if (warnings && warnings.length) {
+    process.exit(1);
+  }
 }

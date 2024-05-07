@@ -9,6 +9,9 @@
     "check:versions": "node -e 'require(\"./scripts/check-versions\")'",
     "demo": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js",
     "demo:server": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js",
+    "lint": "node -e 'require(\"./scripts/check-versions\")([\"node_lint\"])' && eslint lib/ --fix",
+    "lint:errors-only": "node -e 'require(\"./scripts/check-versions\")([\"node_lint\"])' && eslint **/*.ts' --fix --quiet",
+    "prepare": "husky",
     "prettier": "prettier -w lib/**/*.ts *.md",
     "test": "node test/index.js",
     "tsc": "yarn check:versions && tsc -w"
@@ -36,38 +39,34 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.2.0",
     "@types/node": "^20.12.7",
+    "eslint": "^9.2.0",
     "express": "^4.19.2",
+    "globals": "^15.1.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
     "nodemon": "^2.0.6",
     "prettier": "^3.2.5",
     "semver": "^7.6.0",
     "shelljs": "^0.8.5",
-    "typescript": "^5.4.5"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "yarn check:license && yarn test"
-    }
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.8.0"
   },
   "lint-staged": {
-    "globOptions": {
-      "matchBase": false
-    },
-    "linters": {
-      "**/*.js": [
-        "yarn lint",
-        "prettier",
-        "git add"
-      ],
-      "**/*.{json,md}": [
-        "prettier",
-        "git add"
-      ]
-    }
+    "**/*.ts": [
+      "prettier",
+      "git add"
+    ],
+    "**/*.{json,md}": [
+      "prettier",
+      "git add"
+    ]
   },
   "engineStrict": true,
   "engines": {
-    "node": ">= 8.9.0"
+    "node": ">= 8.9.0",
+    "yarn": ">= 1.22.19",
+    "node_lint": ">= 18.18.0"
   }
 }

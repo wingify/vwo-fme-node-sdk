@@ -32,10 +32,10 @@ export const checkWhitelistingAndPreSeg = async (
   settings: any,
   campaign: CampaignModel,
   context: any,
-  isMegWinnerRule: Boolean,
+  isMegWinnerRule: boolean,
   decision: any,
-): Promise<[Boolean, any]> => {
-  let vwoUserId = getUUID(context.user.id, settings.accountId);
+): Promise<[boolean, any]> => {
+  const vwoUserId = getUUID(context.user.id, settings.accountId);
 
   // only check whitelisting for ab campaigns
   if (campaign.getType() === CampaignTypeEnum.AB) {

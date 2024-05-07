@@ -79,7 +79,7 @@ export class NetworkUtil {
   getEventsBaseProperties(setting: any, eventName, visitorUserAgent = '', ipAddress = ''): any {
     const sdkKey = setting.sdkKey;
 
-    let properties = Object.assign({
+    const properties = Object.assign({
       en: eventName,
       a: setting.accountId,
       env: sdkKey,
@@ -105,7 +105,7 @@ export class NetworkUtil {
     const uuid = getUUID(userId, settings.accountId);
     const sdkKey = settings.sdkKey;
 
-    let props: {
+    const props: {
       vwo_sdkName: string;
       vwo_sdkVersion: string;
       vwo_envKey: any;
@@ -119,7 +119,7 @@ export class NetworkUtil {
       vwo_envKey: sdkKey,
     };
 
-    let properties = {
+    const properties = {
       d: {
         msgId: `${uuid}-${getCurrentUnixTimestampInMillis()}`,
         visId: uuid,

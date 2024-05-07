@@ -54,11 +54,11 @@ export class FlagApi implements IGetFlag {
     hookManager: HooksManager,
   ): Promise<FeatureModel> {
     // initialize contextUtil object
-    let decision = this.createDecision(settings, featureKey, context);
+    const decision = this.createDecision(settings, featureKey, context);
     let isEnabled = false;
     let rolloutVariationToReturn = null;
     let experimentVariationToReturn = null;
-    let rulesInformation = {}; // for storing and integration callback
+    const rulesInformation = {}; // for storing and integration callback
 
     const deferredObject = new Deferred();
     const evaluatedFeatureMap: Map<string, any> = new Map();
@@ -191,9 +191,9 @@ export class FlagApi implements IGetFlag {
     if (shouldCheckForAbPersonalise) {
       // if rollout rule is passed, get all ab and personalise rules
       const allRules = getAllAbAndPersonaliseRules(settings, featureKey);
-      let listOfMegCampaignsGroups = []; // to store megGroups
+      const listOfMegCampaignsGroups = []; // to store megGroups
       let ruleIndex = 0;
-      let campaignToSkip = [];
+      const campaignToSkip = [];
       for (const rule of allRules) {
         // loop over all ab and personalize rules
         ruleIndex++;
@@ -407,9 +407,9 @@ export const evaluateRule = async (
   feature: any,
   rule: any,
   context: any,
-  isMegWinnerRule: Boolean,
+  isMegWinnerRule: boolean,
   decision: any,
-): Promise<[Boolean, any, any]> => {
+): Promise<[boolean, any, any]> => {
   // evaluate the dsl
   const campaign: CampaignModel = new CampaignModel();
   let campArray = [];

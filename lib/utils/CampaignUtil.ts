@@ -29,7 +29,7 @@ export function setVariationAllocation(campaign: CampaignModel): void {
     let stepFactor = 0;
     const numberOfVariations = campaign.getVariations().length;
     for (let i = 0, currentAllocation = 0; i < numberOfVariations; i++) {
-      let variation = campaign.getVariations()[i];
+      const variation = campaign.getVariations()[i];
 
       stepFactor = assignRangeValues(variation, currentAllocation);
       currentAllocation += stepFactor;
@@ -43,8 +43,8 @@ export function setVariationAllocation(campaign: CampaignModel): void {
 function handleRolloutCampaign(campaign: CampaignModel): void {
   // Set start and end ranges for all variations in the campaign
   for (let i = 0; i < campaign.getVariations().length; i++) {
-    let variation = campaign.getVariations()[i];
-    let endRange = campaign.getVariations()[i].getWeight() * 100;
+    const variation = campaign.getVariations()[i];
+    const endRange = campaign.getVariations()[i].getWeight() * 100;
     variation.setStartRange(1);
     variation.setEndRange(endRange);
     LogManager.Instance.debug(
@@ -147,7 +147,7 @@ export function getRolloutVariation(settings, rolloutKey, variationId) {
 export function setCampaignAllocation(campaigns: any[]) {
   let stepFactor = 0;
   for (let i = 0, currentAllocation = 0; i < campaigns.length; i++) {
-    let campaign = campaigns[i];
+    const campaign = campaigns[i];
 
     stepFactor = assignRangeValuesMEG(campaign, currentAllocation);
     currentAllocation += stepFactor;

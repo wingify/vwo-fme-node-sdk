@@ -54,7 +54,7 @@ export class SegmentEvaluator implements Segmentation {
   }
 
   async some(dslNodes: Array<Record<string, dynamic>>, customVariables: Record<string, dynamic>): Promise<boolean> {
-    let uaParserMap: Record<string, string[]> = {};
+    const uaParserMap: Record<string, string[]> = {};
     let keyCount: number = 0; // Initialize count of keys encountered
     let isUaParser = false;
     for (const dsl of dslNodes) {
@@ -122,7 +122,7 @@ export class SegmentEvaluator implements Segmentation {
   }
 
   async every(dslNodes: Array<Record<string, dynamic>>, customVariables: Record<string, dynamic>): Promise<boolean> {
-    let locationMap: Record<string, dynamic> = {};
+    const locationMap: Record<string, dynamic> = {};
     for (const dsl of dslNodes) {
       if (dsl.hasOwnProperty(SegmentOperatorValueEnum.COUNTRY) || dsl.hasOwnProperty(SegmentOperatorValueEnum.REGION) || dsl.hasOwnProperty(SegmentOperatorValueEnum.CITY)) {
         this.addLocationValuesToMap(dsl, locationMap);
@@ -231,10 +231,10 @@ export class SegmentEvaluator implements Segmentation {
 
 
   async valuesMatch(expectedLocationMap, userLocation) {
-    for (let [key, value] of Object.entries(expectedLocationMap)) {
+    for (const [key, value] of Object.entries(expectedLocationMap)) {
       if (userLocation.hasOwnProperty(key)) {
-        let normalizedValue1 = this.normalizeValue(value);
-        let normalizedValue2 = this.normalizeValue(userLocation[key]);
+        const normalizedValue1 = this.normalizeValue(value);
+        const normalizedValue2 = this.normalizeValue(userLocation[key]);
         if (normalizedValue1 !== normalizedValue2) {
           return false;
         }

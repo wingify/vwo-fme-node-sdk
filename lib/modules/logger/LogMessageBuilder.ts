@@ -1,5 +1,5 @@
-import { dynamic } from '../../types/common';
-import { LogLevelEnum } from './enums/logLevelEnum';
+import { dynamic } from '../../types/Common';
+import { LogLevelEnum } from './enums/LogLevelEnum';
 
 interface ILogMessageBuilder {
   loggerConfig: Record<string, dynamic>;

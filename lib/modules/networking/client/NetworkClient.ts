@@ -1,11 +1,11 @@
 import * as http from 'http';
 import * as https from 'https';
-import { dynamic } from '../../../types/common';
+import { dynamic } from '../../../types/Common';
 import { Deferred } from '../../../utils/PromiseUtil';
 
-import { RequestModel } from '../models/requestModel';
-import { ResponseModel } from '../models/responseModel';
-import { NetworkClientInterface } from './networkClientInterface';
+import { RequestModel } from '../models/RequestModel';
+import { ResponseModel } from '../models/ResponseModel';
+import { NetworkClientInterface } from './NetworkClientInterface';
 
 const HTTPS = 'HTTPS';
 

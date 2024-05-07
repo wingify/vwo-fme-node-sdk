@@ -7,11 +7,11 @@ import { SetAttributeApi } from './api/SetAttribute';
 import { TrackApi } from './api/TrackEvent';
 
 // import { VWOBuilder } from './VWOBuilder';
-import { DebugLogMessageEnum } from './enums/logMessages/DebugLogMessageEnum';
+import { DebugLogMessageEnum } from './enums/log-messages/DebugLogMessageEnum';
 import { SettingsModel } from './models/SettingsModel';
 
-import { ErrorLogMessageEnum } from './enums/logMessages/ErrorLogMessageEnum';
-import { dynamic } from './types/common';
+import { ErrorLogMessageEnum } from './enums/log-messages/ErrorLogMessageEnum';
+import { dynamic } from './types/Common';
 // import { BatchEventsQueue } from './services/batchEventsQueue';
 
 import HooksManager from './services/HooksManager';

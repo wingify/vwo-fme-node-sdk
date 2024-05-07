@@ -1,4 +1,4 @@
-import { dynamic } from '../../types/common';
+import { dynamic } from '../../types/Common';
 
 export abstract class Connector {
   abstract connect(_config: Record<string, dynamic>): this;

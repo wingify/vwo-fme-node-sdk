@@ -1,2 +1,2 @@
-export { LogManager } from './core/logManager';
-export { LogLevelEnum } from './enums/logLevelEnum';
+export { LogManager } from './core/LogManager';
+export { LogLevelEnum } from './enums/LogLevelEnum';

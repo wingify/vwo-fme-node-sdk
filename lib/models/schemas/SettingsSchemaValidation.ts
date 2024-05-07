@@ -1,5 +1,5 @@
 import { Struct, array, boolean, number, object, optional, string, union, validate } from 'superstruct';
-import { dynamic } from '../../types/common';
+import { dynamic } from '../../types/Common';
 import { SettingsModel } from '../SettingsModel';
 
 export class SettingsSchema {

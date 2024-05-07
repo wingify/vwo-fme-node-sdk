@@ -1,4 +1,4 @@
-import { dynamic } from '../../../types/common';
+import { dynamic } from '../../../types/Common';
 
 const HTTP = 'http';
 

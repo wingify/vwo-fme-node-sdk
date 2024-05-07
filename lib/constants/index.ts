@@ -1,4 +1,4 @@
-import { SEED_URL, HTTP_PROTOCOL, HTTPS_PROTOCOL } from './url';
+import { SEED_URL, HTTP_PROTOCOL, HTTPS_PROTOCOL } from './Url';
 
 export const Constants = {
   //   SDK_NAME: packageFile.name,

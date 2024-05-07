@@ -1,4 +1,4 @@
-import { dynamic } from './types/common';
+import { dynamic } from './types/Common';
 
 import { LogManager } from './modules/logger';
 import { NetworkManager } from './modules/networking';

@@ -1,6 +1,6 @@
 import { VWOBuilder } from './VWOBuilder';
 import { SettingsModel } from './models/SettingsModel';
-import { dynamic } from './types/common';
+import { dynamic } from './types/Common';
 import { isObject, isString } from './utils/DataTypeUtil';
 
 export class VWO {

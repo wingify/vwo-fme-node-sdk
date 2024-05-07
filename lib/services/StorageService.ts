@@ -1,6 +1,6 @@
 import { StorageEnum } from '../enums/StorageEnum';
 import { Storage } from '../modules/storage';
-import { dynamic } from '../types/common';
+import { dynamic } from '../types/Common';
 
 import { isNull, isUndefined } from '../utils/DataTypeUtil';
 import { Deferred } from '../utils/PromiseUtil';

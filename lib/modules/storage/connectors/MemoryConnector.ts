@@ -1,6 +1,6 @@
-import { dynamic } from '../../../types/common';
+import { dynamic } from '../../../types/Common';
 import { Deferred } from '../../../utils/PromiseUtil';
-import { Connector } from '../connector';
+import { Connector } from '../Connector';
 
 export class MemoryConnector extends Connector implements MemoryConnectorInterface {
   data: Map<string, dynamic>;

@@ -1,7 +1,7 @@
 import { setVariationAllocation } from '../utils/CampaignUtil';
 import { SettingsModel } from '../models/SettingsModel';
 import { CampaignModel } from '../models/CampaignModel';
-import { dynamic } from '../types/common';
+import { dynamic } from '../types/Common';
 import { FeatureModel } from '../models/FeatureModel';
 
 export function processSettings(settings: SettingsModel): SettingsModel {

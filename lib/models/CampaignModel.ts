@@ -1,4 +1,4 @@
-import { dynamic } from '../types/common';
+import { dynamic } from '../types/Common';
 import { MetricModel } from './MetricModel';
 import { VariableModel } from './VariableModel';
 import { VariationModel } from './VariationModel';

@@ -1,6 +1,6 @@
 // import { MemoryConnector } from './connectors'; // RedisConnector
-import { dynamic } from '../../types/common';
-import { Connector } from './connector';
+import { dynamic } from '../../types/Common';
+// import { Connector } from './Connector';
 
 // TODO: move to file
 enum ConnectorEnum {

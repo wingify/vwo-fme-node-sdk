@@ -1,6 +1,6 @@
 import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
 import { SettingsModel } from '../models/SettingsModel';
-import { dynamic } from '../types/common';
+import { dynamic } from '../types/Common';
 import { isString } from './DataTypeUtil';
 
 export function cloneObject(obj: dynamic): any {

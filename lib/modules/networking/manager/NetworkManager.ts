@@ -1,10 +1,10 @@
 import { Deferred } from '../../../utils/PromiseUtil';
-import { NetworkClient } from '../client/networkClient';
-import { NetworkClientInterface } from '../client/networkClientInterface';
-import { RequestHandler } from '../handlers/requestHandler';
-import { GlobalRequestModel } from '../models/globalRequestModel';
-import { RequestModel } from '../models/requestModel';
-import { ResponseModel } from '../models/responseModel';
+import { NetworkClient } from '../client/NetworkClient';
+import { NetworkClientInterface } from '../client/NetworkClientInterface';
+import { RequestHandler } from '../handlers/RequestHandler';
+import { GlobalRequestModel } from '../models/GlobalRequestModel';
+import { RequestModel } from '../models/RequestModel';
+import { ResponseModel } from '../models/ResponseModel';
 
 export class NetworkManager {
   private config: GlobalRequestModel;

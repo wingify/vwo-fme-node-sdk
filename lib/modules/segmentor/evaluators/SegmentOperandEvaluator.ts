@@ -1,11 +1,11 @@
 import { getKeyValue, matchWithRegex } from '../utils/SegmentUtil';
-import { SegmentOperandValueEnum } from '../enums/segmentOperandValueEnum';
-import { SegmentOperandRegexEnum } from '../enums/segmentOperandRegexEnum';
+import { SegmentOperandValueEnum } from '../enums/SegmentOperandValueEnum';
+import { SegmentOperandRegexEnum } from '../enums/SegmentOperandRegexEnum';
 import { isBoolean } from '../../../utils/DataTypeUtil';
-import { dynamic } from '../../../types/common';
+import { dynamic } from '../../../types/Common';
 import { getFromWebService } from '../../../utils/WebServiceUtil';
 import { UrlEnum } from '../../../enums/UrlEnum';
-import { LogManager } from '../../../modules/logger';
+import { LogManager } from '../../logger';
 
 export class SegmentOperandEvaluator {
   async evaluateCustomVariableDSL(dslOperandValue: Record<string, dynamic>, properties: Record<string, dynamic>): Promise <boolean> {
@@ -32,7 +32,7 @@ export class SegmentOperandEvaluator {
         attribute: attributeValue,
         listId: listId
       };
-      
+
       try {
         const res = await getFromWebService(queryParamsObj, UrlEnum.ATTRIBUTE_CHECK);
         if (!res || res === undefined || res === 'false' || res.status === 0) {
@@ -42,7 +42,7 @@ export class SegmentOperandEvaluator {
       } catch (error) {
         console.error("Error while fetching data:", error);
         return false;
-      } 
+      }
     } else {
       let tagValue = properties[operandKey];
       tagValue = this.preProcessTagValue(tagValue);

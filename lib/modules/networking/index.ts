@@ -1,6 +1,6 @@
-export { NetworkClient } from './client/networkClient';
-export { NetworkClientInterface } from './client/networkClientInterface';
-export { NetworkManager } from './manager/networkManager';
-export { GlobalRequestModel } from './models/globalRequestModel';
-export { RequestModel } from './models/requestModel';
-export { ResponseModel } from './models/responseModel';
+export { NetworkClient } from './client/NetworkClient';
+export { NetworkClientInterface } from './client/NetworkClientInterface';
+export { NetworkManager } from './manager/NetworkManager';
+export { GlobalRequestModel } from './models/GlobalRequestModel';
+export { RequestModel } from './models/RequestModel';
+export { ResponseModel } from './models/ResponseModel';

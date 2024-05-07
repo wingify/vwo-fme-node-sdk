@@ -7,7 +7,7 @@ import { UrlEnum } from '../enums/UrlEnum';
 import { LogManager } from '../modules/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../modules/networking';
 import UrlService from '../services/UrlService';
-import { dynamic } from '../types/common';
+import { dynamic } from '../types/Common';
 import { isObject } from './DataTypeUtil';
 
 export class NetworkUtil {

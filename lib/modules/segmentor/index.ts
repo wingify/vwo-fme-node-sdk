@@ -1,3 +1,3 @@
-export { SegmentationManager } from './core/segmentationManger';
-export { SegmentEvaluator } from './evaluators/segmentEvaluator';
-export { Segmentation } from './segmentation';
+export { SegmentationManager } from './core/SegmentationManger';
+export { SegmentEvaluator } from './evaluators/SegmentEvaluator';
+export { Segmentation } from './Segmentation';

@@ -1,15 +1,15 @@
 import { StorageDecorator } from '../../../decorators/StorageDecorator';
 import { UrlEnum } from '../../../enums/UrlEnum';
 import { SettingsModel } from '../../../models/SettingsModel';
-import { LogManager } from '../../../modules/logger';
+import { LogManager } from '../../logger';
 import { StorageService } from '../../../services/StorageService';
-import { dynamic } from '../../../types/common';
+import { dynamic } from '../../../types/Common';
 import { isObject } from '../../../utils/DataTypeUtil';
 import { getFromWebService, getQueryParamForLocationPreSegment, getQueryParamForUaParser } from '../../../utils/WebServiceUtil';
-import { SegmentOperatorValueEnum } from '../enums/segmentOperatorValueEnum';
-import { Segmentation } from '../segmentation';
+import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum';
+import { Segmentation } from '../Segmentation';
 import { getKeyValue } from '../utils/SegmentUtil';
-import { SegmentOperandEvaluator } from './segmentOperandEvaluator';
+import { SegmentOperandEvaluator } from './SegmentOperandEvaluator';
 
 export class SegmentEvaluator implements Segmentation {
   context: any;

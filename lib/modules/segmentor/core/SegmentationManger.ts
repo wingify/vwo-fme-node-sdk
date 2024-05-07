@@ -1,5 +1,5 @@
-import { SegmentEvaluator } from '../evaluators/segmentEvaluator';
-import { dynamic } from '../../../types/common';
+import { SegmentEvaluator } from '../evaluators/SegmentEvaluator';
+import { dynamic } from '../../../types/Common';
 import { SettingsModel } from '../../../models/SettingsModel';
 
 export class SegmentationManager {

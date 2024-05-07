@@ -1,5 +1,5 @@
-import { LogLevelEnum } from '../enums/logLevelEnum';
-import { Logger } from '../logger';
+import { LogLevelEnum } from '../enums/LogLevelEnum';
+import { Logger } from '../Logger';
 
 export class ConsoleTransport implements Logger {
   config: Record<string, any>;

@@ -1,7 +1,14 @@
-import { CampaignDecisionService } from '../services/CampaignDecisionService';
 import { evaluateRule } from '../api/GetFlag';
+import { Constants } from '../constants';
+import { StorageDecorator } from '../decorators/StorageDecorator';
 import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
+import { CampaignModel } from '../models/CampaignModel';
 import { SettingsModel } from '../models/SettingsModel';
+import { VariationModel } from '../models/VariationModel';
+import { DecisionMaker } from '../modules/decision-maker';
+import { LogManager } from '../modules/logger';
+import { CampaignDecisionService } from '../services/CampaignDecisionService';
+import { StorageService } from '../services/StorageService';
 import {
   getBucketingSeed,
   getCampaignIdsFromFeatureKey,
@@ -12,17 +19,8 @@ import {
   setCampaignAllocation,
 } from './CampaignUtil';
 import { isObject } from './DataTypeUtil';
+import { evaluateTrafficAndGetVariation } from './DecisionUtil';
 import { cloneObject, getFeatureFromKey, getSpecificRulesBasedOnType } from './FunctionUtil';
-import { checkWhitelistingAndPreSeg, evaluateTrafficAndGetVariation } from './DecisionUtil';
-import { StorageDecorator } from '../decorators/StorageDecorator';
-import { StorageService } from '../services/StorageService';
-import { VariationModel } from '../models/VariationModel';
-import { CampaignModel } from '../models/CampaignModel';
-import { Deferred } from './PromiseUtil';
-import { resolve } from 'path';
-import { LogManager } from '../modules/logger';
-import { Constants } from '../constants';
-import { DecisionMaker } from '../modules/decision-maker';
 
 export const evaluateGroups = async (
   settings: SettingsModel,
@@ -318,7 +316,7 @@ const advancedAlgoFindWinningCampaign = (
       }
     }
     /* Finding winner campaign using weighted Distibution :
-       1. Re-distribute the traffic by assigning range values for each camapign in particaptingCampaignList 
+       1. Re-distribute the traffic by assigning range values for each camapign in particaptingCampaignList
        2. Calculate bucket value for the given userId and groupId
        3. Get the winnerCampaign by checking the Start and End Bucket Allocations of each campaign
       */

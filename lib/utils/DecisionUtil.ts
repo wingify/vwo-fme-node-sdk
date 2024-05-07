@@ -1,19 +1,17 @@
-import { SettingsModel } from './../models/SettingsModel';
-import { LogManager } from '../modules/logger';
-import { isObject } from '../utils/DataTypeUtil';
-import { SegmentationManager } from '../modules/segmentor';
-import { getUUID } from './UuidUtil';
 import { isPromise } from 'util/types';
-import { cloneObject } from './FunctionUtil';
-import { scaleVariationWeights, assignRangeValues, getBucketingSeed } from './CampaignUtil';
-import { DecisionMaker } from '../modules/decision-maker';
-import { CampaignDecisionService } from '../services/CampaignDecisionService';
-import { CampaignModel } from '../models/CampaignModel';
-import { VariationModel } from '../models/VariationModel'; // Import the missing VariationModel type
-import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
-import HooksManager from '../services/HooksManager';
 import { StatusEnum } from '../enums/StatusEnum';
-// import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
+import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
+import { CampaignModel } from '../models/CampaignModel';
+import { VariationModel } from '../models/VariationModel';
+import { DecisionMaker } from '../modules/decision-maker';
+import { LogManager } from '../modules/logger';
+import { SegmentationManager } from '../modules/segmentor';
+import { CampaignDecisionService } from '../services/CampaignDecisionService';
+import { isObject } from '../utils/DataTypeUtil';
+import { SettingsModel } from './../models/SettingsModel';
+import { assignRangeValues, getBucketingSeed, scaleVariationWeights } from './CampaignUtil';
+import { cloneObject } from './FunctionUtil';
+import { getUUID } from './UuidUtil';
 
 export const checkWhitelistingAndPreSeg = async (
   settings: any,

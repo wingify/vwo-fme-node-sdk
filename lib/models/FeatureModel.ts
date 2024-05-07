@@ -1,9 +1,7 @@
-import { VariableModel } from './VariableModel';
-import { VariationModel } from './VariationModel';
-import { MetricModel } from './MetricModel';
 import { CampaignModel } from './CampaignModel';
-import { RuleModel } from './RuleModel';
 import { ImpactCapmaignModel } from './ImpactCampaignModel';
+import { MetricModel } from './MetricModel';
+import { RuleModel } from './RuleModel';
 
 export class FeatureModel {
   private m: Array<MetricModel> = [];

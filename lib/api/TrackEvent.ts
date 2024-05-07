@@ -1,9 +1,8 @@
-import { NetworkUtil } from '../utils/NetworkUtil';
-import { eventExists } from '../utils/FunctionUtil';
-import { EventEnum } from '../enums/EventEnum';
+import { ApiEnum } from '../enums/ApiEnum';
 import { LogManager } from '../modules/logger';
 import HooksManager from '../services/HooksManager';
-import { ApiEnum } from '../enums/ApiEnum';
+import { eventExists } from '../utils/FunctionUtil';
+import { NetworkUtil } from '../utils/NetworkUtil';
 
 interface ITrack {
   track(

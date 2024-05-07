@@ -3,13 +3,12 @@ import { LogManager } from '../modules/logger';
 import { SegmentationManager } from '../modules/segmentor';
 
 import { VariationModel } from '../models/VariationModel';
-// import { Campaign } from '../adapters/campaign';
 import { Constants } from '../constants';
 
-import { isObject } from '../utils/DataTypeUtil';
-import { CampaignModel } from '../models/CampaignModel';
 import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
+import { CampaignModel } from '../models/CampaignModel';
 import { SettingsModel } from '../models/SettingsModel';
+import { isObject } from '../utils/DataTypeUtil';
 
 interface ICampaignDecisionService {
   isUserPartOfCampaign(userId: any, campaign: CampaignModel): boolean;

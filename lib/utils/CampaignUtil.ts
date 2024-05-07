@@ -1,10 +1,10 @@
-import { VariationModel } from '../models/VariationModel';
-import { VariableModel } from '../models/VariableModel';
 import { Constants } from '../constants';
-import { CampaignModel } from '../models/CampaignModel';
-import { LogManager } from '../modules/logger';
 import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
+import { CampaignModel } from '../models/CampaignModel';
 import { SettingsModel } from '../models/SettingsModel';
+import { VariableModel } from '../models/VariableModel';
+import { VariationModel } from '../models/VariationModel';
+import { LogManager } from '../modules/logger';
 
 export function setVariationAllocation(campaign: CampaignModel): void {
   if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {

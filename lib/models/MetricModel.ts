@@ -1,5 +1,3 @@
-import { dynamic } from '../types/common';
-
 export class MetricModel {
   private key: string;
   private identifier: string;

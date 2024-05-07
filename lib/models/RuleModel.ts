@@ -1,5 +1,3 @@
-import { dynamic } from '../types/common';
-
 export class RuleModel {
   private status: boolean;
 

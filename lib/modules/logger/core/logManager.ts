@@ -2,8 +2,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { dynamic } from '../../../types/common';
 
 import { Logger } from '../logger';
-import { LogTransportManager } from './transportManager';
 import { ConsoleTransport } from '../transports/consoleTransport';
+import { LogTransportManager } from './transportManager';
 
 import { isObject } from '../../../utils/DataTypeUtil';
 import { LogLevelEnum } from '../enums/logLevelEnum';

@@ -1,10 +1,9 @@
-import { dynamic } from '../types/common';
-import { Storage } from '../modules/storage';
-import { FeatureModel } from '../models/FeatureModel';
 import { StorageEnum } from '../enums/StorageEnum';
+import { Storage } from '../modules/storage';
+import { dynamic } from '../types/common';
 
+import { isNull, isUndefined } from '../utils/DataTypeUtil';
 import { Deferred } from '../utils/PromiseUtil';
-import { isUndefined, isNull } from '../utils/DataTypeUtil';
 
 export class StorageService {
   private storageData: Record<string, dynamic> = {};

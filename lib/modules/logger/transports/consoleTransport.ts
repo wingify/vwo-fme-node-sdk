@@ -1,6 +1,5 @@
-import { Logger } from '../logger';
 import { LogLevelEnum } from '../enums/logLevelEnum';
-import { dynamic } from '../../../types/common';
+import { Logger } from '../logger';
 
 export class ConsoleTransport implements Logger {
   config: Record<string, any>;

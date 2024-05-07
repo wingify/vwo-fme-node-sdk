@@ -1,4 +1,3 @@
-import { dynamic } from '../types/common';
 import { isFunction } from '../utils/DataTypeUtil';
 
 interface Options {

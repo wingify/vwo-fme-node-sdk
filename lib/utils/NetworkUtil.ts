@@ -1,19 +1,14 @@
+import { getCurrentUnixTimestamp, getCurrentUnixTimestampInMillis, getRandomNumber } from './FunctionUtil';
 import { getUUID } from './UuidUtil';
-import { getRandomNumber, getCurrentUnixTimestamp, getCurrentUnixTimestampInMillis } from './FunctionUtil';
 
-import { dynamic } from '../types/common';
 import { Constants } from '../constants';
-import { SettingsModel } from '../models/SettingsModel';
-import UrlService from '../services/UrlService';
+import { HeadersEnum } from '../enums/HeadersEnum';
 import { UrlEnum } from '../enums/UrlEnum';
 import { LogManager } from '../modules/logger';
-import { EventEnum } from '../enums/EventEnum';
-import { NetworkManager } from '../modules/networking';
-import { RequestModel } from '../modules/networking';
-import { HTTPS_PROTOCOL } from '../constants/url';
-import { ResponseModel } from '../modules/networking';
+import { NetworkManager, RequestModel, ResponseModel } from '../modules/networking';
+import UrlService from '../services/UrlService';
+import { dynamic } from '../types/common';
 import { isObject } from './DataTypeUtil';
-import { HeadersEnum } from '../enums/HeadersEnum';
 
 export class NetworkUtil {
   getBasePropertiesForBulk(accountId: string, userId: string): Record<string, dynamic> {

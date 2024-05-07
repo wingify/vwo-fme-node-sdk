@@ -4,8 +4,8 @@ import { dynamic } from '../../../types/common';
 import { Deferred } from '../../../utils/PromiseUtil';
 
 import { RequestModel } from '../models/requestModel';
-import { NetworkClientInterface } from './networkClientInterface';
 import { ResponseModel } from '../models/responseModel';
+import { NetworkClientInterface } from './networkClientInterface';
 
 const HTTPS = 'HTTPS';
 

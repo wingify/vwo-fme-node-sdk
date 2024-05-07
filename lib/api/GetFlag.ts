@@ -2,34 +2,30 @@
 import { FeatureModel } from '../models/FeatureModel';
 import { SettingsModel } from '../models/SettingsModel';
 
-import { Deferred } from '../utils/PromiseUtil';
+import { StorageDecorator } from '../decorators/StorageDecorator';
+import { ApiEnum } from '../enums/ApiEnum';
+import { EventEnum } from '../enums/EventEnum';
+import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
+import { CampaignModel } from '../models/CampaignModel';
+import { VariableModel } from '../models/VariableModel';
+import { VariationModel } from '../models/VariationModel';
+import { LogManager } from '../modules/logger';
+import HooksManager from '../services/HooksManager';
+import { StorageService } from '../services/StorageService';
+import { getCampaignVariation, getRolloutVariation, isPartOfGroup } from '../utils/CampaignUtil';
+import { isObject } from '../utils/DataTypeUtil';
+import { checkWhitelistingAndPreSeg, evaluateTrafficAndGetVariation } from '../utils/DecisionUtil';
 import {
+  getAllAbAndPersonaliseRules,
+  getFeatureFromKey,
   getFeatureIdFromKey,
   getFeatureNameFromKey,
   getSpecificRulesBasedOnType,
-  getAllAbAndPersonaliseRules,
-  getFeatureFromKey,
 } from '../utils/FunctionUtil';
-import { checkWhitelistingAndPreSeg, evaluateTrafficAndGetVariation } from '../utils/DecisionUtil';
-import { CampaignModel } from '../models/CampaignModel';
-import { CampaignTypeEnum } from '../enums/campaignTypeEnum';
-import { NetworkUtil } from '../utils/NetworkUtil';
-import { EventEnum } from '../enums/EventEnum';
-import { isObject } from '../utils/DataTypeUtil';
-import { LogManager } from '../modules/logger';
-import HooksManager from '../services/HooksManager';
-import { ApiEnum } from '../enums/ApiEnum';
-import { StorageDecorator } from '../decorators/StorageDecorator';
-import { StorageService } from '../services/StorageService';
-import { VariationModel } from '../models/VariationModel';
-import { VariableModel } from '../models/VariableModel';
-import {
-  getCampaignVariation,
-  getRolloutVariation,
-  findGroupsFeaturePartOf,
-  isPartOfGroup,
-} from '../utils/CampaignUtil';
 import { evaluateGroups } from '../utils/MegUtil';
+import { NetworkUtil } from '../utils/NetworkUtil';
+import { Deferred } from '../utils/PromiseUtil';
+import { SegmentationManager } from '../modules/segmentor';
 
 interface IGetFlag {
   get(featureKey: string, settings: SettingsModel, context: any, hookManager: HooksManager): Promise<FeatureModel>;
@@ -115,7 +111,11 @@ export class FlagApi implements IGetFlag {
 
     let ruleToTrack = [];
 
-    const feature = getFeatureFromKey(settings, featureKey); // get feature object from feature key
+    // get feature object from feature key
+    const feature = getFeatureFromKey(settings, featureKey);
+
+    SegmentationManager.Instance.setContextualData(settings, feature, context);
+
     if (!isObject(feature) || feature === undefined) {
       LogManager.Instance.info(`Feature not found for the key ${featureKey}`);
       deferredObject.resolve({

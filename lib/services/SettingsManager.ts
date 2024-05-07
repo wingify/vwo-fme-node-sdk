@@ -1,18 +1,13 @@
 import { dynamic } from '../types/common';
 
-import { Storage } from '../modules/storage';
-import { NetworkManager, RequestModel, ResponseModel } from '../modules/networking';
 import { LogManager } from '../modules/logger';
+import { NetworkManager, RequestModel, ResponseModel } from '../modules/networking';
 
-import { isObject } from '../utils/DataTypeUtil';
 import { Deferred } from '../utils/PromiseUtil';
 
 import { Constants } from '../constants';
-import { NetworkUtil } from '../utils/NetworkUtil';
-import { setVariationAllocation } from '../utils/CampaignUtil';
-import { CampaignModel } from '../models/CampaignModel';
 import { SettingsModel } from '../models/SettingsModel';
-import UrlService from './UrlService';
+import { NetworkUtil } from '../utils/NetworkUtil';
 
 export class SettingsManager implements ISettingsManager {
   sdkKey: string;

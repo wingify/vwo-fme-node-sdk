@@ -1,8 +1,8 @@
 import { LogManager } from '../modules/logger';
 
-import { VariationModel } from '../models/VariationModel';
-import { FeatureModel } from '../models/FeatureModel';
 import { StorageEnum } from '../enums/StorageEnum';
+import { FeatureModel } from '../models/FeatureModel';
+import { VariationModel } from '../models/VariationModel';
 import { StorageService } from '../services/StorageService';
 
 import { Deferred } from '../utils/PromiseUtil';

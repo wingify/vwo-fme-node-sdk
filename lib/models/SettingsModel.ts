@@ -1,6 +1,5 @@
-import { FeatureModel } from './FeatureModel';
 import { CampaignModel } from './CampaignModel';
-import { dynamic } from '../types/common';
+import { FeatureModel } from './FeatureModel';
 
 export class SettingsModel {
   private sK: string;

@@ -1,5 +1,4 @@
 import { isObject } from '../../../utils/DataTypeUtil';
-import { dynamic } from '../../../types/common';
 
 export function getKeyValue(obj: Record<string, any>): Record<string, any> {
   if (!isObject(obj)) {

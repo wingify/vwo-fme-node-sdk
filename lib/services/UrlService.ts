@@ -1,5 +1,5 @@
-import { isString } from '../utils/DataTypeUtil';
 import { UrlEnum } from '../enums/UrlEnum';
+import { isString } from '../utils/DataTypeUtil';
 
 interface UrlServiceType {
   collectionPrefix?: string;

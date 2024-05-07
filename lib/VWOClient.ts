@@ -1,29 +1,26 @@
 // import { processSettings } from './utils/settingsUtil';
-import { Storage } from './modules/storage';
 import { LogManager } from './modules/logger';
+import { Storage } from './modules/storage';
 
 import { FlagApi } from './api/GetFlag';
-import { TrackApi } from './api/TrackEvent';
 import { SetAttributeApi } from './api/SetAttribute';
+import { TrackApi } from './api/TrackEvent';
 
 // import { VWOBuilder } from './VWOBuilder';
-import { SettingsModel } from './models/SettingsModel';
 import { DebugLogMessageEnum } from './enums/logMessages/DebugLogMessageEnum';
+import { SettingsModel } from './models/SettingsModel';
 
 import { ErrorLogMessageEnum } from './enums/logMessages/ErrorLogMessageEnum';
-import { VariableModel } from './models/VariableModel';
-import { SettingsSchema } from './models/schemas/SettingsSchemaValidation';
 import { dynamic } from './types/common';
 // import { BatchEventsQueue } from './services/batchEventsQueue';
 
-import { isString, isObject, getType, isBoolean, isNumber, isUndefined, isArray, isNull } from './utils/DataTypeUtil';
-import { buildMessage } from './utils/LogMessageUtil';
-import { addLInkedCampaignsToSettings } from './utils/FunctionUtil';
-import { Deferred } from './utils/PromiseUtil';
+import HooksManager from './services/HooksManager';
 import UrlService from './services/UrlService';
 import { setVariationAllocation } from './utils/CampaignUtil';
-import { CampaignModel } from './models/CampaignModel';
-import HooksManager from './services/HooksManager';
+import { getType, isObject, isString } from './utils/DataTypeUtil';
+import { addLInkedCampaignsToSettings } from './utils/FunctionUtil';
+import { buildMessage } from './utils/LogMessageUtil';
+import { Deferred } from './utils/PromiseUtil';
 
 interface IVWOClient {
   // readonly apiKey: string;
@@ -60,7 +57,7 @@ export class VWOClient implements IVWOClient {
     // LogManager.Instance.debug(`VWO Client initialized with userId:${userId}`);
     this.options = options;
     this.settings = new SettingsModel(settings);
-    UrlService.init({ 
+    UrlService.init({
       collectionPrefix: this.settings.getCollectionPrefix(),
       webServiceUrl: options?.webService?.url,
     });
@@ -311,7 +308,7 @@ export class VWOClient implements IVWOClient {
   setAttribute(attributeKey: string, attributeValue: string, context: any): void {
     if (!isString(attributeKey) || !isString(attributeValue) || !isString(context?.user?.id)) {
       LogManager.Instance.error(
-        `Paramters passed to setAttribute API are not valid. Please check`,
+        `Parameters passed to setAttribute API are not valid. Please check`,
       );
 
       return;

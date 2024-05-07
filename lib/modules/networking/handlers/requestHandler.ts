@@ -1,6 +1,6 @@
-import { RequestModel } from '../models/requestModel';
-import { GlobalRequestModel } from '../models/globalRequestModel';
 import { dynamic } from '../../../types/common';
+import { GlobalRequestModel } from '../models/globalRequestModel';
+import { RequestModel } from '../models/requestModel';
 
 export class RequestHandler {
   createRequest(request: RequestModel, config: GlobalRequestModel): RequestModel {

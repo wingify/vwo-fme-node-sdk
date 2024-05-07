@@ -1,5 +1,5 @@
-import { NetworkUtil } from '../utils/NetworkUtil';
 import { EventEnum } from '../enums/EventEnum';
+import { NetworkUtil } from '../utils/NetworkUtil';
 
 interface ISetAttribute {
   setAttribute(settings: any, attributeKey: string, attributeValue: any, context: any): void;

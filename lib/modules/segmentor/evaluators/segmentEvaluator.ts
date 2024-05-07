@@ -1,23 +1,23 @@
-import { object } from 'superstruct';
-import { getKeyValue } from '../utils/SegmentUtil';
-import { SegmentOperandEvaluator } from './segmentOperandEvaluator';
+import { StorageDecorator } from '../../../decorators/StorageDecorator';
+import { UrlEnum } from '../../../enums/UrlEnum';
+import { SettingsModel } from '../../../models/SettingsModel';
+import { LogManager } from '../../../modules/logger';
+import { StorageService } from '../../../services/StorageService';
+import { dynamic } from '../../../types/common';
+import { isObject } from '../../../utils/DataTypeUtil';
+import { getFromWebService, getQueryParamForLocationPreSegment, getQueryParamForUaParser } from '../../../utils/WebServiceUtil';
 import { SegmentOperatorValueEnum } from '../enums/segmentOperatorValueEnum';
 import { Segmentation } from '../segmentation';
-import { dynamic } from '../../../types/common';
-import { getFromWebService, getQueryParamForLocationPreSegment, getQueryParamForUaParser } from '../../../utils/WebServiceUtil';
-import { UrlEnum } from '../../../enums/UrlEnum';
-import { StorageDecorator } from '../../../decorators/StorageDecorator';
-import { StorageService } from '../../../services/StorageService';
-import { getCampaignVariation, getRolloutVariation } from '../../../utils/CampaignUtil';
-import { VariationModel } from '../../../models/VariationModel';
-import { VariableModel } from '../../../models/VariableModel';
-import { LogManager } from '../../../modules/logger';
-import { Deferred } from '../../../utils/PromiseUtil';
-import { SettingsModel } from '../../../models/SettingsModel';
-import { isObject } from '../../../utils/DataTypeUtil';
+import { getKeyValue } from '../utils/SegmentUtil';
+import { SegmentOperandEvaluator } from './segmentOperandEvaluator';
 
 export class SegmentEvaluator implements Segmentation {
+  context: any;
+  settings: any;
+  feature: any;
+
   async isSegmentationValid(dsl: Record<string, dynamic>, properties: Record<string, dynamic>, settings: SettingsModel, context?: any): Promise<boolean> {
+    console.log('Inside segment evaluator:', this.context);
     const { key, value } = getKeyValue(dsl);
     const operator = key;
     const subDsl = value;
@@ -73,7 +73,7 @@ export class SegmentEvaluator implements Segmentation {
 
 
           if (featureIdValue === 'on') {
-            
+
             const features = settings.getFeatures(); // Access features using the getter method
             const feature = features.find(feature => feature.getId() === parseInt(featureIdKey)); // Find feature by featureIdKey
 

@@ -1,6 +1,6 @@
-import { validate, number, string, boolean, array, object, optional, union, Struct } from 'superstruct';
-import { SettingsModel } from '../SettingsModel';
+import { Struct, array, boolean, number, object, optional, string, union, validate } from 'superstruct';
 import { dynamic } from '../../types/common';
+import { SettingsModel } from '../SettingsModel';
 
 export class SettingsSchema {
   private campaignGoalSchema: Struct<dynamic>;
@@ -46,21 +46,18 @@ export class SettingsSchema {
       featureId: optional(number()),
       featureKey: optional(string()),
       percentTraffic: number(),
-      goals: array(this.campaignGoalSchema),
+      metrics: array(this.campaignGoalSchema),
       variations: array(this.campaignVariationSchema),
       variables: optional(array(this.variableObjectSchema)),
       segments: object(),
-      isForcedVariationEnabled: optional(boolean()),
-      priority: number(),
-      autoActivate: boolean(),
-      autoTrack: boolean()
+      isForcedVariationEnabled: optional(boolean())
     });
 
     this.featureSchema = object({
       id: union([number(), string()]),
       key: string(),
       variables: optional(array(this.variableObjectSchema)),
-      campaigns: array(this.campaignGroupSchema)
+      campaigns: array(this.campaignObjectSchema)
     });
 
     this.settingsFileSchema = object({

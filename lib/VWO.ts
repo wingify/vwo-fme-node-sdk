@@ -1,7 +1,7 @@
 import { VWOBuilder } from './VWOBuilder';
-import { isObject, isString } from './utils/DataTypeUtil';
-import { dynamic } from './types/common';
 import { SettingsModel } from './models/SettingsModel';
+import { dynamic } from './types/common';
+import { isObject, isString } from './utils/DataTypeUtil';
 
 export class VWO {
   private static vwoBuilder: VWOBuilder;
@@ -27,8 +27,6 @@ export class VWO {
     return this.vwoBuilder.getSettings().then((settings: SettingsModel) => {
       return this.vwoBuilder.build(settings);
     })
-
-    // return this.instance;
   }
 
   static get Instance(): dynamic {

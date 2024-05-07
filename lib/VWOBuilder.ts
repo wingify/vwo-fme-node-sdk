@@ -1,15 +1,15 @@
 import { dynamic } from './types/common';
 
-import { SegmentationManager } from './modules/segmentor';
-import { NetworkManager } from './modules/networking';
 import { LogManager } from './modules/logger';
+import { NetworkManager } from './modules/networking';
+import { SegmentationManager } from './modules/segmentor';
 
 import { Storage } from './modules/storage';
 
-import { SettingsManager } from './services/SettingsManager';
 import { VWOClient } from './VWOClient';
-import { processSettings } from './utils/SettingsUtil';
 import { SettingsModel } from './models/SettingsModel';
+import { SettingsManager } from './services/SettingsManager';
+import { processSettings } from './utils/SettingsUtil';
 // import { BatchEventsQueue } from './services/batchEventsQueue';
 // import { DimensionModel } from './types/types';
 import { Constants } from './constants';
@@ -17,9 +17,10 @@ import { Constants } from './constants';
 
 import { Deferred } from './utils/PromiseUtil';
 // import { getRandomUUID } from './utils/UuidUtil';
+import { LogLevelEnum } from './enums/LogLevelEnum';
+import { isBoolean, isFunction, isNumber, isObject } from './utils/DataTypeUtil';
 import { cloneObject } from './utils/FunctionUtil';
-import { isObject, isBoolean, isNumber, isFunction } from './utils/DataTypeUtil' ;
-
+import { getRandomUUID } from './utils/UuidUtil';
 
 interface IVWOBuilder {
   settings: SettingsModel;
@@ -131,7 +132,7 @@ export class VWOBuilder implements IVWOBuilder {
     this.logManager = new LogManager(
       this.options.logger || {
         defaultTransport: true,
-        level: 'debug'
+        level: LogLevelEnum.DEBUG
       }
     );
     return this;
@@ -161,6 +162,15 @@ export class VWOBuilder implements IVWOBuilder {
     //   this.options.analyticsEvent.isBatchingSupported
     // );
     return this;
+  }
+
+  getRandomUserId(): string {
+    try {
+      LogManager.Instance.debug('API - getRandomUserId was called');
+      return getRandomUUID(this.options.apiKey);
+    } catch (err) {
+      LogManager.Instance.error(`Random User ID could be generated. ${err}`);
+    }
   }
 
   initBatching(): this {

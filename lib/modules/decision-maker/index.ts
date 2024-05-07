@@ -15,8 +15,6 @@
  */
 
 import * as Hasher from 'murmurhash';
-import { getBucketingSeed } from '../../utils/CampaignUtil';
-import { LogManager } from '../../modules/logger';
 
 const SEED_VALUE = 1;
 const MAX_TRAFFIC_VALUE = 10000;

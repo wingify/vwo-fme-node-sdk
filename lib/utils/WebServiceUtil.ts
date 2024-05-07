@@ -1,10 +1,9 @@
-import UrlService from '../services/UrlService';
-import { Constants } from '../constants';
+import { UrlEnum } from '../enums/UrlEnum';
+import { LogManager } from '../modules/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../modules/networking';
+import UrlService from '../services/UrlService';
 import { dynamic } from '../types/common';
 import { Deferred } from '../utils/PromiseUtil';
-import { LogManager } from '../modules/logger';
-import { UrlEnum } from '../enums/UrlEnum';
 
 export async function getFromWebService(queryParams: any, endpoint: any): Promise<any> {
   // implementation

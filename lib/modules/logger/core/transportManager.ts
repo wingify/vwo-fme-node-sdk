@@ -1,7 +1,7 @@
-import { Logger } from '../logger';
-import { LogLevelEnum } from '../enums/logLevelEnum';
 import { dynamic } from '../../../types/common';
+import { LogLevelEnum } from '../enums/logLevelEnum';
 import { LogMessageBuilder } from '../logMessageBuilder';
+import { Logger } from '../logger';
 
 enum LogLevelNumberEnum {
   TRACE = 0,

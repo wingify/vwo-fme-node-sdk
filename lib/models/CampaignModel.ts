@@ -1,8 +1,7 @@
-import { VariationModel } from './VariationModel';
+import { dynamic } from '../types/common';
 import { MetricModel } from './MetricModel';
 import { VariableModel } from './VariableModel';
-import { dynamic } from '../types/common';
-import { RuleModel } from './RuleModel';
+import { VariationModel } from './VariationModel';
 
 export class CampaignModel {
   private id: number;

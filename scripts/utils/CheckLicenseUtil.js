@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2024 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,13 +37,13 @@
  */
 
 const fs = require('fs');
-const AnsiColorEnum = require('../../lib/enums/AnsiColorEnum');
+const AnsiColorEnum = require('../enums/AnsiColorEnum');
 
 const defaultStoppingCriteria = `SOME_GARBAGE_TEXT_which_NEVER_MATCHES_THIS`;
 const successMessage = `LICENSE/COPYRIGHT header present in all files with correct format`;
 const failureMessage = `LICENSE/COPYRIGHT header is missing. Please check above errors.`;
 const notPresentMessage = `NOT PRESENT / WRONG FORMAT`;
-const missingParamsMessage = `Options: paths, author, year and extension are mandatory`;
+const missingParamsMessage = `Options: paths, author, year and extensions are mandatory`;
 
 let licenseHeader = `
 Copyright {year} {author}
@@ -69,7 +69,7 @@ let fsUtil = {
     return fs.readdirSync(path).filter(out => out);
   },
 
-  getAllFiles: function({ path, excludes, extension, allFiles }) {
+  getAllFiles: function({ path, excludes, extensions, allFiles }) {
     if (excludes.includes(path)) {
       return;
     } else if (fs.existsSync(path) && fs.lstatSync(path).isDirectory()) {
@@ -79,13 +79,13 @@ let fsUtil = {
         fsUtil.getAllFiles({
           path: path + '/' + dirs[i],
           excludes,
-          extension,
+          extensions,
           allFiles
         });
       }
     }
 
-    if (fs.lstatSync(path).isFile() && path.endsWith(`.${extension}`)) {
+    if (fs.lstatSync(path).isFile() && extensions.some(ext => path.endsWith(ext))) {
       allFiles.push(path);
     }
   }
@@ -158,10 +158,10 @@ let checkLicenseUtil = {
     year,
     paths,
     excludes,
-    extension,
+    extensions,
     stoppingCriteria = defaultStoppingCriteria
   }) {
-    if (!paths || !year || !author || !extension) {
+    if (!paths || !year || !author || !extensions) {
       console.error(`${AnsiColorEnum.RED}${missingParamsMessage}${AnsiColorEnum.RESET}`);
       process.exit(1);
     }
@@ -183,7 +183,7 @@ let checkLicenseUtil = {
       fsUtil.getAllFiles({
         path: paths[i],
         excludes,
-        extension,
+        extensions,
         allFiles: list
       });
 

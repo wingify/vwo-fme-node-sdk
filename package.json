@@ -5,10 +5,12 @@
   "main": "dist/index",
   "types": "dist/index.d.ts",
   "scripts": {
+    "check:license": "yarn check:versions && node -e 'require(\"./scripts/check-license\")'",
     "check:versions": "node -e 'require(\"./scripts/check-versions\")'",
     "demo": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js",
     "demo:server": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js",
     "prettier": "prettier -w lib/**/*.ts *.md",
+    "test": "node test/index.js",
     "tsc": "yarn check:versions && tsc -w"
   },
   "repository": {
@@ -44,7 +46,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged",
+      "pre-push": "yarn check:license && yarn test"
     }
   },
   "lint-staged": {

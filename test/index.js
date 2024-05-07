@@ -13,17 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const childProcess = require('child_process');
-const shell = require('shelljs');
-
-function exec(cmd) {
-  return childProcess
-    .execSync(cmd)
-    .toString()
-    .trim();
-}
-
-module.exports = {
-  exec,
-  shell
-};
+console.log('TEST')

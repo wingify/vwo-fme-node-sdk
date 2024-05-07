@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const childProcess = require('child_process');
-const shell = require('shelljs');
 
-function exec(cmd) {
-  return childProcess
-    .execSync(cmd)
-    .toString()
-    .trim();
-}
-
-module.exports = {
-  exec,
-  shell
+const AnsiColorEnum = {
+  BOLD: '\x1b[1m',
+  CYAN: '\x1b[36m',
+  GREEN: '\x1b[32m',
+  LIGHTBLUE: '\x1b[94m',
+  RED: '\x1b[31m',
+  RESET: '\x1b[0m',
+  WHITE: '\x1b[30m',
+  YELLOW: '\x1b[33m'
 };
+
+module.exports = AnsiColorEnum;

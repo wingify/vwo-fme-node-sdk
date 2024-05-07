@@ -16,30 +16,29 @@ export class SegmentEvaluator implements Segmentation {
   settings: any;
   feature: any;
 
-  async isSegmentationValid(dsl: Record<string, dynamic>, properties: Record<string, dynamic>, settings: SettingsModel, context?: any): Promise<boolean> {
-    console.log('Inside segment evaluator:', this.context);
+  async isSegmentationValid(dsl: Record<string, dynamic>, properties: Record<string, dynamic>): Promise<boolean> {
     const { key, value } = getKeyValue(dsl);
     const operator = key;
     const subDsl = value;
 
     if (operator === SegmentOperatorValueEnum.NOT) {
-      const result = await this.isSegmentationValid(subDsl, properties, settings, context);
+      const result = await this.isSegmentationValid(subDsl, properties);
       return !result;
     } else if (operator === SegmentOperatorValueEnum.AND) {
-      return await this.every(subDsl, properties, settings, context);
+      return await this.every(subDsl, properties);
     } else if (operator === SegmentOperatorValueEnum.OR) {
-      return await this.some(subDsl, properties, settings, context);
+      return await this.some(subDsl, properties);
     } else if (operator === SegmentOperatorValueEnum.CUSTOM_VARIABLE) {
       return await new SegmentOperandEvaluator().evaluateCustomVariableDSL(subDsl, properties);
     } else if (operator === SegmentOperatorValueEnum.USER) {
       return new SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties);
     } else if (operator === SegmentOperatorValueEnum.UA) {
-      return new SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, context);
+      return new SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context.user);
     }
     return false;
   }
 
-  async some(dslNodes: Array<Record<string, dynamic>>, customVariables: Record<string, dynamic>, settings: SettingsModel, context: any): Promise<boolean> {
+  async some(dslNodes: Array<Record<string, dynamic>>, customVariables: Record<string, dynamic>): Promise<boolean> {
     let uaParserMap: Record<string, string[]> = {};
     let keyCount: number = 0; // Initialize count of keys encountered
     let isUaParser = false;
@@ -74,12 +73,12 @@ export class SegmentEvaluator implements Segmentation {
 
           if (featureIdValue === 'on') {
 
-            const features = settings.getFeatures(); // Access features using the getter method
+            const features = this.settings.getFeatures(); // Access features using the getter method
             const feature = features.find(feature => feature.getId() === parseInt(featureIdKey)); // Find feature by featureIdKey
 
             if (feature) {
                 const featureKey = feature.getKey(); // Get the key of the found feature
-                const result = await this.checkInUserStorage(settings, featureKey, context);
+                const result = await this.checkInUserStorage(this.settings, featureKey, this.context.user);
                 return result;
             } else {
                 console.error("Feature not found with featureIdKey:", featureIdKey);
@@ -92,7 +91,7 @@ export class SegmentEvaluator implements Segmentation {
       // Check if the count of keys encountered is equal to dslNodes.length
       if (isUaParser && keyCount === dslNodes.length) {
         try {
-          const uaParserResult = await this.checkUserAgentParser(uaParserMap, context.userAgent);
+          const uaParserResult = await this.checkUserAgentParser(uaParserMap);
           return uaParserResult;
         }
         catch (err) {
@@ -100,30 +99,26 @@ export class SegmentEvaluator implements Segmentation {
         }
       }
 
-      if (await this.isSegmentationValid(dsl, customVariables, settings, context)) {
+      if (await this.isSegmentationValid(dsl, customVariables)) {
         return true;
       }
     }
     return false;
   }
 
-  async every(dslNodes: Array<Record<string, dynamic>>, customVariables: Record<string, dynamic>, settings: SettingsModel, context: any): Promise<boolean> {
+  async every(dslNodes: Array<Record<string, dynamic>>, customVariables: Record<string, dynamic>): Promise<boolean> {
     let locationMap: Record<string, dynamic> = {};
     for (const dsl of dslNodes) {
       if (dsl.hasOwnProperty(SegmentOperatorValueEnum.COUNTRY) || dsl.hasOwnProperty(SegmentOperatorValueEnum.REGION) || dsl.hasOwnProperty(SegmentOperatorValueEnum.CITY)) {
         this.addLocationValuesToMap(dsl, locationMap);
         // check if location map size is equal to dslNodes size
         if (Object.keys(locationMap).length === dslNodes.length) {
-          if (!context.ipAddress || context.ipAddress === undefined){
-            LogManager.Instance.info('To evaluate location pre Segment, please pass ipAddress in context.user object');
-            return false;
-          }
-          const segmentResult = await this.checkLocationPreSegmentation(locationMap, context.ipAddress || '0.0.0.0');
+          const segmentResult = await this.checkLocationPreSegmentation(locationMap);
           return segmentResult;
         }
         continue;
       }
-      const res = await this.isSegmentationValid(dsl, customVariables, settings, context);
+      const res = await this.isSegmentationValid(dsl, customVariables);
       if (!res) {
         return false;
       }
@@ -143,27 +138,35 @@ export class SegmentEvaluator implements Segmentation {
     }
   }
 
-  async checkLocationPreSegmentation(locationMap: Record<string, dynamic>, ipAddress: string): Promise<boolean> {
-    const queryParams = getQueryParamForLocationPreSegment(ipAddress);
-    const userLocation = await getFromWebService(queryParams, UrlEnum.LOCATION_CHECK);
-    if (!userLocation || userLocation === undefined || userLocation === 'false' || userLocation.status === 0) {
+  async checkLocationPreSegmentation(locationMap: Record<string, dynamic>): Promise<boolean> {
+    if (!this.context.user.ipAddress || this.context.user.ipAddress === undefined){
+      LogManager.Instance.info('To evaluate location pre Segment, please pass ipAddress in context.user object');
       return false;
     }
-    return this.valuesMatch(locationMap, userLocation.location);
+    if (this.context._vwo.location === undefined || this.context._vwo.location === null) {
+      const queryParams = getQueryParamForLocationPreSegment(this.context.user.ipAddress);
+      this.context._vwo.location = (await getFromWebService(queryParams, UrlEnum.LOCATION_CHECK)).location;
+    }
+    if (!this.context._vwo.location || this.context._vwo.location === undefined || this.context._vwo.location === null) {
+      return false;
+    }
+    return this.valuesMatch(locationMap, this.context._vwo.location);
   }
 
-  async checkUserAgentParser(uaParserMap: Record<string, string[]>, userAgent: string): Promise<boolean> {
-    const queryParams = getQueryParamForUaParser(userAgent);
-    if (!userAgent || userAgent === undefined){
+  async checkUserAgentParser(uaParserMap: Record<string, string[]>): Promise<boolean> {
+    if (!this.context.user.userAgent || this.context.user.userAgent === undefined){
       LogManager.Instance.info('To evaluate user agent related segments, please pass userAgent in context object');
       return false;
     }
-    const uaParser = await getFromWebService(queryParams, UrlEnum.UAPARSER);
-    if (!uaParser || uaParser === undefined || uaParser === 'false' || uaParser.status === 0) {
+    if (this.context._vwo.ua_info === undefined || this.context._vwo.ua_info === null) {
+      const queryParams = getQueryParamForUaParser(this.context.user.userAgent);
+      this.context._vwo.ua_info = await getFromWebService(queryParams, UrlEnum.UAPARSER);
+    }
+    if (!this.context._vwo.ua_info  || this.context._vwo.ua_info  === undefined || this.context._vwo.ua_info  === 'false') {
       return false;
     }
 
-    return this.checkValuePresent(uaParserMap, uaParser);
+    return this.checkValuePresent(uaParserMap, this.context._vwo.ua_info);
   }
 
   async checkInUserStorage( settings: SettingsModel, featureKey: string, user: any): Promise<any> {

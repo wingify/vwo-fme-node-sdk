@@ -19,10 +19,9 @@ export class SegmentationManager {
   setContextualData(settings, feature, context) {
     // Always new evalautor instance
     this.attachEvaluator();
-
-    console.log('CHECK: ', context);
     this.evaluator.settings = settings;
     this.evaluator.context = context;
+    this.evaluator.context._vwo = context?._vwo || {};
     this.evaluator.feature = feature;
 
     // call to webservice /getLocation      if feature.segment.hasLocation = true
@@ -34,6 +33,6 @@ export class SegmentationManager {
 
   // TODO: modify this method and the following to be independent of settings and context
   async validateSegmentation(dsl: Record<string, dynamic>, properties: Record<any, dynamic>, settings: SettingsModel, context?:any): Promise<boolean> {
-    return await this.evaluator.isSegmentationValid(dsl, properties, settings, context);
+    return await this.evaluator.isSegmentationValid(dsl, properties);
   }
 }

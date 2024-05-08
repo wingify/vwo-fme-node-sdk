@@ -24,6 +24,9 @@ import { LogTransportManager } from './TransportManager';
 import { isObject } from '../../../utils/DataTypeUtil';
 import { LogLevelEnum } from '../enums/LogLevelEnum';
 
+/**
+ * Interface defining the structure and methods for LogManager.
+ */
 interface ILogManager {
   transportManager: LogTransportManager;
   config: Record<string, dynamic>;
@@ -40,20 +43,28 @@ interface ILogManager {
   addTransports(transportsList: Array<Record<string, dynamic>>): void;
 }
 
+/**
+ * LogManager class provides logging functionality with support for multiple transports.
+ * It is designed as a singleton to ensure a single instance throughout the application.
+ */
 export class LogManager extends Logger implements ILogManager {
-  private static instance: LogManager;
+  private static instance: LogManager; // Singleton instance of LogManager
   transportManager: LogTransportManager;
   config: Record<string, any>;
-  name = 'VWO Logger';
-  requestId = uuidv4();
-  level = LogLevelEnum.ERROR;
-  prefix = 'VWO-SDK';
+  name = 'VWO Logger'; // Default logger name
+  requestId = uuidv4(); // Unique request ID generated for each instance
+  level = LogLevelEnum.ERROR; // Default logging level
+  prefix = 'VWO-SDK'; // Default prefix for log messages
   public dateTimeFormat(): string {
-    return new Date().toISOString();
+    return new Date().toISOString(); // Default date-time format for log messages
   }
   transport: Record<string, any>;
   transports: Array<Record<string, any>>;
 
+  /**
+   * Constructor for LogManager.
+   * @param {Record<string, any>} config - Configuration object for LogManager.
+   */
   constructor(config?: Record<string, any>) {
     super();
 
@@ -62,6 +73,7 @@ export class LogManager extends Logger implements ILogManager {
     if (!LogManager.instance) {
       LogManager.instance = this;
 
+      // Initialize configuration with defaults or provided values
       this.config.name = config.name || this.name;
       this.config.requestId = config.requestId || this.requestId;
       this.config.level = config.level || this.level;
@@ -76,10 +88,17 @@ export class LogManager extends Logger implements ILogManager {
     return LogManager.instance;
   }
 
+  /**
+   * Provides access to the singleton instance of LogManager.
+   * @returns {LogManager} The singleton instance.
+   */
   static get Instance(): LogManager {
     return LogManager.instance;
   }
 
+  /**
+   * Handles the initialization and setup of transports based on configuration.
+   */
   handleTransports(): void {
     const transports = this.config.transports;
 
@@ -88,7 +107,7 @@ export class LogManager extends Logger implements ILogManager {
     } else if (this.config.transport && isObject(this.config.transport)) {
       this.addTransport(this.config.transport);
     } else if (this.config.defaultTransport) {
-      // default
+      // Add default ConsoleTransport if no other transport is specified
       this.addTransport(
         new ConsoleTransport({
           level: this.config.level
@@ -97,32 +116,60 @@ export class LogManager extends Logger implements ILogManager {
     }
   }
 
+  /**
+   * Adds a single transport to the LogManager.
+   * @param {Record<any, any>} transport - The transport object to add.
+   */
   addTransport(transport: Record<any, any>): void {
     this.transportManager.addTransport(transport);
   }
 
+  /**
+   * Adds multiple transports to the LogManager.
+   * @param {Array<Record<any, any>>} transports - The list of transport objects to add.
+   */
   addTransports(transports: Record<any, any>): void {
     for (let i = 0; i < transports.length; i++) {
       this.addTransport(transports[i]);
     }
   }
 
+  /**
+   * Logs a trace message.
+   * @param {string} message - The message to log at trace level.
+   */
   trace(message: string): void {
     this.transportManager.log(LogLevelEnum.TRACE, message);
   }
 
+  /**
+   * Logs a debug message.
+   * @param {string} message - The message to log at debug level.
+   */
   debug(message: string): void {
     this.transportManager.log(LogLevelEnum.DEBUG, message);
   }
 
+  /**
+   * Logs an informational message.
+   * @param {string} message - The message to log at info level.
+   */
   info(message: string): void {
     this.transportManager.log(LogLevelEnum.INFO, message);
   }
 
+  /**
+   * Logs a warning message.
+   * @param {string} message - The message to log at warn level.
+   */
   warn(message: string): void {
     this.transportManager.log(LogLevelEnum.WARN, message);
   }
 
+  /**
+   * Logs an error message.
+   * @param {string} message - The message to log at error level.
+   */
   error(message: string): void {
     this.transportManager.log(LogLevelEnum.ERROR, message);
   }

@@ -24,16 +24,27 @@ import { NetworkClientInterface } from './NetworkClientInterface';
 
 const HTTPS = 'HTTPS';
 
+/**
+ * Implements the NetworkClientInterface to handle network requests.
+ */
 export class NetworkClient implements NetworkClientInterface {
+  /**
+   * Performs a GET request using the provided RequestModel.
+   * @param {RequestModel} requestModel - The model containing request options.
+   * @returns {Promise<ResponseModel>} A promise that resolves to a ResponseModel.
+   */
   GET(requestModel: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
 
+    // Extract network options from the request model.
     const networkOptions: Record<string, dynamic> = requestModel.getOptions();
     const responseModel = new ResponseModel();
 
     try {
+      // Choose HTTP or HTTPS client based on the scheme.
       const httpClient = networkOptions.scheme === HTTPS ? https : http;
 
+      // Perform the HTTP GET request.
       const req = httpClient.get(networkOptions, res => {
         responseModel.setStatusCode(res.statusCode);
         const contentType = res.headers['content-type'];
@@ -41,45 +52,46 @@ export class NetworkClient implements NetworkClientInterface {
         let error;
         let rawData = '';
 
+        // Check for expected content-type.
         if (!/^application\/json/.test(contentType)) {
           error = `Invalid content-type.\nExpected application/json but received ${contentType}`;
         }
 
         if (error) {
-          // console.error(error);
-          // Consume response data to free up memory
+          // Log error and consume response data to free up memory.
           res.resume();
           responseModel.setError(error);
           deferred.reject(responseModel);
         }
         res.setEncoding('utf8');
 
+        // Collect data chunks.
         res.on('data', chunk => {
           rawData += chunk;
         });
 
+        // Handle the end of the response.
         res.on('end', () => {
           try {
             const parsedData = JSON.parse(rawData);
 
+            // Check for successful response status.
             if (responseModel.getStatusCode() !== 200) {
-              const error = `Request failed for fetching account settings. Got Status Code: ${responseModel.getStatusCode()} and message: ${rawData}`;
-              // console.error(error);
+              const error = `Request failed. Got Status Code: ${responseModel.getStatusCode()} and message: ${rawData}`;
               responseModel.setError(error);
               deferred.reject(responseModel);
-
               return;
             }
             responseModel.setData(parsedData);
             deferred.resolve(responseModel);
           } catch (err) {
-            // console.log('error is ', err);
             responseModel.setError(err);
             deferred.reject(responseModel);
           }
         });
       });
 
+      // Handle request timeout.
       req.on('timeout', () => {
         responseModel.setError(new Error('timeout'));
         deferred.reject(responseModel);
@@ -92,20 +104,31 @@ export class NetworkClient implements NetworkClientInterface {
     return deferred.promise;
   }
 
+  /**
+   * Performs a POST request using the provided RequestModel.
+   * @param {RequestModel} request - The model containing request options.
+   * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
+   */
   POST(request: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
     const networkOptions: Record<string, dynamic> = request.getOptions();
     const responseModel: ResponseModel = new ResponseModel();
 
     try {
+      // Choose HTTP or HTTPS client based on the scheme.
       const httpClient = networkOptions.scheme === HTTPS ? https : http;
+
+      // Perform the HTTP POST request.
       const req = httpClient.request(networkOptions, res => {
-        let rawData = '';  
+        let rawData = '';
         res.setEncoding('utf8');
+
+        // Collect data chunks.
         res.on('data', function(chunk) {
           rawData += chunk;
         });
 
+        // Handle the end of the response.
         res.on('end', () => {
           if (res.statusCode === 200) {
             responseModel.setData(request.getBody());
@@ -124,12 +147,14 @@ export class NetworkClient implements NetworkClientInterface {
         });
       });
 
+      // Handle request timeout.
       req.on('timeout', () => {
         responseModel.setError(new Error('timeout'));
         responseModel.setData(request.getBody());
         deferred.reject(responseModel);
       });
 
+      // Write data to the request body and end the request.
       req.write(JSON.stringify(networkOptions.body));
       req.end();
     } catch (err) {

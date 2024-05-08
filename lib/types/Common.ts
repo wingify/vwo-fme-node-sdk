@@ -13,16 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type dynamic =
-  | boolean
-  | number
-  | string
-  | Date
-  | void
-  | undefined
-  | null
-  | Record<string, any>
-  | Array<dynamicArray>
-  | Map<string, dynamicArray>;
 
-export type dynamicArray = boolean | number | string | Record<string, any>;
+/**
+ * Defines a type `dynamic` which can be used to represent a variety of data types.
+ * This type is flexible and can handle multiple types including primitive types,
+ * complex objects, and collections.
+ */
+export type dynamic =
+  | boolean  // Represents a boolean value
+  | number   // Represents a numeric value
+  | string   // Represents a string value
+  | Date     // Represents a date object
+  | void     // Represents the absence of a value
+  | undefined // Represents an undefined value
+  | null     // Represents a null value
+  | Record<string, any> // Represents an object with string keys and any type of values
+  | Array<dynamicArray> // Represents an array of `dynamicArray` type
+  | Map<string, dynamicArray>; // Represents a map with string keys and `dynamicArray` type values
+
+/**
+ * Defines a type `dynamicArray` which is used within the `dynamic` type.
+ * This type is intended for use in arrays and supports several basic data types and objects.
+ */
+export type dynamicArray =
+  | boolean // Represents a boolean value
+  | number  // Represents a numeric value
+  | string  // Represents a string value
+  | Record<string, any>; // Represents an object with string keys and any type of values

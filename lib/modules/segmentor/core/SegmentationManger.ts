@@ -18,36 +18,61 @@ import { dynamic } from '../../../types/Common';
 import { SettingsModel } from '../../../models/SettingsModel';
 
 export class SegmentationManager {
-  private static instance: SegmentationManager;
-  evaluator: SegmentEvaluator;
+  private static instance: SegmentationManager; // Singleton instance of SegmentationManager
+  evaluator: SegmentEvaluator; // Holds the instance of SegmentEvaluator
 
+  /**
+   * Singleton pattern implementation for getting the instance of SegmentationManager.
+   * @returns {SegmentationManager} The singleton instance.
+   */
   static get Instance(): SegmentationManager {
-    this.instance = this.instance || new SegmentationManager();
-
+    this.instance = this.instance || new SegmentationManager(); // Create new instance if it doesn't exist
     return this.instance;
   }
 
+  /**
+   * Attaches an evaluator to the manager, or creates a new one if none is provided.
+   * @param {SegmentEvaluator} evaluator - Optional evaluator to attach.
+   */
   attachEvaluator(evaluator?: SegmentEvaluator): void {
-    this.evaluator = evaluator || new SegmentEvaluator();
+    this.evaluator = evaluator || new SegmentEvaluator(); // Use provided evaluator or create new one
   }
 
+  /**
+   * Sets the contextual data for the segmentation process.
+   * @param {any} settings - The settings data.
+   * @param {any} feature - The feature data including segmentation needs.
+   * @param {any} context - The context data for the evaluation.
+   */
   setContextualData(settings, feature, context) {
-    // Always new evalautor instance
-    this.attachEvaluator();
-    this.evaluator.settings = settings;
-    this.evaluator.context = context;
-    this.evaluator.context._vwo = context?._vwo || {};
-    this.evaluator.feature = feature;
+    this.attachEvaluator(); // Ensure a fresh evaluator instance
+    this.evaluator.settings = settings; // Set settings in evaluator
+    this.evaluator.context = context; // Set context in evaluator
+    this.evaluator.context._vwo = context?._vwo || {}; // Ensure _vwo property exists in context
+    this.evaluator.feature = feature; // Set feature in evaluator
 
-    // call to webservice /getLocation      if feature.segment.hasLocation = true
-    // call to webservice /getUA            if feature.segment.hasUA = true
-    // call to webservice /getLocationAndUA if feature.segment.hasLocation = true && feature.segment.hasUA = true
-
-    // if featureId segment in this feature.segment.hasFeatureDep = true and feature.segment.
+    // Conditional web service calls based on feature requirements
+    if (feature.segment.hasLocation && feature.segment.hasUA) {
+      // call to webservice /getLocationAndUA
+    } else {
+      if (feature.segment.hasLocation) {
+        // call to webservice /getLocation
+      }
+      if (feature.segment.hasUA) {
+        // call to webservice /getUA
+      }
+    }
   }
 
-  // TODO: modify this method and the following to be independent of settings and context
+  /**
+   * Validates the segmentation against provided DSL and properties.
+   * @param {Record<string, dynamic>} dsl - The segmentation DSL.
+   * @param {Record<any, dynamic>} properties - The properties to validate against.
+   * @param {SettingsModel} settings - The settings model.
+   * @param {any} context - Optional context.
+   * @returns {Promise<boolean>} True if segmentation is valid, otherwise false.
+   */
   async validateSegmentation(dsl: Record<string, dynamic>, properties: Record<any, dynamic>, settings: SettingsModel, context?:any): Promise<boolean> {
-    return await this.evaluator.isSegmentationValid(dsl, properties);
+    return await this.evaluator.isSegmentationValid(dsl, properties); // Delegate to evaluator's method
   }
 }

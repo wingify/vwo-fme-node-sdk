@@ -15,40 +15,76 @@
  */
 import { dynamic } from '../../../types/Common';
 
+/**
+ * Represents the response model for network operations.
+ * This class encapsulates details about the HTTP response including status code, headers, data, and errors.
+ */
 export class ResponseModel {
-  private statusCode: number;
-  private error: dynamic;
-  private headers: Record<string, string>;
-  private data: dynamic;
+  private statusCode: number; // HTTP status code of the response
+  private error: dynamic; // Error object if the request failed
+  private headers: Record<string, string>; // Headers received in the response
+  private data: dynamic; // Data payload of the response
 
+  /**
+   * Sets the status code of the response.
+   * @param {number} statusCode - The HTTP status code
+   */
   setStatusCode(statusCode: number): void {
     this.statusCode = statusCode;
   }
 
+  /**
+   * Sets the headers of the response.
+   * @param {Record<string, string>} headers - The headers of the response
+   */
   setHeaders(headers: Record<string, string>): void {
     this.headers = headers;
   }
 
+  /**
+   * Sets the data of the response.
+   * @param {dynamic} data - The data payload of the response
+   */
   setData(data: dynamic): void {
     this.data = data;
   }
 
+  /**
+   * Sets the error object of the response.
+   * @param {dynamic} error - The error object if the request failed
+   */
   setError(error: dynamic): void {
     this.error = error;
   }
 
+  /**
+   * Retrieves the headers of the response.
+   * @returns {Record<string, string>} The headers of the response
+   */
   getHeaders(): Record<string, string> {
     return this.headers;
   }
 
+  /**
+   * Retrieves the data payload of the response.
+   * @returns {dynamic} The data payload of the response
+   */
   getData(): dynamic {
     return this.data;
   }
 
+  /**
+   * Retrieves the status code of the response.
+   * @returns {number} The HTTP status code
+   */
   getStatusCode(): number {
     return this.statusCode;
   }
 
+  /**
+   * Retrieves the error object of the response.
+   * @returns {dynamic} The error object if the request failed
+   */
   getError(): dynamic {
     return this.error;
   }

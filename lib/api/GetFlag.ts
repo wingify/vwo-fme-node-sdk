@@ -28,7 +28,7 @@ import { LogManager } from '../modules/logger';
 import { SegmentationManager } from '../modules/segmentor';
 import HooksManager from '../services/HooksManager';
 import { StorageService } from '../services/StorageService';
-import { getCampaignVariation, getRolloutVariation, isPartOfGroup } from '../utils/CampaignUtil';
+import { getVariationByCampaignKey, isPartOfGroup } from '../utils/CampaignUtil';
 import { isObject } from '../utils/DataTypeUtil';
 import { checkWhitelistingAndPreSeg, evaluateTrafficAndGetVariation } from '../utils/DecisionUtil';
 import {
@@ -75,7 +75,7 @@ export class FlagApi implements IGetFlag {
 
     if (storedData?.experimentVariationId) {
       if (storedData.experimentKey) {
-        const variation: VariationModel = getCampaignVariation(
+        const variation: VariationModel = getVariationByCampaignKey(
           settings,
           storedData.experimentKey,
           storedData.experimentVariationId,
@@ -102,7 +102,7 @@ export class FlagApi implements IGetFlag {
         }
       }
     } else if (storedData?.rolloutKey && storedData.rolloutId) {
-      const variation: VariationModel = getRolloutVariation(
+      const variation: VariationModel = getVariationByCampaignKey(
         settings,
         storedData.rolloutKey,
         storedData.rolloutVariationId,

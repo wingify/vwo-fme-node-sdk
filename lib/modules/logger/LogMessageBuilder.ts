@@ -16,35 +16,59 @@
 import { dynamic } from '../../types/Common';
 import { LogLevelEnum } from './enums/LogLevelEnum';
 
+/**
+ * Interface defining the structure for a log message builder.
+ */
 interface ILogMessageBuilder {
-  loggerConfig: Record<string, dynamic>;
-  transportConfig: Record<string, dynamic>;
-  prefix: string;
-  dateTimeFormat: dynamic;
+  loggerConfig: Record<string, dynamic>; // Configuration for the logger
+  transportConfig: Record<string, dynamic>; // Configuration for the transport mechanism
+  prefix: string; // Prefix to be added to each log message
+  dateTimeFormat: dynamic; // Function or format for date and time in log messages
 
-  formatMessage(level: string, message: string): string;
-  getFormattedLevel(level: string): string;
-  getFormattedDateTime(): string;
+  formatMessage(level: string, message: string): string; // Method to format a log message
+  getFormattedLevel(level: string): string; // Method to format the log level
+  getFormattedDateTime(): string; // Method to get formatted date and time
 }
 
+/**
+ * Implements the ILogMessageBuilder interface to provide a concrete log message builder.
+ */
 export class LogMessageBuilder implements ILogMessageBuilder {
   loggerConfig: Record<string, any>;
   transportConfig: Record<string, any>;
   prefix: string;
   dateTimeFormat: any;
 
+  /**
+   * Constructs a new LogMessageBuilder instance.
+   * @param {Record<string, any>} loggerConfig - Configuration for the logger.
+   * @param {Record<string, any>} transportConfig - Configuration for the transport mechanism.
+   */
   constructor(loggerConfig: Record<string, any>, transportConfig: Record<string, any>) {
     this.loggerConfig = loggerConfig;
     this.transportConfig = transportConfig;
 
+    // Set the prefix, defaulting to an empty string if not provided.
     this.prefix = this.transportConfig.prefix || this.loggerConfig.prefix || '';
+    // Set the date and time format, defaulting to the logger's format if the transport's format is not provided.
     this.dateTimeFormat = this.transportConfig.dateTimeFormat || this.loggerConfig.dateTimeFormat;
   }
 
+  /**
+   * Formats a log message combining level, prefix, date/time, and the actual message.
+   * @param {string} level - The log level.
+   * @param {string} message - The message to log.
+   * @returns {string} The formatted log message.
+   */
   formatMessage(level: string, message: string): string {
     return `${this.getFormattedLevel(level)} ${this.prefix} ${this.getFormattedDateTime()} ${message}`;
   }
 
+  /**
+   * Returns the formatted log level with appropriate coloring based on the log level.
+   * @param {string} level - The log level.
+   * @returns {string} The formatted log level.
+   */
   getFormattedLevel(level: string): string {
     const upperCaseLevel = level.toUpperCase();
     const AnsiColorEnum = {
@@ -69,6 +93,10 @@ export class LogMessageBuilder implements ILogMessageBuilder {
     return LogLevelColorInfoEnum[level];
   }
 
+  /**
+   * Retrieves the current date and time formatted according to the specified format.
+   * @returns {string} The formatted date and time.
+   */
   getFormattedDateTime(): string {
     return this.dateTimeFormat();
   }

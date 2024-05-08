@@ -26,45 +26,69 @@ import { dynamic } from '../types/Common';
 import { isObject } from './DataTypeUtil';
 
 export class NetworkUtil {
+  /**
+   * Constructs base properties for bulk operations.
+   * @param {string} accountId - The account identifier.
+   * @param {string} userId - The user identifier.
+   * @returns {Record<string, dynamic>} - The base properties including session ID and UUID.
+   */
   getBasePropertiesForBulk(accountId: string, userId: string): Record<string, dynamic> {
     const path: Record<string, dynamic> = {
-      sId: getCurrentUnixTimestamp(),
-      u: getUUID(userId, accountId),
+      sId: getCurrentUnixTimestamp(), // Session ID based on current Unix timestamp
+      u: getUUID(userId, accountId), // UUID generated based on user and account ID
     };
     return path;
   }
 
+  /**
+   * Constructs the settings path with API key and account ID.
+   * @param {string} apikey - The API key.
+   * @param {any} accountId - The account identifier.
+   * @returns {Record<string, dynamic>} - The settings path including API key, random number, and account ID.
+   */
   getSettingsPath(apikey: string, accountId: any): Record<string, dynamic> {
     const path: Record<string, dynamic> = {
-      i: `${apikey}`,
-      r: Math.random(),
-      a: accountId,
+      i: `${apikey}`, // Inject API key
+      r: Math.random(), // Random number for cache busting
+      a: accountId, // Account ID
     };
     return path;
   }
 
+  /**
+   * Constructs the tracking path for an event.
+   * @param {string} event - The event type.
+   * @param {string} accountId - The account identifier.
+   * @param {string} userId - The user identifier.
+   * @returns {Record<string, dynamic>} - The tracking path for the event.
+   */
   getTrackEventPath(event: string, accountId: string, userId: string): Record<string, dynamic> {
     const path: Record<string, dynamic> = {
-      event_type: event,
-      account_id: accountId,
-      uId: userId,
-      u: getUUID(userId, accountId),
-      sdk: Constants.SDK_NAME,
-      'sdk-v': Constants.SDK_VERSION,
-      random: getRandomNumber(),
-      ap: Constants.AP,
-      sId: getCurrentUnixTimestamp(),
-      ed: JSON.stringify({ p: 'server' }),
+      event_type: event, // Type of the event
+      account_id: accountId, // Account ID
+      uId: userId, // User ID
+      u: getUUID(userId, accountId), // UUID generated for the user
+      sdk: Constants.SDK_NAME, // SDK name constant
+      'sdk-v': Constants.SDK_VERSION, // SDK version
+      random: getRandomNumber(), // Random number for uniqueness
+      ap: Constants.AP, // Application platform
+      sId: getCurrentUnixTimestamp(), // Session ID
+      ed: JSON.stringify({ p: 'server' }), // Additional encoded data
     };
 
     return path;
   }
 
+  /**
+   * Constructs query parameters for event batching.
+   * @param {string} accountId - The account identifier.
+   * @returns {Record<string, dynamic>} - The query parameters for event batching.
+   */
   getEventBatchingQueryParams(accountId: string): Record<string, dynamic> {
     const path: Record<string, dynamic> = {
-      a: accountId,
-      sd: Constants.SDK_NAME,
-      sv: Constants.SDK_VERSION,
+      a: accountId, // Account ID
+      sd: Constants.SDK_NAME, // SDK name
+      sv: Constants.SDK_VERSION, // SDK version
     };
 
     return path;
@@ -173,6 +197,16 @@ export class NetworkUtil {
     return properties;
   }
 
+  /**
+   * Constructs the payload data for tracking goals with custom event properties.
+   * @param {any} settings - Configuration settings.
+   * @param {any} userId - User identifier.
+   * @param {string} eventName - Name of the event.
+   * @param {any} eventProperties - Custom properties for the event.
+   * @param {string} [visitorUserAgent=''] - Visitor's user agent.
+   * @param {string} [ipAddress=''] - Visitor's IP address.
+   * @returns {any} - The constructed payload data.
+   */
   getTrackGoalPayloadData(
     settings: any,
     userId: any,
@@ -182,10 +216,11 @@ export class NetworkUtil {
     ipAddress = '',
   ) {
     const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
-    properties.d.event.props.isCustomEvent = true;
-    properties.d.event.props.variation = 1; // temporary value
-    properties.d.event.props.id = 1; // temporary value
+    properties.d.event.props.isCustomEvent = true; // Mark as a custom event
+    properties.d.event.props.variation = 1; // Temporary value for variation
+    properties.d.event.props.id = 1; // Temporary value for ID
 
+    // Add custom event properties if provided
     if (eventProperties && isObject(eventProperties) && Object.keys(eventProperties).length > 0) {
       for (const prop in eventProperties) {
         properties.d.event.props[prop] = eventProperties[prop];
@@ -199,6 +234,17 @@ export class NetworkUtil {
     return properties;
   }
 
+  /**
+   * Constructs the payload data for syncing visitor attributes.
+   * @param {any} settings - Configuration settings.
+   * @param {any} userId - User identifier.
+   * @param {string} eventName - Name of the event.
+   * @param {any} attributeKey - Key of the attribute to sync.
+   * @param {any} attributeValue - Value of the attribute.
+   * @param {string} [visitorUserAgent=''] - Visitor's user agent.
+   * @param {string} [ipAddress=''] - Visitor's IP address.
+   * @returns {any} - The constructed payload data.
+   */
   getAttributePayloadData(
     settings: any,
     userId: any,
@@ -210,9 +256,9 @@ export class NetworkUtil {
   ) {
     const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
 
-    properties.d.event.props.isCustomEvent = true;
-    properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settings.sdkKey;
-    properties.d.visitor.props[attributeKey] = attributeValue;
+    properties.d.event.props.isCustomEvent = true; // Mark as a custom event
+    properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settings.sdkKey; // Set environment key
+    properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
 
     LogManager.Instance.debug(
       `IMPRESSION_FOR_EVENT_ARCH_SYNC_VISITOR_PROP: Impression built for ${eventName} event for Account ID:${settings.accountId}, User ID:${userId}`,
@@ -221,15 +267,20 @@ export class NetworkUtil {
     return properties;
   }
 
+  /**
+   * Sends a POST API request with the specified properties and payload.
+   * @param {any} properties - Properties for the request.
+   * @param {any} payload - Payload for the request.
+   */
   sendPostApiRequest(properties: any, payload: any) {
     NetworkManager.Instance.attachClient();
 
     const headers: Record<string, string> = {};
 
-    const userAgent = payload.d.visitor_ua;
-    const ipAddress = payload.d.visitor_ip;
+    const userAgent = payload.d.visitor_ua; // Extract user agent from payload
+    const ipAddress = payload.d.visitor_ip; // Extract IP address from payload
 
-    // Set headers
+    // Set headers if available
     if (userAgent) headers[HeadersEnum.USER_AGENT] = userAgent;
     if (ipAddress) headers[HeadersEnum.IP] = ipAddress;
 
@@ -249,11 +300,17 @@ export class NetworkUtil {
     });
   }
 
+  /**
+   * Sends a GET API request to the specified endpoint with the given properties.
+   * @param {any} properties - Properties for the request.
+   * @param {any} endpoint - Endpoint for the GET request.
+   * @returns {Promise<any>} - The response from the GET request.
+   */
   async sendGetApiRequest(properties: any, endpoint: any): Promise<any> {
     NetworkManager.Instance.attachClient();
     const request: RequestModel = new RequestModel(
       UrlService.getBaseUrl(),
-      'Get',
+      'GET',
       endpoint,
       properties,
       null,

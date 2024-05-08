@@ -17,35 +17,33 @@ import { isNull, isUndefined, isFunction } from '../utils/DataTypeUtil';
 
 const nargs = /\{([0-9a-zA-Z_]+)\}/g;
 
+/**
+ * Constructs a message by replacing placeholders in a template with corresponding values from a data object.
+ *
+ * @param {string} template - The message template containing placeholders in the format `{key}`.
+ * @param {Record<string, any>} data - An object containing keys and values used to replace the placeholders in the template.
+ * @returns {string} The constructed message with all placeholders replaced by their corresponding values from the data object.
+ */
 export function buildMessage(template: string, data: Record<string, any>): string {
   try {
     return template.replace(nargs, (match, key, index) => {
-      let result;
-      let isKey;
-
+      // Check for escaped placeholders
       if (template[index - 1] === '{' && template[index + match.length] === '}') {
         return key;
-      } else {
-        isKey = Object.prototype.hasOwnProperty.call(data, key);
-
-        if (isKey) {
-          let value = data[key];
-
-          if (isFunction(value)) {
-            value = data[key]();
-          }
-          result = value;
-        } else {
-          result = null;
-        }
-        if (isNull(result) || isUndefined(result)) {
-          return '';
-        }
-
-        return result;
       }
+
+      // Retrieve the value from the data object
+      const value = data[key];
+
+      // If the key does not exist or the value is null/undefined, return an empty string
+      if (value === undefined || value === null) {
+        return '';
+      }
+
+      // If the value is a function, evaluate it
+      return isFunction(value) ? value() : value;
     });
   } catch (err) {
-    return template;
+    return template; // Return the original template in case of an error
   }
 }

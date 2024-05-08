@@ -16,36 +16,69 @@
 import { LogLevelEnum } from '../enums/LogLevelEnum';
 import { Logger } from '../Logger';
 
+/**
+ * ConsoleTransport class implements the Logger interface to provide logging functionality.
+ * It outputs logs to the console based on the log level set in the configuration.
+ */
 export class ConsoleTransport implements Logger {
-  config: Record<string, any>;
-  level: string;
+  config: Record<string, any>; // Configuration object for the logger
+  level: string; // Current log level
 
+  /**
+   * Constructor initializes the ConsoleTransport with a configuration object.
+   * @param {Record<string, any>} config - Configuration settings for the logger, including 'level'.
+   */
   constructor(config: Record<string, any> = {}) {
-    this.config = config;
-    this.level = this.config.level;
+    this.config = config; // Store the configuration
+    this.level = this.config.level; // Set the logging level from the configuration
   }
 
+  /**
+   * Logs a trace message.
+   * @param {string} message - The message to log.
+   */
   trace(message: string): void {
     this.log(LogLevelEnum.TRACE, message);
   }
 
+  /**
+   * Logs a debug message.
+   * @param {string} message - The message to log.
+   */
   debug(message: string): void {
     this.log(LogLevelEnum.DEBUG, message);
   }
 
+  /**
+   * Logs an informational message.
+   * @param {string} message - The message to log.
+   */
   info(message: string): void {
     this.log(LogLevelEnum.INFO, message);
   }
 
+  /**
+   * Logs a warning message.
+   * @param {string} message - The message to log.
+   */
   warn(message: string): void {
     this.log(LogLevelEnum.WARN, message);
   }
 
+  /**
+   * Logs an error message.
+   * @param {string} message - The message to log.
+   */
   error(message: string): void {
     this.log(LogLevelEnum.ERROR, message);
   }
 
+  /**
+   * Generic log function that logs messages to the console based on the log level.
+   * @param {string} level - The log level under which the message should be logged.
+   * @param {string} message - The message to log.
+   */
   log(level: string, message: string): void {
-    console[level](message);
+    console[level](message); // Use console's logging function dynamically based on the level
   }
 }

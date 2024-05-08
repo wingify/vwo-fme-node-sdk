@@ -16,48 +16,62 @@
 
 import * as Hasher from 'murmurhash';
 
-const SEED_VALUE = 1;
-const MAX_TRAFFIC_VALUE = 10000;
+const SEED_VALUE = 1; // Seed value for the hash function
+const MAX_TRAFFIC_VALUE = 10000; // Maximum traffic value used as a default scale
 
 export class DecisionMaker {
   /**
-   * Generates Bucket Value of the User by hashing the User ID by murmurHash
-   * and scaling it down.
+   * Generates a bucket value for a user by hashing the user ID with murmurHash
+   * and scaling it down to a specified maximum value.
    *
-   * @param {Number} hashValue the hashValue generated after hashing
-   * @param {Number} maxValue the value up-to which hashValue needs to be scaled
-   * @param {Number} multiplier multiplier in case the traffic allocation is less than 100
-   *
-   * @return {Number} bucket Value of the User
+   * @param {Number} hashValue - The hash value generated after hashing
+   * @param {Number} maxValue - The maximum value up to which the hash value needs to be scaled
+   * @param {Number} multiplier - Multiplier to adjust the scale in case the traffic allocation is less than 100
+   * @return {Number} - The bucket value of the user
    */
   generateBucketValue(hashValue: number, maxValue: number, multiplier = 1): number {
-    const ratio = hashValue / Math.pow(2, 32);
-    const multipliedValue = (maxValue * ratio + 1) * multiplier;
-    const value = Math.floor(multipliedValue);
+    const ratio = hashValue / Math.pow(2, 32); // Calculate the ratio of the hash value to the maximum hash value
+    const multipliedValue = (maxValue * ratio + 1) * multiplier; // Apply the multiplier after scaling the hash value
+    const value = Math.floor(multipliedValue); // Floor the value to get an integer bucket value
 
     return value;
   }
 
   /**
-   * Validates the User ID and generates Bucket Value of the User by hashing the userId by murmurHash and scaling it down.
+   * Validates the user ID and generates a bucket value for the user by hashing the user ID with murmurHash
+   * and scaling it down.
    *
-   * @param {String} userId the unique ID assigned to User
-   *
-   * @return {Number} the bucket Value allotted to User (between 1 to $this->$MAX_TRAFFIC_PERCENT)
+   * @param {String} userId - The unique ID assigned to the user
+   * @param {Number} maxValue - The maximum value for bucket scaling (default is 100)
+   * @return {Number} - The bucket value allotted to the user (between 1 and maxValue)
    */
   getBucketValueForUser(hashKey: string, maxValue = 100): number {
-    const hashValue = Hasher.v3(hashKey, SEED_VALUE);
-    const bucketValue = this.generateBucketValue(hashValue, maxValue);
+    const hashValue = Hasher.v3(hashKey, SEED_VALUE); // Generate the hash value using murmurHash
+    const bucketValue = this.generateBucketValue(hashValue, maxValue); // Generate the bucket value using the hash value
     return bucketValue;
   }
 
+  /**
+   * Calculates the bucket value for a given string and optional multiplier and maximum value.
+   *
+   * @param {String} str - The string to hash
+   * @param {Number} multiplier - Multiplier to adjust the scale (default is 1)
+   * @param {Number} maxValue - Maximum value for bucket scaling (default is 10000)
+   * @return {Number} - The calculated bucket value
+   */
   calculateBucketValue(str: string, multiplier = 1, maxValue = 10000): number {
-    const hashValue = this.generateHashValue(str);
+    const hashValue = this.generateHashValue(str); // Generate the hash value for the string
 
-    return this.generateBucketValue(hashValue, maxValue, multiplier);
+    return this.generateBucketValue(hashValue, maxValue, multiplier); // Generate and return the bucket value
   }
 
+  /**
+   * Generates a hash value for a given key using murmurHash.
+   *
+   * @param {String} hashKey - The key to hash
+   * @return {Number} - The generated hash value
+   */
   generateHashValue(hashKey: string): number {
-    return Hasher.v3(hashKey, SEED_VALUE);
+    return Hasher.v3(hashKey, SEED_VALUE); // Return the hash value generated using murmurHash
   }
 }

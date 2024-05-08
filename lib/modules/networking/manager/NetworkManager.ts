@@ -22,71 +22,101 @@ import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 
 export class NetworkManager {
-  private config: GlobalRequestModel;
-  private client: NetworkClientInterface;
-  private static instance: NetworkManager;
+  private config: GlobalRequestModel; // Holds the global configuration for network requests
+  private client: NetworkClientInterface; // Interface for the network client handling the actual HTTP requests
+  private static instance: NetworkManager; // Singleton instance of NetworkManager
 
+  /**
+   * Attaches a network client to the manager, or uses a default if none provided.
+   * @param {NetworkClientInterface} client - The client to attach, optional.
+   */
   attachClient(client?: NetworkClientInterface): void {
-    this.client = client || new NetworkClient();
-    this.config = new GlobalRequestModel(null, null, null, null);
+    this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+    this.config = new GlobalRequestModel(null, null, null, null); // Initialize with default config
   }
 
+  /**
+   * Singleton accessor for the NetworkManager instance.
+   * @returns {NetworkManager} The singleton instance.
+   */
   static get Instance(): NetworkManager {
-    this.instance = this.instance || new NetworkManager();
-
+    this.instance = this.instance || new NetworkManager(); // Create instance if it doesn't exist
     return this.instance;
   }
 
+  /**
+   * Sets the global configuration for network requests.
+   * @param {GlobalRequestModel} config - The configuration to set.
+   */
   setConfig(config: GlobalRequestModel): void {
-    this.config = config;
+    this.config = config; // Set the global request configuration
   }
 
+  /**
+   * Retrieves the current global configuration.
+   * @returns {GlobalRequestModel} The current configuration.
+   */
   getConfig(): GlobalRequestModel {
-    return this.config;
+    return this.config; // Return the global request configuration
   }
 
+  /**
+   * Creates a network request model by merging specific request data with global config.
+   * @param {RequestModel} request - The specific request data.
+   * @returns {RequestModel} The merged request model.
+   */
   createRequest(request: RequestModel): RequestModel {
-    const options: RequestModel = new RequestHandler().createRequest(request, this.config);
+    const options: RequestModel = new RequestHandler().createRequest(request, this.config); // Merge and create request
     return options;
   }
 
+  /**
+   * Performs a GET request using the provided request model.
+   * @param {RequestModel} request - The request model.
+   * @returns {Promise<ResponseModel>} A promise that resolves to the response model.
+   */
   get(request: RequestModel): Promise<ResponseModel> {
-    const deferred = new Deferred();
+    const deferred = new Deferred(); // Create a new deferred promise
 
-    const networkOptions: RequestModel = this.createRequest(request);
+    const networkOptions: RequestModel = this.createRequest(request); // Create network request options
     if (networkOptions === null) {
-      deferred.reject(new Error('no url found'));
+      deferred.reject(new Error('no url found')); // Reject if no URL is found
     } else {
       this.client
         .GET(networkOptions)
         .then((response: ResponseModel) => {
-          deferred.resolve(response);
+          deferred.resolve(response); // Resolve with the response
         })
         .catch((errorResponse: ResponseModel) => {
-          deferred.reject(errorResponse);
+          deferred.reject(errorResponse); // Reject with the error response
         });
     }
 
-    return deferred.promise;
+    return deferred.promise; // Return the promise
   }
 
+  /**
+   * Performs a POST request using the provided request model.
+   * @param {RequestModel} request - The request model.
+   * @returns {Promise<ResponseModel>} A promise that resolves to the response model.
+   */
   post(request: RequestModel): Promise<ResponseModel> {
-    const deferred = new Deferred();
-    const networkOptions: RequestModel = this.createRequest(request);
+    const deferred = new Deferred(); // Create a new deferred promise
 
+    const networkOptions: RequestModel = this.createRequest(request); // Create network request options
     if (networkOptions === null) {
-      deferred.reject(new Error('no url found'));
+      deferred.reject(new Error('no url found')); // Reject if no URL is found
     } else {
       this.client
         .POST(networkOptions)
         .then((response: ResponseModel) => {
-          deferred.resolve(response);
+          deferred.resolve(response); // Resolve with the response
         })
         .catch((error: ResponseModel) => {
-          deferred.reject(error);
+          deferred.reject(error); // Reject with the error
         });
     }
 
-    return deferred.promise;
+    return deferred.promise; // Return the promise
   }
 }

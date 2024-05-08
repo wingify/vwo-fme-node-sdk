@@ -26,37 +26,57 @@ interface UrlServiceType {
 }
 
 const UrlService: UrlServiceType = {
+  /**
+   * Initializes the UrlService with optional collectionPrefix and webServiceUrl.
+   * If provided, these values are set after validation.
+   * @param {string} [collectionPrefix] - Optional prefix for URL collections.
+   * @param {string} [webServiceUrl] - Optional web service URL.
+   * @returns {UrlServiceType} The instance of UrlService with updated properties.
+   */
   init({ collectionPrefix, webServiceUrl }: { collectionPrefix?: string; webServiceUrl?: any } = {}) {
+    // Set collectionPrefix if it is a valid string
     if (collectionPrefix && isString(collectionPrefix)) {
       UrlService.collectionPrefix = collectionPrefix;
     }
 
+    // Parse and set webServiceUrl and port if webServiceUrl is a valid string
     if (webServiceUrl && isString(webServiceUrl)) {
-      // parse the url
       const parsedUrl = new URL(`https://${webServiceUrl}`);
       UrlService.webServiceUrl = parsedUrl.hostname;
-      UrlService.port = parseInt(parsedUrl.port);
+      UrlService.port = parseInt(parsedUrl.port) || 80; // Default to port 80 if no port specified
     } else {
-      UrlService.port = 80;
+      UrlService.port = 80; // Default port if no webServiceUrl provided
     }
 
     return UrlService;
   },
 
+  /**
+   * Retrieves the base URL.
+   * If webServiceUrl is set, it returns that; otherwise, it constructs the URL using baseUrl and collectionPrefix.
+   * @returns {string} The base URL.
+   */
   getBaseUrl() {
     const baseUrl: string = UrlEnum.BASE_URL;
 
+    // Return the webServiceUrl if it exists
     if (UrlService.webServiceUrl) {
       return UrlService.webServiceUrl;
     }
 
+    // Construct URL with collectionPrefix if it exists
     if (UrlService.collectionPrefix) {
       return `${baseUrl}/${UrlService.collectionPrefix}`;
     }
 
+    // Return the default baseUrl if no specific URL components are set
     return baseUrl;
   },
 
+  /**
+   * Retrieves the configured port for the URL service.
+   * @returns {number} The port number.
+   */
   getPort() {
     return UrlService.port;
   },

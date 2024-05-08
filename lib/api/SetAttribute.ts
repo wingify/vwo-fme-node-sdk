@@ -17,23 +17,46 @@ import { EventEnum } from '../enums/EventEnum';
 import { NetworkUtil } from '../utils/NetworkUtil';
 
 interface ISetAttribute {
+  /**
+   * Sets an attribute for a user.
+   * @param settings Configuration settings.
+   * @param attributeKey The key of the attribute to set.
+   * @param attributeValue The value of the attribute.
+   * @param context Context containing user information.
+   */
   setAttribute(settings: any, attributeKey: string, attributeValue: any, context: any): void;
 }
 
 export class SetAttributeApi implements ISetAttribute {
+  /**
+   * Implementation of setAttribute to create an impression for a user attribute.
+   * @param settings Configuration settings.
+   * @param attributeKey The key of the attribute to set.
+   * @param attributeValue The value of the attribute.
+   * @param context Context containing user information.
+   */
   setAttribute(settings: any, attributeKey: string, attributeValue: any, context: any): void {
     createImpressionForAttribute(settings, attributeKey, attributeValue, context.user);
   }
 }
 
+/**
+ * Creates an impression for a user attribute and sends it to the server.
+ * @param settings Configuration settings.
+ * @param attributeKey The key of the attribute.
+ * @param attributeValue The value of the attribute.
+ * @param user User details.
+ */
 const createImpressionForAttribute = async (settings: any, attributeKey: string, attributeValue: any, user: any) => {
   const networkUtil = new NetworkUtil();
+  // Retrieve base properties for the event
   const properties = networkUtil.getEventsBaseProperties(
     settings,
     EventEnum.VWO_SYNC_VISITOR_PROP,
     user.userAgent,
     user.ipAddress,
   );
+  // Construct payload data for the attribute
   const payload = networkUtil.getAttributePayloadData(
     settings,
     user.id,
@@ -43,6 +66,7 @@ const createImpressionForAttribute = async (settings: any, attributeKey: string,
     user.userAgent,
     user.ipAddress,
   );
-  // console.log(' payload is ', JSON.stringify(payload));
+
+  // Send the constructed payload via POST request
   networkUtil.sendPostApiRequest(properties, payload);
 };

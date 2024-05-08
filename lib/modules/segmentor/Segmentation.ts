@@ -16,6 +16,18 @@
 import { SettingsModel } from '../../models/SettingsModel';
 import { dynamic } from '../../types/Common';
 
+/**
+ * Interface for segmentation logic.
+ * Provides a method to validate segmentation based on given parameters.
+ */
 export interface Segmentation {
+  /**
+   * Validates if the segmentation defined by the DSL is applicable given the properties and settings.
+   *
+   * @param dsl - The domain-specific language defining segmentation rules.
+   * @param properties - The properties of the entity to be segmented.
+   * @param settings - The settings model containing configuration details.
+   * @returns {boolean | Promise<any>} - True if the segmentation is valid, otherwise false or a Promise resolving to any type.
+   */
   isSegmentationValid(dsl: Record<string, dynamic>, properties: Record<string, dynamic>, settings: SettingsModel): boolean | Promise<any>;
 }

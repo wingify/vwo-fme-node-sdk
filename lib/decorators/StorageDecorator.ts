@@ -23,42 +23,68 @@ import { StorageService } from '../services/StorageService';
 import { Deferred } from '../utils/PromiseUtil';
 
 interface IStorageDecorator {
+  /**
+   * Sets data in storage.
+   * @param data The data to be stored.
+   * @param storageService The storage service instance.
+   * @returns A promise that resolves to a VariationModel.
+   */
   setDataInStorage(data: Record<any, any>, storageService: StorageService): Promise<VariationModel>;
+
+  /**
+   * Retrieves a feature from storage.
+   * @param featureKey The key of the feature to retrieve.
+   * @param user The user object.
+   * @param storageService The storage service instance.
+   * @returns A promise that resolves to the retrieved feature or relevant status.
+   */
   getFeatureFromStorage(featureKey: FeatureModel, user: any, storageService: StorageService): Promise<any>;
 }
 
 export class StorageDecorator implements IStorageDecorator {
+  /**
+   * Asynchronously retrieves a feature from storage based on the feature key and user.
+   * @param featureKey The key of the feature to retrieve.
+   * @param user The user object.
+   * @param storageService The storage service instance.
+   * @returns A promise that resolves to the retrieved feature or relevant status.
+   */
   async getFeatureFromStorage(featureKey: any, user: any, storageService: StorageService): Promise<any> {
     const deferredObject = new Deferred();
     storageService.getDataInStorage(featureKey, user).then((campaignMap: Record<any, any> | StorageEnum) => {
       switch (campaignMap) {
         case StorageEnum.STORAGE_UNDEFINED:
-          deferredObject.resolve(null);
+          deferredObject.resolve(null); // No storage defined
           break;
         case StorageEnum.NO_DATA_FOUND:
-          deferredObject.resolve(null);
+          deferredObject.resolve(null); // No data found in storage
           break;
         case StorageEnum.INCORRECT_DATA:
-          deferredObject.resolve(StorageEnum.INCORRECT_DATA);
+          deferredObject.resolve(StorageEnum.INCORRECT_DATA); // Incorrect data found
           break;
         case StorageEnum.CAMPAIGN_PAUSED:
-          deferredObject.resolve(null);
+          deferredObject.resolve(null); // Campaign is paused
           break;
         case StorageEnum.VARIATION_NOT_FOUND:
-          deferredObject.resolve(StorageEnum.VARIATION_NOT_FOUND);
+          deferredObject.resolve(StorageEnum.VARIATION_NOT_FOUND); // No variation found
           break;
         case StorageEnum.WHITELISTED_VARIATION:
-          // handle this case with whitelisting.
-          deferredObject.resolve(null);
+          deferredObject.resolve(null); // Whitelisted variation, handle accordingly
           break;
         default:
-          deferredObject.resolve(campaignMap);
+          deferredObject.resolve(campaignMap); // Valid data found, resolve with it
       }
     });
 
     return deferredObject.promise;
   }
 
+  /**
+   * Sets data in storage based on the provided data object.
+   * @param data The data to be stored, including feature key and user details.
+   * @param storageService The storage service instance.
+   * @returns A promise that resolves when the data is successfully stored.
+   */
   setDataInStorage(data: Record<any, any>, storageService: StorageService): Promise<VariationModel> {
     const deferredObject = new Deferred();
     const {
@@ -74,24 +100,24 @@ export class StorageDecorator implements IStorageDecorator {
 
     if (!featureKey) {
       LogManager.Instance.error(`Feature key is not valid. Not able to store data into storage`);
-      deferredObject.reject();
+      deferredObject.reject(); // Reject promise if feature key is invalid
       return;
     }
     if (!user.id) {
       LogManager.Instance.error(`User ID is not valid. Not able to store data into storage`);
-      deferredObject.reject();
+      deferredObject.reject(); // Reject promise if user ID is invalid
       return;
     }
     if (rolloutKey && !experimentKey && !rolloutVariationId) {
       LogManager.Instance.error(`Variation is not valid for Rollout rule passed. Not able to store data into storage`);
-      deferredObject.reject();
+      deferredObject.reject(); // Reject promise if rollout variation is invalid
       return;
     }
     if (experimentKey && !experimentVariationId) {
       LogManager.Instance.error(
         `Variation is not valid for Experiment rule passed. Not able to store data into storage`,
       );
-      deferredObject.reject();
+      deferredObject.reject(); // Reject promise if experiment variation is invalid
       return;
     }
 
@@ -106,7 +132,7 @@ export class StorageDecorator implements IStorageDecorator {
       experimentVariationId,
     });
 
-    deferredObject.resolve();
+    deferredObject.resolve(); // Resolve promise when data is successfully set
 
     return deferredObject.promise;
   }

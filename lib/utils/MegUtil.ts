@@ -28,7 +28,7 @@ import {
   getBucketingSeed,
   getCampaignIdsFromFeatureKey,
   getCampaignsByGroupId,
-  getCampaignVariation,
+  getVariationByCampaignKey,
   getFeatureKeysFromCampaignIds,
   getRuleTypeUsingCampaignIdFromFeature,
   setCampaignAllocation,
@@ -162,7 +162,7 @@ const getEligbleCampaigns = async (
       );
       if (storedData?.experimentVariationId) {
         if (storedData.experimentKey && storedData.experimentKey === campaign.getKey()) {
-          const variation: VariationModel = getCampaignVariation(
+          const variation: VariationModel = getVariationByCampaignKey(
             settings,
             storedData.experimentKey,
             storedData.experimentVariationId,

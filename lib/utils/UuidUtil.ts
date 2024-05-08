@@ -18,29 +18,53 @@ import { v5 as uuidv5 } from 'uuid';
 
 const VWO_NAMESPACE = uuidv5('https://vwo.com', uuidv5.URL);
 
+/**
+ * Generates a random UUID based on an API key.
+ * @param apiKey The API key used to generate a namespace for the UUID.
+ * @returns A random UUID string.
+ */
 export function getRandomUUID(apiKey: string): string {
+  // Generate a namespace based on the API key using DNS namespace
   const namespace = uuidv5(apiKey, uuidv5.DNS);
+  // Generate a random UUID using the namespace derived from the API key
   const randomUUID = uuidv5(uuidv4(), namespace);
 
   return randomUUID;
 }
 
+/**
+ * Generates a UUID for a user based on their userId and accountId.
+ * @param userId The user's ID.
+ * @param accountId The account ID associated with the user.
+ * @returns A UUID string formatted without dashes and in uppercase.
+ */
 export function getUUID(userId: string, accountId: string): string {
-  // type case userId to string
+  // Convert userId and accountId to string to ensure proper type
   userId = String(userId);
   accountId = String(accountId);
-  const userIdNamespace = generateUUID(accountId, VWO_NAMESPACE);
-  const uuidForUserIdAccountId = generateUUID(userId, userIdNamespace);
+  // Generate a namespace UUID based on the accountId
+  const userIdNamespace = _generateUUID(accountId, VWO_NAMESPACE);
+  // Generate a UUID based on the userId and the previously generated namespace
+  const uuidForUserIdAccountId = _generateUUID(userId, userIdNamespace);
 
+  // Remove all dashes from the UUID and convert it to uppercase
   const desiredUuid = uuidForUserIdAccountId.replace(/-/gi, '').toUpperCase();
 
   return desiredUuid;
 }
 
-function generateUUID(name: string, namespace: string) {
+/**
+ * Helper function to generate a UUID v5 based on a name and a namespace.
+ * @param name The name from which to generate the UUID.
+ * @param namespace The namespace used to generate the UUID.
+ * @returns A UUID string or undefined if inputs are invalid.
+ */
+function _generateUUID(name: string, namespace: string) {
+  // Check for valid input to prevent errors
   if (!name || !namespace) {
     return;
   }
 
+  // Generate and return the UUID v5
   return uuidv5(name, namespace);
 }

@@ -23,10 +23,17 @@ import { Deferred } from '../utils/PromiseUtil';
 export class StorageService {
   private storageData: Record<string, dynamic> = {};
 
+  /**
+   * Retrieves data from storage based on the feature key and user ID.
+   * @param featureKey The key to identify the feature data.
+   * @param user The user object containing at least an ID.
+   * @returns A promise that resolves to the data retrieved or an error/storage status enum.
+   */
   async getDataInStorage(featureKey: any, user: any): Promise<Record<any, any>> {
     const deferredObject = new Deferred();
     const storageInstance = Storage.Instance.getConnector();
 
+    // Check if the storage instance is available
     if (isNull(storageInstance) || isUndefined(storageInstance)) {
       deferredObject.resolve(StorageEnum.STORAGE_UNDEFINED);
     } else {
@@ -45,10 +52,16 @@ export class StorageService {
     return deferredObject.promise;
   }
 
-  setDataInStorage(data: Record<any, any>): Promise<void> {
+  /**
+   * Stores data in the storage.
+   * @param data The data to be stored as a record.
+   * @returns A promise that resolves to true if data is successfully stored, otherwise false.
+   */
+  async setDataInStorage(data: Record<any, any>): Promise<void> {
     const deferredObject = new Deferred();
 
     const storageInstance = Storage.Instance.getConnector();
+    // Check if the storage instance is available
     if (storageInstance === null || storageInstance === undefined) {
       deferredObject.resolve(false);
     } else {

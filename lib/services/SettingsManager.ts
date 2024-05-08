@@ -24,6 +24,14 @@ import { Constants } from '../constants';
 import { SettingsModel } from '../models/SettingsModel';
 import { NetworkUtil } from '../utils/NetworkUtil';
 
+interface ISettingsManager {
+  sdkKey: string;
+
+  getSettings(forceFetch: boolean): Promise<dynamic>;
+
+  fetchSettings(): Promise<dynamic>;
+}
+
 export class SettingsManager implements ISettingsManager {
   sdkKey: string;
   accountId: any;
@@ -166,12 +174,4 @@ export class SettingsManager implements ISettingsManager {
 
     return deferredObject.promise;
   }
-}
-
-interface ISettingsManager {
-  sdkKey: string;
-
-  getSettings(forceFetch: boolean): Promise<dynamic>;
-
-  fetchSettings(): Promise<dynamic>;
 }

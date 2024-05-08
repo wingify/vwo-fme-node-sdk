@@ -21,7 +21,6 @@ import { FlagApi } from './api/GetFlag';
 import { SetAttributeApi } from './api/SetAttribute';
 import { TrackApi } from './api/TrackEvent';
 
-// import { VWOBuilder } from './VWOBuilder';
 import { DebugLogMessageEnum } from './enums/log-messages/DebugLogMessageEnum';
 import { SettingsModel } from './models/SettingsModel';
 
@@ -33,55 +32,45 @@ import HooksManager from './services/HooksManager';
 import UrlService from './services/UrlService';
 import { setVariationAllocation } from './utils/CampaignUtil';
 import { getType, isObject, isString } from './utils/DataTypeUtil';
-import { addLInkedCampaignsToSettings } from './utils/FunctionUtil';
+import { addLinkedCampaignsToSettings } from './utils/FunctionUtil';
 import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
 
 interface IVWOClient {
-  // readonly apiKey: string;
   readonly options?: any;
   settings: SettingsModel;
-  // vwoProvider: VWOBuilder;
-
   // onceReady(): Promise<Record<string, dynamic>>;
 
   // getSettings(force: boolean): SettingsModel | Promise<SettingsModel>;
 
   getFlag(featureKey: string, context: any): Record<any, any>;
-  // getVariable(featureKey: string, variableSpecifier: dynamic, key?: string): Promise<VariableModel>;
-  // getVariables(featureKey: string): Promise<Array<VariableModel>>;
   trackEvent(eventName: string, eventProperties: Record<string, dynamic>, context: any): Promise<Record<string, boolean>>;
   setAttribute(attributeKey: string, attributeValue: string, context: any): void
 }
 
 export class VWOClient implements IVWOClient {
-  // readonly apiKey: string;
-
   settings: SettingsModel;
   storage: Storage;
 
   constructor(
     settings: SettingsModel,
     options: any
-    // userId: string,
-    // properties: Record<string, dynamic>,
-    // dimensions: DimensionModel
   ) {
-    // this.vwoProvider = vwoProvider;
-
-    // LogManager.Instance.debug(`VWO Client initialized with userId:${userId}`);
     this.options = options;
     this.settings = new SettingsModel(settings);
     UrlService.init({
       collectionPrefix: this.settings.getCollectionPrefix(),
       webServiceUrl: options?.webService?.url,
     });
-    for (let i = 0; i < this.settings.getCampaigns().length; i++) {
-      const campaign = this.settings.getCampaigns()[i];
+
+    // Optimize loop by avoiding multiple calls to `getCampaigns()`
+    const campaigns = this.settings.getCampaigns();
+    campaigns.forEach((campaign, index) => {
       setVariationAllocation(campaign);
-      this.settings.getCampaigns()[i] = campaign;
-    }
-    addLInkedCampaignsToSettings(this.settings);
+      campaigns[index] = campaign;
+    });
+
+    addLinkedCampaignsToSettings(this.settings);
     LogManager.Instance.info('VWO Client initialized');
     return this;
   }
@@ -152,10 +141,19 @@ export class VWOClient implements IVWOClient {
     return deferredObject.promise;
   } */
 
+  /**
+   * Retrieves the value of a feature flag for a given feature key and context.
+   * This method validates the feature key and context, ensures the settings are valid, and then uses the FlagApi to get the flag value.
+   *
+   * @param {string} featureKey - The key of the feature to retrieve.
+   * @param {any} context - The context in which the feature flag is being retrieved, must include a valid user ID.
+   * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
+   */
   getFlag(featureKey: string, context: any): Record<any, any> {
     const apiName = 'getFlag';
     const deferredObject = new Deferred();
     const hookManager = new HooksManager(this.options);
+
     try {
       LogManager.Instance.debug(
         buildMessage(DebugLogMessageEnum.API_CALLED, {
@@ -198,81 +196,15 @@ export class VWOClient implements IVWOClient {
     }
   }
 
-  // getVariable(variableSpecifier: dynamic, key?: string, featureKey = ''): Promise<VariableModel> {
-  //   const apiName = 'getVariable';
-  //   const deferredObject = new Deferred();
-
-  //   try {
-  //     LogManager.Instance.debug(
-  //       buildMessage(DebugLogMessageEnum.API_CALLED, {
-  //         apiName,
-  //       }),
-  //     );
-
-  //     if (!(isString(variableSpecifier) || isNumber(variableSpecifier))) {
-  //       LogManager.Instance.debug(
-  //         `variableSpecifier passed to getVariable API is not of valid type. Got ${getType(variableSpecifier)}`,
-  //       );
-  //       throw new TypeError('TypeError: variableSpecifier should be a string|number');
-  //     }
-
-  //     if (!this.settings || !new SettingsSchema().isSettingsValid(this.settings)) {
-  //       LogManager.Instance.debug(`settings are not valid. Got ${getType(this.settings)}`);
-  //       throw new Error('Invalid Settings');
-  //     }
-
-  //     // new VariableApi()
-  //     //   .get(featureKey, variableSpecifier, key || null, this.settings, this.user.getUser())
-  //     //   .then((variable: VariableModel) => {
-  //     //     deferredObject.resolve(variable);
-  //     //   });
-
-  //     return deferredObject.promise;
-  //   } catch (err) {
-  //     LogManager.Instance.error(
-  //       buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
-  //         apiName,
-  //         err,
-  //       }),
-  //     );
-
-  //     return deferredObject.resolve(null);
-  //   }
-  // }
-
-  // getVariables(featureKey = ''): Promise<Array<VariableModel>> {
-  //   const apiName = 'getVariables';
-  //   const deferredObject = new Deferred();
-
-  //   try {
-  //     LogManager.Instance.debug(
-  //       buildMessage(DebugLogMessageEnum.API_CALLED, {
-  //         apiName,
-  //       }),
-  //     );
-
-  //     if (!this.settings || !new SettingsSchema().isSettingsValid(this.settings)) {
-  //       LogManager.Instance.debug(`settings are not valid. Got ${getType(this.settings)}`);
-  //       throw new Error('Invalid Settings');
-  //     }
-
-  //     // new VariableApi().getAll(featureKey, this.settings, this.user.getUser()).then(variableList => {
-  //     //   deferredObject.resolve(variableList);
-  //     // });
-
-  //     return deferredObject.promise;
-  //   } catch (err) {
-  //     LogManager.Instance.error(
-  //       buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
-  //         apiName,
-  //         err,
-  //       }),
-  //     );
-
-  //     return deferredObject.resolve([]);
-  //   }
-  // }
-
+  /**
+   * Tracks an event with specified properties and context.
+   * This method validates the types of the inputs and ensures the settings and user context are valid before proceeding.
+   *
+   * @param {string} eventName - The name of the event to track.
+   * @param {Record<string, dynamic>} eventProperties - The properties associated with the event.
+   * @param {any} context - The context in which the event is being tracked, must include a valid user ID.
+   * @returns {Promise<Record<string, boolean>>} - A promise that resolves to the result of the tracking operation.
+   */
   trackEvent(
     eventName: string,
     eventProperties: Record<string, dynamic> = {},
@@ -281,17 +213,20 @@ export class VWOClient implements IVWOClient {
     const apiName = 'trackEvent';
     const hookManager = new HooksManager(this.options);
     try {
+      // Log the API call
       LogManager.Instance.debug(
         buildMessage(DebugLogMessageEnum.API_CALLED, {
           apiName,
         }),
       );
 
+      // Validate eventName is a string
       if (!isString(eventName)) {
         LogManager.Instance.debug(`eventName passed to track API is not of valid type. Got ${getType(eventName)}`);
         throw new TypeError('TypeError: eventName should be a string');
       }
 
+      // Validate eventProperties is an object
       if (!isObject(eventProperties)) {
         LogManager.Instance.debug(
           `eventProperties passed to track API is not of valid type. Got ${getType(eventProperties)}`,
@@ -299,18 +234,23 @@ export class VWOClient implements IVWOClient {
         // throw new TypeError('TypeError: eventProperties should be an object');
       }
 
+      // Validate settings are loaded and valid
       if (!this.settings) {
         // || !new SettingsSchema().isSettingsValid(this.settings)) {
         LogManager.Instance.debug(`settings are not valid. Got ${getType(this.settings)}`);
         throw new Error('Invalid Settings');
       }
+
+      // Validate user ID is present in context
       if (!context?.user?.id) {
         LogManager.Instance.error('User ID is not valid. Not able to track event');
         throw new Error('Invalid context');
       }
 
+      // Proceed with tracking the event
       return new TrackApi().track(this.settings, eventName, eventProperties, context, hookManager);
     } catch (err) {
+      // Log any errors encountered during the operation
       LogManager.Instance.error(
         buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
           apiName,
@@ -320,14 +260,24 @@ export class VWOClient implements IVWOClient {
     }
   }
 
+  /**
+   * Sets an attribute for a user in the context provided.
+   * This method validates the types of the inputs before proceeding with the API call.
+   *
+   * @param {string} attributeKey - The key of the attribute to set.
+   * @param {string} attributeValue - The value of the attribute to set.
+   * @param {any} context - The context in which the attribute should be set, must include a valid user ID.
+   */
   setAttribute(attributeKey: string, attributeValue: string, context: any): void {
+    // Validate that attributeKey, attributeValue, and user ID in context are all strings
     if (!isString(attributeKey) || !isString(attributeValue) || !isString(context?.user?.id)) {
       LogManager.Instance.error(
         `Parameters passed to setAttribute API are not valid. Please check`,
       );
 
-      return;
+      return; // Exit if validation fails
     }
+    // Proceed with setting the attribute if validation is successful
     new SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, context);
   }
 }

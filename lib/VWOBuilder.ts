@@ -38,24 +38,24 @@ import { cloneObject } from './utils/FunctionUtil';
 import { getRandomUUID } from './utils/UuidUtil';
 
 interface IVWOBuilder {
-  settings: SettingsModel;
-  storage: Storage;
-  logManager: LogManager;
-  isSettingsFetchInProgress: boolean;
+  settings: SettingsModel; // Holds the configuration settings for the VWO client
+  storage: Storage; // Interface for storage management
+  logManager: LogManager; // Manages logging across the VWO SDK
+  isSettingsFetchInProgress: boolean; // Flag to check if settings fetch is in progress
 
-  build(settings: SettingsModel): VWOClient;
+  build(settings: SettingsModel): VWOClient; // Builds and returns a new VWOClient instance
 
-  fetchSettings(): Promise<SettingsModel>;
-  setSettingsManager(): this;
-  setSettings(settings: SettingsModel): void;
-  getSettings(force: boolean): Promise<dynamic>;
-  setStorage(): this;
-  setNetworkManager(): this;
-  initBatching(): this;
-  initPolling(): this;
-  setAnalyticsCallback(): this;
-  setLogger(): this;
-  setSegmentation(): this;
+  fetchSettings(): Promise<SettingsModel>; // Asynchronously fetches settings from the server
+  setSettingsManager(): this; // Sets up the settings manager with provided options
+  setSettings(settings: SettingsModel): void; // Sets and processes the settings object
+  getSettings(force: boolean): Promise<dynamic>; // Fetches settings, optionally forcing a refresh
+  setStorage(): this; // Sets up the storage connector based on provided options
+  setNetworkManager(): this; // Configures the network manager with client and mode
+  initBatching(): this; // Initializes event batching with provided configuration
+  initPolling(): this; // Sets up polling for settings at a specified interval
+  setAnalyticsCallback(): this; // Configures the analytics callback based on provided options
+  setLogger(): this; // Sets up the logger with specified options
+  setSegmentation(): this; // Configures the segmentation evaluator with provided options
 }
 
 export class VWOBuilder implements IVWOBuilder {
@@ -74,22 +74,37 @@ export class VWOBuilder implements IVWOBuilder {
     this.options = options;
   }
 
+  /**
+   * Sets the network manager with the provided client and development mode options.
+   * @returns {this} The instance of this builder.
+   */
   setNetworkManager(): this {
     const networkInstance = NetworkManager.Instance;
+    // Attach the network client from options
     networkInstance.attachClient(this.options?.network?.client);
+    // Set the development mode based on options
     networkInstance.getConfig().setDevelopmentMode(this.options?.isDevelopmentMode);
     return this;
   }
 
+  /**
+   * Sets the segmentation evaluator with the provided segmentation options.
+   * @returns {this} The instance of this builder.
+   */
   setSegmentation(): this {
     SegmentationManager.Instance.attachEvaluator(this.options?.segmentation);
     return this;
   }
 
+  /**
+   * Fetches settings asynchronously, ensuring no parallel fetches.
+   * @param {boolean} [force=false] - Force fetch ignoring cache.
+   * @returns {Promise<SettingsModel>} A promise that resolves to the fetched settings.
+   */
   fetchSettings(force?: boolean): Promise<SettingsModel> {
     const deferredObject = new Deferred();
 
-    // If one call is in progress, wait for it to complete and use the response
+    // Check if a fetch operation is already in progress
     if (!this.isSettingsFetchInProgress) {
       this.isSettingsFetchInProgress = true;
       this.settingFileManager.getSettings(force).then((settings: SettingsModel) => {
@@ -101,25 +116,37 @@ export class VWOBuilder implements IVWOBuilder {
 
       return deferredObject.promise;
     } else {
-      // DO not send multiple calls in parallel to fetch settings
+      // Avoid parallel fetches by recursively calling fetchSettings
       return this.fetchSettings(force);
     }
   }
 
+  /**
+   * Sets the settings object, processing it for use.
+   * @param {Record<string, any> | string} settings - The settings to be set.
+   */
   setSettings(settings: Record<string, any> | string): void {
     LogManager.Instance.debug('API - setSettings called');
     this.originalSettings = settings;
+    // Clone and process the settings
     this.settings = cloneObject(settings);
     this.settings = processSettings(this.settings);
   }
 
+  /**
+   * Gets the settings, fetching them if not cached or if forced.
+   * @param {boolean} [force=false] - Force fetch ignoring cache.
+   * @returns {Promise<SettingsModel>} A promise that resolves to the settings.
+   */
   getSettings(force?: boolean): Promise<SettingsModel> {
     const deferredObject = new Deferred();
 
+    // Use cached settings if available and not forced to fetch
     if (!force && this.settings) {
       LogManager.Instance.info('Using already fetched and cached settings');
       deferredObject.resolve(this.settings);
     } else {
+      // Fetch settings if not cached or forced
       this.fetchSettings(force).then((settings: SettingsModel) => {
         deferredObject.resolve(settings);
       });
@@ -127,22 +154,36 @@ export class VWOBuilder implements IVWOBuilder {
     return deferredObject.promise;
   }
 
+  /**
+   * Sets the storage connector based on the provided storage options.
+   * @returns {this} The instance of this builder.
+   */
   setStorage(): this {
     if (this.options.storage) {
+      // Attach the storage connector from options
       this.storage = Storage.Instance.attachConnector(this.options.storage);
     } else {
+      // Set storage to null if no storage options provided
       this.storage = null;
     }
 
     return this;
   }
 
+  /**
+   * Sets the settings manager with the provided options.
+   * @returns {this} The instance of this builder.
+   */
   setSettingsManager(): this {
     this.settingFileManager = new SettingsManager(this.options);
 
     return this;
   }
 
+  /**
+   * Sets the logger with the provided logger options.
+   * @returns {this} The instance of this builder.
+   */
   setLogger(): this {
     this.logManager = new LogManager(
       this.options.logger || {
@@ -153,6 +194,10 @@ export class VWOBuilder implements IVWOBuilder {
     return this;
   }
 
+  /**
+   * Sets the analytics callback with the provided analytics options.
+   * @returns {this} The instance of this builder.
+   */
   setAnalyticsCallback(): this {
     if (!isObject(this.options.analyticsEvent)) {
       // TODO: add logging here
@@ -179,6 +224,10 @@ export class VWOBuilder implements IVWOBuilder {
     return this;
   }
 
+  /**
+   * Generates a random user ID based on the provided API key.
+   * @returns {string} The generated random user ID.
+   */
   getRandomUserId(): string {
     try {
       LogManager.Instance.debug('API - getRandomUserId was called');
@@ -188,6 +237,10 @@ export class VWOBuilder implements IVWOBuilder {
     }
   }
 
+  /**
+   * Initializes the batching with the provided batch events options.
+   * @returns {this} The instance of this builder.
+   */
   initBatching(): this {
     if (!isObject(this.options.batchEvents)) {
       // TODO:- add logging here
@@ -214,6 +267,10 @@ export class VWOBuilder implements IVWOBuilder {
     return this;
   }
 
+  /**
+   * Initializes the polling with the provided poll interval.
+   * @returns {this} The instance of this builder.
+   */
   initPolling(): this {
     if (!this.options.pollInterval) {
       // TODO: Add logging here
@@ -236,10 +293,19 @@ export class VWOBuilder implements IVWOBuilder {
     return this;
   }
 
+  /**
+   * Builds a new VWOClient instance with the provided settings.
+   * @param {SettingsModel} settings - The settings for the VWOClient.
+   * @returns {VWOClient} The new VWOClient instance.
+   */
   build(settings: SettingsModel): VWOClient {
     return new VWOClient(settings, this.options);
   }
 
+  /**
+   * Checks and polls for settings updates at the provided interval.
+   * @param {number} pollingInterval - The interval in seconds for polling.
+   */
   checkAndPoll(pollingInterval: number): void {
     setInterval(() => {
       this.getSettings(true)

@@ -15,11 +15,17 @@
  */
 import { dynamic } from '../types/Common';
 
+/**
+ * Creates a Deferred object with properties for promise, resolve, and reject.
+ * This allows manual control over the resolution and rejection of a promise.
+ * @returns {Deferred} The Deferred object with promise, resolve, and reject methods.
+ */
 export function Deferred(): void {
+  // Create a new Promise and attach resolve and reject methods to the Deferred object
   this.promise = new Promise((resolve: dynamic, reject: dynamic) => {
-    this.resolve = resolve;
-    this.reject = reject;
+    this.resolve = resolve; // Method to resolve the promise
+    this.reject = reject;   // Method to reject the promise
   });
 
-  return this;
+  return this; // Return the Deferred object with attached methods
 }

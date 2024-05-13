@@ -77,34 +77,6 @@ export async function getFromWebService(queryParams: any, endpoint: any): Promis
 }
 
 /**
- * Generates a query parameter object for location pre-segmentation based on IP address.
- * @param ipAddress - The IP address to be used in the query.
- * @returns An object containing the IP address as a query parameter.
- */
-export function getQueryParamForLocationPreSegment(ipAddress: string): Record<string, dynamic> {
-  // Construct the query parameter object with the IP address
-  const path: Record<string, dynamic> = {
-    ipAddress: `${ipAddress}`,
-  };
-  return path;
-}
-
-/**
- * Generates a query parameter object for parsing user agent strings.
- * @param userAgent - The user agent string to be encoded and used in the query.
- * @returns An object containing the encoded user agent as a query parameter.
- */
-export function getQueryParamForUaParser(userAgent: string): Record<string, dynamic> {
-  // Encode the user agent string to ensure it is URL-safe
-  userAgent = encodeURIComponent(userAgent);
-  // Construct the query parameter object with the encoded user agent
-  const path: Record<string, dynamic> = {
-    userAgent: `${userAgent}`,
-  };
-  return path;
-}
-
-/**
  * Encodes the query parameters to ensure they are URL-safe.
  * @param queryParams  The query parameters to be encoded.
  * @returns  An object containing the encoded query parameters.

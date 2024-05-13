@@ -16,7 +16,7 @@
 import { SegmentEvaluator } from '../evaluators/SegmentEvaluator';
 import { dynamic } from '../../../types/Common';
 import { SettingsModel } from '../../../models/SettingsModel';
-import { getFromWebService, getQueryParamForLocationPreSegment, getQueryParams } from '../../../utils/WebServiceUtil';
+import { getFromWebService, getQueryParams } from '../../../utils/WebServiceUtil';
 import { UrlEnum } from '../../../enums/UrlEnum';
 import { LogManager } from '../../../modules/logger';
 

@@ -175,11 +175,11 @@ const _evaluateWhitelisting = async (
 };
 
 export const evaluateTrafficAndGetVariation = (
-  settingsFile: any,
+  settings: any,
   campaign: CampaignModel,
   userId: any,
 ): VariationModel => {
-  const variation = new CampaignDecisionService().getVariationAlloted(userId, settingsFile.accountId, campaign);
+  const variation = new CampaignDecisionService().getVariationAlloted(userId, settings.accountId, campaign);
   if (!variation) {
     LogManager.Instance.debug(
       `USER_NOT_BUCKETED: User ID:${userId} for Campaign:${campaign.getKey()} did not get any variation`,

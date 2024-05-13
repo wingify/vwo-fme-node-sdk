@@ -16,8 +16,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { v5 as uuidv5 } from 'uuid';
 
-const VWO_NAMESPACE = uuidv5('https://vwo.com', uuidv5.URL);
-
 /**
  * Generates a random UUID based on an API key.
  * @param apiKey The API key used to generate a namespace for the UUID.
@@ -39,16 +37,17 @@ export function getRandomUUID(apiKey: string): string {
  * @returns A UUID string formatted without dashes and in uppercase.
  */
 export function getUUID(userId: string, accountId: string): string {
+  const VWO_NAMESPACE = uuidv5('https://vwo.com', uuidv5.URL);
   // Convert userId and accountId to string to ensure proper type
   userId = String(userId);
   accountId = String(accountId);
   // Generate a namespace UUID based on the accountId
-  const userIdNamespace = _generateUUID(accountId, VWO_NAMESPACE);
+  const userIdNamespace = generateUUID(accountId, VWO_NAMESPACE);
   // Generate a UUID based on the userId and the previously generated namespace
-  const uuidForUserIdAccountId = _generateUUID(userId, userIdNamespace);
+  const uuidForUserIdAccountId = generateUUID(userId, userIdNamespace);
 
   // Remove all dashes from the UUID and convert it to uppercase
-  const desiredUuid = uuidForUserIdAccountId.replace(/-/gi, '').toUpperCase();
+  const desiredUuid = uuidForUserIdAccountId?.replace(/-/gi, '').toUpperCase();
 
   return desiredUuid;
 }
@@ -59,7 +58,7 @@ export function getUUID(userId: string, accountId: string): string {
  * @param namespace The namespace used to generate the UUID.
  * @returns A UUID string or undefined if inputs are invalid.
  */
-function _generateUUID(name: string, namespace: string) {
+export function generateUUID(name: string, namespace: string) {
   // Check for valid input to prevent errors
   if (!name || !namespace) {
     return;

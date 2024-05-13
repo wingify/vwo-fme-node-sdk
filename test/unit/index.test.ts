@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { VWO, init } from '../lib/index';
+import { VWO, init } from '../../lib/index';
 
 test('Check is VWO is defined', () => {
   expect(typeof VWO).toBe("function");

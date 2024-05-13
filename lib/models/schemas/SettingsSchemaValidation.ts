@@ -22,7 +22,7 @@ export class SettingsSchema {
   private variableObjectSchema: Struct<dynamic>;
   private campaignVariationSchema: Struct<dynamic>;
   private campaignObjectSchema: Struct<dynamic>;
-  private settingsFileSchema: Struct<dynamic>;
+  private settingsSchema: Struct<dynamic>;
   private campaignGroupSchema: Struct<dynamic>;
   private featureSchema: Struct<dynamic>;
 
@@ -75,7 +75,7 @@ export class SettingsSchema {
       campaigns: array(this.campaignObjectSchema)
     });
 
-    this.settingsFileSchema = object({
+    this.settingsSchema = object({
       sdkKey: optional(string()),
       version: union([number(), string()]),
       accountId: union([number(), string()]),
@@ -89,7 +89,7 @@ export class SettingsSchema {
   }
 
   isSettingsValid(settings: SettingsModel): boolean {
-    const [error] = validate(settings, this.settingsFileSchema);
+    const [error] = validate(settings, this.settingsSchema);
     return !error;
   }
 }

@@ -79,7 +79,7 @@ export class NetworkManager {
     const deferred = new Deferred(); // Create a new deferred promise
 
     const networkOptions: RequestModel = this.createRequest(request); // Create network request options
-    if (networkOptions === null) {
+    if (!networkOptions.getUrl()) {
       deferred.reject(new Error('no url found')); // Reject if no URL is found
     } else {
       this.client
@@ -104,7 +104,7 @@ export class NetworkManager {
     const deferred = new Deferred(); // Create a new deferred promise
 
     const networkOptions: RequestModel = this.createRequest(request); // Create network request options
-    if (networkOptions === null) {
+    if (!networkOptions.getUrl()) {
       deferred.reject(new Error('no url found')); // Reject if no URL is found
     } else {
       this.client

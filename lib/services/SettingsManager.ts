@@ -37,8 +37,8 @@ export class SettingsManager implements ISettingsManager {
   accountId: any;
   expiry: number;
   networkTimeout: number;
-  settingsFileUrl: string;
-  settingsFilePort: number;
+  settingsUrl: string;
+  settingsPort: number;
 
   constructor(options: Record<string, any>) {
     this.sdkKey = options.sdkKey;
@@ -48,10 +48,10 @@ export class SettingsManager implements ISettingsManager {
 
     if (options?.webService?.url) {
       const parsedUrl = new URL(`https://${options.webService.url}`);
-      this.settingsFileUrl = parsedUrl.hostname;
-      this.settingsFilePort = parseInt(parsedUrl.port);
+      this.settingsUrl = parsedUrl.hostname;
+      this.settingsPort = parseInt(parsedUrl.port);
     } else {
-      this.settingsFileUrl = Constants.HOST_NAME;
+      this.settingsUrl = Constants.HOST_NAME;
     }
 
     // if (this.expiry > 0) {
@@ -113,14 +113,14 @@ export class SettingsManager implements ISettingsManager {
     }
     try {
       const request: RequestModel = new RequestModel(
-        this.settingsFileUrl,
+        this.settingsUrl,
         'GET',
         Constants.SETTINTS_ENDPOINT,
         options,
         null,
         null,
         null,
-        this.settingsFilePort,
+        this.settingsPort,
       );
       request.setTimeout(this.networkTimeout);
 

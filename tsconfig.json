@@ -25,7 +25,7 @@
   "include": ["./lib/**/*"],
   "exclude": [
     "node_modules",
-    "**/*.spec.ts",
+    "**/*.(spec|test).ts",
     "*.js"
   ],
   "baseUrl": "types",

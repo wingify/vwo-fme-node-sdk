@@ -309,12 +309,12 @@ export class VWOBuilder implements IVWOBuilder {
   checkAndPoll(pollingInterval: number): void {
     setInterval(() => {
       this.getSettings(true)
-        .then((latestSettingsFile: SettingsModel) => {
-          const lastSettingsFile = JSON.stringify(this.originalSettings);
-          const stringifiedLatestSettingsFile = JSON.stringify(latestSettingsFile);
-          if (stringifiedLatestSettingsFile !== lastSettingsFile) {
-            this.originalSettings = latestSettingsFile;
-            const clonedSettings = cloneObject(latestSettingsFile);
+        .then((latestSettings: SettingsModel) => {
+          const lastSettings = JSON.stringify(this.originalSettings);
+          const stringifiedLatestSettings = JSON.stringify(latestSettings);
+          if (stringifiedLatestSettings !== lastSettings) {
+            this.originalSettings = latestSettings;
+            const clonedSettings = cloneObject(latestSettings);
             this.settings = processSettings(clonedSettings);
             // TODO: Add Logging:- Settings file updated
           }

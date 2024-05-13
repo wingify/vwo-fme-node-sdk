@@ -16,7 +16,7 @@
 import { ApiEnum } from '../enums/ApiEnum';
 import { LogManager } from '../modules/logger';
 import HooksManager from '../services/HooksManager';
-import { eventExists } from '../utils/FunctionUtil';
+import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
 import { NetworkUtil } from '../utils/NetworkUtil';
 
 interface ITrack {
@@ -50,7 +50,7 @@ export class TrackApi implements ITrack {
     context: any,
     hookManager: HooksManager,
   ): Promise<Record<string, boolean>> {
-    if (eventExists(eventName, settings)) {
+    if (doesEventBelongToAnyFeature(eventName, settings)) {
       // Create an impression for the track event
       createImpressionForTrack(settings, eventName, context, eventProperties);
       // Set and execute integration callback for the track event

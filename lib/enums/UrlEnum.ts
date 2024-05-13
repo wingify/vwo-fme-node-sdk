@@ -23,6 +23,5 @@ export enum UrlEnum {
   BATCH_EVENTS = '/server-side/batch-events',
   EVENTS = '/events/t',
   ATTRIBUTE_CHECK = '/attributes/check',
-  LOCATION_CHECK = '/getLocation',
-  UAPARSER = '/server-side/ua-parser',
+  GET_USER_DATA = '/getUserData'
 }

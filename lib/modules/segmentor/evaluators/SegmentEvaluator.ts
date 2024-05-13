@@ -20,7 +20,6 @@ import { LogManager } from '../../logger';
 import { StorageService } from '../../../services/StorageService';
 import { dynamic } from '../../../types/Common';
 import { isObject } from '../../../utils/DataTypeUtil';
-import { getFromWebService, getQueryParamForLocationPreSegment, getQueryParamForUaParser } from '../../../utils/WebServiceUtil';
 import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum';
 import { Segmentation } from '../Segmentation';
 import { getKeyValue } from '../utils/SegmentUtil';
@@ -56,7 +55,7 @@ export class SegmentEvaluator implements Segmentation {
       case SegmentOperatorValueEnum.USER:
         return new SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties);
       case SegmentOperatorValueEnum.UA:
-        return new SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context.user);
+        return new SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context);
       default:
         return false;
     }
@@ -107,7 +106,7 @@ export class SegmentEvaluator implements Segmentation {
 
             if (feature) {
               const featureKey = feature.getKey();
-              const result = await this.checkInUserStorage(this.settings, featureKey, this.context.user);
+              const result = await this.checkInUserStorage(this.settings, featureKey, this.context);
               return result;
             } else {
               console.error("Feature not found with featureIdKey:", featureIdKey);
@@ -187,20 +186,15 @@ export class SegmentEvaluator implements Segmentation {
    */
   async checkLocationPreSegmentation(locationMap: Record<string, dynamic>): Promise<boolean> {
     // Ensure user's IP address is available
-    if (!this.context.user.ipAddress || this.context.user.ipAddress === undefined){
-      LogManager.Instance.info('To evaluate location pre Segment, please pass ipAddress in context.user object');
+    if (!this.context?.ipAddress || this.context?.ipAddress === undefined){
+      LogManager.Instance.info('To evaluate location pre Segment, please pass ipAddress in context object');
       return false;
-    }
-    // Fetch location data if not already available
-    if (this.context._vwo.location === undefined || this.context._vwo.location === null) {
-      const queryParams = getQueryParamForLocationPreSegment(this.context.user.ipAddress);
-      this.context._vwo.location = (await getFromWebService(queryParams, UrlEnum.LOCATION_CHECK)).location;
     }
     // Check if location data is available and matches the expected values
-    if (!this.context._vwo.location || this.context._vwo.location === undefined || this.context._vwo.location === null) {
+    if (!this.context?._vwo?.location || this.context?._vwo?.location === undefined || this.context?._vwo?.location === null) {
       return false;
     }
-    return this.valuesMatch(locationMap, this.context._vwo.location);
+    return this.valuesMatch(locationMap, this.context?._vwo?.location);
   }
 
   /**
@@ -210,21 +204,16 @@ export class SegmentEvaluator implements Segmentation {
    */
   async checkUserAgentParser(uaParserMap: Record<string, string[]>): Promise<boolean> {
     // Ensure user's user agent is available
-    if (!this.context.user.userAgent || this.context.user.userAgent === undefined){
+    if (!this.context?.userAgent || this.context?.userAgent === undefined){
       LogManager.Instance.info('To evaluate user agent related segments, please pass userAgent in context object');
       return false;
     }
-    // Fetch user agent data if not already available
-    if (this.context._vwo.ua_info === undefined || this.context._vwo.ua_info === null) {
-      const queryParams = getQueryParamForUaParser(this.context.user.userAgent);
-      this.context._vwo.ua_info = await getFromWebService(queryParams, UrlEnum.UAPARSER);
-    }
     // Check if user agent data is available and matches the expected values
-    if (!this.context._vwo.ua_info  || this.context._vwo.ua_info  === undefined || this.context._vwo.ua_info  === 'false') {
+    if (!this.context?._vwo?.ua_info  || this.context?._vwo?.ua_info  === undefined || this.context?._vwo?.ua_info  === 'false') {
       return false;
     }
 
-    return this.checkValuePresent(uaParserMap, this.context._vwo.ua_info);
+    return this.checkValuePresent(uaParserMap, this.context?._vwo.ua_info);
   }
 
 

@@ -36,7 +36,7 @@ export class SetAttributeApi implements ISetAttribute {
    * @param context Context containing user information.
    */
   setAttribute(settings: any, attributeKey: string, attributeValue: any, context: any): void {
-    createImpressionForAttribute(settings, attributeKey, attributeValue, context.user);
+    createImpressionForAttribute(settings, attributeKey, attributeValue, context);
   }
 }
 

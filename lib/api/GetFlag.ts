@@ -67,7 +67,7 @@ export class FlagApi implements IGetFlag {
     const storageService = new StorageService();
     const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(
       featureKey,
-      context.user,
+      context,
       storageService,
     );
 
@@ -83,7 +83,7 @@ export class FlagApi implements IGetFlag {
 
         if (variation) {
           LogManager.Instance.info(
-            `Variation ${variation.getKey()} found in storage for the user ${context.user.id} for the experiment campaign ${storedData.experimentKey}`,
+            `Variation ${variation.getKey()} found in storage for the user ${context.id} for the experiment campaign ${storedData.experimentKey}`,
           );
           deferredObject.resolve({
             isEnabled: () => true,
@@ -109,9 +109,9 @@ export class FlagApi implements IGetFlag {
       );
       if (variation) {
         LogManager.Instance.info(
-          `Variation ${variation.getKey()} found in storage for the user ${context.user.id} for the rollout campaign ${storedData.rolloutKey}`,
+          `Variation ${variation.getKey()} found in storage for the user ${context.id} for the rollout campaign ${storedData.rolloutKey}`,
         );
-        LogManager.Instance.info(`Evaluation experiement campaigns now for the user ${context.user.id}`);
+        LogManager.Instance.info(`Evaluation experiement campaigns now for the user ${context.id}`);
         isEnabled = true;
         rolloutVariationToReturn = variation;
         const featureInfo = {
@@ -129,7 +129,7 @@ export class FlagApi implements IGetFlag {
     // get feature object from feature key
     const feature = getFeatureFromKey(settings, featureKey);
 
-    SegmentationManager.Instance.setContextualData(settings, feature, context);
+    await SegmentationManager.Instance.setContextualData(settings, feature, context);
 
     if (!isObject(feature) || feature === undefined) {
       LogManager.Instance.info(`Feature not found for the key ${featureKey}`);
@@ -204,7 +204,7 @@ export class FlagApi implements IGetFlag {
           }
           if (ruleIndex === allRules.length) {
             // if last rule, then evaluate MEG campaigns
-            LogManager.Instance.debug(`Evaluating MEG campaigns for the user ${context.user.id}`);
+            LogManager.Instance.debug(`Evaluating MEG campaigns for the user ${context.id}`);
             const [megResult, whitelistedVariationInfoWithCampaign, winnerCampaign] = await evaluateGroups(
               settings,
               featureKey,
@@ -236,7 +236,7 @@ export class FlagApi implements IGetFlag {
           continue;
         } else if (listOfMegCampaignsGroups.length > 0) {
           // if group is not present and MEG groups are present, then evaluate MEG campaigns
-          LogManager.Instance.debug(`Evaluating MEG campaigns for the user ${context.user.id}`);
+          LogManager.Instance.debug(`Evaluating MEG campaigns for the user ${context.id}`);
           const [megResult, whitelistedVariationInfoWithCampaign, winnerCampaign] = await evaluateGroups(
             settings,
             featureKey,
@@ -316,7 +316,7 @@ export class FlagApi implements IGetFlag {
       new StorageDecorator().setDataInStorage(
         {
           featureKey,
-          user: context.user,
+          user: context,
           ...rulesInformation,
         },
         storageService,
@@ -325,13 +325,13 @@ export class FlagApi implements IGetFlag {
       hookManager.execute(hookManager.get());
     }
     if (feature.impactCampaign?.campaignId) {
-      LogManager.Instance.info(`Sending data for Impact Campaign for the user ${context.user.id}`);
+      LogManager.Instance.info(`Sending data for Impact Campaign for the user ${context.id}`);
       campArray = campArray.concat(
         createImpressionForVariationShown(
           settings,
           feature,
           { id: feature.impactCampaign?.campaignId },
-          context.user,
+          context,
           { id: isEnabled ? 2 : 1 },
           true,
         ),
@@ -359,7 +359,7 @@ export class FlagApi implements IGetFlag {
       featureName: getFeatureNameFromKey(settings, featureKey),
       featureId: getFeatureIdFromKey(settings, featureKey),
       featureKey,
-      userId: context.user.id,
+      userId: context.id,
       api: ApiEnum.GET_FLAG,
     };
   }
@@ -372,7 +372,7 @@ export class FlagApi implements IGetFlag {
     rulesInformation: any,
     decision: any,
   ): [VariationModel, any] {
-    const variation = evaluateTrafficAndGetVariation(settings, campaign, context.user.id);
+    const variation = evaluateTrafficAndGetVariation(settings, campaign, context.id);
     let campArray = [];
     if (isObject(variation) && Object.keys(variation).length > 0) {
       if (campaign.getType() === CampaignTypeEnum.ROLLOUT) {
@@ -389,7 +389,7 @@ export class FlagApi implements IGetFlag {
         });
       }
       Object.assign(decision, rulesInformation);
-      campArray = createImpressionForVariationShown(settings, feature, campaign, context.user, variation);
+      campArray = createImpressionForVariationShown(settings, feature, campaign, context, variation);
       return [variation, campArray];
     }
     return [null, campArray];
@@ -434,7 +434,7 @@ export const evaluateRule = async (
       settings,
       feature,
       campaign,
-      context.user,
+      context,
       whitelistedObject.variation,
     );
   }

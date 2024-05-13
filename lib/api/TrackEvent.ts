@@ -52,7 +52,7 @@ export class TrackApi implements ITrack {
   ): Promise<Record<string, boolean>> {
     if (eventExists(eventName, settings)) {
       // Create an impression for the track event
-      createImpressionForTrack(settings, eventName, context.user, eventProperties);
+      createImpressionForTrack(settings, eventName, context, eventProperties);
       // Set and execute integration callback for the track event
       hookManager.set({ eventName: eventName, api: ApiEnum.TRACK });
       hookManager.execute(hookManager.get());

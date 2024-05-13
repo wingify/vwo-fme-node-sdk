@@ -124,7 +124,7 @@ const evaluateFeatureRollOutRules = async (
     }
     if (ruleToTestForTraffic !== null) {
       const campaign = new CampaignModel().modelFromDictionary(ruleToTestForTraffic);
-      const variation = evaluateTrafficAndGetVariation(settings, campaign, context.user.id);
+      const variation = evaluateTrafficAndGetVariation(settings, campaign, context.id);
       if (isObject(variation) && Object.keys(variation).length > 0) {
         evaluatedFeatureMap.set(feature.key, {
           rolloutId: ruleToTestForTraffic.id,
@@ -157,7 +157,7 @@ const getEligbleCampaigns = async (
     for (const campaign of campaigns) {
       const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(
         featureKey,
-        context.user,
+        context,
         storageService,
       );
       if (storedData?.experimentVariationId) {
@@ -169,7 +169,7 @@ const getEligbleCampaigns = async (
           );
           if (variation) {
             LogManager.Instance.debug(
-              `MEG: Campaign ${storedData.experimentKey} found in storage for user ${context.user.id}`,
+              `MEG: Campaign ${storedData.experimentKey} found in storage for user ${context.id}`,
             );
             eligibleCampaignsWithStorage.push(campaign);
             continue;
@@ -182,9 +182,9 @@ const getEligbleCampaigns = async (
           settings,
           context,
         )) &&
-        new CampaignDecisionService().isUserPartOfCampaign(context.user.id, campaign)
+        new CampaignDecisionService().isUserPartOfCampaign(context.id, campaign)
       ) {
-        LogManager.Instance.debug(`MEG: Campaign ${campaign.getKey()} is eligible for user ${context.user.id}`);
+        LogManager.Instance.debug(`MEG: Campaign ${campaign.getKey()} is eligible for user ${context.id}`);
         eligibleCampaigns.push(campaign);
         continue;
       }
@@ -216,7 +216,7 @@ const evaluateEligibleCampaigns = async (
     if (campaignList.eligibleCampaignsWithStorage.length === 1) {
       winnerFromEachGroup.push(campaignList.eligibleCampaignsWithStorage[0]);
       LogManager.Instance.debug(
-        `MEG: Campaign ${campaignList.eligibleCampaignsWithStorage[0].getKey()} is the winner for group ${groupId} for user ${context.user.id}`,
+        `MEG: Campaign ${campaignList.eligibleCampaignsWithStorage[0].getKey()} is the winner for group ${groupId} for user ${context.id}`,
       );
     } else if (campaignList.eligibleCampaignsWithStorage.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
       winnerFromEachGroup.push(
@@ -238,7 +238,7 @@ const evaluateEligibleCampaigns = async (
       if (campaignList.eligibleCampaigns.length === 1) {
         winnerFromEachGroup.push(campaignList.eligibleCampaigns[0]);
         LogManager.Instance.debug(
-          `MEG: Campaign ${campaignList.eligibleCampaigns[0].getKey()} is the winner for group ${groupId} for user ${context.user.id}`,
+          `MEG: Campaign ${campaignList.eligibleCampaigns[0].getKey()} is the winner for group ${groupId} for user ${context.id}`,
         );
       } else if (campaignList.eligibleCampaigns.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
         winnerFromEachGroup.push(
@@ -281,11 +281,11 @@ const normalizeAndFindWinningCampaign = (
   setCampaignAllocation(shortlistedCampaigns);
   const winnerCampaign = new CampaignDecisionService().getVariation(
     shortlistedCampaigns,
-    new DecisionMaker().calculateBucketValue(getBucketingSeed(context.user.id, undefined, groupId)),
+    new DecisionMaker().calculateBucketValue(getBucketingSeed(context.id, undefined, groupId)),
   );
 
   LogManager.Instance.debug(
-    `MEG Random: Campaign ${winnerCampaign.getKey()} is the winner for group ${groupId} for user ${context.user.id}`,
+    `MEG Random: Campaign ${winnerCampaign.getKey()} is the winner for group ${groupId} for user ${context.id}`,
   );
 
   if (winnerCampaign && calledCampaignIds.includes(winnerCampaign.getId())) {
@@ -343,13 +343,13 @@ const advancedAlgoFindWinningCampaign = (
     setCampaignAllocation(participatingCampaignList);
     winnerCampaign = new CampaignDecisionService().getVariation(
       participatingCampaignList,
-      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.user.id, undefined, groupId)),
+      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.id, undefined, groupId)),
     );
   }
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
   // also shortlistedCampaigns and wt array does not have a single campaign id in common
   LogManager.Instance.debug(
-    `MEG Advance: Campaign ${winnerCampaign.key} is the winner for group ${groupId} for user ${context.user.id}`,
+    `MEG Advance: Campaign ${winnerCampaign.key} is the winner for group ${groupId} for user ${context.id}`,
   );
   if (calledCampaignIds.includes(winnerCampaign.id)) {
     return winnerCampaign;
@@ -397,7 +397,7 @@ const campaignToReturn = async (
       }
     }
     if (winnerFound) {
-      LogManager.Instance.info(`MEG: Campaign ${campaignToReturn.key} is the winner for user ${context.user.id}`);
+      LogManager.Instance.info(`MEG: Campaign ${campaignToReturn.key} is the winner for user ${context.id}`);
       const [megResult, whitelistedVariationInfoWithCampaign] = await evaluateRule(
         settings,
         feature,

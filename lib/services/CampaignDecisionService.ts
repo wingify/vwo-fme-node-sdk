@@ -131,26 +131,26 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     if (isObject(segments) && !Object.keys(segments).length) {
       LogManager.Instance.debug(
         `For userId:${
-          context.user.id
+          context.id
         } of Campaign:${campaign.getKey()}, segment was missing, hence skipping segmentation`,
       );
       return true;
     } else {
       const preSegmentationResult = await SegmentationManager.Instance.validateSegmentation(
         segments,
-        context.user.customVariables,
+        context.customVariables,
         settings,
-        context.user,
+        context,
         // {
-        //   ipAddress: context.user.ipAddress,
-        //   userAgent : context.user.userAgent
+        //   ipAddress: context.ipAddress,
+        //   userAgent : context.userAgent
         // }
       );
       if (!preSegmentationResult) {
-        LogManager.Instance.info(`Segmentation failed for userId:${context.user.id} of Campaign:${campaign.getKey()}`);
+        LogManager.Instance.info(`Segmentation failed for userId:${context.id} of Campaign:${campaign.getKey()}`);
         return false;
       }
-      LogManager.Instance.info(`Segmentation passed for userId:${context.user.id} of Campaign:${campaign.getKey()}`);
+      LogManager.Instance.info(`Segmentation passed for userId:${context.id} of Campaign:${campaign.getKey()}`);
       return true;
     }
   }

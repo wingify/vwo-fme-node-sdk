@@ -174,7 +174,7 @@ export class VWOClient implements IVWOClient {
         throw new Error('Invalid Settings');
       }
 
-      if (!context?.user?.id) {
+      if (!context?.id) {
         LogManager.Instance.error('User ID is not valid. Not able to get flag');
         throw new Error('Invalid context');
       }
@@ -242,7 +242,7 @@ export class VWOClient implements IVWOClient {
       }
 
       // Validate user ID is present in context
-      if (!context?.user?.id) {
+      if (!context?.id) {
         LogManager.Instance.error('User ID is not valid. Not able to track event');
         throw new Error('Invalid context');
       }
@@ -270,7 +270,7 @@ export class VWOClient implements IVWOClient {
    */
   setAttribute(attributeKey: string, attributeValue: string, context: any): void {
     // Validate that attributeKey, attributeValue, and user ID in context are all strings
-    if (!isString(attributeKey) || !isString(attributeValue) || !isString(context?.user?.id)) {
+    if (!isString(attributeKey) || !isString(attributeValue) || !isString(context?.id)) {
       LogManager.Instance.error(
         `Parameters passed to setAttribute API are not valid. Please check`,
       );

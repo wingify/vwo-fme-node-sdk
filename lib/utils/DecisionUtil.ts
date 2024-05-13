@@ -35,15 +35,15 @@ export const checkWhitelistingAndPreSeg = async (
   isMegWinnerRule: boolean,
   decision: any,
 ): Promise<[boolean, any]> => {
-  const vwoUserId = getUUID(context.user.id, settings.accountId);
+  const vwoUserId = getUUID(context.id, settings.accountId);
 
   // only check whitelisting for ab campaigns
   if (campaign.getType() === CampaignTypeEnum.AB) {
     // set _vwoUserId for variation targeting variables
-    context.user.variationTargetingVariables = Object.assign({}, context.user.variationTargetingVariables, {
-      _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.user.id,
+    context.variationTargetingVariables = Object.assign({}, context.variationTargetingVariables, {
+      _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.id,
     });
-    Object.assign(decision, { variationTargetingVariables: context.user.variationTargetingVariables }); // for integration
+    Object.assign(decision, { variationTargetingVariables: context.variationTargetingVariables }); // for integration
     // check if the campaign satisfies the whitelisting
     if (campaign.getIsForcedVariationEnabled()) {
       const whitelistedVariation = await checkForWhitelisting(campaign, campaign.getKey(), settings, context);
@@ -52,7 +52,7 @@ export const checkWhitelistingAndPreSeg = async (
       }
     } else {
       LogManager.Instance.info(
-        `WHITELISTING_SKIPPED: Whitelisting is not used for Campaign:${campaign.getKey()}, hence skipping evaluating whitelisting for User ID:${context.user.id}`,
+        `WHITELISTING_SKIPPED: Whitelisting is not used for Campaign:${campaign.getKey()}, hence skipping evaluating whitelisting for User ID:${context.id}`,
       );
     }
   }
@@ -61,10 +61,10 @@ export const checkWhitelistingAndPreSeg = async (
     return [true, null]; // for MEG winner rule, no need to check for pre segmentation as it's already evaluated
   }
   // userlist segment is also available for campaign pre segmentation
-  context.user.customVariables = Object.assign({}, context.user.customVariables, {
-    _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.user.id,
+  context.customVariables = Object.assign({}, context.customVariables, {
+    _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.id,
   });
-  Object.assign(decision, { customVariables: context.user.customVariables }); // for integeration
+  Object.assign(decision, { customVariables: context.customVariables }); // for integeration
 
   // check for campaign pre segmentation
   const preSegmentationResult = await new CampaignDecisionService().getDecision(campaign, settings, context);
@@ -97,7 +97,7 @@ const checkForWhitelisting = async (
     variationString = '';
   }
   LogManager.Instance.info(
-    `SEGMENTATION_STATUS: User ID:${context.user.id} for Campaign:${campaignKey} with variables:${JSON.stringify(context.user.variationTargetingVariables)} ${status} whitelisting ${variationString}`,
+    `SEGMENTATION_STATUS: User ID:${context.id} for Campaign:${campaignKey} with variables:${JSON.stringify(context.variationTargetingVariables)} ${status} whitelisting ${variationString}`,
   );
   return whitelistingResult;
 };
@@ -115,7 +115,7 @@ const _evaluateWhitelisting = async (
   campaign.getVariations().forEach((variation) => {
     if (isObject(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
       LogManager.Instance.debug(
-        `SEGMENTATION_SKIPPED: Segmentation is not used for Campaign:${campaignKey}, hence skipping evaluating segmentation ${variation} for User ID:${context.user.id}`,
+        `SEGMENTATION_SKIPPED: Segmentation is not used for Campaign:${campaignKey}, hence skipping evaluating segmentation ${variation} for User ID:${context.id}`,
       );
       return;
     }
@@ -123,7 +123,7 @@ const _evaluateWhitelisting = async (
     if (isObject(variation.getSegments())) {
       const SegmentEvaluatorResult = SegmentationManager.Instance.validateSegmentation(
         variation.getSegments(),
-        context.user.variationTargetingVariables,
+        context.variationTargetingVariables,
         settings,
       );
       const promise = isPromise(SegmentEvaluatorResult)
@@ -159,7 +159,7 @@ const _evaluateWhitelisting = async (
     }
     whitelistedVariation = new CampaignDecisionService().getVariation(
       targetedVariations,
-      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.user.id, campaign, null)),
+      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.id, campaign, null)),
     );
   } else {
     whitelistedVariation = targetedVariations[0];

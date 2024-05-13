@@ -103,3 +103,21 @@ export function getQueryParamForUaParser(userAgent: string): Record<string, dyna
   };
   return path;
 }
+
+/**
+ * Encodes the query parameters to ensure they are URL-safe.
+ * @param queryParams  The query parameters to be encoded.
+ * @returns  An object containing the encoded query parameters.
+ */
+export function getQueryParams(queryParams: Record<string, string | number>): Record<string, string> {
+  const encodedParams: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(queryParams)) {
+    // Encode the parameter value to ensure it is URL-safe
+    const encodedValue = encodeURIComponent(String(value));
+    // Add the encoded parameter to the result object
+    encodedParams[key] = encodedValue;
+  }
+
+  return encodedParams;
+}

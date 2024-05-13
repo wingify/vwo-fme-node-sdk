@@ -16,6 +16,9 @@
 import { SegmentEvaluator } from '../evaluators/SegmentEvaluator';
 import { dynamic } from '../../../types/Common';
 import { SettingsModel } from '../../../models/SettingsModel';
+import { getFromWebService, getQueryParamForLocationPreSegment, getQueryParams } from '../../../utils/WebServiceUtil';
+import { UrlEnum } from '../../../enums/UrlEnum';
+import { LogManager } from '../../../modules/logger';
 
 export class SegmentationManager {
   private static instance: SegmentationManager; // Singleton instance of SegmentationManager
@@ -44,24 +47,30 @@ export class SegmentationManager {
    * @param {any} feature - The feature data including segmentation needs.
    * @param {any} context - The context data for the evaluation.
    */
-  setContextualData(settings, feature, context) {
-    this.attachEvaluator(); // Ensure a fresh evaluator instance
-    this.evaluator.settings = settings; // Set settings in evaluator
-    this.evaluator.context = context; // Set context in evaluator
-    this.evaluator.context._vwo = context?._vwo || {}; // Ensure _vwo property exists in context
-    this.evaluator.feature = feature; // Set feature in evaluator
+  async setContextualData(settings, feature, context) {
+      this.attachEvaluator(); // Ensure a fresh evaluator instance
+      this.evaluator.settings = settings; // Set settings in evaluator
+      this.evaluator.context = context; // Set context in evaluator
+      this.evaluator.feature = feature; // Set feature in evaluator
 
-    // Conditional web service calls based on feature requirements
-    if (feature.segment.hasLocation && feature.segment.hasUA) {
-      // call to webservice /getLocationAndUA
-    } else {
-      if (feature.segment.hasLocation) {
-        // call to webservice /getLocation
-      }
-      if (feature.segment.hasUA) {
-        // call to webservice /getUA
-      }
-    }
+      if (!context?._vwo) {
+        let queryParams = {};
+        if (context?.userAgent) {
+          queryParams['userAgent'] = context.userAgent;
+        }
+
+        if (context?.ipAddress) {
+          queryParams['ipAddress'] = context.ipAddress;
+        }
+        try {
+          const params = getQueryParams(queryParams);
+          this.evaluator.context._vwo = await getFromWebService(params, UrlEnum.GET_USER_DATA);
+        } catch (err) {
+          LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
+          this.evaluator.context._vwo = {};
+        }
+      console.log(this.evaluator.context._vwo);
+    } 
   }
 
   /**
@@ -72,7 +81,12 @@ export class SegmentationManager {
    * @param {any} context - Optional context.
    * @returns {Promise<boolean>} True if segmentation is valid, otherwise false.
    */
-  async validateSegmentation(dsl: Record<string, dynamic>, properties: Record<any, dynamic>, settings: SettingsModel, context?:any): Promise<boolean> {
+  async validateSegmentation(
+    dsl: Record<string, dynamic>,
+    properties: Record<any, dynamic>,
+    settings: SettingsModel,
+    context?: any,
+  ): Promise<boolean> {
     return await this.evaluator.isSegmentationValid(dsl, properties); // Delegate to evaluator's method
   }
 }

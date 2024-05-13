@@ -54,7 +54,7 @@ export class SegmentationManager {
       this.evaluator.feature = feature; // Set feature in evaluator
 
       if (!context?._vwo) {
-        let queryParams = {};
+        const queryParams = {};
         if (context?.userAgent) {
           queryParams['userAgent'] = context.userAgent;
         }

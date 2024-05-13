@@ -39,7 +39,9 @@ export class VWO {
    * @returns A Promise resolving to the configured VWO instance.
    */
   private static setInstance(options: Record<string, dynamic>) {
-    this.vwoBuilder = new VWOBuilder(options);
+    const optionsVWOBuilder: any = options?.vwoBuilder;
+    this.vwoBuilder = optionsVWOBuilder || new VWOBuilder(options);
+
     this.instance = this.vwoBuilder
       .setSettingsManager()  // Sets the settings manager for configuration management.
       .setStorage()          // Configures storage for data persistence.

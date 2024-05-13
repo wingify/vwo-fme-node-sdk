@@ -88,7 +88,7 @@ export class SettingsManager implements ISettingsManager {
         deferredObject.resolve(res);
       })
       .catch((err) => {
-        LogManager.Instance.error(`Settings could not be fetched: ${err}`);
+        LogManager.Instance.error(`Settings could not be fetched: ${JSON.stringify(err)}`);
         deferredObject.resolve(null);
       });
 

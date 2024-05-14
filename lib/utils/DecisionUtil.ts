@@ -24,20 +24,25 @@ import { SegmentationManager } from '../modules/segmentor';
 import { CampaignDecisionService } from '../services/CampaignDecisionService';
 import { isObject } from '../utils/DataTypeUtil';
 import { SettingsModel } from './../models/SettingsModel';
-import { assignRangeValues, getBucketingSeed, scaleVariationWeights } from './CampaignUtil';
+import { assignRangeValues, getBucketingSeed, isPartOfGroup, scaleVariationWeights } from './CampaignUtil';
 import { cloneObject } from './FunctionUtil';
 import { getUUID } from './UuidUtil';
+import { evaluateGroups } from './MegUtil';
+import { StorageService } from '../services/StorageService';
 
 export const checkWhitelistingAndPreSeg = async (
   settings: any,
+  feature: any,
   campaign: CampaignModel,
   context: any,
   isMegWinnerRule: boolean,
+  evaluatedFeatureMap: Map<string, any>,
+  megGroupWinnerCampaigns: Map<string, number>,
+  storageService: StorageService,
   decision: any,
 ): Promise<[boolean, any]> => {
   const vwoUserId = getUUID(context.id, settings.accountId);
 
-  // only check whitelisting for ab campaigns
   if (campaign.getType() === CampaignTypeEnum.AB) {
     // set _vwoUserId for variation targeting variables
     context.variationTargetingVariables = Object.assign({}, context.variationTargetingVariables, {
@@ -66,8 +71,40 @@ export const checkWhitelistingAndPreSeg = async (
   });
   Object.assign(decision, { customVariables: context.customVariables }); // for integeration
 
+  const { groupId, groupName } = isPartOfGroup(settings, campaign.getId());
+
+  // true if group is already evaluated
+  if (megGroupWinnerCampaigns && megGroupWinnerCampaigns.get(groupId)) {
+    // check if the campaign is the winner of the group
+    if (campaign.getId() == megGroupWinnerCampaigns.get(groupId)) {
+      return [true, null];
+    }
+    // as group is already evaluated, no need to check again, return false directly
+    return [false, null];
+  }
+
   // check for campaign pre segmentation
   const preSegmentationResult = await new CampaignDecisionService().getDecision(campaign, settings, context);
+
+  if (preSegmentationResult && groupId) {
+    const winnerCampaign = await evaluateGroups(
+      settings,
+      feature.key,
+      feature,
+      groupId,
+      evaluatedFeatureMap,
+      context,
+      storageService,
+      decision,
+    );
+
+    if (winnerCampaign && winnerCampaign.id === campaign.getId()) {
+      return [true, null];
+    }
+    megGroupWinnerCampaigns.set(groupId, winnerCampaign?.id || 0);
+    return [false, null];
+  }
+
   return [preSegmentationResult, null];
 };
 

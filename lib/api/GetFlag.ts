@@ -28,7 +28,7 @@ import { LogManager } from '../modules/logger';
 import { SegmentationManager } from '../modules/segmentor';
 import HooksManager from '../services/HooksManager';
 import { StorageService } from '../services/StorageService';
-import { getVariationByCampaignKey, isPartOfGroup } from '../utils/CampaignUtil';
+import { getVariationByCampaignKey } from '../utils/CampaignUtil';
 import { isObject } from '../utils/DataTypeUtil';
 import { checkWhitelistingAndPreSeg, evaluateTrafficAndGetVariation } from '../utils/DecisionUtil';
 import {
@@ -38,7 +38,6 @@ import {
   getFeatureNameFromKey,
   getSpecificRulesBasedOnType,
 } from '../utils/FunctionUtil';
-import { evaluateGroups } from '../utils/MegUtil';
 import { NetworkUtil } from '../utils/NetworkUtil';
 import { Deferred } from '../utils/PromiseUtil';
 
@@ -70,8 +69,6 @@ export class FlagApi implements IGetFlag {
       context,
       storageService,
     );
-
-    let campArray = [];
 
     if (storedData?.experimentVariationId) {
       if (storedData.experimentKey) {
@@ -113,6 +110,7 @@ export class FlagApi implements IGetFlag {
         );
         LogManager.Instance.info(`Evaluation experiement campaigns now for the user ${context.id}`);
         isEnabled = true;
+        shouldCheckForAbPersonalise = true;
         rolloutVariationToReturn = variation;
         const featureInfo = {
           rolloutId: storedData.rolloutId,
@@ -145,16 +143,19 @@ export class FlagApi implements IGetFlag {
       // if rollout rules are present and shouldCheckForAB is false, then check for rollout rules only
       for (const rule of rollOutRules) {
         // evaluateRuleResult - true/ false (based pre segment condition)
-        const [evaluateRuleResult, temp, tempCampArray] = await evaluateRule(
+        const [evaluateRuleResult, ] = await evaluateRule(
           settings,
           feature,
           rule,
           context,
           false,
+          evaluatedFeatureMap,
+          null,
+          storageService,
           decision,
         );
-        campArray = campArray.concat(tempCampArray);
         if (evaluateRuleResult) {
+          // if pre segment passed, then break the loop and check the traffic allocation
           ruleToTrack.push(rule);
           evaluatedFeatureMap.set(featureKey, {
             rolloutId: rule.id,
@@ -172,15 +173,13 @@ export class FlagApi implements IGetFlag {
 
     if (ruleToTrack.length > 0) {
       const campaign = new CampaignModel().modelFromDictionary(ruleToTrack.pop());
-      const [variation, tempCampArray] = this.trafficCheckAndReturnVariation(
+      const variation = this.trafficCheckAndReturnVariation(
         settings,
-        feature,
         campaign,
         context,
         rulesInformation,
         decision,
       );
-      campArray = campArray.concat(tempCampArray);
       if (isObject(variation) && Object.keys(variation).length > 0) {
         isEnabled = true;
         shouldCheckForAbPersonalise = true;
@@ -191,91 +190,20 @@ export class FlagApi implements IGetFlag {
     if (shouldCheckForAbPersonalise) {
       // if rollout rule is passed, get all ab and personalise rules
       const allRules = getAllAbAndPersonaliseRules(settings, featureKey);
-      const listOfMegCampaignsGroups = []; // to store megGroups
-      let ruleIndex = 0;
-      const campaignToSkip = [];
+      const megGroupWinnerCampaigns: Map<string, number> = new Map();
       for (const rule of allRules) {
-        // loop over all ab and personalize rules
-        ruleIndex++;
-        const group = isPartOfGroup(settings, rule.id); // check if rule is part of any group
-        if (isObject(group) && Object.keys(group).length > 0) {
-          if (listOfMegCampaignsGroups.indexOf(group.groupId) === -1) {
-            listOfMegCampaignsGroups.push(group.groupId);
-          }
-          if (ruleIndex === allRules.length) {
-            // if last rule, then evaluate MEG campaigns
-            LogManager.Instance.debug(`Evaluating MEG campaigns for the user ${context.id}`);
-            const [megResult, whitelistedVariationInfoWithCampaign, winnerCampaign] = await evaluateGroups(
-              settings,
-              featureKey,
-              feature,
-              listOfMegCampaignsGroups,
-              evaluatedFeatureMap,
-              context,
-              storageService,
-              campaignToSkip,
-              decision,
-            );
-            if (megResult) {
-              // if MEG campaign passed
-              if (winnerCampaign !== null) {
-                const winnerCampaignToPush = allRules.find((rule) => rule.id === winnerCampaign.id);
-                ruleToTrack.push(winnerCampaignToPush);
-              } else {
-                isEnabled = true;
-                experimentVariationToReturn = whitelistedVariationInfoWithCampaign.variation;
-                Object.assign(rulesInformation, {
-                  experimentId: whitelistedVariationInfoWithCampaign.experimentId,
-                  experimentKey: whitelistedVariationInfoWithCampaign.experimentKey,
-                  experimentVariationId: whitelistedVariationInfoWithCampaign.variationId,
-                });
-              }
-            }
-            break;
-          }
-          continue;
-        } else if (listOfMegCampaignsGroups.length > 0) {
-          // if group is not present and MEG groups are present, then evaluate MEG campaigns
-          LogManager.Instance.debug(`Evaluating MEG campaigns for the user ${context.id}`);
-          const [megResult, whitelistedVariationInfoWithCampaign, winnerCampaign] = await evaluateGroups(
-            settings,
-            featureKey,
-            feature,
-            listOfMegCampaignsGroups,
-            evaluatedFeatureMap,
-            context,
-            storageService,
-            campaignToSkip,
-            decision,
-          );
-          if (megResult) {
-            if (winnerCampaign !== null) {
-              const winnerCampaignToPush = allRules.find((rule) => rule.id === winnerCampaign.id);
-              ruleToTrack.push(winnerCampaignToPush);
-            } else {
-              isEnabled = true;
-              experimentVariationToReturn = whitelistedVariationInfoWithCampaign.variation;
-              Object.assign(rulesInformation, {
-                experimentId: whitelistedVariationInfoWithCampaign.experimentId,
-                experimentKey: whitelistedVariationInfoWithCampaign.experimentKey,
-                experimentVariationId: whitelistedVariationInfoWithCampaign.variationId,
-              });
-            }
-            break;
-          }
-          campaignToSkip.push(rule.id);
-        }
-
         // abPersonalizeResult - true/ false (based on whitelisting condition || pre segment condition)
-        const [abPersonalizeResult, whitelistedVariation, tempCampArray] = await evaluateRule(
+        const [abPersonalizeResult, whitelistedVariation] = await evaluateRule(
           settings,
           feature,
           rule,
           context,
           false,
+          evaluatedFeatureMap,
+          megGroupWinnerCampaigns,
+          storageService,
           decision,
         );
-        campArray = campArray.concat(tempCampArray);
         if (abPersonalizeResult) {
           if (whitelistedVariation === null) {
             // whitelistedVariation will be null if pre segment passed but whitelisting failed
@@ -291,21 +219,18 @@ export class FlagApi implements IGetFlag {
           }
           break;
         }
-        campaignToSkip.push(rule.id);
         continue;
       }
     }
     if (ruleToTrack.length > 0) {
       const campaign = new CampaignModel().modelFromDictionary(ruleToTrack.pop());
-      const [variation, tempCampArray] = this.trafficCheckAndReturnVariation(
+      const variation = this.trafficCheckAndReturnVariation(
         settings,
-        feature,
         campaign,
         context,
         rulesInformation,
         decision,
       );
-      campArray = campArray.concat(tempCampArray);
       if (isObject(variation) && Object.keys(variation).length > 0) {
         isEnabled = true;
         experimentVariationToReturn = variation;
@@ -326,16 +251,12 @@ export class FlagApi implements IGetFlag {
     }
     if (feature.impactCampaign?.campaignId) {
       LogManager.Instance.info(`Sending data for Impact Campaign for the user ${context.id}`);
-      campArray = campArray.concat(
-        createImpressionForVariationShown(
-          settings,
-          feature,
-          { id: feature.impactCampaign?.campaignId },
-          context,
-          { id: isEnabled ? 2 : 1 },
-          true,
-        ),
-      );
+      createImpressionForVariationShown(
+        settings,
+        { id: feature.impactCampaign?.campaignId },
+        context,
+        { id: isEnabled ? 2 : 1 },
+      )
     }
     deferredObject.resolve({
       isEnabled: () => isEnabled,
@@ -348,7 +269,6 @@ export class FlagApi implements IGetFlag {
         const variable = variables.find((variable) => variable.key === key);
         return variable?.value ?? defaultValue;
       },
-      campArray: campArray,
     });
 
     return deferredObject.promise;
@@ -366,14 +286,12 @@ export class FlagApi implements IGetFlag {
 
   private trafficCheckAndReturnVariation(
     settings: any,
-    feature,
     campaign: any,
     context: any,
     rulesInformation: any,
     decision: any,
-  ): [VariationModel, any] {
+  ): VariationModel {
     const variation = evaluateTrafficAndGetVariation(settings, campaign, context.id);
-    let campArray = [];
     if (isObject(variation) && Object.keys(variation).length > 0) {
       if (campaign.getType() === CampaignTypeEnum.ROLLOUT) {
         Object.assign(rulesInformation, {
@@ -389,10 +307,10 @@ export class FlagApi implements IGetFlag {
         });
       }
       Object.assign(decision, rulesInformation);
-      campArray = createImpressionForVariationShown(settings, feature, campaign, context, variation);
-      return [variation, campArray];
+      createImpressionForVariationShown(settings, campaign, context, variation);
+      return variation;
     }
-    return [null, campArray];
+    return null;
   }
 }
 
@@ -408,18 +326,24 @@ export const evaluateRule = async (
   rule: any,
   context: any,
   isMegWinnerRule: boolean,
+  evaluatedFeatureMap: Map<string, any>,
+  megGroupWinnerCampaigns: Map<string, number>,
+  storageService: StorageService,
   decision: any,
-): Promise<[boolean, any, any]> => {
+): Promise<[boolean, any]> => {
   // evaluate the dsl
   const campaign: CampaignModel = new CampaignModel();
-  let campArray = [];
   campaign.modelFromDictionary(rule);
   // check for whitelisting and pre segmentation
   const [preSegmentationResult, whitelistedObject] = await checkWhitelistingAndPreSeg(
     settings,
+    feature,
     campaign,
     context,
     isMegWinnerRule,
+    evaluatedFeatureMap,
+    megGroupWinnerCampaigns,
+    storageService,
     decision,
   );
 
@@ -430,28 +354,24 @@ export const evaluateRule = async (
       experimentKey: campaign.getKey(),
       experimentVariationId: whitelistedObject.variationId,
     });
-    campArray = createImpressionForVariationShown(
+    createImpressionForVariationShown(
       settings,
-      feature,
       campaign,
       context,
       whitelistedObject.variation,
     );
   }
 
-  return [preSegmentationResult, whitelistedObject, campArray];
+  return [preSegmentationResult, whitelistedObject];
 };
 
 const createImpressionForVariationShown = (
   settings: any,
-  feature: any,
   campaign: any,
   user: any,
   variation: any,
-  isImpactCampaign: boolean = false,
 ) => {
   const networkUtil = new NetworkUtil();
-  const campArray = [];
   const properties = networkUtil.getEventsBaseProperties(
     settings,
     EventEnum.VWO_VARIATION_SHOWN,
@@ -467,7 +387,5 @@ const createImpressionForVariationShown = (
     user.userAgent,
     user.ipAddress,
   );
-  campArray.push({ campaignId: campaign.id, variationId: variation.id });
   networkUtil.sendPostApiRequest(properties, payload);
-  return campArray;
 };

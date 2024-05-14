@@ -69,7 +69,7 @@ export class SegmentationManager {
           LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
           this.evaluator.context._vwo = {};
         }
-    }
+      }
   }
 
   /**

@@ -13,7 +13,7 @@
     "lint:errors-only": "node -e 'require(\"./scripts/check-versions\")([\"node_lint\"])' && eslint **/*.ts' --fix --quiet",
     "prepare": "husky",
     "prettier": "prettier -w lib/**/*.ts *.md",
-    "test:dev": "jest --watch --runInBand --debug --colors --errorOnDeprecated",
+    "test:dev": "node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated",
     "test:prod": "jest --runInBand --colors --errorOnDeprecated",
     "test:coverage": "jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info",
     "tsc": "yarn check:versions && tsc -w"

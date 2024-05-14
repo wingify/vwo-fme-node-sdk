@@ -59,13 +59,7 @@ export const BASIC_ROLLOUT_TESTING_RULE_SETTINGS = {
         "type": "json"
       }],
       "id": 1,
-      "segments": {
-        "or": [{
-          "custom_variable": {
-            "price": "gt(100)"
-          }
-        }]
-      },
+      "segments": {},
       "weight": 100,
       "name": "Rollout-rule-1"
     }],

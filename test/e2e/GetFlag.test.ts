@@ -38,8 +38,13 @@ describe('VWO', () => {
     };
     const vwoClient = await init(options);
 
-    const context = { id: 'user_id' };
-    const featureFlag = await vwoClient.getFlag('feature1', context);
+    const userContext = {
+      id: 'user_id',
+      customVariables: {
+        price: 200
+      }
+    };
+    const featureFlag = await vwoClient.getFlag('feature1', userContext);
 
     expect(featureFlag.isEnabled()).toBe(true);
     expect(featureFlag.getVariable('int')).toBe(11);

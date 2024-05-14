@@ -171,6 +171,18 @@ export class SegmentOperandEvaluator {
     } else if (matchWithRegex(operand, SegmentOperandRegexEnum.REGEX_MATCH)) {
       operandType = SegmentOperandValueEnum.REGEX_VALUE;
       operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.REGEX_MATCH);
+    } else if (matchWithRegex(operand, SegmentOperandRegexEnum.GREATER_THAN_MATCH)) {
+      operandType = SegmentOperandValueEnum.GREATER_THAN_VALUE;
+      operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.GREATER_THAN_MATCH);
+    } else if (matchWithRegex(operand, SegmentOperandRegexEnum.GREATER_THAN_EQUAL_TO_MATCH)) {
+      operandType = SegmentOperandValueEnum.GREATER_THAN_EQUAL_TO_VALUE;
+      operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.GREATER_THAN_EQUAL_TO_MATCH);
+    } else if (matchWithRegex(operand, SegmentOperandRegexEnum.LESS_THAN_MATCH)) {
+      operandType = SegmentOperandValueEnum.LESS_THAN_VALUE;
+      operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.LESS_THAN_MATCH);
+    } else if (matchWithRegex(operand, SegmentOperandRegexEnum.LESS_THAN_EQUAL_TO_MATCH)) {
+      operandType = SegmentOperandValueEnum.LESS_THAN_EQUAL_TO_VALUE;
+      operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.LESS_THAN_EQUAL_TO_MATCH);
     } else {
       operandType = SegmentOperandValueEnum.EQUAL_VALUE;
       operandValue = operand;
@@ -267,6 +279,42 @@ export class SegmentOperandEvaluator {
           result = !!pattern.test(tagValue);
         } catch (err) {
           result = false;
+        }
+        break;
+      case SegmentOperandValueEnum.GREATER_THAN_VALUE:
+        if (tagValue !== null) {
+          try {
+            result = parseFloat(operandValue) < parseFloat(tagValue);
+          } catch (err) {
+            result = false;
+          }
+        }
+        break;
+      case SegmentOperandValueEnum.GREATER_THAN_EQUAL_TO_VALUE:
+        if (tagValue !== null) {
+          try {
+            result = parseFloat(operandValue) <= parseFloat(tagValue);
+          } catch (err) {
+            result = false;
+          }
+        }
+        break;
+      case SegmentOperandValueEnum.LESS_THAN_VALUE:
+        if (tagValue !== null) {
+          try {
+            result = parseFloat(operandValue) > parseFloat(tagValue);
+          } catch (err) {
+            result = false;
+          }
+        }
+        break;
+      case SegmentOperandValueEnum.LESS_THAN_EQUAL_TO_VALUE:
+        if (tagValue !== null) {
+          try {
+            result = parseFloat(operandValue) >= parseFloat(tagValue);
+          } catch (err) {
+            result = false;
+          }
         }
         break;
       default:

@@ -15,7 +15,7 @@
  */
 import { StorageDecorator } from '../../../decorators/StorageDecorator';
 import { UrlEnum } from '../../../enums/UrlEnum';
-import { SettingsModel } from '../../../models/SettingsModel';
+import { SettingsModel } from '../../../models/settings/SettingsModel';
 import { LogManager } from '../../logger';
 import { StorageService } from '../../../services/StorageService';
 import { dynamic } from '../../../types/Common';
@@ -24,11 +24,13 @@ import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum';
 import { Segmentation } from '../Segmentation';
 import { getKeyValue } from '../utils/SegmentUtil';
 import { SegmentOperandEvaluator } from './SegmentOperandEvaluator';
+import { ContextModel } from '../../../models/user/ContextModel';
+import { FeatureModel } from '../../../models/campaign/FeatureModel';
 
 export class SegmentEvaluator implements Segmentation {
-  context: any;
-  settings: any;
-  feature: any;
+  context: ContextModel;
+  settings: SettingsModel;
+  feature: FeatureModel;
 
   /**
    * Validates if the segmentation defined in the DSL is applicable based on the provided properties.
@@ -186,15 +188,15 @@ export class SegmentEvaluator implements Segmentation {
    */
   async checkLocationPreSegmentation(locationMap: Record<string, dynamic>): Promise<boolean> {
     // Ensure user's IP address is available
-    if (!this.context?.ipAddress || this.context?.ipAddress === undefined){
+    if (this.context?.getIpAddress() === undefined){
       LogManager.Instance.info('To evaluate location pre Segment, please pass ipAddress in context object');
       return false;
     }
     // Check if location data is available and matches the expected values
-    if (!this.context?._vwo?.location || this.context?._vwo?.location === undefined || this.context?._vwo?.location === null) {
+    if (!this.context?.getVwo()?.getLocation() || this.context?.getVwo()?.getLocation() === undefined || this.context?.getVwo()?.getLocation() === null) {
       return false;
     }
-    return this.valuesMatch(locationMap, this.context?._vwo?.location);
+    return this.valuesMatch(locationMap, this.context?.getVwo()?.getLocation());
   }
 
   /**
@@ -204,16 +206,16 @@ export class SegmentEvaluator implements Segmentation {
    */
   async checkUserAgentParser(uaParserMap: Record<string, string[]>): Promise<boolean> {
     // Ensure user's user agent is available
-    if (!this.context?.userAgent || this.context?.userAgent === undefined){
+    if (!this.context?.getUserAgent() || this.context?.getUserAgent() === undefined){
       LogManager.Instance.info('To evaluate user agent related segments, please pass userAgent in context object');
       return false;
     }
     // Check if user agent data is available and matches the expected values
-    if (!this.context?._vwo?.ua_info  || this.context?._vwo?.ua_info  === undefined || this.context?._vwo?.ua_info  === 'false') {
+    if (!this.context?.getVwo()?.getUaInfo() || this.context?.getVwo()?.getUaInfo() === undefined) {
       return false;
     }
 
-    return this.checkValuePresent(uaParserMap, this.context?._vwo.ua_info);
+    return this.checkValuePresent(uaParserMap, this.context?.getVwo()?.getUaInfo());
   }
 
 
@@ -224,10 +226,10 @@ export class SegmentEvaluator implements Segmentation {
    * @param user The user object to check against.
    * @returns A Promise resolving to a boolean indicating if the feature is enabled for the user.
    */
-  async checkInUserStorage(settings: SettingsModel, featureKey: string, user: any): Promise<any> {
+  async checkInUserStorage(settings: SettingsModel, featureKey: string, context: ContextModel): Promise<any> {
     const storageService = new StorageService();
     // Retrieve feature data from storage
-    const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(featureKey, user, storageService);
+    const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(featureKey, context, storageService);
 
     // Check if the stored data is an object and not empty
     if (isObject(storedData) && Object.keys(storedData).length > 0) {

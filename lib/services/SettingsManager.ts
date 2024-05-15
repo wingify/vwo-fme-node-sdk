@@ -21,7 +21,7 @@ import { NetworkManager, RequestModel, ResponseModel } from '../modules/networki
 import { Deferred } from '../utils/PromiseUtil';
 
 import { Constants } from '../constants';
-import { SettingsModel } from '../models/SettingsModel';
+import { SettingsModel } from '../models/settings/SettingsModel';
 import { NetworkUtil } from '../utils/NetworkUtil';
 
 interface ISettingsManager {

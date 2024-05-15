@@ -60,9 +60,7 @@ export class FeatureModel {
 
     if (feature.rulesLinkedCampaign && feature.rulesLinkedCampaign.constructor !== {}.constructor) {
       const linkedCampaignList: Array<CampaignModel> = feature.rulesLinkedCampaign;
-      linkedCampaignList.forEach((linkedCampaign) => {
-        this.rulesLinkedCampaign.push(new CampaignModel().modelFromDictionary(linkedCampaign));
-      });
+      this.rulesLinkedCampaign = linkedCampaignList;
     }
 
     return this;
@@ -90,5 +88,17 @@ export class FeatureModel {
 
   getImpactCampaign(): ImpactCapmaignModel {
     return this.impactCampaign;
+  }
+
+  getRulesLinkedCampaign(): Array<CampaignModel> {
+    return this.rulesLinkedCampaign;
+  }
+
+  setRulesLinkedCampaign(rulesLinkedCampaign: Array<CampaignModel>): void {
+    this.rulesLinkedCampaign = rulesLinkedCampaign;
+  }
+
+  getMetrics(): Array<MetricModel> {
+    return this.metrics;
   }
 }

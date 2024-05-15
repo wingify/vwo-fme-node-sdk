@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { FeatureModel } from '../models/campaign/FeatureModel';
 import { Constants } from '../constants';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
-import { CampaignModel } from '../models/CampaignModel';
-import { SettingsModel } from '../models/SettingsModel';
+import { CampaignModel } from '../models/campaign/CampaignModel';
+import { SettingsModel } from '../models/settings/SettingsModel';
 // import { VariableModel } from '../models/VariableModel';
-import { VariationModel } from '../models/VariationModel';
+import { VariationModel } from '../models/campaign/VariationModel';
 import { LogManager } from '../modules/logger';
 
 /**
@@ -93,13 +94,13 @@ export function scaleVariationWeights(variations: any) {
  * @param {string} [groupId] - The optional group ID.
  * @returns {string} The bucketing seed.
  */
-export function getBucketingSeed(userId, campaign, groupId) {
+export function getBucketingSeed(userId: string, campaign: CampaignModel, groupId: number) {
   // Return a seed combining group ID and user ID if group ID is provided
   if (groupId) {
     return `${groupId}_${userId}`;
   }
   // Return a seed combining campaign ID and user ID otherwise
-  return `${campaign.id}_${userId}`;
+  return `${campaign.getId()}_${userId}`;
 }
 
 /**
@@ -109,7 +110,7 @@ export function getBucketingSeed(userId, campaign, groupId) {
  * @param {string} variationId - The ID of the variation to retrieve.
  * @returns {VariationModel | null} The found variation model or null if not found.
  */
-export function getVariationByCampaignKey(settings, campaignKey, variationId) {
+export function getVariationByCampaignKey(settings: SettingsModel, campaignKey: string, variationId: number) {
   // Find the campaign by its key
   const campaign: CampaignModel = settings.getCampaigns().find((campaign: CampaignModel) => {
     return campaign.getKey() === campaignKey;
@@ -150,12 +151,12 @@ export function setCampaignAllocation(campaigns: any[]) {
  * @param {string} campaignId - The ID of the campaign to check.
  * @returns {Object} An object containing the group ID and name if the campaign is part of a group, otherwise an empty object.
  */
-export function isPartOfGroup(settings: any, campaignId: any) {
+export function isPartOfGroup(settings: SettingsModel, campaignId: any) {
   // Check if the campaign is associated with a group and return the group details
-  if (settings.campaignGroups && settings.campaignGroups.hasOwnProperty(campaignId)) {
+  if (settings.getCampaignGroups() && settings.getCampaignGroups().hasOwnProperty(campaignId)) {
     return {
-      groupId: settings.campaignGroups[campaignId],
-      groupName: settings.groups[settings.campaignGroups[campaignId]].name,
+      groupId: settings.getCampaignGroups()[campaignId],
+      groupName: settings.getGroups()[settings.getCampaignGroups()[campaignId]].name,
     };
   }
   return {};
@@ -167,14 +168,14 @@ export function isPartOfGroup(settings: any, campaignId: any) {
  * @param {string} featureKey - The key of the feature to find groups for.
  * @returns {Array} An array of groups associated with the feature.
  */
-export function findGroupsFeaturePartOf(settings: any, featureKey: string) {
+export function findGroupsFeaturePartOf(settings: SettingsModel, featureKey: string) {
   const campaignIds: Array<number> = [];
   // Loop over all rules inside the feature where the feature key matches and collect all campaign IDs
-  settings.features.forEach((feature) => {
-    if (feature.key === featureKey) {
-      feature.rules.forEach((rule) => {
-        if (campaignIds.indexOf(rule.campaignId) === -1) {
-          campaignIds.push(rule.campaignId);
+  settings.getFeatures().forEach((feature) => {
+    if (feature.getKey() === featureKey) {
+      feature.getRules().forEach((rule) => {
+        if (campaignIds.indexOf(rule.getCampaignId()) === -1) {
+          campaignIds.push(rule.getCampaignId());
         }
       });
     }
@@ -201,7 +202,7 @@ export function findGroupsFeaturePartOf(settings: any, featureKey: string) {
  * @param {any} groupId - The ID of the group.
  * @returns {Array} An array of campaigns associated with the specified group ID.
  */
-export function getCampaignsByGroupId(settings: SettingsModel, groupId: any) {
+export function getCampaignsByGroupId(settings: SettingsModel, groupId: number) {
   const group = settings.getGroups()[groupId];
   if (group) {
     return group.campaigns; // Return the campaigns associated with the group
@@ -273,9 +274,9 @@ export function assignRangeValuesMEG(data: any, currentAllocation: number) {
  * @param {number} campaignId - The campaign ID to find the rule type for.
  * @returns {string} The rule type if found, otherwise an empty string.
  */
-export function getRuleTypeUsingCampaignIdFromFeature(feature: any, campaignId: number) {
-  const rule = feature.rules.find((rule) => rule.campaignId === campaignId);
-  return rule ? rule.type : ''; // Return the rule type if found
+export function getRuleTypeUsingCampaignIdFromFeature(feature: FeatureModel, campaignId: number) {
+  const rule = feature.getRules().find((rule) => rule.getCampaignId() === campaignId);
+  return rule ? rule.getType() : ''; // Return the rule type if found
 }
 
 /**

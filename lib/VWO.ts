@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { VWOBuilder } from './VWOBuilder';
-import { SettingsModel } from './models/SettingsModel';
+import { SettingsModel } from './models/settings/SettingsModel';
 import { dynamic } from './types/Common';
 import { isObject, isString } from './utils/DataTypeUtil';
 import { Deferred } from './utils/PromiseUtil';

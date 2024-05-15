@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { setVariationAllocation } from '../utils/CampaignUtil';
-import { SettingsModel } from '../models/SettingsModel';
-import { CampaignModel } from '../models/CampaignModel';
+import { SettingsModel } from '../models/settings/SettingsModel';
+import { CampaignModel } from '../models/campaign/CampaignModel';
 import { dynamic } from '../types/Common';
-import { FeatureModel } from '../models/FeatureModel';
+import { FeatureModel } from '../models/campaign/FeatureModel';
 
 export function processSettings(settings: SettingsModel): SettingsModel {
   const parsedSettings: SettingsModel = new SettingsModel(settings);

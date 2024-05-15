@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { FeatureModel } from '../models/FeatureModel';
-import { SettingsModel } from '../models/SettingsModel';
+import { FeatureModel } from '../models/campaign/FeatureModel';
+import { SettingsModel } from '../models/settings/SettingsModel';
 
 import { StorageDecorator } from '../decorators/StorageDecorator';
 import { ApiEnum } from '../enums/ApiEnum';
 import { EventEnum } from '../enums/EventEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
-import { CampaignModel } from '../models/CampaignModel';
-import { VariableModel } from '../models/VariableModel';
-import { VariationModel } from '../models/VariationModel';
+import { CampaignModel } from '../models/campaign/CampaignModel';
+import { VariableModel } from '../models/campaign/VariableModel';
+import { VariationModel } from '../models/campaign/VariationModel';
 import { LogManager } from '../modules/logger';
 import { SegmentationManager } from '../modules/segmentor';
 import HooksManager from '../services/HooksManager';
@@ -40,19 +40,20 @@ import {
 } from '../utils/FunctionUtil';
 import { NetworkUtil } from '../utils/NetworkUtil';
 import { Deferred } from '../utils/PromiseUtil';
+import { ContextModel } from '../models/user/ContextModel';
+import { StorageDataModel } from '../models/storage/StorageDataModel';
 
 interface IGetFlag {
-  get(featureKey: string, settings: SettingsModel, context: any, hookManager: HooksManager): Promise<FeatureModel>;
+  get(featureKey: string, settings: SettingsModel, context: ContextModel, hookManager: HooksManager): Promise<FeatureModel>;
 }
 
 export class FlagApi implements IGetFlag {
   async get(
     featureKey: string,
     settings: SettingsModel,
-    context: any,
+    context: ContextModel,
     hookManager: HooksManager,
   ): Promise<FeatureModel> {
-    // initialize contextUtil object
     const decision = this.createDecision(settings, featureKey, context);
     let isEnabled = false;
     let rolloutVariationToReturn = null;
@@ -80,7 +81,7 @@ export class FlagApi implements IGetFlag {
 
         if (variation) {
           LogManager.Instance.info(
-            `Variation ${variation.getKey()} found in storage for the user ${context.id} for the experiment campaign ${storedData.experimentKey}`,
+            `Variation ${variation.getKey()} found in storage for the user ${context.getId()} for the experiment campaign ${storedData.experimentKey}`,
           );
           deferredObject.resolve({
             isEnabled: () => true,
@@ -106,9 +107,9 @@ export class FlagApi implements IGetFlag {
       );
       if (variation) {
         LogManager.Instance.info(
-          `Variation ${variation.getKey()} found in storage for the user ${context.id} for the rollout campaign ${storedData.rolloutKey}`,
+          `Variation ${variation.getKey()} found in storage for the user ${context.getId()} for the rollout campaign ${storedData.rolloutKey}`,
         );
-        LogManager.Instance.info(`Evaluation experiement campaigns now for the user ${context.id}`);
+        LogManager.Instance.info(`Evaluation experiement campaigns now for the user ${context.getId()}`);
         isEnabled = true;
         shouldCheckForAbPersonalise = true;
         rolloutVariationToReturn = variation;
@@ -138,7 +139,7 @@ export class FlagApi implements IGetFlag {
       });
       return deferredObject.promise;
     }
-    const rollOutRules = getSpecificRulesBasedOnType(settings, featureKey, CampaignTypeEnum.ROLLOUT); // get all rollout rules
+    const rollOutRules = getSpecificRulesBasedOnType(feature, CampaignTypeEnum.ROLLOUT); // get all rollout rules
     if (rollOutRules.length > 0 && !isEnabled) {
       // if rollout rules are present and shouldCheckForAB is false, then check for rollout rules only
       for (const rule of rollOutRules) {
@@ -148,7 +149,6 @@ export class FlagApi implements IGetFlag {
           feature,
           rule,
           context,
-          false,
           evaluatedFeatureMap,
           null,
           storageService,
@@ -158,9 +158,9 @@ export class FlagApi implements IGetFlag {
           // if pre segment passed, then break the loop and check the traffic allocation
           ruleToTrack.push(rule);
           evaluatedFeatureMap.set(featureKey, {
-            rolloutId: rule.id,
-            rolloutKey: rule.key,
-            rolloutVariationId: rule.variations[0].id,
+            rolloutId: rule.getId(),
+            rolloutKey: rule.getKey(),
+            rolloutVariationId: rule.getVariations()[0].getId(),
           });
           break;
         }
@@ -190,7 +190,7 @@ export class FlagApi implements IGetFlag {
     if (shouldCheckForAbPersonalise) {
       // if rollout rule is passed, get all ab and personalise rules
       const allRules = getAllAbAndPersonaliseRules(settings, featureKey);
-      const megGroupWinnerCampaigns: Map<string, number> = new Map();
+      const megGroupWinnerCampaigns: Map<number, number> = new Map();
       for (const rule of allRules) {
         // abPersonalizeResult - true/ false (based on whitelisting condition || pre segment condition)
         const [abPersonalizeResult, whitelistedVariation] = await evaluateRule(
@@ -198,7 +198,6 @@ export class FlagApi implements IGetFlag {
           feature,
           rule,
           context,
-          false,
           evaluatedFeatureMap,
           megGroupWinnerCampaigns,
           storageService,
@@ -212,7 +211,7 @@ export class FlagApi implements IGetFlag {
             isEnabled = true;
             experimentVariationToReturn = whitelistedVariation.variation;
             Object.assign(rulesInformation, {
-              experimentId: rule.id,
+              experimentId: rule.getId(),
               experimentKey: whitelistedVariation.experimentKey,
               experimentVariationId: whitelistedVariation.variationId,
             });
@@ -241,7 +240,7 @@ export class FlagApi implements IGetFlag {
       new StorageDecorator().setDataInStorage(
         {
           featureKey,
-          user: context,
+          context,
           ...rulesInformation,
         },
         storageService,
@@ -249,13 +248,13 @@ export class FlagApi implements IGetFlag {
       hookManager.set(decision);
       hookManager.execute(hookManager.get());
     }
-    if (feature.impactCampaign?.campaignId) {
-      LogManager.Instance.info(`Sending data for Impact Campaign for the user ${context.id}`);
+    if (feature.getImpactCampaign()?.getCampaignId()) {
+      LogManager.Instance.info(`Sending data for Impact Campaign for the user ${context.getId()}`);
       createImpressionForVariationShown(
         settings,
-        { id: feature.impactCampaign?.campaignId },
-        context,
-        { id: isEnabled ? 2 : 1 },
+        feature.getImpactCampaign()?.getCampaignId(),
+        isEnabled ? 2 : 1,
+        context
       )
     }
     deferredObject.resolve({
@@ -274,24 +273,24 @@ export class FlagApi implements IGetFlag {
     return deferredObject.promise;
   }
 
-  private createDecision(settings: SettingsModel, featureKey: string, context: any): any {
+  private createDecision(settings: SettingsModel, featureKey: string, context: ContextModel): any {
     return {
       featureName: getFeatureNameFromKey(settings, featureKey),
       featureId: getFeatureIdFromKey(settings, featureKey),
       featureKey,
-      userId: context.id,
+      userId: context.getId(),
       api: ApiEnum.GET_FLAG,
     };
   }
 
   private trafficCheckAndReturnVariation(
-    settings: any,
-    campaign: any,
-    context: any,
+    settings: SettingsModel,
+    campaign: CampaignModel,
+    context: ContextModel,
     rulesInformation: any,
     decision: any,
   ): VariationModel {
-    const variation = evaluateTrafficAndGetVariation(settings, campaign, context.id);
+    const variation = evaluateTrafficAndGetVariation(settings, campaign, context.getId());
     if (isObject(variation) && Object.keys(variation).length > 0) {
       if (campaign.getType() === CampaignTypeEnum.ROLLOUT) {
         Object.assign(rulesInformation, {
@@ -307,7 +306,7 @@ export class FlagApi implements IGetFlag {
         });
       }
       Object.assign(decision, rulesInformation);
-      createImpressionForVariationShown(settings, campaign, context, variation);
+      createImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
       return variation;
     }
     return null;
@@ -321,26 +320,21 @@ export class FlagApi implements IGetFlag {
  * @returns
  */
 export const evaluateRule = async (
-  settings: any,
-  feature: any,
-  rule: any,
-  context: any,
-  isMegWinnerRule: boolean,
+  settings: SettingsModel,
+  feature: FeatureModel,
+  campaign: CampaignModel,
+  context: ContextModel,
   evaluatedFeatureMap: Map<string, any>,
-  megGroupWinnerCampaigns: Map<string, number>,
+  megGroupWinnerCampaigns: Map<number, number>,
   storageService: StorageService,
   decision: any,
 ): Promise<[boolean, any]> => {
-  // evaluate the dsl
-  const campaign: CampaignModel = new CampaignModel();
-  campaign.modelFromDictionary(rule);
   // check for whitelisting and pre segmentation
   const [preSegmentationResult, whitelistedObject] = await checkWhitelistingAndPreSeg(
     settings,
     feature,
     campaign,
     context,
-    isMegWinnerRule,
     evaluatedFeatureMap,
     megGroupWinnerCampaigns,
     storageService,
@@ -356,9 +350,9 @@ export const evaluateRule = async (
     });
     createImpressionForVariationShown(
       settings,
-      campaign,
-      context,
-      whitelistedObject.variation,
+      campaign.getId(),
+      whitelistedObject.variation.id,
+      context
     );
   }
 
@@ -366,26 +360,26 @@ export const evaluateRule = async (
 };
 
 const createImpressionForVariationShown = (
-  settings: any,
-  campaign: any,
-  user: any,
-  variation: any,
+  settings: SettingsModel,
+  campaignId: number,
+  variationId: number,
+  context: ContextModel,
 ) => {
   const networkUtil = new NetworkUtil();
   const properties = networkUtil.getEventsBaseProperties(
     settings,
     EventEnum.VWO_VARIATION_SHOWN,
-    encodeURIComponent(user.userAgent),
-    user.ipAddress,
+    encodeURIComponent(context.getUserAgent()),
+    context.getIpAddress(),
   );
   const payload = networkUtil.getTrackUserPayloadData(
     settings,
-    user.id,
+    context.getId(),
     EventEnum.VWO_VARIATION_SHOWN,
-    campaign.id,
-    variation.id,
-    user.userAgent,
-    user.ipAddress,
+    campaignId,
+    variationId,
+    context.getUserAgent(),
+    context.getIpAddress(),
   );
   networkUtil.sendPostApiRequest(properties, payload);
 };

@@ -21,7 +21,7 @@ import { SetAttributeApi } from './api/SetAttribute';
 import { TrackApi } from './api/TrackEvent';
 
 import { DebugLogMessageEnum } from './enums/log-messages/DebugLogMessageEnum';
-import { SettingsModel } from './models/SettingsModel';
+import { SettingsModel } from './models/settings/SettingsModel';
 
 import { ErrorLogMessageEnum } from './enums/log-messages/ErrorLogMessageEnum';
 import { dynamic } from './types/Common';
@@ -34,14 +34,15 @@ import { getType, isObject, isString } from './utils/DataTypeUtil';
 import { addLinkedCampaignsToSettings } from './utils/FunctionUtil';
 import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
+import { ContextModel } from './models/user/ContextModel';
 
 interface IVWOClient {
   readonly options?: any;
   settings: SettingsModel;
 
-  getFlag(featureKey: string, context: any): Record<any, any>;
-  trackEvent(eventName: string, eventProperties: Record<string, dynamic>, context: any): Promise<Record<string, boolean>>;
-  setAttribute(attributeKey: string, attributeValue: string, context: any): void
+  getFlag(featureKey: string, context: ContextModel): Record<any, any>;
+  trackEvent(eventName: string, eventProperties: Record<string, dynamic>, context: ContextModel): Promise<Record<string, boolean>>;
+  setAttribute(attributeKey: string, attributeValue: string, context: ContextModel): void
 }
 
 export class VWOClient implements IVWOClient {
@@ -65,7 +66,6 @@ export class VWOClient implements IVWOClient {
       setVariationAllocation(campaign);
       campaigns[index] = campaign;
     });
-
     addLinkedCampaignsToSettings(this.settings);
     LogManager.Instance.info('VWO Client initialized');
     return this;
@@ -76,14 +76,14 @@ export class VWOClient implements IVWOClient {
    * This method validates the feature key and context, ensures the settings are valid, and then uses the FlagApi to get the flag value.
    *
    * @param {string} featureKey - The key of the feature to retrieve.
-   * @param {any} context - The context in which the feature flag is being retrieved, must include a valid user ID.
+   * @param {ContextModel} context - The context in which the feature flag is being retrieved, must include a valid user ID.
    * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
    */
-  getFlag(featureKey: string, context: any): Record<any, any> {
+  getFlag(featureKey: string, context: ContextModel): Record<any, any> {
     const apiName = 'getFlag';
     const deferredObject = new Deferred();
     const hookManager = new HooksManager(this.options);
-
+    const contextModel = new ContextModel().modelFromDictionary(context);
     try {
       LogManager.Instance.debug(
         buildMessage(DebugLogMessageEnum.API_CALLED, {
@@ -104,12 +104,12 @@ export class VWOClient implements IVWOClient {
         throw new Error('Invalid Settings');
       }
 
-      if (!context?.id) {
+      if (!contextModel?.getId()) {
         LogManager.Instance.error('User ID is not valid. Not able to get flag');
         throw new Error('Invalid context');
       }
 
-      new FlagApi().get(featureKey, this.settings, context, hookManager).then((data: any) => {
+      new FlagApi().get(featureKey, this.settings, contextModel, hookManager).then((data: any) => {
         deferredObject.resolve(data);
       });
 
@@ -132,16 +132,17 @@ export class VWOClient implements IVWOClient {
    *
    * @param {string} eventName - The name of the event to track.
    * @param {Record<string, dynamic>} eventProperties - The properties associated with the event.
-   * @param {any} context - The context in which the event is being tracked, must include a valid user ID.
+   * @param {ContextModel} context - The context in which the event is being tracked, must include a valid user ID.
    * @returns {Promise<Record<string, boolean>>} - A promise that resolves to the result of the tracking operation.
    */
   trackEvent(
     eventName: string,
     eventProperties: Record<string, dynamic> = {},
-    context: any,
+    context: ContextModel,
   ): Promise<Record<string, boolean>> {
     const apiName = 'trackEvent';
     const hookManager = new HooksManager(this.options);
+    const contextModel = new ContextModel().modelFromDictionary(context);
     try {
       // Log the API call
       LogManager.Instance.debug(
@@ -172,13 +173,13 @@ export class VWOClient implements IVWOClient {
       }
 
       // Validate user ID is present in context
-      if (!context?.id) {
+      if (!contextModel?.getId()) {
         LogManager.Instance.error('User ID is not valid. Not able to track event');
         throw new Error('Invalid context');
       }
 
       // Proceed with tracking the event
-      return new TrackApi().track(this.settings, eventName, eventProperties, context, hookManager);
+      return new TrackApi().track(this.settings, eventName, eventProperties, contextModel, hookManager);
     } catch (err) {
       // Log any errors encountered during the operation
       LogManager.Instance.error(
@@ -196,11 +197,12 @@ export class VWOClient implements IVWOClient {
    *
    * @param {string} attributeKey - The key of the attribute to set.
    * @param {string} attributeValue - The value of the attribute to set.
-   * @param {any} context - The context in which the attribute should be set, must include a valid user ID.
+   * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
    */
-  setAttribute(attributeKey: string, attributeValue: string, context: any): void {
+  setAttribute(attributeKey: string, attributeValue: string, context: ContextModel): void {
+    const contextModel = new ContextModel().modelFromDictionary(context);
     // Validate that attributeKey, attributeValue, and user ID in context are all strings
-    if (!isString(attributeKey) || !isString(attributeValue) || !isString(context?.id)) {
+    if (!isString(attributeKey) || !isString(attributeValue) || !isString(contextModel?.getId())) {
       LogManager.Instance.error(
         `Parameters passed to setAttribute API are not valid. Please check`,
       );
@@ -208,6 +210,6 @@ export class VWOClient implements IVWOClient {
       return; // Exit if validation fails
     }
     // Proceed with setting the attribute if validation is successful
-    new SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, context);
+    new SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, contextModel);
   }
 }

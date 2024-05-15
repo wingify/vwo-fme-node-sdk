@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ContextModel } from '../models/user/ContextModel';
 import { EventEnum } from '../enums/EventEnum';
 import { NetworkUtil } from '../utils/NetworkUtil';
+import { SettingsModel } from '../models/settings/SettingsModel';
 
 interface ISetAttribute {
   /**
@@ -24,7 +26,7 @@ interface ISetAttribute {
    * @param attributeValue The value of the attribute.
    * @param context Context containing user information.
    */
-  setAttribute(settings: any, attributeKey: string, attributeValue: any, context: any): void;
+  setAttribute(settings: SettingsModel, attributeKey: string, attributeValue: any, context: ContextModel): void;
 }
 
 export class SetAttributeApi implements ISetAttribute {
@@ -35,7 +37,7 @@ export class SetAttributeApi implements ISetAttribute {
    * @param attributeValue The value of the attribute.
    * @param context Context containing user information.
    */
-  setAttribute(settings: any, attributeKey: string, attributeValue: any, context: any): void {
+  setAttribute(settings: SettingsModel, attributeKey: string, attributeValue: any, context: ContextModel): void {
     createImpressionForAttribute(settings, attributeKey, attributeValue, context);
   }
 }
@@ -47,24 +49,24 @@ export class SetAttributeApi implements ISetAttribute {
  * @param attributeValue The value of the attribute.
  * @param user User details.
  */
-const createImpressionForAttribute = async (settings: any, attributeKey: string, attributeValue: any, user: any) => {
+const createImpressionForAttribute = async (settings: SettingsModel, attributeKey: string, attributeValue: any, context: ContextModel) => {
   const networkUtil = new NetworkUtil();
   // Retrieve base properties for the event
   const properties = networkUtil.getEventsBaseProperties(
     settings,
     EventEnum.VWO_SYNC_VISITOR_PROP,
-    user.userAgent,
-    user.ipAddress,
+    context.getUserAgent(),
+    context.getIpAddress(),
   );
   // Construct payload data for the attribute
   const payload = networkUtil.getAttributePayloadData(
     settings,
-    user.id,
+    context.getId(),
     EventEnum.VWO_SYNC_VISITOR_PROP,
     attributeKey,
     attributeValue,
-    user.userAgent,
-    user.ipAddress,
+    context.getUserAgent(),
+    context.getIpAddress(),
   );
 
   // Send the constructed payload via POST request

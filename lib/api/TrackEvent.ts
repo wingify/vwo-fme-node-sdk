@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ContextModel } from '../models/user/ContextModel';
 import { ApiEnum } from '../enums/ApiEnum';
 import { LogManager } from '../modules/logger';
 import HooksManager from '../services/HooksManager';
 import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
 import { NetworkUtil } from '../utils/NetworkUtil';
+import { SettingsModel } from '../models/settings/SettingsModel';
 
 interface ITrack {
   /**
@@ -30,10 +32,10 @@ interface ITrack {
    * @returns A promise that resolves to a record indicating the success or failure of the event tracking.
    */
   track(
-    settings: any,
+    settings: SettingsModel,
     eventName: string,
     eventProperties: any,
-    context: any,
+    context: ContextModel,
     hookManager: HooksManager,
   ): Promise<Record<string, boolean>>;
 }
@@ -44,10 +46,10 @@ export class TrackApi implements ITrack {
    * Checks if the event exists, creates an impression, and executes hooks.
    */
   async track(
-    settings: any,
+    settings: SettingsModel,
     eventName: string,
     eventProperties: any,
-    context: any,
+    context: ContextModel,
     hookManager: HooksManager,
   ): Promise<Record<string, boolean>> {
     if (doesEventBelongToAnyFeature(eventName, settings)) {
@@ -71,18 +73,18 @@ export class TrackApi implements ITrack {
  * @param user User details.
  * @param eventProperties Properties associated with the event.
  */
-const createImpressionForTrack = async (settings: any, eventName: string, user: any, eventProperties: any) => {
+const createImpressionForTrack = async (settings: SettingsModel, eventName: string, context: ContextModel, eventProperties: any) => {
   const networkUtil = new NetworkUtil();
   // Get base properties for the event
-  const properties = networkUtil.getEventsBaseProperties(settings, eventName, user.userAgent, user.ipAddress);
+  const properties = networkUtil.getEventsBaseProperties(settings, eventName, context.getUserAgent(), context.getIpAddress());
   // Prepare the payload for the track goal
   const payload = networkUtil.getTrackGoalPayloadData(
     settings,
-    user.id,
+    context.getId(),
     eventName,
     eventProperties,
-    user.userAgent,
-    user.ipAddress,
+    context?.getUserAgent(),
+    context?.getIpAddress(),
   );
   // Send the prepared payload via POST API request
   networkUtil.sendPostApiRequest(properties, payload);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { dynamic } from '../types/Common';
+import { dynamic } from '../../types/Common';
 
 export class VariableModel {
   private val: dynamic;

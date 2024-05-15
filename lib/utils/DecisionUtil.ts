@@ -16,62 +16,59 @@
 import { isPromise } from 'util/types';
 import { StatusEnum } from '../enums/StatusEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
-import { CampaignModel } from '../models/CampaignModel';
-import { VariationModel } from '../models/VariationModel';
+import { CampaignModel } from '../models/campaign/CampaignModel';
+import { VariationModel } from '../models/campaign/VariationModel';
 import { DecisionMaker } from '../modules/decision-maker';
 import { LogManager } from '../modules/logger';
 import { SegmentationManager } from '../modules/segmentor';
 import { CampaignDecisionService } from '../services/CampaignDecisionService';
 import { isObject } from '../utils/DataTypeUtil';
-import { SettingsModel } from './../models/SettingsModel';
+import { SettingsModel } from '../models/settings/SettingsModel';
 import { assignRangeValues, getBucketingSeed, isPartOfGroup, scaleVariationWeights } from './CampaignUtil';
 import { cloneObject } from './FunctionUtil';
 import { getUUID } from './UuidUtil';
 import { evaluateGroups } from './MegUtil';
 import { StorageService } from '../services/StorageService';
+import { ContextModel } from '../models/user/ContextModel';
+import { FeatureModel } from '../models/campaign/FeatureModel';
 
 export const checkWhitelistingAndPreSeg = async (
-  settings: any,
-  feature: any,
+  settings: SettingsModel,
+  feature: FeatureModel,
   campaign: CampaignModel,
-  context: any,
-  isMegWinnerRule: boolean,
+  context: ContextModel,
   evaluatedFeatureMap: Map<string, any>,
-  megGroupWinnerCampaigns: Map<string, number>,
+  megGroupWinnerCampaigns: Map<number, number>,
   storageService: StorageService,
   decision: any,
 ): Promise<[boolean, any]> => {
-  const vwoUserId = getUUID(context.id, settings.accountId);
+  const vwoUserId = getUUID(context.getId().toString(), settings.getAccountId());
 
   if (campaign.getType() === CampaignTypeEnum.AB) {
     // set _vwoUserId for variation targeting variables
-    context.variationTargetingVariables = Object.assign({}, context.variationTargetingVariables, {
-      _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.id,
-    });
-    Object.assign(decision, { variationTargetingVariables: context.variationTargetingVariables }); // for integration
+    context.setVariationTargetingVariables(Object.assign({}, context.getVariationTargetingVariables(), {
+      _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
+    }));
+    Object.assign(decision, { variationTargetingVariables: context.getVariationTargetingVariables() }); // for integration
     // check if the campaign satisfies the whitelisting
     if (campaign.getIsForcedVariationEnabled()) {
-      const whitelistedVariation = await checkForWhitelisting(campaign, campaign.getKey(), settings, context);
+      const whitelistedVariation = await checkForWhitelisting(campaign, campaign.getKey(), context);
       if (whitelistedVariation && Object.keys(whitelistedVariation).length > 0) {
         return [true, whitelistedVariation];
       }
     } else {
       LogManager.Instance.info(
-        `WHITELISTING_SKIPPED: Whitelisting is not used for Campaign:${campaign.getKey()}, hence skipping evaluating whitelisting for User ID:${context.id}`,
+        `WHITELISTING_SKIPPED: Whitelisting is not used for Campaign:${campaign.getKey()}, hence skipping evaluating whitelisting for User ID:${context.getId()}`,
       );
     }
   }
-
-  if (isMegWinnerRule) {
-    return [true, null]; // for MEG winner rule, no need to check for pre segmentation as it's already evaluated
-  }
   // userlist segment is also available for campaign pre segmentation
-  context.customVariables = Object.assign({}, context.customVariables, {
-    _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.id,
-  });
-  Object.assign(decision, { customVariables: context.customVariables }); // for integeration
+  context.setCustomVariables(Object.assign({}, context.getCustomVariables(), {
+    _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
+  }));
+  Object.assign(decision, { customVariables: context.getCustomVariables() }); // for integeration
 
-  const { groupId, groupName } = isPartOfGroup(settings, campaign.getId());
+  const { groupId } = isPartOfGroup(settings, campaign.getId());
 
   // true if group is already evaluated
   if (megGroupWinnerCampaigns && megGroupWinnerCampaigns.get(groupId)) {
@@ -89,13 +86,11 @@ export const checkWhitelistingAndPreSeg = async (
   if (preSegmentationResult && groupId) {
     const winnerCampaign = await evaluateGroups(
       settings,
-      feature.key,
       feature,
       groupId,
       evaluatedFeatureMap,
       context,
-      storageService,
-      decision,
+      storageService
     );
 
     if (winnerCampaign && winnerCampaign.id === campaign.getId()) {
@@ -117,14 +112,13 @@ export const checkWhitelistingAndPreSeg = async (
  * @returns
  */
 const checkForWhitelisting = async (
-  campaign: any,
+  campaign: CampaignModel,
   campaignKey: string,
-  settings: SettingsModel,
-  context: any,
+  context: ContextModel,
 ): Promise<any> => {
   let status;
   // check if the campaign satisfies the whitelisting
-  const whitelistingResult = await _evaluateWhitelisting(campaign, campaignKey, settings, context);
+  const whitelistingResult = await _evaluateWhitelisting(campaign, campaignKey, context);
   let variationString;
   if (whitelistingResult) {
     status = StatusEnum.PASSED;
@@ -134,7 +128,7 @@ const checkForWhitelisting = async (
     variationString = '';
   }
   LogManager.Instance.info(
-    `SEGMENTATION_STATUS: User ID:${context.id} for Campaign:${campaignKey} with variables:${JSON.stringify(context.variationTargetingVariables)} ${status} whitelisting ${variationString}`,
+    `SEGMENTATION_STATUS: User ID:${context.getId()} for Campaign:${campaignKey} with variables:${JSON.stringify(context.getVariationTargetingVariables())} ${status} whitelisting ${variationString}`,
   );
   return whitelistingResult;
 };
@@ -142,8 +136,7 @@ const checkForWhitelisting = async (
 const _evaluateWhitelisting = async (
   campaign: CampaignModel,
   campaignKey: string,
-  settings: SettingsModel,
-  context: any,
+  context: ContextModel,
 ): Promise<any> => {
   let whitelistedVariation;
   let status;
@@ -152,7 +145,7 @@ const _evaluateWhitelisting = async (
   campaign.getVariations().forEach((variation) => {
     if (isObject(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
       LogManager.Instance.debug(
-        `SEGMENTATION_SKIPPED: Segmentation is not used for Campaign:${campaignKey}, hence skipping evaluating segmentation ${variation} for User ID:${context.id}`,
+        `SEGMENTATION_SKIPPED: Segmentation is not used for Campaign:${campaignKey}, hence skipping evaluating segmentation ${variation} for User ID:${context.getId()}`,
       );
       return;
     }
@@ -160,8 +153,7 @@ const _evaluateWhitelisting = async (
     if (isObject(variation.getSegments())) {
       const SegmentEvaluatorResult = SegmentationManager.Instance.validateSegmentation(
         variation.getSegments(),
-        context.variationTargetingVariables,
-        settings,
+        context.getVariationTargetingVariables()
       );
       const promise = isPromise(SegmentEvaluatorResult)
         ? SegmentEvaluatorResult.then((evaluationResult) => {
@@ -196,7 +188,7 @@ const _evaluateWhitelisting = async (
     }
     whitelistedVariation = new CampaignDecisionService().getVariation(
       targetedVariations,
-      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.id, campaign, null)),
+      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId().toString(), campaign, null)),
     );
   } else {
     whitelistedVariation = targetedVariations[0];
@@ -212,11 +204,11 @@ const _evaluateWhitelisting = async (
 };
 
 export const evaluateTrafficAndGetVariation = (
-  settings: any,
+  settings: SettingsModel,
   campaign: CampaignModel,
-  userId: any,
+  userId: string | number,
 ): VariationModel => {
-  const variation = new CampaignDecisionService().getVariationAlloted(userId, settings.accountId, campaign);
+  const variation = new CampaignDecisionService().getVariationAlloted(userId, settings.getAccountId(), campaign);
   if (!variation) {
     LogManager.Instance.debug(
       `USER_NOT_BUCKETED: User ID:${userId} for Campaign:${campaign.getKey()} did not get any variation`,

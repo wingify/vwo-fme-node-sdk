@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { dynamic } from '../types/Common';
+import { dynamic } from '../../types/Common';
 import { MetricModel } from './MetricModel';
 import { VariableModel } from './VariableModel';
 import { VariationModel } from './VariationModel';
@@ -33,6 +33,9 @@ export class CampaignModel {
   private variations: Array<VariationModel> = [];
   private metrics: Array<MetricModel> = [];
   private variables: Array<VariableModel> = [];
+  private variationId: number;
+  private campaignId: number;
+  private ruleKey: string;
   // private featureId: number;
   // private featureKey: string;
 
@@ -97,6 +100,9 @@ export class CampaignModel {
     this.id = campaign.id;
     this.percentTraffic = campaign.percentTraffic; // campaign.pT ||
     this.name = campaign.name; // campaign.n ||
+    this.variationId = campaign.variationId; // campaign.vId ||
+    this.campaignId = campaign.campaignId; // campaign.cId ||
+    this.ruleKey = campaign.ruleKey; // campaign.rK ||
     // this.autoActivate =
     //   campaign.autoActivate !== undefined
     //     ? campaign.autoActivate

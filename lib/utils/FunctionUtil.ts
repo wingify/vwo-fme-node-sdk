@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CampaignModel } from '../models/campaign/CampaignModel';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
-import { SettingsModel } from '../models/SettingsModel';
+import { SettingsModel } from '../models/settings/SettingsModel';
 import { dynamic } from '../types/Common';
 import { isString } from './DataTypeUtil';
+import { FeatureModel } from '../models/campaign/FeatureModel';
 
 /**
  * Clones an object deeply.
@@ -62,26 +64,21 @@ export function getRandomNumber(): number {
 
 /**
  * Retrieves specific rules based on the type from a feature.
- * @param {any} settings - The settings containing features.
- * @param {string} featureKey - The key of the feature.
- * @param {string|null} type - The type of the rules to retrieve.
+ * @param {FeatureModel} feature - The key of the feature.
+ * @param {CampaignTypeEnum | null} type - The type of the rules to retrieve.
  * @returns {Array} An array of rules that match the type.
  */
-export function getSpecificRulesBasedOnType(settings, featureKey, type: any = null) {
-  // Retrieve the feature by its key
-  const feature = getFeatureFromKey(settings, featureKey);
+export function getSpecificRulesBasedOnType(feature: FeatureModel, type: CampaignTypeEnum = null) {
   // Return an empty array if no linked campaigns are found
-  if (feature && !feature.rulesLinkedCampaign) {
+  if (feature && !feature.getRulesLinkedCampaign()) {
     return [];
   }
-
   // Filter the rules by type if a type is specified and is a string
-  if (feature && feature.rulesLinkedCampaign && type && isString(type)) {
-    return feature.rulesLinkedCampaign.filter((rule) => rule.type === type);
+  if (feature && feature.getRulesLinkedCampaign() && type && isString(type)) {
+    return feature.getRulesLinkedCampaign().filter((rule) => rule.getType() === type);
   }
-
   // Return all linked campaigns if no type is specified
-  return feature.rulesLinkedCampaign;
+  return feature.getRulesLinkedCampaign();
 }
 
 /**
@@ -90,12 +87,12 @@ export function getSpecificRulesBasedOnType(settings, featureKey, type: any = nu
  * @param {string} featureKey - The key of the feature.
  * @returns {Array} An array of AB and Personalize rules.
  */
-export function getAllAbAndPersonaliseRules(settings, featureKey) {
+export function getAllAbAndPersonaliseRules(settings: SettingsModel, featureKey: string) {
   // Retrieve the feature by its key
   const feature = getFeatureFromKey(settings, featureKey);
   // Filter the rules to include only AB and Personalize types
-  return feature?.rulesLinkedCampaign.filter(
-    (rule) => rule.type === CampaignTypeEnum.AB || rule.type === CampaignTypeEnum.PERSONALIZE,
+  return feature?.getRulesLinkedCampaign().filter(
+    (rule) => rule.getType() === CampaignTypeEnum.AB || rule.getType() === CampaignTypeEnum.PERSONALIZE,
   ) || [];
 }
 
@@ -105,9 +102,9 @@ export function getAllAbAndPersonaliseRules(settings, featureKey) {
  * @param {string} featureKey - The key of the feature to find.
  * @returns {any} The feature if found, otherwise undefined.
  */
-export function getFeatureFromKey(settings, featureKey) {
+export function getFeatureFromKey(settings: SettingsModel, featureKey: string) {
   // Find the feature by its key
-  return settings?.features?.find((feature) => feature.key === featureKey);
+  return settings?.getFeatures()?.find((feature) => feature.getKey() === featureKey);
 }
 
 /**
@@ -143,10 +140,10 @@ export function getFeatureIdFromKey(settings: SettingsModel, featureKey: string)
  * @param {any} settings - The settings containing features.
  * @returns {boolean} True if the event exists, otherwise false.
  */
-export function doesEventBelongToAnyFeature(eventName: string, settings: any): boolean {
+export function doesEventBelongToAnyFeature(eventName: string, settings: SettingsModel): boolean {
   // Use the `some` method to check if any feature contains the event in its metrics
-  return settings.features.some(feature =>
-    feature.metrics.some(metric => metric.identifier === eventName)
+  return settings.getFeatures().some(feature =>
+    feature.getMetrics().some(metric => metric.getIdentifier() === eventName)
   );
 }
 
@@ -154,22 +151,22 @@ export function doesEventBelongToAnyFeature(eventName: string, settings: any): b
  * Adds linked campaigns to each feature in the settings based on rules.
  * @param {any} settings - The settings file to modify.
  */
-export function addLinkedCampaignsToSettings(settings: any): void {
+export function addLinkedCampaignsToSettings(settings: SettingsModel): void {
   // Create maps for quick access to campaigns and variations
-  const campaignMap = new Map(settings.campaigns.map(campaign => [campaign.id, campaign]));
+  const campaignMap = new Map<number, CampaignModel>(settings.getCampaigns().map(campaign => [campaign.getId(), campaign]));
 
   // Loop over all features
-  for (const feature of settings.features) {
-    const rulesLinkedCampaign = feature.rules.map(rule => {
-      const campaign: any = campaignMap.get(rule.campaignId);
+  for (const feature of settings.getFeatures()) {
+    const rulesLinkedCampaign = feature.getRules().map(rule => {
+      const campaign: CampaignModel = campaignMap.get(rule.getCampaignId());
       if (!campaign) return null;
 
       // Create a linked campaign object with the rule and campaign
-      const linkedCampaign = { key: campaign.key, ...rule, ...campaign };
+      const linkedCampaign: any = { key: campaign.getKey(), ...rule, ...campaign };
 
       // If a variationId is specified, find and add the variation
-      if (rule.variationId) {
-        const variation = campaign.variations.find(v => v.id === rule.variationId);
+      if (rule.getVariationId()) {
+        const variation = campaign.getVariations().find(v => v.getId() === rule.getVariationId());
         if (variation) {
           linkedCampaign.variations = [variation];
         }
@@ -177,8 +174,13 @@ export function addLinkedCampaignsToSettings(settings: any): void {
 
       return linkedCampaign;
     }).filter(campaign => campaign !== null); // Filter out any null entries
-
+    
+    const rulesLinkedCampaignModel = rulesLinkedCampaign.map((campaign) => {
+      const campaignModel = new CampaignModel();
+      campaignModel.modelFromDictionary(campaign);
+      return campaignModel;
+    });
     // Assign the linked campaigns to the feature
-    feature.rulesLinkedCampaign = rulesLinkedCampaign;
+    feature.setRulesLinkedCampaign(rulesLinkedCampaignModel);
   }
 }

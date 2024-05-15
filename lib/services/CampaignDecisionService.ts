@@ -17,13 +17,14 @@ import { DecisionMaker } from '../modules/decision-maker';
 import { LogManager } from '../modules/logger';
 import { SegmentationManager } from '../modules/segmentor';
 
-import { VariationModel } from '../models/VariationModel';
+import { VariationModel } from '../models/campaign/VariationModel';
 import { Constants } from '../constants';
 
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
-import { CampaignModel } from '../models/CampaignModel';
-import { SettingsModel } from '../models/SettingsModel';
+import { CampaignModel } from '../models/campaign/CampaignModel';
+import { SettingsModel } from '../models/settings/SettingsModel';
 import { isObject } from '../utils/DataTypeUtil';
+import { ContextModel } from '../models/user/ContextModel';
 
 interface ICampaignDecisionService {
   isUserPartOfCampaign(userId: any, campaign: CampaignModel): boolean;
@@ -120,7 +121,7 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     return this.getVariation(campaign.getVariations(), bucketValue);
   }
 
-  async getDecision(campaign: CampaignModel, settings: SettingsModel, context: any): Promise<any> {
+  async getDecision(campaign: CampaignModel, settings: SettingsModel, context: ContextModel): Promise<any> {
     // validate segmentation
     let segments = {};
     if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
@@ -131,26 +132,20 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     if (isObject(segments) && !Object.keys(segments).length) {
       LogManager.Instance.debug(
         `For userId:${
-          context.id
+          context.getId()
         } of Campaign:${campaign.getKey()}, segment was missing, hence skipping segmentation`,
       );
       return true;
     } else {
       const preSegmentationResult = await SegmentationManager.Instance.validateSegmentation(
         segments,
-        context.customVariables,
-        settings,
-        context,
-        // {
-        //   ipAddress: context.ipAddress,
-        //   userAgent : context.userAgent
-        // }
+        context.getCustomVariables()
       );
       if (!preSegmentationResult) {
-        LogManager.Instance.info(`Segmentation failed for userId:${context.id} of Campaign:${campaign.getKey()}`);
+        LogManager.Instance.info(`Segmentation failed for userId:${context.getId()} of Campaign:${campaign.getKey()}`);
         return false;
       }
-      LogManager.Instance.info(`Segmentation passed for userId:${context.id} of Campaign:${campaign.getKey()}`);
+      LogManager.Instance.info(`Segmentation passed for userId:${context.getId()} of Campaign:${campaign.getKey()}`);
       return true;
     }
   }

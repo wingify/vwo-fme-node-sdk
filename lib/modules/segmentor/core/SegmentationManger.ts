@@ -15,10 +15,12 @@
  */
 import { SegmentEvaluator } from '../evaluators/SegmentEvaluator';
 import { dynamic } from '../../../types/Common';
-import { SettingsModel } from '../../../models/SettingsModel';
+import { SettingsModel } from '../../../models/settings/SettingsModel';
 import { getFromWebService, getQueryParams } from '../../../utils/WebServiceUtil';
 import { UrlEnum } from '../../../enums/UrlEnum';
 import { LogManager } from '../../../modules/logger';
+import { ContextModel } from '../../../models/user/ContextModel';
+import { FeatureModel } from '../../../models/campaign/FeatureModel';
 
 export class SegmentationManager {
   private static instance: SegmentationManager; // Singleton instance of SegmentationManager
@@ -47,27 +49,25 @@ export class SegmentationManager {
    * @param {any} feature - The feature data including segmentation needs.
    * @param {any} context - The context data for the evaluation.
    */
-  async setContextualData(settings, feature, context) {
+  async setContextualData(settings: SettingsModel, feature: FeatureModel, context: ContextModel) {
       this.attachEvaluator(); // Ensure a fresh evaluator instance
       this.evaluator.settings = settings; // Set settings in evaluator
       this.evaluator.context = context; // Set context in evaluator
       this.evaluator.feature = feature; // Set feature in evaluator
-
-      if (!context?._vwo) {
+      if (context.getVwo()!== undefined && context.getVwo() !== null) {
         const queryParams = {};
-        if (context?.userAgent) {
-          queryParams['userAgent'] = context.userAgent;
+        if (context?.getUserAgent()) {
+          queryParams['userAgent'] = context.getUserAgent();
         }
 
-        if (context?.ipAddress) {
-          queryParams['ipAddress'] = context.ipAddress;
+        if (context?.getIpAddress()) {
+          queryParams['ipAddress'] = context.getIpAddress();
         }
         try {
           const params = getQueryParams(queryParams);
-          this.evaluator.context._vwo = await getFromWebService(params, UrlEnum.GET_USER_DATA);
+          this.evaluator.context.setVwo(await getFromWebService(params, UrlEnum.GET_USER_DATA));
         } catch (err) {
           LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
-          this.evaluator.context._vwo = {};
         }
       }
   }
@@ -82,9 +82,7 @@ export class SegmentationManager {
    */
   async validateSegmentation(
     dsl: Record<string, dynamic>,
-    properties: Record<any, dynamic>,
-    settings: SettingsModel,
-    context?: any,
+    properties: Record<any, dynamic>
   ): Promise<boolean> {
     return await this.evaluator.isSegmentationValid(dsl, properties); // Delegate to evaluator's method
   }

@@ -16,11 +16,12 @@
 import { LogManager } from '../modules/logger';
 
 import { StorageEnum } from '../enums/StorageEnum';
-import { FeatureModel } from '../models/FeatureModel';
-import { VariationModel } from '../models/VariationModel';
+import { FeatureModel } from '../models/campaign/FeatureModel';
+import { VariationModel } from '../models/campaign/VariationModel';
 import { StorageService } from '../services/StorageService';
 
 import { Deferred } from '../utils/PromiseUtil';
+import { ContextModel } from '../models/user/ContextModel';
 
 interface IStorageDecorator {
   /**
@@ -38,7 +39,7 @@ interface IStorageDecorator {
    * @param storageService The storage service instance.
    * @returns A promise that resolves to the retrieved feature or relevant status.
    */
-  getFeatureFromStorage(featureKey: FeatureModel, user: any, storageService: StorageService): Promise<any>;
+  getFeatureFromStorage(featureKey: FeatureModel, context: ContextModel, storageService: StorageService): Promise<any>;
 }
 
 export class StorageDecorator implements IStorageDecorator {
@@ -49,9 +50,9 @@ export class StorageDecorator implements IStorageDecorator {
    * @param storageService The storage service instance.
    * @returns A promise that resolves to the retrieved feature or relevant status.
    */
-  async getFeatureFromStorage(featureKey: any, user: any, storageService: StorageService): Promise<any> {
+  async getFeatureFromStorage(featureKey: any, context: ContextModel, storageService: StorageService): Promise<any> {
     const deferredObject = new Deferred();
-    storageService.getDataInStorage(featureKey, user).then((campaignMap: Record<any, any> | StorageEnum) => {
+    storageService.getDataInStorage(featureKey, context).then((campaignMap: Record<any, any> | StorageEnum) => {
       switch (campaignMap) {
         case StorageEnum.STORAGE_UNDEFINED:
           deferredObject.resolve(null); // No storage defined
@@ -89,7 +90,7 @@ export class StorageDecorator implements IStorageDecorator {
     const deferredObject = new Deferred();
     const {
       featureKey,
-      user,
+      context,
       rolloutId,
       rolloutKey,
       rolloutVariationId,
@@ -103,7 +104,7 @@ export class StorageDecorator implements IStorageDecorator {
       deferredObject.reject(); // Reject promise if feature key is invalid
       return;
     }
-    if (!user.id) {
+    if (!context.id) {
       LogManager.Instance.error(`User ID is not valid. Not able to store data into storage`);
       deferredObject.reject(); // Reject promise if user ID is invalid
       return;
@@ -123,7 +124,7 @@ export class StorageDecorator implements IStorageDecorator {
 
     storageService.setDataInStorage({
       featureKey,
-      user: user.id,
+      user: context.id,
       rolloutId,
       rolloutKey,
       rolloutVariationId,

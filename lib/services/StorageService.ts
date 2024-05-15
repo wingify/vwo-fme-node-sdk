@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ContextModel } from '../models/user/ContextModel';
 import { StorageEnum } from '../enums/StorageEnum';
 import { Storage } from '../modules/storage';
 import { dynamic } from '../types/Common';
@@ -29,7 +30,7 @@ export class StorageService {
    * @param user The user object containing at least an ID.
    * @returns A promise that resolves to the data retrieved or an error/storage status enum.
    */
-  async getDataInStorage(featureKey: any, user: any): Promise<Record<any, any>> {
+  async getDataInStorage(featureKey: any, context: ContextModel): Promise<Record<any, any>> {
     const deferredObject = new Deferred();
     const storageInstance = Storage.Instance.getConnector();
 
@@ -38,7 +39,7 @@ export class StorageService {
       deferredObject.resolve(StorageEnum.STORAGE_UNDEFINED);
     } else {
       storageInstance
-        .get(featureKey, user.id)
+        .get(featureKey, context.getId())
         .then((data: Record<string, any>) => {
           deferredObject.resolve(data);
         })

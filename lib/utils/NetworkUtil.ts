@@ -24,6 +24,7 @@ import { NetworkManager, RequestModel, ResponseModel } from '../modules/networki
 import UrlService from '../services/UrlService';
 import { dynamic } from '../types/Common';
 import { isObject } from './DataTypeUtil';
+import { SettingsModel } from '../models/settings/SettingsModel';
 
 export class NetworkUtil {
   /**
@@ -100,12 +101,12 @@ export class NetworkUtil {
    * @param {String} eventName
    * @returns properties
    */
-  getEventsBaseProperties(setting: any, eventName, visitorUserAgent = '', ipAddress = ''): any {
-    const sdkKey = setting.sdkKey;
+  getEventsBaseProperties(setting: SettingsModel, eventName: string, visitorUserAgent: string = '', ipAddress: string = ''): any {
+    const sdkKey = setting.getSdkkey();
 
     const properties = Object.assign({
       en: eventName,
-      a: setting.accountId,
+      a: setting.getAccountId(),
       env: sdkKey,
       eTime: getCurrentUnixTimestampInMillis(),
       random: getRandomNumber(),
@@ -125,9 +126,9 @@ export class NetworkUtil {
    * @param {String} eventName  event name
    * @returns properties
    */
-  getEventBasePayload(settings: any, userId: any, eventName: string, visitorUserAgent = '', ipAddress = '') {
-    const uuid = getUUID(userId, settings.accountId);
-    const sdkKey = settings.sdkKey;
+  getEventBasePayload(settings: SettingsModel, userId: string | number, eventName: string, visitorUserAgent = '', ipAddress = '') {
+    const uuid = getUUID(userId.toString(), settings.getAccountId());
+    const sdkKey = settings.getSdkkey();
 
     const props: {
       vwo_sdkName: string;
@@ -176,13 +177,13 @@ export class NetworkUtil {
    * @returns track-user payload
    */
   getTrackUserPayloadData(
-    settings: any,
-    userId: any,
+    settings: SettingsModel,
+    userId: string | number,
     eventName: string,
-    campaignId: any,
-    variationId: any,
-    visitorUserAgent = '',
-    ipAddress = '',
+    campaignId: number,
+    variationId: number,
+    visitorUserAgent: string = '',
+    ipAddress: string = '',
   ) {
     const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
 
@@ -191,7 +192,7 @@ export class NetworkUtil {
     properties.d.event.props.isFirst = 1;
 
     LogManager.Instance.debug(
-      `IMPRESSION_FOR_EVENT_ARCH_TRACK_USER: Impression built for vwo_variationShown event for Account ID:${settings.accountId}, User ID:${userId}, and Campaign ID:${campaignId}`,
+      `IMPRESSION_FOR_EVENT_ARCH_TRACK_USER: Impression built for vwo_variationShown event for Account ID:${settings.getAccountId()}, User ID:${userId}, and Campaign ID:${campaignId}`,
     );
 
     return properties;
@@ -208,7 +209,7 @@ export class NetworkUtil {
    * @returns {any} - The constructed payload data.
    */
   getTrackGoalPayloadData(
-    settings: any,
+    settings: SettingsModel,
     userId: any,
     eventName: string,
     eventProperties: any,
@@ -228,7 +229,7 @@ export class NetworkUtil {
     }
 
     LogManager.Instance.debug(
-      `IMPRESSION_FOR_EVENT_ARCH_TRACK_GOAL: Impression built for ${eventName} event for Account ID:${settings.accountId}, User ID:${userId}`,
+      `IMPRESSION_FOR_EVENT_ARCH_TRACK_GOAL: Impression built for ${eventName} event for Account ID:${settings.getAccountId()}, User ID:${userId}`,
     );
 
     return properties;
@@ -246,7 +247,7 @@ export class NetworkUtil {
    * @returns {any} - The constructed payload data.
    */
   getAttributePayloadData(
-    settings: any,
+    settings: SettingsModel,
     userId: any,
     eventName: string,
     attributeKey: any,
@@ -257,11 +258,11 @@ export class NetworkUtil {
     const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
 
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
-    properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settings.sdkKey; // Set environment key
+    properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
     properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
 
     LogManager.Instance.debug(
-      `IMPRESSION_FOR_EVENT_ARCH_SYNC_VISITOR_PROP: Impression built for ${eventName} event for Account ID:${settings.accountId}, User ID:${userId}`,
+      `IMPRESSION_FOR_EVENT_ARCH_SYNC_VISITOR_PROP: Impression built for ${eventName} event for Account ID:${settings.getAccountId()}, User ID:${userId}`,
     );
 
     return properties;

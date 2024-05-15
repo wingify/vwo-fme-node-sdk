@@ -21,6 +21,7 @@ import { dynamic } from '../../../types/Common';
 import { getFromWebService } from '../../../utils/WebServiceUtil';
 import { UrlEnum } from '../../../enums/UrlEnum';
 import { LogManager } from '../../logger';
+import { ContextModel } from '../../../models/user/ContextModel';
 
 /**
  * SegmentOperandEvaluator class provides methods to evaluate different types of DSL (Domain Specific Language)
@@ -106,13 +107,13 @@ export class SegmentOperandEvaluator {
    * @param {any} context - The context object containing the user agent string.
    * @returns {boolean} - True if the user agent matches the DSL condition, otherwise false.
    */
-  evaluateUserAgentDSL(dslOperandValue: Record<string, any>, context: any): boolean {
+  evaluateUserAgentDSL(dslOperandValue: Record<string, any>, context: ContextModel): boolean {
     const operand = dslOperandValue;
-    if (!context.userAgent || context.userAgent === undefined) {
+    if (!context.getUserAgent() || context.getUserAgent() === undefined) {
       LogManager.Instance.info('To Evaluate UserAgent segmentation, please provide userAgent in context');
       return false;
     }
-    let tagValue = decodeURIComponent(context.userAgent);
+    let tagValue = decodeURIComponent(context.getUserAgent());
     const { operandType, operandValue } = this.preProcessOperandValue(operand);
     const processedValues = this.processValues(operandValue, tagValue);
     tagValue = processedValues.tagValue as string; // Fix: Type assertion to ensure tagValue is of type string

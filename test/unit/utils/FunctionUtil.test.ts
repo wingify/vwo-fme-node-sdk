@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { features } from 'process';
 import { CampaignTypeEnum } from '../../../lib/enums/CampaignTypeEnum';
+import { FeatureModel } from '../../../lib/models/campaign/FeatureModel';
+import { SettingsModel } from '../../../lib/models/settings/SettingsModel';
 import {
   cloneObject,
   getCurrentUnixTimestamp,
@@ -69,7 +72,8 @@ describe('getSpecificRulesBasedOnType', () => {
         // no rulesLinkedCampaign property
       }]
     };
-    const result = getSpecificRulesBasedOnType(settings, 'feature1');
+    const setting = new SettingsModel(settings);
+    const result = getSpecificRulesBasedOnType(new FeatureModel().modelFromDictionary(settings.features), 'feature1');
     expect(result).toEqual([]);
   });
 

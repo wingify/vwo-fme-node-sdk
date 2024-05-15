@@ -15,7 +15,7 @@
  */
 import { Struct, array, boolean, number, object, optional, string, union, validate } from 'superstruct';
 import { dynamic } from '../../types/Common';
-import { SettingsModel } from '../SettingsModel';
+import { SettingsModel } from '../settings/SettingsModel';
 
 export class SettingsSchema {
   private campaignGoalSchema: Struct<dynamic>;

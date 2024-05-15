@@ -22,7 +22,7 @@ import { SegmentationManager } from './modules/segmentor';
 import { Storage } from './modules/storage';
 
 import { VWOClient } from './VWOClient';
-import { SettingsModel } from './models/SettingsModel';
+import { SettingsModel } from './models/settings/SettingsModel';
 import { SettingsManager } from './services/SettingsManager';
 import { processSettings } from './utils/SettingsUtil';
 // import { BatchEventsQueue } from './services/batchEventsQueue';

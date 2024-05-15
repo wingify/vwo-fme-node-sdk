@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CampaignModel } from './CampaignModel';
-import { FeatureModel } from './FeatureModel';
+import { CampaignModel } from '../campaign/CampaignModel';
+import { FeatureModel } from '../campaign/FeatureModel';
 
 export class SettingsModel {
   private sK: string;

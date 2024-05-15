@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { dynamic } from "../../types/Common";
-import { VwoModel } from "./VwoModel";
+import { ContextVWOModel } from "./ContextVWOModel";
 
 export class ContextModel {
     private id: string | number;
@@ -22,7 +22,7 @@ export class ContextModel {
     private ipAddress: string;
     private customVariables: Record<string, any>;
     private variationTargetingVariables: Record<string, dynamic>;
-    private _vwo: VwoModel;
+    private _vwo: ContextVWOModel;
   
     modelFromDictionary(context: ContextModel): this {
       this.id = context.id;
@@ -60,7 +60,7 @@ export class ContextModel {
         return this.variationTargetingVariables;
     }
 
-    getVwo(): VwoModel {
+    getVwo(): ContextVWOModel {
         return this._vwo;
     }
 
@@ -72,7 +72,7 @@ export class ContextModel {
         this.variationTargetingVariables = variationTargetingVariables;
     }
 
-    setVwo(_vwo: VwoModel): void {
+    setVwo(_vwo: ContextVWOModel): void {
         this._vwo = _vwo;
     }
   }

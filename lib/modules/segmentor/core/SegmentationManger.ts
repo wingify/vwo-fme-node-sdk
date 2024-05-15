@@ -16,7 +16,7 @@
 import { SegmentEvaluator } from '../evaluators/SegmentEvaluator';
 import { dynamic } from '../../../types/Common';
 import { SettingsModel } from '../../../models/settings/SettingsModel';
-import { getFromWebService, getQueryParams } from '../../../utils/WebServiceUtil';
+import { getFromGatewayService, getQueryParams } from '../../../utils/GatewayServiceUtil';
 import { UrlEnum } from '../../../enums/UrlEnum';
 import { LogManager } from '../../../modules/logger';
 import { ContextModel } from '../../../models/user/ContextModel';
@@ -65,7 +65,7 @@ export class SegmentationManager {
         }
         try {
           const params = getQueryParams(queryParams);
-          this.evaluator.context.setVwo(await getFromWebService(params, UrlEnum.GET_USER_DATA));
+          this.evaluator.context.setVwo(await getFromGatewayService(params, UrlEnum.GET_USER_DATA));
         } catch (err) {
           LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
         }

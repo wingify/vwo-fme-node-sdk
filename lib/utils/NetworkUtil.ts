@@ -133,10 +133,10 @@ export class NetworkUtil {
     const props: {
       vwo_sdkName: string;
       vwo_sdkVersion: string;
-      vwo_envKey: any;
-      id?: any;
-      variation?: any;
-      isFirst?: any;
+      vwo_envKey: string;
+      id?: string | number;
+      variation?: string | number;
+      isFirst?: number;
       isCustomEvent?: boolean;
     } = {
       vwo_sdkName: Constants.SDK_NAME,
@@ -210,11 +210,11 @@ export class NetworkUtil {
    */
   getTrackGoalPayloadData(
     settings: SettingsModel,
-    userId: any,
+    userId: string | number,
     eventName: string,
-    eventProperties: any,
-    visitorUserAgent = '',
-    ipAddress = '',
+    eventProperties: Record<string, any>,
+    visitorUserAgent: string = '',
+    ipAddress: string = '',
   ) {
     const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
@@ -248,12 +248,12 @@ export class NetworkUtil {
    */
   getAttributePayloadData(
     settings: SettingsModel,
-    userId: any,
+    userId: string | number,
     eventName: string,
-    attributeKey: any,
-    attributeValue: any,
-    visitorUserAgent = '',
-    ipAddress = '',
+    attributeKey: string,
+    attributeValue: dynamic,
+    visitorUserAgent: string = '',
+    ipAddress: string = '',
   ) {
     const properties = this.getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
 

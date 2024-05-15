@@ -17,8 +17,7 @@ import { UrlEnum } from '../enums/UrlEnum';
 import { LogManager } from '../modules/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../modules/networking';
 import UrlService from '../services/UrlService';
-import { dynamic } from '../types/Common';
-import { Deferred } from '../utils/PromiseUtil';
+import { Deferred } from './PromiseUtil';
 
 /**
  * Asynchronously retrieves data from a web service using the specified query parameters and endpoint.
@@ -26,7 +25,7 @@ import { Deferred } from '../utils/PromiseUtil';
  * @param endpoint - The endpoint URL to which the request is sent.
  * @returns A promise that resolves to the response data or false if an error occurs.
  */
-export async function getFromWebService(queryParams: any, endpoint: any): Promise<any> {
+export async function getFromGatewayService(queryParams: any, endpoint: any): Promise<any> {
   // Create a new deferred object to manage promise resolution
   const deferredObject = new Deferred();
   // Singleton instance of the network manager
@@ -35,7 +34,7 @@ export async function getFromWebService(queryParams: any, endpoint: any): Promis
   // Check if the base URL is not set correctly
   if (UrlService.getBaseUrl() === UrlEnum.BASE_URL) {
     // Log an informational message about the invalid URL
-    LogManager.Instance.info('Invalid URL. Please provide a valid URL for vwo helper webService');
+    LogManager.Instance.info('Invalid URL. Please provide a valid URL for vwo helper gatewayService');
     // Resolve the promise with false indicating an error or invalid state
     deferredObject.resolve(false);
     return deferredObject.promise;

@@ -40,25 +40,25 @@ export class FeatureModel {
       this.impactCampaign = new ImpactCapmaignModel().modelFromDictionary(feature.impactCampaign);
     }
 
-    if ((feature.m && feature.m.constructor === {}.constructor) || feature.metrics.constructor === {}.constructor) {
+    if ((feature.m && feature.m.constructor === {}.constructor) || feature.metrics?.constructor === {}.constructor) {
       this.metrics = [];
     } else {
       const metricList: Array<MetricModel> = feature.m || feature.metrics;
-      metricList.forEach((metric) => {
+      metricList?.forEach((metric) => {
         this.metrics.push(new MetricModel().modelFromDictionary(metric));
       });
     }
 
-    if (feature.rules.constructor === {}.constructor) {
+    if (feature?.rules?.constructor === {}.constructor) {
       this.rules = [];
     } else {
       const ruleList: Array<RuleModel> = feature.rules;
-      ruleList.forEach((rule) => {
+      ruleList?.forEach((rule) => {
         this.rules.push(new RuleModel().modelFromDictionary(rule));
       });
     }
 
-    if (feature.rulesLinkedCampaign && feature.rulesLinkedCampaign.constructor !== {}.constructor) {
+    if (feature?.rulesLinkedCampaign && feature.rulesLinkedCampaign?.constructor !== {}.constructor) {
       const linkedCampaignList: Array<CampaignModel> = feature.rulesLinkedCampaign;
       this.rulesLinkedCampaign = linkedCampaignList;
     }

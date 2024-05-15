@@ -34,7 +34,7 @@ interface ISettingsManager {
 
 export class SettingsManager implements ISettingsManager {
   sdkKey: string;
-  accountId: any;
+  accountId: number;
   expiry: number;
   networkTimeout: number;
   settingsUrl: string;
@@ -46,8 +46,8 @@ export class SettingsManager implements ISettingsManager {
     this.expiry = options?.settings?.expiry || Constants.SETTINGS_EXPIRY;
     this.networkTimeout = options?.settings?.timeout || Constants.SETTINGS_TIMEOUT;
 
-    if (options?.webService?.url) {
-      const parsedUrl = new URL(`https://${options.webService.url}`);
+    if (options?.gatewayService?.url) {
+      const parsedUrl = new URL(`https://${options.gatewayService.url}`);
       this.settingsUrl = parsedUrl.hostname;
       this.settingsPort = parseInt(parsedUrl.port);
     } else {

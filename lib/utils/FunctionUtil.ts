@@ -19,6 +19,7 @@ import { SettingsModel } from '../models/settings/SettingsModel';
 import { dynamic } from '../types/Common';
 import { isString } from './DataTypeUtil';
 import { FeatureModel } from '../models/campaign/FeatureModel';
+import { RuleModel } from '../models/campaign/RuleModel';
 
 /**
  * Clones an object deeply.
@@ -70,12 +71,15 @@ export function getRandomNumber(): number {
  */
 export function getSpecificRulesBasedOnType(feature: FeatureModel, type: CampaignTypeEnum = null) {
   // Return an empty array if no linked campaigns are found
-  if (feature && !feature.getRulesLinkedCampaign()) {
+  if (feature && !feature?.getRulesLinkedCampaign()) {
     return [];
   }
   // Filter the rules by type if a type is specified and is a string
   if (feature && feature.getRulesLinkedCampaign() && type && isString(type)) {
-    return feature.getRulesLinkedCampaign().filter((rule) => rule.getType() === type);
+    return feature.getRulesLinkedCampaign().filter((rule) => {
+      const ruleModel = new CampaignModel().modelFromDictionary(rule);
+      return ruleModel.getType() === type;
+    });
   }
   // Return all linked campaigns if no type is specified
   return feature.getRulesLinkedCampaign();

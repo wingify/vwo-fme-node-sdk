@@ -57,7 +57,7 @@ export class VWOClient implements IVWOClient {
     this.settings = new SettingsModel(settings);
     UrlService.init({
       collectionPrefix: this.settings.getCollectionPrefix(),
-      webServiceUrl: options?.webService?.url,
+      gatewayServiceUrl: options?.gatewayService?.url,
     });
 
     // Optimize loop by avoiding multiple calls to `getCampaigns()`

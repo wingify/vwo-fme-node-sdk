@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-export class VwoModel {
+export class ContextVWOModel {
     private location: Record<string, string>;
-    private ua_info: Record<string, string>;
+    private userAgent: Record<string, string>;
   
-    modelFromDictionary(context: VwoModel): this {
+    modelFromDictionary(context: ContextVWOModel): this {
       if (context?.location) {
         this.location = context.location;
       }
 
-      if (context?.ua_info) {
-        this.ua_info = context.ua_info;
+      if (context?.userAgent) {
+        this.userAgent = context.userAgent;
       }
       return this;
     }
@@ -34,7 +34,7 @@ export class VwoModel {
     }
 
     getUaInfo(): Record<string, string> {
-        return this.ua_info;
+        return this.userAgent;
     }
   }
   

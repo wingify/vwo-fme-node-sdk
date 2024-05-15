@@ -18,34 +18,34 @@ import { isString } from '../utils/DataTypeUtil';
 
 interface UrlServiceType {
   collectionPrefix?: string;
-  webServiceUrl?: string;
+  gatewayServiceUrl?: string;
   port?: number;
-  init({ collectionPrefix, webServiceUrl }?: { collectionPrefix?: string; webServiceUrl?: string }): UrlServiceType;
+  init({ collectionPrefix, gatewayServiceUrl }?: { collectionPrefix?: string; gatewayServiceUrl?: string }): UrlServiceType;
   getBaseUrl(): string;
   getPort(): number;
 }
 
 const UrlService: UrlServiceType = {
   /**
-   * Initializes the UrlService with optional collectionPrefix and webServiceUrl.
+   * Initializes the UrlService with optional collectionPrefix and gatewayServiceUrl.
    * If provided, these values are set after validation.
    * @param {string} [collectionPrefix] - Optional prefix for URL collections.
-   * @param {string} [webServiceUrl] - Optional web service URL.
+   * @param {string} [gatewayServiceUrl] - Optional web service URL.
    * @returns {UrlServiceType} The instance of UrlService with updated properties.
    */
-  init({ collectionPrefix, webServiceUrl }: { collectionPrefix?: string; webServiceUrl?: any } = {}) {
+  init({ collectionPrefix, gatewayServiceUrl }: { collectionPrefix?: string; gatewayServiceUrl?: any } = {}) {
     // Set collectionPrefix if it is a valid string
     if (collectionPrefix && isString(collectionPrefix)) {
       UrlService.collectionPrefix = collectionPrefix;
     }
 
-    // Parse and set webServiceUrl and port if webServiceUrl is a valid string
-    if (webServiceUrl && isString(webServiceUrl)) {
-      const parsedUrl = new URL(`https://${webServiceUrl}`);
-      UrlService.webServiceUrl = parsedUrl.hostname;
+    // Parse and set gatewayServiceUrl and port if gatewayServiceUrl is a valid string
+    if (gatewayServiceUrl && isString(gatewayServiceUrl)) {
+      const parsedUrl = new URL(`https://${gatewayServiceUrl}`);
+      UrlService.gatewayServiceUrl = parsedUrl.hostname;
       UrlService.port = parseInt(parsedUrl.port) || 80; // Default to port 80 if no port specified
     } else {
-      UrlService.port = 80; // Default port if no webServiceUrl provided
+      UrlService.port = 80; // Default port if no gatewayServiceUrl provided
     }
 
     return UrlService;
@@ -53,15 +53,15 @@ const UrlService: UrlServiceType = {
 
   /**
    * Retrieves the base URL.
-   * If webServiceUrl is set, it returns that; otherwise, it constructs the URL using baseUrl and collectionPrefix.
+   * If gatewayServiceUrl is set, it returns that; otherwise, it constructs the URL using baseUrl and collectionPrefix.
    * @returns {string} The base URL.
    */
   getBaseUrl() {
     const baseUrl: string = UrlEnum.BASE_URL;
 
-    // Return the webServiceUrl if it exists
-    if (UrlService.webServiceUrl) {
-      return UrlService.webServiceUrl;
+    // Return the gatewayServiceUrl if it exists
+    if (UrlService.gatewayServiceUrl) {
+      return UrlService.gatewayServiceUrl;
     }
 
     // Construct URL with collectionPrefix if it exists

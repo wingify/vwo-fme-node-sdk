@@ -18,7 +18,7 @@ import { SegmentOperandValueEnum } from '../enums/SegmentOperandValueEnum';
 import { SegmentOperandRegexEnum } from '../enums/SegmentOperandRegexEnum';
 import { isBoolean } from '../../../utils/DataTypeUtil';
 import { dynamic } from '../../../types/Common';
-import { getFromWebService } from '../../../utils/WebServiceUtil';
+import { getFromGatewayService } from '../../../utils/GatewayServiceUtil';
 import { UrlEnum } from '../../../enums/UrlEnum';
 import { LogManager } from '../../logger';
 import { ContextModel } from '../../../models/user/ContextModel';
@@ -65,7 +65,7 @@ export class SegmentOperandEvaluator {
 
       // Make a web service call to check the attribute against the list
       try {
-        const res = await getFromWebService(queryParamsObj, UrlEnum.ATTRIBUTE_CHECK);
+        const res = await getFromGatewayService(queryParamsObj, UrlEnum.ATTRIBUTE_CHECK);
         if (!res || res === undefined || res === 'false' || res.status === 0) {
           return false;
         }

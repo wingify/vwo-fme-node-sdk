@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { VWOOptionsModel } from './models/VWOOptionsModel';
+import { IVWOOptions } from './models/VWOOptionsModel';
 import { VWOBuilder } from './VWOBuilder';
 import { SettingsModel } from './models/settings/SettingsModel';
 import { dynamic } from './types/Common';
 import { isObject, isString } from './utils/DataTypeUtil';
 import { Deferred } from './utils/PromiseUtil';
+import { IVWOClient, VWOClient } from './VWOClient';
 
 export class VWO {
   private static vwoBuilder: VWOBuilder;
@@ -30,7 +31,7 @@ export class VWO {
    * @param {Record<string, dynamic>} options - Configuration options for the VWO instance.
    * @returns The instance of VWO.
    */
-  constructor(options: VWOOptionsModel) {
+  constructor(options: IVWOOptions) {
     return VWO.setInstance(options);
   }
 
@@ -40,8 +41,8 @@ export class VWO {
    * @param {Record<string, dynamic>} options - Configuration options for setting up VWO.
    * @returns A Promise resolving to the configured VWO instance.
    */
-  private static async setInstance(options: VWOOptionsModel) {
-    const optionsVWOBuilder: any = options?.getVWOBuilder();
+  private static setInstance(options: IVWOOptions) {
+    const optionsVWOBuilder: any = options?.vwoBuilder;
     this.vwoBuilder = optionsVWOBuilder || new VWOBuilder(options);
 
     this.instance = this.vwoBuilder
@@ -70,29 +71,30 @@ export class VWO {
 }
 
 let _global: Record<string, any> = {};
-
 /**
- * Initializes a VWO instance with the provided options.
- * Validates the options and creates a new VWO instance.
- * @param {VWOOptionsModel} options - Configuration options for initializing VWO.
- * @returns A Promise resolving to the initialized VWO instance.
+ * Initializes a new instance of VWO with the provided options.
+ * @param options Configuration options for the VWO instance.
+ * @property {string} sdkKey - The SDK key for the VWO account.
+ * @property {string} accountId - The account ID for the VWO account.
+ * @property {GatewayServiceModel} gatewayService - The gateway service configuration.
+ * @property {StorageService} storage - The storage configuration. 
+* @returns 
  */
-export async function init(options: VWOOptionsModel) {
-  const optionsModel = new VWOOptionsModel().modelFromDictionary(options); // 
+
+export async function init(options: IVWOOptions): Promise<IVWOClient>{
   if (!isObject(options)) {
     throw new Error('Options should be of type object.'); // Ensures options is an object.
   }
 
-  if (!optionsModel.getSdkKey() || !isString(optionsModel.getSdkKey())) {
+  if (!options?.sdkKey || !isString(options?.sdkKey)) {
     throw new Error('Please provide the sdkKey in the options and should be a of type string'); // Validates sdkKey presence and type.
   }
 
-  if (!optionsModel.getAccountId()) {
+  if (!options.accountId) {
     throw new Error('Please provide VWO account ID in the options and should be a of type string|number'); // Validates accountId presence and type.
   }
 
-
-  const instance: any = new VWO(optionsModel); // Creates a new VWO instance with the validated options.
+  const instance: any = new VWO(options); // Creates a new VWO instance with the validated options.
 
   _global = {
     vwoInitDeferred: new Deferred(),

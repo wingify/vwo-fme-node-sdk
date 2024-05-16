@@ -18,11 +18,11 @@ import { ContextVWOModel } from "./ContextVWOModel";
 
 export class ContextModel {
     private id: string | number;
-    private userAgent: string;
-    private ipAddress: string;
-    private customVariables: Record<string, any>;
-    private variationTargetingVariables: Record<string, dynamic>;
-    private _vwo: ContextVWOModel;
+    private userAgent?: string;
+    private ipAddress?: string;
+    private customVariables?: Record<string, any>;
+    private variationTargetingVariables?: Record<string, dynamic>;
+    private _vwo?: ContextVWOModel;
   
     modelFromDictionary(context: ContextModel): this {
       this.id = context.id;

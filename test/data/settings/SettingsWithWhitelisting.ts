@@ -1,4 +1,4 @@
-export const NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS = {
+export const TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS = {
     "features": [{
       "key": "feature1",
       "name": "Feature1",
@@ -9,6 +9,12 @@ export const NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS = {
         "mca": -1
       }],
       "rules": [{
+        "variationId": 1,
+        "type": "FLAG_ROLLOUT",
+        "campaignId": 1,
+        "ruleKey": "rolloutRule1"
+      }, 
+      {
         "campaignId": 2,
         "type": "FLAG_TESTING",
         "ruleKey": "testingRule1"
@@ -40,7 +46,7 @@ export const NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS = {
         }, {
           "key": "string",
           "id": 3,
-          "value": "test",
+          "value": "rollout1",
           "type": "string"
         }, {
           "key": "boolean",
@@ -50,14 +56,14 @@ export const NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS = {
         }, {
           "key": "json",
           "id": 5,
-          "value": "{\"name\": \"varun\"}",
+          "value": {"campaign": "rollout1"},
           "type": "json"
         }],
         "id": 1,
         "segments": {
           "or": [{
             "custom_variable": {
-              "price": "gt(100)"
+              "price": "100"
             }
           }]
         },
@@ -69,8 +75,14 @@ export const NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS = {
     }, {
       "key": "feature1_testingRule1",
       "id": 2,
-      "segments": {},
-      "isForcedVariationEnabled": false,
+      "segments": {
+        "or": [{
+          "custom_variable": {
+            "price": "200"
+          }
+        }]
+      },
+      "isForcedVariationEnabled": true,
       "variations": [{
         "weight": 50,
         "id": 1,
@@ -87,7 +99,7 @@ export const NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS = {
         }, {
           "key": "string",
           "id": 3,
-          "value": "test",
+          "value": "testing1",
           "type": "string"
         }, {
           "key": "boolean",
@@ -97,10 +109,15 @@ export const NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS = {
         }, {
           "key": "json",
           "id": 5,
-          "value": "{\"name\": \"varun\"}",
+          "value": {"campaign": "testing1"},
           "type": "json"
         }],
-        "name": "Default"
+        "name": "Default",
+        "segments": {
+            "or": [{
+              "user": "user_id"
+            }]
+          }
       }, {
         "weight": 50,
         "id": 2,
@@ -117,7 +134,7 @@ export const NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS = {
         }, {
           "key": "string",
           "id": 3,
-          "value": "test_variation",
+          "value": "testing1_variation",
           "type": "string"
         }, {
           "key": "boolean",
@@ -127,10 +144,7 @@ export const NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS = {
         }, {
           "key": "json",
           "id": 5,
-          "value": {
-            "variation": 1,
-            "name": "VWO"
-          },
+          "value": {"campaign": "testing1_variation"},
           "type": "json"
         }],
         "name": "Variation-1"

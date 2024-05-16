@@ -18,12 +18,20 @@ import { VWOBuilder } from "../VWOBuilder";
 import { StorageService } from "../services/StorageService";
 import { GatewayServiceModel } from "./GatewayServiceModel";
 
-export class VWOOptionsModel {
-    private accountId: string;
-    private sdkKey: string;
-    private storageService: StorageService;
-    private gatewayService: GatewayServiceModel;
-    private vwoBuilder: VWOBuilder;
+export interface IVWOOptions {
+    accountId: string;
+    sdkKey: string;
+    storageService?: StorageService;
+    gatewayService?: GatewayServiceModel;
+    vwoBuilder?: VWOBuilder;
+}
+
+export class VWOOptionsModel implements IVWOOptions{
+    accountId: string;
+    sdkKey: string;
+    storageService?: StorageService;
+    gatewayService?: GatewayServiceModel;
+    vwoBuilder?: VWOBuilder;
 
     modelFromDictionary(options: VWOOptionsModel): this {
         this.accountId = options.accountId;

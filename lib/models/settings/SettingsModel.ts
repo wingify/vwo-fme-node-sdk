@@ -17,27 +17,27 @@ import { CampaignModel } from '../campaign/CampaignModel';
 import { FeatureModel } from '../campaign/FeatureModel';
 
 export class SettingsModel {
-  private sK: string;
+  private sK?: string;
   private sdkKey: string;
 
-  private f: Array<FeatureModel> = [];
+  private f?: Array<FeatureModel> = [];
   private features: Array<FeatureModel> = [];
 
-  private c: Array<CampaignModel> = [];
+  private c?: Array<CampaignModel> = [];
   private campaigns: Array<CampaignModel> = [];
 
-  private campaignGroups: Record<string, number> = {};
-  private cG: Record<string, number> = {};
+  private campaignGroups?: Record<string, number> = {};
+  private cG?: Record<string, number> = {};
 
-  private groups: Record<string, any> = {};
-  private g: Record<string, any> = {};
+  private groups?: Record<string, any> = {};
+  private g?: Record<string, any> = {};
 
-  private a: string;
+  private a?: string;
   private accountId: string;
 
-  private v: number;
+  private v?: number;
   private version: number;
-  private collectionPrefix: string;
+  private collectionPrefix?: string;
 
   constructor(settings: SettingsModel) {
     this.sdkKey = settings.sK || settings.sdkKey;

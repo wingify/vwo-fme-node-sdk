@@ -36,10 +36,12 @@ import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
 import { ContextModel } from './models/user/ContextModel';
 
-interface IVWOClient {
+export interface IVWOClient {
   readonly options?: any;
   settings: SettingsModel;
+  // onceReady(): Promise<Record<string, dynamic>>;
 
+  // getSettings(force: boolean): SettingsModel | Promise<SettingsModel>;
   getFlag(featureKey: string, context: ContextModel): Record<any, any>;
   trackEvent(eventName: string, eventProperties: Record<string, dynamic>, context: ContextModel): Promise<Record<string, boolean>>;
   setAttribute(attributeKey: string, attributeValue: string, context: ContextModel): void

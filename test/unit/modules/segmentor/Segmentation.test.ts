@@ -67,9 +67,9 @@ describe('Segmentation', () => {
     });
 
     complexDSLOperatorkey = Object.keys(new SegmentEvaluatorData().data['complex_dsl_2']);
-    complexDSLOperatorDsl = new SegmentEvaluatorData().data['complex_dsl_2'];
+    let complexDSLOperatorDsl1 = new SegmentEvaluatorData().data['complex_dsl_2'];
     complexDSLOperatorkey.forEach(async key => {
-      const { dsl, expectation, customVariables } = complexDSLOperatorDsl[key];
+      const { dsl, expectation, customVariables } = complexDSLOperatorDsl1[key];
 
       const preSegmentationResult = await new SegmentEvaluator().isSegmentationValid(dsl, customVariables);
 
@@ -77,9 +77,9 @@ describe('Segmentation', () => {
     });
 
     complexDSLOperatorkey = Object.keys(new SegmentEvaluatorData().data['complex_dsl_3']);
-    complexDSLOperatorDsl = new SegmentEvaluatorData().data['complex_dsl_3'];
+    let complexDSLOperatorDsl2 = new SegmentEvaluatorData().data['complex_dsl_3'];
     complexDSLOperatorkey.forEach(async key => {
-      const { dsl, expectation, customVariables } = complexDSLOperatorDsl[key];
+      const { dsl, expectation, customVariables } = complexDSLOperatorDsl2[key];
 
       const preSegmentationResult = await new SegmentEvaluator().isSegmentationValid(dsl, customVariables);
 
@@ -87,9 +87,9 @@ describe('Segmentation', () => {
     });
 
     complexDSLOperatorkey = Object.keys(new SegmentEvaluatorData().data['complex_dsl_4']);
-    complexDSLOperatorDsl = new SegmentEvaluatorData().data['complex_dsl_4'];
+    let complexDSLOperatorDsl3 = new SegmentEvaluatorData().data['complex_dsl_4'];
     complexDSLOperatorkey.forEach(async key => {
-      const { dsl, expectation, customVariables } = complexDSLOperatorDsl[key];
+      const { dsl, expectation, customVariables } = complexDSLOperatorDsl3[key];
 
       const preSegmentationResult = await new SegmentEvaluator().isSegmentationValid(dsl, customVariables);
 

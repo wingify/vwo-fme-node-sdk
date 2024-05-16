@@ -36,7 +36,7 @@ import { LogLevelEnum } from './enums/LogLevelEnum';
 import { isBoolean, isFunction, isNumber, isObject } from './utils/DataTypeUtil';
 import { cloneObject } from './utils/FunctionUtil';
 import { getRandomUUID } from './utils/UuidUtil';
-import { VWOOptionsModel } from './models/VWOOptionsModel';
+import { IVWOOptions, VWOOptionsModel } from './models/VWOOptionsModel';
 
 interface IVWOBuilder {
   settings: SettingsModel; // Holds the configuration settings for the VWO client
@@ -71,7 +71,7 @@ export class VWOBuilder implements IVWOBuilder {
   originalSettings: dynamic;
   isSettingsFetchInProgress: boolean;
 
-  constructor(options: VWOOptionsModel) {
+  constructor(options: IVWOOptions) {
     this.options = options;
   }
 

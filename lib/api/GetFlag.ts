@@ -189,7 +189,7 @@ export class FlagApi implements IGetFlag {
     }
     if (shouldCheckForAbPersonalise) {
       // if rollout rule is passed, get all ab and personalise rules
-      const allRules = getAllAbAndPersonaliseRules(settings, featureKey);
+      const allRules = getAllAbAndPersonaliseRules(feature);
       const megGroupWinnerCampaigns: Map<number, number> = new Map();
       for (const rule of allRules) {
         // abPersonalizeResult - true/ false (based on whitelisting condition || pre segment condition)

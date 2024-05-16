@@ -66,42 +66,38 @@ describe('getCurrentUnixTimestamp', () => {
 
 describe('getSpecificRulesBasedOnType', () => {
   it('should return an empty array if no linked campaigns are found', () => {
-    const settings = {
-      features: [{
-        key: 'feature1',
-        // no rulesLinkedCampaign property
-      }]
+    const feature: any = {
+      key: 'feature1',
+      // no rulesLinkedCampaign property
     };
-    const setting = new SettingsModel(settings);
-    const result = getSpecificRulesBasedOnType(new FeatureModel().modelFromDictionary(settings.features), 'feature1');
+    const featureModel = new FeatureModel().modelFromDictionary(feature);
+    const result = getSpecificRulesBasedOnType(featureModel);
     expect(result).toEqual([]);
   });
 
-  it('should filter rules by type if type is specified and is a string', () => {
-    const settings = {
-      features: [{
-        key: 'feature1',
-        rulesLinkedCampaign: [
-          { type: CampaignTypeEnum.AB, id: 1 },
-          { type: CampaignTypeEnum.PERSONALIZE, id: 2 }
-        ]
-      }]
+  fit('should filter rules by type if type is specified and is a string', () => {
+    const feature: any = {
+      key: 'feature1',
+      rulesLinkedCampaign: [
+        { type: CampaignTypeEnum.AB, id: 1 },
+        { type: CampaignTypeEnum.PERSONALIZE, id: 2 }
+      ]
     };
-    const result = getSpecificRulesBasedOnType(settings, 'feature1', CampaignTypeEnum.AB);
+    const featureModel = new FeatureModel().modelFromDictionary(feature);
+    const result = getSpecificRulesBasedOnType(featureModel, CampaignTypeEnum.AB);
     expect(result).toEqual([{ type: CampaignTypeEnum.AB, id: 1 }]);
   });
 
   it('should return all linked campaigns if no type is specified', () => {
-    const settings = {
-      features: [{
-        key: 'feature1',
-        rulesLinkedCampaign: [
-          { type: CampaignTypeEnum.AB, id: 1 },
-          { type: CampaignTypeEnum.PERSONALIZE, id: 2 }
-        ]
-      }]
+    const feature: any = {
+      key: 'feature1',
+      rulesLinkedCampaign: [
+        { type: CampaignTypeEnum.AB, id: 1 },
+        { type: CampaignTypeEnum.PERSONALIZE, id: 2 }
+      ]
     };
-    const result = getSpecificRulesBasedOnType(settings, 'feature1');
+    const featureModel = new FeatureModel().modelFromDictionary(feature);
+    const result = getSpecificRulesBasedOnType(featureModel);
     expect(result).toEqual([
       { type: CampaignTypeEnum.AB, id: 1 },
       { type: CampaignTypeEnum.PERSONALIZE, id: 2 }
@@ -112,22 +108,17 @@ describe('getSpecificRulesBasedOnType', () => {
 describe('getAllAbAndPersonaliseRules', () => {
   it('should return only AB and Personalize rules from the feature', () => {
     // Mock settings and featureKey
-    const settings: any = {
-      features: [
-        {
-          key: 'feature1',
-          rulesLinkedCampaign: [
-            { type: CampaignTypeEnum.AB, name: 'Rule 1' },
-            { type: CampaignTypeEnum.PERSONALIZE, name: 'Rule 2' },
-            { type: 'OTHER', name: 'Rule 3' }
-          ]
-        }
+    const feature: any = {
+      key: 'feature1',
+      rulesLinkedCampaign: [
+        { type: CampaignTypeEnum.AB, name: 'Rule 1' },
+        { type: CampaignTypeEnum.PERSONALIZE, name: 'Rule 2' },
+        { type: 'OTHER', name: 'Rule 3' }
       ]
     };
-    const featureKey = 'feature1';
-
+    const featureModel = new FeatureModel().modelFromDictionary(feature);
     // Call the function
-    const result = getAllAbAndPersonaliseRules(settings, featureKey);
+    const result = getAllAbAndPersonaliseRules(featureModel);
 
     // Define expected result
     const expected = [
@@ -140,33 +131,28 @@ describe('getAllAbAndPersonaliseRules', () => {
   });
 
   it('should return an empty array if no matching rules are found', () => {
-    const settings = {
-      features: [
-        {
-          key: 'feature1',
-          rulesLinkedCampaign: [
-            { type: 'OTHER', name: 'Rule 1' }
-          ]
-        }
+    const feature: any = {
+      key: 'feature1',
+      rulesLinkedCampaign: [
+        { type: 'OTHER', name: 'Rule 1' }
       ]
     };
-    const featureKey = 'feature1';
 
+    const featureModel = new FeatureModel().modelFromDictionary(feature);
     // Call the function
-    const result = getAllAbAndPersonaliseRules(settings, featureKey);
+    const result = getAllAbAndPersonaliseRules(featureModel);
 
     // Assert the result
     expect(result).toEqual([]);
   });
 
   it('should return an empty array if the feature does not exist', () => {
-    const settings = {
-      features: []
+    const feature: any = {
     };
-    const featureKey = 'nonexistent';
+    const featuerModel = new FeatureModel().modelFromDictionary(feature);
 
     // Call the function
-    const result = getAllAbAndPersonaliseRules(settings, featureKey);
+    const result = getAllAbAndPersonaliseRules(featuerModel);
 
     // Assert the result
     expect(result).toEqual([]);

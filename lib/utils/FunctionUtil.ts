@@ -91,9 +91,8 @@ export function getSpecificRulesBasedOnType(feature: FeatureModel, type: Campaig
  * @param {string} featureKey - The key of the feature.
  * @returns {Array} An array of AB and Personalize rules.
  */
-export function getAllAbAndPersonaliseRules(settings: SettingsModel, featureKey: string) {
+export function getAllAbAndPersonaliseRules(feature: FeatureModel) {
   // Retrieve the feature by its key
-  const feature = getFeatureFromKey(settings, featureKey);
   // Filter the rules to include only AB and Personalize types
   return feature?.getRulesLinkedCampaign().filter(
     (rule) => rule.getType() === CampaignTypeEnum.AB || rule.getType() === CampaignTypeEnum.PERSONALIZE,

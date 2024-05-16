@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { VWOOptionsModel } from './models/VWOOptionsModel';
 import { VWOBuilder } from './VWOBuilder';
 import { SettingsModel } from './models/settings/SettingsModel';
 import { dynamic } from './types/Common';
@@ -29,7 +30,7 @@ export class VWO {
    * @param {Record<string, dynamic>} options - Configuration options for the VWO instance.
    * @returns The instance of VWO.
    */
-  constructor(options: Record<string, dynamic> = {}) {
+  constructor(options: VWOOptionsModel) {
     return VWO.setInstance(options);
   }
 
@@ -39,8 +40,8 @@ export class VWO {
    * @param {Record<string, dynamic>} options - Configuration options for setting up VWO.
    * @returns A Promise resolving to the configured VWO instance.
    */
-  private static async setInstance(options: Record<string, dynamic>) {
-    const optionsVWOBuilder: any = options?.vwoBuilder;
+  private static async setInstance(options: VWOOptionsModel) {
+    const optionsVWOBuilder: any = options?.getVWOBuilder();
     this.vwoBuilder = optionsVWOBuilder || new VWOBuilder(options);
 
     this.instance = this.vwoBuilder
@@ -73,24 +74,25 @@ let _global: Record<string, any> = {};
 /**
  * Initializes a VWO instance with the provided options.
  * Validates the options and creates a new VWO instance.
- * @param {Record<string, dynamic>} options - Configuration options for initializing VWO.
+ * @param {VWOOptionsModel} options - Configuration options for initializing VWO.
  * @returns A Promise resolving to the initialized VWO instance.
  */
-export async function init(options: Record<string, dynamic> = {}) {
+export async function init(options: VWOOptionsModel) {
+  const optionsModel = new VWOOptionsModel().modelFromDictionary(options); // 
   if (!isObject(options)) {
     throw new Error('Options should be of type object.'); // Ensures options is an object.
   }
 
-  if (!options.sdkKey || !isString(options.sdkKey)) {
+  if (!optionsModel.getSdkKey() || !isString(optionsModel.getSdkKey())) {
     throw new Error('Please provide the sdkKey in the options and should be a of type string'); // Validates sdkKey presence and type.
   }
 
-  if (!options.accountId) {
+  if (!optionsModel.getAccountId()) {
     throw new Error('Please provide VWO account ID in the options and should be a of type string|number'); // Validates accountId presence and type.
   }
 
 
-  const instance: any = new VWO(options); // Creates a new VWO instance with the validated options.
+  const instance: any = new VWO(optionsModel); // Creates a new VWO instance with the validated options.
 
   _global = {
     vwoInitDeferred: new Deferred(),

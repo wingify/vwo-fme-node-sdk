@@ -17,6 +17,7 @@ import { VWOBuilder } from './VWOBuilder';
 import { SettingsModel } from './models/SettingsModel';
 import { dynamic } from './types/Common';
 import { isObject, isString } from './utils/DataTypeUtil';
+import { Deferred } from './utils/PromiseUtil';
 
 export class VWO {
   private static vwoBuilder: VWOBuilder;
@@ -38,7 +39,7 @@ export class VWO {
    * @param {Record<string, dynamic>} options - Configuration options for setting up VWO.
    * @returns A Promise resolving to the configured VWO instance.
    */
-  private static setInstance(options: Record<string, dynamic>) {
+  private static async setInstance(options: Record<string, dynamic>) {
     const optionsVWOBuilder: any = options?.vwoBuilder;
     this.vwoBuilder = optionsVWOBuilder || new VWOBuilder(options);
 
@@ -67,6 +68,8 @@ export class VWO {
   }
 }
 
+let _global: Record<string, any> = {};
+
 /**
  * Initializes a VWO instance with the provided options.
  * Validates the options and creates a new VWO instance.
@@ -86,7 +89,38 @@ export async function init(options: Record<string, dynamic> = {}) {
     throw new Error('Please provide VWO account ID in the options and should be a of type string|number'); // Validates accountId presence and type.
   }
 
-  const instance = await new VWO(options); // Creates a new VWO instance with the validated options.
 
-  return instance;
+  const instance: any = new VWO(options); // Creates a new VWO instance with the validated options.
+
+  _global = {
+    vwoInitDeferred: new Deferred(),
+    isSettingsFetched: false,
+    instance: null
+  };
+
+  return instance.then((_vwoInstance) => {
+    _global.isSettingsFetched = true;
+    _global.instance = _vwoInstance;
+    _global.vwoInitDeferred.resolve(_vwoInstance);
+    console.log('onReady resolved from init')
+    return _vwoInstance;
+  });
+}
+
+export async function onReady() {
+  console.log('onReady called')
+  _global.vwoInitDeferred = new Deferred();
+
+  // If settings are already fetched, resolve the promise
+  if (false) {
+    console.log('onReady already resolved')
+    _global.vwoInitDeferred.resolve(_global.instance);
+  } else {
+    // wait for five seconds, else reject the promise
+    setTimeout(() => {
+      _global.vwoInitDeferred.reject(new Error('VWO settings could not be fetched'));
+    }, 5000);
+  }
+
+  return _global.vwoInitDeferred.promise;
 }

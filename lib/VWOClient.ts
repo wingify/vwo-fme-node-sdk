@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// import { processSettings } from './utils/settingsUtil';
 import { LogManager } from './modules/logger';
 import { Storage } from './modules/storage';
 
@@ -39,9 +38,6 @@ import { Deferred } from './utils/PromiseUtil';
 interface IVWOClient {
   readonly options?: any;
   settings: SettingsModel;
-  // onceReady(): Promise<Record<string, dynamic>>;
-
-  // getSettings(force: boolean): SettingsModel | Promise<SettingsModel>;
 
   getFlag(featureKey: string, context: any): Record<any, any>;
   trackEvent(eventName: string, eventProperties: Record<string, dynamic>, context: any): Promise<Record<string, boolean>>;
@@ -75,72 +71,6 @@ export class VWOClient implements IVWOClient {
     return this;
   }
   options?: Record<string, any>;
-
-  /* onceReady(): Promise<SettingsModel> {
-    try {
-      const deferredObject = new Deferred();
-
-      this.vwoProvider.getSettings(false).then(settings => {
-        this.settings = cloneObject(settings);
-        this.settings = processSettings(this.settings);
-
-        LogManager.Instance.info('VWO Client ready for use');
-
-        deferredObject.resolve(settings);
-      });
-
-      return deferredObject.promise;
-    } catch (err) {
-      LogManager.Instance.error('VWO Client failed to be ready');
-    }
-  } */
-
-  /* setSettings(settings: Record<string, dynamic>): void {
-    const apiName = 'setSettings';
-
-    try {
-      if (!isObject(settings)) {
-        LogManager.Instance.debug(`settings passed to setSettings API is not of valid type. Got ${getType(settings)}`);
-        throw new TypeError('TypeError: settings should be an object');
-      }
-
-      this.vwoProvider.setSettings(settings);
-    } catch (err) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
-          apiName,
-          err
-        })
-      );
-    }
-  } */
-
-  /* getSettings(force = false): Promise<SettingsModel> {
-    const apiName = 'getSettings';
-    const deferredObject = new Deferred();
-
-    try {
-      if (!isBoolean(force)) {
-        LogManager.Instance.debug(`force passed to getSettings API is not of valid type. Got ${getType(force)}`);
-        throw new TypeError('TypeError: force should be a boolean');
-      }
-
-      this.vwoProvider.getSettings(force).then(() => {
-        deferredObject.resolve(this.vwoProvider.originalSettings);
-      });
-    } catch (err) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
-          apiName,
-          err
-        })
-      );
-
-      deferredObject.resolve(null);
-    }
-    return deferredObject.promise;
-  } */
-
   /**
    * Retrieves the value of a feature flag for a given feature key and context.
    * This method validates the feature key and context, ensures the settings are valid, and then uses the FlagApi to get the flag value.

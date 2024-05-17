@@ -220,7 +220,7 @@ describe('VWO', () => {
     return featureFlag;
   })
 
-  it('should return true for a flag that fails whitelisting for testingRule1 and only testing rule passed', async () => {
+  it('should return true for a flag that fails whitelisting for testingRule1 and only rollout rule pass', async () => {
     const vwoBuilder = new VWOBuilder({ accountId: '123456', key: 'abcdef' });
     jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS);
 

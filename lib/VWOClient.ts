@@ -88,8 +88,6 @@ export class VWOClient implements IVWOClient {
   getFlag(featureKey: string, context: ContextModel): Record<any, any> {
     const apiName = 'getFlag';
     const deferredObject = new Deferred();
-    const hookManager = new HooksManager(this.options);
-    const contextModel = new ContextModel().modelFromDictionary(context);
     const errorReturnSchema = {
       isEnabled: (): boolean => {
         return false;
@@ -103,34 +101,41 @@ export class VWOClient implements IVWOClient {
     };
 
     try {
+      const hookManager = new HooksManager(this.options);
+      const contextModel = new ContextModel().modelFromDictionary(context);
+
       LogManager.Instance.debug(
         buildMessage(DebugLogMessageEnum.API_CALLED, {
           apiName,
         }),
       );
 
+      // Validate featureKey is a string
       if (!isString(featureKey)) {
-        LogManager.Instance.debug(
+        LogManager.Instance.error(
           `featureKey passed to ${apiName} API is not of valid type. Got ${getType(featureKey)}`,
         );
-        throw new TypeError('TypeError: variableSpecifier should be a string');
+        throw new TypeError('TypeError: featureKey should be a string');
       }
 
+      // Validate settings are loaded and valid
       if (!new SettingsSchema().isSettingsValid(this.originalSettings)) {
-        LogManager.Instance.debug(`settings are not valid. Got ${getType(this.settings)}`);
-        throw new Error('Invalid Settings');
+        LogManager.Instance.error(`Settings are not valid. Contact VWO Support.`);
+        throw new Error('TypeError: Invalid Settings');
       }
 
+      // Validate user ID is present in context
       if (!contextModel?.getId()) {
-        LogManager.Instance.error('User ID is not valid. Not able to get flag');
-        throw new Error('Invalid context');
+        LogManager.Instance.error(`Context doesn't have a valid User ID.`);
+        throw new Error('TypeError: Invalid context');
       }
 
-      new FlagApi().get(featureKey, this.settings, contextModel, hookManager)
+      new FlagApi()
+        .get(featureKey, this.settings, contextModel, hookManager)
         .then((data: any) => {
           deferredObject.resolve(data);
         })
-        .catch((err: any) => {
+        .catch((_err: any) => {
           deferredObject.resolve(errorReturnSchema);
         })
     } catch (err) {
@@ -162,9 +167,12 @@ export class VWOClient implements IVWOClient {
     context: ContextModel,
   ): Promise<Record<string, boolean>> {
     const apiName = 'trackEvent';
-    const hookManager = new HooksManager(this.options);
-    const contextModel = new ContextModel().modelFromDictionary(context);
+    const deferredObject = new Deferred();
+
     try {
+      const contextModel = new ContextModel().modelFromDictionary(context);
+      const hookManager = new HooksManager(this.options);
+
       // Log the API call
       LogManager.Instance.debug(
         buildMessage(DebugLogMessageEnum.API_CALLED, {
@@ -174,32 +182,36 @@ export class VWOClient implements IVWOClient {
 
       // Validate eventName is a string
       if (!isString(eventName)) {
-        LogManager.Instance.debug(`eventName passed to track API is not of valid type. Got ${getType(eventName)}`);
-        throw new TypeError('TypeError: eventName should be a string');
+        LogManager.Instance.error(`eventName passed to track API is not of valid type. Got ${getType(eventName)}`);
+        throw new TypeError('TypeError: Event-name should be a string');
       }
 
       // Validate eventProperties is an object
       if (!isObject(eventProperties)) {
-        LogManager.Instance.debug(
+        LogManager.Instance.error(
           `eventProperties passed to track API is not of valid type. Got ${getType(eventProperties)}`,
         );
-        // throw new TypeError('TypeError: eventProperties should be an object');
+        throw new TypeError('TypeError: eventProperties should be an object');
       }
 
       // Validate settings are loaded and valid
       if (!new SettingsSchema().isSettingsValid(this.originalSettings)) {
-        LogManager.Instance.debug(`settings are not valid. Got ${getType(this.settings)}`);
-        throw new Error('Invalid Settings');
+        LogManager.Instance.error(`Settings are not valid. Contact VWO Support.`);
+        throw new Error('TypeError: Invalid Settings');
       }
 
       // Validate user ID is present in context
       if (!contextModel?.getId()) {
-        LogManager.Instance.error('User ID is not valid. Not able to track event');
-        throw new Error('Invalid context');
+        LogManager.Instance.error(`Context doesn't have a valid User ID.`);
+        throw new Error('TypeError: Invalid context');
       }
 
       // Proceed with tracking the event
-      return new TrackApi().track(this.settings, eventName, eventProperties, contextModel, hookManager);
+      new TrackApi().track(this.settings, eventName, eventProperties, contextModel, hookManager).then(data => {
+        deferredObject.resolve(data);
+      }).catch((_err: any) => {
+        deferredObject.resolve({[eventName]: false});
+      });
     } catch (err) {
       // Log any errors encountered during the operation
       LogManager.Instance.error(
@@ -208,7 +220,11 @@ export class VWOClient implements IVWOClient {
           err,
         }),
       );
+
+      deferredObject.resolve({[eventName]: false});
     }
+
+    return deferredObject.promise;
   }
 
   /**
@@ -220,16 +236,45 @@ export class VWOClient implements IVWOClient {
    * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
    */
   setAttribute(attributeKey: string, attributeValue: string, context: ContextModel): void {
-    const contextModel = new ContextModel().modelFromDictionary(context);
-    // Validate that attributeKey, attributeValue, and user ID in context are all strings
-    if (!isString(attributeKey) || !isString(attributeValue) || !isString(contextModel?.getId())) {
-      LogManager.Instance.error(
-        `Parameters passed to setAttribute API are not valid. Please check`,
+    const apiName = 'setAttribute';
+
+    try {
+      // Log the API call
+      LogManager.Instance.debug(
+        buildMessage(DebugLogMessageEnum.API_CALLED, {
+          apiName,
+        }),
       );
 
-      return; // Exit if validation fails
+      const contextModel = new ContextModel().modelFromDictionary(context);
+
+      // Validate attributeKey is a string
+      if (!isString(attributeKey)) {
+        LogManager.Instance.error(`attributeKey passed to track API is not of valid type. Got ${getType(attributeKey)}`);
+        throw new TypeError('TypeError: attributeKey should be a string');
+      }
+      // Validate attributeValue is a string
+      if (!isString(attributeValue)) {
+        LogManager.Instance.error(`attributeValue passed to track API is not of valid type. Got ${getType(attributeValue)}`);
+        throw new TypeError('TypeError: attributeValue should be a string');
+      }
+
+      // Validate user ID is present in context
+      if (!contextModel?.getId()) {
+        LogManager.Instance.error(`Context doesn't have a valid User ID.`);
+        throw new Error('TypeError: Invalid context');
+      }
+
+      // Proceed with setting the attribute if validation is successful
+      new SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, contextModel);
+    } catch (err) {
+      // Log any errors encountered during the operation
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
+          apiName,
+          err,
+        }),
+      );
     }
-    // Proceed with setting the attribute if validation is successful
-    new SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, contextModel);
   }
 }

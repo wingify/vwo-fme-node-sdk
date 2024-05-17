@@ -58,10 +58,12 @@ export class TrackApi implements ITrack {
       // Set and execute integration callback for the track event
       hookManager.set({ eventName: eventName, api: ApiEnum.TRACK });
       hookManager.execute(hookManager.get());
+
       return { [eventName]: true };
     }
     // Log an error if the event does not exist
-    LogManager.Instance.error(`Event ${eventName} not found in any of the features`);
+    LogManager.Instance.error(`Event ${eventName} not found in any of the features.`);
+
     return { [eventName]: false };
   }
 }

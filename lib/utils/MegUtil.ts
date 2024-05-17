@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ContextModel } from '../models/user/ContextModel';
-import { evaluateRule } from '../api/GetFlag';
 import { Constants } from '../constants';
 import { StorageDecorator } from '../decorators/StorageDecorator';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { CampaignModel } from '../models/campaign/CampaignModel';
-import { SettingsModel } from '../models/settings/SettingsModel';
+import { FeatureModel } from '../models/campaign/FeatureModel';
 import { VariationModel } from '../models/campaign/VariationModel';
+import { SettingsModel } from '../models/settings/SettingsModel';
+import { ContextModel } from '../models/user/ContextModel';
 import { DecisionMaker } from '../modules/decision-maker';
 import { LogManager } from '../modules/logger';
 import { CampaignDecisionService } from '../services/CampaignDecisionService';
 import { StorageService } from '../services/StorageService';
+import { evaluateRule } from '../utils/RuleEvaluationUtil';
 import {
   getBucketingSeed,
   getCampaignIdsFromFeatureKey,
   getCampaignsByGroupId,
-  getVariationByCampaignKey,
   getFeatureKeysFromCampaignIds,
+  getVariationByCampaignKey,
   setCampaignAllocation,
 } from './CampaignUtil';
 import { isObject } from './DataTypeUtil';
 import { evaluateTrafficAndGetVariation } from './DecisionUtil';
 import { cloneObject, getFeatureFromKey, getSpecificRulesBasedOnType } from './FunctionUtil';
-import { FeatureModel } from '../models/campaign/FeatureModel';
 
 /**
  * Evaluate groups for the feature

@@ -19,7 +19,6 @@ import { SettingsModel } from '../models/settings/SettingsModel';
 
 import { StorageDecorator } from '../decorators/StorageDecorator';
 import { ApiEnum } from '../enums/ApiEnum';
-import { EventEnum } from '../enums/EventEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { CampaignModel } from '../models/campaign/CampaignModel';
 import { VariableModel } from '../models/campaign/VariableModel';
@@ -30,18 +29,16 @@ import HooksManager from '../services/HooksManager';
 import { StorageService } from '../services/StorageService';
 import { getVariationByCampaignKey } from '../utils/CampaignUtil';
 import { isObject } from '../utils/DataTypeUtil';
-import { checkWhitelistingAndPreSeg, evaluateTrafficAndGetVariation } from '../utils/DecisionUtil';
+import { evaluateTrafficAndGetVariation } from '../utils/DecisionUtil';
 import {
-  getAllAbAndPersonaliseRules,
+  getAllExperimentRules,
   getFeatureFromKey,
-  getFeatureIdFromKey,
-  getFeatureNameFromKey,
   getSpecificRulesBasedOnType,
 } from '../utils/FunctionUtil';
-import { NetworkUtil } from '../utils/NetworkUtil';
-import { Deferred } from '../utils/PromiseUtil';
 import { ContextModel } from '../models/user/ContextModel';
-import { StorageDataModel } from '../models/storage/StorageDataModel';
+import { createAndSendImpressionForVariationShown } from "../utils/ImpressionUtil";
+import { Deferred } from '../utils/PromiseUtil';
+import { evaluateRule } from '../utils/RuleEvaluationUtil';
 
 interface IGetFlag {
   get(featureKey: string, settings: SettingsModel, context: ContextModel, hookManager: HooksManager): Promise<FeatureModel>;
@@ -54,15 +51,18 @@ export class FlagApi implements IGetFlag {
     context: ContextModel,
     hookManager: HooksManager,
   ): Promise<FeatureModel> {
-    const decision = this.createDecision(settings, featureKey, context);
     let isEnabled = false;
     let rolloutVariationToReturn = null;
     let experimentVariationToReturn = null;
-    const rulesInformation = {}; // for storing and integration callback
+    let shouldCheckForExperimentsRules = false;
 
+    const passedRulesInformation = {}; // for storing and integration callback
     const deferredObject = new Deferred();
     const evaluatedFeatureMap: Map<string, any> = new Map();
-    let shouldCheckForAbPersonalise = false;
+
+    // get feature object from feature key
+    const feature = getFeatureFromKey(settings, featureKey);
+    const decision = _setIntegrationHookData(feature, context);
 
     const storageService = new StorageService();
     const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(
@@ -99,7 +99,7 @@ export class FlagApi implements IGetFlag {
           return deferredObject.promise;
         }
       }
-    } else if (storedData?.rolloutKey && storedData.rolloutId) {
+    } else if (storedData?.rolloutKey && storedData?.rolloutId) {
       const variation: VariationModel = getVariationByCampaignKey(
         settings,
         storedData.rolloutKey,
@@ -109,9 +109,9 @@ export class FlagApi implements IGetFlag {
         LogManager.Instance.info(
           `Variation ${variation.getKey()} found in storage for the user ${context.getId()} for the rollout campaign ${storedData.rolloutKey}`,
         );
-        LogManager.Instance.info(`Evaluation experiement campaigns now for the user ${context.getId()}`);
+        LogManager.Instance.info(`Evaluate experiments for the user ${context.getId()}`);
         isEnabled = true;
-        shouldCheckForAbPersonalise = true;
+        shouldCheckForExperimentsRules = true;
         rolloutVariationToReturn = variation;
         const featureInfo = {
           rolloutId: storedData.rolloutId,
@@ -119,32 +119,28 @@ export class FlagApi implements IGetFlag {
           rolloutVariationId: storedData.rolloutVariationId,
         };
         evaluatedFeatureMap.set(featureKey, featureInfo);
-        Object.assign(rulesInformation, featureInfo);
+        Object.assign(passedRulesInformation, featureInfo);
       }
     }
 
-    let ruleToTrack = [];
-
-    // get feature object from feature key
-    const feature = getFeatureFromKey(settings, featureKey);
-
-    await SegmentationManager.Instance.setContextualData(settings, feature, context);
-
     if (!isObject(feature) || feature === undefined) {
-      LogManager.Instance.info(`Feature not found for the key ${featureKey}`);
-      deferredObject.resolve({
-        isEnabled: () => false,
-        getVariables: () => [],
-        getVariable: (key: string, defaultValue: string) => defaultValue,
-      });
+      LogManager.Instance.error(`Feature not found for the key ${featureKey}`);
+      deferredObject.reject({});
+
       return deferredObject.promise;
     }
+
+    // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
+    await SegmentationManager.Instance.setContextualData(settings, feature, context);
+
     const rollOutRules = getSpecificRulesBasedOnType(feature, CampaignTypeEnum.ROLLOUT); // get all rollout rules
+
     if (rollOutRules.length > 0 && !isEnabled) {
-      // if rollout rules are present and shouldCheckForAB is false, then check for rollout rules only
+      const rolloutRulesToEvaluate = [];
+
       for (const rule of rollOutRules) {
-        // evaluateRuleResult - true/ false (based pre segment condition)
-        const [evaluateRuleResult, ] = await evaluateRule(
+        // ruleEvaluationResult - [ boolean - based pre segmentation, boolean - based on whitelisting]
+        const [ ruleEvaluationResult, _ ] = await evaluateRule(
           settings,
           feature,
           rule,
@@ -154,46 +150,55 @@ export class FlagApi implements IGetFlag {
           storageService,
           decision,
         );
-        if (evaluateRuleResult) {
+
+        if (ruleEvaluationResult) {
           // if pre segment passed, then break the loop and check the traffic allocation
-          ruleToTrack.push(rule);
+          rolloutRulesToEvaluate.push(rule);
+
           evaluatedFeatureMap.set(featureKey, {
             rolloutId: rule.getId(),
             rolloutKey: rule.getKey(),
-            rolloutVariationId: rule.getVariations()[0].getId(),
+            rolloutVariationId: rule.getVariations()[0]?.getId(),
           });
+
           break;
         }
-        continue; // if rule does not satisfy, then check for other rule
+
+        continue; // if rule does not satisfy, then check for other ROLLOUT rules
       }
+
+      if (rolloutRulesToEvaluate.length > 0) {
+        const passedRolloutCampaign = new CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
+        const variation = _checkTrafficAndReturnVariation(
+          settings,
+          passedRolloutCampaign,
+          context,
+          passedRulesInformation,
+          decision
+        );
+
+        if (isObject(variation) && Object.keys(variation).length > 0) {
+          isEnabled = true;
+          shouldCheckForExperimentsRules = true;
+          rolloutVariationToReturn = variation;
+        }
+      }
+
     } else if (rollOutRules.length === 0) {
-      LogManager.Instance.info('No Rollout rules present for the feature, checking rules for AB/Personalize');
-      shouldCheckForAbPersonalise = true;
+      LogManager.Instance.info('No Rollout rules present for the feature. Hence, checking Experiment rules');
+      shouldCheckForExperimentsRules = true;
     }
 
-    if (ruleToTrack.length > 0) {
-      const campaign = new CampaignModel().modelFromDictionary(ruleToTrack.pop());
-      const variation = this.trafficCheckAndReturnVariation(
-        settings,
-        campaign,
-        context,
-        rulesInformation,
-        decision,
-      );
-      if (isObject(variation) && Object.keys(variation).length > 0) {
-        isEnabled = true;
-        shouldCheckForAbPersonalise = true;
-        rolloutVariationToReturn = variation;
-      }
-      ruleToTrack = [];
-    }
-    if (shouldCheckForAbPersonalise) {
+    if (shouldCheckForExperimentsRules) {
+      const experimentRulesToEvaluate = [];
+
       // if rollout rule is passed, get all ab and personalise rules
-      const allRules = getAllAbAndPersonaliseRules(feature);
+      const experimentRules = getAllExperimentRules(feature);
       const megGroupWinnerCampaigns: Map<number, number> = new Map();
-      for (const rule of allRules) {
-        // abPersonalizeResult - true/ false (based on whitelisting condition || pre segment condition)
-        const [abPersonalizeResult, whitelistedVariation] = await evaluateRule(
+
+      for (const rule of experimentRules) {
+        // experimentRuleResult - true/ false (based on whitelisting condition || pre segment condition)
+        const [ experimentRuleResult, experimentWhitelistedVariation ] = await evaluateRule(
           settings,
           feature,
           rule,
@@ -203,183 +208,148 @@ export class FlagApi implements IGetFlag {
           storageService,
           decision,
         );
-        if (abPersonalizeResult) {
-          if (whitelistedVariation === null) {
-            // whitelistedVariation will be null if pre segment passed but whitelisting failed
-            ruleToTrack.push(rule);
+
+        if (experimentRuleResult) {
+          if (experimentWhitelistedVariation === null) {
+            // experimentWhitelistedVariation will be null if pre segment passed but whitelisting failed
+            experimentRulesToEvaluate.push(rule);
           } else {
             isEnabled = true;
-            experimentVariationToReturn = whitelistedVariation.variation;
-            Object.assign(rulesInformation, {
+            experimentVariationToReturn = experimentWhitelistedVariation.variation;
+            Object.assign(passedRulesInformation, {
               experimentId: rule.getId(),
-              experimentKey: whitelistedVariation.experimentKey,
-              experimentVariationId: whitelistedVariation.variationId,
+              experimentKey: experimentWhitelistedVariation.experimentKey,
+              experimentVariationId: experimentWhitelistedVariation.variationId,
             });
           }
+
           break;
         }
         continue;
       }
-    }
-    if (ruleToTrack.length > 0) {
-      const campaign = new CampaignModel().modelFromDictionary(ruleToTrack.pop());
-      const variation = this.trafficCheckAndReturnVariation(
-        settings,
-        campaign,
-        context,
-        rulesInformation,
-        decision,
-      );
-      if (isObject(variation) && Object.keys(variation).length > 0) {
-        isEnabled = true;
-        experimentVariationToReturn = variation;
+
+      if (experimentRulesToEvaluate.length > 0) {
+        const campaign = new CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
+        const variation = _checkTrafficAndReturnVariation(
+          settings,
+          campaign,
+          context,
+          passedRulesInformation,
+          decision,
+        );
+
+        if (isObject(variation) && Object.keys(variation).length > 0) {
+          isEnabled = true;
+          experimentVariationToReturn = variation;
+        }
       }
     }
+
+    // If flag is enabled, store it in data
     if (isEnabled) {
       // set storage data
       new StorageDecorator().setDataInStorage(
         {
           featureKey,
           context,
-          ...rulesInformation,
+          ...passedRulesInformation,
         },
         storageService,
       );
-      hookManager.set(decision);
-      hookManager.execute(hookManager.get());
     }
+
+    // call integration callback, if defined
+    hookManager.set(decision);
+    hookManager.execute(hookManager.get());
+
+    // Send data for Impact Campaign, if defined
     if (feature.getImpactCampaign()?.getCampaignId()) {
       LogManager.Instance.info(`Sending data for Impact Campaign for the user ${context.getId()}`);
-      createImpressionForVariationShown(
+
+      createAndSendImpressionForVariationShown(
         settings,
         feature.getImpactCampaign()?.getCampaignId(),
-        isEnabled ? 2 : 1,
+        isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
         context
       )
     }
+
+    const variablesForEvaluatedFlag = experimentVariationToReturn?.variables ?? rolloutVariationToReturn?.variables ?? [];
+
     deferredObject.resolve({
       isEnabled: () => isEnabled,
-      getVariables: () => experimentVariationToReturn?.variables ?? rolloutVariationToReturn?.variables ?? [],
+      getVariables: () => variablesForEvaluatedFlag,
       getVariable: (
         key: string,
         defaultValue: string, // loop over all variables object and return the value where key is equal to given key else return given default value
       ) => {
-        const variables = experimentVariationToReturn?.variables ?? rolloutVariationToReturn?.variables ?? [];
-        const variable = variables.find((variable) => variable.key === key);
+        const variable = variablesForEvaluatedFlag.find((variable) => variable.key === key);
+
         return variable?.value ?? defaultValue;
       },
     });
 
     return deferredObject.promise;
   }
+}
 
-  private createDecision(settings: SettingsModel, featureKey: string, context: ContextModel): any {
-    return {
-      featureName: getFeatureNameFromKey(settings, featureKey),
-      featureId: getFeatureIdFromKey(settings, featureKey),
-      featureKey,
-      userId: context.getId(),
-      api: ApiEnum.GET_FLAG,
-    };
-  }
+// Not PRIVATE methods but helper methods. If need be, move them to some util file to be reused by other API(s)
 
-  private trafficCheckAndReturnVariation(
-    settings: SettingsModel,
-    campaign: CampaignModel,
-    context: ContextModel,
-    rulesInformation: any,
-    decision: any,
-  ): VariationModel {
-    const variation = evaluateTrafficAndGetVariation(settings, campaign, context.getId());
-    if (isObject(variation) && Object.keys(variation).length > 0) {
-      if (campaign.getType() === CampaignTypeEnum.ROLLOUT) {
-        Object.assign(rulesInformation, {
-          rolloutId: campaign.getId(),
-          rolloutKey: campaign.getKey(),
-          rolloutVariationId: variation.getId(),
-        });
-      } else {
-        Object.assign(rulesInformation, {
-          experimentId: campaign.getId(),
-          experimentKey: campaign.getKey(),
-          experimentVariationId: variation.getId(),
-        });
-      }
-      Object.assign(decision, rulesInformation);
-      createImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
-      return variation;
-    }
-    return null;
-  }
+/**
+ * Constructs integration hook data based on the provided feature and user context.
+ * This data is used for integration callbacks and logging purposes.
+ *
+ * @param {FeatureModel} feature - The feature model containing details like name, ID, and key.
+ * @param {ContextModel} context - The user context model containing the user ID.
+ * @returns {Object} An object containing feature details, user ID, and the API identifier.
+ */
+function _setIntegrationHookData(feature: FeatureModel, context: ContextModel): any {
+  return {
+    featureName: feature?.getName(),
+    featureId: feature?.getId(),
+    featureKey: feature?.getKey(),
+    userId: context?.getId(),
+    api: ApiEnum.GET_FLAG
+  };
 }
 
 /**
- * Evaluate the rule
- * @param rule    rule to evaluate
- * @param user    user object
- * @returns
+ * Evaluates traffic and returns the appropriate variation based on the campaign type.
+ * This method also updates the rules information and decision objects with the campaign and variation details.
+ *
+ * @param {SettingsModel} settings - The settings model containing configuration details.
+ * @param {CampaignModel} campaign - The campaign model to evaluate.
+ * @param {ContextModel} context - The user context model containing the user ID.
+ * @param {any} passedRulesInformation - An object to be updated with campaign and variation IDs for logging and tracking.
+ * @param {any} decision - An object to be updated with decision details for integration hooks.
+ * @returns {VariationModel|null} The selected variation model if successful, otherwise null.
  */
-export const evaluateRule = async (
+function _checkTrafficAndReturnVariation(
   settings: SettingsModel,
-  feature: FeatureModel,
   campaign: CampaignModel,
   context: ContextModel,
-  evaluatedFeatureMap: Map<string, any>,
-  megGroupWinnerCampaigns: Map<number, number>,
-  storageService: StorageService,
+  passedRulesInformation: any,
   decision: any,
-): Promise<[boolean, any]> => {
-  // check for whitelisting and pre segmentation
-  const [preSegmentationResult, whitelistedObject] = await checkWhitelistingAndPreSeg(
-    settings,
-    feature,
-    campaign,
-    context,
-    evaluatedFeatureMap,
-    megGroupWinnerCampaigns,
-    storageService,
-    decision,
-  );
+): VariationModel {
+  const variation = evaluateTrafficAndGetVariation(settings, campaign, context.getId());
 
-  // if pre segmentation result is true and whitelisted object is present, then send post call
-  if (preSegmentationResult && isObject(whitelistedObject) && Object.keys(whitelistedObject).length > 0) {
-    Object.assign(decision, {
-      experimentId: campaign.getId(),
-      experimentKey: campaign.getKey(),
-      experimentVariationId: whitelistedObject.variationId,
-    });
-    createImpressionForVariationShown(
-      settings,
-      campaign.getId(),
-      whitelistedObject.variation.id,
-      context
-    );
+  if (isObject(variation) && Object.keys(variation).length > 0) {
+    if (campaign.getType() === CampaignTypeEnum.ROLLOUT) {
+      Object.assign(passedRulesInformation, {
+        rolloutId: campaign.getId(),
+        rolloutKey: campaign.getKey(),
+        rolloutVariationId: variation.getId(),
+      });
+    } else {
+      Object.assign(passedRulesInformation, {
+        experimentId: campaign.getId(),
+        experimentKey: campaign.getKey(),
+        experimentVariationId: variation.getId(),
+      });
+    }
+    Object.assign(decision, passedRulesInformation);
+    createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
+    return variation;
   }
-
-  return [preSegmentationResult, whitelistedObject];
-};
-
-const createImpressionForVariationShown = (
-  settings: SettingsModel,
-  campaignId: number,
-  variationId: number,
-  context: ContextModel,
-) => {
-  const networkUtil = new NetworkUtil();
-  const properties = networkUtil.getEventsBaseProperties(
-    settings,
-    EventEnum.VWO_VARIATION_SHOWN,
-    encodeURIComponent(context.getUserAgent()),
-    context.getIpAddress(),
-  );
-  const payload = networkUtil.getTrackUserPayloadData(
-    settings,
-    context.getId(),
-    EventEnum.VWO_VARIATION_SHOWN,
-    campaignId,
-    variationId,
-    context.getUserAgent(),
-    context.getIpAddress(),
-  );
-  networkUtil.sendPostApiRequest(properties, payload);
-};
+  return null;
+}

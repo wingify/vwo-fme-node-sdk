@@ -91,7 +91,7 @@ export function getSpecificRulesBasedOnType(feature: FeatureModel, type: Campaig
  * @param {string} featureKey - The key of the feature.
  * @returns {Array} An array of AB and Personalize rules.
  */
-export function getAllAbAndPersonaliseRules(feature: FeatureModel) {
+export function getAllExperimentRules(feature: FeatureModel) {
   // Retrieve the feature by its key
   // Filter the rules to include only AB and Personalize types
   return feature?.getRulesLinkedCampaign().filter(
@@ -109,33 +109,6 @@ export function getFeatureFromKey(settings: SettingsModel, featureKey: string) {
   // Find the feature by its key
   return settings?.getFeatures()?.find((feature) => feature.getKey() === featureKey);
 }
-
-/**
- * Retrieves the name of a feature based on its key from the provided settings.
- * @param {SettingsModel} settings - The settings model containing features.
- * @param {string} featureKey - The key of the feature to find.
- * @returns {string} The name of the feature if found, otherwise an empty string.
- */
-export function getFeatureNameFromKey(settings: SettingsModel, featureKey: string): string {
-  // Attempt to find the feature by its key in the settings
-  const feature = getFeatureFromKey(settings, featureKey);
-  // Return the name of the feature if it exists, otherwise return an empty string
-  return feature ? feature.getName() : '';
-}
-
-/**
- * Retrieves the ID of a feature based on its key from the provided settings.
- * @param {SettingsModel} settings - The settings model containing features.
- * @param {string} featureKey - The key of the feature to find.
- * @returns {number|null} The ID of the feature if found, otherwise null.
- */
-export function getFeatureIdFromKey(settings: SettingsModel, featureKey: string): number {
-  // Attempt to find the feature by its key in the settings
-  const feature = getFeatureFromKey(settings, featureKey);
-  // Return the ID of the feature if it exists, otherwise return null
-  return feature ? feature.getId() : null;
-}
-
 
 /**
  * Checks if an event exists within any feature's metrics.
@@ -177,7 +150,7 @@ export function addLinkedCampaignsToSettings(settings: SettingsModel): void {
 
       return linkedCampaign;
     }).filter(campaign => campaign !== null); // Filter out any null entries
-    
+
     const rulesLinkedCampaignModel = rulesLinkedCampaign.map((campaign) => {
       const campaignModel = new CampaignModel();
       campaignModel.modelFromDictionary(campaign);

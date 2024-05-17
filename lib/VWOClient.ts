@@ -89,15 +89,9 @@ export class VWOClient implements IVWOClient {
     const apiName = 'getFlag';
     const deferredObject = new Deferred();
     const errorReturnSchema = {
-      isEnabled: (): boolean => {
-        return false;
-      },
-      getVariables: (): Record<string, dynamic> => {
-        return {};
-      },
-      getVariable: (key: string): dynamic => {
-        return null;
-      },
+      isEnabled: (): boolean => false,
+      getVariables: (): Array<Record<string, dynamic>> => [],
+      getVariable: (_key: string, defaultValue: any): dynamic => defaultValue
     };
 
     try {

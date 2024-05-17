@@ -21,7 +21,7 @@ import {
   cloneObject,
   getCurrentUnixTimestamp,
   getSpecificRulesBasedOnType,
-  getAllAbAndPersonaliseRules,
+  getAllExperimentRules,
   addLinkedCampaignsToSettings
 } from '../../../lib/utils/FunctionUtil';
 
@@ -105,7 +105,7 @@ describe('getSpecificRulesBasedOnType', () => {
   });
 });
 
-describe('getAllAbAndPersonaliseRules', () => {
+describe('getAllExperimentRules', () => {
   it('should return only AB and Personalize rules from the feature', () => {
     // Mock settings and featureKey
     const feature: any = {
@@ -118,7 +118,7 @@ describe('getAllAbAndPersonaliseRules', () => {
     };
     const featureModel = new FeatureModel().modelFromDictionary(feature);
     // Call the function
-    const result = getAllAbAndPersonaliseRules(featureModel);
+    const result = getAllExperimentRules(featureModel);
 
     // Define expected result
     const expected = [
@@ -140,7 +140,7 @@ describe('getAllAbAndPersonaliseRules', () => {
 
     const featureModel = new FeatureModel().modelFromDictionary(feature);
     // Call the function
-    const result = getAllAbAndPersonaliseRules(featureModel);
+    const result = getAllExperimentRules(featureModel);
 
     // Assert the result
     expect(result).toEqual([]);
@@ -152,7 +152,7 @@ describe('getAllAbAndPersonaliseRules', () => {
     const featuerModel = new FeatureModel().modelFromDictionary(feature);
 
     // Call the function
-    const result = getAllAbAndPersonaliseRules(featuerModel);
+    const result = getAllExperimentRules(featuerModel);
 
     // Assert the result
     expect(result).toEqual([]);

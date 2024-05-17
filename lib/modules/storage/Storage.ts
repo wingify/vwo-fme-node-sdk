@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// import { MemoryConnector } from './connectors'; // RedisConnector
-import { dynamic } from '../../types/Common';
-// import { Connector } from './Connector';
+import { Connector } from './Connector';
 
 // TODO: move to file
 enum ConnectorEnum {
@@ -25,24 +23,16 @@ enum ConnectorEnum {
 
 export class Storage {
   public static instance: Storage;
-  public connector: any; // RedisConnector |
-  public storageType: dynamic;
+  public connector: Connector | Record<any, any>; // RedisConnector |
+  // public storageType: dynamic;
 
   public attachConnector(connector: any): any {
-    this.storageType = connector?.name;
 
-    this.connector = new connector();
-    // switch (connector.name) {
-      // case ConnectorEnum.FILE:
-      //   this.connector = new FileConnector(connector.config);
-      //   break;
-      // case ConnectorEnum.REDIS:
-      //   this.connector = new RedisConnector(connector.config);
-      //   break;
-      // case ConnectorEnum.MEMORY:
-      //   this.connector = new MemoryConnector(connector.config);
-      //   break;
-    // }
+    if (connector?.prototype?.constructor?.toString()?.trim()?.substring(0,5) === 'class') {
+      this.connector = new connector();
+    } else {
+      this.connector = connector;
+    }
 
     return this.connector;
   }
@@ -53,11 +43,7 @@ export class Storage {
     return this.instance;
   }
 
-  public get config(): Record<string, dynamic> {
-    return this.connector.config;
-  }
-
-  public getConnector(): any { // RedisConnector |
+  public getConnector(): any {
     return this.connector;
   }
 }

@@ -21,6 +21,9 @@ import { isObject, isString } from './utils/DataTypeUtil';
 import { Deferred } from './utils/PromiseUtil';
 import { IVWOClient, VWOClient } from './VWOClient';
 
+import { Connector } from './modules/storage/Connector';
+
+export { Connector };
 export class VWO {
   private static vwoBuilder: VWOBuilder;
   private static instance: dynamic;
@@ -77,8 +80,8 @@ let _global: Record<string, any> = {};
  * @property {string} sdkKey - The SDK key for the VWO account.
  * @property {string} accountId - The account ID for the VWO account.
  * @property {GatewayServiceModel} gatewayService - The gateway service configuration.
- * @property {StorageService} storage - The storage configuration. 
-* @returns 
+ * @property {StorageService} storage - The storage configuration.
+* @returns
  */
 
 export async function init(options: IVWOOptions): Promise<IVWOClient>{

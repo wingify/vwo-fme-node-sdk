@@ -20,9 +20,13 @@ import { NetworkManager, RequestModel, ResponseModel } from '../modules/networki
 
 import { Deferred } from '../utils/PromiseUtil';
 
+import { isObject } from '../utils/DataTypeUtil';
 import { Constants } from '../constants';
+import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { NetworkUtil } from '../utils/NetworkUtil';
+
+import { Storage } from '../modules/storage';
 
 interface ISettingsManager {
   sdkKey: string;
@@ -77,7 +81,7 @@ export class SettingsManager implements ISettingsManager {
 
     this.fetchSettings()
       .then(async (res) => {
-        LogManager.Instance.info('Settings fetched successfully');
+        // LogManager.Instance.info('Settings fetched successfully');
 
         // const method = update ? 'update' : 'set';
 
@@ -149,27 +153,45 @@ export class SettingsManager implements ISettingsManager {
         deferredObject.resolve(settings);
       });
     } else {
-      this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-        deferredObject.resolve(fetchedSettings);
-      });
+
       // const storageConnector = Storage.Instance.getConnector();
 
-      // storageConnector
-      //   .get(Constants.SETTINGS)
-      //   .then((storedSettings: dynamic) => {
-      //     if (!isObject(storedSettings)) {
+      // if (storageConnector) {
+      //   storageConnector
+      //     .get(Constants.SETTINGS)
+      //     .then((storedSettings: dynamic) => {
+      //       if (!isObject(storedSettings)) {
+      //         this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
+      //           const isSettingsValid = new SettingsSchema().isSettingsValid(fetchedSettings);
+      //           if (isSettingsValid) {
+      //             deferredObject.resolve(fetchedSettings);
+      //           } else {
+      //             deferredObject.reject(new Error('Settings are not valid. Failed schema validation.'));
+      //           }
+      //         });
+      //       } else {
+      //         deferredObject.resolve(storedSettings);
+      //       }
+      //     })
+      //     .catch(() => {
       //       this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
       //         deferredObject.resolve(fetchedSettings);
       //       });
-      //     } else {
-      //       deferredObject.resolve(storedSettings);
-      //     }
-      //   })
-      //   .catch(() => {
-      //     this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-      //       deferredObject.resolve(fetchedSettings);
       //     });
-      //   });
+      // } else {
+        this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
+          const isSettingsValid = new SettingsSchema().isSettingsValid(fetchedSettings);
+          if (isSettingsValid) {
+            LogManager.Instance.info('Settings fetched successfully');
+            deferredObject.resolve(fetchedSettings);
+          } else {
+            // TODO: add error log
+            LogManager.Instance.error('Settings are not valid. Failed schema validation.');
+
+            deferredObject.resolve({});
+          }
+        });
+      // }
     }
 
     return deferredObject.promise;

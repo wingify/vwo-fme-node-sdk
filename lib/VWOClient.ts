@@ -27,6 +27,8 @@ import { ErrorLogMessageEnum } from './enums/log-messages/ErrorLogMessageEnum';
 import { dynamic } from './types/Common';
 // import { BatchEventsQueue } from './services/batchEventsQueue';
 
+import { SettingsSchema } from './models/schemas/SettingsSchemaValidation';
+import { ContextModel } from './models/user/ContextModel';
 import HooksManager from './services/HooksManager';
 import UrlService from './services/UrlService';
 import { setVariationAllocation } from './utils/CampaignUtil';
@@ -34,7 +36,6 @@ import { getType, isObject, isString } from './utils/DataTypeUtil';
 import { addLinkedCampaignsToSettings } from './utils/FunctionUtil';
 import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
-import { ContextModel } from './models/user/ContextModel';
 
 export interface IVWOClient {
   readonly options?: any;
@@ -49,6 +50,7 @@ export interface IVWOClient {
 
 export class VWOClient implements IVWOClient {
   settings: SettingsModel;
+  originalSettings: Record<any, any>;
   storage: Storage;
 
   constructor(
@@ -57,6 +59,8 @@ export class VWOClient implements IVWOClient {
   ) {
     this.options = options;
     this.settings = new SettingsModel(settings);
+    this.originalSettings = settings;
+
     UrlService.init({
       collectionPrefix: this.settings.getCollectionPrefix(),
       gatewayServiceUrl: options?.gatewayService?.url,
@@ -86,6 +90,18 @@ export class VWOClient implements IVWOClient {
     const deferredObject = new Deferred();
     const hookManager = new HooksManager(this.options);
     const contextModel = new ContextModel().modelFromDictionary(context);
+    const errorReturnSchema = {
+      isEnabled: (): boolean => {
+        return false;
+      },
+      getVariables: (): Record<string, dynamic> => {
+        return {};
+      },
+      getVariable: (key: string): dynamic => {
+        return null;
+      },
+    };
+
     try {
       LogManager.Instance.debug(
         buildMessage(DebugLogMessageEnum.API_CALLED, {
@@ -100,8 +116,8 @@ export class VWOClient implements IVWOClient {
         throw new TypeError('TypeError: variableSpecifier should be a string');
       }
 
-      if (!this.settings) {
-        //|| !new SettingsSchema().isSettingsValid(this.settings)) {
+      console.log(this.originalSettings)
+      if (!new SettingsSchema().isSettingsValid(this.originalSettings)) {
         LogManager.Instance.debug(`settings are not valid. Got ${getType(this.settings)}`);
         throw new Error('Invalid Settings');
       }
@@ -111,11 +127,13 @@ export class VWOClient implements IVWOClient {
         throw new Error('Invalid context');
       }
 
-      new FlagApi().get(featureKey, this.settings, contextModel, hookManager).then((data: any) => {
-        deferredObject.resolve(data);
-      });
-
-      return deferredObject.promise;
+      new FlagApi().get(featureKey, this.settings, contextModel, hookManager)
+        .then((data: any) => {
+          deferredObject.resolve(data);
+        })
+        .catch((err: any) => {
+          deferredObject.resolve(errorReturnSchema);
+        })
     } catch (err) {
       LogManager.Instance.error(
         buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
@@ -124,8 +142,10 @@ export class VWOClient implements IVWOClient {
         }),
       );
 
-      return deferredObject.resolve({});
+      deferredObject.resolve(errorReturnSchema);
     }
+
+    return deferredObject.promise;
   }
 
   /**
@@ -168,8 +188,7 @@ export class VWOClient implements IVWOClient {
       }
 
       // Validate settings are loaded and valid
-      if (!this.settings) {
-        // || !new SettingsSchema().isSettingsValid(this.settings)) {
+      if (!new SettingsSchema().isSettingsValid(this.originalSettings)) {
         LogManager.Instance.debug(`settings are not valid. Got ${getType(this.settings)}`);
         throw new Error('Invalid Settings');
       }

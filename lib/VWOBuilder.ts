@@ -142,15 +142,20 @@ export class VWOBuilder implements IVWOBuilder {
   getSettings(force?: boolean): Promise<SettingsModel> {
     const deferredObject = new Deferred();
 
-    // Use cached settings if available and not forced to fetch
-    if (!force && this.settings) {
-      LogManager.Instance.info('Using already fetched and cached settings');
-      deferredObject.resolve(this.settings);
-    } else {
-      // Fetch settings if not cached or forced
-      this.fetchSettings(force).then((settings: SettingsModel) => {
-        deferredObject.resolve(settings);
-      });
+    try {
+      // Use cached settings if available and not forced to fetch
+      if (!force && this.settings) {
+        LogManager.Instance.info('Using already fetched and cached settings');
+        deferredObject.resolve(this.settings);
+      } else {
+        // Fetch settings if not cached or forced
+        this.fetchSettings(force).then((settings: SettingsModel) => {
+          deferredObject.resolve(settings);
+        });
+      }
+    } catch (err) {
+      console.log('Graceful handling ', err)
+      deferredObject.resolve(err);
     }
     return deferredObject.promise;
   }

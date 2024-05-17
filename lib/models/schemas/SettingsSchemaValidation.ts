@@ -18,35 +18,37 @@ import { dynamic } from '../../types/Common';
 import { SettingsModel } from '../settings/SettingsModel';
 
 export class SettingsSchema {
-  private campaignGoalSchema: Struct<dynamic>;
+  private campaignMetricSchema: Struct<dynamic>;
   private variableObjectSchema: Struct<dynamic>;
   private campaignVariationSchema: Struct<dynamic>;
   private campaignObjectSchema: Struct<dynamic>;
   private settingsSchema: Struct<dynamic>;
   private campaignGroupSchema: Struct<dynamic>;
   private featureSchema: Struct<dynamic>;
+  private ruleSchema: Struct<dynamic>;
 
   constructor() {
     this.initializeSchemas();
   }
 
   private initializeSchemas(): void {
-    this.campaignGoalSchema = object({
+    this.campaignMetricSchema = object({
       id: union([number(), string()]),
-      key: string(),
-      type: string()
+      type: string(),
+      identifier: string(),
+      mca: optional(union([number(), string()]))
     });
 
     this.variableObjectSchema = object({
       id: union([number(), string()]),
       type: string(),
       key: string(),
-      value: union([number(), string(), boolean()])
+      value: union([number(), string(), boolean(), object() ])
     });
 
     this.campaignVariationSchema = object({
       id: union([number(), string()]),
-      key: string(),
+      name: string(),
       weight: union([number(), string()]),
       segments: optional(object()),
       variables: optional(array(this.variableObjectSchema)),
@@ -58,28 +60,43 @@ export class SettingsSchema {
       id: union([number(), string()]),
       type: string(),
       key: string(),
-      featureId: optional(number()),
-      featureKey: optional(string()),
-      percentTraffic: number(),
-      metrics: array(this.campaignGoalSchema),
+      percentTraffic: optional(number()),
+      status: string(),
       variations: array(this.campaignVariationSchema),
-      variables: optional(array(this.variableObjectSchema)),
       segments: object(),
       isForcedVariationEnabled: optional(boolean())
+    });
+
+    this.ruleSchema = object({
+      type: string(),
+      ruleKey: string(),
+      campaignId: number(),
+      variationId: optional(number())
     });
 
     this.featureSchema = object({
       id: union([number(), string()]),
       key: string(),
-      variables: optional(array(this.variableObjectSchema)),
-      campaigns: array(this.campaignObjectSchema)
+      status: string(),
+      name: string(),
+      type: string(),
+      metrics: array(this.campaignMetricSchema),
+      impactCampaign: optional(object()),
+      rules: optional(array(this.ruleSchema)),
+      variables: optional(array(this.variableObjectSchema))
     });
 
     this.settingsSchema = object({
       sdkKey: optional(string()),
       version: union([number(), string()]),
       accountId: union([number(), string()]),
-      features: optional(array(this.featureSchema))
+      features: optional(array(this.featureSchema)),
+      campaigns: array(this.campaignObjectSchema),
+      groups: optional(object()),
+      campaignGroups: optional(array(this.campaignGroupSchema)),
+      // remove these once DACDN is ready
+      isNB: optional(boolean()),
+      isNBv2: optional(boolean()),
     });
 
     this.campaignGroupSchema = object({
@@ -88,8 +105,13 @@ export class SettingsSchema {
     });
   }
 
-  isSettingsValid(settings: SettingsModel): boolean {
+  isSettingsValid(settings: any | SettingsModel): boolean {
+    if (!settings) {
+      return false;
+    }
+
     const [error] = validate(settings, this.settingsSchema);
+
     return !error;
   }
 }

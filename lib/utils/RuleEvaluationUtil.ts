@@ -47,7 +47,7 @@ export const evaluateRule = async (
   megGroupWinnerCampaigns: Map<number, number>,
   storageService: StorageService,
   decision: any,
-): Promise<[boolean, any]> => {
+): Promise<Record<string, any>> => {
   // Perform whitelisting and pre-segmentation checks
   const [preSegmentationResult, whitelistedObject] = await checkWhitelistingAndPreSeg(
     settings,
@@ -79,5 +79,5 @@ export const evaluateRule = async (
   }
 
   // Return the results of the evaluation
-  return [ preSegmentationResult, whitelistedObject ];
+  return { preSegmentationResult, whitelistedObject, updatedDecision: decision };
 };

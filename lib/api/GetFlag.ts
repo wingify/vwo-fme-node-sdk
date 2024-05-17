@@ -139,8 +139,7 @@ export class FlagApi implements IGetFlag {
       const rolloutRulesToEvaluate = [];
 
       for (const rule of rollOutRules) {
-        // ruleEvaluationResult - [ boolean - based pre segmentation, boolean - based on whitelisting]
-        const [ ruleEvaluationResult, _ ] = await evaluateRule(
+        const { preSegmentationResult, updatedDecision } = await evaluateRule(
           settings,
           feature,
           rule,
@@ -151,7 +150,9 @@ export class FlagApi implements IGetFlag {
           decision,
         );
 
-        if (ruleEvaluationResult) {
+        Object.assign(decision, updatedDecision);
+
+        if (preSegmentationResult) {
           // if pre segment passed, then break the loop and check the traffic allocation
           rolloutRulesToEvaluate.push(rule);
 
@@ -197,8 +198,7 @@ export class FlagApi implements IGetFlag {
       const megGroupWinnerCampaigns: Map<number, number> = new Map();
 
       for (const rule of experimentRules) {
-        // experimentRuleResult - true/ false (based on whitelisting condition || pre segment condition)
-        const [ experimentRuleResult, experimentWhitelistedVariation ] = await evaluateRule(
+        const { preSegmentationResult, whitelistedObject, updatedDecision } = await evaluateRule(
           settings,
           feature,
           rule,
@@ -209,17 +209,19 @@ export class FlagApi implements IGetFlag {
           decision,
         );
 
-        if (experimentRuleResult) {
-          if (experimentWhitelistedVariation === null) {
-            // experimentWhitelistedVariation will be null if pre segment passed but whitelisting failed
+        Object.assign(decision, updatedDecision);
+
+        if (preSegmentationResult) {
+          if (whitelistedObject === null) {
+            // whitelistedObject will be null if pre segment passed but whitelisting failed
             experimentRulesToEvaluate.push(rule);
           } else {
             isEnabled = true;
-            experimentVariationToReturn = experimentWhitelistedVariation.variation;
+            experimentVariationToReturn = whitelistedObject.variation;
             Object.assign(passedRulesInformation, {
               experimentId: rule.getId(),
-              experimentKey: experimentWhitelistedVariation.experimentKey,
-              experimentVariationId: experimentWhitelistedVariation.variationId,
+              experimentKey: whitelistedObject.experimentKey,
+              experimentVariationId: whitelistedObject.variationId,
             });
           }
 

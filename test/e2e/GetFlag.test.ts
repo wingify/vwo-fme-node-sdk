@@ -1,9 +1,25 @@
-import { SettingsModel } from '../../dist/models/settings/SettingsModel';
+/**
+ * Copyright 2024 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { init } from '../../lib';
 import { ContextModel } from '../../lib/models/user/ContextModel';
 import { VWOBuilder } from '../../lib/VWOBuilder';
-import { BASIC_ROLLOUT_SETTINGS, BASIC_ROLLOUT_TESTING_RULE_SETTINGS,
-  NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS, ROLLOUT_TESTING_PRE_SEGMENT_RULE_SETTINGS, TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS } from '../data/settings';
+import {
+  BASIC_ROLLOUT_SETTINGS, BASIC_ROLLOUT_TESTING_RULE_SETTINGS,
+  NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS, ROLLOUT_TESTING_PRE_SEGMENT_RULE_SETTINGS, TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS
+} from '../data/settings';
 
 describe('VWO', () => {
   it('should return true for a flag having settings: 100% traffic allocation and no segmentation', async () => {
@@ -32,7 +48,7 @@ describe('VWO', () => {
 
   it('should return true for a flag having settings: 100% traffic allocation and no segmentation and Testing Rule', async () => {
     const vwoBuilder = new VWOBuilder({ accountId: '123456', key: 'abcdef' });
-    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(BASIC_ROLLOUT_TESTING_RULE_SETTINGS);
+    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(BASIC_ROLLOUT_TESTING_RULE_SETTINGS );
 
     const options = {
       sdkKey: 'sdk-key',

@@ -115,11 +115,10 @@ export async function init(options: IVWOOptions): Promise<IVWOClient>{
 }
 
 export async function onReady() {
-  console.log('onReady called')
   _global.vwoInitDeferred = new Deferred();
 
   // If settings are already fetched, resolve the promise
-  if (false) {
+  if (_global.isSettingsFetched) {
     console.log('onReady already resolved')
     _global.vwoInitDeferred.resolve(_global.instance);
   } else {

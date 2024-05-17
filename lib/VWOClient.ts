@@ -116,7 +116,6 @@ export class VWOClient implements IVWOClient {
         throw new TypeError('TypeError: variableSpecifier should be a string');
       }
 
-      console.log(this.originalSettings)
       if (!new SettingsSchema().isSettingsValid(this.originalSettings)) {
         LogManager.Instance.debug(`settings are not valid. Got ${getType(this.settings)}`);
         throw new Error('Invalid Settings');

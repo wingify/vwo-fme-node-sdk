@@ -154,8 +154,8 @@ export class VWOBuilder implements IVWOBuilder {
         });
       }
     } catch (err) {
-      console.log('Graceful handling ', err)
-      deferredObject.resolve(err);
+      LogManager.Instance.error('Failed to fetch settings. Error: ' + err);
+      deferredObject.resolve({});
     }
     return deferredObject.promise;
   }

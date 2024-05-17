@@ -20,6 +20,7 @@ import { dynamic } from '../types/Common';
 
 import { isNull, isUndefined } from '../utils/DataTypeUtil';
 import { Deferred } from '../utils/PromiseUtil';
+import { LogManager } from '../modules/logger';
 
 export class StorageService {
   private storageData: Record<string, dynamic> = {};
@@ -44,8 +45,7 @@ export class StorageService {
           deferredObject.resolve(data);
         })
         .catch((err) => {
-          console.log('Error in getting data from storage', err);
-          // TODO:- Add logging here
+          LogManager.Instance.error('Error in getting data from storage. Error:' + err);
           deferredObject.resolve(StorageEnum.NO_DATA_FOUND);
         });
     }

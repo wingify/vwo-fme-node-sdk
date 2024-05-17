@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { StorageDecorator } from '../../../decorators/StorageDecorator';
-import { UrlEnum } from '../../../enums/UrlEnum';
 import { SettingsModel } from '../../../models/settings/SettingsModel';
 import { LogManager } from '../../logger';
 import { StorageService } from '../../../services/StorageService';
@@ -124,7 +123,7 @@ export class SegmentEvaluator implements Segmentation {
           const uaParserResult = await this.checkUserAgentParser(uaParserMap);
           return uaParserResult;
         } catch (err) {
-          console.log(err);
+          LogManager.Instance.error('Failed to validate User Agent. Erro: ' + err);
         }
       }
 

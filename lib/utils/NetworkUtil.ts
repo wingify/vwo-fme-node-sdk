@@ -297,7 +297,7 @@ export class NetworkUtil {
     );
 
     NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
-      console.log('error', err);
+      LogManager.Instance.error('Error in getting data from storage. Error:' + err);
     });
   }
 

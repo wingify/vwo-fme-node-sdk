@@ -128,8 +128,8 @@ const evaluateFeatureRollOutRules = async (
   if (rollOutRules.length > 0) {
     let ruleToTestForTraffic = null;
     for (const rule of rollOutRules) {
-      const [evaluateRuleResult] = await evaluateRule(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, {});
-      if (evaluateRuleResult) {
+      const {preSegmentationResult} = await evaluateRule(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, {});
+      if (preSegmentationResult) {
         ruleToTestForTraffic = rule;
         break;
       }

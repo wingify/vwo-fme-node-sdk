@@ -43,9 +43,9 @@ export interface IVWOClient {
   // onceReady(): Promise<Record<string, dynamic>>;
 
   // getSettings(force: boolean): SettingsModel | Promise<SettingsModel>;
-  getFlag(featureKey: string, context: ContextModel): Record<any, any>;
-  trackEvent(eventName: string, eventProperties: Record<string, dynamic>, context: ContextModel): Promise<Record<string, boolean>>;
-  setAttribute(attributeKey: string, attributeValue: string, context: ContextModel): void
+  getFlag(featureKey: string, context: Record<string, any>): Record<any, any>;
+  trackEvent(eventName: string, eventProperties: Record<string, dynamic>, context:  Record<string, any>): Promise<Record<string, boolean>>;
+  setAttribute(attributeKey: string, attributeValue: string, context:  Record<string, any>): void
 }
 
 export class VWOClient implements IVWOClient {
@@ -85,7 +85,7 @@ export class VWOClient implements IVWOClient {
    * @param {ContextModel} context - The context in which the feature flag is being retrieved, must include a valid user ID.
    * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
    */
-  getFlag(featureKey: string, context: ContextModel): Record<any, any> {
+  getFlag(featureKey: string, context: Record<string, any>): Record<any, any> {
     const apiName = 'getFlag';
     const deferredObject = new Deferred();
     const errorReturnSchema = {
@@ -158,7 +158,7 @@ export class VWOClient implements IVWOClient {
   trackEvent(
     eventName: string,
     eventProperties: Record<string, dynamic> = {},
-    context: ContextModel,
+    context:  Record<string, any>,
   ): Promise<Record<string, boolean>> {
     const apiName = 'trackEvent';
     const deferredObject = new Deferred();
@@ -229,7 +229,7 @@ export class VWOClient implements IVWOClient {
    * @param {string} attributeValue - The value of the attribute to set.
    * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
    */
-  setAttribute(attributeKey: string, attributeValue: string, context: ContextModel): void {
+  setAttribute(attributeKey: string, attributeValue: string, context:  Record<string, any>): void {
     const apiName = 'setAttribute';
 
     try {

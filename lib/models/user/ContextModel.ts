@@ -24,7 +24,7 @@ export class ContextModel {
     private variationTargetingVariables?: Record<string, dynamic>;
     private _vwo?: ContextVWOModel;
   
-    modelFromDictionary(context: ContextModel): this {
+    modelFromDictionary(context: Record<string, any>): this {
       this.id = context.id;
       this.userAgent = context.userAgent;
       this.ipAddress = context.ipAddress;

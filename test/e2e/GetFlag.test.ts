@@ -33,8 +33,8 @@ describe('VWO', () => {
     };
     const vwoClient = await init(options);
 
-    const context: any = { id: 'user_id' };
-    const featureFlag = await vwoClient.getFlag('feature1', new ContextModel().modelFromDictionary(context));
+    const context = { id: 'user_id' };
+    const featureFlag = await vwoClient.getFlag('feature1', context);
 
     expect(featureFlag.isEnabled()).toBe(true);
     expect(featureFlag.getVariable('int')).toBe(10);
@@ -47,8 +47,8 @@ describe('VWO', () => {
   });
 
   it('should return true for a flag having settings: 100% traffic allocation and no segmentation and Testing Rule', async () => {
-    const vwoBuilder = new VWOBuilder({ accountId: '123456', key: 'abcdef' });
-    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(BASIC_ROLLOUT_TESTING_RULE_SETTINGS );
+    const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(BASIC_ROLLOUT_TESTING_RULE_SETTINGS as any);
 
     const options = {
       sdkKey: 'sdk-key',
@@ -76,8 +76,8 @@ describe('VWO', () => {
   })
 
   it('should return true for a flag having no segmentation and only testing rule', async () => {
-    const vwoBuilder = new VWOBuilder({ accountId: '123456', key: 'abcdef' });
-    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS);
+    const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS as any);
 
     const options = {
       sdkKey: 'sdk-key',
@@ -102,8 +102,8 @@ describe('VWO', () => {
   })
 
   it('should return false for a flag that does not exists and return default values for variables', async () => {
-    const vwoBuilder = new VWOBuilder({ accountId: '123456', key: 'abcdef' });
-    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS);
+    const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS as any);
 
     const options = {
       sdkKey: 'sdk-key',
@@ -128,8 +128,8 @@ describe('VWO', () => {
   })
 
   it('should return false for a flag that does not pass pre segment of any rule', async () => {
-    const vwoBuilder = new VWOBuilder({ accountId: '123456', key: 'abcdef' });
-    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(ROLLOUT_TESTING_PRE_SEGMENT_RULE_SETTINGS);
+    const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(ROLLOUT_TESTING_PRE_SEGMENT_RULE_SETTINGS as any);
 
     const options = {
       sdkKey: 'sdk-key',
@@ -153,8 +153,8 @@ describe('VWO', () => {
   })
 
   it('should return true for a flag that pass pre segment for rollout1 and testingRule1', async () => {
-    const vwoBuilder = new VWOBuilder({ accountId: '123456', key: 'abcdef' });
-    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(ROLLOUT_TESTING_PRE_SEGMENT_RULE_SETTINGS);
+    const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(ROLLOUT_TESTING_PRE_SEGMENT_RULE_SETTINGS as any);
 
     const options = {
       sdkKey: 'sdk-key',
@@ -181,8 +181,8 @@ describe('VWO', () => {
   })
 
   it('should return true for a flag that pass pre segment for rollout2 and testingRule2', async () => {
-    const vwoBuilder = new VWOBuilder({ accountId: '123456', key: 'abcdef' });
-    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(ROLLOUT_TESTING_PRE_SEGMENT_RULE_SETTINGS);
+    const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(ROLLOUT_TESTING_PRE_SEGMENT_RULE_SETTINGS as any);
 
     const options = {
       sdkKey: 'sdk-key',
@@ -209,8 +209,8 @@ describe('VWO', () => {
   })
 
   it('should return true for a flag that pass control whitelisting for testingRule1', async () => {
-    const vwoBuilder = new VWOBuilder({ accountId: '123456', key: 'abcdef' });
-    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS);
+    const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS as any);
 
     const options = {
       sdkKey: 'sdk-key',
@@ -237,8 +237,8 @@ describe('VWO', () => {
   })
 
   it('should return true for a flag that fails whitelisting for testingRule1 and only rollout rule pass', async () => {
-    const vwoBuilder = new VWOBuilder({ accountId: '123456', key: 'abcdef' });
-    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS);
+    const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS as any);
 
     const options = {
       sdkKey: 'sdk-key',

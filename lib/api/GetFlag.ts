@@ -62,7 +62,13 @@ export class FlagApi implements IGetFlag {
 
     // get feature object from feature key
     const feature = getFeatureFromKey(settings, featureKey);
-    const decision = _setIntegrationHookData(feature, context);
+    const decision = {
+      featureName: feature?.getName(),
+      featureId: feature?.getId(),
+      featureKey: feature?.getKey(),
+      userId: context?.getId(),
+      api: ApiEnum.GET_FLAG
+    }
 
     const storageService = new StorageService();
     const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(
@@ -170,18 +176,16 @@ export class FlagApi implements IGetFlag {
 
       if (rolloutRulesToEvaluate.length > 0) {
         const passedRolloutCampaign = new CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
-        const variation = _checkTrafficAndReturnVariation(
-          settings,
-          passedRolloutCampaign,
-          context,
-          passedRulesInformation,
-          decision
-        );
+        const variation = evaluateTrafficAndGetVariation(settings, passedRolloutCampaign, context.getId());
 
         if (isObject(variation) && Object.keys(variation).length > 0) {
           isEnabled = true;
           shouldCheckForExperimentsRules = true;
           rolloutVariationToReturn = variation;
+
+          _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
+
+          createAndSendImpressionForVariationShown(settings, passedRolloutCampaign.getId(), variation.getId(), context);
         }
       }
 
@@ -232,17 +236,15 @@ export class FlagApi implements IGetFlag {
 
       if (experimentRulesToEvaluate.length > 0) {
         const campaign = new CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
-        const variation = _checkTrafficAndReturnVariation(
-          settings,
-          campaign,
-          context,
-          passedRulesInformation,
-          decision,
-        );
+        const variation = evaluateTrafficAndGetVariation(settings, campaign, context.getId());
 
         if (isObject(variation) && Object.keys(variation).length > 0) {
           isEnabled = true;
           experimentVariationToReturn = variation;
+
+          _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
+
+          createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
         }
       }
     }
@@ -297,61 +299,24 @@ export class FlagApi implements IGetFlag {
 
 // Not PRIVATE methods but helper methods. If need be, move them to some util file to be reused by other API(s)
 
-/**
- * Constructs integration hook data based on the provided feature and user context.
- * This data is used for integration callbacks and logging purposes.
- *
- * @param {FeatureModel} feature - The feature model containing details like name, ID, and key.
- * @param {ContextModel} context - The user context model containing the user ID.
- * @returns {Object} An object containing feature details, user ID, and the API identifier.
- */
-function _setIntegrationHookData(feature: FeatureModel, context: ContextModel): any {
-  return {
-    featureName: feature?.getName(),
-    featureId: feature?.getId(),
-    featureKey: feature?.getKey(),
-    userId: context?.getId(),
-    api: ApiEnum.GET_FLAG
-  };
-}
-
-/**
- * Evaluates traffic and returns the appropriate variation based on the campaign type.
- * This method also updates the rules information and decision objects with the campaign and variation details.
- *
- * @param {SettingsModel} settings - The settings model containing configuration details.
- * @param {CampaignModel} campaign - The campaign model to evaluate.
- * @param {ContextModel} context - The user context model containing the user ID.
- * @param {any} passedRulesInformation - An object to be updated with campaign and variation IDs for logging and tracking.
- * @param {any} decision - An object to be updated with decision details for integration hooks.
- * @returns {VariationModel|null} The selected variation model if successful, otherwise null.
- */
-function _checkTrafficAndReturnVariation(
-  settings: SettingsModel,
+function _updateIntegrationsDecisionObject(
   campaign: CampaignModel,
-  context: ContextModel,
+  variation: VariationModel,
   passedRulesInformation: any,
   decision: any,
-): VariationModel {
-  const variation = evaluateTrafficAndGetVariation(settings, campaign, context.getId());
-
-  if (isObject(variation) && Object.keys(variation).length > 0) {
-    if (campaign.getType() === CampaignTypeEnum.ROLLOUT) {
-      Object.assign(passedRulesInformation, {
-        rolloutId: campaign.getId(),
-        rolloutKey: campaign.getKey(),
-        rolloutVariationId: variation.getId(),
-      });
-    } else {
-      Object.assign(passedRulesInformation, {
-        experimentId: campaign.getId(),
-        experimentKey: campaign.getKey(),
-        experimentVariationId: variation.getId(),
-      });
-    }
-    Object.assign(decision, passedRulesInformation);
-    createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
-    return variation;
+): void {
+  if (campaign.getType() === CampaignTypeEnum.ROLLOUT) {
+    Object.assign(passedRulesInformation, {
+      rolloutId: campaign.getId(),
+      rolloutKey: campaign.getKey(),
+      rolloutVariationId: variation.getId(),
+    });
+  } else {
+    Object.assign(passedRulesInformation, {
+      experimentId: campaign.getId(),
+      experimentKey: campaign.getKey(),
+      experimentVariationId: variation.getId(),
+    });
   }
-  return null;
+  Object.assign(decision, passedRulesInformation);
 }

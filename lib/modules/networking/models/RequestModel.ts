@@ -52,7 +52,7 @@ export class RequestModel {
     body: Record<string, dynamic>,
     headers: Record<string, string>,
     scheme: string = HTTP,
-    port: number = 80
+    port: number
   ) {
     this.url = url;
     this.method = method;

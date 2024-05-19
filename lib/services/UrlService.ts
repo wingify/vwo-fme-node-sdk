@@ -43,9 +43,7 @@ const UrlService: UrlServiceType = {
     if (gatewayServiceUrl && isString(gatewayServiceUrl)) {
       const parsedUrl = new URL(`https://${gatewayServiceUrl}`);
       UrlService.gatewayServiceUrl = parsedUrl.hostname;
-      UrlService.port = parseInt(parsedUrl.port) || 80; // Default to port 80 if no port specified
-    } else {
-      UrlService.port = 80; // Default port if no gatewayServiceUrl provided
+      UrlService.port = parseInt(parsedUrl.port);
     }
 
     return UrlService;

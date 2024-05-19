@@ -64,6 +64,7 @@ export class VWOClient implements IVWOClient {
     UrlService.init({
       collectionPrefix: this.settings.getCollectionPrefix(),
       gatewayServiceUrl: options?.gatewayService?.url,
+      gatewayServicePort: parseInt(options?.gatewayService?.port),
     });
 
     // Optimize loop by avoiding multiple calls to `getCampaigns()`

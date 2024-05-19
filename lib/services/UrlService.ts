@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { UrlEnum } from '../enums/UrlEnum';
-import { isString } from '../utils/DataTypeUtil';
+import { isNumber, isString } from '../utils/DataTypeUtil';
 
 interface UrlServiceType {
   collectionPrefix?: string;
   gatewayServiceUrl?: string;
-  port?: number;
-  init({ collectionPrefix, gatewayServiceUrl }?: { collectionPrefix?: string; gatewayServiceUrl?: string }): UrlServiceType;
+  gatewayServicePort?: number;
+  init({ collectionPrefix, gatewayServiceUrl, gatewayServicePort }?: { collectionPrefix?: string; gatewayServiceUrl?: string; gatewayServicePort: number }): UrlServiceType;
   getBaseUrl(): string;
   getPort(): number;
 }
@@ -33,7 +33,7 @@ const UrlService: UrlServiceType = {
    * @param {string} [gatewayServiceUrl] - Optional web service URL.
    * @returns {UrlServiceType} The instance of UrlService with updated properties.
    */
-  init({ collectionPrefix, gatewayServiceUrl }: { collectionPrefix?: string; gatewayServiceUrl?: any } = {}) {
+  init({ collectionPrefix, gatewayServiceUrl, gatewayServicePort }: { collectionPrefix?: string; gatewayServiceUrl?: string, gatewayServicePort?: number } = {}) {
     // Set collectionPrefix if it is a valid string
     if (collectionPrefix && isString(collectionPrefix)) {
       UrlService.collectionPrefix = collectionPrefix;
@@ -43,7 +43,11 @@ const UrlService: UrlServiceType = {
     if (gatewayServiceUrl && isString(gatewayServiceUrl)) {
       const parsedUrl = new URL(`https://${gatewayServiceUrl}`);
       UrlService.gatewayServiceUrl = parsedUrl.hostname;
-      UrlService.port = parseInt(parsedUrl.port);
+      if (parsedUrl.port) {
+        UrlService.gatewayServicePort = parseInt(parsedUrl.port);
+      } else if (gatewayServicePort !== undefined) {
+        UrlService.gatewayServicePort = gatewayServicePort;
+      }
     }
 
     return UrlService;
@@ -76,7 +80,7 @@ const UrlService: UrlServiceType = {
    * @returns {number} The port number.
    */
   getPort() {
-    return UrlService.port;
+    return UrlService.gatewayServicePort;
   },
 };
 

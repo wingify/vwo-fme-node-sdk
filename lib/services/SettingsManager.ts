@@ -20,7 +20,7 @@ import { NetworkManager, RequestModel, ResponseModel } from '../modules/networki
 
 import { Deferred } from '../utils/PromiseUtil';
 
-import { isObject } from '../utils/DataTypeUtil';
+import { isNumber, isObject } from '../utils/DataTypeUtil';
 import { Constants } from '../constants';
 import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation';
 import { SettingsModel } from '../models/settings/SettingsModel';
@@ -53,7 +53,11 @@ export class SettingsManager implements ISettingsManager {
     if (options?.gatewayService?.url) {
       const parsedUrl = new URL(`https://${options.gatewayService.url}`);
       this.settingsUrl = parsedUrl.hostname;
-      this.settingsPort = parseInt(parsedUrl.port);
+      if (parsedUrl.port) {
+        this.settingsPort = parseInt(parsedUrl.port);
+      } else if (options.gatewayService?.port) {
+        this.settingsPort = options.gatewayService.port;
+      }
     } else {
       this.settingsUrl = Constants.HOST_NAME;
     }

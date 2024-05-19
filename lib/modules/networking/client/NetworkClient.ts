@@ -96,6 +96,11 @@ export class NetworkClient implements NetworkClientInterface {
         responseModel.setError(new Error('timeout'));
         deferred.reject(responseModel);
       });
+
+      req.on('error', err => {
+        responseModel.setError(err);
+        deferred.reject(responseModel);
+      });
     } catch (err) {
       responseModel.setError(err);
       deferred.reject(responseModel);

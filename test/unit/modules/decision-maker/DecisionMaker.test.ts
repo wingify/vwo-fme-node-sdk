@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DecisionMaker } from '../../../../lib/modules/decision-maker';
+import { DecisionMaker } from '../../../../lib/packages/decision-maker';
 
 xdescribe('DecisionMaker', () => {
   let decisionMaker: DecisionMaker;

@@ -18,7 +18,7 @@ import { dynamic } from '../../../types/Common';
 import { SettingsModel } from '../../../models/settings/SettingsModel';
 import { getFromGatewayService, getQueryParams } from '../../../utils/GatewayServiceUtil';
 import { UrlEnum } from '../../../enums/UrlEnum';
-import { LogManager } from '../../../modules/logger';
+import { LogManager } from '../../logger';
 import { ContextModel } from '../../../models/user/ContextModel';
 import { FeatureModel } from '../../../models/campaign/FeatureModel';
 

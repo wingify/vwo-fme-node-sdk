@@ -15,7 +15,7 @@
  */
 import { ContextModel } from '../models/user/ContextModel';
 import { ApiEnum } from '../enums/ApiEnum';
-import { LogManager } from '../modules/logger';
+import { LogManager } from '../packages/logger';
 import HooksManager from '../services/HooksManager';
 import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
 import { NetworkUtil } from '../utils/NetworkUtil';

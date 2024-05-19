@@ -15,8 +15,8 @@
  */
 import { dynamic } from '../types/Common';
 
-import { LogManager } from '../modules/logger';
-import { NetworkManager, RequestModel, ResponseModel } from '../modules/networking';
+import { LogManager } from '../packages/logger';
+import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
 
 import { Deferred } from '../utils/PromiseUtil';
 
@@ -26,7 +26,7 @@ import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { NetworkUtil } from '../utils/NetworkUtil';
 
-import { Storage } from '../modules/storage';
+import { Storage } from '../packages/storage';
 
 interface ISettingsManager {
   sdkKey: string;

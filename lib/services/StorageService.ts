@@ -15,12 +15,12 @@
  */
 import { ContextModel } from '../models/user/ContextModel';
 import { StorageEnum } from '../enums/StorageEnum';
-import { Storage } from '../modules/storage';
+import { Storage } from '../packages/storage';
 import { dynamic } from '../types/Common';
 
 import { isNull, isUndefined } from '../utils/DataTypeUtil';
 import { Deferred } from '../utils/PromiseUtil';
-import { LogManager } from '../modules/logger';
+import { LogManager } from '../packages/logger';
 
 export class StorageService {
   private storageData: Record<string, dynamic> = {};

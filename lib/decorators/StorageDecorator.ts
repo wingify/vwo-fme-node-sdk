@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { LogManager } from '../modules/logger';
+import { LogManager } from '../packages/logger';
 
 import { StorageEnum } from '../enums/StorageEnum';
 import { FeatureModel } from '../models/campaign/FeatureModel';

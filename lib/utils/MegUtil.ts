@@ -21,8 +21,8 @@ import { FeatureModel } from '../models/campaign/FeatureModel';
 import { VariationModel } from '../models/campaign/VariationModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { ContextModel } from '../models/user/ContextModel';
-import { DecisionMaker } from '../modules/decision-maker';
-import { LogManager } from '../modules/logger';
+import { DecisionMaker } from '../packages/decision-maker';
+import { LogManager } from '../packages/logger';
 import { CampaignDecisionService } from '../services/CampaignDecisionService';
 import { StorageService } from '../services/StorageService';
 import { evaluateRule } from '../utils/RuleEvaluationUtil';
@@ -31,7 +31,7 @@ import {
   getCampaignIdsFromFeatureKey,
   getCampaignsByGroupId,
   getFeatureKeysFromCampaignIds,
-  getVariationByCampaignKey,
+  getVariationFromCampaignKey,
   setCampaignAllocation,
 } from './CampaignUtil';
 import { isObject } from './DataTypeUtil';
@@ -39,19 +39,15 @@ import { evaluateTrafficAndGetVariation } from './DecisionUtil';
 import { cloneObject, getFeatureFromKey, getSpecificRulesBasedOnType } from './FunctionUtil';
 
 /**
- * Evaluate groups for the feature
- * get all feature keys from the list of meg campaigns
- * evaluate each feature and get all campaigns for the feature
- * add the campaigns to campaignMap if they are present in the group
- * check the eligible campaigns
- * @param settings
- * @param feature
- * @param groupId
- * @param evaluatedFeatureMap
- * @param context
- * @param storageService
- * @param decision
- * @returns
+ * Evaluates groups for a given feature and group ID.
+ *
+ * @param settings - The settings model.
+ * @param feature - The feature model to evaluate.
+ * @param groupId - The ID of the group.
+ * @param evaluatedFeatureMap - A map containing evaluated features.
+ * @param context - The context model.
+ * @param storageService - The storage service.
+ * @returns A promise that resolves to the evaluation result.
  */
 export const evaluateGroups = async (
   settings: SettingsModel,
@@ -74,7 +70,7 @@ export const evaluateGroups = async (
       continue;
     }
     // evaluate the feature rollout rules
-    const result = await evaluateFeatureRollOutRules(settings, feature, evaluatedFeatureMap, featureToSkip, storageService, context);
+    const result = await _evaluateFeatureRollOutRules(settings, feature, evaluatedFeatureMap, featureToSkip, storageService, context);
     if (result) {
       settings.getCampaigns().forEach((campaign) => {
         // groupCampaignIds.includes(campaign.getId()) -> campaign we are adding should be in the group
@@ -91,13 +87,13 @@ export const evaluateGroups = async (
       });
     }
   }
-  const { eligibleCampaigns, eligibleCampaignsWithStorage, } = await getEligbleCampaigns(
+  const { eligibleCampaigns, eligibleCampaignsWithStorage, } = await _getEligbleCampaigns(
     settings,
     campaignMap,
     context,
     storageService,
   );
-  return await evaluateEligibleCampaigns(
+  return await _findWinnerCampaignAmongEligibleCampaigns(
     settings,
     feature.getKey(),
     eligibleCampaigns,
@@ -107,20 +103,43 @@ export const evaluateGroups = async (
   );
 };
 
+/**
+ * Retrieves feature keys associated with a group based on the group ID.
+ *
+ * @param settings - The settings model.
+ * @param groupId - The ID of the group.
+ * @returns An object containing feature keys and group campaign IDs.
+ */
 export function getFeatureKeysFromGroup(settings: SettingsModel, groupId: number) {
   const groupCampaignIds = getCampaignsByGroupId(settings, groupId);
   const featureKeys = getFeatureKeysFromCampaignIds(settings, groupCampaignIds);
+
   return { featureKeys, groupCampaignIds };
 }
 
-const evaluateFeatureRollOutRules = async (
+/*******************************
+ * PRIVATE methods - MegUtil
+ ******************************/
+
+/**
+ * Evaluates the feature rollout rules for a given feature.
+ *
+ * @param settings - The settings model.
+ * @param feature - The feature model to evaluate.
+ * @param evaluatedFeatureMap - A map containing evaluated features.
+ * @param featureToSkip - An array of features to skip during evaluation.
+ * @param storageService - The storage service.
+ * @param context - The context model.
+ * @returns A promise that resolves to true if the feature passes the rollout rules, false otherwise.
+ */
+const _evaluateFeatureRollOutRules = async (
   settings: SettingsModel,
   feature: FeatureModel,
   evaluatedFeatureMap: Map<string, any>,
   featureToSkip: any[],
   storageService: StorageService,
   context: ContextModel,
-): Promise<any> => {
+): Promise<boolean> => {
   if (evaluatedFeatureMap.has(feature.getKey()) && evaluatedFeatureMap.get(feature.getKey()).hasOwnProperty('rolloutId')) {
     return true;
   }
@@ -156,7 +175,16 @@ const evaluateFeatureRollOutRules = async (
   return true;
 };
 
-const getEligbleCampaigns = async (
+/**
+ * Retrieves eligible campaigns based on the provided campaign map and context.
+ *
+ * @param settings - The settings model.
+ * @param campaignMap - A map containing feature keys and corresponding campaigns.
+ * @param context - The context model.
+ * @param storageService - The storage service.
+ * @returns A promise that resolves to an object containing eligible campaigns, campaigns with storage, and ineligible campaigns.
+ */
+const _getEligbleCampaigns = async (
   settings: SettingsModel,
   campaignMap: Map<string, any[]>,
   context: ContextModel,
@@ -166,6 +194,8 @@ const getEligbleCampaigns = async (
   const eligibleCampaignsWithStorage = [];
   const inEligibleCampaigns = [];
   const campaignMapArray = Array.from<[string, CampaignModel[]]>(campaignMap);
+
+  // Iterate over the campaign map to determine eligible campaigns
   for (const [featureKey, campaigns] of campaignMapArray) {
     for (const campaign of campaigns) {
       const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(
@@ -173,9 +203,11 @@ const getEligbleCampaigns = async (
         context,
         storageService,
       );
+
+      // Check if campaign is stored in storage
       if (storedData?.experimentVariationId) {
         if (storedData.experimentKey && storedData.experimentKey === campaign.getKey()) {
-          const variation: VariationModel = getVariationByCampaignKey(
+          const variation: VariationModel = getVariationFromCampaignKey(
             settings,
             storedData.experimentKey,
             storedData.experimentVariationId,
@@ -191,6 +223,8 @@ const getEligbleCampaigns = async (
           }
         }
       }
+
+      // Check if user is eligible for the campaign
       if (
         (await new CampaignDecisionService().getDecision(
           new CampaignModel().modelFromDictionary(campaign),
@@ -203,9 +237,11 @@ const getEligbleCampaigns = async (
         eligibleCampaigns.push(campaign);
         continue;
       }
+
       inEligibleCampaigns.push(campaign);
     }
   }
+
   return Promise.resolve({
     eligibleCampaigns,
     eligibleCampaignsWithStorage,
@@ -213,7 +249,18 @@ const getEligbleCampaigns = async (
   });
 };
 
-const evaluateEligibleCampaigns = async (
+/**
+ * Evaluates the eligible campaigns and determines the winner campaign based on the provided settings, feature key, eligible campaigns, eligible campaigns with storage, group ID, and context.
+ *
+ * @param settings - The settings model.
+ * @param featureKey - The key of the feature.
+ * @param eligibleCampaigns - An array of eligible campaigns.
+ * @param eligibleCampaignsWithStorage - An array of eligible campaigns with storage.
+ * @param groupId - The ID of the group.
+ * @param context - The context model.
+ * @returns A promise that resolves to the winner campaign.
+ */
+const _findWinnerCampaignAmongEligibleCampaigns = async (
   settings: SettingsModel,
   featureKey: string,
   eligibleCampaigns: any[],
@@ -236,10 +283,10 @@ const evaluateEligibleCampaigns = async (
     );
   } else if (eligibleCampaignsWithStorage.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
     // if eligibleCampaignsWithStorage has more than one campaign and algo is random, then find the winner using random algo
-    winnerCampaign = normalizeAndFindWinningCampaign(eligibleCampaignsWithStorage, context, campaignIds, groupId);
+    winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaignsWithStorage, context, campaignIds, groupId);
   } else if (eligibleCampaignsWithStorage.length > 1) {
     // if eligibleCampaignsWithStorage has more than one campaign and algo is not random, then find the winner using advanced algo
-    winnerCampaign = advancedAlgoFindWinningCampaign(
+    winnerCampaign = _getCampaignUsingAdvancedAlgo(
       settings,
       eligibleCampaignsWithStorage,
       context,
@@ -255,21 +302,31 @@ const evaluateEligibleCampaigns = async (
         `MEG: Campaign ${eligibleCampaigns[0].getKey()} is the winner for group ${groupId} for user ${context.getId()}`,
       );
     } else if (eligibleCampaigns.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
-      winnerCampaign = normalizeAndFindWinningCampaign(eligibleCampaigns, context, campaignIds, groupId);
+      winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaigns, context, campaignIds, groupId);
     } else if (eligibleCampaigns.length > 1) {
-      winnerCampaign = advancedAlgoFindWinningCampaign(settings, eligibleCampaigns, context, campaignIds, groupId);
+      winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaigns, context, campaignIds, groupId);
     }
   }
+
   return winnerCampaign;
 };
 
-const normalizeAndFindWinningCampaign = (
+/**
+ * Normalizes the weights of shortlisted campaigns and determines the winning campaign using random allocation.
+ *
+ * @param shortlistedCampaigns - An array of shortlisted campaigns.
+ * @param context - The context model.
+ * @param calledCampaignIds - An array of campaign IDs that have been called.
+ * @param groupId - The ID of the group.
+ * @returns The winning campaign or null if none is found.
+ */
+const _normalizeWeightsAndFindWinningCampaign = (
   shortlistedCampaigns: any[],
   context: ContextModel,
   calledCampaignIds: any[],
   groupId: number,
 ): any => {
-  // normalise the weights of all the shortlisted campaigns
+  // Normalize the weights of all the shortlisted campaigns
   shortlistedCampaigns.forEach((campaign) => {
     campaign.weight = Math.floor(100 / shortlistedCampaigns.length);
   });
@@ -281,7 +338,7 @@ const normalizeAndFindWinningCampaign = (
   setCampaignAllocation(shortlistedCampaigns);
   const winnerCampaign = new CampaignDecisionService().getVariation(
     shortlistedCampaigns,
-    new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId().toString(), undefined, groupId)),
+    new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), undefined, groupId)),
   );
 
   LogManager.Instance.debug(
@@ -294,7 +351,17 @@ const normalizeAndFindWinningCampaign = (
   return null;
 };
 
-const advancedAlgoFindWinningCampaign = (
+/**
+ * Advanced algorithm to find the winning campaign based on priority order and weighted random distribution.
+ *
+ * @param settings - The settings model.
+ * @param shortlistedCampaigns - An array of shortlisted campaigns.
+ * @param context - The context model.
+ * @param calledCampaignIds - An array of campaign IDs that have been called.
+ * @param groupId - The ID of the group.
+ * @returns The winning campaign or null if none is found.
+ */
+const _getCampaignUsingAdvancedAlgo = (
   settings: SettingsModel,
   shortlistedCampaigns: any[],
   context: ContextModel,
@@ -343,7 +410,7 @@ const advancedAlgoFindWinningCampaign = (
     setCampaignAllocation(participatingCampaignList);
     winnerCampaign = new CampaignDecisionService().getVariation(
       participatingCampaignList,
-      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId().toString(), undefined, groupId)),
+      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), undefined, groupId)),
     );
   }
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and

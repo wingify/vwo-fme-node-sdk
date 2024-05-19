@@ -23,11 +23,11 @@ import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { CampaignModel } from '../models/campaign/CampaignModel';
 import { VariableModel } from '../models/campaign/VariableModel';
 import { VariationModel } from '../models/campaign/VariationModel';
-import { LogManager } from '../modules/logger';
-import { SegmentationManager } from '../modules/segmentor';
+import { LogManager } from '../packages/logger';
+import { SegmentationManager } from '../packages/segmentation-evaluator';
 import HooksManager from '../services/HooksManager';
 import { StorageService } from '../services/StorageService';
-import { getVariationByCampaignKey } from '../utils/CampaignUtil';
+import { getVariationFromCampaignKey } from '../utils/CampaignUtil';
 import { isObject } from '../utils/DataTypeUtil';
 import { evaluateTrafficAndGetVariation } from '../utils/DecisionUtil';
 import {
@@ -79,7 +79,7 @@ export class FlagApi implements IGetFlag {
 
     if (storedData?.experimentVariationId) {
       if (storedData.experimentKey) {
-        const variation: VariationModel = getVariationByCampaignKey(
+        const variation: VariationModel = getVariationFromCampaignKey(
           settings,
           storedData.experimentKey,
           storedData.experimentVariationId,
@@ -106,7 +106,7 @@ export class FlagApi implements IGetFlag {
         }
       }
     } else if (storedData?.rolloutKey && storedData?.rolloutId) {
-      const variation: VariationModel = getVariationByCampaignKey(
+      const variation: VariationModel = getVariationFromCampaignKey(
         settings,
         storedData.rolloutKey,
         storedData.rolloutVariationId,

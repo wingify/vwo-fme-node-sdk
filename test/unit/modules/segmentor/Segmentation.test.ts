@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SegmentEvaluator } from '../../../../lib/modules/segmentor';
+import { SegmentEvaluator } from '../../../../lib/packages/segmentation-evaluator';
 import { SegmentEvaluatorData } from '../../../data/SegmentEvaluatorData';
 
 describe('Segmentation', () => {

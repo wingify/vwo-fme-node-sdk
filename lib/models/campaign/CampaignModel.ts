@@ -23,10 +23,7 @@ export class CampaignModel {
   private segments: Record<string, dynamic>;
   private percentTraffic: number;
   private isUserListEnabled: boolean;
-  // private autoActivate: boolean;
-  // private autoTrack: boolean;
   private key: string;
-  // private priority: number;
   private type: string;
   private name: string;
   private isForcedVariationEnabled: boolean;
@@ -36,8 +33,6 @@ export class CampaignModel {
   private variationId: number;
   private campaignId: number;
   private ruleKey: string;
-  // private featureId: number;
-  // private featureKey: string;
 
   copy(campaignModel: CampaignModel): void {
     this.metrics = campaignModel.metrics;
@@ -103,40 +98,13 @@ export class CampaignModel {
     this.variationId = campaign.variationId; // campaign.vId ||
     this.campaignId = campaign.campaignId; // campaign.cId ||
     this.ruleKey = campaign.ruleKey; // campaign.rK ||
-    // this.autoActivate =
-    //   campaign.autoActivate !== undefined
-    //     ? campaign.autoActivate
-    //     : campaign.iMAE
-    //     ? !campaign.iMAE
-    //     : !campaign.isManualActivationEnabled;
-    // this.autoTrack =
-    //   campaign.autoTrack !== undefined
-    //     ? campaign.autoTrack
-    //     : campaign.iMTRE
-    //     ? !campaign.iMTRE
-    //     : !campaign.isManualTrackingEnabled;
     this.isForcedVariationEnabled = campaign.isForcedVariationEnabled; // campaign.iFVE ||
     this.isUserListEnabled = campaign.isUserListEnabled; // campaign.iULE ||
     this.segments = campaign.segments;
     this.key = campaign.key; // campaign.k ||
     // this.priority = campaign.pr || campaign.priority;
     this.type = campaign.type; // campaign.t ||
-    // this.featureId = campaign.featureId;
-    // this.featureKey = campaign.featureKey;
   }
-
-  // setFeatureDetails(featuerId: number, featureKey: string): void {
-  //   this.featureId = featuerId;
-  //   this.featureKey = featureKey;
-  // }
-
-  // getFeatureId(): number {
-  //   return this.featureId;
-  // }
-
-  // getFeatureKey(): string {
-  //   return this.featureKey;
-  // }
 
   getId(): number {
     return this.id;
@@ -166,14 +134,6 @@ export class CampaignModel {
     return this.isUserListEnabled;
   }
 
-  // getAutoTrack(): boolean {
-  //   return this.autoTrack;
-  // }
-
-  // getAutoActivate(): boolean {
-  //   return this.autoActivate;
-  // }
-
   getKey(): string {
     return this.key;
   }
@@ -189,8 +149,4 @@ export class CampaignModel {
   getVariables(): Array<VariableModel> {
     return this.variables;
   }
-
-  // getPriority(): number {
-  //   return this.priority;
-  // }
 }

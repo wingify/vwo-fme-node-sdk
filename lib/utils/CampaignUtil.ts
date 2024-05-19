@@ -20,7 +20,7 @@ import { CampaignModel } from '../models/campaign/CampaignModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
 // import { VariableModel } from '../models/VariableModel';
 import { VariationModel } from '../models/campaign/VariationModel';
-import { LogManager } from '../modules/logger';
+import { LogManager } from '../packages/logger';
 
 /**
  * Sets the variation allocation for a given campaign based on its type.
@@ -110,7 +110,7 @@ export function getBucketingSeed(userId: string, campaign: CampaignModel, groupI
  * @param {string} variationId - The ID of the variation to retrieve.
  * @returns {VariationModel | null} The found variation model or null if not found.
  */
-export function getVariationByCampaignKey(settings: SettingsModel, campaignKey: string, variationId: number) {
+export function getVariationFromCampaignKey(settings: SettingsModel, campaignKey: string, variationId: number) {
   // Find the campaign by its key
   const campaign: CampaignModel = settings.getCampaigns().find((campaign: CampaignModel) => {
     return campaign.getKey() === campaignKey;

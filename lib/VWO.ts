@@ -21,7 +21,7 @@ import { isObject, isString } from './utils/DataTypeUtil';
 import { Deferred } from './utils/PromiseUtil';
 import { IVWOClient, VWOClient } from './VWOClient';
 
-import { Connector } from './modules/storage/Connector';
+import { Connector } from './packages/storage/Connector';
 
 export { Connector };
 export class VWO {

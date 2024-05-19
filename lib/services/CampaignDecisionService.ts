@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DecisionMaker } from '../modules/decision-maker';
-import { LogManager } from '../modules/logger';
-import { SegmentationManager } from '../modules/segmentor';
+import { DecisionMaker } from '../packages/decision-maker';
+import { LogManager } from '../packages/logger';
+import { SegmentationManager } from '../packages/segmentation-evaluator';
 
 import { VariationModel } from '../models/campaign/VariationModel';
 import { Constants } from '../constants';

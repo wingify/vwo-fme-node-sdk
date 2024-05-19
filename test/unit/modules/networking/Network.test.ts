@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NetworkManager } from '../../../../lib/modules/networking/manager/NetworkManager';
-import { NetworkClientInterface } from '../../../../lib/modules/networking/client/NetworkClientInterface';
-import { GlobalRequestModel, RequestModel, ResponseModel } from '../../../../lib/modules/networking';
+import { NetworkManager } from '../../../../lib/packages/network-layer/manager/NetworkManager';
+import { NetworkClientInterface } from '../../../../lib/packages/network-layer/client/NetworkClientInterface';
+import { GlobalRequestModel, RequestModel, ResponseModel } from '../../../../lib/packages/network-layer';
 
-jest.mock('../../../../lib/modules/networking/client/NetworkClient'); // Mock the NetworkClient if it's used as a default client
+jest.mock('../../../../lib/packages/network-layer/client/NetworkClient'); // Mock the NetworkClient if it's used as a default client
 
 describe('NetworkManager', () => {
   let networkManager: NetworkManager;

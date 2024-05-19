@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { LogManager } from '../../../../lib/modules/logger/core/LogManager';
-import { LogLevelEnum } from '../../../../lib/modules/logger/enums/LogLevelEnum';
+import { LogManager } from '../../../../lib/packages/logger/core/LogManager';
+import { LogLevelEnum } from '../../../../lib/packages/logger/enums/LogLevelEnum';
 
 describe('End-to-End Tests for Logger Module', () => {
   let logManager: LogManager;

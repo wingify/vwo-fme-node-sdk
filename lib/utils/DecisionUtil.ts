@@ -18,9 +18,9 @@ import { StatusEnum } from '../enums/StatusEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { CampaignModel } from '../models/campaign/CampaignModel';
 import { VariationModel } from '../models/campaign/VariationModel';
-import { DecisionMaker } from '../modules/decision-maker';
-import { LogManager } from '../modules/logger';
-import { SegmentationManager } from '../modules/segmentor';
+import { DecisionMaker } from '../packages/decision-maker';
+import { LogManager } from '../packages/logger';
+import { SegmentationManager } from '../packages/segmentation-evaluator';
 import { CampaignDecisionService } from '../services/CampaignDecisionService';
 import { isObject } from '../utils/DataTypeUtil';
 import { SettingsModel } from '../models/settings/SettingsModel';
@@ -42,14 +42,16 @@ export const checkWhitelistingAndPreSeg = async (
   storageService: StorageService,
   decision: any,
 ): Promise<[boolean, any]> => {
-  const vwoUserId = getUUID(context.getId().toString(), settings.getAccountId());
+  const vwoUserId = getUUID(context.getId(), settings.getAccountId());
 
   if (campaign.getType() === CampaignTypeEnum.AB) {
     // set _vwoUserId for variation targeting variables
     context.setVariationTargetingVariables(Object.assign({}, context.getVariationTargetingVariables(), {
       _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
     }));
+
     Object.assign(decision, { variationTargetingVariables: context.getVariationTargetingVariables() }); // for integration
+
     // check if the campaign satisfies the whitelisting
     if (campaign.getIsForcedVariationEnabled()) {
       const whitelistedVariation = await checkForWhitelisting(campaign, campaign.getKey(), context);
@@ -188,7 +190,7 @@ const _evaluateWhitelisting = async (
     }
     whitelistedVariation = new CampaignDecisionService().getVariation(
       targetedVariations,
-      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId().toString(), campaign, null)),
+      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), campaign, null)),
     );
   } else {
     whitelistedVariation = targetedVariations[0];

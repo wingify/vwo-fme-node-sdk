@@ -15,11 +15,11 @@
  */
 import { dynamic } from './types/Common';
 
-import { LogManager } from './modules/logger';
-import { NetworkManager } from './modules/networking';
-import { SegmentationManager } from './modules/segmentor';
+import { LogManager } from './packages/logger';
+import { NetworkManager } from './packages/network-layer';
+import { SegmentationManager } from './packages/segmentation-evaluator';
 
-import { Storage } from './modules/storage';
+import { Storage } from './packages/storage';
 
 import { VWOClient } from './VWOClient';
 import { SettingsModel } from './models/settings/SettingsModel';

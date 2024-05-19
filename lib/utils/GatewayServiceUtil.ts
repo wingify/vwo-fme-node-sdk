@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { UrlEnum } from '../enums/UrlEnum';
-import { LogManager } from '../modules/logger';
-import { NetworkManager, RequestModel, ResponseModel } from '../modules/networking';
+import { LogManager } from '../packages/logger';
+import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
 import UrlService from '../services/UrlService';
 import { Deferred } from './PromiseUtil';
 
@@ -34,7 +34,7 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
   // Check if the base URL is not set correctly
   if (UrlService.getBaseUrl() === UrlEnum.BASE_URL) {
     // Log an informational message about the invalid URL
-    LogManager.Instance.info('Invalid URL. Please provide a valid URL for vwo helper gatewayService');
+    LogManager.Instance.error('Invalid URL. Please provide a valid URL for VWO Gateway Service');
     // Resolve the promise with false indicating an error or invalid state
     deferredObject.resolve(false);
     return deferredObject.promise;

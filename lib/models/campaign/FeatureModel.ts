@@ -21,7 +21,6 @@ import { RuleModel } from './RuleModel';
 export class FeatureModel {
   private m: Array<MetricModel> = [];
   private metrics: Array<MetricModel> = [];
-
   private id: number;
   private key: string;
   private name: string;

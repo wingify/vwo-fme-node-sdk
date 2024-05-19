@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { LogManager } from './modules/logger';
-import { Storage } from './modules/storage';
+import { LogManager } from './packages/logger';
+import { Storage } from './packages/storage';
 
 import { FlagApi } from './api/GetFlag';
 import { SetAttributeApi } from './api/SetAttribute';

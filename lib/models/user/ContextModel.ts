@@ -23,7 +23,7 @@ export class ContextModel {
     private customVariables?: Record<string, any>;
     private variationTargetingVariables?: Record<string, dynamic>;
     private _vwo?: ContextVWOModel;
-  
+
     modelFromDictionary(context: Record<string, any>): this {
       this.id = context.id;
       this.userAgent = context.userAgent;
@@ -40,40 +40,39 @@ export class ContextModel {
       return this;
     }
 
-    getId(): string | number {
-        return this.id;
+    getId(): string {
+      return this.id.toString();
     }
 
     getUserAgent(): string {
-        return this.userAgent;
+      return this.userAgent;
     }
 
     getIpAddress(): string {
-        return this.ipAddress;
+      return this.ipAddress;
     }
 
     getCustomVariables(): Record<string, any> {
-        return this.customVariables;
-    }
-
-    getVariationTargetingVariables(): Record<string, dynamic> {
-        return this.variationTargetingVariables;
-    }
-
-    getVwo(): ContextVWOModel {
-        return this._vwo;
+      return this.customVariables;
     }
 
     setCustomVariables(customVariables: Record<string, any>): void {
-        this.customVariables = customVariables;
+      this.customVariables = customVariables;
+    }
+
+    getVariationTargetingVariables(): Record<string, dynamic> {
+      return this.variationTargetingVariables;
     }
 
     setVariationTargetingVariables(variationTargetingVariables: Record<string, dynamic>): void {
-        this.variationTargetingVariables = variationTargetingVariables;
+      this.variationTargetingVariables = variationTargetingVariables;
+    }
+
+    getVwo(): ContextVWOModel {
+      return this._vwo;
     }
 
     setVwo(_vwo: ContextVWOModel): void {
-        this._vwo = _vwo;
+      this._vwo = _vwo;
     }
   }
-  

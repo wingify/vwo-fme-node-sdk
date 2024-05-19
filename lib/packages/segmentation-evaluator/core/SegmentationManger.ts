@@ -21,6 +21,8 @@ import { UrlEnum } from '../../../enums/UrlEnum';
 import { LogManager } from '../../logger';
 import { ContextModel } from '../../../models/user/ContextModel';
 import { FeatureModel } from '../../../models/campaign/FeatureModel';
+import UrlService from '../../../services/UrlService';
+import { BASE_URL } from '../../../constants/Url';
 
 export class SegmentationManager {
   private static instance: SegmentationManager; // Singleton instance of SegmentationManager
@@ -54,7 +56,7 @@ export class SegmentationManager {
       this.evaluator.settings = settings; // Set settings in evaluator
       this.evaluator.context = context; // Set context in evaluator
       this.evaluator.feature = feature; // Set feature in evaluator
-      if (context.getVwo() === undefined || context.getVwo() === null) {
+      if (UrlService.getBaseUrl() !== BASE_URL && (context.getVwo() === undefined || context.getVwo() === null)) {
         const queryParams = {};
         if (context?.getUserAgent()) {
           queryParams['userAgent'] = context.getUserAgent();

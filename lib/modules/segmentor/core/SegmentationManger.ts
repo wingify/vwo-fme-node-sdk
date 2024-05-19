@@ -54,7 +54,7 @@ export class SegmentationManager {
       this.evaluator.settings = settings; // Set settings in evaluator
       this.evaluator.context = context; // Set context in evaluator
       this.evaluator.feature = feature; // Set feature in evaluator
-      if (context.getVwo()!== undefined && context.getVwo() !== null) {
+      if (context.getVwo() === undefined || context.getVwo() === null) {
         const queryParams = {};
         if (context?.getUserAgent()) {
           queryParams['userAgent'] = context.getUserAgent();

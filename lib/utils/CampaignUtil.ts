@@ -151,7 +151,7 @@ export function setCampaignAllocation(campaigns: any[]) {
  * @param {string} campaignId - The ID of the campaign to check.
  * @returns {Object} An object containing the group ID and name if the campaign is part of a group, otherwise an empty object.
  */
-export function isPartOfGroup(settings: SettingsModel, campaignId: any) {
+export function getGroupDetailsIfCampaignPartOfIt(settings: SettingsModel, campaignId: any) {
   // Check if the campaign is associated with a group and return the group details
   if (settings.getCampaignGroups() && settings.getCampaignGroups().hasOwnProperty(campaignId)) {
     return {
@@ -184,7 +184,7 @@ export function findGroupsFeaturePartOf(settings: SettingsModel, featureKey: str
   // Loop over all campaigns and find the group for each campaign
   const groups: Array<any> = [];
   campaignIds.forEach((campaignId) => {
-    const group = isPartOfGroup(settings, campaignId);
+    const group = getGroupDetailsIfCampaignPartOfIt(settings, campaignId);
     if (group.groupId) {
       // Check if the group is already added to the groups array to avoid duplicates
       const groupIndex = groups.findIndex((grp) => grp.groupId === group.groupId);

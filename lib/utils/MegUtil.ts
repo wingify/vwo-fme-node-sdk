@@ -34,7 +34,7 @@ import {
   getVariationFromCampaignKey,
   setCampaignAllocation,
 } from './CampaignUtil';
-import { isObject } from './DataTypeUtil';
+import { isObject, isUndefined } from './DataTypeUtil';
 import { evaluateTrafficAndGetVariation } from './DecisionUtil';
 import { cloneObject, getFeatureFromKey, getSpecificRulesBasedOnType } from './FunctionUtil';
 
@@ -70,8 +70,8 @@ export const evaluateGroups = async (
       continue;
     }
     // evaluate the feature rollout rules
-    const result = await _evaluateFeatureRollOutRules(settings, feature, evaluatedFeatureMap, featureToSkip, storageService, context);
-    if (result) {
+    const isRolloutRulePassed = await _isRolloutRuleForFeaturePassed(settings, feature, evaluatedFeatureMap, featureToSkip, storageService, context);
+    if (isRolloutRulePassed) {
       settings.getCampaigns().forEach((campaign) => {
         // groupCampaignIds.includes(campaign.getId()) -> campaign we are adding should be in the group
         // featureCampaignIds.includes(campaign.getId()) -> checks that campaign should be part of the feature that we evaluated
@@ -93,6 +93,7 @@ export const evaluateGroups = async (
     context,
     storageService,
   );
+
   return await _findWinnerCampaignAmongEligibleCampaigns(
     settings,
     feature.getKey(),
@@ -132,7 +133,7 @@ export function getFeatureKeysFromGroup(settings: SettingsModel, groupId: number
  * @param context - The context model.
  * @returns A promise that resolves to true if the feature passes the rollout rules, false otherwise.
  */
-const _evaluateFeatureRollOutRules = async (
+const _isRolloutRuleForFeaturePassed = async (
   settings: SettingsModel,
   feature: FeatureModel,
   evaluatedFeatureMap: Map<string, any>,
@@ -171,7 +172,7 @@ const _evaluateFeatureRollOutRules = async (
     return false;
   }
   // no rollout rule, evaluate experiments
-  LogManager.Instance.debug(`MEG: No rollout rule found for feature ${feature.getKey()}, evaluating experiments...`);
+  LogManager.Instance.debug(`MEG: No rollout rule found for feature ${feature.getKey()}. Hence, evaluating experiments`);
   return true;
 };
 
@@ -226,10 +227,9 @@ const _getEligbleCampaigns = async (
 
       // Check if user is eligible for the campaign
       if (
-        (await new CampaignDecisionService().getDecision(
+        (await new CampaignDecisionService().getPreSegmentationDecision(
           new CampaignModel().modelFromDictionary(campaign),
-          settings,
-          context,
+          context
         )) &&
         new CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign)
       ) {
@@ -272,13 +272,12 @@ const _findWinnerCampaignAmongEligibleCampaigns = async (
   let winnerCampaign = null;
   const campaignIds = getCampaignIdsFromFeatureKey(settings, featureKey);
   // get the winner from each group and store it in winnerFromEachGroup
-  const megAlgoNumber =
-    typeof settings.getGroups()[groupId].et !== 'undefined' ? settings.getGroups()[groupId].et : Constants.RANDOM_ALGO;
+  const megAlgoNumber = !isUndefined(settings?.getGroups()[groupId]?.et) ? settings.getGroups()[groupId].et : Constants.RANDOM_ALGO;
 
   // if eligibleCampaignsWithStorage has only one campaign, then that campaign is the winner
   if (eligibleCampaignsWithStorage.length === 1) {
     winnerCampaign = eligibleCampaignsWithStorage[0];
-    LogManager.Instance.debug(
+    LogManager.Instance.info(
       `MEG: Campaign ${eligibleCampaignsWithStorage[0].getKey()} is the winner for group ${groupId} for user ${context.getId()}`,
     );
   } else if (eligibleCampaignsWithStorage.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
@@ -298,7 +297,7 @@ const _findWinnerCampaignAmongEligibleCampaigns = async (
   if (eligibleCampaignsWithStorage.length === 0) {
     if (eligibleCampaigns.length === 1) {
       winnerCampaign = eligibleCampaigns[0];
-      LogManager.Instance.debug(
+      LogManager.Instance.info(
         `MEG: Campaign ${eligibleCampaigns[0].getKey()} is the winner for group ${groupId} for user ${context.getId()}`,
       );
     } else if (eligibleCampaigns.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
@@ -341,7 +340,7 @@ const _normalizeWeightsAndFindWinningCampaign = (
     new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), undefined, groupId)),
   );
 
-  LogManager.Instance.debug(
+  LogManager.Instance.info(
     `MEG Random: Campaign ${winnerCampaign.getKey()} is the winner for group ${groupId} for user ${context.getId()}`,
   );
 
@@ -370,8 +369,8 @@ const _getCampaignUsingAdvancedAlgo = (
 ) => {
   let winnerCampaign = null;
   let found = false; // flag to check whether winnerCampaign has been found or not and helps to break from the outer loop
-  const priorityOrder = typeof settings.getGroups()[groupId].p !== 'undefined' ? settings.getGroups()[groupId].p : {};
-  const wt = typeof settings.getGroups()[groupId].wt !== 'undefined' ? settings.getGroups()[groupId].wt : {};
+  const priorityOrder = !isUndefined(settings.getGroups()[groupId].p) ? settings.getGroups()[groupId].p : {};
+  const wt = !isUndefined(settings.getGroups()[groupId].wt) ? settings.getGroups()[groupId].wt : {};
 
   for (let i = 0; i < priorityOrder.length; i++) {
     for (let j = 0; j < shortlistedCampaigns.length; j++) {
@@ -391,17 +390,17 @@ const _getCampaignUsingAdvancedAlgo = (
     // iterate over shortlisted campaigns and add weights from the weight array
     for (let i = 0; i < shortlistedCampaigns.length; i++) {
       const campaignId = shortlistedCampaigns[i].id;
-      if (typeof wt[campaignId] !== 'undefined') {
+      if (!isUndefined(wt[campaignId])) {
         const clonedCampaign = cloneObject(shortlistedCampaigns[i]);
         clonedCampaign.weight = wt[campaignId];
         participatingCampaignList.push(clonedCampaign);
       }
     }
     /* Finding winner campaign using weighted Distibution :
-       1. Re-distribute the traffic by assigning range values for each camapign in particaptingCampaignList
-       2. Calculate bucket value for the given userId and groupId
-       3. Get the winnerCampaign by checking the Start and End Bucket Allocations of each campaign
-      */
+      1. Re-distribute the traffic by assigning range values for each camapign in particaptingCampaignList
+      2. Calculate bucket value for the given userId and groupId
+      3. Get the winnerCampaign by checking the Start and End Bucket Allocations of each campaign
+    */
 
     // make participatingCampaignList as array of VariationModel
     participatingCampaignList = participatingCampaignList.map((campaign) =>
@@ -415,9 +414,10 @@ const _getCampaignUsingAdvancedAlgo = (
   }
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
   // also shortlistedCampaigns and wt array does not have a single campaign id in common
-  LogManager.Instance.debug(
-    `MEG Advance: Campaign ${winnerCampaign.key} is the winner for group ${groupId} for user ${context.getId()}`,
+  LogManager.Instance.info(
+    `MEG Advance: Campaign ${winnerCampaign.key} is the winner for group ${groupId} for user ${context.getId()}`
   );
+
   if (calledCampaignIds.includes(winnerCampaign.id)) {
     return winnerCampaign;
   }

@@ -24,7 +24,7 @@ import { SegmentationManager } from '../packages/segmentation-evaluator';
 import { CampaignDecisionService } from '../services/CampaignDecisionService';
 import { isObject } from '../utils/DataTypeUtil';
 import { SettingsModel } from '../models/settings/SettingsModel';
-import { assignRangeValues, getBucketingSeed, isPartOfGroup, scaleVariationWeights } from './CampaignUtil';
+import { assignRangeValues, getBucketingSeed, getGroupDetailsIfCampaignPartOfIt, scaleVariationWeights } from './CampaignUtil';
 import { cloneObject } from './FunctionUtil';
 import { getUUID } from './UuidUtil';
 import { evaluateGroups } from './MegUtil';
@@ -43,6 +43,7 @@ export const checkWhitelistingAndPreSeg = async (
   decision: any,
 ): Promise<[boolean, any]> => {
   const vwoUserId = getUUID(context.getId(), settings.getAccountId());
+  const campaignId = campaign.getId();
 
   if (campaign.getType() === CampaignTypeEnum.AB) {
     // set _vwoUserId for variation targeting variables
@@ -54,13 +55,13 @@ export const checkWhitelistingAndPreSeg = async (
 
     // check if the campaign satisfies the whitelisting
     if (campaign.getIsForcedVariationEnabled()) {
-      const whitelistedVariation = await checkForWhitelisting(campaign, campaign.getKey(), context);
+      const whitelistedVariation = await _checkCampaignWhitelisting(campaign, context);
       if (whitelistedVariation && Object.keys(whitelistedVariation).length > 0) {
         return [true, whitelistedVariation];
       }
     } else {
       LogManager.Instance.info(
-        `WHITELISTING_SKIPPED: Whitelisting is not used for Campaign:${campaign.getKey()}, hence skipping evaluating whitelisting for User ID:${context.getId()}`,
+        `WHITELISTING_SKIPPED: Whitelisting is not used for Campaign:${campaign.getKey()}, hence skipping evaluating whitelisting for User ID:${context.getId()}`
       );
     }
   }
@@ -68,24 +69,28 @@ export const checkWhitelistingAndPreSeg = async (
   context.setCustomVariables(Object.assign({}, context.getCustomVariables(), {
     _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
   }));
+
   Object.assign(decision, { customVariables: context.getCustomVariables() }); // for integeration
 
-  const { groupId } = isPartOfGroup(settings, campaign.getId());
-
-  // true if group is already evaluated
-  if (megGroupWinnerCampaigns && megGroupWinnerCampaigns.get(groupId)) {
+  // Check if RUle being evaluated is part of Mutually Exclusive Group
+  const { groupId } = getGroupDetailsIfCampaignPartOfIt(settings, campaignId);
+  // Check if group is already evaluated and we have eligible winner campaigns
+  const groupWinnerCampaignId = megGroupWinnerCampaigns?.get(groupId);
+  if (groupWinnerCampaignId) {
     // check if the campaign is the winner of the group
-    if (campaign.getId() == megGroupWinnerCampaigns.get(groupId)) {
+    if (groupWinnerCampaignId === campaignId) {
       return [true, null];
     }
     // as group is already evaluated, no need to check again, return false directly
     return [false, null];
   }
 
-  // check for campaign pre segmentation
-  const preSegmentationResult = await new CampaignDecisionService().getDecision(campaign, settings, context);
 
-  if (preSegmentationResult && groupId) {
+  // If Whitelisting is skipped/failed and campaign not part of any MEG Groups
+  // Check campaign's pre-segmentation
+  const isPreSegmentationPassed = await new CampaignDecisionService().getPreSegmentationDecision(campaign, context);
+
+  if (isPreSegmentationPassed && groupId) {
     const winnerCampaign = await evaluateGroups(
       settings,
       feature,
@@ -95,55 +100,74 @@ export const checkWhitelistingAndPreSeg = async (
       storageService
     );
 
-    if (winnerCampaign && winnerCampaign.id === campaign.getId()) {
+    if (winnerCampaign && winnerCampaign.id === campaignId) {
       return [true, null];
     }
     megGroupWinnerCampaigns.set(groupId, winnerCampaign?.id || 0);
     return [false, null];
   }
 
-  return [preSegmentationResult, null];
+  return [ isPreSegmentationPassed, null ];
 };
+
+export const evaluateTrafficAndGetVariation = (
+  settings: SettingsModel,
+  campaign: CampaignModel,
+  userId: string | number,
+): VariationModel => {
+  const variation = new CampaignDecisionService().getVariationAlloted(userId, settings.getAccountId(), campaign);
+  if (!variation) {
+    LogManager.Instance.info(
+      `USER_NOT_BUCKETED: User ID:${userId} for Campaign:${campaign.getKey()} did not get any variation`,
+    );
+
+    return null;
+  }
+  LogManager.Instance.info(
+    `USER_BUCKETED: User ID:${userId} for Campaign:${campaign.getKey()} ${variation.getKey() ? `got variation:${variation.getKey()}` : 'did not get any variation'}`,
+  );
+
+  return variation;
+};
+
+/******************
+ * PRIVATE METHODS
+ ******************/
 
 /**
  * Check for whitelisting
  * @param campaign      Campaign object
- * @param campaignKey   Campaign key
  * @param userId        User ID
  * @param variationTargetingVariables   Variation targeting variables
  * @returns
  */
-const checkForWhitelisting = async (
+const _checkCampaignWhitelisting = async (
   campaign: CampaignModel,
-  campaignKey: string,
   context: ContextModel,
 ): Promise<any> => {
-  let status;
+  const campaignKey = campaign.getKey();
   // check if the campaign satisfies the whitelisting
-  const whitelistingResult = await _evaluateWhitelisting(campaign, campaignKey, context);
-  let variationString;
-  if (whitelistingResult) {
-    status = StatusEnum.PASSED;
-    variationString = whitelistingResult.variation.key;
-  } else {
-    status = StatusEnum.FAILED;
-    variationString = '';
-  }
+  const whitelistingResult = await _evaluateWhitelisting(campaign, context);
+  const status = whitelistingResult ? StatusEnum.PASSED : StatusEnum.FAILED;
+  const variationString = whitelistingResult ? whitelistingResult.variation.key : '';
+
   LogManager.Instance.info(
-    `SEGMENTATION_STATUS: User ID:${context.getId()} for Campaign:${campaignKey} with variables:${JSON.stringify(context.getVariationTargetingVariables())} ${status} whitelisting ${variationString}`,
+    `SEGMENTATION_STATUS: User ID:${context.getId()} for Campaign:${campaignKey} ${status} whitelisting ${variationString}`,
   );
+
   return whitelistingResult;
 };
 
 const _evaluateWhitelisting = async (
   campaign: CampaignModel,
-  campaignKey: string,
   context: ContextModel,
 ): Promise<any> => {
-  let whitelistedVariation;
-  let status;
+  const campaignKey = campaign.getKey();
   const targetedVariations = [];
   const promises: Promise<any>[] = [];
+
+  let whitelistedVariation;
+
   campaign.getVariations().forEach((variation) => {
     if (isObject(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
       LogManager.Instance.debug(
@@ -153,35 +177,24 @@ const _evaluateWhitelisting = async (
     }
     // check for segmentation and evaluate
     if (isObject(variation.getSegments())) {
-      const SegmentEvaluatorResult = SegmentationManager.Instance.validateSegmentation(
+      let SegmentEvaluatorResult = SegmentationManager.Instance.validateSegmentation(
         variation.getSegments(),
         context.getVariationTargetingVariables()
       );
-      const promise = isPromise(SegmentEvaluatorResult)
-        ? SegmentEvaluatorResult.then((evaluationResult) => {
-            if (evaluationResult) {
-              status = StatusEnum.PASSED;
-              targetedVariations.push(cloneObject(variation));
-            } else {
-              status = StatusEnum.FAILED;
-            }
-          })
-        : Promise.resolve(SegmentEvaluatorResult).then((evaluationResult) => {
-            if (evaluationResult) {
-              status = StatusEnum.PASSED;
-              targetedVariations.push(cloneObject(variation));
-            } else {
-              status = StatusEnum.FAILED;
-            }
-          });
-      promises.push(promise);
-    } else {
-      status = StatusEnum.FAILED;
+      SegmentEvaluatorResult = isPromise(SegmentEvaluatorResult) ? SegmentEvaluatorResult : Promise.resolve(SegmentEvaluatorResult)
+      SegmentEvaluatorResult.then((evaluationResult) => {
+        if (evaluationResult) {
+          targetedVariations.push(cloneObject(variation));
+        }
+      })
+
+      promises.push(SegmentEvaluatorResult);
     }
   });
 
   // Wait for all promises to resolve
   await Promise.all(promises);
+
   if (targetedVariations.length > 1) {
     scaleVariationWeights(targetedVariations);
     for (let i = 0, currentAllocation = 0, stepFactor = 0; i < targetedVariations.length; i++) {
@@ -203,22 +216,4 @@ const _evaluateWhitelisting = async (
       variationId: whitelistedVariation.id,
     };
   }
-};
-
-export const evaluateTrafficAndGetVariation = (
-  settings: SettingsModel,
-  campaign: CampaignModel,
-  userId: string | number,
-): VariationModel => {
-  const variation = new CampaignDecisionService().getVariationAlloted(userId, settings.getAccountId(), campaign);
-  if (!variation) {
-    LogManager.Instance.debug(
-      `USER_NOT_BUCKETED: User ID:${userId} for Campaign:${campaign.getKey()} did not get any variation`,
-    );
-    return null;
-  }
-  LogManager.Instance.debug(
-    `USER_BUCKETED: User ID:${userId} for Campaign:${campaign.getKey()} ${variation.getKey() ? `got variation:${variation.getKey()}` : 'did not get any variation'}`,
-  );
-  return variation;
 };

@@ -22,7 +22,6 @@ import { Constants } from '../constants';
 
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { CampaignModel } from '../models/campaign/CampaignModel';
-import { SettingsModel } from '../models/settings/SettingsModel';
 import { isObject } from '../utils/DataTypeUtil';
 import { ContextModel } from '../models/user/ContextModel';
 
@@ -31,7 +30,7 @@ interface ICampaignDecisionService {
   getVariation(variations: Array<VariationModel>, bucketValue: number): VariationModel;
   checkInRange(variation: VariationModel, bucketValue: number): VariationModel;
   bucketUserToVariation(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
-  getDecision(campaign: CampaignModel, settings: SettingsModel, dsl: any, properties: any): Promise<any>;
+  getPreSegmentationDecision(campaign: CampaignModel, context: ContextModel): Promise<any>;
   getVariationAlloted(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
 }
 
@@ -121,26 +120,30 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     return this.getVariation(campaign.getVariations(), bucketValue);
   }
 
-  async getDecision(campaign: CampaignModel, settings: SettingsModel, context: ContextModel): Promise<any> {
+  async getPreSegmentationDecision(campaign: CampaignModel, context: ContextModel): Promise<boolean> {
     // validate segmentation
+    const campaignType = campaign.getType();
     let segments = {};
-    if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
+
+    if (campaignType === CampaignTypeEnum.ROLLOUT || campaignType === CampaignTypeEnum.PERSONALIZE) {
       segments = campaign.getVariations()[0].getSegments();
-    } else if (campaign.getType() === CampaignTypeEnum.AB) {
+    } else if (campaignType === CampaignTypeEnum.AB) {
       segments = campaign.getSegments();
     }
     if (isObject(segments) && !Object.keys(segments).length) {
       LogManager.Instance.debug(
         `For userId:${
           context.getId()
-        } of Campaign:${campaign.getKey()}, segment was missing, hence skipping segmentation`,
+        } of Campaign:${campaign.getKey()}, segments was missing. Hence, skipping segmentation`
       );
+
       return true;
     } else {
       const preSegmentationResult = await SegmentationManager.Instance.validateSegmentation(
         segments,
         context.getCustomVariables()
       );
+
       if (!preSegmentationResult) {
         LogManager.Instance.info(`Segmentation failed for userId:${context.getId()} of Campaign:${campaign.getKey()}`);
         return false;

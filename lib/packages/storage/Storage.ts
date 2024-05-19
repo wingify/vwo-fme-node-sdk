@@ -16,10 +16,10 @@
 import { Connector } from './Connector';
 
 // TODO: move to file
-enum ConnectorEnum {
-  MEMORY = 'memory',
-  REDIS = 'redis'
-}
+// enum ConnectorEnum {
+//   MEMORY = 'memory',
+//   REDIS = 'redis'
+// }
 
 export class Storage {
   public static instance: Storage;

@@ -81,6 +81,8 @@ export class VWOBuilder implements IVWOBuilder {
     const networkInstance = NetworkManager.Instance;
     // Attach the network client from options
     networkInstance.attachClient(this.options?.network?.client);
+
+    LogManager.Instance.debug(`VWO Network Layer attached`);
     // Set the development mode based on options
     networkInstance.getConfig().setDevelopmentMode(this.options?.isDevelopmentMode);
     return this;

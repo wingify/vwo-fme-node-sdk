@@ -15,7 +15,7 @@
  */
 
 import { SettingsModel } from "../models/settings/SettingsModel";
-import { NetworkUtil } from "./NetworkUtil";
+import { getEventsBaseProperties, getTrackUserPayloadData, sendPostApiRequest } from "./NetworkUtil";
 import { ContextModel } from "../models/user/ContextModel";
 import { EventEnum } from "../enums/EventEnum";
 
@@ -35,11 +35,8 @@ export const createAndSendImpressionForVariationShown = (
   variationId: number,
   context: ContextModel,
 ) => {
-  // Initialize network utility
-  const networkUtil = new NetworkUtil();
-
   // Get base properties for the event
-  const properties = networkUtil.getEventsBaseProperties(
+  const properties = getEventsBaseProperties(
     settings,
     EventEnum.VWO_VARIATION_SHOWN,
     encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
@@ -47,7 +44,7 @@ export const createAndSendImpressionForVariationShown = (
   );
 
   // Construct payload data for tracking the user
-  const payload = networkUtil.getTrackUserPayloadData(
+  const payload = getTrackUserPayloadData(
     settings,
     context.getId(),
     EventEnum.VWO_VARIATION_SHOWN,
@@ -58,5 +55,5 @@ export const createAndSendImpressionForVariationShown = (
   );
 
   // Send the constructed properties and payload as a POST request
-  networkUtil.sendPostApiRequest(properties, payload);
+  sendPostApiRequest(properties, payload);
 };

@@ -18,7 +18,7 @@ import { ApiEnum } from '../enums/ApiEnum';
 import { LogManager } from '../packages/logger';
 import HooksManager from '../services/HooksManager';
 import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
-import { NetworkUtil } from '../utils/NetworkUtil';
+import { getEventsBaseProperties, getTrackGoalPayloadData, sendPostApiRequest } from '../utils/NetworkUtil';
 import { SettingsModel } from '../models/settings/SettingsModel';
 
 interface ITrack {
@@ -76,11 +76,10 @@ export class TrackApi implements ITrack {
  * @param eventProperties Properties associated with the event.
  */
 const createImpressionForTrack = async (settings: SettingsModel, eventName: string, context: ContextModel, eventProperties: any) => {
-  const networkUtil = new NetworkUtil();
   // Get base properties for the event
-  const properties = networkUtil.getEventsBaseProperties(settings, eventName, context.getUserAgent(), context.getIpAddress());
+  const properties = getEventsBaseProperties(settings, eventName, context.getUserAgent(), context.getIpAddress());
   // Prepare the payload for the track goal
-  const payload = networkUtil.getTrackGoalPayloadData(
+  const payload = getTrackGoalPayloadData(
     settings,
     context.getId(),
     eventName,
@@ -89,5 +88,5 @@ const createImpressionForTrack = async (settings: SettingsModel, eventName: stri
     context?.getIpAddress(),
   );
   // Send the prepared payload via POST API request
-  networkUtil.sendPostApiRequest(properties, payload);
+  sendPostApiRequest(properties, payload);
 };

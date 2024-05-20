@@ -23,7 +23,7 @@ import { Deferred } from '../utils/PromiseUtil';
 import { Constants } from '../constants';
 import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation';
 import { SettingsModel } from '../models/settings/SettingsModel';
-import { NetworkUtil } from '../utils/NetworkUtil';
+import { getSettingsPath } from '../utils/NetworkUtil';
 
 
 interface ISettingsManager {
@@ -112,7 +112,7 @@ export class SettingsManager implements ISettingsManager {
     }
 
     const networkInstance = NetworkManager.Instance;
-    const options: Record<string, dynamic> = new NetworkUtil().getSettingsPath(this.sdkKey, this.accountId);
+    const options: Record<string, dynamic> = getSettingsPath(this.sdkKey, this.accountId);
     options.platform = 'server';
     options['api-version'] = 1;
     if (!networkInstance.getConfig().getDevelopmentMode()) {

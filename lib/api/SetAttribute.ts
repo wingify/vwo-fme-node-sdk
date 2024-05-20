@@ -15,7 +15,7 @@
  */
 import { ContextModel } from '../models/user/ContextModel';
 import { EventEnum } from '../enums/EventEnum';
-import { NetworkUtil } from '../utils/NetworkUtil';
+import { getEventsBaseProperties, getAttributePayloadData, sendPostApiRequest } from '../utils/NetworkUtil';
 import { SettingsModel } from '../models/settings/SettingsModel';
 
 interface ISetAttribute {
@@ -50,16 +50,15 @@ export class SetAttributeApi implements ISetAttribute {
  * @param user User details.
  */
 const createImpressionForAttribute = async (settings: SettingsModel, attributeKey: string, attributeValue: any, context: ContextModel) => {
-  const networkUtil = new NetworkUtil();
   // Retrieve base properties for the event
-  const properties = networkUtil.getEventsBaseProperties(
+  const properties = getEventsBaseProperties(
     settings,
     EventEnum.VWO_SYNC_VISITOR_PROP,
     context.getUserAgent(),
     context.getIpAddress(),
   );
   // Construct payload data for the attribute
-  const payload = networkUtil.getAttributePayloadData(
+  const payload = getAttributePayloadData(
     settings,
     context.getId(),
     EventEnum.VWO_SYNC_VISITOR_PROP,
@@ -70,5 +69,5 @@ const createImpressionForAttribute = async (settings: SettingsModel, attributeKe
   );
 
   // Send the constructed payload via POST request
-  networkUtil.sendPostApiRequest(properties, payload);
+  sendPostApiRequest(properties, payload);
 };

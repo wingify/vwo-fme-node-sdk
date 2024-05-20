@@ -97,7 +97,6 @@ export class VWOClient implements IVWOClient {
 
     try {
       const hookManager = new HooksManager(this.options);
-      const contextModel = new ContextModel().modelFromDictionary(context);
 
       LogManager.Instance.debug(
         buildMessage(DebugLogMessageEnum.API_CALLED, {
@@ -120,10 +119,12 @@ export class VWOClient implements IVWOClient {
       }
 
       // Validate user ID is present in context
-      if (!contextModel?.getId()) {
+      if (!context || !context.id) {
         LogManager.Instance.error(`Context doesn't have a valid User ID.`);
         throw new Error('TypeError: Invalid context');
       }
+
+      const contextModel = new ContextModel().modelFromDictionary(context);
 
       new FlagApi()
         .get(featureKey, this.settings, contextModel, hookManager)
@@ -165,7 +166,6 @@ export class VWOClient implements IVWOClient {
     const deferredObject = new Deferred();
 
     try {
-      const contextModel = new ContextModel().modelFromDictionary(context);
       const hookManager = new HooksManager(this.options);
 
       // Log the API call
@@ -196,10 +196,12 @@ export class VWOClient implements IVWOClient {
       }
 
       // Validate user ID is present in context
-      if (!contextModel?.getId()) {
+      if (!context || !context.id) {
         LogManager.Instance.error(`Context doesn't have a valid User ID.`);
         throw new Error('TypeError: Invalid context');
       }
+
+      const contextModel = new ContextModel().modelFromDictionary(context);
 
       // Proceed with tracking the event
       new TrackApi().track(this.settings, eventName, eventProperties, contextModel, hookManager).then(data => {
@@ -241,8 +243,6 @@ export class VWOClient implements IVWOClient {
         }),
       );
 
-      const contextModel = new ContextModel().modelFromDictionary(context);
-
       // Validate attributeKey is a string
       if (!isString(attributeKey)) {
         LogManager.Instance.error(`attributeKey passed to track API is not of valid type. Got ${getType(attributeKey)}`);
@@ -255,10 +255,12 @@ export class VWOClient implements IVWOClient {
       }
 
       // Validate user ID is present in context
-      if (!contextModel?.getId()) {
-        LogManager.Instance.error(`Context doesn't have a valid User ID.`);
-        throw new Error('TypeError: Invalid context');
+      if (!context || !context.id) {
+        LogManager.Instance.error(`Context doesn't have a valid User ID`);
+        throw new TypeError('TypeError: Invalid context');
       }
+
+      const contextModel = new ContextModel().modelFromDictionary(context);
 
       // Proceed with setting the attribute if validation is successful
       new SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, contextModel);

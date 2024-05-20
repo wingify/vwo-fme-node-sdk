@@ -41,7 +41,7 @@ export class ContextModel {
     }
 
     getId(): string {
-      return this.id.toString();
+      return this.id?.toString();
     }
 
     getUserAgent(): string {

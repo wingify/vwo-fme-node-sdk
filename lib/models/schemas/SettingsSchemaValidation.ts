@@ -36,7 +36,8 @@ export class SettingsSchema {
       id: union([number(), string()]),
       type: string(),
       identifier: string(),
-      mca: optional(union([number(), string()]))
+      mca: optional(union([number(), string()])),
+      hasProps: optional(boolean())
     });
 
     this.variableObjectSchema = object({

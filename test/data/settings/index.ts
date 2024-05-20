@@ -18,6 +18,7 @@ import { BASIC_ROLLOUT_TESTING_RULE_SETTINGS } from './RolloutAndTestingSettings
 import { NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS } from './NoRolloutAndOnlyTestingSettings';
 import { ROLLOUT_TESTING_PRE_SEGMENT_RULE_SETTINGS } from './RolloutAndTestingSettingsWithPreSegment';
 import { TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS } from './SettingsWithWhitelisting';
+import { MEG_CAMPAIGN_SETTINGS } from './MegCampaignSettings';
 
 export {
   BASIC_ROLLOUT_SETTINGS,
@@ -25,4 +26,5 @@ export {
   NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS,
   ROLLOUT_TESTING_PRE_SEGMENT_RULE_SETTINGS,
   TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS,
+  MEG_CAMPAIGN_SETTINGS
 };

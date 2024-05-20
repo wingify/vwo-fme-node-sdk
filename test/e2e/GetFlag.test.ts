@@ -17,6 +17,7 @@ import { init } from '../../lib';
 import { VWOBuilder } from '../../lib/VWOBuilder';
 import {
   BASIC_ROLLOUT_SETTINGS, BASIC_ROLLOUT_TESTING_RULE_SETTINGS,
+  MEG_CAMPAIGN_SETTINGS,
   NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS, ROLLOUT_TESTING_PRE_SEGMENT_RULE_SETTINGS, TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS
 } from '../data/settings';
 import storageMap from '../data/StorageMap';
@@ -262,6 +263,133 @@ describe('VWO', () => {
       expect(featureFlag.getVariable('float', 1.1)).toBe(20.01);
       expect(featureFlag.getVariable('boolean', true)).toBe(false);
       expect(featureFlag.getVariable('json', {})).toEqual({"campaign": "rollout1"});
+      return featureFlag;
+    })
+  });
+
+  describe('getFLag with MEG', () => {
+    it('should return true for a flag having 3 meg campaigns, where E1 and E2 are eligible', async () => {
+      const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+      jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MEG_CAMPAIGN_SETTINGS as any);
+
+      const options = {
+        sdkKey: 'sdk-key',
+        accountId: 'account-id',
+        vwoBuilder // pass only for E2E tests
+      };
+      const vwoClient = await init(options);
+
+      const userContext = {
+        id: 'user_id_1',
+        customVariables: {
+          price: 100, // to make e1 eligible
+          name: 'personalise' // to make e2 eligible
+        }
+      };
+      const featureFlag = await vwoClient.getFlag('feature1', userContext);
+
+      expect(featureFlag.isEnabled()).toBe(true);
+      expect(featureFlag.getVariable('int')).toBe(11);
+      expect(featureFlag.getVariable('string')).toBe('personalizeRule1_variation');
+      expect(featureFlag.getVariable('float')).toBe(20.02);
+      expect(featureFlag.getVariable('boolean')).toBe(true);
+      expect(featureFlag.getVariable('json')).toEqual({"campaign": "personalizeRule1_variation"});
+
+      return featureFlag;
+    })
+
+    it('should return true for a flag having 3 meg campaigns, where all campaigns are inEligible', async () => {
+      const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+      jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MEG_CAMPAIGN_SETTINGS as any);
+
+      const options = {
+        sdkKey: 'sdk-key',
+        accountId: 'account-id',
+        vwoBuilder // pass only for E2E tests
+      };
+      const vwoClient = await init(options);
+
+      const userContext = {
+        id: 'user_id',
+        customVariables: {
+          firstname: 'testingRule2' // to pass e3 pre segment
+        }
+      };
+      // E1, E2, and E4 campaigns (part of MEG ) are inEligible so E3 campaign (not part of MEG ) will be evaluated'
+      const featureFlag = await vwoClient.getFlag('feature1', userContext);
+
+      expect(featureFlag.isEnabled()).toBe(true);
+      expect(featureFlag.getVariable('int')).toBe(10);
+      expect(featureFlag.getVariable('string')).toBe('testing2');
+      expect(featureFlag.getVariable('float')).toBe(20.01);
+      expect(featureFlag.getVariable('boolean')).toBe(false);
+      expect(featureFlag.getVariable('json')).toEqual({"campaign": "testing2"});
+
+      return featureFlag;
+    })
+
+    it('should return true for a flag having 3 meg campaigns, where E2 and E4 are eligible but E3 will be returned', async () => {
+      const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+      jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MEG_CAMPAIGN_SETTINGS as any);
+
+      const options = {
+        sdkKey: 'sdk-key',
+        accountId: 'account-id',
+        vwoBuilder // pass only for E2E tests
+      };
+      const vwoClient = await init(options);
+
+      const userContext = {
+        id: 'user_id_1',
+        customVariables: {
+          name: 'personalise', // to make e2 eligible
+          lastname: 'vwo', // to make e4 eligible
+          firstname: 'testingRule2'  // to pass e3 pre segment
+        }
+      };
+      // E2, and E4 campaigns -- eligible and E1 -- inEligible so E4 will be winner 
+      // but E3 campaign (not part of MEG ) has high priority so it will be evaluated
+      const featureFlag = await vwoClient.getFlag('feature1', userContext);
+
+      expect(featureFlag.isEnabled()).toBe(true);
+      expect(featureFlag.getVariable('int')).toBe(10);
+      expect(featureFlag.getVariable('string')).toBe('testing2');
+      expect(featureFlag.getVariable('float')).toBe(20.01);
+      expect(featureFlag.getVariable('boolean')).toBe(false);
+      expect(featureFlag.getVariable('json')).toEqual({"campaign": "testing2"});
+
+      return featureFlag;
+    })
+
+    it('should return true for a flag having 3 meg campaigns, where E2 and E4 are eligible and E4 will be returned', async () => {
+      const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+      jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MEG_CAMPAIGN_SETTINGS as any);
+
+      const options = {
+        sdkKey: 'sdk-key',
+        accountId: 'account-id',
+        vwoBuilder // pass only for E2E tests
+      };
+      const vwoClient = await init(options);
+
+      const userContext = {
+        id: 'user_id_1',
+        customVariables: {
+          name: 'personalise', // to make e2 eligible
+          lastname: 'vwo', // to make e4 eligible
+        }
+      };
+      // E2, and E4 campaigns -- eligible and E1 -- inEligible so E4 will be winner 
+      // E3 campaign will be evaluated but it will fail pre-segment and E4 will be returned
+      const featureFlag = await vwoClient.getFlag('feature1', userContext);
+
+      expect(featureFlag.isEnabled()).toBe(true);
+      expect(featureFlag.getVariable('int')).toBe(11);
+      expect(featureFlag.getVariable('string')).toBe('testing3_variation');
+      expect(featureFlag.getVariable('float')).toBe(20.02);
+      expect(featureFlag.getVariable('boolean')).toBe(true);
+      expect(featureFlag.getVariable('json')).toEqual({"campaign": "testing3_variation"});
+
       return featureFlag;
     })
   });

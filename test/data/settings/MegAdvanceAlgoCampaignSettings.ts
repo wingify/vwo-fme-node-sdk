@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const MEG_CAMPAIGN_SETTINGS = {
+export const MEG_CAMPAIGN_ADVANCE_ALGO_SETTINGS = {
     "features": [{
       "key": "feature1",
       "name": "Feature1",
@@ -49,6 +49,16 @@ export const MEG_CAMPAIGN_SETTINGS = {
           "campaignId": 5,
           "type": "FLAG_TESTING",
           "ruleKey": "testingRule3"
+        },
+        {
+          "campaignId": 6,
+          "type": "FLAG_TESTING",
+          "ruleKey": "testingRule4"
+        },
+        {
+          "campaignId": 7,
+          "type": "FLAG_TESTING",
+          "ruleKey": "testingRule5"
         }
       ],
       "type": "FEATURE_FLAG",
@@ -58,14 +68,21 @@ export const MEG_CAMPAIGN_SETTINGS = {
     }],
     "groups": {
         "1": {
-            "campaigns": [2, 3, 5],
+            "et": 2,
+            "p": [4,3],
+            "campaigns": [3,4,6,7],
+            "wt": {
+                "6": 50,
+                "7": 50
+            },
             "name": "Group 1"
         }
     },
     "campaignGroups": {
-        "2": 1,
         "3": 1,
-        "5": 1
+        "4": 1,
+        "6": 1,
+        "7": 1
     },
     "version": 1,
     "accountId": 12345,
@@ -390,6 +407,154 @@ export const MEG_CAMPAIGN_SETTINGS = {
           "id": 5,
           "value": {
             "campaign": "testing3_variation"
+          },
+          "type": "json"
+        }],
+        "name": "Variation-1"
+      }],
+      "percentTraffic": 100,
+      "type": "FLAG_TESTING",
+      "status": "RUNNING"
+    },
+{
+      "key": "feature1_testingRule4",
+      "id": 6,
+      "segments": {},
+      "isForcedVariationEnabled": false,
+      "variations": [{
+        "weight": 50,
+        "id": 1,
+        "variables": [{
+          "key": "int",
+          "id": 1,
+          "value": 10,
+          "type": "integer"
+        }, {
+          "key": "float",
+          "id": 2,
+          "value": 20.01,
+          "type": "double"
+        }, {
+          "key": "string",
+          "id": 3,
+          "value": "testing4",
+          "type": "string"
+        }, {
+          "key": "boolean",
+          "id": 4,
+          "value": false,
+          "type": "boolean"
+        }, {
+          "key": "json",
+          "id": 5,
+          "value": {
+            "campaign": "testing4"
+          },
+          "type": "json"
+        }],
+        "name": "Default"
+      }, {
+        "weight": 50,
+        "id": 2,
+        "variables": [{
+          "key": "int",
+          "id": 1,
+          "value": 11,
+          "type": "integer"
+        }, {
+          "key": "float",
+          "id": 2,
+          "value": 20.02,
+          "type": "double"
+        }, {
+          "key": "string",
+          "id": 3,
+          "value": "testing4_variation",
+          "type": "string"
+        }, {
+          "key": "boolean",
+          "id": 4,
+          "value": true,
+          "type": "boolean"
+        }, {
+          "key": "json",
+          "id": 5,
+          "value": {
+            "campaign": "testing4_variation"
+          },
+          "type": "json"
+        }],
+        "name": "Variation-1"
+      }],
+      "percentTraffic": 100,
+      "type": "FLAG_TESTING",
+      "status": "RUNNING"
+    },
+{
+      "key": "feature1_testingRule5",
+      "id": 7,
+      "segments": {},
+      "isForcedVariationEnabled": false,
+      "variations": [{
+        "weight": 50,
+        "id": 1,
+        "variables": [{
+          "key": "int",
+          "id": 1,
+          "value": 10,
+          "type": "integer"
+        }, {
+          "key": "float",
+          "id": 2,
+          "value": 20.01,
+          "type": "double"
+        }, {
+          "key": "string",
+          "id": 3,
+          "value": "testing5",
+          "type": "string"
+        }, {
+          "key": "boolean",
+          "id": 4,
+          "value": false,
+          "type": "boolean"
+        }, {
+          "key": "json",
+          "id": 5,
+          "value": {
+            "campaign": "testing5"
+          },
+          "type": "json"
+        }],
+        "name": "Default"
+      }, {
+        "weight": 50,
+        "id": 2,
+        "variables": [{
+          "key": "int",
+          "id": 1,
+          "value": 11,
+          "type": "integer"
+        }, {
+          "key": "float",
+          "id": 2,
+          "value": 20.02,
+          "type": "double"
+        }, {
+          "key": "string",
+          "id": 3,
+          "value": "testing5_variation",
+          "type": "string"
+        }, {
+          "key": "boolean",
+          "id": 4,
+          "value": true,
+          "type": "boolean"
+        }, {
+          "key": "json",
+          "id": 5,
+          "value": {
+            "campaign": "testing5_variation"
           },
           "type": "json"
         }],

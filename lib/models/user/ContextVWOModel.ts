@@ -18,7 +18,7 @@ export class ContextVWOModel {
     private location: Record<string, string>;
     private userAgent: Record<string, string>;
   
-    modelFromDictionary(context: ContextVWOModel): this {
+    modelFromDictionary(context: Record<string, any>): this {
       if (context?.location) {
         this.location = context.location;
       }

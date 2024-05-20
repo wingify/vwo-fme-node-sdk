@@ -23,6 +23,7 @@ import { ContextModel } from '../../../models/user/ContextModel';
 import { FeatureModel } from '../../../models/campaign/FeatureModel';
 import UrlService from '../../../services/UrlService';
 import { BASE_URL } from '../../../constants/Url';
+import { ContextVWOModel } from '../../../models/user/ContextVWOModel';
 
 export class SegmentationManager {
   private static instance: SegmentationManager; // Singleton instance of SegmentationManager
@@ -67,7 +68,8 @@ export class SegmentationManager {
         }
         try {
           const params = getQueryParams(queryParams);
-          this.evaluator.context.setVwo(await getFromGatewayService(params, UrlEnum.GET_USER_DATA));
+          const _vwo = await getFromGatewayService(params, UrlEnum.GET_USER_DATA);
+          context.setVwo(new ContextVWOModel().modelFromDictionary(_vwo));
         } catch (err) {
           LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
         }

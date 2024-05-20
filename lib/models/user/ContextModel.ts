@@ -35,7 +35,7 @@ export class ContextModel {
         this.variationTargetingVariables = context.variationTargetingVariables;
       }
       if (context?._vwo) {
-        this._vwo = context._vwo;
+        this._vwo = new ContextVWOModel().modelFromDictionary(context._vwo);
       }
       return this;
     }

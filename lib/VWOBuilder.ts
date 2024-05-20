@@ -24,7 +24,6 @@ import { Storage } from './packages/storage';
 import { VWOClient } from './VWOClient';
 import { SettingsModel } from './models/settings/SettingsModel';
 import { SettingsManager } from './services/SettingsManager';
-import { processSettings } from './utils/SettingsUtil';
 // import { BatchEventsQueue } from './services/batchEventsQueue';
 // import { DimensionModel } from './types/types';
 import { Constants } from './constants';
@@ -48,7 +47,6 @@ interface IVWOBuilder {
 
   fetchSettings(): Promise<SettingsModel>; // Asynchronously fetches settings from the server
   setSettingsManager(): this; // Sets up the settings manager with provided options
-  setSettings(settings: SettingsModel): void; // Sets and processes the settings object
   getSettings(force: boolean): Promise<dynamic>; // Fetches settings, optionally forcing a refresh
   setStorage(): this; // Sets up the storage connector based on provided options
   setNetworkManager(): this; // Configures the network manager with client and mode
@@ -120,18 +118,6 @@ export class VWOBuilder implements IVWOBuilder {
       // Avoid parallel fetches by recursively calling fetchSettings
       return this.fetchSettings(force);
     }
-  }
-
-  /**
-   * Sets the settings object, processing it for use.
-   * @param {Record<string, any> | string} settings - The settings to be set.
-   */
-  setSettings(settings: Record<string, any> | string): void {
-    LogManager.Instance.debug('API - setSettings called');
-    this.originalSettings = settings;
-    // Clone and process the settings
-    this.settings = cloneObject(settings);
-    this.settings = processSettings(this.settings);
   }
 
   /**
@@ -279,12 +265,11 @@ export class VWOBuilder implements IVWOBuilder {
    */
   initPolling(): this {
     if (!this.options.pollInterval) {
-      // TODO: Add logging here
       return this;
     }
 
     if (this.options.pollInterval && !isNumber(this.options.pollInterval)) {
-      // TODO: Add logging here
+      LogManager.Instance.error('Invalid pollInterval passed in options');
       return this;
     }
 
@@ -294,7 +279,7 @@ export class VWOBuilder implements IVWOBuilder {
       return this;
     }
 
-    this.checkAndPoll(this.options.pollInterval);
+    this.checkAndPoll();
 
     return this;
   }
@@ -310,9 +295,10 @@ export class VWOBuilder implements IVWOBuilder {
 
   /**
    * Checks and polls for settings updates at the provided interval.
-   * @param {number} pollingInterval - The interval in seconds for polling.
    */
-  checkAndPoll(pollingInterval: number): void {
+  checkAndPoll(): void {
+    const pollingInterval = this.options.pollInterval;
+
     setInterval(() => {
       this.getSettings(true)
         .then((latestSettings: SettingsModel) => {
@@ -321,14 +307,16 @@ export class VWOBuilder implements IVWOBuilder {
           if (stringifiedLatestSettings !== lastSettings) {
             this.originalSettings = latestSettings;
             const clonedSettings = cloneObject(latestSettings);
-            this.settings = processSettings(clonedSettings);
             // TODO: Add Logging:- Settings file updated
+            this.build(clonedSettings);
+          } else {
+            // TODO: add logging that settings are same
           }
         })
         .catch(() => {
           // TODO:- Add logging:- Polling failed
           LogManager.Instance.error('Error while fetching VWO settings with polling');
         });
-    }, pollingInterval * 1000); // converting seconds to milliseconds
+    }, pollingInterval);
   }
 }

@@ -56,7 +56,6 @@ export class VWO {
       .setSegmentation()     // Sets up segmentation for targeted functionality.
       .initBatching()        // Initializes batching for bulk data processing.
       .initPolling()         // Starts polling mechanism for regular updates.
-      // .getSettings()       // Fetches settings from a remote source.
       // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
 
     return this.vwoBuilder.getSettings().then((settings: SettingsModel) => {

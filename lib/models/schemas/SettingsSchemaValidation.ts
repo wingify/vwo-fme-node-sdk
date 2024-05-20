@@ -23,7 +23,6 @@ export class SettingsSchema {
   private campaignVariationSchema: Struct<dynamic>;
   private campaignObjectSchema: Struct<dynamic>;
   private settingsSchema: Struct<dynamic>;
-  private campaignGroupSchema: Struct<dynamic>;
   private featureSchema: Struct<dynamic>;
   private ruleSchema: Struct<dynamic>;
 
@@ -94,15 +93,10 @@ export class SettingsSchema {
       features: optional(array(this.featureSchema)),
       campaigns: array(this.campaignObjectSchema),
       groups: optional(object()),
-      campaignGroups: optional(array(this.campaignGroupSchema)),
+      campaignGroups: optional(object()),
       // remove these once DACDN is ready
       isNB: optional(boolean()),
       isNBv2: optional(boolean()),
-    });
-
-    this.campaignGroupSchema = object({
-      id: number(),
-      campaigns: array(number())
     });
   }
 

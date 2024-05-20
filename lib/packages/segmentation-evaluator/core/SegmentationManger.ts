@@ -58,21 +58,23 @@ export class SegmentationManager {
       this.evaluator.settings = settings; // Set settings in evaluator
       this.evaluator.context = context; // Set context in evaluator
       this.evaluator.feature = feature; // Set feature in evaluator
-      if (UrlService.getBaseUrl() !== BASE_URL && (context.getVwo() === undefined || context.getVwo() === null)) {
-        const queryParams = {};
-        if (context?.getUserAgent()) {
-          queryParams['userAgent'] = context.getUserAgent();
-        }
+      if (feature.getIsGatewayServiceRequired() === true) {
+        if (UrlService.getBaseUrl() !== BASE_URL && (context.getVwo() === undefined || context.getVwo() === null)) {
+          const queryParams = {};
+          if (context?.getUserAgent()) {
+            queryParams['userAgent'] = context.getUserAgent();
+          }
 
-        if (context?.getIpAddress()) {
-          queryParams['ipAddress'] = context.getIpAddress();
-        }
-        try {
-          const params = getQueryParams(queryParams);
-          const _vwo = await getFromGatewayService(params, UrlEnum.GET_USER_DATA);
-          context.setVwo(new ContextVWOModel().modelFromDictionary(_vwo));
-        } catch (err) {
-          LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
+          if (context?.getIpAddress()) {
+            queryParams['ipAddress'] = context.getIpAddress();
+          }
+          try {
+            const params = getQueryParams(queryParams);
+            const _vwo = await getFromGatewayService(params, UrlEnum.GET_USER_DATA);
+            context.setVwo(new ContextVWOModel().modelFromDictionary(_vwo));
+          } catch (err) {
+            LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
+          }
         }
       }
   }

@@ -29,12 +29,16 @@ export class FeatureModel {
   private impactCampaign: ImpactCapmaignModel = null;
 
   private rulesLinkedCampaign: Array<CampaignModel> = [];
+  private isGatewayServiceRequired: boolean = false;
 
   modelFromDictionary(feature: FeatureModel): this {
     this.id = feature.id;
     this.key = feature.key;
     this.name = feature.name;
     this.type = feature.type;
+    if (feature?.isGatewayServiceRequired) {
+      this.isGatewayServiceRequired = feature.isGatewayServiceRequired;
+    }
     if (feature.impactCampaign) {
       this.impactCampaign = new ImpactCapmaignModel().modelFromDictionary(feature.impactCampaign);
     }
@@ -99,5 +103,13 @@ export class FeatureModel {
 
   getMetrics(): Array<MetricModel> {
     return this.metrics;
+  }
+
+  getIsGatewayServiceRequired(): boolean {
+    return this.isGatewayServiceRequired;
+  }
+
+  setIsGatewayServiceRequired(isGatewayServiceRequired: boolean): void {
+    this.isGatewayServiceRequired = isGatewayServiceRequired;
   }
 }

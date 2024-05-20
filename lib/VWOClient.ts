@@ -33,7 +33,7 @@ import HooksManager from './services/HooksManager';
 import UrlService from './services/UrlService';
 import { setVariationAllocation } from './utils/CampaignUtil';
 import { getType, isObject, isString } from './utils/DataTypeUtil';
-import { addLinkedCampaignsToSettings } from './utils/FunctionUtil';
+import { addIsGatewayServiceRequiredFlag, addLinkedCampaignsToSettings } from './utils/FunctionUtil';
 import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
 
@@ -74,6 +74,7 @@ export class VWOClient implements IVWOClient {
       campaigns[index] = campaign;
     });
     addLinkedCampaignsToSettings(this.settings);
+    addIsGatewayServiceRequiredFlag(this.settings);
     LogManager.Instance.info('VWO Client initialized');
     return this;
   }

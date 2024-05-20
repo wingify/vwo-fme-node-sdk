@@ -135,7 +135,7 @@ export const TESTING_WHITELISTING_SEGMENT_RULE_SETTINGS = {
       "name": "Default",
       "segments": {
         "or": [{
-          "user": "user_id"
+          "user": "user_id,user_id_9"
         }]
       }
     }, {

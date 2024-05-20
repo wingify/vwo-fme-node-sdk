@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Connector } from "../VWO";
 import { VWOBuilder } from "../VWOBuilder";
 import { StorageService } from "../services/StorageService";
 import { GatewayServiceModel } from "./GatewayServiceModel";
@@ -21,7 +22,7 @@ import { GatewayServiceModel } from "./GatewayServiceModel";
 export interface IVWOOptions {
     accountId: string;
     sdkKey: string;
-    storageService?: StorageService;
+    storage?: Connector | {};
     gatewayService?: GatewayServiceModel;
     vwoBuilder?: VWOBuilder;
 }
@@ -29,7 +30,7 @@ export interface IVWOOptions {
 export class VWOOptionsModel implements IVWOOptions{
     accountId: string;
     sdkKey: string;
-    storageService?: StorageService;
+    storage?: Connector | {};
     gatewayService?: GatewayServiceModel;
     vwoBuilder?: VWOBuilder;
 
@@ -37,8 +38,8 @@ export class VWOOptionsModel implements IVWOOptions{
         this.accountId = options.accountId;
         this.sdkKey = options.sdkKey;
         this.vwoBuilder = options.vwoBuilder;
-        if (options?.storageService) {
-            this.storageService = options.storageService;
+        if (options?.storage) {
+            this.storage = options.storage;
         }
         if (options?.gatewayService) {
             this.gatewayService = options.gatewayService;
@@ -54,8 +55,8 @@ export class VWOOptionsModel implements IVWOOptions{
         return this.sdkKey;
     }
 
-    getStorageService(): StorageService {
-        return this.storageService;
+    getStorageService(): Connector | {} {
+        return this.storage;
     }
 
     getGatewayService(): GatewayServiceModel {

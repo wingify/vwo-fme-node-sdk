@@ -13,5 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { LogManager } from './core/LogManager';
+export { LogManager, ILogManager } from './core/LogManager';
 export { LogLevelEnum } from './enums/LogLevelEnum';

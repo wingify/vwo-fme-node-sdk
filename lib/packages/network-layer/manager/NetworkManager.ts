@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { LogManager } from '../../../packages/logger';
 import { Deferred } from '../../../utils/PromiseUtil';
 import { NetworkClient } from '../client/NetworkClient';
 import { NetworkClientInterface } from '../client/NetworkClientInterface';
@@ -33,6 +34,8 @@ export class NetworkManager {
   attachClient(client?: NetworkClientInterface): void {
     this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
     this.config = new GlobalRequestModel(null, null, null, null); // Initialize with default config
+
+    LogManager.Instance.debug(`VWO Network Layer attached`);
   }
 
   /**

@@ -134,7 +134,7 @@ export class VWOClient implements IVWOClient {
           deferredObject.resolve(errorReturnSchema);
         })
     } catch (err) {
-      LogManager.Instance.error(
+      LogManager.Instance.info(
         buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
           apiName,
           err,
@@ -209,7 +209,7 @@ export class VWOClient implements IVWOClient {
       });
     } catch (err) {
       // Log any errors encountered during the operation
-      LogManager.Instance.error(
+      LogManager.Instance.info(
         buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
           apiName,
           err,
@@ -264,7 +264,7 @@ export class VWOClient implements IVWOClient {
       new SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, contextModel);
     } catch (err) {
       // Log any errors encountered during the operation
-      LogManager.Instance.error(
+      LogManager.Instance.info(
         buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
           apiName,
           err,

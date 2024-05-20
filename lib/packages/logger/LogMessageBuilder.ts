@@ -16,6 +16,16 @@
 import { dynamic } from '../../types/Common';
 import { LogLevelEnum } from './enums/LogLevelEnum';
 
+const AnsiColorEnum = {
+  BOLD: '\x1b[1m',
+  CYAN: '\x1b[36m',
+  GREEN: '\x1b[32m',
+  LIGHTBLUE: '\x1b[94m',
+  RED: '\x1b[31m',
+  RESET: '\x1b[0m',
+  WHITE: '\x1b[30m',
+  YELLOW: '\x1b[33m'
+};
 /**
  * Interface defining the structure for a log message builder.
  */
@@ -61,7 +71,11 @@ export class LogMessageBuilder implements ILogMessageBuilder {
    * @returns {string} The formatted log message.
    */
   formatMessage(level: string, message: string): string {
-    return `${this.getFormattedLevel(level)} ${this.prefix} ${this.getFormattedDateTime()} ${message}`;
+    return `[${this.getFormattedLevel(level)}]: ${this.getFormattedPrefix(this.prefix)} ${this.getFormattedDateTime()} ${message}`;
+  }
+
+  getFormattedPrefix(prefix: string): string {
+    return `${AnsiColorEnum.BOLD}${AnsiColorEnum.GREEN}${prefix}${AnsiColorEnum.RESET}`;
   }
 
   /**
@@ -71,23 +85,13 @@ export class LogMessageBuilder implements ILogMessageBuilder {
    */
   getFormattedLevel(level: string): string {
     const upperCaseLevel = level.toUpperCase();
-    const AnsiColorEnum = {
-      BOLD: '\x1b[1m',
-      CYAN: '\x1b[36m',
-      GREEN: '\x1b[32m',
-      LIGHTBLUE: '\x1b[94m',
-      RED: '\x1b[31m',
-      RESET: '\x1b[0m',
-      WHITE: '\x1b[30m',
-      YELLOW: '\x1b[33m'
-    };
 
     const LogLevelColorInfoEnum = {
       [LogLevelEnum.TRACE]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.WHITE}${upperCaseLevel}${AnsiColorEnum.RESET}`,
-      [LogLevelEnum.DEBUG]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.LIGHTBLUE}${upperCaseLevel} ${AnsiColorEnum.RESET}`,
-      [LogLevelEnum.INFO]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.CYAN}${upperCaseLevel}  ${AnsiColorEnum.RESET}`,
-      [LogLevelEnum.WARN]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.YELLOW}${upperCaseLevel}  ${AnsiColorEnum.RESET}`,
-      [LogLevelEnum.ERROR]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.RED}${upperCaseLevel} ${AnsiColorEnum.RESET}`
+      [LogLevelEnum.DEBUG]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.LIGHTBLUE}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+      [LogLevelEnum.INFO]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.CYAN}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+      [LogLevelEnum.WARN]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.YELLOW}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+      [LogLevelEnum.ERROR]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.RED}${upperCaseLevel}${AnsiColorEnum.RESET}`
     };
 
     return LogLevelColorInfoEnum[level];

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isNull, isUndefined, isFunction } from '../utils/DataTypeUtil';
+import { isFunction } from '../utils/DataTypeUtil';
 
 const nargs = /\{([0-9a-zA-Z_]+)\}/g;
 

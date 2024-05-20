@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { init } from '../../lib';
-import { ContextModel } from '../../lib/models/user/ContextModel';
 import { VWOBuilder } from '../../lib/VWOBuilder';
 import {
   BASIC_ROLLOUT_SETTINGS, BASIC_ROLLOUT_TESTING_RULE_SETTINGS,
@@ -281,13 +280,13 @@ describe('VWO', () => {
 
       const context = { id: 'user_id' };
       const featureFlag = await vwoClient.getFlag('feature1', context);
-      // get stored data 
+      // get stored data
       const storageData = await storageMap.get('feature1', 'user_id');
       // check stored data
       expect(storageData.rolloutKey).toEqual('feature1_rolloutRule1');
       expect(storageData.rolloutVariationId).toEqual(1);
       const storageFeatureFlag = await vwoClient.getFlag('feature1', context);
-      
+
       expect(storageFeatureFlag.isEnabled()).toBe(true);
       expect(storageFeatureFlag.getVariable('int')).toBe(10);
       expect(storageFeatureFlag.getVariable('string')).toBe('test');

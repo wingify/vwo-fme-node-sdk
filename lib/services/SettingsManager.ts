@@ -20,13 +20,11 @@ import { NetworkManager, RequestModel, ResponseModel } from '../packages/network
 
 import { Deferred } from '../utils/PromiseUtil';
 
-import { isNumber, isObject } from '../utils/DataTypeUtil';
 import { Constants } from '../constants';
 import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { NetworkUtil } from '../utils/NetworkUtil';
 
-import { Storage } from '../packages/storage';
 
 interface ISettingsManager {
   sdkKey: string;
@@ -65,6 +63,7 @@ export class SettingsManager implements ISettingsManager {
     // if (this.expiry > 0) {
     //   this.setSettingsExpiry();
     // }
+    LogManager.Instance.debug(`VWO Settings Manager initialized`);
   }
 
   private setSettingsExpiry() {
@@ -143,7 +142,7 @@ export class SettingsManager implements ISettingsManager {
 
       return deferredObject.promise;
     } catch (err) {
-      console.error('Error occurred while fetching settings:', err);
+      LogManager.Instance.error(`Error occurred while fetching settings: ${err}`);
       deferredObject.reject(err);
       return deferredObject.promise;
     }

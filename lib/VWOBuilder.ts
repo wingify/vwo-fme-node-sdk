@@ -15,13 +15,13 @@
  */
 import { dynamic } from './types/Common';
 
-import { LogManager } from './packages/logger';
+import { LogManager, ILogManager } from './packages/logger';
 import { NetworkManager } from './packages/network-layer';
 import { SegmentationManager } from './packages/segmentation-evaluator';
 
 import { Storage } from './packages/storage';
 
-import { VWOClient } from './VWOClient';
+import { VWOClient, IVWOClient } from './VWOClient';
 import { SettingsModel } from './models/settings/SettingsModel';
 import { SettingsManager } from './services/SettingsManager';
 // import { BatchEventsQueue } from './services/batchEventsQueue';
@@ -37,13 +37,13 @@ import { cloneObject } from './utils/FunctionUtil';
 import { getRandomUUID } from './utils/UuidUtil';
 import { IVWOOptions, VWOOptionsModel } from './models/VWOOptionsModel';
 
-interface IVWOBuilder {
+export interface IVWOBuilder {
   settings: SettingsModel; // Holds the configuration settings for the VWO client
   storage: Storage; // Interface for storage management
-  logManager: LogManager; // Manages logging across the VWO SDK
+  logManager: ILogManager; // Manages logging across the VWO SDK
   isSettingsFetchInProgress: boolean; // Flag to check if settings fetch is in progress
 
-  build(settings: SettingsModel): VWOClient; // Builds and returns a new VWOClient instance
+  build(settings: SettingsModel): IVWOClient; // Builds and returns a new VWOClient instance
 
   fetchSettings(): Promise<SettingsModel>; // Asynchronously fetches settings from the server
   setSettingsManager(): this; // Sets up the settings manager with provided options
@@ -65,7 +65,7 @@ export class VWOBuilder implements IVWOBuilder {
 
   settings: SettingsModel;
   storage: Storage;
-  logManager: LogManager;
+  logManager: ILogManager;
   originalSettings: dynamic;
   isSettingsFetchInProgress: boolean;
 
@@ -178,10 +178,7 @@ export class VWOBuilder implements IVWOBuilder {
    */
   setLogger(): this {
     this.logManager = new LogManager(
-      this.options.logger || {
-        defaultTransport: true,
-        level: LogLevelEnum.DEBUG
-      }
+      this.options.logger || {}
     );
     return this;
   }
@@ -289,7 +286,7 @@ export class VWOBuilder implements IVWOBuilder {
    * @param {SettingsModel} settings - The settings for the VWOClient.
    * @returns {VWOClient} The new VWOClient instance.
    */
-  build(settings: SettingsModel): VWOClient {
+  build(settings: SettingsModel): IVWOClient {
     return new VWOClient(settings, this.options);
   }
 

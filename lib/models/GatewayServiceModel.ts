@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-export class GatewayServiceModel {
+export interface IGatewayService {
+    modelFromDictionary(gatewayServiceModel: GatewayServiceModel): this;
+    getUrl(): string;
+}
+
+export class GatewayServiceModel implements IGatewayService {
     private url: string;
 
     modelFromDictionary(gatewayServiceModel: GatewayServiceModel): this {
@@ -26,4 +31,3 @@ export class GatewayServiceModel {
         return this.url;
     }
   }
-  

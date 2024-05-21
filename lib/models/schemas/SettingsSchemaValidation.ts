@@ -65,6 +65,8 @@ export class SettingsSchema {
       variations: array(this.campaignVariationSchema),
       segments: object(),
       isForcedVariationEnabled: optional(boolean()),
+      isAlwaysCheckSegment: optional(boolean()),
+      name: string(),
     });
 
     this.ruleSchema = object({

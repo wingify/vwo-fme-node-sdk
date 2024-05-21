@@ -27,8 +27,7 @@ export class Storage {
   // public storageType: dynamic;
 
   public attachConnector(connector: any): any {
-
-    if (connector?.prototype?.constructor?.toString()?.trim()?.substring(0,5) === 'class') {
+    if (connector?.prototype?.constructor?.toString()?.trim()?.substring(0, 5) === 'class') {
       this.connector = new connector();
     } else {
       this.connector = connector;

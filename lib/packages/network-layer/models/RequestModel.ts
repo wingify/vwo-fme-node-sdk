@@ -52,7 +52,7 @@ export class RequestModel {
     body: Record<string, dynamic>,
     headers: Record<string, string>,
     scheme: string = HTTP,
-    port: number
+    port: number,
   ) {
     this.url = url;
     this.method = method;
@@ -227,7 +227,7 @@ export class RequestModel {
     }
     const options: Record<string, any> = {
       hostname: this.url,
-      agent: false
+      agent: false,
     };
 
     if (this.scheme) {

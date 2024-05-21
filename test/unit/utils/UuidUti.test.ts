@@ -18,7 +18,7 @@ import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
 
 jest.mock('uuid', () => ({
   v4: jest.fn(),
-  v5: jest.fn()
+  v5: jest.fn(),
 }));
 
 describe('UuidUtil', () => {

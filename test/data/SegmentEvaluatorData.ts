@@ -22,30 +22,30 @@ export class SegmentEvaluatorData {
           and: [
             {
               custom_variable: {
-                eq: 'eq_value'
-              }
-            }
-          ]
+                eq: 'eq_value',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       single_and_operator_case_mismatch: {
         dsl: {
           and: [
             {
               custom_variable: {
-                eq: 'eq_value'
-              }
-            }
-          ]
+                eq: 'eq_value',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'Eq_Value'
-        }
+          eq: 'Eq_Value',
+        },
       },
       multiple_and_operator2: {
         dsl: {
@@ -60,23 +60,23 @@ export class SegmentEvaluatorData {
                           and: [
                             {
                               custom_variable: {
-                                eq: 'eq_value'
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                eq: 'eq_value',
+                              },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       multiple_and_operator_with_all_incorrect_correct_values: {
         dsl: {
@@ -85,27 +85,27 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
           eq: 'wrong',
-          reg: 'wrong'
-        }
+          reg: 'wrong',
+        },
       },
       multiple_and_operator_with_single_correct_value2: {
         dsl: {
@@ -114,27 +114,27 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
           eq: 'wrong',
-          reg: 'myregexxxxxx'
-        }
+          reg: 'myregexxxxxx',
+        },
       },
       multiple_and_operator_with_all_correct_values: {
         dsl: {
@@ -143,42 +143,42 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
           eq: 'eq_value',
-          reg: 'myregexxxxxx'
-        }
+          reg: 'myregexxxxxx',
+        },
       },
       single_and_operator_mismatch: {
         dsl: {
           and: [
             {
               custom_variable: {
-                eq: 'eq_value'
-              }
-            }
-          ]
+                eq: 'eq_value',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          a: 'n_eq_value'
-        }
+          a: 'n_eq_value',
+        },
       },
       multiple_and_operator_with_single_correct_value: {
         dsl: {
@@ -187,28 +187,28 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
           eq: 'eq_value',
-          reg: 'wrong'
-        }
-      }
+          reg: 'wrong',
+        },
+      },
     },
     case_insensitive_equality_operand: {
       exact_match_with_special_characters: {
@@ -216,479 +216,479 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                eq: 'lower(f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!)'
-              }
-            }
-          ]
+                eq: 'lower(f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!'
-        }
+          eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!',
+        },
       },
       float_data_type_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(123.456)'
-              }
-            }
-          ]
+                eq: 'lower(123.456)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 123
-        }
+          eq: 123,
+        },
       },
       numeric_data_type_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(123)'
-              }
-            }
-          ]
+                eq: 'lower(123)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 12
-        }
+          eq: 12,
+        },
       },
       float_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(123.456)'
-              }
-            }
-          ]
+                eq: 'lower(123.456)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 123.4567
-        }
+          eq: 123.4567,
+        },
       },
       incorrect_key: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(something)'
-              }
-            }
-          ]
+                eq: 'lower(something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          neq: 'something'
-        }
+          neq: 'something',
+        },
       },
       incorrect_key_case: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(something)'
-              }
-            }
-          ]
+                eq: 'lower(something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          EQ: 'something'
-        }
+          EQ: 'something',
+        },
       },
       single_char: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(zzsomethingzz)'
-              }
-            }
-          ]
+                eq: 'lower(zzsomethingzz)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'i'
-        }
+          eq: 'i',
+        },
       },
       char_data_type_case_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(e)'
-              }
-            }
-          ]
+                eq: 'lower(e)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(something)'
-              }
-            }
-          ]
+                eq: 'lower(something)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'Something'
-        }
+          eq: 'Something',
+        },
       },
       exact_match_with_spaces: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(nice to see you. will    YOU be   my        Friend?)'
-              }
-            }
-          ]
+                eq: 'lower(nice to see you. will    YOU be   my        Friend?)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'nice to see you. will    YOU be   my        Friend?'
-        }
+          eq: 'nice to see you. will    YOU be   my        Friend?',
+        },
       },
       stringified_float: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(123.456)'
-              }
-            }
-          ]
+                eq: 'lower(123.456)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: '123.456000000'
-        }
+          eq: '123.456000000',
+        },
       },
       char_data_type_case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(E)'
-              }
-            }
-          ]
+                eq: 'lower(E)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'e'
-        }
+          eq: 'e',
+        },
       },
       char_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(E)'
-              }
-            }
-          ]
+                eq: 'lower(E)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       boolean_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(true)'
-              }
-            }
-          ]
+                eq: 'lower(true)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       boolean_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(true)'
-              }
-            }
-          ]
+                eq: 'lower(true)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       numeric_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(123)'
-              }
-            }
-          ]
+                eq: 'lower(123)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123.0
-        }
+          eq: 123.0,
+        },
       },
       mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(something)'
-              }
-            }
-          ]
+                eq: 'lower(something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'notsomething'
-        }
+          eq: 'notsomething',
+        },
       },
       numeric_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(123)'
-              }
-            }
-          ]
+                eq: 'lower(123)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123
-        }
+          eq: 123,
+        },
       },
       exact_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(something)'
-              }
-            }
-          ]
+                eq: 'lower(something)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       part_of_text: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(zzsomethingzz)'
-              }
-            }
-          ]
+                eq: 'lower(zzsomethingzz)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       exact_match_with_upper_case: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH)'
-              }
-            }
-          ]
+                eq: 'lower(HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH'
-        }
+          eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH',
+        },
       },
       null_value_provided: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(something)'
-              }
-            }
-          ]
+                eq: 'lower(something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: null
-        }
+          eq: null,
+        },
       },
       boolean_data_type_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(false)'
-              }
-            }
-          ]
+                eq: 'lower(false)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       no_value_provided: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(something)'
-              }
-            }
-          ]
+                eq: 'lower(something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: ''
-        }
+          eq: '',
+        },
       },
       missingkey_value: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(something)'
-              }
-            }
-          ]
+                eq: 'lower(something)',
+              },
+            },
+          ],
         },
         expectation: false,
-        customVariables: {}
+        customVariables: {},
       },
       stringified_float3: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(123.4560000)'
-              }
-            }
-          ]
+                eq: 'lower(123.4560000)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123.456
-        }
+          eq: 123.456,
+        },
       },
       stringified_float2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(123.0)'
-              }
-            }
-          ]
+                eq: 'lower(123.0)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123
-        }
+          eq: 123,
+        },
       },
       case_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(something)'
-              }
-            }
-          ]
+                eq: 'lower(something)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'SOMETHINg'
-        }
+          eq: 'SOMETHINg',
+        },
       },
       float_data_type_extra_decimal_zeros: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(123.456)'
-              }
-            }
-          ]
+                eq: 'lower(123.456)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123.456
-        }
+          eq: 123.456,
+        },
       },
       boolean_data_type3: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(True)'
-              }
-            }
-          ]
+                eq: 'lower(True)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       boolean_data_type2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(false)'
-              }
-            }
-          ]
+                eq: 'lower(false)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       float_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lower(123.456)'
-              }
-            }
-          ]
+                eq: 'lower(123.456)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123.456
-        }
-      }
+          eq: 123.456,
+        },
+      },
     },
     complex_and_ors: {
       complex_dsl_1: {
@@ -702,34 +702,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -737,23 +737,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -761,8 +761,8 @@ export class SegmentEvaluatorData {
           contain: 1,
           eq: 1,
           start_with: 'my_start_with_valzzzzzzzzzzzzzzzz',
-          neq: 1
-        }
+          neq: 1,
+        },
       },
       complex_dsl_2: {
         dsl: {
@@ -775,34 +775,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -810,23 +810,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -834,8 +834,8 @@ export class SegmentEvaluatorData {
           contain: 1,
           eq: 1,
           start_with: 1,
-          neq: 'not_eq_value'
-        }
+          neq: 'not_eq_value',
+        },
       },
       complex_dsl_3: {
         dsl: {
@@ -848,34 +848,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -883,23 +883,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -907,8 +907,8 @@ export class SegmentEvaluatorData {
           contain: 'zzzzzzmy_contain_valzzzzz',
           eq: 1,
           start_with: 'm1y_1sta1rt_with_val',
-          neq: false
-        }
+          neq: false,
+        },
       },
       complex_dsl_4: {
         dsl: {
@@ -921,34 +921,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -956,23 +956,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -980,8 +980,8 @@ export class SegmentEvaluatorData {
           contain: 'my_ contain _val',
           eq: 'eq_value',
           start_with: 'm1y_1sta1rt_with_val',
-          neq: null
-        }
+          neq: null,
+        },
       },
       complex_dsl_5: {
         dsl: {
@@ -994,34 +994,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1029,23 +1029,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -1053,8 +1053,8 @@ export class SegmentEvaluatorData {
           contain: 'my_ contain _val',
           eq: 'eq__value',
           start_with: 'm1y_1sta1rt_with_val',
-          neq: 123
-        }
+          neq: 123,
+        },
       },
       complex_dsl_6: {
         dsl: {
@@ -1067,34 +1067,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1102,23 +1102,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -1126,9 +1126,9 @@ export class SegmentEvaluatorData {
           contain: 'my$contain$val',
           eq: 'eq_value',
           start_with: 'm1y_1sta1rt_with_val',
-          neq: 'not_matching'
-        }
-      }
+          neq: 'not_matching',
+        },
+      },
     },
     complex_dsl_1: {
       matching_contains_with_value: {
@@ -1142,34 +1142,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1177,23 +1177,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -1201,8 +1201,8 @@ export class SegmentEvaluatorData {
           contain: 'zzzzzzmy_contain_valzzzzz',
           eq: 1,
           start_with: 'm1y_1sta1rt_with_val',
-          neq: false
-        }
+          neq: false,
+        },
       },
       matching_both_start_with_and_not_equal_to_value: {
         dsl: {
@@ -1215,34 +1215,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1250,23 +1250,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -1274,8 +1274,8 @@ export class SegmentEvaluatorData {
           contain: 1,
           eq: 1,
           start_with: 'my_start_with_valzzzzzzzzzzzzzzzz',
-          neq: 'not_eq_value'
-        }
+          neq: 'not_eq_value',
+        },
       },
       matching_not_equal_to_value: {
         dsl: {
@@ -1288,34 +1288,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1323,23 +1323,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -1347,8 +1347,8 @@ export class SegmentEvaluatorData {
           contain: 1,
           eq: 1,
           start_with: 1,
-          neq: 'not_eq_value'
-        }
+          neq: 'not_eq_value',
+        },
       },
       matching_start_with_value: {
         dsl: {
@@ -1361,34 +1361,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1396,23 +1396,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -1420,8 +1420,8 @@ export class SegmentEvaluatorData {
           contain: 1,
           eq: 1,
           start_with: 'my_start_with_valzzzzzzzzzzzzzzzz',
-          neq: 1
-        }
+          neq: 1,
+        },
       },
       matching_regex_value: {
         dsl: {
@@ -1434,34 +1434,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1469,23 +1469,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -1493,8 +1493,8 @@ export class SegmentEvaluatorData {
           contain: 'my_ contain _val',
           eq: 'eq__value',
           start_with: 'm1y_1sta1rt_with_val',
-          neq: 123
-        }
+          neq: 123,
+        },
       },
       matching_both_equal_to_and_regex_value: {
         dsl: {
@@ -1507,34 +1507,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1542,23 +1542,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -1566,8 +1566,8 @@ export class SegmentEvaluatorData {
           contain: 'my$contain$val',
           eq: 'eq_value',
           start_with: 'm1y_1sta1rt_with_val',
-          neq: 'not_matching'
-        }
+          neq: 'not_matching',
+        },
       },
       matching_equal_to_value: {
         dsl: {
@@ -1580,34 +1580,34 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            start_with: 'wildcard(my_start_with_val*)'
-                          }
-                        }
-                      ]
+                            start_with: 'wildcard(my_start_with_val*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       not: {
                         or: [
                           {
                             custom_variable: {
-                              neq: 'not_eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                              neq: 'not_eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        contain: 'wildcard(*my_contain_val*)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        contain: 'wildcard(*my_contain_val*)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1615,23 +1615,23 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        eq: 'eq_value'
-                      }
-                    }
-                  ]
+                        eq: 'eq_value',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        reg: 'regex(myregex+)'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                        reg: 'regex(myregex+)',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -1639,9 +1639,9 @@ export class SegmentEvaluatorData {
           contain: 'my_ contain _val',
           eq: 'eq_value',
           start_with: 'm1y_1sta1rt_with_val',
-          neq: null
-        }
-      }
+          neq: null,
+        },
+      },
     },
     complex_dsl_2: {
       false4: {
@@ -1656,33 +1656,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              notvwo: 'notvwo'
-                            }
-                          }
-                        ]
-                      }
+                              notvwo: 'notvwo',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwovwovwo: 'regex(vwovwovwo)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwovwovwo: 'regex(vwovwovwo)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1693,22 +1693,22 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              vwo_not_equal_to: 'owv'
-                            }
-                          }
-                        ]
-                      }
+                              vwo_not_equal_to: 'owv',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_equal_to: 'vwo'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwo_equal_to: 'vwo',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -1716,25 +1716,25 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            vwo_starts_with: 'wildcard(owv vwo*)'
-                          }
-                        }
-                      ]
+                            vwo_starts_with: 'wildcard(owv vwo*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -1744,8 +1744,8 @@ export class SegmentEvaluatorData {
           notvwo: 'vwo',
           regex_vwo: 'this   is vwo',
           vwovwovwo: 'vwovovwo',
-          vwo_contains: 'vwo'
-        }
+          vwo_contains: 'vwo',
+        },
       },
       false1: {
         dsl: {
@@ -1759,33 +1759,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              notvwo: 'notvwo'
-                            }
-                          }
-                        ]
-                      }
+                              notvwo: 'notvwo',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwovwovwo: 'regex(vwovwovwo)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwovwovwo: 'regex(vwovwovwo)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1796,22 +1796,22 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              vwo_not_equal_to: 'owv'
-                            }
-                          }
-                        ]
-                      }
+                              vwo_not_equal_to: 'owv',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_equal_to: 'vwo'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwo_equal_to: 'vwo',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -1819,25 +1819,25 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            vwo_starts_with: 'wildcard(owv vwo*)'
-                          }
-                        }
-                      ]
+                            vwo_starts_with: 'wildcard(owv vwo*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -1847,8 +1847,8 @@ export class SegmentEvaluatorData {
           notvwo: 'vwo',
           regex_vwo: 'this   is vwo',
           vwovwovwo: 'vwovw',
-          vwo_contains: 'vwo'
-        }
+          vwo_contains: 'vwo',
+        },
       },
       false3: {
         dsl: {
@@ -1862,33 +1862,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              notvwo: 'notvwo'
-                            }
-                          }
-                        ]
-                      }
+                              notvwo: 'notvwo',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwovwovwo: 'regex(vwovwovwo)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwovwovwo: 'regex(vwovwovwo)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -1899,22 +1899,22 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              vwo_not_equal_to: 'owv'
-                            }
-                          }
-                        ]
-                      }
+                              vwo_not_equal_to: 'owv',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_equal_to: 'vwo'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwo_equal_to: 'vwo',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -1922,25 +1922,25 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            vwo_starts_with: 'wildcard(owv vwo*)'
-                          }
-                        }
-                      ]
+                            vwo_starts_with: 'wildcard(owv vwo*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -1950,8 +1950,8 @@ export class SegmentEvaluatorData {
           notvwo: 'vwo',
           regex_vwo: 'this   isvwo',
           vwovwovwo: 'vwovwovw',
-          vwo_contains: 'vwo'
-        }
+          vwo_contains: 'vwo',
+        },
       },
       false2: {
         dsl: {
@@ -1965,33 +1965,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              notvwo: 'notvwo'
-                            }
-                          }
-                        ]
-                      }
+                              notvwo: 'notvwo',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwovwovwo: 'regex(vwovwovwo)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwovwovwo: 'regex(vwovwovwo)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -2002,22 +2002,22 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              vwo_not_equal_to: 'owv'
-                            }
-                          }
-                        ]
-                      }
+                              vwo_not_equal_to: 'owv',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_equal_to: 'vwo'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwo_equal_to: 'vwo',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -2025,25 +2025,25 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            vwo_starts_with: 'wildcard(owv vwo*)'
-                          }
-                        }
-                      ]
+                            vwo_starts_with: 'wildcard(owv vwo*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -2053,8 +2053,8 @@ export class SegmentEvaluatorData {
           notvwo: 'vwo',
           regex_vwo: 'this   is vwo',
           vwovwovwo: 'vwo',
-          vwo_contains: 'vwo'
-        }
+          vwo_contains: 'vwo',
+        },
       },
       true4: {
         dsl: {
@@ -2068,33 +2068,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              notvwo: 'notvwo'
-                            }
-                          }
-                        ]
-                      }
+                              notvwo: 'notvwo',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwovwovwo: 'regex(vwovwovwo)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwovwovwo: 'regex(vwovwovwo)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -2105,22 +2105,22 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              vwo_not_equal_to: 'owv'
-                            }
-                          }
-                        ]
-                      }
+                              vwo_not_equal_to: 'owv',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_equal_to: 'vwo'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwo_equal_to: 'vwo',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -2128,25 +2128,25 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            vwo_starts_with: 'wildcard(owv vwo*)'
-                          }
-                        }
-                      ]
+                            vwo_starts_with: 'wildcard(owv vwo*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -2156,8 +2156,8 @@ export class SegmentEvaluatorData {
           notvwo: 'vo',
           regex_vwo: 'this   is vwo',
           vwovwovwo: 'vwovwovwo',
-          vwo_contains: 'vw'
-        }
+          vwo_contains: 'vw',
+        },
       },
       true1: {
         dsl: {
@@ -2171,33 +2171,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              notvwo: 'notvwo'
-                            }
-                          }
-                        ]
-                      }
+                              notvwo: 'notvwo',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwovwovwo: 'regex(vwovwovwo)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwovwovwo: 'regex(vwovwovwo)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -2208,22 +2208,22 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              vwo_not_equal_to: 'owv'
-                            }
-                          }
-                        ]
-                      }
+                              vwo_not_equal_to: 'owv',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_equal_to: 'vwo'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwo_equal_to: 'vwo',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -2231,25 +2231,25 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            vwo_starts_with: 'wildcard(owv vwo*)'
-                          }
-                        }
-                      ]
+                            vwo_starts_with: 'wildcard(owv vwo*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -2259,8 +2259,8 @@ export class SegmentEvaluatorData {
           notvwo: 'vwo',
           regex_vwo: 'this   is vwo',
           vwovwovwo: 'vwovwovwo',
-          vwo_contains: 'vwo'
-        }
+          vwo_contains: 'vwo',
+        },
       },
       true3: {
         dsl: {
@@ -2274,33 +2274,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              notvwo: 'notvwo'
-                            }
-                          }
-                        ]
-                      }
+                              notvwo: 'notvwo',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwovwovwo: 'regex(vwovwovwo)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwovwovwo: 'regex(vwovwovwo)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -2311,22 +2311,22 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              vwo_not_equal_to: 'owv'
-                            }
-                          }
-                        ]
-                      }
+                              vwo_not_equal_to: 'owv',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_equal_to: 'vwo'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwo_equal_to: 'vwo',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -2334,25 +2334,25 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            vwo_starts_with: 'wildcard(owv vwo*)'
-                          }
-                        }
-                      ]
+                            vwo_starts_with: 'wildcard(owv vwo*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -2362,8 +2362,8 @@ export class SegmentEvaluatorData {
           notvwo: 'vwovwo',
           regex_vwo: 'this   isvwo',
           vwovwovwo: 'vwovwovwo',
-          vwo_contains: 'vwo'
-        }
+          vwo_contains: 'vwo',
+        },
       },
       true2: {
         dsl: {
@@ -2377,33 +2377,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              notvwo: 'notvwo'
-                            }
-                          }
-                        ]
-                      }
+                              notvwo: 'notvwo',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwovwovwo: 'regex(vwovwovwo)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwovwovwo: 'regex(vwovwovwo)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -2414,22 +2414,22 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              vwo_not_equal_to: 'owv'
-                            }
-                          }
-                        ]
-                      }
+                              vwo_not_equal_to: 'owv',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_equal_to: 'vwo'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            vwo_equal_to: 'vwo',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -2437,25 +2437,25 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            vwo_starts_with: 'wildcard(owv vwo*)'
-                          }
-                        }
-                      ]
+                            vwo_starts_with: 'wildcard(owv vwo*)',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -2465,9 +2465,9 @@ export class SegmentEvaluatorData {
           notvwo: 'vwo',
           regex_vwo: 'this   is vwo',
           vwovwovwo: 'vwo',
-          vwo_contains: 'vwo'
-        }
-      }
+          vwo_contains: 'vwo',
+        },
+      },
     },
     complex_dsl_3: {
       false5: {
@@ -2477,10 +2477,10 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    contains_vwo: 'wildcard(*vwo*)'
-                  }
-                }
-              ]
+                    contains_vwo: 'wildcard(*vwo*)',
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -2498,65 +2498,65 @@ export class SegmentEvaluatorData {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_all_letters: 'regex(^[A-z]+$)'
-                                          }
-                                        }
-                                      ]
+                                            regex_for_all_letters: 'regex(^[A-z]+$)',
+                                          },
+                                        },
+                                      ],
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_capital_letters: 'regex(^[A-Z]+$)'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            regex_for_capital_letters: 'regex(^[A-Z]+$)',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_for_small_letters: 'regex(^[a-z]+$)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_for_small_letters: 'regex(^[a-z]+$)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    regex_for_no_zeros: 'regex(^[1-9]+$)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    regex_for_no_zeros: 'regex(^[1-9]+$)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
                             {
                               custom_variable: {
-                                regex_for_zeros: 'regex(^[0]+$)'
-                              }
-                            }
-                          ]
-                        }
-                      ]
+                                regex_for_zeros: 'regex(^[0]+$)',
+                              },
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -2564,10 +2564,10 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            this_is_regex: 'regex(this\\s+is\\s+text)'
-                          }
-                        }
-                      ]
+                            this_is_regex: 'regex(this\\s+is\\s+text)',
+                          },
+                        },
+                      ],
                     },
                     {
                       and: [
@@ -2577,21 +2577,21 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    starts_with: 'wildcard(starts_with_variable*)'
-                                  }
-                                }
-                              ]
+                                    starts_with: 'wildcard(starts_with_variable*)',
+                                  },
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    contains: 'wildcard(*contains_variable*)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    contains: 'wildcard(*contains_variable*)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
@@ -2600,30 +2600,30 @@ export class SegmentEvaluatorData {
                                 or: [
                                   {
                                     custom_variable: {
-                                      is_not_equal_to: 'is_not_equal_to_variable'
-                                    }
-                                  }
-                                ]
-                              }
+                                      is_not_equal_to: 'is_not_equal_to_variable',
+                                    },
+                                  },
+                                ],
+                              },
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    is_equal_to: 'equal_to_variable'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                    is_equal_to: 'equal_to_variable',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -2638,8 +2638,8 @@ export class SegmentEvaluatorData {
           regex_for_capital_letters: 'SADFLSDLF',
           is_not_equal_to: 'is_not_equal_to_variable',
           this_is_regex: 'this    is    regex',
-          starts_with: 'starts_with_variable'
-        }
+          starts_with: 'starts_with_variable',
+        },
       },
       false4: {
         dsl: {
@@ -2648,10 +2648,10 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    contains_vwo: 'wildcard(*vwo*)'
-                  }
-                }
-              ]
+                    contains_vwo: 'wildcard(*vwo*)',
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -2669,65 +2669,65 @@ export class SegmentEvaluatorData {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_all_letters: 'regex(^[A-z]+$)'
-                                          }
-                                        }
-                                      ]
+                                            regex_for_all_letters: 'regex(^[A-z]+$)',
+                                          },
+                                        },
+                                      ],
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_capital_letters: 'regex(^[A-Z]+$)'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            regex_for_capital_letters: 'regex(^[A-Z]+$)',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_for_small_letters: 'regex(^[a-z]+$)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_for_small_letters: 'regex(^[a-z]+$)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    regex_for_no_zeros: 'regex(^[1-9]+$)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    regex_for_no_zeros: 'regex(^[1-9]+$)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
                             {
                               custom_variable: {
-                                regex_for_zeros: 'regex(^[0]+$)'
-                              }
-                            }
-                          ]
-                        }
-                      ]
+                                regex_for_zeros: 'regex(^[0]+$)',
+                              },
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -2735,10 +2735,10 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            this_is_regex: 'regex(this\\s+is\\s+text)'
-                          }
-                        }
-                      ]
+                            this_is_regex: 'regex(this\\s+is\\s+text)',
+                          },
+                        },
+                      ],
                     },
                     {
                       and: [
@@ -2748,21 +2748,21 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    starts_with: 'wildcard(starts_with_variable*)'
-                                  }
-                                }
-                              ]
+                                    starts_with: 'wildcard(starts_with_variable*)',
+                                  },
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    contains: 'wildcard(*contains_variable*)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    contains: 'wildcard(*contains_variable*)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
@@ -2771,30 +2771,30 @@ export class SegmentEvaluatorData {
                                 or: [
                                   {
                                     custom_variable: {
-                                      is_not_equal_to: 'is_not_equal_to_variable'
-                                    }
-                                  }
-                                ]
-                              }
+                                      is_not_equal_to: 'is_not_equal_to_variable',
+                                    },
+                                  },
+                                ],
+                              },
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    is_equal_to: 'equal_to_variable'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                    is_equal_to: 'equal_to_variable',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -2809,8 +2809,8 @@ export class SegmentEvaluatorData {
           regex_for_capital_letters: 'SADFLSDLF',
           is_not_equal_to: 'is_not_equal_to_variable',
           this_is_regex: 'this    is    regex',
-          starts_with: 'starts_with_variable'
-        }
+          starts_with: 'starts_with_variable',
+        },
       },
       false6: {
         dsl: {
@@ -2819,10 +2819,10 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    contains_vwo: 'wildcard(*vwo*)'
-                  }
-                }
-              ]
+                    contains_vwo: 'wildcard(*vwo*)',
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -2840,65 +2840,65 @@ export class SegmentEvaluatorData {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_all_letters: 'regex(^[A-z]+$)'
-                                          }
-                                        }
-                                      ]
+                                            regex_for_all_letters: 'regex(^[A-z]+$)',
+                                          },
+                                        },
+                                      ],
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_capital_letters: 'regex(^[A-Z]+$)'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            regex_for_capital_letters: 'regex(^[A-Z]+$)',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_for_small_letters: 'regex(^[a-z]+$)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_for_small_letters: 'regex(^[a-z]+$)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    regex_for_no_zeros: 'regex(^[1-9]+$)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    regex_for_no_zeros: 'regex(^[1-9]+$)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
                             {
                               custom_variable: {
-                                regex_for_zeros: 'regex(^[0]+$)'
-                              }
-                            }
-                          ]
-                        }
-                      ]
+                                regex_for_zeros: 'regex(^[0]+$)',
+                              },
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -2906,10 +2906,10 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            this_is_regex: 'regex(this\\s+is\\s+text)'
-                          }
-                        }
-                      ]
+                            this_is_regex: 'regex(this\\s+is\\s+text)',
+                          },
+                        },
+                      ],
                     },
                     {
                       and: [
@@ -2919,21 +2919,21 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    starts_with: 'wildcard(starts_with_variable*)'
-                                  }
-                                }
-                              ]
+                                    starts_with: 'wildcard(starts_with_variable*)',
+                                  },
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    contains: 'wildcard(*contains_variable*)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    contains: 'wildcard(*contains_variable*)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
@@ -2942,30 +2942,30 @@ export class SegmentEvaluatorData {
                                 or: [
                                   {
                                     custom_variable: {
-                                      is_not_equal_to: 'is_not_equal_to_variable'
-                                    }
-                                  }
-                                ]
-                              }
+                                      is_not_equal_to: 'is_not_equal_to_variable',
+                                    },
+                                  },
+                                ],
+                              },
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    is_equal_to: 'equal_to_variable'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                    is_equal_to: 'equal_to_variable',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -2980,8 +2980,8 @@ export class SegmentEvaluatorData {
           regex_for_capital_letters: 'SADFLSDLF',
           is_not_equal_to: 'is_not_equal_to_variable',
           this_is_regex: 'this    is    regex',
-          starts_with: 'startss_with_variable'
-        }
+          starts_with: 'startss_with_variable',
+        },
       },
       false1: {
         dsl: {
@@ -2990,10 +2990,10 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    contains_vwo: 'wildcard(*vwo*)'
-                  }
-                }
-              ]
+                    contains_vwo: 'wildcard(*vwo*)',
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -3011,65 +3011,65 @@ export class SegmentEvaluatorData {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_all_letters: 'regex(^[A-z]+$)'
-                                          }
-                                        }
-                                      ]
+                                            regex_for_all_letters: 'regex(^[A-z]+$)',
+                                          },
+                                        },
+                                      ],
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_capital_letters: 'regex(^[A-Z]+$)'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            regex_for_capital_letters: 'regex(^[A-Z]+$)',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_for_small_letters: 'regex(^[a-z]+$)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_for_small_letters: 'regex(^[a-z]+$)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    regex_for_no_zeros: 'regex(^[1-9]+$)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    regex_for_no_zeros: 'regex(^[1-9]+$)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
                             {
                               custom_variable: {
-                                regex_for_zeros: 'regex(^[0]+$)'
-                              }
-                            }
-                          ]
-                        }
-                      ]
+                                regex_for_zeros: 'regex(^[0]+$)',
+                              },
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -3077,10 +3077,10 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            this_is_regex: 'regex(this\\s+is\\s+text)'
-                          }
-                        }
-                      ]
+                            this_is_regex: 'regex(this\\s+is\\s+text)',
+                          },
+                        },
+                      ],
                     },
                     {
                       and: [
@@ -3090,21 +3090,21 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    starts_with: 'wildcard(starts_with_variable*)'
-                                  }
-                                }
-                              ]
+                                    starts_with: 'wildcard(starts_with_variable*)',
+                                  },
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    contains: 'wildcard(*contains_variable*)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    contains: 'wildcard(*contains_variable*)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
@@ -3113,30 +3113,30 @@ export class SegmentEvaluatorData {
                                 or: [
                                   {
                                     custom_variable: {
-                                      is_not_equal_to: 'is_not_equal_to_variable'
-                                    }
-                                  }
-                                ]
-                              }
+                                      is_not_equal_to: 'is_not_equal_to_variable',
+                                    },
+                                  },
+                                ],
+                              },
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    is_equal_to: 'equal_to_variable'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                    is_equal_to: 'equal_to_variable',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -3151,8 +3151,8 @@ export class SegmentEvaluatorData {
           regex_for_capital_letters: 'SADFLSDLF',
           is_not_equal_to: 'is_not_equal_to_variable',
           this_is_regex: 'this    is    regex',
-          starts_with: 'starts_with_variable'
-        }
+          starts_with: 'starts_with_variable',
+        },
       },
       false3: {
         dsl: {
@@ -3161,10 +3161,10 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    contains_vwo: 'wildcard(*vwo*)'
-                  }
-                }
-              ]
+                    contains_vwo: 'wildcard(*vwo*)',
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -3182,65 +3182,65 @@ export class SegmentEvaluatorData {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_all_letters: 'regex(^[A-z]+$)'
-                                          }
-                                        }
-                                      ]
+                                            regex_for_all_letters: 'regex(^[A-z]+$)',
+                                          },
+                                        },
+                                      ],
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_capital_letters: 'regex(^[A-Z]+$)'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            regex_for_capital_letters: 'regex(^[A-Z]+$)',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_for_small_letters: 'regex(^[a-z]+$)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_for_small_letters: 'regex(^[a-z]+$)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    regex_for_no_zeros: 'regex(^[1-9]+$)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    regex_for_no_zeros: 'regex(^[1-9]+$)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
                             {
                               custom_variable: {
-                                regex_for_zeros: 'regex(^[0]+$)'
-                              }
-                            }
-                          ]
-                        }
-                      ]
+                                regex_for_zeros: 'regex(^[0]+$)',
+                              },
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -3248,10 +3248,10 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            this_is_regex: 'regex(this\\s+is\\s+text)'
-                          }
-                        }
-                      ]
+                            this_is_regex: 'regex(this\\s+is\\s+text)',
+                          },
+                        },
+                      ],
                     },
                     {
                       and: [
@@ -3261,21 +3261,21 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    starts_with: 'wildcard(starts_with_variable*)'
-                                  }
-                                }
-                              ]
+                                    starts_with: 'wildcard(starts_with_variable*)',
+                                  },
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    contains: 'wildcard(*contains_variable*)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    contains: 'wildcard(*contains_variable*)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
@@ -3284,30 +3284,30 @@ export class SegmentEvaluatorData {
                                 or: [
                                   {
                                     custom_variable: {
-                                      is_not_equal_to: 'is_not_equal_to_variable'
-                                    }
-                                  }
-                                ]
-                              }
+                                      is_not_equal_to: 'is_not_equal_to_variable',
+                                    },
+                                  },
+                                ],
+                              },
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    is_equal_to: 'equal_to_variable'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                    is_equal_to: 'equal_to_variable',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -3322,8 +3322,8 @@ export class SegmentEvaluatorData {
           regex_for_capital_letters: 'SADFLSDLF',
           is_not_equal_to: 'is_not_equal_to_variable',
           this_is_regex: 'this    is    regex',
-          starts_with: 'starts_with_variable'
-        }
+          starts_with: 'starts_with_variable',
+        },
       },
       false2: {
         dsl: {
@@ -3332,10 +3332,10 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    contains_vwo: 'wildcard(*vwo*)'
-                  }
-                }
-              ]
+                    contains_vwo: 'wildcard(*vwo*)',
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -3353,65 +3353,65 @@ export class SegmentEvaluatorData {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_all_letters: 'regex(^[A-z]+$)'
-                                          }
-                                        }
-                                      ]
+                                            regex_for_all_letters: 'regex(^[A-z]+$)',
+                                          },
+                                        },
+                                      ],
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_capital_letters: 'regex(^[A-Z]+$)'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            regex_for_capital_letters: 'regex(^[A-Z]+$)',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_for_small_letters: 'regex(^[a-z]+$)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_for_small_letters: 'regex(^[a-z]+$)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    regex_for_no_zeros: 'regex(^[1-9]+$)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    regex_for_no_zeros: 'regex(^[1-9]+$)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
                             {
                               custom_variable: {
-                                regex_for_zeros: 'regex(^[0]+$)'
-                              }
-                            }
-                          ]
-                        }
-                      ]
+                                regex_for_zeros: 'regex(^[0]+$)',
+                              },
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -3419,10 +3419,10 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            this_is_regex: 'regex(this\\s+is\\s+text)'
-                          }
-                        }
-                      ]
+                            this_is_regex: 'regex(this\\s+is\\s+text)',
+                          },
+                        },
+                      ],
                     },
                     {
                       and: [
@@ -3432,21 +3432,21 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    starts_with: 'wildcard(starts_with_variable*)'
-                                  }
-                                }
-                              ]
+                                    starts_with: 'wildcard(starts_with_variable*)',
+                                  },
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    contains: 'wildcard(*contains_variable*)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    contains: 'wildcard(*contains_variable*)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
@@ -3455,30 +3455,30 @@ export class SegmentEvaluatorData {
                                 or: [
                                   {
                                     custom_variable: {
-                                      is_not_equal_to: 'is_not_equal_to_variable'
-                                    }
-                                  }
-                                ]
-                              }
+                                      is_not_equal_to: 'is_not_equal_to_variable',
+                                    },
+                                  },
+                                ],
+                              },
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    is_equal_to: 'equal_to_variable'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                    is_equal_to: 'equal_to_variable',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -3493,8 +3493,8 @@ export class SegmentEvaluatorData {
           regex_for_capital_letters: 'SADFLSDLF',
           is_not_equal_to: 'is_not_equal_to_variable',
           this_is_regex: 'thisis    regex',
-          starts_with: '_variable'
-        }
+          starts_with: '_variable',
+        },
       },
       true4: {
         dsl: {
@@ -3503,10 +3503,10 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    contains_vwo: 'wildcard(*vwo*)'
-                  }
-                }
-              ]
+                    contains_vwo: 'wildcard(*vwo*)',
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -3524,65 +3524,65 @@ export class SegmentEvaluatorData {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_all_letters: 'regex(^[A-z]+$)'
-                                          }
-                                        }
-                                      ]
+                                            regex_for_all_letters: 'regex(^[A-z]+$)',
+                                          },
+                                        },
+                                      ],
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_capital_letters: 'regex(^[A-Z]+$)'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            regex_for_capital_letters: 'regex(^[A-Z]+$)',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_for_small_letters: 'regex(^[a-z]+$)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_for_small_letters: 'regex(^[a-z]+$)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    regex_for_no_zeros: 'regex(^[1-9]+$)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    regex_for_no_zeros: 'regex(^[1-9]+$)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
                             {
                               custom_variable: {
-                                regex_for_zeros: 'regex(^[0]+$)'
-                              }
-                            }
-                          ]
-                        }
-                      ]
+                                regex_for_zeros: 'regex(^[0]+$)',
+                              },
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -3590,10 +3590,10 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            this_is_regex: 'regex(this\\s+is\\s+text)'
-                          }
-                        }
-                      ]
+                            this_is_regex: 'regex(this\\s+is\\s+text)',
+                          },
+                        },
+                      ],
                     },
                     {
                       and: [
@@ -3603,21 +3603,21 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    starts_with: 'wildcard(starts_with_variable*)'
-                                  }
-                                }
-                              ]
+                                    starts_with: 'wildcard(starts_with_variable*)',
+                                  },
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    contains: 'wildcard(*contains_variable*)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    contains: 'wildcard(*contains_variable*)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
@@ -3626,30 +3626,30 @@ export class SegmentEvaluatorData {
                                 or: [
                                   {
                                     custom_variable: {
-                                      is_not_equal_to: 'is_not_equal_to_variable'
-                                    }
-                                  }
-                                ]
-                              }
+                                      is_not_equal_to: 'is_not_equal_to_variable',
+                                    },
+                                  },
+                                ],
+                              },
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    is_equal_to: 'equal_to_variable'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                    is_equal_to: 'equal_to_variable',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -3664,8 +3664,8 @@ export class SegmentEvaluatorData {
           regex_for_capital_letters: 'SADFLSDLF',
           is_not_equal_to: 'is_not_equal_to_variable',
           this_is_regex: 'this    is    regex',
-          starts_with: 'starts_with_variable'
-        }
+          starts_with: 'starts_with_variable',
+        },
       },
       true1: {
         dsl: {
@@ -3674,10 +3674,10 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    contains_vwo: 'wildcard(*vwo*)'
-                  }
-                }
-              ]
+                    contains_vwo: 'wildcard(*vwo*)',
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -3695,65 +3695,65 @@ export class SegmentEvaluatorData {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_all_letters: 'regex(^[A-z]+$)'
-                                          }
-                                        }
-                                      ]
+                                            regex_for_all_letters: 'regex(^[A-z]+$)',
+                                          },
+                                        },
+                                      ],
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_capital_letters: 'regex(^[A-Z]+$)'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            regex_for_capital_letters: 'regex(^[A-Z]+$)',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_for_small_letters: 'regex(^[a-z]+$)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_for_small_letters: 'regex(^[a-z]+$)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    regex_for_no_zeros: 'regex(^[1-9]+$)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    regex_for_no_zeros: 'regex(^[1-9]+$)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
                             {
                               custom_variable: {
-                                regex_for_zeros: 'regex(^[0]+$)'
-                              }
-                            }
-                          ]
-                        }
-                      ]
+                                regex_for_zeros: 'regex(^[0]+$)',
+                              },
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -3761,10 +3761,10 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            this_is_regex: 'regex(this\\s+is\\s+text)'
-                          }
-                        }
-                      ]
+                            this_is_regex: 'regex(this\\s+is\\s+text)',
+                          },
+                        },
+                      ],
                     },
                     {
                       and: [
@@ -3774,21 +3774,21 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    starts_with: 'wildcard(starts_with_variable*)'
-                                  }
-                                }
-                              ]
+                                    starts_with: 'wildcard(starts_with_variable*)',
+                                  },
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    contains: 'wildcard(*contains_variable*)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    contains: 'wildcard(*contains_variable*)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
@@ -3797,30 +3797,30 @@ export class SegmentEvaluatorData {
                                 or: [
                                   {
                                     custom_variable: {
-                                      is_not_equal_to: 'is_not_equal_to_variable'
-                                    }
-                                  }
-                                ]
-                              }
+                                      is_not_equal_to: 'is_not_equal_to_variable',
+                                    },
+                                  },
+                                ],
+                              },
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    is_equal_to: 'equal_to_variable'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                    is_equal_to: 'equal_to_variable',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -3835,8 +3835,8 @@ export class SegmentEvaluatorData {
           regex_for_capital_letters: 'SADFLSDLF',
           is_not_equal_to: 'is_not_equal_to_variable',
           this_is_regex: 'this    is    regex',
-          starts_with: 'starts_with_variable'
-        }
+          starts_with: 'starts_with_variable',
+        },
       },
       true3: {
         dsl: {
@@ -3845,10 +3845,10 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    contains_vwo: 'wildcard(*vwo*)'
-                  }
-                }
-              ]
+                    contains_vwo: 'wildcard(*vwo*)',
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -3866,65 +3866,65 @@ export class SegmentEvaluatorData {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_all_letters: 'regex(^[A-z]+$)'
-                                          }
-                                        }
-                                      ]
+                                            regex_for_all_letters: 'regex(^[A-z]+$)',
+                                          },
+                                        },
+                                      ],
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_capital_letters: 'regex(^[A-Z]+$)'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            regex_for_capital_letters: 'regex(^[A-Z]+$)',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_for_small_letters: 'regex(^[a-z]+$)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_for_small_letters: 'regex(^[a-z]+$)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    regex_for_no_zeros: 'regex(^[1-9]+$)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    regex_for_no_zeros: 'regex(^[1-9]+$)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
                             {
                               custom_variable: {
-                                regex_for_zeros: 'regex(^[0]+$)'
-                              }
-                            }
-                          ]
-                        }
-                      ]
+                                regex_for_zeros: 'regex(^[0]+$)',
+                              },
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -3932,10 +3932,10 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            this_is_regex: 'regex(this\\s+is\\s+text)'
-                          }
-                        }
-                      ]
+                            this_is_regex: 'regex(this\\s+is\\s+text)',
+                          },
+                        },
+                      ],
                     },
                     {
                       and: [
@@ -3945,21 +3945,21 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    starts_with: 'wildcard(starts_with_variable*)'
-                                  }
-                                }
-                              ]
+                                    starts_with: 'wildcard(starts_with_variable*)',
+                                  },
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    contains: 'wildcard(*contains_variable*)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    contains: 'wildcard(*contains_variable*)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
@@ -3968,30 +3968,30 @@ export class SegmentEvaluatorData {
                                 or: [
                                   {
                                     custom_variable: {
-                                      is_not_equal_to: 'is_not_equal_to_variable'
-                                    }
-                                  }
-                                ]
-                              }
+                                      is_not_equal_to: 'is_not_equal_to_variable',
+                                    },
+                                  },
+                                ],
+                              },
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    is_equal_to: 'equal_to_variable'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                    is_equal_to: 'equal_to_variable',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -4006,8 +4006,8 @@ export class SegmentEvaluatorData {
           regex_for_capital_letters: 'SADFLSDLF',
           is_not_equal_to: 'is_not_equal_to_variable',
           this_is_regex: 'this    is    regex',
-          starts_with: 'starts_with_variable'
-        }
+          starts_with: 'starts_with_variable',
+        },
       },
       true2: {
         dsl: {
@@ -4016,10 +4016,10 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    contains_vwo: 'wildcard(*vwo*)'
-                  }
-                }
-              ]
+                    contains_vwo: 'wildcard(*vwo*)',
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -4037,65 +4037,65 @@ export class SegmentEvaluatorData {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_all_letters: 'regex(^[A-z]+$)'
-                                          }
-                                        }
-                                      ]
+                                            regex_for_all_letters: 'regex(^[A-z]+$)',
+                                          },
+                                        },
+                                      ],
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            regex_for_capital_letters: 'regex(^[A-Z]+$)'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            regex_for_capital_letters: 'regex(^[A-Z]+$)',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_for_small_letters: 'regex(^[a-z]+$)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_for_small_letters: 'regex(^[a-z]+$)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    regex_for_no_zeros: 'regex(^[1-9]+$)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    regex_for_no_zeros: 'regex(^[1-9]+$)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
                             {
                               custom_variable: {
-                                regex_for_zeros: 'regex(^[0]+$)'
-                              }
-                            }
-                          ]
-                        }
-                      ]
+                                regex_for_zeros: 'regex(^[0]+$)',
+                              },
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            regex_real_number: 'regex(^\\d+(\\.\\d+)?)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
@@ -4103,10 +4103,10 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            this_is_regex: 'regex(this\\s+is\\s+text)'
-                          }
-                        }
-                      ]
+                            this_is_regex: 'regex(this\\s+is\\s+text)',
+                          },
+                        },
+                      ],
                     },
                     {
                       and: [
@@ -4116,21 +4116,21 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    starts_with: 'wildcard(starts_with_variable*)'
-                                  }
-                                }
-                              ]
+                                    starts_with: 'wildcard(starts_with_variable*)',
+                                  },
+                                },
+                              ],
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    contains: 'wildcard(*contains_variable*)'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
+                                    contains: 'wildcard(*contains_variable*)',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                         {
                           or: [
@@ -4139,30 +4139,30 @@ export class SegmentEvaluatorData {
                                 or: [
                                   {
                                     custom_variable: {
-                                      is_not_equal_to: 'is_not_equal_to_variable'
-                                    }
-                                  }
-                                ]
-                              }
+                                      is_not_equal_to: 'is_not_equal_to_variable',
+                                    },
+                                  },
+                                ],
+                              },
                             },
                             {
                               or: [
                                 {
                                   custom_variable: {
-                                    is_equal_to: 'equal_to_variable'
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                    is_equal_to: 'equal_to_variable',
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -4177,9 +4177,9 @@ export class SegmentEvaluatorData {
           regex_for_capital_letters: 'SADFLSDLF',
           is_not_equal_to: 'is_not_equal_to_variable',
           this_is_regex: 'this    is    regex',
-          starts_with: 'starts_with_variable'
-        }
-      }
+          starts_with: 'starts_with_variable',
+        },
+      },
     },
     complex_dsl_4: {
       false4: {
@@ -4194,33 +4194,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              thanos: 'snap'
-                            }
-                          }
-                        ]
-                      }
+                              thanos: 'snap',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            batman: 'wildcard(*i am batman*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            batman: 'wildcard(*i am batman*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        joker: 'regex((joker)+)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        joker: 'regex((joker)+)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -4230,21 +4230,21 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            lol: 'lolololololol'
-                          }
-                        }
-                      ]
+                            lol: 'lolololololol',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            blablabla: 'wildcard(*bla*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            blablabla: 'wildcard(*bla*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   and: [
@@ -4255,11 +4255,11 @@ export class SegmentEvaluatorData {
                             or: [
                               {
                                 custom_variable: {
-                                  notvwo: 'notvwo'
-                                }
-                              }
-                            ]
-                          }
+                                  notvwo: 'notvwo',
+                                },
+                              },
+                            ],
+                          },
                         },
                         {
                           or: [
@@ -4269,21 +4269,21 @@ export class SegmentEvaluatorData {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwovwovwo: 'regex(vwovwovwo)'
-                                      }
-                                    }
-                                  ]
+                                        vwovwovwo: 'regex(vwovwovwo)',
+                                      },
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
@@ -4294,52 +4294,52 @@ export class SegmentEvaluatorData {
                                         or: [
                                           {
                                             custom_variable: {
-                                              vwo_not_equal_to: 'owv'
-                                            }
-                                          }
-                                        ]
-                                      }
+                                              vwo_not_equal_to: 'owv',
+                                            },
+                                          },
+                                        ],
+                                      },
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            vwo_equal_to: 'vwo'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            vwo_equal_to: 'vwo',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwo_starts_with: 'wildcard(owv vwo*)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
+                                        vwo_starts_with: 'wildcard(owv vwo*)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -4354,8 +4354,8 @@ export class SegmentEvaluatorData {
           joker: 'joker joker joker',
           batman: 'hello i am batman world',
           blablabla: 'lba',
-          vwo_contains: 'vwo vwo vwo vwo vwo'
-        }
+          vwo_contains: 'vwo vwo vwo vwo vwo',
+        },
       },
       false1: {
         dsl: {
@@ -4369,33 +4369,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              thanos: 'snap'
-                            }
-                          }
-                        ]
-                      }
+                              thanos: 'snap',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            batman: 'wildcard(*i am batman*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            batman: 'wildcard(*i am batman*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        joker: 'regex((joker)+)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        joker: 'regex((joker)+)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -4405,21 +4405,21 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            lol: 'lolololololol'
-                          }
-                        }
-                      ]
+                            lol: 'lolololololol',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            blablabla: 'wildcard(*bla*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            blablabla: 'wildcard(*bla*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   and: [
@@ -4430,11 +4430,11 @@ export class SegmentEvaluatorData {
                             or: [
                               {
                                 custom_variable: {
-                                  notvwo: 'notvwo'
-                                }
-                              }
-                            ]
-                          }
+                                  notvwo: 'notvwo',
+                                },
+                              },
+                            ],
+                          },
                         },
                         {
                           or: [
@@ -4444,21 +4444,21 @@ export class SegmentEvaluatorData {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwovwovwo: 'regex(vwovwovwo)'
-                                      }
-                                    }
-                                  ]
+                                        vwovwovwo: 'regex(vwovwovwo)',
+                                      },
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
@@ -4469,52 +4469,52 @@ export class SegmentEvaluatorData {
                                         or: [
                                           {
                                             custom_variable: {
-                                              vwo_not_equal_to: 'owv'
-                                            }
-                                          }
-                                        ]
-                                      }
+                                              vwo_not_equal_to: 'owv',
+                                            },
+                                          },
+                                        ],
+                                      },
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            vwo_equal_to: 'vwo'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            vwo_equal_to: 'vwo',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwo_starts_with: 'wildcard(owv vwo*)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
+                                        vwo_starts_with: 'wildcard(owv vwo*)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -4529,8 +4529,8 @@ export class SegmentEvaluatorData {
           joker: 'joker joker joker',
           batman: 'hello i am batman world',
           blablabla: 'bla bla bla',
-          vwo_contains: 'vwo vwo'
-        }
+          vwo_contains: 'vwo vwo',
+        },
       },
       false3: {
         dsl: {
@@ -4544,33 +4544,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              thanos: 'snap'
-                            }
-                          }
-                        ]
-                      }
+                              thanos: 'snap',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            batman: 'wildcard(*i am batman*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            batman: 'wildcard(*i am batman*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        joker: 'regex((joker)+)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        joker: 'regex((joker)+)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -4580,21 +4580,21 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            lol: 'lolololololol'
-                          }
-                        }
-                      ]
+                            lol: 'lolololololol',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            blablabla: 'wildcard(*bla*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            blablabla: 'wildcard(*bla*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   and: [
@@ -4605,11 +4605,11 @@ export class SegmentEvaluatorData {
                             or: [
                               {
                                 custom_variable: {
-                                  notvwo: 'notvwo'
-                                }
-                              }
-                            ]
-                          }
+                                  notvwo: 'notvwo',
+                                },
+                              },
+                            ],
+                          },
                         },
                         {
                           or: [
@@ -4619,21 +4619,21 @@ export class SegmentEvaluatorData {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwovwovwo: 'regex(vwovwovwo)'
-                                      }
-                                    }
-                                  ]
+                                        vwovwovwo: 'regex(vwovwovwo)',
+                                      },
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
@@ -4644,52 +4644,52 @@ export class SegmentEvaluatorData {
                                         or: [
                                           {
                                             custom_variable: {
-                                              vwo_not_equal_to: 'owv'
-                                            }
-                                          }
-                                        ]
-                                      }
+                                              vwo_not_equal_to: 'owv',
+                                            },
+                                          },
+                                        ],
+                                      },
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            vwo_equal_to: 'vwo'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            vwo_equal_to: 'vwo',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwo_starts_with: 'wildcard(owv vwo*)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
+                                        vwo_starts_with: 'wildcard(owv vwo*)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
@@ -4704,8 +4704,8 @@ export class SegmentEvaluatorData {
           joker: 'joker joker joker',
           batman: 'hello i am batman world',
           blablabla: 'bla bla bla',
-          vwo_contains: 'vwo vwo vwo vwo'
-        }
+          vwo_contains: 'vwo vwo vwo vwo',
+        },
       },
       true1: {
         dsl: {
@@ -4719,33 +4719,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              thanos: 'snap'
-                            }
-                          }
-                        ]
-                      }
+                              thanos: 'snap',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            batman: 'wildcard(*i am batman*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            batman: 'wildcard(*i am batman*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        joker: 'regex((joker)+)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        joker: 'regex((joker)+)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -4755,21 +4755,21 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            lol: 'lolololololol'
-                          }
-                        }
-                      ]
+                            lol: 'lolololololol',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            blablabla: 'wildcard(*bla*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            blablabla: 'wildcard(*bla*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   and: [
@@ -4780,11 +4780,11 @@ export class SegmentEvaluatorData {
                             or: [
                               {
                                 custom_variable: {
-                                  notvwo: 'notvwo'
-                                }
-                              }
-                            ]
-                          }
+                                  notvwo: 'notvwo',
+                                },
+                              },
+                            ],
+                          },
                         },
                         {
                           or: [
@@ -4794,21 +4794,21 @@ export class SegmentEvaluatorData {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwovwovwo: 'regex(vwovwovwo)'
-                                      }
-                                    }
-                                  ]
+                                        vwovwovwo: 'regex(vwovwovwo)',
+                                      },
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
@@ -4819,52 +4819,52 @@ export class SegmentEvaluatorData {
                                         or: [
                                           {
                                             custom_variable: {
-                                              vwo_not_equal_to: 'owv'
-                                            }
-                                          }
-                                        ]
-                                      }
+                                              vwo_not_equal_to: 'owv',
+                                            },
+                                          },
+                                        ],
+                                      },
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            vwo_equal_to: 'vwo'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            vwo_equal_to: 'vwo',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwo_starts_with: 'wildcard(owv vwo*)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
+                                        vwo_starts_with: 'wildcard(owv vwo*)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -4879,8 +4879,8 @@ export class SegmentEvaluatorData {
           joker: 'joker joker joker',
           batman: 'hello i am batman world',
           blablabla: 'bla bla bla',
-          vwo_contains: 'vwo vwo vwo vwo vwo'
-        }
+          vwo_contains: 'vwo vwo vwo vwo vwo',
+        },
       },
       true3: {
         dsl: {
@@ -4894,33 +4894,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              thanos: 'snap'
-                            }
-                          }
-                        ]
-                      }
+                              thanos: 'snap',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            batman: 'wildcard(*i am batman*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            batman: 'wildcard(*i am batman*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        joker: 'regex((joker)+)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        joker: 'regex((joker)+)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -4930,21 +4930,21 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            lol: 'lolololololol'
-                          }
-                        }
-                      ]
+                            lol: 'lolololololol',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            blablabla: 'wildcard(*bla*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            blablabla: 'wildcard(*bla*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   and: [
@@ -4955,11 +4955,11 @@ export class SegmentEvaluatorData {
                             or: [
                               {
                                 custom_variable: {
-                                  notvwo: 'notvwo'
-                                }
-                              }
-                            ]
-                          }
+                                  notvwo: 'notvwo',
+                                },
+                              },
+                            ],
+                          },
                         },
                         {
                           or: [
@@ -4969,21 +4969,21 @@ export class SegmentEvaluatorData {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwovwovwo: 'regex(vwovwovwo)'
-                                      }
-                                    }
-                                  ]
+                                        vwovwovwo: 'regex(vwovwovwo)',
+                                      },
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
@@ -4994,52 +4994,52 @@ export class SegmentEvaluatorData {
                                         or: [
                                           {
                                             custom_variable: {
-                                              vwo_not_equal_to: 'owv'
-                                            }
-                                          }
-                                        ]
-                                      }
+                                              vwo_not_equal_to: 'owv',
+                                            },
+                                          },
+                                        ],
+                                      },
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            vwo_equal_to: 'vwo'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            vwo_equal_to: 'vwo',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwo_starts_with: 'wildcard(owv vwo*)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
+                                        vwo_starts_with: 'wildcard(owv vwo*)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -5054,8 +5054,8 @@ export class SegmentEvaluatorData {
           joker: 'joker joker joker',
           batman: 'hello i am batman world',
           blablabla: 'bla bla bla',
-          vwo_contains: 'vwo vwo vwo vwo vwo'
-        }
+          vwo_contains: 'vwo vwo vwo vwo vwo',
+        },
       },
       true2: {
         dsl: {
@@ -5069,33 +5069,33 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              thanos: 'snap'
-                            }
-                          }
-                        ]
-                      }
+                              thanos: 'snap',
+                            },
+                          },
+                        ],
+                      },
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            batman: 'wildcard(*i am batman*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            batman: 'wildcard(*i am batman*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
                       custom_variable: {
-                        joker: 'regex((joker)+)'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        joker: 'regex((joker)+)',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               and: [
@@ -5105,21 +5105,21 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            lol: 'lolololololol'
-                          }
-                        }
-                      ]
+                            lol: 'lolololololol',
+                          },
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            blablabla: 'wildcard(*bla*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
+                            blablabla: 'wildcard(*bla*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   and: [
@@ -5130,11 +5130,11 @@ export class SegmentEvaluatorData {
                             or: [
                               {
                                 custom_variable: {
-                                  notvwo: 'notvwo'
-                                }
-                              }
-                            ]
-                          }
+                                  notvwo: 'notvwo',
+                                },
+                              },
+                            ],
+                          },
                         },
                         {
                           or: [
@@ -5144,21 +5144,21 @@ export class SegmentEvaluatorData {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwovwovwo: 'regex(vwovwovwo)'
-                                      }
-                                    }
-                                  ]
+                                        vwovwovwo: 'regex(vwovwovwo)',
+                                      },
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        regex_vwo: 'regex(this\\s+is\\s+vwo)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
+                                        regex_vwo: 'regex(this\\s+is\\s+vwo)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               or: [
@@ -5169,52 +5169,52 @@ export class SegmentEvaluatorData {
                                         or: [
                                           {
                                             custom_variable: {
-                                              vwo_not_equal_to: 'owv'
-                                            }
-                                          }
-                                        ]
-                                      }
+                                              vwo_not_equal_to: 'owv',
+                                            },
+                                          },
+                                        ],
+                                      },
                                     },
                                     {
                                       or: [
                                         {
                                           custom_variable: {
-                                            vwo_equal_to: 'vwo'
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                            vwo_equal_to: 'vwo',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
                                 },
                                 {
                                   or: [
                                     {
                                       custom_variable: {
-                                        vwo_starts_with: 'wildcard(owv vwo*)'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
+                                        vwo_starts_with: 'wildcard(owv vwo*)',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
                     },
                     {
                       or: [
                         {
                           custom_variable: {
-                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)'
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                            vwo_contains: 'wildcard(*vwo vwo vwo vwo vwo*)',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
@@ -5229,9 +5229,9 @@ export class SegmentEvaluatorData {
           joker: 'joker joker joker',
           batman: 'hello i am batman world',
           blablabla: 'bla bla bla',
-          vwo_contains: 'vwo vwo vwo vwo vwo'
-        }
-      }
+          vwo_contains: 'vwo vwo vwo vwo vwo',
+        },
+      },
     },
     contains_operand: {
       incorrect_key: {
@@ -5239,449 +5239,449 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          neq: 'something'
-        }
+          neq: 'something',
+        },
       },
       incorrect_key_case: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          EQ: 'something'
-        }
+          EQ: 'something',
+        },
       },
       single_char: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*zzsomethingzz*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*zzsomethingzz*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'i'
-        }
+          eq: 'i',
+        },
       },
       case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'Something'
-        }
+          eq: 'Something',
+        },
       },
       char_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*E*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*E*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       prefix_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'somethingdfgdwerewew'
-        }
+          eq: 'somethingdfgdwerewew',
+        },
       },
       boolean_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*true*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*true*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       part_of_text: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*zzsomethingzz*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*zzsomethingzz*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       null_value_provided: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: null
-        }
+          eq: null,
+        },
       },
       upper_case: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'A-N-Y-T-H-I-N-G---HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH----A-N-Y-T-H-I-N-G'
-        }
+          eq: 'A-N-Y-T-H-I-N-G---HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH----A-N-Y-T-H-I-N-G',
+        },
       },
       no_value_provided: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: ''
-        }
+          eq: '',
+        },
       },
       suffix_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'asdn3kn42knsdsomething'
-        }
+          eq: 'asdn3kn42knsdsomething',
+        },
       },
       boolean_data_type2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*false*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*false*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       float_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123.456*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123.456*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 765123.4567364
-        }
+          eq: 765123.4567364,
+        },
       },
       numeric_data_type_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 12
-        }
+          eq: 12,
+        },
       },
       contains_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'asdn3kn42knsdsomethingjsbdj'
-        }
+          eq: 'asdn3kn42knsdsomethingjsbdj',
+        },
       },
       char_data_type_case_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*e*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*e*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       special_characters: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'A-N-Y-T-H-I-N-G---f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!----A-N-Y-T-H-I-N-G'
-        }
+          eq: 'A-N-Y-T-H-I-N-G---f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!----A-N-Y-T-H-I-N-G',
+        },
       },
       stringified_float: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123.456*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123.456*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: '87654123.4567902'
-        }
+          eq: '87654123.4567902',
+        },
       },
       char_data_type_case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*E*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*E*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'e'
-        }
+          eq: 'e',
+        },
       },
       boolean_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*true*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*true*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       numeric_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 765123.7364
-        }
+          eq: 765123.7364,
+        },
       },
       spaces: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*nice to see you. will    you be   my        friend?*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*nice to see you. will    you be   my        friend?*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'Hello there!! nice to see you. will    you be   my        friend? Yes, Great!!'
-        }
+          eq: 'Hello there!! nice to see you. will    you be   my        friend? Yes, Great!!',
+        },
       },
       mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'qwertyu'
-        }
+          eq: 'qwertyu',
+        },
       },
       exact_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       numeric_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 365412363
-        }
+          eq: 365412363,
+        },
       },
       boolean_data_type_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*false*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*false*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       missingkey_value: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: false,
-        customVariables: {}
+        customVariables: {},
       },
       case_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'SOMETHING'
-        }
+          eq: 'SOMETHING',
+        },
       },
       contains_operand_falsy_with_special_character: {
         dsl: {
           or: [
             {
               custom_variable: {
-                a: 'wildcard(*some*thing*)'
-              }
-            }
-          ]
+                a: 'wildcard(*some*thing*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          a: 'hellosomethingworld'
-        }
-      }
+          a: 'hellosomethingworld',
+        },
+      },
     },
     ends_with_operand: {
       numeric_data_type_mismatch: {
@@ -5689,509 +5689,509 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 12
-        }
+          eq: 12,
+        },
       },
       float_data_type_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123.456)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123.456)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 123
-        }
+          eq: 123,
+        },
       },
       float_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123.456)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123.456)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 123.4567
-        }
+          eq: 123.4567,
+        },
       },
       incorrect_key: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          neq: 'something'
-        }
+          neq: 'something',
+        },
       },
       contains_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'asdn3kn42knsdsomethingmm'
-        }
+          eq: 'asdn3kn42knsdsomethingmm',
+        },
       },
       incorrect_key_case: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          EQ: 'something'
-        }
+          EQ: 'something',
+        },
       },
       single_char: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*zzsomethingzz)'
-              }
-            }
-          ]
+                eq: 'wildcard(*zzsomethingzz)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'i'
-        }
+          eq: 'i',
+        },
       },
       char_data_type_case_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*e)'
-              }
-            }
-          ]
+                eq: 'wildcard(*e)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'Something'
-        }
+          eq: 'Something',
+        },
       },
       special_characters: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!)'
-              }
-            }
-          ]
+                eq: 'wildcard(*f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'A-N-Y-T-H-I-N-G---f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!'
-        }
+          eq: 'A-N-Y-T-H-I-N-G---f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!',
+        },
       },
       char_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*E)'
-              }
-            }
-          ]
+                eq: 'wildcard(*E)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       stringified_float: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123.456)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123.456)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: '87654123.456000000'
-        }
+          eq: '87654123.456000000',
+        },
       },
       char_data_type_case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*E)'
-              }
-            }
-          ]
+                eq: 'wildcard(*E)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'e'
-        }
+          eq: 'e',
+        },
       },
       prefix_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'somethingdfgdwerewew'
-        }
+          eq: 'somethingdfgdwerewew',
+        },
       },
       boolean_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*true)'
-              }
-            }
-          ]
+                eq: 'wildcard(*true)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       boolean_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*true)'
-              }
-            }
-          ]
+                eq: 'wildcard(*true)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       numeric_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 765123.0
-        }
+          eq: 765123.0,
+        },
       },
       spaces: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*nice to see you. will    you be   my        friend?)'
-              }
-            }
-          ]
+                eq: 'wildcard(*nice to see you. will    you be   my        friend?)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'Hello there!! nice to see you. will    you be   my        friend?'
-        }
+          eq: 'Hello there!! nice to see you. will    you be   my        friend?',
+        },
       },
       mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'qwertyu'
-        }
+          eq: 'qwertyu',
+        },
       },
       numeric_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 3654123
-        }
+          eq: 3654123,
+        },
       },
       exact_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       part_of_text: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*zzsomethingzz)'
-              }
-            }
-          ]
+                eq: 'wildcard(*zzsomethingzz)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       boolean_data_type_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*false)'
-              }
-            }
-          ]
+                eq: 'wildcard(*false)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       null_value_provided: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: null
-        }
+          eq: null,
+        },
       },
       upper_case: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH)'
-              }
-            }
-          ]
+                eq: 'wildcard(*HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'A-N-Y-T-H-I-N-G---HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH'
-        }
+          eq: 'A-N-Y-T-H-I-N-G---HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH',
+        },
       },
       no_value_provided: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: ''
-        }
+          eq: '',
+        },
       },
       missingkey_value: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: false,
-        customVariables: {}
+        customVariables: {},
       },
       stringified_float3: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123.4560000)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123.4560000)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 98765123.456
-        }
+          eq: 98765123.456,
+        },
       },
       stringified_float2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123.0)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123.0)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 7657123
-        }
+          eq: 7657123,
+        },
       },
       case_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'SOMETHING'
-        }
+          eq: 'SOMETHING',
+        },
       },
       float_data_type_extra_decimal_zeros: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123.456)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123.456)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 765123.456
-        }
+          eq: 765123.456,
+        },
       },
       suffix_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*something)'
-              }
-            }
-          ]
+                eq: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'asdn3kn42knsdsomething'
-        }
+          eq: 'asdn3kn42knsdsomething',
+        },
       },
       boolean_data_type2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*false)'
-              }
-            }
-          ]
+                eq: 'wildcard(*false)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       float_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(*123.456)'
-              }
-            }
-          ]
+                eq: 'wildcard(*123.456)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 765123.456
-        }
-      }
+          eq: 765123.456,
+        },
+      },
     },
     equality_operand: {
       float_data_type_mismatch: {
@@ -6199,464 +6199,464 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                eq: '123.456'
-              }
-            }
-          ]
+                eq: '123.456',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 123
-        }
+          eq: 123,
+        },
       },
       float_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: '123.456'
-              }
-            }
-          ]
+                eq: '123.456',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 123.4567
-        }
+          eq: 123.4567,
+        },
       },
       incorrect_key: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'something'
-              }
-            }
-          ]
+                eq: 'something',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          neq: 'something'
-        }
+          neq: 'something',
+        },
       },
       incorrect_key_case: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'something'
-              }
-            }
-          ]
+                eq: 'something',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          EQ: 'something'
-        }
+          EQ: 'something',
+        },
       },
       single_char: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'zzsomethingzz'
-              }
-            }
-          ]
+                eq: 'zzsomethingzz',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'i'
-        }
+          eq: 'i',
+        },
       },
       case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'something'
-              }
-            }
-          ]
+                eq: 'something',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'Something'
-        }
+          eq: 'Something',
+        },
       },
       numeric_data_type_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: '123'
-              }
-            }
-          ]
+                eq: '123',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 12
-        }
+          eq: 12,
+        },
       },
       char_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'E'
-              }
-            }
-          ]
+                eq: 'E',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       boolean_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'true'
-              }
-            }
-          ]
+                eq: 'true',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       part_of_text: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'zzsomethingzz'
-              }
-            }
-          ]
+                eq: 'zzsomethingzz',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       exact_match_with_upper_case: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH'
-              }
-            }
-          ]
+                eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH'
-        }
+          eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH',
+        },
       },
       null_value_provided: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'something'
-              }
-            }
-          ]
+                eq: 'something',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: null
-        }
+          eq: null,
+        },
       },
       no_value_provided: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'something'
-              }
-            }
-          ]
+                eq: 'something',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: ''
-        }
+          eq: '',
+        },
       },
       boolean_data_type2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'false'
-              }
-            }
-          ]
+                eq: 'false',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       float_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: '123.456'
-              }
-            }
-          ]
+                eq: '123.456',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123.456
-        }
+          eq: 123.456,
+        },
       },
       exact_match_with_special_characters: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!'
-              }
-            }
-          ]
+                eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!'
-        }
+          eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!',
+        },
       },
       char_data_type_case_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'e'
-              }
-            }
-          ]
+                eq: 'e',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       exact_match_with_spaces: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'nice to see you. will    you be   my        friend?'
-              }
-            }
-          ]
+                eq: 'nice to see you. will    you be   my        friend?',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'nice to see you. will    you be   my        friend?'
-        }
+          eq: 'nice to see you. will    you be   my        friend?',
+        },
       },
       stringified_float: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: '123.456'
-              }
-            }
-          ]
+                eq: '123.456',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: '123.456000000'
-        }
+          eq: '123.456000000',
+        },
       },
       char_data_type_case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'E'
-              }
-            }
-          ]
+                eq: 'E',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'e'
-        }
+          eq: 'e',
+        },
       },
       boolean_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'true'
-              }
-            }
-          ]
+                eq: 'true',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       numeric_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: '123'
-              }
-            }
-          ]
+                eq: '123',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123.0
-        }
+          eq: 123.0,
+        },
       },
       mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'something'
-              }
-            }
-          ]
+                eq: 'something',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'notsomething'
-        }
+          eq: 'notsomething',
+        },
       },
       exact_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'something'
-              }
-            }
-          ]
+                eq: 'something',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       numeric_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: '123'
-              }
-            }
-          ]
+                eq: '123',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123
-        }
+          eq: 123,
+        },
       },
       boolean_data_type_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'false'
-              }
-            }
-          ]
+                eq: 'false',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       missingkey_value: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'something'
-              }
-            }
-          ]
+                eq: 'something',
+              },
+            },
+          ],
         },
         expectation: false,
-        customVariables: {}
+        customVariables: {},
       },
       stringified_float3: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: '123.4560000'
-              }
-            }
-          ]
+                eq: '123.4560000',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123.456
-        }
+          eq: 123.456,
+        },
       },
       stringified_float2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: '123.0'
-              }
-            }
-          ]
+                eq: '123.0',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123
-        }
+          eq: 123,
+        },
       },
       case_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'something'
-              }
-            }
-          ]
+                eq: 'something',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'SOMETHING'
-        }
+          eq: 'SOMETHING',
+        },
       },
       float_data_type_extra_decimal_zeros: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: '123.456'
-              }
-            }
-          ]
+                eq: '123.456',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123.456
-        }
-      }
+          eq: 123.456,
+        },
+      },
     },
     new_cases_for_decimal_mismatch: {
       endswith_decimal: {
@@ -6664,46 +6664,46 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                val: 'wildcard(*123)'
-              }
-            }
-          ]
+                val: 'wildcard(*123)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          val: 765123.0
-        }
+          val: 765123.0,
+        },
       },
       contains_decimal2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                val: 'wildcard(*123.0*)'
-              }
-            }
-          ]
+                val: 'wildcard(*123.0*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          val: 876123
-        }
+          val: 876123,
+        },
       },
       contains_decimal: {
         dsl: {
           or: [
             {
               custom_variable: {
-                val: 'wildcard(*123*)'
-              }
-            }
-          ]
+                val: 'wildcard(*123*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          val: 654123.2323
-        }
-      }
+          val: 654123.2323,
+        },
+      },
     },
     not_operator: {
       exact_match_with_special_characters: {
@@ -6712,16 +6712,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!'
-                }
-              }
-            ]
-          }
+                  eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!'
-        }
+          eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!',
+        },
       },
       float_data_type_mismatch: {
         dsl: {
@@ -6729,16 +6729,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: '123.456'
-                }
-              }
-            ]
-          }
+                  eq: '123.456',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: 123
-        }
+          eq: 123,
+        },
       },
       numeric_data_type_mismatch: {
         dsl: {
@@ -6746,16 +6746,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: '123'
-                }
-              }
-            ]
-          }
+                  eq: '123',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: 12
-        }
+          eq: 12,
+        },
       },
       float_data_type_mismatch2: {
         dsl: {
@@ -6763,16 +6763,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: '123.456'
-                }
-              }
-            ]
-          }
+                  eq: '123.456',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: 123.4567
-        }
+          eq: 123.4567,
+        },
       },
       incorrect_key: {
         dsl: {
@@ -6780,16 +6780,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'something'
-                }
-              }
-            ]
-          }
+                  eq: 'something',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          neq: 'something'
-        }
+          neq: 'something',
+        },
       },
       incorrect_key_case: {
         dsl: {
@@ -6797,16 +6797,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'something'
-                }
-              }
-            ]
-          }
+                  eq: 'something',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          EQ: 'something'
-        }
+          EQ: 'something',
+        },
       },
       single_char: {
         dsl: {
@@ -6814,16 +6814,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'zzsomethingzz'
-                }
-              }
-            ]
-          }
+                  eq: 'zzsomethingzz',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: 'i'
-        }
+          eq: 'i',
+        },
       },
       char_data_type_case_mismatch2: {
         dsl: {
@@ -6831,16 +6831,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'e'
-                }
-              }
-            ]
-          }
+                  eq: 'e',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       case_mismatch: {
         dsl: {
@@ -6848,16 +6848,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'something'
-                }
-              }
-            ]
-          }
+                  eq: 'something',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: 'Something'
-        }
+          eq: 'Something',
+        },
       },
       exact_match_with_spaces: {
         dsl: {
@@ -6865,16 +6865,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'nice to see you. will    you be   my        friend?'
-                }
-              }
-            ]
-          }
+                  eq: 'nice to see you. will    you be   my        friend?',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: 'nice to see you. will    you be   my        friend?'
-        }
+          eq: 'nice to see you. will    you be   my        friend?',
+        },
       },
       multiple_not_operator5: {
         dsl: {
@@ -6891,25 +6891,25 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    neq: 'not_eq_value'
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
+                                    neq: 'not_eq_value',
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          neq: 'eq_value'
-        }
+          neq: 'eq_value',
+        },
       },
       multiple_not_operator4: {
         dsl: {
@@ -6926,25 +6926,25 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    neq: 'eq_value'
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
+                                    neq: 'eq_value',
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          neq: 'eq_value'
-        }
+          neq: 'eq_value',
+        },
       },
       stringified_float: {
         dsl: {
@@ -6952,16 +6952,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: '123.456'
-                }
-              }
-            ]
-          }
+                  eq: '123.456',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: '123.456000000'
-        }
+          eq: '123.456000000',
+        },
       },
       multiple_not_operator6: {
         dsl: {
@@ -6981,28 +6981,28 @@ export class SegmentEvaluatorData {
                                     or: [
                                       {
                                         custom_variable: {
-                                          neq: 'eq_value'
-                                        }
-                                      }
-                                    ]
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
+                                          neq: 'eq_value',
+                                        },
+                                      },
+                                    ],
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          neq: 'eq_value'
-        }
+          neq: 'eq_value',
+        },
       },
       boolean_data_type_mismatch: {
         dsl: {
@@ -7010,16 +7010,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'false'
-                }
-              }
-            ]
-          }
+                  eq: 'false',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       multiple_not_operator3: {
         dsl: {
@@ -7032,21 +7032,21 @@ export class SegmentEvaluatorData {
                       and: [
                         {
                           custom_variable: {
-                            eq: 'eq_value'
-                          }
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ]
+                            eq: 'eq_value',
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       multiple_not_operator2: {
         dsl: {
@@ -7060,22 +7060,22 @@ export class SegmentEvaluatorData {
                         and: [
                           {
                             custom_variable: {
-                              eq: 'eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
+                              eq: 'eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       char_data_type: {
         dsl: {
@@ -7083,16 +7083,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'E'
-                }
-              }
-            ]
-          }
+                  eq: 'E',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       multiple_not_operator7: {
         dsl: {
@@ -7112,28 +7112,28 @@ export class SegmentEvaluatorData {
                                     or: [
                                       {
                                         custom_variable: {
-                                          neq: 'neq_value'
-                                        }
-                                      }
-                                    ]
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
+                                          neq: 'neq_value',
+                                        },
+                                      },
+                                    ],
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          neq: 'eq_value'
-        }
+          neq: 'eq_value',
+        },
       },
       boolean_data_type_mismatch2: {
         dsl: {
@@ -7141,16 +7141,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'true'
-                }
-              }
-            ]
-          }
+                  eq: 'true',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       boolean_data_type: {
         dsl: {
@@ -7158,16 +7158,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'true'
-                }
-              }
-            ]
-          }
+                  eq: 'true',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       numeric_data_type_mismatch2: {
         dsl: {
@@ -7175,16 +7175,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: '123'
-                }
-              }
-            ]
-          }
+                  eq: '123',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: 123.0
-        }
+          eq: 123.0,
+        },
       },
       mismatch: {
         dsl: {
@@ -7192,16 +7192,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'something'
-                }
-              }
-            ]
-          }
+                  eq: 'something',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: 'notsomething'
-        }
+          eq: 'notsomething',
+        },
       },
       numeric_data_type: {
         dsl: {
@@ -7209,16 +7209,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: '123'
-                }
-              }
-            ]
-          }
+                  eq: '123',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: 123
-        }
+          eq: 123,
+        },
       },
       exact_match: {
         dsl: {
@@ -7226,16 +7226,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'something'
-                }
-              }
-            ]
-          }
+                  eq: 'something',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       part_of_text: {
         dsl: {
@@ -7243,16 +7243,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'zzsomethingzz'
-                }
-              }
-            ]
-          }
+                  eq: 'zzsomethingzz',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       multiple_not_operator: {
         dsl: {
@@ -7265,21 +7265,21 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            eq: 'eq_value'
-                          }
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ]
+                            eq: 'eq_value',
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       exact_match_with_upper_case: {
         dsl: {
@@ -7287,16 +7287,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH'
-                }
-              }
-            ]
-          }
+                  eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH'
-        }
+          eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH',
+        },
       },
       nested_not_operator: {
         dsl: {
@@ -7310,22 +7310,22 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              eq: 'eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
+                              eq: 'eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       null_value_provided: {
         dsl: {
@@ -7333,16 +7333,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'something'
-                }
-              }
-            ]
-          }
+                  eq: 'something',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: null
-        }
+          eq: null,
+        },
       },
       no_value_provided: {
         dsl: {
@@ -7350,16 +7350,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'something'
-                }
-              }
-            ]
-          }
+                  eq: 'something',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: ''
-        }
+          eq: '',
+        },
       },
       missingkey_value: {
         dsl: {
@@ -7367,14 +7367,14 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'something'
-                }
-              }
-            ]
-          }
+                  eq: 'something',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
-        customVariables: {}
+        customVariables: {},
       },
       stringified_float3: {
         dsl: {
@@ -7382,16 +7382,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: '123.4560000'
-                }
-              }
-            ]
-          }
+                  eq: '123.4560000',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: 123.456
-        }
+          eq: 123.456,
+        },
       },
       stringified_float2: {
         dsl: {
@@ -7399,16 +7399,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: '123.0'
-                }
-              }
-            ]
-          }
+                  eq: '123.0',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: 123
-        }
+          eq: 123,
+        },
       },
       case_mismatch2: {
         dsl: {
@@ -7416,16 +7416,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'something'
-                }
-              }
-            ]
-          }
+                  eq: 'something',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: 'SOMETHING'
-        }
+          eq: 'SOMETHING',
+        },
       },
       float_data_type_extra_decimal_zeros: {
         dsl: {
@@ -7433,16 +7433,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: '123.456'
-                }
-              }
-            ]
-          }
+                  eq: '123.456',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: 123.456
-        }
+          eq: 123.456,
+        },
       },
       char_data_type_case_mismatch: {
         dsl: {
@@ -7450,16 +7450,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'E'
-                }
-              }
-            ]
-          }
+                  eq: 'E',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          eq: 'e'
-        }
+          eq: 'e',
+        },
       },
       boolean_data_type2: {
         dsl: {
@@ -7467,16 +7467,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: 'false'
-                }
-              }
-            ]
-          }
+                  eq: 'false',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       float_data_type: {
         dsl: {
@@ -7484,17 +7484,17 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  eq: '123.456'
-                }
-              }
-            ]
-          }
+                  eq: '123.456',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          eq: 123.456
-        }
-      }
+          eq: 123.456,
+        },
+      },
     },
     or_operator: {
       multiple_or_operator_with_single_correct_value: {
@@ -7504,42 +7504,42 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
           eq: 'eq_value',
-          reg: 'wrong'
-        }
+          reg: 'wrong',
+        },
       },
       single_or_operator_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'eq_value'
-              }
-            }
-          ]
+                eq: 'eq_value',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          a: 'n_eq_value'
-        }
+          a: 'n_eq_value',
+        },
       },
       multiple_or_operator: {
         dsl: {
@@ -7554,23 +7554,23 @@ export class SegmentEvaluatorData {
                           or: [
                             {
                               custom_variable: {
-                                eq: 'eq_value'
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                eq: 'eq_value',
+                              },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       multiple_or_operator_with_all_incorrect_correct_values: {
         dsl: {
@@ -7579,42 +7579,42 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
           eq: 'wrong',
-          reg: 'wrong'
-        }
+          reg: 'wrong',
+        },
       },
       single_or_operator_case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'eq_value'
-              }
-            }
-          ]
+                eq: 'eq_value',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'Eq_Value'
-        }
+          eq: 'Eq_Value',
+        },
       },
       multiple_or_operator_with_all_correct_values: {
         dsl: {
@@ -7623,42 +7623,42 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
           eq: 'eq_value',
-          reg: 'myregeXxxxxx'
-        }
+          reg: 'myregeXxxxxx',
+        },
       },
       single_or_operator_matching: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'eq_value'
-              }
-            }
-          ]
+                eq: 'eq_value',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       multiple_or_operator_with_single_correct_value2: {
         dsl: {
@@ -7667,28 +7667,28 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
           eq: 'wrong',
-          reg: 'myregexxxxxx'
-        }
-      }
+          reg: 'myregexxxxxx',
+        },
+      },
     },
     regex: {
       regex_operand_mismatch2: {
@@ -7696,91 +7696,91 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                reg: 'regex(<(W[^>]*)(.*?)>)'
-              }
-            }
-          ]
+                reg: 'regex(<(W[^>]*)(.*?)>)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          reg: '<wingifySDK id=1></wingifySDK>'
-        }
+          reg: '<wingifySDK id=1></wingifySDK>',
+        },
       },
       regex_operand2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                reg: 'regex(<(W[^>]*)(.*?)>)'
-              }
-            }
-          ]
+                reg: 'regex(<(W[^>]*)(.*?)>)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          reg: '<WingifySDK id=1></WingifySDK>'
-        }
+          reg: '<WingifySDK id=1></WingifySDK>',
+        },
       },
       invalid_reqex: {
         dsl: {
           or: [
             {
               custom_variable: {
-                reg: 'regex(*)'
-              }
-            }
-          ]
+                reg: 'regex(*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          reg: '*'
-        }
+          reg: '*',
+        },
       },
       invalid_reqex2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                reg: 'regex(*)'
-              }
-            }
-          ]
+                reg: 'regex(*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          reg: 'asdf'
-        }
+          reg: 'asdf',
+        },
       },
       regex_operand_case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                reg: 'regex(myregex+)'
-              }
-            }
-          ]
+                reg: 'regex(myregex+)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          reg: 'myregeXxxxxx'
-        }
+          reg: 'myregeXxxxxx',
+        },
       },
       regex_operand: {
         dsl: {
           or: [
             {
               custom_variable: {
-                reg: 'regex(myregex+)'
-              }
-            }
-          ]
+                reg: 'regex(myregex+)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          reg: 'myregexxxxxx'
-        }
-      }
+          reg: 'myregexxxxxx',
+        },
+      },
     },
     simple_and_ors: {
       single_not_true: {
@@ -7789,16 +7789,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  neq: 'not_eq_value'
-                }
-              }
-            ]
-          }
+                  neq: 'not_eq_value',
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          neq: 'eq_valaue'
-        }
+          neq: 'eq_valaue',
+        },
       },
       chain_of_and_nullify_not_true: {
         dsl: {
@@ -7811,51 +7811,51 @@ export class SegmentEvaluatorData {
                       and: [
                         {
                           custom_variable: {
-                            eq: 'eq_value'
-                          }
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ]
+                            eq: 'eq_value',
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       dsl_lower_true: {
         dsl: {
           or: [
             {
               custom_variable: {
-                a: 'lower(something)'
-              }
-            }
-          ]
+                a: 'lower(something)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          a: 'SoMeThIng'
-        }
+          a: 'SoMeThIng',
+        },
       },
       dsl_regex_true: {
         dsl: {
           or: [
             {
               custom_variable: {
-                reg: 'regex(myregex+)'
-              }
-            }
-          ]
+                reg: 'regex(myregex+)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          reg: 'myregexxxxxx'
-        }
+          reg: 'myregexxxxxx',
+        },
       },
       chain_of_not_5_false: {
         dsl: {
@@ -7875,58 +7875,58 @@ export class SegmentEvaluatorData {
                                     or: [
                                       {
                                         custom_variable: {
-                                          neq: 'eq_value'
-                                        }
-                                      }
-                                    ]
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
+                                          neq: 'eq_value',
+                                        },
+                                      },
+                                    ],
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          neq: 'eq_value'
-        }
+          neq: 'eq_value',
+        },
       },
       dsl_lower_false: {
         dsl: {
           or: [
             {
               custom_variable: {
-                a: 'lower(something)'
-              }
-            }
-          ]
+                a: 'lower(something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          a: 'SoMeThIngS'
-        }
+          a: 'SoMeThIngS',
+        },
       },
       dsl_regex_false: {
         dsl: {
           or: [
             {
               custom_variable: {
-                reg: 'regex(myregex+)'
-              }
-            }
-          ]
+                reg: 'regex(myregex+)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          reg: 'myregeXxxxxx'
-        }
+          reg: 'myregeXxxxxx',
+        },
       },
       chain_of_not_4_true: {
         dsl: {
@@ -7943,25 +7943,25 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    neq: 'eq_value'
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
+                                    neq: 'eq_value',
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          neq: 'eq_value'
-        }
+          neq: 'eq_value',
+        },
       },
       dsl_eq_false: {
         dsl: {
@@ -7969,16 +7969,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  a: 'something'
-                }
-              }
-            ]
-          }
+                  a: 'something',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          a: 'something'
-        }
+          a: 'something',
+        },
       },
       single_not_false: {
         dsl: {
@@ -7986,16 +7986,16 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  neq: 'not_eq_value'
-                }
-              }
-            ]
-          }
+                  neq: 'not_eq_value',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          neq: 'not_eq_value'
-        }
+          neq: 'not_eq_value',
+        },
       },
       chain_of_or_nullify_not_true: {
         dsl: {
@@ -8008,36 +8008,36 @@ export class SegmentEvaluatorData {
                       or: [
                         {
                           custom_variable: {
-                            eq: 'eq_value'
-                          }
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ]
+                            eq: 'eq_value',
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       dsl_wildcard_true_front_back_middle_star: {
         dsl: {
           or: [
             {
               custom_variable: {
-                a: 'wildcard(*some*thing*)'
-              }
-            }
-          ]
+                a: 'wildcard(*some*thing*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          a: 'hellosome*thingworld'
-        }
+          a: 'hellosome*thingworld',
+        },
       },
       chain_of_or_middle_not_false: {
         dsl: {
@@ -8051,22 +8051,22 @@ export class SegmentEvaluatorData {
                         or: [
                           {
                             custom_variable: {
-                              eq: 'eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
+                              eq: 'eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       chain_of_not_4_false: {
         dsl: {
@@ -8083,55 +8083,55 @@ export class SegmentEvaluatorData {
                               or: [
                                 {
                                   custom_variable: {
-                                    neq: 'not_eq_value'
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
+                                    neq: 'not_eq_value',
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
-          neq: 'eq_valaue'
-        }
+          neq: 'eq_valaue',
+        },
       },
       dsl_wildcard_true_back: {
         dsl: {
           or: [
             {
               custom_variable: {
-                a: 'wildcard(something*)'
-              }
-            }
-          ]
+                a: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          a: 'somethingworld'
-        }
+          a: 'somethingworld',
+        },
       },
       single_or_true: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'eq_value'
-              }
-            }
-          ]
+                eq: 'eq_value',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       multiple_or_true: {
         dsl: {
@@ -8140,57 +8140,57 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
           eq: 'eq_value',
-          reg: 'myregeXxxxxx'
-        }
+          reg: 'myregeXxxxxx',
+        },
       },
       dsl_wildcard_true_front: {
         dsl: {
           or: [
             {
               custom_variable: {
-                a: 'wildcard(*something)'
-              }
-            }
-          ]
+                a: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          a: 'hellosomething'
-        }
+          a: 'hellosomething',
+        },
       },
       dsl_wildcard_false: {
         dsl: {
           or: [
             {
               custom_variable: {
-                a: 'wildcard(*something)'
-              }
-            }
-          ]
+                a: 'wildcard(*something)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          a: 'somethin'
-        }
+          a: 'somethin',
+        },
       },
       chain_of_and_true: {
         dsl: {
@@ -8205,23 +8205,23 @@ export class SegmentEvaluatorData {
                           and: [
                             {
                               custom_variable: {
-                                eq: 'eq_value'
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                eq: 'eq_value',
+                              },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       chain_of_and_middle_not_false: {
         dsl: {
@@ -8235,52 +8235,52 @@ export class SegmentEvaluatorData {
                         and: [
                           {
                             custom_variable: {
-                              eq: 'eq_value'
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
+                              eq: 'eq_value',
+                            },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       single_or_false: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'n_eq_value'
-              }
-            }
-          ]
+                eq: 'n_eq_value',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       dsl_eq_true: {
         dsl: {
           or: [
             {
               custom_variable: {
-                a: 'something'
-              }
-            }
-          ]
+                a: 'something',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          a: 'something'
-        }
+          a: 'something',
+        },
       },
       multiple_and_true: {
         dsl: {
@@ -8289,27 +8289,27 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
           eq: 'eq_value',
-          reg: 'myregexxxxxx'
-        }
+          reg: 'myregexxxxxx',
+        },
       },
       chain_of_not_5_true: {
         dsl: {
@@ -8329,28 +8329,28 @@ export class SegmentEvaluatorData {
                                     or: [
                                       {
                                         custom_variable: {
-                                          neq: 'neq_value'
-                                        }
-                                      }
-                                    ]
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
+                                          neq: 'neq_value',
+                                        },
+                                      },
+                                    ],
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
         },
         expectation: true,
         customVariables: {
-          neq: 'eq_value'
-        }
+          neq: 'eq_value',
+        },
       },
       multiple_or_false: {
         dsl: {
@@ -8359,42 +8359,42 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
           eq: 'eq_values',
-          reg: 'myregeXxxxxx'
-        }
+          reg: 'myregeXxxxxx',
+        },
       },
       single_and_true: {
         dsl: {
           and: [
             {
               custom_variable: {
-                eq: 'eq_value'
-              }
-            }
-          ]
+                eq: 'eq_value',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       multiple_and_false: {
         dsl: {
@@ -8403,42 +8403,42 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    eq: 'eq_value'
-                  }
-                }
-              ]
+                    eq: 'eq_value',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
                   custom_variable: {
-                    reg: 'regex(myregex+)'
-                  }
-                }
-              ]
-            }
-          ]
+                    reg: 'regex(myregex+)',
+                  },
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
           eq: 'eq_value',
-          reg: 'myregeXxxxxx'
-        }
+          reg: 'myregeXxxxxx',
+        },
       },
       dsl_wildcard_true_front_back: {
         dsl: {
           or: [
             {
               custom_variable: {
-                a: 'wildcard(*something*)'
-              }
-            }
-          ]
+                a: 'wildcard(*something*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          a: 'hellosomethingworld'
-        }
+          a: 'hellosomethingworld',
+        },
       },
       chain_of_or_true: {
         dsl: {
@@ -8453,54 +8453,54 @@ export class SegmentEvaluatorData {
                           or: [
                             {
                               custom_variable: {
-                                eq: 'eq_value'
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                                eq: 'eq_value',
+                              },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'eq_value'
-        }
+          eq: 'eq_value',
+        },
       },
       dsl_wildcard_false_front_back_middle_star: {
         dsl: {
           or: [
             {
               custom_variable: {
-                a: 'wildcard(*some*thing*)'
-              }
-            }
-          ]
+                a: 'wildcard(*some*thing*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          a: 'hellosomethingworld'
-        }
+          a: 'hellosomethingworld',
+        },
       },
       single_and_false: {
         dsl: {
           and: [
             {
               custom_variable: {
-                eq: 'n_eq_value'
-              }
-            }
-          ]
+                eq: 'n_eq_value',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'eq_value'
-        }
-      }
+          eq: 'eq_value',
+        },
+      },
     },
     starts_with_operand: {
       float_data_type_mismatch: {
@@ -8508,464 +8508,464 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(123.456*)'
-              }
-            }
-          ]
+                eq: 'wildcard(123.456*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 123
-        }
+          eq: 123,
+        },
       },
       incorrect_key: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          neq: 'something'
-        }
+          neq: 'something',
+        },
       },
       incorrect_key_case: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          EQ: 'something'
-        }
+          EQ: 'something',
+        },
       },
       single_char: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(zzsomethingzz*)'
-              }
-            }
-          ]
+                eq: 'wildcard(zzsomethingzz*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'i'
-        }
+          eq: 'i',
+        },
       },
       case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'Something'
-        }
+          eq: 'Something',
+        },
       },
       char_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(E*)'
-              }
-            }
-          ]
+                eq: 'wildcard(E*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       prefix_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'somethingdfgdwerewew'
-        }
+          eq: 'somethingdfgdwerewew',
+        },
       },
       boolean_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(true*)'
-              }
-            }
-          ]
+                eq: 'wildcard(true*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       part_of_text: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(zzsomethingzz*)'
-              }
-            }
-          ]
+                eq: 'wildcard(zzsomethingzz*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       float_data_type2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(123.456*)'
-              }
-            }
-          ]
+                eq: 'wildcard(123.456*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123.456789
-        }
+          eq: 123.456789,
+        },
       },
       null_value_provided: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: null
-        }
+          eq: null,
+        },
       },
       upper_case: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH*)'
-              }
-            }
-          ]
+                eq: 'wildcard(HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH---A-N-Y-T-H-I-N-G---'
-        }
+          eq: 'HgUvshFRjsbTnvsdiUFFTGHFHGvDRT.YGHGH---A-N-Y-T-H-I-N-G---',
+        },
       },
       no_value_provided: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: ''
-        }
+          eq: '',
+        },
       },
       suffix_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'asdsdsdsomething'
-        }
+          eq: 'asdsdsdsomething',
+        },
       },
       boolean_data_type2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(false*)'
-              }
-            }
-          ]
+                eq: 'wildcard(false*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       float_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(123*)'
-              }
-            }
-          ]
+                eq: 'wildcard(123*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123.45
-        }
+          eq: 123.45,
+        },
       },
       numeric_data_type_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(123*)'
-              }
-            }
-          ]
+                eq: 'wildcard(123*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 12
-        }
+          eq: 12,
+        },
       },
       contains_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'asdn3kn42knsdsomethingmm'
-        }
+          eq: 'asdn3kn42knsdsomethingmm',
+        },
       },
       char_data_type_case_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(e*)'
-              }
-            }
-          ]
+                eq: 'wildcard(e*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'E'
-        }
+          eq: 'E',
+        },
       },
       special_characters: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!*)'
-              }
-            }
-          ]
+                eq: 'wildcard(f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!---A-N-Y-T-H-I-N-G---'
-        }
+          eq: 'f25u!v@b#k$6%9^f&o*v(m)w_-=+s,./`(*&^%$#@!---A-N-Y-T-H-I-N-G---',
+        },
       },
       stringified_float: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(123.456*)'
-              }
-            }
-          ]
+                eq: 'wildcard(123.456*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: '123.456789'
-        }
+          eq: '123.456789',
+        },
       },
       char_data_type_case_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(E*)'
-              }
-            }
-          ]
+                eq: 'wildcard(E*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'e'
-        }
+          eq: 'e',
+        },
       },
       boolean_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(true*)'
-              }
-            }
-          ]
+                eq: 'wildcard(true*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: false
-        }
+          eq: false,
+        },
       },
       numeric_data_type_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(123*)'
-              }
-            }
-          ]
+                eq: 'wildcard(123*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123.0
-        }
+          eq: 123.0,
+        },
       },
       spaces: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(nice to see you. will    you be   my        friend?*)'
-              }
-            }
-          ]
+                eq: 'wildcard(nice to see you. will    you be   my        friend?*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'nice to see you. will    you be   my        friend? Great!!'
-        }
+          eq: 'nice to see you. will    you be   my        friend? Great!!',
+        },
       },
       mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'qwertyu'
-        }
+          eq: 'qwertyu',
+        },
       },
       exact_match: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 'something'
-        }
+          eq: 'something',
+        },
       },
       numeric_data_type: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(123*)'
-              }
-            }
-          ]
+                eq: 'wildcard(123*)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 123456
-        }
+          eq: 123456,
+        },
       },
       boolean_data_type_mismatch: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(false*)'
-              }
-            }
-          ]
+                eq: 'wildcard(false*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: true
-        }
+          eq: true,
+        },
       },
       missingkey_value: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: false,
-        customVariables: {}
+        customVariables: {},
       },
       case_mismatch2: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'wildcard(something*)'
-              }
-            }
-          ]
+                eq: 'wildcard(something*)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'SOMETHING'
-        }
-      }
+          eq: 'SOMETHING',
+        },
+      },
     },
     special_characters: {
       test_special_character_pound: {
@@ -8973,69 +8973,69 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                eq: '€'
-              }
-            }
-          ]
+                eq: '€',
+              },
+            },
+          ],
         },
         customVariables: {
-          eq: '€'
+          eq: '€',
         },
-        expectation: true
-      }
+        expectation: true,
+      },
     },
     user_operand_evaluator: {
       single_equal_return_true: {
         dsl: {
           and: [
             {
-              user: 'user_1'
-            }
-          ]
+              user: 'user_1',
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_1'
+          _vwoUserId: 'user_1',
         },
-        expectation: true
+        expectation: true,
       },
       single_equal_return_false: {
         dsl: {
           and: [
             {
-              user: 'user_1'
-            }
-          ]
+              user: 'user_1',
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_2'
+          _vwoUserId: 'user_2',
         },
-        expectation: false
+        expectation: false,
       },
       multiple_equal_return_true: {
         dsl: {
           and: [
             {
-              user: 'user_1,user_3,user_2,user_4'
-            }
-          ]
+              user: 'user_1,user_3,user_2,user_4',
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_1'
+          _vwoUserId: 'user_1',
         },
-        expectation: true
+        expectation: true,
       },
       multiple_equal_return_false: {
         dsl: {
           and: [
             {
-              user: 'user_1,user_3,user_2,user_4'
-            }
-          ]
+              user: 'user_1,user_3,user_2,user_4',
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_5'
+          _vwoUserId: 'user_5',
         },
-        expectation: false
+        expectation: false,
       },
       single_not_equal_return_true: {
         dsl: {
@@ -9044,17 +9044,17 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: 'user_1'
-                  }
-                ]
-              }
-            }
-          ]
+                    user: 'user_1',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_4'
+          _vwoUserId: 'user_4',
         },
-        expectation: true
+        expectation: true,
       },
       single_not_equal_return_false: {
         dsl: {
@@ -9063,17 +9063,17 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: 'user_1'
-                  }
-                ]
-              }
-            }
-          ]
+                    user: 'user_1',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_1'
+          _vwoUserId: 'user_1',
         },
-        expectation: false
+        expectation: false,
       },
       multiple_not_equal_return_true: {
         dsl: {
@@ -9082,17 +9082,17 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: 'user_1,user_2,user_3'
-                  }
-                ]
-              }
-            }
-          ]
+                    user: 'user_1,user_2,user_3',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_4'
+          _vwoUserId: 'user_4',
         },
-        expectation: true
+        expectation: true,
       },
       multiple_not_equal_return_false: {
         dsl: {
@@ -9101,17 +9101,17 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: 'user_1,user_2,user_3'
-                  }
-                ]
-              }
-            }
-          ]
+                    user: 'user_1,user_2,user_3',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_2'
+          _vwoUserId: 'user_2',
         },
-        expectation: false
+        expectation: false,
       },
       single_not_equal_return_true_uneven_spaces: {
         dsl: {
@@ -9120,17 +9120,17 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: '   user_1       '
-                  }
-                ]
-              }
-            }
-          ]
+                    user: '   user_1       ',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_4'
+          _vwoUserId: 'user_4',
         },
-        expectation: true
+        expectation: true,
       },
       single_not_equal_return_false_uneven_spaces: {
         dsl: {
@@ -9139,17 +9139,17 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: '         user_1   '
-                  }
-                ]
-              }
-            }
-          ]
+                    user: '         user_1   ',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_1'
+          _vwoUserId: 'user_1',
         },
-        expectation: false
+        expectation: false,
       },
       multiple_not_equal_return_true_uneven_spaces: {
         dsl: {
@@ -9158,17 +9158,17 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: '  user_1 ,    user_2 ,   user_3    '
-                  }
-                ]
-              }
-            }
-          ]
+                    user: '  user_1 ,    user_2 ,   user_3    ',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_4'
+          _vwoUserId: 'user_4',
         },
-        expectation: true
+        expectation: true,
       },
       multiple_not_equal_return_false_uneven_spaces: {
         dsl: {
@@ -9177,17 +9177,17 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: '   user_1 ,    user_2 ,     user_3     '
-                  }
-                ]
-              }
-            }
-          ]
+                    user: '   user_1 ,    user_2 ,     user_3     ',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_2'
+          _vwoUserId: 'user_2',
         },
-        expectation: false
+        expectation: false,
       },
       single_not_equal_return_true_spaces_in_user_id: {
         dsl: {
@@ -9196,17 +9196,17 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: '   space   user       '
-                  }
-                ]
-              }
-            }
-          ]
+                    user: '   space   user       ',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_4'
+          _vwoUserId: 'user_4',
         },
-        expectation: true
+        expectation: true,
       },
       single_not_equal_return_false_spaces_in_user_id: {
         dsl: {
@@ -9215,17 +9215,17 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: '         space   user   '
-                  }
-                ]
-              }
-            }
-          ]
+                    user: '         space   user   ',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'space   user'
+          _vwoUserId: 'space   user',
         },
-        expectation: false
+        expectation: false,
       },
       multiple_not_equal_return_true_spaces_in_user_id: {
         dsl: {
@@ -9234,17 +9234,17 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: '  space   user ,    space  user ,   space user    '
-                  }
-                ]
-              }
-            }
-          ]
+                    user: '  space   user ,    space  user ,   space user    ',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'user_4'
+          _vwoUserId: 'user_4',
         },
-        expectation: true
+        expectation: true,
       },
       multiple_not_equal_return_false_spaces_in_user_id: {
         dsl: {
@@ -9253,18 +9253,18 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: '   user_1 ,    space     user ,     user_3     '
-                  }
-                ]
-              }
-            }
-          ]
+                    user: '   user_1 ,    space     user ,     user_3     ',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
-          _vwoUserId: 'space     user'
+          _vwoUserId: 'space     user',
         },
-        expectation: false
-      }
+        expectation: false,
+      },
     },
     user_operand_evaluator_with_customVariables: {
       targeting_safari_returns_true: {
@@ -9272,16 +9272,16 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                browser: 'safari'
-              }
-            }
-          ]
+                browser: 'safari',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
           browser: 'safari',
-          _vwoUserId: 'user_1'
-        }
+          _vwoUserId: 'user_1',
+        },
       },
       targeting_safari_returns_false: {
         dsl: {
@@ -9289,17 +9289,17 @@ export class SegmentEvaluatorData {
             or: [
               {
                 custom_variable: {
-                  browser: 'safari'
-                }
-              }
-            ]
-          }
+                  browser: 'safari',
+                },
+              },
+            ],
+          },
         },
         expectation: false,
         customVariables: {
           browser: 'safari',
-          _vwoUserId: 'user_1'
-        }
+          _vwoUserId: 'user_1',
+        },
       },
       targeting_only_safari_for_user_1_returns_true: {
         dsl: {
@@ -9309,22 +9309,22 @@ export class SegmentEvaluatorData {
                 {
                   or: [
                     {
-                      user: 'user_1'
-                    }
-                  ]
+                      user: 'user_1',
+                    },
+                  ],
                 },
                 {
                   not: {
                     or: [
                       {
                         custom_variable: {
-                          chrome: 'true'
-                        }
-                      }
-                    ]
-                  }
-                }
-              ]
+                          chrome: 'true',
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -9332,28 +9332,28 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        safari: 'true'
-                      }
-                    }
-                  ]
+                        safari: 'true',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
-                      user: 'user_1'
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                      user: 'user_1',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: true,
         customVariables: {
           _vwoUserId: 'user_1',
           chrome: false,
-          safari: true
-        }
+          safari: true,
+        },
       },
       targeting_only_safari_for_user_1_returns_false: {
         dsl: {
@@ -9363,22 +9363,22 @@ export class SegmentEvaluatorData {
                 {
                   or: [
                     {
-                      user: 'user_1'
-                    }
-                  ]
+                      user: 'user_1',
+                    },
+                  ],
                 },
                 {
                   not: {
                     or: [
                       {
                         custom_variable: {
-                          chrome: 'true'
-                        }
-                      }
-                    ]
-                  }
-                }
-              ]
+                          chrome: 'true',
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
             },
             {
               and: [
@@ -9386,28 +9386,28 @@ export class SegmentEvaluatorData {
                   or: [
                     {
                       custom_variable: {
-                        safari: 'true'
-                      }
-                    }
-                  ]
+                        safari: 'true',
+                      },
+                    },
+                  ],
                 },
                 {
                   or: [
                     {
-                      user: 'user_1'
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                      user: 'user_1',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         expectation: false,
         customVariables: {
           _vwoUserId: 'user_1',
           chrome: true,
-          safari: false
-        }
+          safari: false,
+        },
       },
       targeting_chrome_all_version_with_black_listing_multiple_users_returns_true: {
         dsl: {
@@ -9416,27 +9416,27 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    browser: 'wildcard(chrome*)'
-                  }
-                }
-              ]
+                    browser: 'wildcard(chrome*)',
+                  },
+                },
+              ],
             },
             {
               not: {
                 or: [
                   {
-                    user: 'user_1,user_2,user_3'
-                  }
-                ]
-              }
-            }
-          ]
+                    user: 'user_1,user_2,user_3',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
           _vwoUserId: 'user_4',
-          browser: 'chrome 106.69'
+          browser: 'chrome 106.69',
         },
-        expectation: true
+        expectation: true,
       },
       targeting_chome_any_version_with_multiple_users_returns_true: {
         dsl: {
@@ -9445,25 +9445,25 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    browser: 'wildcard(chrome*)'
-                  }
-                }
-              ]
+                    browser: 'wildcard(chrome*)',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
-                  user: 'user_1,user_2,user_3'
-                }
-              ]
-            }
-          ]
+                  user: 'user_1,user_2,user_3',
+                },
+              ],
+            },
+          ],
         },
         customVariables: {
           _vwoUserId: 'user_1',
-          browser: 'chrome 107.107'
+          browser: 'chrome 107.107',
         },
-        expectation: true
+        expectation: true,
       },
       targeting_chrome_all_version_with_black_listing_multiple_users_returns_false: {
         dsl: {
@@ -9472,27 +9472,27 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    browser: 'wildcard(chrome*)'
-                  }
-                }
-              ]
+                    browser: 'wildcard(chrome*)',
+                  },
+                },
+              ],
             },
             {
               not: {
                 or: [
                   {
-                    user: 'user_1,user_2,user_3'
-                  }
-                ]
-              }
-            }
-          ]
+                    user: 'user_1,user_2,user_3',
+                  },
+                ],
+              },
+            },
+          ],
         },
         customVariables: {
           _vwoUserId: 'user_2',
-          browser: 'chrome 106.69'
+          browser: 'chrome 106.69',
         },
-        expectation: false
+        expectation: false,
       },
       targeting_chome_any_version_with_multiple_users_returns_false: {
         dsl: {
@@ -9501,25 +9501,25 @@ export class SegmentEvaluatorData {
               or: [
                 {
                   custom_variable: {
-                    browser: 'wildcard(chrome*)'
-                  }
-                }
-              ]
+                    browser: 'wildcard(chrome*)',
+                  },
+                },
+              ],
             },
             {
               or: [
                 {
-                  user: 'user_1,user_2,user_3'
-                }
-              ]
-            }
-          ]
+                  user: 'user_1,user_2,user_3',
+                },
+              ],
+            },
+          ],
         },
         customVariables: {
           _vwoUserId: 'user_4',
-          browser: 'chrome 107.107'
+          browser: 'chrome 107.107',
         },
-        expectation: false
+        expectation: false,
       },
       black_listing_scrambled_user_using_safari_return_false: {
         dsl: {
@@ -9528,25 +9528,25 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: '   user    _1 ,    space     user ,     us     er_3     '
-                  }
-                ]
+                    user: '   user    _1 ,    space     user ,     us     er_3     ',
+                  },
+                ],
               },
               and: [
                 {
                   custom_variable: {
-                    browser: 'safari'
-                  }
-                }
-              ]
-            }
-          ]
+                    browser: 'safari',
+                  },
+                },
+              ],
+            },
+          ],
         },
         customVariables: {
           _vwoUserId: 'space     user',
-          browser: 'safari'
+          browser: 'safari',
         },
-        expectation: false
+        expectation: false,
       },
       black_listing_scrambled_user_using_safari_return_true_for_space_difference: {
         dsl: {
@@ -9555,26 +9555,26 @@ export class SegmentEvaluatorData {
               not: {
                 or: [
                   {
-                    user: '   user    _1 ,    space     user ,     us     er_3     '
-                  }
-                ]
+                    user: '   user    _1 ,    space     user ,     us     er_3     ',
+                  },
+                ],
               },
               and: [
                 {
                   custom_variable: {
-                    browser: 'safari'
-                  }
-                }
-              ]
-            }
-          ]
+                    browser: 'safari',
+                  },
+                },
+              ],
+            },
+          ],
         },
         customVariables: {
           _vwoUserId: 'user_1',
-          browser: 'safari'
+          browser: 'safari',
         },
-        expectation: true
-      }
+        expectation: true,
+      },
     },
     greater_than_operator: {
       is_greater_than_operator_pass: {
@@ -9582,61 +9582,61 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                eq: 'gt(100)'
-              }
-            }
-          ]
+                eq: 'gt(100)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 200
-        }
+          eq: 200,
+        },
       },
       is_greater_than_operator_fail: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'gt(100)'
-              }
-            }
-          ]
+                eq: 'gt(100)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 50
-        }
+          eq: 50,
+        },
       },
       is_greater_than_operator_equal_values_fail: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'gt(100)'
-              }
-            }
-          ]
+                eq: 'gt(100)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 100
-        }
+          eq: 100,
+        },
       },
       is_greater_than_operator_string_fail: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'gt(100)'
-              }
-            }
-          ]
+                eq: 'gt(100)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'abc'
-        }
-      }
+          eq: 'abc',
+        },
+      },
     },
     less_than_operator: {
       is_less_than_operator_pass: {
@@ -9644,61 +9644,61 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                eq: 'lt(100)'
-              }
-            }
-          ]
+                eq: 'lt(100)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 50
-        }
+          eq: 50,
+        },
       },
       is_less_than_operator_fail: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lt(100)'
-              }
-            }
-          ]
+                eq: 'lt(100)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 150
-        }
+          eq: 150,
+        },
       },
       is_less_than_operator_equal_values_fail: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lt(100)'
-              }
-            }
-          ]
+                eq: 'lt(100)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 100
-        }
+          eq: 100,
+        },
       },
       is_less_than_operator_string_fail: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lt(100)'
-              }
-            }
-          ]
+                eq: 'lt(100)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'abc'
-        }
-      }
+          eq: 'abc',
+        },
+      },
     },
     greater_than_equal_to_operator: {
       is_greater_than_equal_to_operator_pass: {
@@ -9706,61 +9706,61 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                eq: 'gte(100)'
-              }
-            }
-          ]
+                eq: 'gte(100)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 150
-        }
+          eq: 150,
+        },
       },
       is_greater_than_equal_to_operator_equal_values_pass: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'gte(100)'
-              }
-            }
-          ]
+                eq: 'gte(100)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 100
-        }
+          eq: 100,
+        },
       },
       is_greater_than_equal_to_operator_fail: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'gte(100)'
-              }
-            }
-          ]
+                eq: 'gte(100)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 50
-        }
+          eq: 50,
+        },
       },
       is_greater_than_equal_to_operator_string_fail: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'gte(100)'
-              }
-            }
-          ]
+                eq: 'gte(100)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'abc'
-        }
-      }
+          eq: 'abc',
+        },
+      },
     },
     less_than_equal_to_operator: {
       is_less_than_equal_to_operator_pass: {
@@ -9768,61 +9768,61 @@ export class SegmentEvaluatorData {
           or: [
             {
               custom_variable: {
-                eq: 'lte(100)'
-              }
-            }
-          ]
+                eq: 'lte(100)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 50
-        }
+          eq: 50,
+        },
       },
       is_less_than_equal_to_operator_equal_values_pass: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lte(100)'
-              }
-            }
-          ]
+                eq: 'lte(100)',
+              },
+            },
+          ],
         },
         expectation: true,
         customVariables: {
-          eq: 100
-        }
+          eq: 100,
+        },
       },
       is_less_than_equal_to_operator_fail: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lte(100)'
-              }
-            }
-          ]
+                eq: 'lte(100)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 120
-        }
+          eq: 120,
+        },
       },
       is_less_than_equal_to_operator_string_fail: {
         dsl: {
           or: [
             {
               custom_variable: {
-                eq: 'lte(100)'
-              }
-            }
-          ]
+                eq: 'lte(100)',
+              },
+            },
+          ],
         },
         expectation: false,
         customVariables: {
-          eq: 'abc'
-        }
-      }
-    }
+          eq: 'abc',
+        },
+      },
+    },
   };
 }

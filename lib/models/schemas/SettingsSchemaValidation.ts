@@ -36,14 +36,14 @@ export class SettingsSchema {
       type: string(),
       identifier: string(),
       mca: optional(union([number(), string()])),
-      hasProps: optional(boolean())
+      hasProps: optional(boolean()),
     });
 
     this.variableObjectSchema = object({
       id: union([number(), string()]),
       type: string(),
       key: string(),
-      value: union([number(), string(), boolean(), object() ])
+      value: union([number(), string(), boolean(), object()]),
     });
 
     this.campaignVariationSchema = object({
@@ -53,7 +53,7 @@ export class SettingsSchema {
       segments: optional(object()),
       variables: optional(array(this.variableObjectSchema)),
       startRangeVariation: optional(number()),
-      endRangeVariation: optional(number())
+      endRangeVariation: optional(number()),
     });
 
     this.campaignObjectSchema = object({
@@ -64,14 +64,14 @@ export class SettingsSchema {
       status: string(),
       variations: array(this.campaignVariationSchema),
       segments: object(),
-      isForcedVariationEnabled: optional(boolean())
+      isForcedVariationEnabled: optional(boolean()),
     });
 
     this.ruleSchema = object({
       type: string(),
       ruleKey: string(),
       campaignId: number(),
-      variationId: optional(number())
+      variationId: optional(number()),
     });
 
     this.featureSchema = object({
@@ -83,7 +83,7 @@ export class SettingsSchema {
       metrics: array(this.campaignMetricSchema),
       impactCampaign: optional(object()),
       rules: optional(array(this.ruleSchema)),
-      variables: optional(array(this.variableObjectSchema))
+      variables: optional(array(this.variableObjectSchema)),
     });
 
     this.settingsSchema = object({

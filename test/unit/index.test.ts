@@ -16,6 +16,6 @@
 import { VWO, init } from '../../lib/index';
 
 test('Check is VWO is defined', () => {
-  expect(typeof VWO).toBe("function");
-  expect(typeof init).toBe("function");
+  expect(typeof VWO).toBe('function');
+  expect(typeof init).toBe('function');
 });

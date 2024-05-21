@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { UrlEnum } from '../enums/UrlEnum';
 import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
@@ -34,7 +35,7 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
   // Check if the base URL is not set correctly
   if (UrlService.getBaseUrl() === UrlEnum.BASE_URL) {
     // Log an informational message about the invalid URL
-    LogManager.Instance.error('Invalid URL. Please provide a valid URL for VWO Gateway Service');
+    LogManager.Instance.error(ErrorLogMessagesEnum.GATEWAY_URL_ERROR);
     // Resolve the promise with false indicating an error or invalid state
     deferredObject.resolve(false);
     return deferredObject.promise;
@@ -67,8 +68,6 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
 
     return deferredObject.promise;
   } catch (err) {
-    // Log an error if an exception occurs during the request
-    console.error('Error occurred while sending GET request:', err);
     // Resolve the promise with false as fallback
     deferredObject.resolve(false);
     return deferredObject.promise;

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CampaignModel } from "../models/campaign/CampaignModel";
-import { FeatureModel } from "../models/campaign/FeatureModel";
-import { SettingsModel } from "../models/settings/SettingsModel";
-import { ContextModel } from "../models/user/ContextModel";
-import { StorageService } from "../services/StorageService";
-import { isObject } from "./DataTypeUtil";
-import { checkWhitelistingAndPreSeg } from "./DecisionUtil";
-import { createAndSendImpressionForVariationShown } from "./ImpressionUtil";
+import { CampaignModel } from '../models/campaign/CampaignModel';
+import { FeatureModel } from '../models/campaign/FeatureModel';
+import { SettingsModel } from '../models/settings/SettingsModel';
+import { ContextModel } from '../models/user/ContextModel';
+import { StorageService } from '../services/StorageService';
+import { isObject } from './DataTypeUtil';
+import { checkWhitelistingAndPreSeg } from './DecisionUtil';
+import { createAndSendImpressionForVariationShown } from './ImpressionUtil';
 
 /**
  * Evaluates the rules for a given campaign and feature based on the provided context.
@@ -70,12 +70,7 @@ export const evaluateRule = async (
     });
 
     // Send an impression for the variation shown
-    createAndSendImpressionForVariationShown(
-      settings,
-      campaign.getId(),
-      whitelistedObject.variation.id,
-      context
-    );
+    createAndSendImpressionForVariationShown(settings, campaign.getId(), whitelistedObject.variation.id, context);
   }
 
   // Return the results of the evaluation

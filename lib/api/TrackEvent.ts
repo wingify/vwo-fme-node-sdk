@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ContextModel } from '../models/user/ContextModel';
 import { ApiEnum } from '../enums/ApiEnum';
+import { ErrorLogMessagesEnum } from '../enums/log-messages';
+import { SettingsModel } from '../models/settings/SettingsModel';
+import { ContextModel } from '../models/user/ContextModel';
 import { LogManager } from '../packages/logger';
 import HooksManager from '../services/HooksManager';
 import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
+import { buildMessage } from '../utils/LogMessageUtil';
 import { getEventsBaseProperties, getTrackGoalPayloadData, sendPostApiRequest } from '../utils/NetworkUtil';
-import { SettingsModel } from '../models/settings/SettingsModel';
 
 interface ITrack {
   /**
@@ -62,7 +64,11 @@ export class TrackApi implements ITrack {
       return { [eventName]: true };
     }
     // Log an error if the event does not exist
-    LogManager.Instance.error(`Event ${eventName} not found in any of the features.`);
+    LogManager.Instance.error(
+      buildMessage(ErrorLogMessagesEnum.EVENT_NOT_FOUND, {
+        eventName,
+      }),
+    );
 
     return { [eventName]: false };
   }
@@ -75,7 +81,12 @@ export class TrackApi implements ITrack {
  * @param user User details.
  * @param eventProperties Properties associated with the event.
  */
-const createImpressionForTrack = async (settings: SettingsModel, eventName: string, context: ContextModel, eventProperties: any) => {
+const createImpressionForTrack = async (
+  settings: SettingsModel,
+  eventName: string,
+  context: ContextModel,
+  eventProperties: any,
+) => {
   // Get base properties for the event
   const properties = getEventsBaseProperties(settings, eventName, context.getUserAgent(), context.getIpAddress());
   // Prepare the payload for the track goal

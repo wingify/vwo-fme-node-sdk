@@ -13,66 +13,66 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { dynamic } from "../../types/Common";
-import { ContextVWOModel } from "./ContextVWOModel";
+import { dynamic } from '../../types/Common';
+import { ContextVWOModel } from './ContextVWOModel';
 
 export class ContextModel {
-    private id: string | number;
-    private userAgent?: string;
-    private ipAddress?: string;
-    private customVariables?: Record<string, any>;
-    private variationTargetingVariables?: Record<string, dynamic>;
-    private _vwo?: ContextVWOModel;
+  private id: string | number;
+  private userAgent?: string;
+  private ipAddress?: string;
+  private customVariables?: Record<string, any>;
+  private variationTargetingVariables?: Record<string, dynamic>;
+  private _vwo?: ContextVWOModel;
 
-    modelFromDictionary(context: Record<string, any>): this {
-      this.id = context.id;
-      this.userAgent = context.userAgent;
-      this.ipAddress = context.ipAddress;
-      if (context?.customVariables) {
-        this.customVariables = context.customVariables;
-      }
-      if (context?.variationTargetingVariables) {
-        this.variationTargetingVariables = context.variationTargetingVariables;
-      }
-      if (context?._vwo) {
-        this._vwo = new ContextVWOModel().modelFromDictionary(context._vwo);
-      }
-      return this;
+  modelFromDictionary(context: Record<string, any>): this {
+    this.id = context.id;
+    this.userAgent = context.userAgent;
+    this.ipAddress = context.ipAddress;
+    if (context?.customVariables) {
+      this.customVariables = context.customVariables;
     }
-
-    getId(): string {
-      return this.id?.toString();
+    if (context?.variationTargetingVariables) {
+      this.variationTargetingVariables = context.variationTargetingVariables;
     }
-
-    getUserAgent(): string {
-      return this.userAgent;
+    if (context?._vwo) {
+      this._vwo = new ContextVWOModel().modelFromDictionary(context._vwo);
     }
-
-    getIpAddress(): string {
-      return this.ipAddress;
-    }
-
-    getCustomVariables(): Record<string, any> {
-      return this.customVariables;
-    }
-
-    setCustomVariables(customVariables: Record<string, any>): void {
-      this.customVariables = customVariables;
-    }
-
-    getVariationTargetingVariables(): Record<string, dynamic> {
-      return this.variationTargetingVariables;
-    }
-
-    setVariationTargetingVariables(variationTargetingVariables: Record<string, dynamic>): void {
-      this.variationTargetingVariables = variationTargetingVariables;
-    }
-
-    getVwo(): ContextVWOModel {
-      return this._vwo;
-    }
-
-    setVwo(_vwo: ContextVWOModel): void {
-      this._vwo = _vwo;
-    }
+    return this;
   }
+
+  getId(): string {
+    return this.id?.toString();
+  }
+
+  getUserAgent(): string {
+    return this.userAgent;
+  }
+
+  getIpAddress(): string {
+    return this.ipAddress;
+  }
+
+  getCustomVariables(): Record<string, any> {
+    return this.customVariables;
+  }
+
+  setCustomVariables(customVariables: Record<string, any>): void {
+    this.customVariables = customVariables;
+  }
+
+  getVariationTargetingVariables(): Record<string, dynamic> {
+    return this.variationTargetingVariables;
+  }
+
+  setVariationTargetingVariables(variationTargetingVariables: Record<string, dynamic>): void {
+    this.variationTargetingVariables = variationTargetingVariables;
+  }
+
+  getVwo(): ContextVWOModel {
+    return this._vwo;
+  }
+
+  setVwo(_vwo: ContextVWOModel): void {
+    this._vwo = _vwo;
+  }
+}

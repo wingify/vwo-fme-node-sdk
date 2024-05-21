@@ -29,5 +29,9 @@ export interface Segmentation {
    * @param settings - The settings model containing configuration details.
    * @returns {boolean | Promise<any>} - True if the segmentation is valid, otherwise false or a Promise resolving to any type.
    */
-  isSegmentationValid(dsl: Record<string, dynamic>, properties: Record<string, dynamic>, settings: SettingsModel): boolean | Promise<any>;
+  isSegmentationValid(
+    dsl: Record<string, dynamic>,
+    properties: Record<string, dynamic>,
+    settings: SettingsModel,
+  ): boolean | Promise<any>;
 }

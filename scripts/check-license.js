@@ -22,8 +22,8 @@ const isSuccess = checkLicenseUtil.checkLicenseAndCopyright({
   author: 'Wingify Software Pvt. Ltd.',
   paths: 'lib,test,scripts',
   stoppingCriteria: '\\*\\/',
-  excludes: [  ], // 'test/test-utils'
-  extensions: ['ts', 'js']
+  excludes: [], // 'test/test-utils'
+  extensions: ['ts', 'js'],
 });
 console.timeEnd('Execution time for License and Copyright');
 

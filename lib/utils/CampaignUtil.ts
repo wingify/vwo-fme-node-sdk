@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FeatureModel } from '../models/campaign/FeatureModel';
 import { Constants } from '../constants';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
+import { InfoLogMessagesEnum } from '../enums/log-messages';
 import { CampaignModel } from '../models/campaign/CampaignModel';
-import { SettingsModel } from '../models/settings/SettingsModel';
-// import { VariableModel } from '../models/VariableModel';
+import { FeatureModel } from '../models/campaign/FeatureModel';
 import { VariationModel } from '../models/campaign/VariationModel';
+import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
-
+import { buildMessage } from './LogMessageUtil';
 /**
  * Sets the variation allocation for a given campaign based on its type.
  * If the campaign type is ROLLOUT or PERSONALIZE, it handles the campaign using `_handleRolloutCampaign`.
@@ -35,14 +35,19 @@ export function setVariationAllocation(campaign: CampaignModel): void {
   } else {
     let currentAllocation = 0;
     // Iterate over each variation in the campaign
-    campaign.getVariations().forEach(variation => {
+    campaign.getVariations().forEach((variation) => {
       // Assign range values to the variation and update the current allocation
       const stepFactor = assignRangeValues(variation, currentAllocation);
       currentAllocation += stepFactor;
       // Log the range allocation for debugging
-      LogManager.Instance.debug(
-        `VARIATION_RANGE_ALLOCATION: Variation:${variation.getKey()} of Campaign:${campaign.getKey()} having weight:${variation.getWeight()} got bucketing range: (${variation.getStartRangeVariation()} - ${variation.getEndRangeVariation()})`,
-      );
+      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+        variationKey: variation.getKey(),
+        campaignKey: campaign.getKey(),
+        variationWeight: variation.getWeight(),
+        startRange: variation.getStartRangeVariation(),
+        endRange: variation.getEndRangeVariation()
+      }));
+
     });
   }
 }
@@ -306,23 +311,13 @@ function _handleRolloutCampaign(campaign: CampaignModel): void {
 
     variation.setStartRange(1);
     variation.setEndRange(endRange);
-    LogManager.Instance.debug(
-      `VARIATION_RANGE_ALLOCATION: Variation:${variation.getKey()} of Campaign:${campaign.getKey()} got bucketing range: ( ${1} - ${endRange} )`,
-    );
+
+    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+      variationKey: variation.getKey(),
+      campaignKey: campaign.getKey(),
+      variationWeight: variation.getWeight(),
+      startRange: 1,
+      endRange
+    }));
   }
 }
-
-/* function copyVariableData(variationVariable: Array<VariableModel>, featureVariable: Array<VariableModel>): void {
-  // create a featureVariableMap
-  const featureVariableMap: Record<number, VariableModel> = {};
-  featureVariable.forEach((variable: VariableModel) => {
-    featureVariableMap[variable.getId()] = variable;
-  });
-  variationVariable.forEach((variable: VariableModel) => {
-    const featureVariable: VariableModel = featureVariableMap[variable.getId()];
-    if (featureVariable) {
-      variable.setKey(featureVariable.getKey());
-      variable.setType(featureVariable.getType());
-    }
-  });
-} */

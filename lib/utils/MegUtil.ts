@@ -16,6 +16,7 @@
 import { Constants } from '../constants';
 import { StorageDecorator } from '../decorators/StorageDecorator';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
+import { InfoLogMessagesEnum } from '../enums/log-messages';
 import { CampaignModel } from '../models/campaign/CampaignModel';
 import { FeatureModel } from '../models/campaign/FeatureModel';
 import { VariationModel } from '../models/campaign/VariationModel';
@@ -37,6 +38,7 @@ import {
 import { isObject, isUndefined } from './DataTypeUtil';
 import { evaluateTrafficAndGetVariation } from './DecisionUtil';
 import { cloneObject, getFeatureFromKey, getSpecificRulesBasedOnType } from './FunctionUtil';
+import { buildMessage } from './LogMessageUtil';
 
 /**
  * Evaluates groups for a given feature and group ID.
@@ -70,7 +72,14 @@ export const evaluateGroups = async (
       continue;
     }
     // evaluate the feature rollout rules
-    const isRolloutRulePassed = await _isRolloutRuleForFeaturePassed(settings, feature, evaluatedFeatureMap, featureToSkip, storageService, context);
+    const isRolloutRulePassed = await _isRolloutRuleForFeaturePassed(
+      settings,
+      feature,
+      evaluatedFeatureMap,
+      featureToSkip,
+      storageService,
+      context
+    );
     if (isRolloutRulePassed) {
       settings.getCampaigns().forEach((campaign) => {
         // groupCampaignIds.includes(campaign.getId()) -> campaign we are adding should be in the group
@@ -87,7 +96,7 @@ export const evaluateGroups = async (
       });
     }
   }
-  const { eligibleCampaigns, eligibleCampaignsWithStorage, } = await _getEligbleCampaigns(
+  const { eligibleCampaigns, eligibleCampaignsWithStorage } = await _getEligbleCampaigns(
     settings,
     campaignMap,
     context,
@@ -141,14 +150,26 @@ const _isRolloutRuleForFeaturePassed = async (
   storageService: StorageService,
   context: ContextModel,
 ): Promise<boolean> => {
-  if (evaluatedFeatureMap.has(feature.getKey()) && evaluatedFeatureMap.get(feature.getKey()).hasOwnProperty('rolloutId')) {
+  if (
+    evaluatedFeatureMap.has(feature.getKey()) &&
+    evaluatedFeatureMap.get(feature.getKey()).hasOwnProperty('rolloutId')
+  ) {
     return true;
   }
   const rollOutRules = getSpecificRulesBasedOnType(feature, CampaignTypeEnum.ROLLOUT);
   if (rollOutRules.length > 0) {
     let ruleToTestForTraffic = null;
     for (const rule of rollOutRules) {
-      const { preSegmentationResult } = await evaluateRule(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, {});
+      const { preSegmentationResult } = await evaluateRule(
+        settings,
+        feature,
+        rule,
+        context,
+        evaluatedFeatureMap,
+        null,
+        storageService,
+        {}
+      );
       if (preSegmentationResult) {
         ruleToTestForTraffic = rule;
         break;
@@ -172,7 +193,9 @@ const _isRolloutRuleForFeaturePassed = async (
     return false;
   }
   // no rollout rule, evaluate experiments
-  LogManager.Instance.debug(`MEG: No rollout rule found for feature ${feature.getKey()}. Hence, evaluating experiments`);
+  LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS, {
+    featureKey: feature.getKey()
+  }));
   return true;
 };
 
@@ -214,9 +237,11 @@ const _getEligbleCampaigns = async (
             storedData.experimentVariationId,
           );
           if (variation) {
-            LogManager.Instance.debug(
-              `MEG: Campaign ${storedData.experimentKey} found in storage for user ${context.getId()}`,
-            );
+            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+              campaignKey: storedData.experimentKey,
+              userId: context.getId()
+            }));
+
             if (eligibleCampaignsWithStorage.findIndex((item) => item.key === campaign.getKey()) === -1) {
               eligibleCampaignsWithStorage.push(campaign);
             }
@@ -233,7 +258,11 @@ const _getEligbleCampaigns = async (
         )) &&
         new CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign)
       ) {
-        LogManager.Instance.debug(`MEG: Campaign ${campaign.getKey()} is eligible for user ${context.getId()}`);
+        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+          campaignKey: campaign.getKey(),
+          userId: context.getId()
+        }));
+
         eligibleCampaigns.push(campaign);
         continue;
       }
@@ -272,17 +301,27 @@ const _findWinnerCampaignAmongEligibleCampaigns = async (
   let winnerCampaign = null;
   const campaignIds = getCampaignIdsFromFeatureKey(settings, featureKey);
   // get the winner from each group and store it in winnerFromEachGroup
-  const megAlgoNumber = !isUndefined(settings?.getGroups()[groupId]?.et) ? settings.getGroups()[groupId].et : Constants.RANDOM_ALGO;
+  const megAlgoNumber = !isUndefined(settings?.getGroups()[groupId]?.et)
+    ? settings.getGroups()[groupId].et
+    : Constants.RANDOM_ALGO;
 
   // if eligibleCampaignsWithStorage has only one campaign, then that campaign is the winner
   if (eligibleCampaignsWithStorage.length === 1) {
     winnerCampaign = eligibleCampaignsWithStorage[0];
-    LogManager.Instance.info(
-      `MEG: Campaign ${eligibleCampaignsWithStorage[0].getKey()} is the winner for group ${groupId} for user ${context.getId()}`,
-    );
+    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+      campaignKey: eligibleCampaignsWithStorage[0].getKey(),
+      groupId,
+      userId: context.getId(),
+      algo: ''
+    }));
   } else if (eligibleCampaignsWithStorage.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
     // if eligibleCampaignsWithStorage has more than one campaign and algo is random, then find the winner using random algo
-    winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaignsWithStorage, context, campaignIds, groupId);
+    winnerCampaign = _normalizeWeightsAndFindWinningCampaign(
+      eligibleCampaignsWithStorage,
+      context,
+      campaignIds,
+      groupId,
+    );
   } else if (eligibleCampaignsWithStorage.length > 1) {
     // if eligibleCampaignsWithStorage has more than one campaign and algo is not random, then find the winner using advanced algo
     winnerCampaign = _getCampaignUsingAdvancedAlgo(
@@ -297,9 +336,14 @@ const _findWinnerCampaignAmongEligibleCampaigns = async (
   if (eligibleCampaignsWithStorage.length === 0) {
     if (eligibleCampaigns.length === 1) {
       winnerCampaign = eligibleCampaigns[0];
-      LogManager.Instance.info(
-        `MEG: Campaign ${eligibleCampaigns[0].getKey()} is the winner for group ${groupId} for user ${context.getId()}`,
-      );
+
+      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+        campaignKey: eligibleCampaigns[0].getKey(),
+        groupId,
+        userId: context.getId(),
+        algo: ''
+      }));
+
     } else if (eligibleCampaigns.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
       winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaigns, context, campaignIds, groupId);
     } else if (eligibleCampaigns.length > 1) {
@@ -340,9 +384,12 @@ const _normalizeWeightsAndFindWinningCampaign = (
     new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), undefined, groupId)),
   );
 
-  LogManager.Instance.info(
-    `MEG Random: Campaign ${winnerCampaign.getKey()} is the winner for group ${groupId} for user ${context.getId()}`,
-  );
+  LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+    campaignKey: winnerCampaign.getKey(),
+    groupId,
+    userId: context.getId(),
+    algo: 'using random algorithm'
+  }));
 
   if (winnerCampaign && calledCampaignIds.includes(winnerCampaign.getId())) {
     return winnerCampaign;
@@ -414,9 +461,12 @@ const _getCampaignUsingAdvancedAlgo = (
   }
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
   // also shortlistedCampaigns and wt array does not have a single campaign id in common
-  LogManager.Instance.info(
-    `MEG Advance: Campaign ${winnerCampaign.key} is the winner for group ${groupId} for user ${context.getId()}`
-  );
+  LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+    campaignKey: winnerCampaign.key,
+    groupId,
+    userId: context.getId(),
+    algo: 'using advanced algorithm'
+  }));
 
   if (calledCampaignIds.includes(winnerCampaign.id)) {
     return winnerCampaign;

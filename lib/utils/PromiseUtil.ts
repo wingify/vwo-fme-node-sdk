@@ -24,7 +24,7 @@ export function Deferred(): void {
   // Create a new Promise and attach resolve and reject methods to the Deferred object
   this.promise = new Promise((resolve: dynamic, reject: dynamic) => {
     this.resolve = resolve; // Method to resolve the promise
-    this.reject = reject;   // Method to reject the promise
+    this.reject = reject; // Method to reject the promise
   });
 
   return this; // Return the Deferred object with attached methods

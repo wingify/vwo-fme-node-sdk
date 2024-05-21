@@ -106,12 +106,13 @@ export class LogManager extends Logger implements ILogManager {
       this.addTransports(this.config.transports);
     } else if (this.config.transport && isObject(this.config.transport)) {
       this.addTransport(this.config.transport);
-    } else { // if (this.config.defaultTransport)
+    } else {
+      // if (this.config.defaultTransport)
       // Add default ConsoleTransport if no other transport is specified
       this.addTransport(
         new ConsoleTransport({
-          level: this.config.level
-        })
+          level: this.config.level,
+        }),
       );
     }
   }

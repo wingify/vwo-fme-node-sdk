@@ -76,7 +76,11 @@ export class SegmentEvaluator implements Segmentation {
     for (const dsl of dslNodes) {
       for (const key in dsl) {
         // Check for user agent related keys
-        if (key === SegmentOperatorValueEnum.OPERATING_SYSTEM || key === SegmentOperatorValueEnum.BROWSER_AGENT || key === SegmentOperatorValueEnum.DEVICE_TYPE) {
+        if (
+          key === SegmentOperatorValueEnum.OPERATING_SYSTEM ||
+          key === SegmentOperatorValueEnum.BROWSER_AGENT ||
+          key === SegmentOperatorValueEnum.DEVICE_TYPE
+        ) {
           isUaParser = true;
           const value = dsl[key];
 
@@ -87,7 +91,7 @@ export class SegmentEvaluator implements Segmentation {
           // Ensure value is treated as an array of strings
           const valuesArray = Array.isArray(value) ? value : [value];
           valuesArray.forEach((val: dynamic) => {
-            if (typeof val === "string") {
+            if (typeof val === 'string') {
               uaParserMap[key].push(val);
             }
           });
@@ -103,14 +107,14 @@ export class SegmentEvaluator implements Segmentation {
 
           if (featureIdValue === 'on') {
             const features = this.settings.getFeatures();
-            const feature = features.find(feature => feature.getId() === parseInt(featureIdKey));
+            const feature = features.find((feature) => feature.getId() === parseInt(featureIdKey));
 
             if (feature) {
               const featureKey = feature.getKey();
               const result = await this.checkInUserStorage(this.settings, featureKey, this.context);
               return result;
             } else {
-              console.error("Feature not found with featureIdKey:", featureIdKey);
+              console.error('Feature not found with featureIdKey:', featureIdKey);
               return null; // Handle the case when feature is not found
             }
           }
@@ -145,7 +149,11 @@ export class SegmentEvaluator implements Segmentation {
     const locationMap: Record<string, dynamic> = {};
     for (const dsl of dslNodes) {
       // Check if the DSL node contains location-related keys
-      if (dsl.hasOwnProperty(SegmentOperatorValueEnum.COUNTRY) || dsl.hasOwnProperty(SegmentOperatorValueEnum.REGION) || dsl.hasOwnProperty(SegmentOperatorValueEnum.CITY)) {
+      if (
+        dsl.hasOwnProperty(SegmentOperatorValueEnum.COUNTRY) ||
+        dsl.hasOwnProperty(SegmentOperatorValueEnum.REGION) ||
+        dsl.hasOwnProperty(SegmentOperatorValueEnum.CITY)
+      ) {
         this.addLocationValuesToMap(dsl, locationMap);
         // Check if the number of location keys matches the number of DSL nodes
         if (Object.keys(locationMap).length === dslNodes.length) {
@@ -187,12 +195,16 @@ export class SegmentEvaluator implements Segmentation {
    */
   async checkLocationPreSegmentation(locationMap: Record<string, dynamic>): Promise<boolean> {
     // Ensure user's IP address is available
-    if (this.context?.getIpAddress() === undefined){
+    if (this.context?.getIpAddress() === undefined) {
       LogManager.Instance.info('To evaluate location pre Segment, please pass ipAddress in context object');
       return false;
     }
     // Check if location data is available and matches the expected values
-    if (!this.context?.getVwo()?.getLocation() || this.context?.getVwo()?.getLocation() === undefined || this.context?.getVwo()?.getLocation() === null) {
+    if (
+      !this.context?.getVwo()?.getLocation() ||
+      this.context?.getVwo()?.getLocation() === undefined ||
+      this.context?.getVwo()?.getLocation() === null
+    ) {
       return false;
     }
     return this.valuesMatch(locationMap, this.context?.getVwo()?.getLocation());
@@ -205,7 +217,7 @@ export class SegmentEvaluator implements Segmentation {
    */
   async checkUserAgentParser(uaParserMap: Record<string, string[]>): Promise<boolean> {
     // Ensure user's user agent is available
-    if (!this.context?.getUserAgent() || this.context?.getUserAgent() === undefined){
+    if (!this.context?.getUserAgent() || this.context?.getUserAgent() === undefined) {
       LogManager.Instance.info('To evaluate user agent related segments, please pass userAgent in context object');
       return false;
     }
@@ -217,7 +229,6 @@ export class SegmentEvaluator implements Segmentation {
     return this.checkValuePresent(uaParserMap, this.context?.getVwo()?.getUaInfo());
   }
 
-
   /**
    * Checks if the feature is enabled for the user by querying the storage.
    * @param settings The settings model containing configuration.
@@ -228,7 +239,11 @@ export class SegmentEvaluator implements Segmentation {
   async checkInUserStorage(settings: SettingsModel, featureKey: string, context: ContextModel): Promise<any> {
     const storageService = new StorageService();
     // Retrieve feature data from storage
-    const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(featureKey, context, storageService);
+    const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(
+      featureKey,
+      context,
+      storageService,
+    );
 
     // Check if the stored data is an object and not empty
     if (isObject(storedData) && Object.keys(storedData).length > 0) {
@@ -252,14 +267,16 @@ export class SegmentEvaluator implements Segmentation {
 
         // Handle wildcard patterns for DEVICE_TYPE
         if (key === SegmentOperatorValueEnum.DEVICE_TYPE) {
-          const wildcardPatterns = expectedValues.filter(val => val.startsWith('wildcard(') && val.endsWith(')'));
+          const wildcardPatterns = expectedValues.filter((val) => val.startsWith('wildcard(') && val.endsWith(')'));
           if (wildcardPatterns.length > 0) {
             // Check if any wildcard pattern matches the actual value
-            if (wildcardPatterns.some(pattern => {
-              const wildcardPattern = pattern.slice(9, -1); // Extract pattern from wildcard string
-              const regex = new RegExp(wildcardPattern.replace(/\*/g, '.*')); // Convert wildcard pattern to regex
-              return regex.test(actualValue);
-            })) {
+            if (
+              wildcardPatterns.some((pattern) => {
+                const wildcardPattern = pattern.slice(9, -1); // Extract pattern from wildcard string
+                const regex = new RegExp(wildcardPattern.replace(/\*/g, '.*')); // Convert wildcard pattern to regex
+                return regex.test(actualValue);
+              })
+            ) {
               continue; // Value matches, continue to next key
             } else {
               return false; // No wildcard pattern matched, return false
@@ -309,6 +326,6 @@ export class SegmentEvaluator implements Segmentation {
       return null;
     }
     // Remove quotes and trim whitespace
-    return value.toString().replace(/^"|"$/g, "").trim();
+    return value.toString().replace(/^"|"$/g, '').trim();
   }
 }

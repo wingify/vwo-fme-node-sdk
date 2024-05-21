@@ -61,15 +61,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 `;
 let fsUtil = {
-  getAllDirectories: function(path) {
+  getAllDirectories: function (path) {
     if (!path) {
       return [];
     }
 
-    return fs.readdirSync(path).filter(out => out);
+    return fs.readdirSync(path).filter((out) => out);
   },
 
-  getAllFiles: function({ path, excludes, extensions, allFiles }) {
+  getAllFiles: function ({ path, excludes, extensions, allFiles }) {
     if (excludes.includes(path)) {
       return;
     } else if (fs.existsSync(path) && fs.lstatSync(path).isDirectory()) {
@@ -80,19 +80,19 @@ let fsUtil = {
           path: path + '/' + dirs[i],
           excludes,
           extensions,
-          allFiles
+          allFiles,
         });
       }
     }
 
-    if (fs.lstatSync(path).isFile() && extensions.some(ext => path.endsWith(ext))) {
+    if (fs.lstatSync(path).isFile() && extensions.some((ext) => path.endsWith(ext))) {
       allFiles.push(path);
     }
-  }
+  },
 };
 
 let checkLicenseUtil = {
-  readHeaderLines: function(path, stoppingCriteria) {
+  readHeaderLines: function (path, stoppingCriteria) {
     let headerLines = [];
 
     try {
@@ -122,7 +122,7 @@ let checkLicenseUtil = {
     return headerLines;
   },
 
-  checkLicense: function(lines, licenseHeaderLines) {
+  checkLicense: function (lines, licenseHeaderLines) {
     let list = [];
 
     for (let i = 0; i < licenseHeaderLines.length - 1; i++) {
@@ -135,10 +135,10 @@ let checkLicenseUtil = {
       list.push(isContainedInLicenseHEader);
     }
 
-    return list.every(val => val);
+    return list.every((val) => val);
   },
 
-  checkCopyright: function(lines, copyright) {
+  checkCopyright: function (lines, copyright) {
     let isCopyrightFound = false;
 
     for (let i = 0; i < lines.length; i++) {
@@ -153,13 +153,13 @@ let checkLicenseUtil = {
     return isCopyrightFound;
   },
 
-  checkLicenseAndCopyright: function({
+  checkLicenseAndCopyright: function ({
     author,
     year,
     paths,
     excludes,
     extensions,
-    stoppingCriteria = defaultStoppingCriteria
+    stoppingCriteria = defaultStoppingCriteria,
   }) {
     if (!paths || !year || !author || !extensions) {
       console.error(`${AnsiColorEnum.RED}${missingParamsMessage}${AnsiColorEnum.RESET}`);
@@ -184,7 +184,7 @@ let checkLicenseUtil = {
         path: paths[i],
         excludes,
         extensions,
-        allFiles: list
+        allFiles: list,
       });
 
       for (let j = 0; j < list.length; j++) {
@@ -196,24 +196,18 @@ let checkLicenseUtil = {
 
         hasCopyright = checkLicenseUtil.checkCopyright(headerLines, copyright);
         if (!hasCopyright) {
-          copyrightMessage = ` Copyright:${AnsiColorEnum.RESET} ${AnsiColorEnum.YELLOW}${notPresentMessage}${
-            AnsiColorEnum.RESET
-          }`;
+          copyrightMessage = ` Copyright:${AnsiColorEnum.RESET} ${AnsiColorEnum.YELLOW}${notPresentMessage}${AnsiColorEnum.RESET}`;
         }
 
         hasLicense = checkLicenseUtil.checkLicense(headerLines, licenseHeaderLines);
         if (!hasLicense) {
-          licenseMessage = ` License:${AnsiColorEnum.RESET} ${AnsiColorEnum.YELLOW}${notPresentMessage}${
-            AnsiColorEnum.RESET
-          }`;
+          licenseMessage = ` License:${AnsiColorEnum.RESET} ${AnsiColorEnum.YELLOW}${notPresentMessage}${AnsiColorEnum.RESET}`;
         }
 
         isLicenseAndCopyrightPresentInAllFiles = isLicenseAndCopyrightPresentInAllFiles && hasCopyright && hasLicense;
 
         if (!hasLicense || !hasCopyright) {
-          let output = `${AnsiColorEnum.BOLD}${AnsiColorEnum.CYAN}${list[j]}${
-            AnsiColorEnum.RESET
-          }${copyrightMessage} ${licenseMessage}`;
+          let output = `${AnsiColorEnum.BOLD}${AnsiColorEnum.CYAN}${list[j]}${AnsiColorEnum.RESET}${copyrightMessage} ${licenseMessage}`;
 
           console.log(output);
         }
@@ -229,7 +223,7 @@ let checkLicenseUtil = {
 
       return false;
     }
-  }
+  },
 };
 
 module.exports = checkLicenseUtil;

@@ -21,7 +21,7 @@ import { dynamic } from './types/Common';
 import { isObject, isString } from './utils/DataTypeUtil';
 import { Deferred } from './utils/PromiseUtil';
 
-import { ErrorLogMessageEnum } from './enums/log-messages/ErrorLogMessageEnum';
+import { InfoLogMessagesEnum, ErrorLogMessagesEnum } from './enums/log-messages';
 import { LogLevelEnum } from './packages/logger/enums/LogLevelEnum';
 import { Connector } from './packages/storage/Connector';
 import { buildMessage } from './utils/LogMessageUtil';
@@ -53,18 +53,18 @@ export class VWO {
     this.vwoBuilder = optionsVWOBuilder || new VWOBuilder(options);
 
     this.instance = this.vwoBuilder
-      .setLogger()           // Sets up logging for debugging and monitoring.
-      .setSettingsManager()  // Sets the settings manager for configuration management.
-      .setStorage()          // Configures storage for data persistence.
-      .setNetworkManager()   // Configures network management for API communication.
-      .setSegmentation()     // Sets up segmentation for targeted functionality.
+      .setLogger() // Sets up logging for debugging and monitoring.
+      .setSettingsManager() // Sets the settings manager for configuration management.
+      .setStorage() // Configures storage for data persistence.
+      .setNetworkManager() // Configures network management for API communication.
+      .setSegmentation() // Sets up segmentation for targeted functionality.
       // .initBatching()        // Initializes batching for bulk data processing.
-      .initPolling()         // Starts polling mechanism for regular updates.
-      // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
+      .initPolling(); // Starts polling mechanism for regular updates.
+    // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
 
     return this.vwoBuilder.getSettings().then((settings: SettingsModel) => {
       return this.vwoBuilder.build(settings); // Builds the VWO instance with the fetched settings.
-    })
+    });
   }
 
   /**
@@ -84,23 +84,33 @@ let _global: Record<string, any> = {};
  * @property {string} accountId - The account ID for the VWO account.
  * @property {GatewayServiceModel} gatewayService - The gateway service configuration.
  * @property {StorageService} storage - The storage configuration.
-* @returns
+ * @returns
  */
 
-export async function init(options: IVWOOptions): Promise<IVWOClient>{
+export async function init(options: IVWOOptions): Promise<IVWOClient> {
   const apiName = 'init';
+  const date = new Date().toISOString();
 
   try {
     if (!isObject(options)) {
-      console.error(`[ERROR]: VWO-SDK ${(new Date().toISOString())} Options should be of type object`); // Ensures options is an object.
+      const msg = buildMessage(ErrorLogMessagesEnum.INIT_OPTIONS_ERROR, {
+        date,
+      });
+      console.error(msg); // Ensures options is an object.
     }
 
     if (!options?.sdkKey || !isString(options?.sdkKey)) {
-      console.error(`[ERROR]: VWO-SDK ${(new Date().toISOString())} Please provide the sdkKey in the options and should be a of type string`); // Validates sdkKey presence and type.
+      const msg = buildMessage(ErrorLogMessagesEnum.INIT_OPTIONS_SDK_KEY_ERROR, {
+        date,
+      });
+      console.error(msg); // Validates sdkKey presence and type.
     }
 
     if (!options.accountId) {
-      console.error(`[ERROR]: VWO-SDK ${(new Date().toISOString())} Please provide VWO account ID in the options and should be a of type string|number`); // Validates accountId presence and type.
+      const msg = buildMessage(ErrorLogMessagesEnum.INIT_OPTIONS_ACCOUNT_ID_ERROR, {
+        date,
+      });
+      console.error(msg); // Validates accountId presence and type.
     }
 
     const instance: any = new VWO(options); // Creates a new VWO instance with the validated options.
@@ -108,23 +118,23 @@ export async function init(options: IVWOOptions): Promise<IVWOClient>{
     _global = {
       vwoInitDeferred: new Deferred(),
       isSettingsFetched: false,
-      instance: null
+      instance: null,
     };
 
     return instance.then((_vwoInstance) => {
       _global.isSettingsFetched = true;
       _global.instance = _vwoInstance;
       _global.vwoInitDeferred.resolve(_vwoInstance);
-      console.log('onReady resolved from init')
+
       return _vwoInstance;
     });
   } catch (err) {
-    const msg = buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
+    const msg = buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
       apiName,
-      err
+      err,
     });
 
-    console.info(`[INFO]: VWO-SDK ${(new Date().toISOString())} ${msg}`);
+    console.info(`[INFO]: VWO-SDK ${new Date().toISOString()} ${msg}`);
   }
 }
 
@@ -133,26 +143,36 @@ export async function onReady() {
 
   try {
     _global.vwoInitDeferred = new Deferred();
+    const date = new Date().toISOString();
 
     // If settings are already fetched, resolve the promise
     if (_global.isSettingsFetched) {
-      console.info(`[INFO]: VWO-SDK ${(new Date().toISOString())} onReady already resolved`);
+      const msg = buildMessage(InfoLogMessagesEnum.ON_READY_ALREADY_RESOLVED, {
+        date,
+        apiName,
+      });
+
+      console.info(msg);
       _global.vwoInitDeferred.resolve(_global.instance);
     } else {
       // wait for five seconds, else reject the promise
       setTimeout(() => {
-        console.error(`[INFO]: VWO-SDK ${(new Date().toISOString())} VWO settings could not be fetched`);
+        const msg = buildMessage(InfoLogMessagesEnum.ON_READY_SETTINGS_FAILED, {
+          date,
+        });
+
+        console.error(msg);
         _global.vwoInitDeferred.reject(new Error('VWO settings could not be fetched'));
       }, 5000);
     }
 
     return _global.vwoInitDeferred.promise;
   } catch (err) {
-    const msg = buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
+    const msg = buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
       apiName,
-      err
+      err,
     });
 
-    console.info(`[INFO]: VWO-SDK ${(new Date().toISOString())} ${msg}`);
+    console.info(`[INFO]: VWO-SDK ${new Date().toISOString()} ${msg}`);
   }
 }

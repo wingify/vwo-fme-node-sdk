@@ -22,7 +22,7 @@ import {
   getCurrentUnixTimestamp,
   getSpecificRulesBasedOnType,
   getAllExperimentRules,
-  addLinkedCampaignsToSettings
+  addLinkedCampaignsToSettings,
 } from '../../../lib/utils/FunctionUtil';
 
 describe('cloneObject', () => {
@@ -31,8 +31,8 @@ describe('cloneObject', () => {
       a: 1,
       b: {
         c: 2,
-        d: [3, 4, { e: 5 }]
-      }
+        d: [3, 4, { e: 5 }],
+      },
     };
     const clonedObj = cloneObject(obj);
     expect(clonedObj).toEqual(obj);
@@ -80,8 +80,8 @@ describe('getSpecificRulesBasedOnType', () => {
       key: 'feature1',
       rulesLinkedCampaign: [
         { type: CampaignTypeEnum.AB, id: 1 },
-        { type: CampaignTypeEnum.PERSONALIZE, id: 2 }
-      ]
+        { type: CampaignTypeEnum.PERSONALIZE, id: 2 },
+      ],
     };
     const featureModel = new FeatureModel().modelFromDictionary(feature);
     const result = getSpecificRulesBasedOnType(featureModel, CampaignTypeEnum.AB);
@@ -93,14 +93,14 @@ describe('getSpecificRulesBasedOnType', () => {
       key: 'feature1',
       rulesLinkedCampaign: [
         { type: CampaignTypeEnum.AB, id: 1 },
-        { type: CampaignTypeEnum.PERSONALIZE, id: 2 }
-      ]
+        { type: CampaignTypeEnum.PERSONALIZE, id: 2 },
+      ],
     };
     const featureModel = new FeatureModel().modelFromDictionary(feature);
     const result = getSpecificRulesBasedOnType(featureModel);
     expect(result).toEqual([
       { type: CampaignTypeEnum.AB, id: 1 },
-      { type: CampaignTypeEnum.PERSONALIZE, id: 2 }
+      { type: CampaignTypeEnum.PERSONALIZE, id: 2 },
     ]);
   });
 });
@@ -113,8 +113,8 @@ describe('getAllExperimentRules', () => {
       rulesLinkedCampaign: [
         { type: CampaignTypeEnum.AB, name: 'Rule 1' },
         { type: CampaignTypeEnum.PERSONALIZE, name: 'Rule 2' },
-        { type: 'OTHER', name: 'Rule 3' }
-      ]
+        { type: 'OTHER', name: 'Rule 3' },
+      ],
     };
     const featureModel = new FeatureModel().modelFromDictionary(feature);
     // Call the function
@@ -123,7 +123,7 @@ describe('getAllExperimentRules', () => {
     // Define expected result
     const expected = [
       { type: CampaignTypeEnum.AB, name: 'Rule 1' },
-      { type: CampaignTypeEnum.PERSONALIZE, name: 'Rule 2' }
+      { type: CampaignTypeEnum.PERSONALIZE, name: 'Rule 2' },
     ];
 
     // Assert the result
@@ -133,9 +133,7 @@ describe('getAllExperimentRules', () => {
   it('should return an empty array if no matching rules are found', () => {
     const feature: any = {
       key: 'feature1',
-      rulesLinkedCampaign: [
-        { type: 'OTHER', name: 'Rule 1' }
-      ]
+      rulesLinkedCampaign: [{ type: 'OTHER', name: 'Rule 1' }],
     };
 
     const featureModel = new FeatureModel().modelFromDictionary(feature);
@@ -147,8 +145,7 @@ describe('getAllExperimentRules', () => {
   });
 
   it('should return an empty array if the feature does not exist', () => {
-    const feature: any = {
-    };
+    const feature: any = {};
     const featuerModel = new FeatureModel().modelFromDictionary(feature);
 
     // Call the function
@@ -164,16 +161,16 @@ describe('addLinkedCampaignsToSettings', () => {
     const settings: any = {
       campaigns: [
         { id: 1, key: 'campaign1', variations: [{ id: 101, name: 'Variation A' }] },
-        { id: 2, key: 'campaign2', variations: [{ id: 102, name: 'Variation B' }] }
+        { id: 2, key: 'campaign2', variations: [{ id: 102, name: 'Variation B' }] },
       ],
       features: [
         {
           rules: [
             { campaignId: 1, variationId: 101 },
-            { campaignId: 2, variationId: 102 }
-          ]
-        }
-      ]
+            { campaignId: 2, variationId: 102 },
+          ],
+        },
+      ],
     };
 
     addLinkedCampaignsToSettings(settings);
@@ -184,30 +181,28 @@ describe('addLinkedCampaignsToSettings', () => {
       campaignId: 1,
       id: 1,
       variationId: 101,
-      variations: [{ id: 101, name: 'Variation A' }]
+      variations: [{ id: 101, name: 'Variation A' }],
     });
     expect(settings.features[0].rulesLinkedCampaign[1]).toEqual({
       key: 'campaign2',
       campaignId: 2,
       id: 2,
       variationId: 102,
-      variations: [{ id: 102, name: 'Variation B' }]
+      variations: [{ id: 102, name: 'Variation B' }],
     });
   });
 
   it('should handle cases where no valid campaign is found for a rule', () => {
     const settings: any = {
-      campaigns: [
-        { id: 1, key: 'campaign1', variations: [{ id: 101, name: 'Variation A' }] }
-      ],
+      campaigns: [{ id: 1, key: 'campaign1', variations: [{ id: 101, name: 'Variation A' }] }],
       features: [
         {
           rules: [
             { campaignId: 1, variationId: 101 },
-            { campaignId: 999, variationId: 999 } // Invalid campaign and variation
-          ]
-        }
-      ]
+            { campaignId: 999, variationId: 999 }, // Invalid campaign and variation
+          ],
+        },
+      ],
     };
 
     addLinkedCampaignsToSettings(settings);
@@ -218,7 +213,7 @@ describe('addLinkedCampaignsToSettings', () => {
       campaignId: 1,
       id: 1,
       variationId: 101,
-      variations: [{ id: 101, name: 'Variation A' }]
+      variations: [{ id: 101, name: 'Variation A' }],
     });
   });
 });

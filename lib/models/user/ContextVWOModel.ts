@@ -15,26 +15,25 @@
  */
 
 export class ContextVWOModel {
-    private location: Record<string, string>;
-    private userAgent: Record<string, string>;
-  
-    modelFromDictionary(context: Record<string, any>): this {
-      if (context?.location) {
-        this.location = context.location;
-      }
+  private location: Record<string, string>;
+  private userAgent: Record<string, string>;
 
-      if (context?.userAgent) {
-        this.userAgent = context.userAgent;
-      }
-      return this;
+  modelFromDictionary(context: Record<string, any>): this {
+    if (context?.location) {
+      this.location = context.location;
     }
 
-    getLocation(): Record<string, string> {
-        return this.location;
+    if (context?.userAgent) {
+      this.userAgent = context.userAgent;
     }
-
-    getUaInfo(): Record<string, string> {
-        return this.userAgent;
-    }
+    return this;
   }
-  
+
+  getLocation(): Record<string, string> {
+    return this.location;
+  }
+
+  getUaInfo(): Record<string, string> {
+    return this.userAgent;
+  }
+}

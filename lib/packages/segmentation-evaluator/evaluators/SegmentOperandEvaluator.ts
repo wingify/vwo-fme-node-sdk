@@ -34,7 +34,10 @@ export class SegmentOperandEvaluator {
    * @param {Record<string, dynamic>} properties - The properties object containing the actual values to be matched against.
    * @returns {Promise<boolean>} - A promise that resolves to a boolean indicating if the DSL condition is met.
    */
-  async evaluateCustomVariableDSL(dslOperandValue: Record<string, dynamic>, properties: Record<string, dynamic>): Promise <boolean> {
+  async evaluateCustomVariableDSL(
+    dslOperandValue: Record<string, dynamic>,
+    properties: Record<string, dynamic>,
+  ): Promise<boolean> {
     // Extract key and value from the DSL operand
     const { key, value } = getKeyValue(dslOperandValue);
     const operandKey = key;
@@ -60,7 +63,7 @@ export class SegmentOperandEvaluator {
       const listId = match[1];
       const queryParamsObj = {
         attribute: attributeValue,
-        listId: listId
+        listId: listId,
       };
 
       // Make a web service call to check the attribute against the list
@@ -71,7 +74,7 @@ export class SegmentOperandEvaluator {
         }
         return res;
       } catch (error) {
-        console.error("Error while fetching data:", error);
+        console.error('Error while fetching data:', error);
         return false;
       }
     } else {
@@ -190,7 +193,7 @@ export class SegmentOperandEvaluator {
     }
     return {
       operandType,
-      operandValue
+      operandValue,
     };
   }
 
@@ -219,7 +222,7 @@ export class SegmentOperandEvaluator {
     if (!processedOperandValue || !processedTagValue) {
       return {
         operandValue: operandValue,
-        tagValue: tagValue
+        tagValue: tagValue,
       };
     }
     // now we have surity that both are numbers
@@ -234,7 +237,7 @@ export class SegmentOperandEvaluator {
     // Convert numeric values back to strings
     return {
       operandValue: processedOperandValue.toString(),
-      tagValue: processedTagValue.toString()
+      tagValue: processedTagValue.toString(),
     };
   }
 

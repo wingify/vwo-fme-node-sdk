@@ -27,7 +27,7 @@ describe('VWOClient trackEvent method', () => {
     options = {
       sdkKey: 'sdk-key',
       accountId: 'account-id',
-      vwoBuilder // pass only for E2E tests
+      vwoBuilder, // pass only for E2E tests
     };
   });
 

@@ -23,5 +23,5 @@ export enum UrlEnum {
   BATCH_EVENTS = '/server-side/batch-events',
   EVENTS = '/events/t',
   ATTRIBUTE_CHECK = '/attributes/check',
-  GET_USER_DATA = '/getUserData'
+  GET_USER_DATA = '/getUserData',
 }

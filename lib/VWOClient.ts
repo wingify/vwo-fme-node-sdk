@@ -20,10 +20,9 @@ import { FlagApi } from './api/GetFlag';
 import { SetAttributeApi } from './api/SetAttribute';
 import { TrackApi } from './api/TrackEvent';
 
-import { DebugLogMessageEnum } from './enums/log-messages/DebugLogMessageEnum';
+import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';
 import { SettingsModel } from './models/settings/SettingsModel';
 
-import { ErrorLogMessageEnum } from './enums/log-messages/ErrorLogMessageEnum';
 import { dynamic } from './types/Common';
 // import { BatchEventsQueue } from './services/batchEventsQueue';
 
@@ -44,8 +43,12 @@ export interface IVWOClient {
 
   // getSettings(force: boolean): SettingsModel | Promise<SettingsModel>;
   getFlag(featureKey: string, context: Record<string, any>): Record<any, any>;
-  trackEvent(eventName: string, eventProperties: Record<string, dynamic>, context:  Record<string, any>): Promise<Record<string, boolean>>;
-  setAttribute(attributeKey: string, attributeValue: string, context:  Record<string, any>): void
+  trackEvent(
+    eventName: string,
+    eventProperties: Record<string, dynamic>,
+    context: Record<string, any>,
+  ): Promise<Record<string, boolean>>;
+  setAttribute(attributeKey: string, attributeValue: string, context: Record<string, any>): void;
 }
 
 export class VWOClient implements IVWOClient {
@@ -53,10 +56,7 @@ export class VWOClient implements IVWOClient {
   originalSettings: Record<any, any>;
   storage: Storage;
 
-  constructor(
-    settings: SettingsModel,
-    options: any
-  ) {
+  constructor(settings: SettingsModel, options: any) {
     this.options = options;
     this.settings = new SettingsModel(settings);
     this.originalSettings = settings;
@@ -75,7 +75,7 @@ export class VWOClient implements IVWOClient {
     });
     addLinkedCampaignsToSettings(this.settings);
     addIsGatewayServiceRequiredFlag(this.settings);
-    LogManager.Instance.info('VWO Client initialized');
+    LogManager.Instance.info(InfoLogMessagesEnum.CLIENT_INITIALIZED);
     return this;
   }
   options?: Record<string, any>;
@@ -93,14 +93,14 @@ export class VWOClient implements IVWOClient {
     const errorReturnSchema = {
       isEnabled: (): boolean => false,
       getVariables: (): Array<Record<string, dynamic>> => [],
-      getVariable: (_key: string, defaultValue: any): dynamic => defaultValue
+      getVariable: (_key: string, defaultValue: any): dynamic => defaultValue,
     };
 
     try {
       const hookManager = new HooksManager(this.options);
 
       LogManager.Instance.debug(
-        buildMessage(DebugLogMessageEnum.API_CALLED, {
+        buildMessage(DebugLogMessagesEnum.API_CALLED, {
           apiName,
         }),
       );
@@ -108,21 +108,27 @@ export class VWOClient implements IVWOClient {
       // Validate featureKey is a string
       if (!isString(featureKey)) {
         LogManager.Instance.error(
-          `featureKey passed to ${apiName} API is not of valid type. Got ${getType(featureKey)}`,
+          buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
+            apiName,
+            key: 'featureKey',
+            type: getType(featureKey),
+            correctType: 'string',
+          }),
         );
+
         throw new TypeError('TypeError: featureKey should be a string');
       }
 
       // Validate settings are loaded and valid
       if (!new SettingsSchema().isSettingsValid(this.originalSettings)) {
-        LogManager.Instance.error(`Settings are not valid. Contact VWO Support.`);
+        LogManager.Instance.error(ErrorLogMessagesEnum.API_SETTING_INVALID);
         throw new Error('TypeError: Invalid Settings');
       }
 
       // Validate user ID is present in context
       if (!context || !context.id) {
-        LogManager.Instance.error(`Context doesn't have a valid User ID.`);
-        throw new Error('TypeError: Invalid context');
+        LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+        throw new TypeError('TypeError: Invalid context');
       }
 
       const contextModel = new ContextModel().modelFromDictionary(context);
@@ -134,10 +140,10 @@ export class VWOClient implements IVWOClient {
         })
         .catch((_err: any) => {
           deferredObject.resolve(errorReturnSchema);
-        })
+        });
     } catch (err) {
       LogManager.Instance.info(
-        buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
+        buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
           apiName,
           err,
         }),
@@ -161,7 +167,7 @@ export class VWOClient implements IVWOClient {
   trackEvent(
     eventName: string,
     eventProperties: Record<string, dynamic> = {},
-    context:  Record<string, any>,
+    context: Record<string, any>,
   ): Promise<Record<string, boolean>> {
     const apiName = 'trackEvent';
     const deferredObject = new Deferred();
@@ -171,55 +177,72 @@ export class VWOClient implements IVWOClient {
 
       // Log the API call
       LogManager.Instance.debug(
-        buildMessage(DebugLogMessageEnum.API_CALLED, {
+        buildMessage(DebugLogMessagesEnum.API_CALLED, {
           apiName,
         }),
       );
 
       // Validate eventName is a string
       if (!isString(eventName)) {
-        LogManager.Instance.error(`eventName passed to track API is not of valid type. Got ${getType(eventName)}`);
+        LogManager.Instance.error(
+          buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
+            apiName,
+            key: 'eventName',
+            type: getType(eventName),
+            correctType: 'string',
+          }),
+        );
+
         throw new TypeError('TypeError: Event-name should be a string');
       }
 
       // Validate eventProperties is an object
       if (!isObject(eventProperties)) {
         LogManager.Instance.error(
-          `eventProperties passed to track API is not of valid type. Got ${getType(eventProperties)}`,
+          buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
+            apiName,
+            key: 'featureKey',
+            type: getType(eventProperties),
+            correctType: 'object',
+          }),
         );
+
         throw new TypeError('TypeError: eventProperties should be an object');
       }
 
       // Validate settings are loaded and valid
       if (!new SettingsSchema().isSettingsValid(this.originalSettings)) {
-        LogManager.Instance.error(`Settings are not valid. Contact VWO Support.`);
+        LogManager.Instance.error(ErrorLogMessagesEnum.API_SETTING_INVALID);
         throw new Error('TypeError: Invalid Settings');
       }
 
       // Validate user ID is present in context
       if (!context || !context.id) {
-        LogManager.Instance.error(`Context doesn't have a valid User ID.`);
-        throw new Error('TypeError: Invalid context');
+        LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+        throw new TypeError('TypeError: Invalid context');
       }
 
       const contextModel = new ContextModel().modelFromDictionary(context);
 
       // Proceed with tracking the event
-      new TrackApi().track(this.settings, eventName, eventProperties, contextModel, hookManager).then(data => {
-        deferredObject.resolve(data);
-      }).catch((_err: any) => {
-        deferredObject.resolve({[eventName]: false});
-      });
+      new TrackApi()
+        .track(this.settings, eventName, eventProperties, contextModel, hookManager)
+        .then((data) => {
+          deferredObject.resolve(data);
+        })
+        .catch((_err: any) => {
+          deferredObject.resolve({ [eventName]: false });
+        });
     } catch (err) {
       // Log any errors encountered during the operation
       LogManager.Instance.info(
-        buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
+        buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
           apiName,
           err,
         }),
       );
 
-      deferredObject.resolve({[eventName]: false});
+      deferredObject.resolve({ [eventName]: false });
     }
 
     return deferredObject.promise;
@@ -233,31 +256,47 @@ export class VWOClient implements IVWOClient {
    * @param {string} attributeValue - The value of the attribute to set.
    * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
    */
-  setAttribute(attributeKey: string, attributeValue: string, context:  Record<string, any>): void {
+  setAttribute(attributeKey: string, attributeValue: string, context: Record<string, any>): void {
     const apiName = 'setAttribute';
 
     try {
       // Log the API call
       LogManager.Instance.debug(
-        buildMessage(DebugLogMessageEnum.API_CALLED, {
+        buildMessage(DebugLogMessagesEnum.API_CALLED, {
           apiName,
         }),
       );
 
       // Validate attributeKey is a string
       if (!isString(attributeKey)) {
-        LogManager.Instance.error(`attributeKey passed to track API is not of valid type. Got ${getType(attributeKey)}`);
+        LogManager.Instance.error(
+          buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
+            apiName,
+            key: 'attributeKey',
+            type: getType(attributeKey),
+            correctType: 'string',
+          }),
+        );
+
         throw new TypeError('TypeError: attributeKey should be a string');
       }
       // Validate attributeValue is a string
       if (!isString(attributeValue)) {
-        LogManager.Instance.error(`attributeValue passed to track API is not of valid type. Got ${getType(attributeValue)}`);
+        LogManager.Instance.error(
+          buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
+            apiName,
+            key: 'attributeValue',
+            type: getType(attributeValue),
+            correctType: 'string',
+          }),
+        );
+
         throw new TypeError('TypeError: attributeValue should be a string');
       }
 
       // Validate user ID is present in context
       if (!context || !context.id) {
-        LogManager.Instance.error(`Context doesn't have a valid User ID`);
+        LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
         throw new TypeError('TypeError: Invalid context');
       }
 
@@ -268,7 +307,7 @@ export class VWOClient implements IVWOClient {
     } catch (err) {
       // Log any errors encountered during the operation
       LogManager.Instance.info(
-        buildMessage(ErrorLogMessageEnum.API_THROW_ERROR, {
+        buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
           apiName,
           err,
         }),

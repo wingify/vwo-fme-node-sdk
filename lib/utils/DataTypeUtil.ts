@@ -148,39 +148,39 @@ export function getType(val: dynamic): string {
   // Check if the value is an Object (excluding arrays, functions, etc.)
   return isObject(val)
     ? 'Object'
-    // Check if the value is an Array
-    : isArray(val)
+    : // Check if the value is an Array
+      isArray(val)
       ? 'Array'
-      // Check if the value is null
-      : isNull(val)
+      : // Check if the value is null
+        isNull(val)
         ? 'Null'
-        // Check if the value is undefined
-        : isUndefined(val)
+        : // Check if the value is undefined
+          isUndefined(val)
           ? 'Undefined'
-          // Check if the value is NaN (Not a Number)
-          : isNaN(val)
+          : // Check if the value is NaN (Not a Number)
+            isNaN(val)
             ? 'NaN'
-            // Check if the value is a Number (including NaN)
-            : isNumber(val)
+            : // Check if the value is a Number (including NaN)
+              isNumber(val)
               ? 'Number'
-              // Check if the value is a String
-              : isString(val)
+              : // Check if the value is a String
+                isString(val)
                 ? 'String'
-                // Check if the value is a Boolean
-                : isBoolean(val)
+                : // Check if the value is a Boolean
+                  isBoolean(val)
                   ? 'Boolean'
-                  // Check if the value is a Date object
-                  : isDate(val)
+                  : // Check if the value is a Date object
+                    isDate(val)
                     ? 'Date'
-                    // Check if the value is a Regular Expression
-                    : isRegex(val)
+                    : // Check if the value is a Regular Expression
+                      isRegex(val)
                       ? 'Regex'
-                      // Check if the value is a Function
-                      : isFunction(val)
+                      : // Check if the value is a Function
+                        isFunction(val)
                         ? 'Function'
-                        // Check if the value is a Promise
-                        : isPromise(val)
+                        : // Check if the value is a Promise
+                          isPromise(val)
                           ? 'Promise'
-                          // If none of the above, return 'Unknown Type'
-                          : 'Unknown Type';
+                          : // If none of the above, return 'Unknown Type'
+                            'Unknown Type';
 }

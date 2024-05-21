@@ -15,27 +15,23 @@
  */
 import { dynamic } from './types/Common';
 
-import { LogManager, ILogManager } from './packages/logger';
+import { ILogManager, LogManager } from './packages/logger';
 import { NetworkManager } from './packages/network-layer';
 import { SegmentationManager } from './packages/segmentation-evaluator';
 
 import { Storage } from './packages/storage';
 
-import { VWOClient, IVWOClient } from './VWOClient';
+import { IVWOClient, VWOClient } from './VWOClient';
 import { SettingsModel } from './models/settings/SettingsModel';
 import { SettingsManager } from './services/SettingsManager';
-// import { BatchEventsQueue } from './services/batchEventsQueue';
-// import { DimensionModel } from './types/types';
-import { Constants } from './constants';
-// import { AnalyticsEvent } from './services/analyticsEvent';
 
-import { Deferred } from './utils/PromiseUtil';
-// import { getRandomUUID } from './utils/UuidUtil';
-import { LogLevelEnum } from './enums/LogLevelEnum';
-import { isBoolean, isFunction, isNumber, isObject } from './utils/DataTypeUtil';
+import { DebugLogMessagesEnum, InfoLogMessagesEnum, ErrorLogMessagesEnum } from './enums/log-messages';
+import { IVWOOptions } from './models/VWOOptionsModel';
+import { isNumber } from './utils/DataTypeUtil';
 import { cloneObject } from './utils/FunctionUtil';
+import { buildMessage } from './utils/LogMessageUtil';
+import { Deferred } from './utils/PromiseUtil';
 import { getRandomUUID } from './utils/UuidUtil';
-import { IVWOOptions, VWOOptionsModel } from './models/VWOOptionsModel';
 
 export interface IVWOBuilder {
   settings: SettingsModel; // Holds the configuration settings for the VWO client
@@ -50,9 +46,9 @@ export interface IVWOBuilder {
   getSettings(force: boolean): Promise<dynamic>; // Fetches settings, optionally forcing a refresh
   setStorage(): this; // Sets up the storage connector based on provided options
   setNetworkManager(): this; // Configures the network manager with client and mode
-  initBatching(): this; // Initializes event batching with provided configuration
+  // initBatching(): this; // Initializes event batching with provided configuration
+  // setAnalyticsCallback(): this; // Configures the analytics callback based on provided options
   initPolling(): this; // Sets up polling for settings at a specified interval
-  setAnalyticsCallback(): this; // Configures the analytics callback based on provided options
   setLogger(): this; // Sets up the logger with specified options
   setSegmentation(): this; // Configures the segmentation evaluator with provided options
 }
@@ -82,7 +78,11 @@ export class VWOBuilder implements IVWOBuilder {
     // Attach the network client from options
     networkInstance.attachClient(this.options?.network?.client);
 
-    LogManager.Instance.debug(`VWO Network Layer attached`);
+    LogManager.Instance.debug(
+      buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+        service: `Network Layer`,
+      }),
+    );
     // Set the development mode based on options
     networkInstance.getConfig().setDevelopmentMode(this.options?.isDevelopmentMode);
     return this;
@@ -94,6 +94,11 @@ export class VWOBuilder implements IVWOBuilder {
    */
   setSegmentation(): this {
     SegmentationManager.Instance.attachEvaluator(this.options?.segmentation);
+    LogManager.Instance.debug(
+      buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+        service: `Segmentation Evaluator`,
+      }),
+    );
     return this;
   }
 
@@ -179,8 +184,12 @@ export class VWOBuilder implements IVWOBuilder {
    * @returns {this} The instance of this builder.
    */
   setLogger(): this {
-    this.logManager = new LogManager(
-      this.options.logger || {}
+    this.logManager = new LogManager(this.options.logger || {});
+
+    LogManager.Instance.debug(
+      buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+        service: `Logger`,
+      }),
     );
     return this;
   }
@@ -189,7 +198,7 @@ export class VWOBuilder implements IVWOBuilder {
    * Sets the analytics callback with the provided analytics options.
    * @returns {this} The instance of this builder.
    */
-  setAnalyticsCallback(): this {
+  /* setAnalyticsCallback(): this {
     if (!isObject(this.options.analyticsEvent)) {
       // TODO: add logging here
       return this;
@@ -213,18 +222,29 @@ export class VWOBuilder implements IVWOBuilder {
     //   this.options.analyticsEvent.isBatchingSupported
     // );
     return this;
-  }
+  } */
 
   /**
    * Generates a random user ID based on the provided API key.
    * @returns {string} The generated random user ID.
    */
   getRandomUserId(): string {
+    const apiName = 'getRandomUserId';
     try {
-      LogManager.Instance.debug('API - getRandomUserId was called');
+      LogManager.Instance.debug(
+        buildMessage(DebugLogMessagesEnum.API_CALLED, {
+          apiName,
+        }),
+      );
+
       return getRandomUUID(this.options.apiKey);
     } catch (err) {
-      LogManager.Instance.error(`Random User ID could be generated. ${err}`);
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
+          apiName,
+          err,
+        }),
+      );
     }
   }
 
@@ -232,7 +252,7 @@ export class VWOBuilder implements IVWOBuilder {
    * Initializes the batching with the provided batch events options.
    * @returns {this} The instance of this builder.
    */
-  initBatching(): this {
+  /* initBatching(): this {
     if (!isObject(this.options.batchEvents)) {
       // TODO:- add logging here
       return this;
@@ -256,7 +276,7 @@ export class VWOBuilder implements IVWOBuilder {
     // BatchEventsQueue.Instance.setBatchConfig(this.options.batchEvents, this.options.apiKey); // TODO
 
     return this;
-  }
+  } */
 
   /**
    * Initializes the polling with the provided poll interval.
@@ -268,13 +288,22 @@ export class VWOBuilder implements IVWOBuilder {
     }
 
     if (this.options.pollInterval && !isNumber(this.options.pollInterval)) {
-      LogManager.Instance.error('Invalid pollInterval passed in options');
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.INIT_OPTIONS_INVALID, {
+          key: 'pollInterval',
+          correctType: 'number',
+        }),
+      );
       return this;
     }
 
-    if (this.options.pollInterval && this.options.pollInterval < 0) {
-      // TODO: Add logging here
-      LogManager.Instance.error('Poll interval should be greater than 1');
+    if (this.options.pollInterval && this.options.pollInterval < 1000) {
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.INIT_OPTIONS_INVALID, {
+          key: 'pollInterval',
+          correctType: 'number',
+        }),
+      );
       return this;
     }
 
@@ -306,15 +335,14 @@ export class VWOBuilder implements IVWOBuilder {
           if (stringifiedLatestSettings !== lastSettings) {
             this.originalSettings = latestSettings;
             const clonedSettings = cloneObject(latestSettings);
-            // TODO: Add Logging:- Settings file updated
+            LogManager.Instance.info(InfoLogMessagesEnum.POLLING_SET_SETTINGS);
             this.build(clonedSettings);
           } else {
-            // TODO: add logging that settings are same
+            LogManager.Instance.info(InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
           }
         })
         .catch(() => {
-          // TODO:- Add logging:- Polling failed
-          LogManager.Instance.error('Error while fetching VWO settings with polling');
+          LogManager.Instance.error(ErrorLogMessagesEnum.POLLING_FETCH_SETTINGS_FAILED);
         });
     }, pollingInterval);
   }

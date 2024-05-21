@@ -17,13 +17,15 @@ import { DecisionMaker } from '../packages/decision-maker';
 import { LogManager } from '../packages/logger';
 import { SegmentationManager } from '../packages/segmentation-evaluator';
 
-import { VariationModel } from '../models/campaign/VariationModel';
 import { Constants } from '../constants';
+import { VariationModel } from '../models/campaign/VariationModel';
 
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
+import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import { CampaignModel } from '../models/campaign/CampaignModel';
-import { isObject } from '../utils/DataTypeUtil';
 import { ContextModel } from '../models/user/ContextModel';
+import { isObject } from '../utils/DataTypeUtil';
+import { buildMessage } from '../utils/LogMessageUtil';
 
 interface ICampaignDecisionService {
   isUserPartOfCampaign(userId: any, campaign: CampaignModel): boolean;
@@ -60,7 +62,11 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     const valueAssignedToUser = new DecisionMaker().getBucketValueForUser(`${campaign.getId()}_${userId}`);
     const isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
 
-    LogManager.Instance.debug(`user:${userId} part of campaign ${campaign.getKey()} ? ${isUserPart}`);
+    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
+      userId,
+      notPart: isUserPart ? '' : 'not',
+      campaignKey: campaign.getKey()
+    }));
 
     return isUserPart;
   }
@@ -100,22 +106,26 @@ export class CampaignDecisionService implements ICampaignDecisionService {
    */
   bucketUserToVariation(userId: any, accountId: any, campaign: CampaignModel): VariationModel {
     let multiplier;
-    // if (!ValidateUtil.isValidValue(userId)) {
-    //   return null;
-    // }
 
     if (!campaign || !userId) {
       return null;
     }
+
     if (campaign.getTraffic()) {
       multiplier = 1;
     }
+
     const percentTraffic = campaign.getTraffic();
     const hashValue = new DecisionMaker().generateHashValue(`${campaign.getId()}_${accountId}_${userId}`);
     const bucketValue = new DecisionMaker().generateBucketValue(hashValue, Constants.MAX_TRAFFIC_VALUE, multiplier);
-    LogManager.Instance.debug(
-      `user:${userId} for campaign:${campaign.getKey()} having percenttraffic:${percentTraffic} got bucketValue as ${bucketValue} and hashvalue:${hashValue}`,
-    );
+
+    LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
+      userId,
+      campaignKey: campaign.getKey(),
+      percentTraffic,
+      bucketValue,
+      hashValue
+    }));
 
     return this.getVariation(campaign.getVariations(), bucketValue);
   }
@@ -131,24 +141,35 @@ export class CampaignDecisionService implements ICampaignDecisionService {
       segments = campaign.getSegments();
     }
     if (isObject(segments) && !Object.keys(segments).length) {
-      LogManager.Instance.debug(
-        `For userId:${
-          context.getId()
-        } of Campaign:${campaign.getKey()}, segments was missing. Hence, skipping segmentation`
-      );
+
+      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_SKIP, {
+        userId: context.getId(),
+        campaignKey: campaign.getKey()
+      }));
 
       return true;
     } else {
       const preSegmentationResult = await SegmentationManager.Instance.validateSegmentation(
         segments,
-        context.getCustomVariables()
+        context.getCustomVariables(),
       );
 
       if (!preSegmentationResult) {
-        LogManager.Instance.info(`Segmentation failed for userId:${context.getId()} of Campaign:${campaign.getKey()}`);
+        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
+          userId: context.getId(),
+          campaignKey: campaign.getKey(),
+          status: 'failed'
+        }));
+
         return false;
       }
-      LogManager.Instance.info(`Segmentation passed for userId:${context.getId()} of Campaign:${campaign.getKey()}`);
+
+      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
+        userId: context.getId(),
+        campaignKey: campaign.getKey(),
+        status: 'passed'
+      }));
+
       return true;
     }
   }

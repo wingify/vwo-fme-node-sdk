@@ -26,5 +26,5 @@ export enum SegmentOperatorValueEnum {
   DEVICE_TYPE = 'device_type',
   BROWSER_AGENT = 'browser_string',
   UA = 'ua',
-  FEATURE_ID = 'featureId'
+  FEATURE_ID = 'featureId',
 }

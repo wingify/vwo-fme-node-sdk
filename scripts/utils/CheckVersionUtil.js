@@ -26,7 +26,7 @@ const AnsiColorEnum = {
   RED: '\x1b[31m',
   RESET: '\x1b[0m',
   WHITE: '\x1b[30m',
-  YELLOW: '\x1b[33m'
+  YELLOW: '\x1b[33m',
 };
 
 const versionRequirements = [];
@@ -40,21 +40,21 @@ function getWarnings(mods) {
     versionRequirements.push({
       name: 'node',
       currentVersion: semver.clean(process.version),
-      versionRequirement: packageConfig.engines.node
+      versionRequirement: packageConfig.engines.node,
     });
   }
   if (mods.indexOf('node_lint') !== -1 && ShellUtil.shell.which('node')) {
     versionRequirements.push({
       name: 'node',
       currentVersion: semver.clean(process.version),
-      versionRequirement: packageConfig.engines.node_lint
+      versionRequirement: packageConfig.engines.node_lint,
     });
   }
   if (mods.indexOf('yarn') !== -1 && ShellUtil.shell.which('yarn')) {
     versionRequirements.push({
       name: 'yarn',
       currentVersion: ShellUtil.exec('yarn --version'),
-      versionRequirement: packageConfig.engines.yarn
+      versionRequirement: packageConfig.engines.yarn,
     });
   }
 
@@ -65,9 +65,7 @@ function getWarnings(mods) {
 
     if (!semver.satisfies(mod.currentVersion, mod.versionRequirement)) {
       warnings.push(
-        `${mod.name}: ${AnsiColorEnum.RED}${mod.currentVersion}${AnsiColorEnum.RESET} should be ${AnsiColorEnum.GREEN}${
-          mod.versionRequirement
-        }${AnsiColorEnum.RESET}`
+        `${mod.name}: ${AnsiColorEnum.RED}${mod.currentVersion}${AnsiColorEnum.RESET} should be ${AnsiColorEnum.GREEN}${mod.versionRequirement}${AnsiColorEnum.RESET}`,
       );
     }
   }
@@ -84,9 +82,7 @@ function verify(mods) {
   if (warnings.length) {
     console.log('');
     console.log(
-      `${AnsiColorEnum.YELLOW}To contribute in VWO SDK development, you must update the following to:${
-        AnsiColorEnum.RESET
-      }`
+      `${AnsiColorEnum.YELLOW}To contribute in VWO SDK development, you must update the following to:${AnsiColorEnum.RESET}`,
     );
     console.log();
     for (let i = 0; i < warnings.length; i++) {
@@ -101,5 +97,5 @@ function verify(mods) {
 
 module.exports = {
   verify,
-  getWarnings
+  getWarnings,
 };

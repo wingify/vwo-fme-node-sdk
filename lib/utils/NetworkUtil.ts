@@ -19,13 +19,14 @@ import { getUUID } from './UuidUtil';
 import { Constants } from '../constants';
 import { HeadersEnum } from '../enums/HeadersEnum';
 import { UrlEnum } from '../enums/UrlEnum';
+import { DebugLogMessagesEnum, ErrorLogMessagesEnum } from '../enums/log-messages';
+import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
 import UrlService from '../services/UrlService';
 import { dynamic } from '../types/Common';
 import { isObject } from './DataTypeUtil';
-import { SettingsModel } from '../models/settings/SettingsModel';
-
+import { buildMessage } from './LogMessageUtil';
 
 /**
  * Constructs base properties for bulk operations.
@@ -101,7 +102,12 @@ export function getEventBatchingQueryParams(accountId: string): Record<string, d
  * @param {String} eventName
  * @returns properties
  */
-export function getEventsBaseProperties(setting: SettingsModel, eventName: string, visitorUserAgent: string = '', ipAddress: string = ''): any {
+export function getEventsBaseProperties(
+  setting: SettingsModel,
+  eventName: string,
+  visitorUserAgent: string = '',
+  ipAddress: string = '',
+): any {
   const sdkKey = setting.getSdkkey();
 
   const properties = Object.assign({
@@ -126,7 +132,13 @@ export function getEventsBaseProperties(setting: SettingsModel, eventName: strin
  * @param {String} eventName  event name
  * @returns properties
  */
-export function _getEventBasePayload(settings: SettingsModel, userId: string | number, eventName: string, visitorUserAgent = '', ipAddress = '') {
+export function _getEventBasePayload(
+  settings: SettingsModel,
+  userId: string | number,
+  eventName: string,
+  visitorUserAgent = '',
+  ipAddress = '',
+) {
   const uuid = getUUID(userId.toString(), settings.getAccountId());
   const sdkKey = settings.getSdkkey();
 
@@ -191,9 +203,11 @@ export function getTrackUserPayloadData(
   properties.d.event.props.variation = variationId;
   properties.d.event.props.isFirst = 1;
 
-  LogManager.Instance.debug(
-    `IMPRESSION_FOR_EVENT_ARCH_TRACK_USER: Impression built for vwo_variationShown event for Account ID:${settings.getAccountId()}, User ID:${userId}, and Campaign ID:${campaignId}`,
-  );
+  LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    accountId: settings.getAccountId(),
+    userId,
+    campaignId
+  }));
 
   return properties;
 }
@@ -228,9 +242,11 @@ export function getTrackGoalPayloadData(
     }
   }
 
-  LogManager.Instance.debug(
-    `IMPRESSION_FOR_EVENT_ARCH_TRACK_GOAL: Impression built for ${eventName} event for Account ID:${settings.getAccountId()}, User ID:${userId}`,
-  );
+  LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    eventName,
+    accountId: settings.getAccountId(),
+    userId
+  }));
 
   return properties;
 }
@@ -261,9 +277,11 @@ export function getAttributePayloadData(
   properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
   properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
 
-  LogManager.Instance.debug(
-    `IMPRESSION_FOR_EVENT_ARCH_SYNC_VISITOR_PROP: Impression built for ${eventName} event for Account ID:${settings.getAccountId()}, User ID:${userId}`,
-  );
+  LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    eventName,
+    accountId: settings.getAccountId(),
+    userId
+  }));
 
   return properties;
 }
@@ -297,7 +315,10 @@ export function sendPostApiRequest(properties: any, payload: any) {
   );
 
   NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
-    LogManager.Instance.error('Error in getting data from storage. Error:' + err);
+    LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+      method: 'POST',
+      err
+    }));
   });
 }
 
@@ -323,7 +344,10 @@ export async function sendGetApiRequest(properties: any, endpoint: any): Promise
     const response: ResponseModel = await NetworkManager.Instance.get(request);
     return response; // Return the response model
   } catch (err) {
-    console.error('Error occurred while sending GET request:', err);
+    LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+      method: 'GET',
+      err
+    }));
     return null;
   }
 }

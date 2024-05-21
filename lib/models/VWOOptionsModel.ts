@@ -14,54 +14,54 @@
  * limitations under the License.
  */
 
-import { Connector } from "../packages/storage/Connector";
-import { IVWOBuilder } from "../VWOBuilder";
-import { IGatewayService } from "./GatewayServiceModel";
+import { Connector } from '../packages/storage/Connector';
+import { IVWOBuilder } from '../VWOBuilder';
+import { IGatewayService } from './GatewayServiceModel';
 export interface IVWOOptions {
-    accountId: string;
-    sdkKey: string;
-    storage?: Connector | {};
-    gatewayService?: IGatewayService;
-    vwoBuilder?: IVWOBuilder;
+  accountId: string;
+  sdkKey: string;
+  storage?: Connector | {};
+  gatewayService?: IGatewayService;
+  vwoBuilder?: IVWOBuilder;
 }
 
-export class VWOOptionsModel implements IVWOOptions{
-    accountId: string;
-    sdkKey: string;
-    storage?: Connector | {};
-    gatewayService?: IGatewayService;
-    vwoBuilder?: IVWOBuilder;
+export class VWOOptionsModel implements IVWOOptions {
+  accountId: string;
+  sdkKey: string;
+  storage?: Connector | {};
+  gatewayService?: IGatewayService;
+  vwoBuilder?: IVWOBuilder;
 
-    modelFromDictionary(options: VWOOptionsModel): this {
-        this.accountId = options.accountId;
-        this.sdkKey = options.sdkKey;
-        this.vwoBuilder = options.vwoBuilder;
-        if (options?.storage) {
-            this.storage = options.storage;
-        }
-        if (options?.gatewayService) {
-            this.gatewayService = options.gatewayService;
-        }
-        return this;
+  modelFromDictionary(options: VWOOptionsModel): this {
+    this.accountId = options.accountId;
+    this.sdkKey = options.sdkKey;
+    this.vwoBuilder = options.vwoBuilder;
+    if (options?.storage) {
+      this.storage = options.storage;
     }
-
-    getAccountId(): string {
-        return this.accountId;
+    if (options?.gatewayService) {
+      this.gatewayService = options.gatewayService;
     }
-
-    getSdkKey(): string {
-        return this.sdkKey;
-    }
-
-    getStorageService(): Connector | {} {
-        return this.storage;
-    }
-
-    getGatewayService(): IGatewayService {
-        return this.gatewayService;
-    }
-
-    getVWOBuilder(): IVWOBuilder {
-        return this.vwoBuilder;
-    }
+    return this;
   }
+
+  getAccountId(): string {
+    return this.accountId;
+  }
+
+  getSdkKey(): string {
+    return this.sdkKey;
+  }
+
+  getStorageService(): Connector | {} {
+    return this.storage;
+  }
+
+  getGatewayService(): IGatewayService {
+    return this.gatewayService;
+  }
+
+  getVWOBuilder(): IVWOBuilder {
+    return this.vwoBuilder;
+  }
+}

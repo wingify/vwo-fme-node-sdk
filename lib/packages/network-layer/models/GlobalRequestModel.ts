@@ -39,7 +39,7 @@ export class GlobalRequestModel {
     url: string,
     query: Record<string, dynamic>,
     body: Record<string, dynamic>,
-    headers: Record<string, any>
+    headers: Record<string, any>,
   ) {
     this.url = url;
     this.query = query;

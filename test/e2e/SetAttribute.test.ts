@@ -23,7 +23,7 @@ import { getEventsBaseProperties, getAttributePayloadData, sendPostApiRequest } 
 jest.mock('../../lib/utils/NetworkUtil', () => ({
   getEventsBaseProperties: jest.fn(),
   getAttributePayloadData: jest.fn(),
-  sendPostApiRequest: jest.fn()
+  sendPostApiRequest: jest.fn(),
 }));
 
 describe('VWOClient setAttribute method', () => {
@@ -36,9 +36,8 @@ describe('VWOClient setAttribute method', () => {
     options = {
       sdkKey: 'sdk-key',
       accountId: 'account-id',
-      vwoBuilder // pass only for E2E tests
+      vwoBuilder, // pass only for E2E tests
     };
-
   });
 
   afterEach(() => {
@@ -51,8 +50,10 @@ describe('VWOClient setAttribute method', () => {
     const context = { id: '123' };
 
     console.error = jest.fn(); // Mock console.error
-    vwoClient.setAttribute(undefined, attributeValue, context)
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining('attributeKey passed to track API is not of valid type'))
+    vwoClient.setAttribute(undefined, attributeValue, context);
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining('attributeKey passed to setAttribute API is not of valid type'),
+    );
   });
 
   it('should handle errors and log them if attribute value is not passed or not a string', async () => {
@@ -62,7 +63,9 @@ describe('VWOClient setAttribute method', () => {
 
     console.error = jest.fn(); // Mock console.error
     vwoClient.setAttribute(attributeKey, undefined, context);
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining('attributeValue passed to track API is not of valid type'))
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining('attributeValue passed to setAttribute API is not of valid type'),
+    );
   });
 
   it('should handle errors and log them if context is not provided', async () => {
@@ -72,7 +75,7 @@ describe('VWOClient setAttribute method', () => {
 
     console.error = jest.fn(); // Mock console.error
     vwoClient.setAttribute(attributeKey, attributeValue, undefined);
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining('Context doesn\'t have a valid User ID'))
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining(" Context should be an object and must contain a mandatory key - id, which is User ID"));
   });
 
   it('should handle errors and log them if context does not have a valid User ID', async () => {
@@ -83,7 +86,7 @@ describe('VWOClient setAttribute method', () => {
 
     console.error = jest.fn(); // Mock console.error
     vwoClient.setAttribute(attributeKey, attributeValue, context);
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining(`Context doesn't have a valid User ID`))
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining(` Context should be an object and must contain a mandatory key - id, which is User ID`));
   });
 
   it('should check if call is made to VWO Server if all ok', async () => {
@@ -116,7 +119,7 @@ describe('VWOClient setAttribute method', () => {
       vwoClient.settings,
       attributeKey,
       attributeValue,
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 });

@@ -18,7 +18,6 @@ import * as Hasher from 'murmurhash';
 
 const SEED_VALUE = 1; // Seed value for the hash function
 export class DecisionMaker {
-
   /**
    * Generates a bucket value based on the hash value, maximum value, and an optional multiplier.
    *
@@ -37,7 +36,6 @@ export class DecisionMaker {
 
     return value;
   }
-
 
   /**
    * Gets the bucket value for a user based on the hash key and maximum value.

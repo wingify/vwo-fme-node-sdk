@@ -26,7 +26,7 @@ describe('NetworkManager', () => {
   beforeEach(() => {
     mockClient = {
       GET: jest.fn(),
-      POST: jest.fn()
+      POST: jest.fn(),
     };
     networkManager = NetworkManager.Instance;
     networkManager.attachClient(mockClient);
@@ -60,7 +60,7 @@ describe('NetworkManager', () => {
       const request = new RequestModel('endpoint', 'GET', '/path', {}, {}, {});
       const config = new GlobalRequestModel('api.example.com', {}, {}, {});
       networkManager.setConfig(config);
-      const mergedRequest:RequestModel = networkManager.createRequest(request);
+      const mergedRequest: RequestModel = networkManager.createRequest(request);
       expect(mergedRequest.getUrl()).toContain('endpoint');
     });
   });

@@ -14,555 +14,661 @@
  * limitations under the License.
  */
 export const MEG_CAMPAIGN_ADVANCE_ALGO_SETTINGS = {
-    "features": [{
-      "key": "feature1",
-      "name": "Feature1",
-      "metrics": [{
-        "id": 1,
-        "type": "REVENUE_TRACKING",
-        "identifier": "custom1",
-        "mca": -1
-      }],
-      "rules": [{
-          "variationId": 1,
-          "type": "FLAG_ROLLOUT",
-          "campaignId": 1,
-          "ruleKey": "rolloutRule1"
-        },
+  features: [
+    {
+      key: 'feature1',
+      name: 'Feature1',
+      metrics: [
         {
-          "campaignId": 2,
-          "type": "FLAG_TESTING",
-          "ruleKey": "testingRule1"
+          id: 1,
+          type: 'REVENUE_TRACKING',
+          identifier: 'custom1',
+          mca: -1,
         },
-        {
-          "variationId": 2,
-          "campaignId": 3,
-          "type": "FLAG_PERSONALIZE",
-          "ruleKey": "personalizeRule1"
-        },
-        {
-          "campaignId": 4,
-          "type": "FLAG_TESTING",
-          "ruleKey": "testingRule2"
-        },
-        {
-          "campaignId": 5,
-          "type": "FLAG_TESTING",
-          "ruleKey": "testingRule3"
-        },
-        {
-          "campaignId": 6,
-          "type": "FLAG_TESTING",
-          "ruleKey": "testingRule4"
-        },
-        {
-          "campaignId": 7,
-          "type": "FLAG_TESTING",
-          "ruleKey": "testingRule5"
-        }
       ],
-      "type": "FEATURE_FLAG",
-      "impactCampaign": {},
-      "id": 1,
-      "status": "ON"
-    }],
-    "groups": {
-        "1": {
-            "et": 2,
-            "p": [4,3],
-            "campaigns": [3,4,6,7],
-            "wt": {
-                "6": 50,
-                "7": 50
-            },
-            "name": "Group 1"
-        }
-    },
-    "campaignGroups": {
-        "3": 1,
-        "4": 1,
-        "6": 1,
-        "7": 1
-    },
-    "version": 1,
-    "accountId": 12345,
-    "sdkKey": "000000000000_MASKED_000000000000",
-    "campaigns": [{
-      "key": "feature1_rolloutRule1",
-      "id": 1,
-      "segments": {},
-      "isForcedVariationEnabled": false,
-      "variations": [{
-        "variables": [{
-          "key": "int",
-          "id": 1,
-          "value": 10,
-          "type": "integer"
-        }, {
-          "key": "float",
-          "id": 2,
-          "value": 20.01,
-          "type": "double"
-        }, {
-          "key": "string",
-          "id": 3,
-          "value": "rollout1",
-          "type": "string"
-        }, {
-          "key": "boolean",
-          "id": 4,
-          "value": false,
-          "type": "boolean"
-        }, {
-          "key": "json",
-          "id": 5,
-          "value": {
-            "campaign": "rollout1"
-          },
-          "type": "json"
-        }],
-        "id": 1,
-        "segments": {},
-        "weight": 100,
-        "name": "Rollout-rule-1"
-      }],
-      "type": "FLAG_ROLLOUT",
-      "status": "RUNNING"
-    }, {
-      "key": "feature1_testingRule1",
-      "id": 2,
-      "segments": {
-        "or": [{
-          "custom_variable": {
-            "price": "100"
-          }
-        }]
-      },
-      "isForcedVariationEnabled": false,
-      "variations": [{
-        "weight": 50,
-        "id": 1,
-        "variables": [{
-          "key": "int",
-          "id": 1,
-          "value": 10,
-          "type": "integer"
-        }, {
-          "key": "float",
-          "id": 2,
-          "value": 20.01,
-          "type": "double"
-        }, {
-          "key": "string",
-          "id": 3,
-          "value": "testing1",
-          "type": "string"
-        }, {
-          "key": "boolean",
-          "id": 4,
-          "value": false,
-          "type": "boolean"
-        }, {
-          "key": "json",
-          "id": 5,
-          "value": {
-            "campaign": "testing1"
-          },
-          "type": "json"
-        }],
-        "name": "Default"
-      }, {
-        "weight": 50,
-        "id": 2,
-        "variables": [{
-          "key": "int",
-          "id": 1,
-          "value": 11,
-          "type": "integer"
-        }, {
-          "key": "float",
-          "id": 2,
-          "value": 20.02,
-          "type": "double"
-        }, {
-          "key": "string",
-          "id": 3,
-          "value": "testing1_variation",
-          "type": "string"
-        }, {
-          "key": "boolean",
-          "id": 4,
-          "value": true,
-          "type": "boolean"
-        }, {
-          "key": "json",
-          "id": 5,
-          "value": {
-            "campaign": "testing1_variation"
-          },
-          "type": "json"
-        }],
-        "name": "Variation-1"
-      }],
-      "percentTraffic": 100,
-      "type": "FLAG_TESTING",
-      "status": "RUNNING"
-    },
-    {
-      "key": "feature1_personalizeRule1",
-      "id": 3,
-      "isForcedVariationEnabled": false,
-      "variations": [{
-        "weight": 100,
-        "id": 1,
-        "variables": [{
-            "key": "int",
-            "id": 1,
-            "value": 11,
-            "type": "integer"
-          }, {
-            "key": "float",
-            "id": 2,
-            "value": 20.02,
-            "type": "double"
-          }, {
-            "key": "string",
-            "id": 3,
-            "value": "personalizeRule1_variation",
-            "type": "string"
-          }, {
-            "key": "boolean",
-            "id": 4,
-            "value": true,
-            "type": "boolean"
-          }, {
-            "key": "json",
-            "id": 5,
-            "value": {
-              "campaign": "personalizeRule1_variation"
-            },
-            "type": "json"
-          }],
-        "segments": {
-            "or": [{
-              "custom_variable": {
-                "name": "personalise"
-                }
-            }]
+      rules: [
+        {
+          variationId: 1,
+          type: 'FLAG_ROLLOUT',
+          campaignId: 1,
+          ruleKey: 'rolloutRule1',
         },
-        "name": "Personalize-rule-1"
-      }],
-      "segments": {},
-      "type": "FLAG_PERSONALIZE",
-      "status": "RUNNING"
-    }
-    ,{
-      "key": "feature1_testingRule2",
-      "id": 4,
-      "segments": {
-        "or": [{
-          "custom_variable": {
-            "firstname": "testingRule2"
-            }
-        }]
+        {
+          campaignId: 2,
+          type: 'FLAG_TESTING',
+          ruleKey: 'testingRule1',
+        },
+        {
+          variationId: 2,
+          campaignId: 3,
+          type: 'FLAG_PERSONALIZE',
+          ruleKey: 'personalizeRule1',
+        },
+        {
+          campaignId: 4,
+          type: 'FLAG_TESTING',
+          ruleKey: 'testingRule2',
+        },
+        {
+          campaignId: 5,
+          type: 'FLAG_TESTING',
+          ruleKey: 'testingRule3',
+        },
+        {
+          campaignId: 6,
+          type: 'FLAG_TESTING',
+          ruleKey: 'testingRule4',
+        },
+        {
+          campaignId: 7,
+          type: 'FLAG_TESTING',
+          ruleKey: 'testingRule5',
+        },
+      ],
+      type: 'FEATURE_FLAG',
+      impactCampaign: {},
+      id: 1,
+      status: 'ON',
     },
-      "isForcedVariationEnabled": false,
-      "variations": [{
-        "weight": 50,
-        "id": 1,
-        "variables": [{
-          "key": "int",
-          "id": 1,
-          "value": 10,
-          "type": "integer"
-        }, {
-          "key": "float",
-          "id": 2,
-          "value": 20.01,
-          "type": "double"
-        }, {
-          "key": "string",
-          "id": 3,
-          "value": "testing2",
-          "type": "string"
-        }, {
-          "key": "boolean",
-          "id": 4,
-          "value": false,
-          "type": "boolean"
-        }, {
-          "key": "json",
-          "id": 5,
-          "value": {
-            "campaign": "testing2"
-          },
-          "type": "json"
-        }],
-        "name": "Default"
-      }, {
-        "weight": 50,
-        "id": 2,
-        "variables": [{
-          "key": "int",
-          "id": 1,
-          "value": 11,
-          "type": "integer"
-        }, {
-          "key": "float",
-          "id": 2,
-          "value": 20.02,
-          "type": "double"
-        }, {
-          "key": "string",
-          "id": 3,
-          "value": "testing2_variation",
-          "type": "string"
-        }, {
-          "key": "boolean",
-          "id": 4,
-          "value": true,
-          "type": "boolean"
-        }, {
-          "key": "json",
-          "id": 5,
-          "value": {
-            "campaign": "testing2_variation"
-          },
-          "type": "json"
-        }],
-        "name": "Variation-1"
-      }],
-      "percentTraffic": 100,
-      "type": "FLAG_TESTING",
-      "status": "RUNNING"
+  ],
+  groups: {
+    '1': {
+      et: 2,
+      p: [4, 3],
+      campaigns: [3, 4, 6, 7],
+      wt: {
+        '6': 50,
+        '7': 50,
+      },
+      name: 'Group 1',
+    },
+  },
+  campaignGroups: {
+    '3': 1,
+    '4': 1,
+    '6': 1,
+    '7': 1,
+  },
+  version: 1,
+  accountId: 12345,
+  sdkKey: '000000000000_MASKED_000000000000',
+  campaigns: [
+    {
+      key: 'feature1_rolloutRule1',
+      id: 1,
+      segments: {},
+      isForcedVariationEnabled: false,
+      variations: [
+        {
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 10,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.01,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'rollout1',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: false,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'rollout1',
+              },
+              type: 'json',
+            },
+          ],
+          id: 1,
+          segments: {},
+          weight: 100,
+          name: 'Rollout-rule-1',
+        },
+      ],
+      type: 'FLAG_ROLLOUT',
+      status: 'RUNNING',
     },
     {
-      "key": "feature1_testingRule3",
-      "id": 5,
-      "segments": {
-        "or": [{
-          "custom_variable": {
-            "lastname": "vwo"
-          }
-        }]
+      key: 'feature1_testingRule1',
+      id: 2,
+      segments: {
+        or: [
+          {
+            custom_variable: {
+              price: '100',
+            },
+          },
+        ],
       },
-      "isForcedVariationEnabled": false,
-      "variations": [{
-        "weight": 50,
-        "id": 1,
-        "variables": [{
-          "key": "int",
-          "id": 1,
-          "value": 10,
-          "type": "integer"
-        }, {
-          "key": "float",
-          "id": 2,
-          "value": 20.01,
-          "type": "double"
-        }, {
-          "key": "string",
-          "id": 3,
-          "value": "testing3",
-          "type": "string"
-        }, {
-          "key": "boolean",
-          "id": 4,
-          "value": false,
-          "type": "boolean"
-        }, {
-          "key": "json",
-          "id": 5,
-          "value": {
-            "campaign": "testing3"
-          },
-          "type": "json"
-        }],
-        "name": "Default"
-      }, {
-        "weight": 50,
-        "id": 2,
-        "variables": [{
-          "key": "int",
-          "id": 1,
-          "value": 11,
-          "type": "integer"
-        }, {
-          "key": "float",
-          "id": 2,
-          "value": 20.02,
-          "type": "double"
-        }, {
-          "key": "string",
-          "id": 3,
-          "value": "testing3_variation",
-          "type": "string"
-        }, {
-          "key": "boolean",
-          "id": 4,
-          "value": true,
-          "type": "boolean"
-        }, {
-          "key": "json",
-          "id": 5,
-          "value": {
-            "campaign": "testing3_variation"
-          },
-          "type": "json"
-        }],
-        "name": "Variation-1"
-      }],
-      "percentTraffic": 100,
-      "type": "FLAG_TESTING",
-      "status": "RUNNING"
+      isForcedVariationEnabled: false,
+      variations: [
+        {
+          weight: 50,
+          id: 1,
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 10,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.01,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'testing1',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: false,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'testing1',
+              },
+              type: 'json',
+            },
+          ],
+          name: 'Default',
+        },
+        {
+          weight: 50,
+          id: 2,
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 11,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.02,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'testing1_variation',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: true,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'testing1_variation',
+              },
+              type: 'json',
+            },
+          ],
+          name: 'Variation-1',
+        },
+      ],
+      percentTraffic: 100,
+      type: 'FLAG_TESTING',
+      status: 'RUNNING',
     },
-{
-      "key": "feature1_testingRule4",
-      "id": 6,
-      "segments": {},
-      "isForcedVariationEnabled": false,
-      "variations": [{
-        "weight": 50,
-        "id": 1,
-        "variables": [{
-          "key": "int",
-          "id": 1,
-          "value": 10,
-          "type": "integer"
-        }, {
-          "key": "float",
-          "id": 2,
-          "value": 20.01,
-          "type": "double"
-        }, {
-          "key": "string",
-          "id": 3,
-          "value": "testing4",
-          "type": "string"
-        }, {
-          "key": "boolean",
-          "id": 4,
-          "value": false,
-          "type": "boolean"
-        }, {
-          "key": "json",
-          "id": 5,
-          "value": {
-            "campaign": "testing4"
+    {
+      key: 'feature1_personalizeRule1',
+      id: 3,
+      isForcedVariationEnabled: false,
+      variations: [
+        {
+          weight: 100,
+          id: 1,
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 11,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.02,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'personalizeRule1_variation',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: true,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'personalizeRule1_variation',
+              },
+              type: 'json',
+            },
+          ],
+          segments: {
+            or: [
+              {
+                custom_variable: {
+                  name: 'personalise',
+                },
+              },
+            ],
           },
-          "type": "json"
-        }],
-        "name": "Default"
-      }, {
-        "weight": 50,
-        "id": 2,
-        "variables": [{
-          "key": "int",
-          "id": 1,
-          "value": 11,
-          "type": "integer"
-        }, {
-          "key": "float",
-          "id": 2,
-          "value": 20.02,
-          "type": "double"
-        }, {
-          "key": "string",
-          "id": 3,
-          "value": "testing4_variation",
-          "type": "string"
-        }, {
-          "key": "boolean",
-          "id": 4,
-          "value": true,
-          "type": "boolean"
-        }, {
-          "key": "json",
-          "id": 5,
-          "value": {
-            "campaign": "testing4_variation"
-          },
-          "type": "json"
-        }],
-        "name": "Variation-1"
-      }],
-      "percentTraffic": 100,
-      "type": "FLAG_TESTING",
-      "status": "RUNNING"
+          name: 'Personalize-rule-1',
+        },
+      ],
+      segments: {},
+      type: 'FLAG_PERSONALIZE',
+      status: 'RUNNING',
     },
-{
-      "key": "feature1_testingRule5",
-      "id": 7,
-      "segments": {},
-      "isForcedVariationEnabled": false,
-      "variations": [{
-        "weight": 50,
-        "id": 1,
-        "variables": [{
-          "key": "int",
-          "id": 1,
-          "value": 10,
-          "type": "integer"
-        }, {
-          "key": "float",
-          "id": 2,
-          "value": 20.01,
-          "type": "double"
-        }, {
-          "key": "string",
-          "id": 3,
-          "value": "testing5",
-          "type": "string"
-        }, {
-          "key": "boolean",
-          "id": 4,
-          "value": false,
-          "type": "boolean"
-        }, {
-          "key": "json",
-          "id": 5,
-          "value": {
-            "campaign": "testing5"
+    {
+      key: 'feature1_testingRule2',
+      id: 4,
+      segments: {
+        or: [
+          {
+            custom_variable: {
+              firstname: 'testingRule2',
+            },
           },
-          "type": "json"
-        }],
-        "name": "Default"
-      }, {
-        "weight": 50,
-        "id": 2,
-        "variables": [{
-          "key": "int",
-          "id": 1,
-          "value": 11,
-          "type": "integer"
-        }, {
-          "key": "float",
-          "id": 2,
-          "value": 20.02,
-          "type": "double"
-        }, {
-          "key": "string",
-          "id": 3,
-          "value": "testing5_variation",
-          "type": "string"
-        }, {
-          "key": "boolean",
-          "id": 4,
-          "value": true,
-          "type": "boolean"
-        }, {
-          "key": "json",
-          "id": 5,
-          "value": {
-            "campaign": "testing5_variation"
+        ],
+      },
+      isForcedVariationEnabled: false,
+      variations: [
+        {
+          weight: 50,
+          id: 1,
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 10,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.01,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'testing2',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: false,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'testing2',
+              },
+              type: 'json',
+            },
+          ],
+          name: 'Default',
+        },
+        {
+          weight: 50,
+          id: 2,
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 11,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.02,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'testing2_variation',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: true,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'testing2_variation',
+              },
+              type: 'json',
+            },
+          ],
+          name: 'Variation-1',
+        },
+      ],
+      percentTraffic: 100,
+      type: 'FLAG_TESTING',
+      status: 'RUNNING',
+    },
+    {
+      key: 'feature1_testingRule3',
+      id: 5,
+      segments: {
+        or: [
+          {
+            custom_variable: {
+              lastname: 'vwo',
+            },
           },
-          "type": "json"
-        }],
-        "name": "Variation-1"
-      }],
-      "percentTraffic": 100,
-      "type": "FLAG_TESTING",
-      "status": "RUNNING"
-    }]
-  }
-  
+        ],
+      },
+      isForcedVariationEnabled: false,
+      variations: [
+        {
+          weight: 50,
+          id: 1,
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 10,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.01,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'testing3',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: false,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'testing3',
+              },
+              type: 'json',
+            },
+          ],
+          name: 'Default',
+        },
+        {
+          weight: 50,
+          id: 2,
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 11,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.02,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'testing3_variation',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: true,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'testing3_variation',
+              },
+              type: 'json',
+            },
+          ],
+          name: 'Variation-1',
+        },
+      ],
+      percentTraffic: 100,
+      type: 'FLAG_TESTING',
+      status: 'RUNNING',
+    },
+    {
+      key: 'feature1_testingRule4',
+      id: 6,
+      segments: {},
+      isForcedVariationEnabled: false,
+      variations: [
+        {
+          weight: 50,
+          id: 1,
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 10,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.01,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'testing4',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: false,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'testing4',
+              },
+              type: 'json',
+            },
+          ],
+          name: 'Default',
+        },
+        {
+          weight: 50,
+          id: 2,
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 11,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.02,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'testing4_variation',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: true,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'testing4_variation',
+              },
+              type: 'json',
+            },
+          ],
+          name: 'Variation-1',
+        },
+      ],
+      percentTraffic: 100,
+      type: 'FLAG_TESTING',
+      status: 'RUNNING',
+    },
+    {
+      key: 'feature1_testingRule5',
+      id: 7,
+      segments: {},
+      isForcedVariationEnabled: false,
+      variations: [
+        {
+          weight: 50,
+          id: 1,
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 10,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.01,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'testing5',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: false,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'testing5',
+              },
+              type: 'json',
+            },
+          ],
+          name: 'Default',
+        },
+        {
+          weight: 50,
+          id: 2,
+          variables: [
+            {
+              key: 'int',
+              id: 1,
+              value: 11,
+              type: 'integer',
+            },
+            {
+              key: 'float',
+              id: 2,
+              value: 20.02,
+              type: 'double',
+            },
+            {
+              key: 'string',
+              id: 3,
+              value: 'testing5_variation',
+              type: 'string',
+            },
+            {
+              key: 'boolean',
+              id: 4,
+              value: true,
+              type: 'boolean',
+            },
+            {
+              key: 'json',
+              id: 5,
+              value: {
+                campaign: 'testing5_variation',
+              },
+              type: 'json',
+            },
+          ],
+          name: 'Variation-1',
+        },
+      ],
+      percentTraffic: 100,
+      type: 'FLAG_TESTING',
+      status: 'RUNNING',
+    },
+  ],
+};

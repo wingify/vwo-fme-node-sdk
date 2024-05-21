@@ -24,7 +24,7 @@ const nargs = /\{([0-9a-zA-Z_]+)\}/g;
  * @param {Record<string, any>} data - An object containing keys and values used to replace the placeholders in the template.
  * @returns {string} The constructed message with all placeholders replaced by their corresponding values from the data object.
  */
-export function buildMessage(template: string, data: Record<string, any>): string {
+export function buildMessage(template: string, data: Record<string, any> = {}): string {
   try {
     return template.replace(nargs, (match, key, index) => {
       // Check for escaped placeholders

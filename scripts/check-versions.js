@@ -27,4 +27,4 @@ module.exports = (tools) => {
   if (warnings && warnings.length) {
     process.exit(1);
   }
-}
+};

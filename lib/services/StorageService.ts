@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ContextModel } from '../models/user/ContextModel';
 import { StorageEnum } from '../enums/StorageEnum';
+import { ContextModel } from '../models/user/ContextModel';
 import { Storage } from '../packages/storage';
 import { dynamic } from '../types/Common';
 
-import { isNull, isUndefined } from '../utils/DataTypeUtil';
-import { Deferred } from '../utils/PromiseUtil';
+import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { LogManager } from '../packages/logger';
+import { isNull, isUndefined } from '../utils/DataTypeUtil';
+import { buildMessage } from '../utils/LogMessageUtil';
+import { Deferred } from '../utils/PromiseUtil';
 
 export class StorageService {
   private storageData: Record<string, dynamic> = {};
@@ -45,7 +47,10 @@ export class StorageService {
           deferredObject.resolve(data);
         })
         .catch((err) => {
-          LogManager.Instance.error('Error in getting data from storage. Error:' + err);
+          LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.STORED_DATA_ERROR, {
+            err
+          }));
+
           deferredObject.resolve(StorageEnum.NO_DATA_FOUND);
         });
     }

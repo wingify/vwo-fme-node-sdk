@@ -24,7 +24,7 @@ enum LogLevelNumberEnum {
   DEBUG = 1,
   INFO = 2,
   WARN = 3,
-  ERROR = 4
+  ERROR = 4,
 }
 
 interface IlogTransport extends Logger {

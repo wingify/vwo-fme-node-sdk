@@ -15,19 +15,19 @@
  */
 
 export interface IGatewayService {
-    modelFromDictionary(gatewayServiceModel: GatewayServiceModel): this;
-    getUrl(): string;
+  modelFromDictionary(gatewayServiceModel: GatewayServiceModel): this;
+  getUrl(): string;
 }
 
 export class GatewayServiceModel implements IGatewayService {
-    private url: string;
+  private url: string;
 
-    modelFromDictionary(gatewayServiceModel: GatewayServiceModel): this {
-        this.url = gatewayServiceModel.url;
-        return this;
-    }
-
-    getUrl(): string {
-        return this.url;
-    }
+  modelFromDictionary(gatewayServiceModel: GatewayServiceModel): this {
+    this.url = gatewayServiceModel.url;
+    return this;
   }
+
+  getUrl(): string {
+    return this.url;
+  }
+}

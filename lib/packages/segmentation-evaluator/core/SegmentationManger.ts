@@ -54,29 +54,29 @@ export class SegmentationManager {
    * @param {any} context - The context data for the evaluation.
    */
   async setContextualData(settings: SettingsModel, feature: FeatureModel, context: ContextModel) {
-      this.attachEvaluator(); // Ensure a fresh evaluator instance
-      this.evaluator.settings = settings; // Set settings in evaluator
-      this.evaluator.context = context; // Set context in evaluator
-      this.evaluator.feature = feature; // Set feature in evaluator
-      if (feature.getIsGatewayServiceRequired() === true) {
-        if (UrlService.getBaseUrl() !== BASE_URL && (context.getVwo() === undefined || context.getVwo() === null)) {
-          const queryParams = {};
-          if (context?.getUserAgent()) {
-            queryParams['userAgent'] = context.getUserAgent();
-          }
+    this.attachEvaluator(); // Ensure a fresh evaluator instance
+    this.evaluator.settings = settings; // Set settings in evaluator
+    this.evaluator.context = context; // Set context in evaluator
+    this.evaluator.feature = feature; // Set feature in evaluator
+    if (feature.getIsGatewayServiceRequired() === true) {
+      if (UrlService.getBaseUrl() !== BASE_URL && (context.getVwo() === undefined || context.getVwo() === null)) {
+        const queryParams = {};
+        if (context?.getUserAgent()) {
+          queryParams['userAgent'] = context.getUserAgent();
+        }
 
-          if (context?.getIpAddress()) {
-            queryParams['ipAddress'] = context.getIpAddress();
-          }
-          try {
-            const params = getQueryParams(queryParams);
-            const _vwo = await getFromGatewayService(params, UrlEnum.GET_USER_DATA);
-            context.setVwo(new ContextVWOModel().modelFromDictionary(_vwo));
-          } catch (err) {
-            LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
-          }
+        if (context?.getIpAddress()) {
+          queryParams['ipAddress'] = context.getIpAddress();
+        }
+        try {
+          const params = getQueryParams(queryParams);
+          const _vwo = await getFromGatewayService(params, UrlEnum.GET_USER_DATA);
+          context.setVwo(new ContextVWOModel().modelFromDictionary(_vwo));
+        } catch (err) {
+          LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
         }
       }
+    }
   }
 
   /**
@@ -87,10 +87,7 @@ export class SegmentationManager {
    * @param {any} context - Optional context.
    * @returns {Promise<boolean>} True if segmentation is valid, otherwise false.
    */
-  async validateSegmentation(
-    dsl: Record<string, dynamic>,
-    properties: Record<any, dynamic>
-  ): Promise<boolean> {
+  async validateSegmentation(dsl: Record<string, dynamic>, properties: Record<any, dynamic>): Promise<boolean> {
     return await this.evaluator.isSegmentationValid(dsl, properties); // Delegate to evaluator's method
   }
 }

@@ -17,13 +17,10 @@ const childProcess = require('child_process');
 const shell = require('shelljs');
 
 function exec(cmd) {
-  return childProcess
-    .execSync(cmd)
-    .toString()
-    .trim();
+  return childProcess.execSync(cmd).toString().trim();
 }
 
 module.exports = {
   exec,
-  shell
+  shell,
 };

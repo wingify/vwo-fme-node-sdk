@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 import { UrlEnum } from '../enums/UrlEnum';
-import { isNumber, isString } from '../utils/DataTypeUtil';
+import { isString } from '../utils/DataTypeUtil';
 
 interface UrlServiceType {
   collectionPrefix?: string;
   gatewayServiceUrl?: string;
   gatewayServicePort?: number;
-  init({ collectionPrefix, gatewayServiceUrl, gatewayServicePort }?: { collectionPrefix?: string; gatewayServiceUrl?: string; gatewayServicePort: number }): UrlServiceType;
+  init({
+    collectionPrefix,
+    gatewayServiceUrl,
+    gatewayServicePort,
+  }?: {
+    collectionPrefix?: string;
+    gatewayServiceUrl?: string;
+    gatewayServicePort: number;
+  }): UrlServiceType;
   getBaseUrl(): string;
   getPort(): number;
 }
@@ -33,7 +41,11 @@ const UrlService: UrlServiceType = {
    * @param {string} [gatewayServiceUrl] - Optional web service URL.
    * @returns {UrlServiceType} The instance of UrlService with updated properties.
    */
-  init({ collectionPrefix, gatewayServiceUrl, gatewayServicePort }: { collectionPrefix?: string; gatewayServiceUrl?: string, gatewayServicePort?: number } = {}) {
+  init({
+    collectionPrefix,
+    gatewayServiceUrl,
+    gatewayServicePort,
+  }: { collectionPrefix?: string; gatewayServiceUrl?: string; gatewayServicePort?: number } = {}) {
     // Set collectionPrefix if it is a valid string
     if (collectionPrefix && isString(collectionPrefix)) {
       UrlService.collectionPrefix = collectionPrefix;

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { SettingsModel } from "../models/settings/SettingsModel";
-import { getEventsBaseProperties, getTrackUserPayloadData, sendPostApiRequest } from "./NetworkUtil";
-import { ContextModel } from "../models/user/ContextModel";
-import { EventEnum } from "../enums/EventEnum";
+import { SettingsModel } from '../models/settings/SettingsModel';
+import { getEventsBaseProperties, getTrackUserPayloadData, sendPostApiRequest } from './NetworkUtil';
+import { ContextModel } from '../models/user/ContextModel';
+import { EventEnum } from '../enums/EventEnum';
 
 /**
  * Creates and sends an impression for a variation shown event.

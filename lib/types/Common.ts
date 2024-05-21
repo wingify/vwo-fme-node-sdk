@@ -20,13 +20,13 @@
  * complex objects, and collections.
  */
 export type dynamic =
-  | boolean  // Represents a boolean value
-  | number   // Represents a numeric value
-  | string   // Represents a string value
-  | Date     // Represents a date object
-  | void     // Represents the absence of a value
+  | boolean // Represents a boolean value
+  | number // Represents a numeric value
+  | string // Represents a string value
+  | Date // Represents a date object
+  | void // Represents the absence of a value
   | undefined // Represents an undefined value
-  | null     // Represents a null value
+  | null // Represents a null value
   | Record<string, any> // Represents an object with string keys and any type of values
   | Array<dynamicArray> // Represents an array of `dynamicArray` type
   | Map<string, dynamicArray>; // Represents a map with string keys and `dynamicArray` type values
@@ -37,6 +37,6 @@ export type dynamic =
  */
 export type dynamicArray =
   | boolean // Represents a boolean value
-  | number  // Represents a numeric value
-  | string  // Represents a string value
+  | number // Represents a numeric value
+  | string // Represents a string value
   | Record<string, any>; // Represents an object with string keys and any type of values

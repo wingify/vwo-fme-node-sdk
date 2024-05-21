@@ -33,7 +33,7 @@ export function getKeyValue(obj: Record<string, any>): Record<string, any> | und
   // Return an object containing the key and value
   return {
     key,
-    value
+    value,
   };
 }
 

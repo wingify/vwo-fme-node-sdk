@@ -49,7 +49,12 @@ export class SetAttributeApi implements ISetAttribute {
  * @param attributeValue The value of the attribute.
  * @param user User details.
  */
-const createImpressionForAttribute = async (settings: SettingsModel, attributeKey: string, attributeValue: any, context: ContextModel) => {
+const createImpressionForAttribute = async (
+  settings: SettingsModel,
+  attributeKey: string,
+  attributeValue: any,
+  context: ContextModel,
+) => {
   // Retrieve base properties for the event
   const properties = getEventsBaseProperties(
     settings,

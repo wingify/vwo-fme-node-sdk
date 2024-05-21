@@ -22,7 +22,7 @@ const AnsiColorEnum = {
   RED: '\x1b[31m',
   RESET: '\x1b[0m',
   WHITE: '\x1b[30m',
-  YELLOW: '\x1b[33m'
+  YELLOW: '\x1b[33m',
 };
 
 module.exports = AnsiColorEnum;

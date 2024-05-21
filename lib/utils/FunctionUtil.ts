@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CampaignModel } from '../models/campaign/CampaignModel';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
+import { CampaignModel } from '../models/campaign/CampaignModel';
+import { FeatureModel } from '../models/campaign/FeatureModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { dynamic } from '../types/Common';
 import { isString } from './DataTypeUtil';
-import { FeatureModel } from '../models/campaign/FeatureModel';
-import { RuleModel } from '../models/campaign/RuleModel';
 
 /**
  * Clones an object deeply.
@@ -94,9 +93,11 @@ export function getSpecificRulesBasedOnType(feature: FeatureModel, type: Campaig
 export function getAllExperimentRules(feature: FeatureModel) {
   // Retrieve the feature by its key
   // Filter the rules to include only AB and Personalize types
-  return feature?.getRulesLinkedCampaign().filter(
-    (rule) => rule.getType() === CampaignTypeEnum.AB || rule.getType() === CampaignTypeEnum.PERSONALIZE,
-  ) || [];
+  return (
+    feature
+      ?.getRulesLinkedCampaign()
+      .filter((rule) => rule.getType() === CampaignTypeEnum.AB || rule.getType() === CampaignTypeEnum.PERSONALIZE) || []
+  );
 }
 
 /**
@@ -118,9 +119,9 @@ export function getFeatureFromKey(settings: SettingsModel, featureKey: string) {
  */
 export function doesEventBelongToAnyFeature(eventName: string, settings: SettingsModel): boolean {
   // Use the `some` method to check if any feature contains the event in its metrics
-  return settings.getFeatures().some(feature =>
-    feature.getMetrics().some(metric => metric.getIdentifier() === eventName)
-  );
+  return settings
+    .getFeatures()
+    .some((feature) => feature.getMetrics().some((metric) => metric.getIdentifier() === eventName));
 }
 
 /**
@@ -129,27 +130,32 @@ export function doesEventBelongToAnyFeature(eventName: string, settings: Setting
  */
 export function addLinkedCampaignsToSettings(settings: SettingsModel): void {
   // Create maps for quick access to campaigns and variations
-  const campaignMap = new Map<number, CampaignModel>(settings.getCampaigns().map(campaign => [campaign.getId(), campaign]));
+  const campaignMap = new Map<number, CampaignModel>(
+    settings.getCampaigns().map((campaign) => [campaign.getId(), campaign]),
+  );
 
   // Loop over all features
   for (const feature of settings.getFeatures()) {
-    const rulesLinkedCampaign = feature.getRules().map(rule => {
-      const campaign: CampaignModel = campaignMap.get(rule.getCampaignId());
-      if (!campaign) return null;
+    const rulesLinkedCampaign = feature
+      .getRules()
+      .map((rule) => {
+        const campaign: CampaignModel = campaignMap.get(rule.getCampaignId());
+        if (!campaign) return null;
 
-      // Create a linked campaign object with the rule and campaign
-      const linkedCampaign: any = { key: campaign.getKey(), ...rule, ...campaign };
+        // Create a linked campaign object with the rule and campaign
+        const linkedCampaign: any = { key: campaign.getKey(), ...rule, ...campaign };
 
-      // If a variationId is specified, find and add the variation
-      if (rule.getVariationId()) {
-        const variation = campaign.getVariations().find(v => v.getId() === rule.getVariationId());
-        if (variation) {
-          linkedCampaign.variations = [variation];
+        // If a variationId is specified, find and add the variation
+        if (rule.getVariationId()) {
+          const variation = campaign.getVariations().find((v) => v.getId() === rule.getVariationId());
+          if (variation) {
+            linkedCampaign.variations = [variation];
+          }
         }
-      }
 
-      return linkedCampaign;
-    }).filter(campaign => campaign !== null); // Filter out any null entries
+        return linkedCampaign;
+      })
+      .filter((campaign) => campaign !== null); // Filter out any null entries
 
     const rulesLinkedCampaignModel = rulesLinkedCampaign.map((campaign) => {
       const campaignModel = new CampaignModel();

@@ -45,7 +45,7 @@ export class NetworkClient implements NetworkClientInterface {
       const httpClient = networkOptions.scheme === HTTPS ? https : http;
 
       // Perform the HTTP GET request.
-      const req = httpClient.get(networkOptions, res => {
+      const req = httpClient.get(networkOptions, (res) => {
         responseModel.setStatusCode(res.statusCode);
         const contentType = res.headers['content-type'];
 
@@ -66,7 +66,7 @@ export class NetworkClient implements NetworkClientInterface {
         res.setEncoding('utf8');
 
         // Collect data chunks.
-        res.on('data', chunk => {
+        res.on('data', (chunk) => {
           rawData += chunk;
         });
 
@@ -97,7 +97,7 @@ export class NetworkClient implements NetworkClientInterface {
         deferred.reject(responseModel);
       });
 
-      req.on('error', err => {
+      req.on('error', (err) => {
         responseModel.setError(err);
         deferred.reject(responseModel);
       });
@@ -124,12 +124,12 @@ export class NetworkClient implements NetworkClientInterface {
       const httpClient = networkOptions.scheme === HTTPS ? https : http;
 
       // Perform the HTTP POST request.
-      const req = httpClient.request(networkOptions, res => {
+      const req = httpClient.request(networkOptions, (res) => {
         let rawData = '';
         res.setEncoding('utf8');
 
         // Collect data chunks.
-        res.on('data', function(chunk) {
+        res.on('data', function (chunk) {
           rawData += chunk;
         });
 

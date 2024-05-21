@@ -27,7 +27,7 @@ import {
   isFunction,
   isRegex,
   isPromise,
-  getType
+  getType,
 } from '../../../lib/utils/DataTypeUtil';
 
 describe('DataTypeUtil', () => {
@@ -151,7 +151,7 @@ describe('DataTypeUtil', () => {
   describe('isFunction', () => {
     it('should return true for functions', () => {
       expect(isFunction(() => {})).toBeTruthy();
-      expect(isFunction(function() {})).toBeTruthy();
+      expect(isFunction(function () {})).toBeTruthy();
     });
 
     it('should return false for non-functions', () => {

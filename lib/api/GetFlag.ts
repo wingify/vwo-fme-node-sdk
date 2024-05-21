@@ -20,9 +20,11 @@ import { SettingsModel } from '../models/settings/SettingsModel';
 import { StorageDecorator } from '../decorators/StorageDecorator';
 import { ApiEnum } from '../enums/ApiEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
+import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import { CampaignModel } from '../models/campaign/CampaignModel';
 import { VariableModel } from '../models/campaign/VariableModel';
 import { VariationModel } from '../models/campaign/VariationModel';
+import { ContextModel } from '../models/user/ContextModel';
 import { LogManager } from '../packages/logger';
 import { SegmentationManager } from '../packages/segmentation-evaluator';
 import HooksManager from '../services/HooksManager';
@@ -30,18 +32,19 @@ import { StorageService } from '../services/StorageService';
 import { getVariationFromCampaignKey } from '../utils/CampaignUtil';
 import { isObject } from '../utils/DataTypeUtil';
 import { evaluateTrafficAndGetVariation } from '../utils/DecisionUtil';
-import {
-  getAllExperimentRules,
-  getFeatureFromKey,
-  getSpecificRulesBasedOnType,
-} from '../utils/FunctionUtil';
-import { ContextModel } from '../models/user/ContextModel';
-import { createAndSendImpressionForVariationShown } from "../utils/ImpressionUtil";
+import { getAllExperimentRules, getFeatureFromKey, getSpecificRulesBasedOnType } from '../utils/FunctionUtil';
+import { createAndSendImpressionForVariationShown } from '../utils/ImpressionUtil';
+import { buildMessage } from '../utils/LogMessageUtil';
 import { Deferred } from '../utils/PromiseUtil';
 import { evaluateRule } from '../utils/RuleEvaluationUtil';
 
 interface IGetFlag {
-  get(featureKey: string, settings: SettingsModel, context: ContextModel, hookManager: HooksManager): Promise<FeatureModel>;
+  get(
+    featureKey: string,
+    settings: SettingsModel,
+    context: ContextModel,
+    hookManager: HooksManager,
+  ): Promise<FeatureModel>;
 }
 
 export class FlagApi implements IGetFlag {
@@ -67,8 +70,8 @@ export class FlagApi implements IGetFlag {
       featureId: feature?.getId(),
       featureKey: feature?.getKey(),
       userId: context?.getId(),
-      api: ApiEnum.GET_FLAG
-    }
+      api: ApiEnum.GET_FLAG,
+    };
 
     const storageService = new StorageService();
     const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(
@@ -87,7 +90,12 @@ export class FlagApi implements IGetFlag {
 
         if (variation) {
           LogManager.Instance.info(
-            `Variation ${variation.getKey()} found in storage for the user ${context.getId()} for the experiment campaign ${storedData.experimentKey}`,
+            buildMessage(InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
+              variationKey: variation.getKey(),
+              userId: context.getId(),
+              experimentType: 'experiment',
+              experimentKey: storedData.experimentKey,
+            }),
           );
           deferredObject.resolve({
             isEnabled: () => true,
@@ -113,9 +121,20 @@ export class FlagApi implements IGetFlag {
       );
       if (variation) {
         LogManager.Instance.info(
-          `Variation ${variation.getKey()} found in storage for the user ${context.getId()} for the rollout campaign ${storedData.rolloutKey}`,
+          buildMessage(InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
+            variationKey: variation.getKey(),
+            userId: context.getId(),
+            experimentType: 'rollout',
+            experimentKey: storedData.rolloutKey,
+          }),
         );
-        LogManager.Instance.info(`Evaluate experiments for the user ${context.getId()}`);
+
+        LogManager.Instance.debug(
+          buildMessage(DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED, {
+            userId: context.getId(),
+          }),
+        );
+
         isEnabled = true;
         shouldCheckForExperimentsRules = true;
         rolloutVariationToReturn = variation;
@@ -130,7 +149,12 @@ export class FlagApi implements IGetFlag {
     }
 
     if (!isObject(feature) || feature === undefined) {
-      LogManager.Instance.error(`Feature not found for the key ${featureKey}`);
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.FEATURE_NOT_FOUND, {
+          featureKey,
+        }),
+      );
+
       deferredObject.reject({});
 
       return deferredObject.promise;
@@ -188,16 +212,15 @@ export class FlagApi implements IGetFlag {
           createAndSendImpressionForVariationShown(settings, passedRolloutCampaign.getId(), variation.getId(), context);
         }
       }
-
     } else if (rollOutRules.length === 0) {
-      LogManager.Instance.info('No Rollout rules present for the feature. Hence, checking Experiment rules');
+      LogManager.Instance.debug(DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
       shouldCheckForExperimentsRules = true;
     }
 
     if (shouldCheckForExperimentsRules) {
       const experimentRulesToEvaluate = [];
 
-      // if rollout rule is passed, get all ab and personalise rules
+      // if rollout rule is passed, get all ab and Personalize rules
       const experimentRules = getAllExperimentRules(feature);
       const megGroupWinnerCampaigns: Map<number, number> = new Map();
 
@@ -268,17 +291,18 @@ export class FlagApi implements IGetFlag {
 
     // Send data for Impact Campaign, if defined
     if (feature.getImpactCampaign()?.getCampaignId()) {
-      LogManager.Instance.info(`Sending data for Impact Campaign for the user ${context.getId()}`);
+      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.IMPACT_ANALYSIS, { userId: context.getId() }));
 
       createAndSendImpressionForVariationShown(
         settings,
         feature.getImpactCampaign()?.getCampaignId(),
         isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-        context
-      )
+        context,
+      );
     }
 
-    const variablesForEvaluatedFlag = experimentVariationToReturn?.variables ?? rolloutVariationToReturn?.variables ?? [];
+    const variablesForEvaluatedFlag =
+      experimentVariationToReturn?.variables ?? rolloutVariationToReturn?.variables ?? [];
 
     deferredObject.resolve({
       isEnabled: () => isEnabled,

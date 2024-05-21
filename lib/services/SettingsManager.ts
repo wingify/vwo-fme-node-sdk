@@ -21,10 +21,11 @@ import { NetworkManager, RequestModel, ResponseModel } from '../packages/network
 import { Deferred } from '../utils/PromiseUtil';
 
 import { Constants } from '../constants';
+import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation';
 import { SettingsModel } from '../models/settings/SettingsModel';
+import { buildMessage } from '../utils/LogMessageUtil';
 import { getSettingsPath } from '../utils/NetworkUtil';
-
 
 interface ISettingsManager {
   sdkKey: string;
@@ -63,7 +64,9 @@ export class SettingsManager implements ISettingsManager {
     // if (this.expiry > 0) {
     //   this.setSettingsExpiry();
     // }
-    LogManager.Instance.debug(`VWO Settings Manager initialized`);
+    LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+      service: 'Settings Manager'
+    }));
   }
 
   private setSettingsExpiry() {
@@ -95,7 +98,10 @@ export class SettingsManager implements ISettingsManager {
         deferredObject.resolve(res);
       })
       .catch((err) => {
-        LogManager.Instance.error(`Settings could not be fetched: ${JSON.stringify(err)}`);
+        LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
+          err: JSON.stringify(err)
+        }));
+
         deferredObject.resolve(null);
       });
 
@@ -106,8 +112,6 @@ export class SettingsManager implements ISettingsManager {
     const deferredObject = new Deferred();
 
     if (!this.sdkKey || !this.accountId) {
-      // console.error('AccountId and sdkKey are required for fetching account settings. Aborting!');
-      LogManager.Instance.error('sdkKey is required for fetching account settings. Aborting!');
       deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
     }
 
@@ -142,7 +146,10 @@ export class SettingsManager implements ISettingsManager {
 
       return deferredObject.promise;
     } catch (err) {
-      LogManager.Instance.error(`Error occurred while fetching settings: ${err}`);
+      LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
+        err: JSON.stringify(err)
+      }));
+
       deferredObject.reject(err);
       return deferredObject.promise;
     }
@@ -156,7 +163,6 @@ export class SettingsManager implements ISettingsManager {
         deferredObject.resolve(settings);
       });
     } else {
-
       // const storageConnector = Storage.Instance.getConnector();
 
       // if (storageConnector) {
@@ -182,18 +188,18 @@ export class SettingsManager implements ISettingsManager {
       //       });
       //     });
       // } else {
-        this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-          const isSettingsValid = new SettingsSchema().isSettingsValid(fetchedSettings);
-          if (isSettingsValid) {
-            LogManager.Instance.info('Settings fetched successfully');
-            deferredObject.resolve(fetchedSettings);
-          } else {
-            // TODO: add error log
-            LogManager.Instance.error('Settings are not valid. Failed schema validation.');
+      this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
+        const isSettingsValid = new SettingsSchema().isSettingsValid(fetchedSettings);
+        if (isSettingsValid) {
+          LogManager.Instance.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
 
-            deferredObject.resolve({});
-          }
-        });
+          deferredObject.resolve(fetchedSettings);
+        } else {
+          LogManager.Instance.error(ErrorLogMessagesEnum.SETTINGS_SCHEMA_INVALID);
+
+          deferredObject.resolve({});
+        }
+      });
       // }
     }
 

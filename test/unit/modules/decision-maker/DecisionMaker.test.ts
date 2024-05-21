@@ -47,7 +47,7 @@ xdescribe('DecisionMaker', () => {
 
   describe('calculateBucketValue', () => {
     it('should calculate the correct bucket value for a string', () => {
-      const str = "testString";
+      const str = 'testString';
       const multiplier = 1;
       const maxValue = 10000;
       const mockHashValue = 987654321; // Mocked hash value

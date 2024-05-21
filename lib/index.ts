@@ -13,10 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export {
-  init,
-  onReady,
-  VWO,
-  LogLevelEnum,
-  StorageConnector
-} from './VWO';
+export { init, onReady, VWO, LogLevelEnum, StorageConnector } from './VWO';

@@ -24,7 +24,7 @@ describe('End-to-End Tests for Logger Module', () => {
     // Initialize LogManager or mock it if necessary
     logManager = new LogManager({
       defaultTransport: true,
-      level: LogLevelEnum.DEBUG
+      level: LogLevelEnum.DEBUG,
     });
   });
 

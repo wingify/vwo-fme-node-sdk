@@ -16,7 +16,8 @@
     "test:dev": "node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated",
     "test:prod": "jest --runInBand --colors --errorOnDeprecated",
     "test:coverage": "jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info",
-    "tsc": "yarn check:versions && tsc -w"
+    "tsc": "yarn check:versions && tsc -w",
+    "typedoc": "typedoc lib/*.ts lib/**/*.ts lib/**/**/*.ts"
   },
   "repository": {
     "type": "git",
@@ -60,6 +61,7 @@
     "prettier": "^3.2.5",
     "semver": "^7.6.0",
     "shelljs": "^0.8.5",
+    "typedoc": "^0.25.13",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.8.0"
   },

@@ -10,3 +10,5 @@ coverage/
 # TODO: remove
 dist/
 demo/
+example/
+docs/

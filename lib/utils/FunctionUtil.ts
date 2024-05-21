@@ -176,8 +176,7 @@ export function addIsGatewayServiceRequiredFlag(settings: SettingsModel): void {
         const matches = jsonSegments.match(pattern);
         if (matches && matches.length > 0) {
           feature.setIsGatewayServiceRequired(true);
-        } else {
-          feature.setIsGatewayServiceRequired(false);
+          break;
         }
       }
     }

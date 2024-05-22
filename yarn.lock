@@ -4803,6 +4803,11 @@ vscode-textmate@^8.0.0:
   resolved "https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-8.0.0.tgz#2c7a3b1163ef0441097e0b5d6389cd5504b59e5d"
   integrity sha512-AFbieoL7a5LMqcnOF04ji+rpXadgOXnZsxQr//r83kLPr7biP7am3g9zbaZIaBGwBRWeSvoMD4mgPdX3e4NWBg==
 
+vwo-fme-sdk-log-messages@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/vwo-fme-sdk-log-messages/-/vwo-fme-sdk-log-messages-0.1.0.tgz#d1f768b86c1dfc6f37fbab72d3987f599b688b73"
+  integrity sha512-P2+l51iccpXjRazASPr3O7UP0JGR13+1pny/lI+K/TmUFJxSJmx6e7iR3wDo3YKrhxdGMt3pEFTF1zzjtHfFWw==
+
 walker@^1.0.8:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/walker/-/walker-1.0.8.tgz#bd498db477afe573dc04185f011d3ab8a8d7653f"

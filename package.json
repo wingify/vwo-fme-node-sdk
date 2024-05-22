@@ -39,7 +39,8 @@
   "dependencies": {
     "murmurhash": "^2.0.1",
     "superstruct": "^1.0.4",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "vwo-fme-sdk-log-messages": "^0.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",

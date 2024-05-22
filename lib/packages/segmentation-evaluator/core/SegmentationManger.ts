@@ -44,7 +44,6 @@ export class SegmentationManager {
    */
   attachEvaluator(evaluator?: SegmentEvaluator): void {
     this.evaluator = evaluator || new SegmentEvaluator(); // Use provided evaluator or create new one
-    LogManager.Instance.debug(`VWO Segmentation Evaluator attached`);
   }
 
   /**

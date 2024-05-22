@@ -25,12 +25,13 @@ import { IVWOClient, VWOClient } from './VWOClient';
 import { SettingsModel } from './models/settings/SettingsModel';
 import { SettingsManager } from './services/SettingsManager';
 
-import { DebugLogMessagesEnum, InfoLogMessagesEnum, ErrorLogMessagesEnum } from './enums/log-messages';
+import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';
 import { IVWOOptions } from './models/VWOOptionsModel';
 import { isNumber } from './utils/DataTypeUtil';
 import { cloneObject } from './utils/FunctionUtil';
 import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
+import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
 import { getRandomUUID } from './utils/UuidUtil';
 
 export interface IVWOBuilder {
@@ -38,6 +39,7 @@ export interface IVWOBuilder {
   storage: Storage; // Interface for storage management
   logManager: ILogManager; // Manages logging across the VWO SDK
   isSettingsFetchInProgress: boolean; // Flag to check if settings fetch is in progress
+  vwoInstance: IVWOClient;
 
   build(settings: SettingsModel): IVWOClient; // Builds and returns a new VWOClient instance
 
@@ -54,8 +56,8 @@ export interface IVWOBuilder {
 }
 
 export class VWOBuilder implements IVWOBuilder {
-  readonly apiKey: string;
-  readonly options: Record<string, any>;
+  readonly sdkKey: string;
+  readonly options: IVWOOptions;
 
   private settingFileManager: SettingsManager;
 
@@ -64,6 +66,7 @@ export class VWOBuilder implements IVWOBuilder {
   logManager: ILogManager;
   originalSettings: dynamic;
   isSettingsFetchInProgress: boolean;
+  vwoInstance: IVWOClient;
 
   constructor(options: IVWOOptions) {
     this.options = options;
@@ -114,7 +117,10 @@ export class VWOBuilder implements IVWOBuilder {
     if (!this.isSettingsFetchInProgress) {
       this.isSettingsFetchInProgress = true;
       this.settingFileManager.getSettings(force).then((settings: SettingsModel) => {
-        this.originalSettings = settings;
+        // if force is false, update original settings, if true the request is from polling and no need to update original settings
+        if (!force) {
+          this.originalSettings = settings;
+        }
 
         this.isSettingsFetchInProgress = false;
         deferredObject.resolve(settings);
@@ -237,7 +243,7 @@ export class VWOBuilder implements IVWOBuilder {
         }),
       );
 
-      return getRandomUUID(this.options.apiKey);
+      return getRandomUUID(this.options.sdkKey);
     } catch (err) {
       LogManager.Instance.error(
         buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
@@ -273,7 +279,7 @@ export class VWOBuilder implements IVWOBuilder {
       return this;
     }
 
-    // BatchEventsQueue.Instance.setBatchConfig(this.options.batchEvents, this.options.apiKey); // TODO
+    // BatchEventsQueue.Instance.setBatchConfig(this.options.batchEvents, this.options.sdkKey); // TODO
 
     return this;
   } */
@@ -318,7 +324,9 @@ export class VWOBuilder implements IVWOBuilder {
    * @returns {VWOClient} The new VWOClient instance.
    */
   build(settings: SettingsModel): IVWOClient {
-    return new VWOClient(settings, this.options);
+    this.vwoInstance = new VWOClient(settings, this.options);
+
+    return this.vwoInstance;
   }
 
   /**
@@ -335,8 +343,9 @@ export class VWOBuilder implements IVWOBuilder {
           if (stringifiedLatestSettings !== lastSettings) {
             this.originalSettings = latestSettings;
             const clonedSettings = cloneObject(latestSettings);
+
             LogManager.Instance.info(InfoLogMessagesEnum.POLLING_SET_SETTINGS);
-            this.build(clonedSettings);
+            setSettingsAndAddCampaignsToRules(clonedSettings, this.vwoInstance);
           } else {
             LogManager.Instance.info(InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
           }

@@ -91,6 +91,7 @@ export const BASIC_ROLLOUT_SETTINGS = {
       isForcedVariationEnabled: false,
       id: 1,
       key: 'feature1_rolloutRule1',
+      name: 'feature1_rolloutRule1',
     },
   ],
 };

@@ -18,12 +18,14 @@ export class RuleModel {
   private variationId: number;
   private campaignId: number;
   private type: string;
+  private ruleKey: string;
 
   modelFromDictionary(rule: RuleModel): this {
     this.type = rule.type;
     this.status = rule.status;
     this.variationId = rule.variationId;
     this.campaignId = rule.campaignId;
+    this.ruleKey = rule.ruleKey;
     return this;
   }
 
@@ -41,5 +43,9 @@ export class RuleModel {
 
   getType(): string {
     return this.type;
+  }
+
+  getRuleKey(): string {
+    return this.ruleKey;
   }
 }

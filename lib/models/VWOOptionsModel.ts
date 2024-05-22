@@ -14,34 +14,79 @@
  * limitations under the License.
  */
 
-import { Connector } from '../packages/storage/Connector';
 import { IVWOBuilder } from '../VWOBuilder';
+import { LogManager } from '../packages/logger';
+import { NetworkClientInterface } from '../packages/network-layer/client/NetworkClientInterface';
+import { SegmentEvaluator } from '../packages/segmentation-evaluator';
+import { Connector } from '../packages/storage/Connector';
 import { IGatewayService } from './GatewayServiceModel';
+
+interface IIntegrationOptions {
+  callback?: (properties: Record<string, any>) => void;
+}
+
+interface INetworkOptions {
+  client?: NetworkClientInterface;
+}
+
 export interface IVWOOptions {
   accountId: string;
   sdkKey: string;
-  storage?: Connector | {};
+  isDevelopmentMode?: boolean;
+  storage?: Connector | Record<any, any>;
   gatewayService?: IGatewayService;
+  pollInterval?: number;
+  logger?: LogManager;
+  segmentation?: SegmentEvaluator;
+  integrations?: IIntegrationOptions;
+  network?: INetworkOptions;
+
   vwoBuilder?: IVWOBuilder;
 }
 
 export class VWOOptionsModel implements IVWOOptions {
   accountId: string;
   sdkKey: string;
-  storage?: Connector | {};
+  isDevelopmentMode?: boolean;
+  storage?: Connector | Record<any, any>;
   gatewayService?: IGatewayService;
+  pollInterval?: number;
+  logger?: LogManager;
+  segmentation?: SegmentEvaluator;
+  integrations?: IIntegrationOptions;
+  network?: INetworkOptions;
+
   vwoBuilder?: IVWOBuilder;
 
   modelFromDictionary(options: VWOOptionsModel): this {
     this.accountId = options.accountId;
     this.sdkKey = options.sdkKey;
     this.vwoBuilder = options.vwoBuilder;
+    if (options?.isDevelopmentMode) {
+      this.isDevelopmentMode = this.isDevelopmentMode;
+    }
     if (options?.storage) {
       this.storage = options.storage;
     }
     if (options?.gatewayService) {
       this.gatewayService = options.gatewayService;
     }
+    if (options?.pollInterval) {
+      this.pollInterval = options.pollInterval;
+    }
+    if (options?.logger) {
+      this.logger = options.logger;
+    }
+    if (options?.segmentation) {
+      this.segmentation = options.segmentation;
+    }
+    if (options?.integrations) {
+      this.integrations = options.integrations;
+    }
+    if (options?.network) {
+      this.network = options.network;
+    }
+
     return this;
   }
 
@@ -53,12 +98,32 @@ export class VWOOptionsModel implements IVWOOptions {
     return this.sdkKey;
   }
 
-  getStorageService(): Connector | {} {
+  getIsDevelopmentMode(): boolean {
+    return this.isDevelopmentMode;
+  }
+
+  getStorageService(): Connector | Record<any, any> {
     return this.storage;
   }
 
   getGatewayService(): IGatewayService {
     return this.gatewayService;
+  }
+
+  getPollInterval(): number {
+    return this.pollInterval;
+  }
+
+  getLogger(): LogManager {
+    return this.logger;
+  }
+
+  getSegmentation(): SegmentEvaluator {
+    return this.segmentation;
+  }
+
+  getNetwork(): INetworkOptions {
+    return this.network;
   }
 
   getVWOBuilder(): IVWOBuilder {

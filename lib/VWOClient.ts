@@ -30,14 +30,17 @@ import { SettingsSchema } from './models/schemas/SettingsSchemaValidation';
 import { ContextModel } from './models/user/ContextModel';
 import HooksManager from './services/HooksManager';
 import UrlService from './services/UrlService';
-import { setVariationAllocation } from './utils/CampaignUtil';
+
 import { getType, isObject, isString } from './utils/DataTypeUtil';
-import { addIsGatewayServiceRequiredFlag, addLinkedCampaignsToSettings } from './utils/FunctionUtil';
+
 import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
 
+import { IVWOOptions } from './models/VWOOptionsModel';
+import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
+
 export interface IVWOClient {
-  readonly options?: any;
+  readonly options?: IVWOOptions;
   settings: SettingsModel;
   // onceReady(): Promise<Record<string, dynamic>>;
 
@@ -56,29 +59,21 @@ export class VWOClient implements IVWOClient {
   originalSettings: Record<any, any>;
   storage: Storage;
 
-  constructor(settings: SettingsModel, options: any) {
+  constructor(settings: SettingsModel, options: IVWOOptions) {
     this.options = options;
-    this.settings = new SettingsModel(settings);
-    this.originalSettings = settings;
+
+    setSettingsAndAddCampaignsToRules(settings, this);
 
     UrlService.init({
       collectionPrefix: this.settings.getCollectionPrefix(),
       gatewayServiceUrl: options?.gatewayService?.url,
-      gatewayServicePort: parseInt(options?.gatewayService?.port),
+      gatewayServicePort: parseInt(options?.gatewayService?.port?.toString()),
     });
 
-    // Optimize loop by avoiding multiple calls to `getCampaigns()`
-    const campaigns = this.settings.getCampaigns();
-    campaigns.forEach((campaign, index) => {
-      setVariationAllocation(campaign);
-      campaigns[index] = campaign;
-    });
-    addLinkedCampaignsToSettings(this.settings);
-    addIsGatewayServiceRequiredFlag(this.settings);
     LogManager.Instance.info(InfoLogMessagesEnum.CLIENT_INITIALIZED);
     return this;
   }
-  options?: Record<string, any>;
+  options?: IVWOOptions;
   /**
    * Retrieves the value of a feature flag for a given feature key and context.
    * This method validates the feature key and context, ensures the settings are valid, and then uses the FlagApi to get the flag value.

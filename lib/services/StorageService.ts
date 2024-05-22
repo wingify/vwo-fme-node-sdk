@@ -47,9 +47,11 @@ export class StorageService {
           deferredObject.resolve(data);
         })
         .catch((err) => {
-          LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.STORED_DATA_ERROR, {
-            err
-          }));
+          LogManager.Instance.error(
+            buildMessage(ErrorLogMessagesEnum.STORED_DATA_ERROR, {
+              err,
+            }),
+          );
 
           deferredObject.resolve(StorageEnum.NO_DATA_FOUND);
         });

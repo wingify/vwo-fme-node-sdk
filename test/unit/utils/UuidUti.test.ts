@@ -24,16 +24,16 @@ jest.mock('uuid', () => ({
 describe('UuidUtil', () => {
   describe('getRandomUUID', () => {
     it('should generate a random UUID based on an API key', () => {
-      const apiKey = 'test-api-key';
+      const sdkKey = 'test-api-key';
       const fakeNamespace = 'fake-namespace';
       const fakeUUID = 'fake-uuid';
       (uuidv5 as jest.Mock).mockImplementationOnce(() => fakeNamespace);
       (uuidv5 as jest.Mock).mockImplementationOnce(() => fakeUUID);
       (uuidv4 as jest.Mock).mockReturnValue('random-uuid');
 
-      const result = getRandomUUID(apiKey);
+      const result = getRandomUUID(sdkKey);
 
-      expect(uuidv5).toHaveBeenCalledWith(apiKey, uuidv5.DNS);
+      expect(uuidv5).toHaveBeenCalledWith(sdkKey, uuidv5.DNS);
       expect(uuidv4).toHaveBeenCalled();
       expect(uuidv5).toHaveBeenCalledWith('random-uuid', fakeNamespace);
       expect(result).toBe(fakeUUID);

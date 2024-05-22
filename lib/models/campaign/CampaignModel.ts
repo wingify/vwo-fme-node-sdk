@@ -149,4 +149,8 @@ export class CampaignModel {
   getVariables(): Array<VariableModel> {
     return this.variables;
   }
+
+  getRuleKey(): string {
+    return this.ruleKey;
+  }
 }

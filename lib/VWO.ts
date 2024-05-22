@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { VWOBuilder } from './VWOBuilder';
+import { IVWOBuilder, VWOBuilder } from './VWOBuilder';
 import { IVWOClient } from './VWOClient';
 import { IVWOOptions } from './models/VWOOptionsModel';
 import { SettingsModel } from './models/settings/SettingsModel';
@@ -157,6 +157,10 @@ export async function onReady() {
     } else {
       // wait for five seconds, else reject the promise
       setTimeout(() => {
+        if (_global.isSettingsFetched) {
+          return;
+        }
+
         const msg = buildMessage(InfoLogMessagesEnum.ON_READY_SETTINGS_FAILED, {
           date,
         });

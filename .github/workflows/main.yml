@@ -50,7 +50,7 @@ jobs:
       id: slack
       uses: wingify/slack-github-action@v1.15.1-wingify
       with:
-        channel-id: 'team-testing-serverside'
+        channel-id: 'fs-review-team' # team-testing-serverside
         slack-message: "<!here> Test on *Node-${{ matrix.node_version }}* and *${{ matrix.os }}* got *${{job.status}}* ${{job.status == 'success' && ':heavy_check_mark:' || ':x:'}} \nCommit: `${{github.event.head_commit.message}}`. \nCheck the latest build: https://github.com/wingify/vwo-node-sdk/actions"
         color: "${{job.status == 'success' && '#00FF00' || '#FF0000'}}"
       env:

@@ -143,8 +143,7 @@ export function addLinkedCampaignsToSettings(settings: SettingsModel): void {
         if (!campaign) return null;
 
         // Create a linked campaign object with the rule and campaign
-        const linkedCampaign: any = { key: campaign.getKey(), ...rule, ...campaign };
-
+        const linkedCampaign: any = { key: campaign.getKey(), ...campaign, ruleKey: rule.getRuleKey() };
         // If a variationId is specified, find and add the variation
         if (rule.getVariationId()) {
           const variation = campaign.getVariations().find((v) => v.getId() === rule.getVariationId());
@@ -164,27 +163,5 @@ export function addLinkedCampaignsToSettings(settings: SettingsModel): void {
     });
     // Assign the linked campaigns to the feature
     feature.setRulesLinkedCampaign(rulesLinkedCampaignModel);
-  }
-}
-
-/**
- * Adds isGatewayServiceRequired flag to each feature in the settings based on pre segmentation.
- * @param {any} settings - The settings file to modify.
- */
-export function addIsGatewayServiceRequiredFlag(settings: SettingsModel): void {
-  const pattern = /\b(?<!\"custom_variable\"[^\}]*)(country|region|city|os|device_type|browser_string|ua)\b/g;
-  for (const feature of settings.getFeatures()) {
-    const rules = feature.getRulesLinkedCampaign();
-    for (const rule of rules) {
-      const segments = rule.getSegments();
-      if (segments) {
-        const jsonSegments = JSON.stringify(segments);
-        const matches = jsonSegments.match(pattern);
-        if (matches && matches.length > 0) {
-          feature.setIsGatewayServiceRequired(true);
-          break;
-        }
-      }
-    }
   }
 }

@@ -44,13 +44,13 @@ export function getBasePropertiesForBulk(accountId: string, userId: string): Rec
 
 /**
  * Constructs the settings path with API key and account ID.
- * @param {string} apikey - The API key.
+ * @param {string} sdkKey - The API key.
  * @param {any} accountId - The account identifier.
  * @returns {Record<string, dynamic>} - The settings path including API key, random number, and account ID.
  */
-export function getSettingsPath(apikey: string, accountId: any): Record<string, dynamic> {
+export function getSettingsPath(sdkKey: string, accountId: string | number): Record<string, dynamic> {
   const path: Record<string, dynamic> = {
-    i: `${apikey}`, // Inject API key
+    i: `${sdkKey}`, // Inject API key
     r: Math.random(), // Random number for cache busting
     a: accountId, // Account ID
   };
@@ -107,7 +107,7 @@ export function getEventsBaseProperties(
   eventName: string,
   visitorUserAgent: string = '',
   ipAddress: string = '',
-): any {
+): Record<string, any> {
   const sdkKey = setting.getSdkkey();
 
   const properties = Object.assign({
@@ -138,7 +138,7 @@ export function _getEventBasePayload(
   eventName: string,
   visitorUserAgent = '',
   ipAddress = '',
-) {
+): Record<string, any> {
   const uuid = getUUID(userId.toString(), settings.getAccountId());
   const sdkKey = settings.getSdkkey();
 
@@ -196,18 +196,20 @@ export function getTrackUserPayloadData(
   variationId: number,
   visitorUserAgent: string = '',
   ipAddress: string = '',
-) {
+): Record<string, any> {
   const properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
 
   properties.d.event.props.id = campaignId;
   properties.d.event.props.variation = variationId;
   properties.d.event.props.isFirst = 1;
 
-  LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
-    accountId: settings.getAccountId(),
-    userId,
-    campaignId
-  }));
+  LogManager.Instance.debug(
+    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+      accountId: settings.getAccountId(),
+      userId,
+      campaignId,
+    }),
+  );
 
   return properties;
 }
@@ -229,7 +231,7 @@ export function getTrackGoalPayloadData(
   eventProperties: Record<string, any>,
   visitorUserAgent: string = '',
   ipAddress: string = '',
-) {
+): Record<string, any> {
   const properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
   properties.d.event.props.isCustomEvent = true; // Mark as a custom event
   properties.d.event.props.variation = 1; // Temporary value for variation
@@ -242,11 +244,13 @@ export function getTrackGoalPayloadData(
     }
   }
 
-  LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
-    eventName,
-    accountId: settings.getAccountId(),
-    userId
-  }));
+  LogManager.Instance.debug(
+    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+      eventName,
+      accountId: settings.getAccountId(),
+      userId,
+    }),
+  );
 
   return properties;
 }
@@ -270,18 +274,20 @@ export function getAttributePayloadData(
   attributeValue: dynamic,
   visitorUserAgent: string = '',
   ipAddress: string = '',
-) {
+): Record<string, any> {
   const properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
 
   properties.d.event.props.isCustomEvent = true; // Mark as a custom event
   properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
   properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
 
-  LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
-    eventName,
-    accountId: settings.getAccountId(),
-    userId
-  }));
+  LogManager.Instance.debug(
+    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+      eventName,
+      accountId: settings.getAccountId(),
+      userId,
+    }),
+  );
 
   return properties;
 }
@@ -315,10 +321,12 @@ export function sendPostApiRequest(properties: any, payload: any) {
   );
 
   NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
-    LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-      method: 'POST',
-      err
-    }));
+    LogManager.Instance.error(
+      buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+        method: 'POST',
+        err,
+      }),
+    );
   });
 }
 
@@ -344,10 +352,12 @@ export async function sendGetApiRequest(properties: any, endpoint: any): Promise
     const response: ResponseModel = await NetworkManager.Instance.get(request);
     return response; // Return the response model
   } catch (err) {
-    LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-      method: 'GET',
-      err
-    }));
+    LogManager.Instance.error(
+      buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+        method: 'GET',
+        err,
+      }),
+    );
     return null;
   }
 }

@@ -45,6 +45,7 @@ export const NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS = {
   campaigns: [
     {
       key: 'feature1_rolloutRule1',
+      name: 'feature1_rolloutRule1',
       id: 1,
       segments: {},
       isForcedVariationEnabled: false,
@@ -101,6 +102,7 @@ export const NO_ROLLOUT_ONLY_TESTING_RULE_SETTINGS = {
     },
     {
       key: 'feature1_testingRule1',
+      name: 'feature1_testingRule1',
       id: 2,
       segments: {},
       isForcedVariationEnabled: false,

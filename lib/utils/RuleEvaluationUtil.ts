@@ -43,7 +43,7 @@ export const evaluateRule = async (
   feature: FeatureModel,
   campaign: CampaignModel,
   context: ContextModel,
-  evaluatedFeatureMap: Map<string, any>,
+  evaluatedFeatureMap: Map<string, unknown>,
   megGroupWinnerCampaigns: Map<number, number>,
   storageService: StorageService,
   decision: any,

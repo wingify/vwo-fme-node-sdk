@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { dynamic } from '../../../types/Common';
-import { Deferred } from '../../../utils/PromiseUtil';
-import { Connector } from '../Connector';
+/* import { Connector } from '../Connector';
 
 export class MemoryConnector extends Connector {
   map: any;
@@ -33,3 +31,4 @@ export class MemoryConnector extends Connector {
     this.map[key] = data;
   }
 }
+ */

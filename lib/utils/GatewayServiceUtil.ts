@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ErrorLogMessagesEnum } from '../enums/log-messages';
+import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { UrlEnum } from '../enums/UrlEnum';
+import { ErrorLogMessagesEnum } from '../enums/log-messages';
+import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
 import UrlService from '../services/UrlService';
@@ -90,4 +92,35 @@ export function getQueryParams(queryParams: Record<string, string | number>): Re
   }
 
   return encodedParams;
+}
+
+/**
+ * Adds isGatewayServiceRequired flag to each feature in the settings based on pre segmentation.
+ * @param {any} settings - The settings file to modify.
+ */
+export function addIsGatewayServiceRequiredFlag(settings: SettingsModel): void {
+  // \b(?<!\"custom_variable\"[^\}]*)(country|region|city|os|device_type|browser_string|ua)\b: This part matches the usual patterns (like country, region, etc.) that are not under custom_variable
+  // |(?<="custom_variable"\s*:\s*{\s*"[^)]*"\s*:\s*")inlist\([^)]*\)(?="): This part matches inlist(*) only when it appears under "custom_variable" : { ".*" : "
+  const pattern =
+    /\b(?<!\"custom_variable\"[^\}]*)(country|region|city|os|device_type|browser_string|ua)\b|(?<="custom_variable"\s*:\s*{\s*"name"\s*:\s*")inlist\([^)]*\)(?=")/g;
+
+  for (const feature of settings.getFeatures()) {
+    const rules = feature.getRulesLinkedCampaign();
+    for (const rule of rules) {
+      let segments = {};
+      if (rule.getType() === CampaignTypeEnum.PERSONALIZE || rule.getType() === CampaignTypeEnum.ROLLOUT) {
+        segments = rule.getVariations()[0].getSegments();
+      } else {
+        segments = rule.getSegments();
+      }
+      if (segments) {
+        const jsonSegments = JSON.stringify(segments);
+        const matches = jsonSegments.match(pattern);
+        if (matches && matches.length > 0) {
+          feature.setIsGatewayServiceRequired(true);
+          break;
+        }
+      }
+    }
+  }
 }

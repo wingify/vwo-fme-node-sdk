@@ -57,7 +57,7 @@ export const evaluateGroups = async (
   groupId: number,
   evaluatedFeatureMap: Map<string, any>,
   context: ContextModel,
-  storageService: StorageService
+  storageService: StorageService,
 ): Promise<any> => {
   const featureToSkip = [];
   const campaignMap: Map<string, any[]> = new Map();
@@ -78,7 +78,7 @@ export const evaluateGroups = async (
       evaluatedFeatureMap,
       featureToSkip,
       storageService,
-      context
+      context,
     );
     if (isRolloutRulePassed) {
       settings.getCampaigns().forEach((campaign) => {
@@ -168,7 +168,7 @@ const _isRolloutRuleForFeaturePassed = async (
         evaluatedFeatureMap,
         null,
         storageService,
-        {}
+        {},
       );
       if (preSegmentationResult) {
         ruleToTestForTraffic = rule;
@@ -193,9 +193,11 @@ const _isRolloutRuleForFeaturePassed = async (
     return false;
   }
   // no rollout rule, evaluate experiments
-  LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS, {
-    featureKey: feature.getKey()
-  }));
+  LogManager.Instance.info(
+    buildMessage(InfoLogMessagesEnum.MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS, {
+      featureKey: feature.getKey(),
+    }),
+  );
   return true;
 };
 
@@ -237,10 +239,12 @@ const _getEligbleCampaigns = async (
             storedData.experimentVariationId,
           );
           if (variation) {
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
-              campaignKey: storedData.experimentKey,
-              userId: context.getId()
-            }));
+            LogManager.Instance.info(
+              buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+                campaignKey: storedData.experimentKey,
+                userId: context.getId(),
+              }),
+            );
 
             if (eligibleCampaignsWithStorage.findIndex((item) => item.key === campaign.getKey()) === -1) {
               eligibleCampaignsWithStorage.push(campaign);
@@ -254,14 +258,16 @@ const _getEligbleCampaigns = async (
       if (
         (await new CampaignDecisionService().getPreSegmentationDecision(
           new CampaignModel().modelFromDictionary(campaign),
-          context
+          context,
         )) &&
         new CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign)
       ) {
-        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
-          campaignKey: campaign.getKey(),
-          userId: context.getId()
-        }));
+        LogManager.Instance.info(
+          buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+            campaignKey: campaign.getKey(),
+            userId: context.getId(),
+          }),
+        );
 
         eligibleCampaigns.push(campaign);
         continue;
@@ -308,12 +314,14 @@ const _findWinnerCampaignAmongEligibleCampaigns = async (
   // if eligibleCampaignsWithStorage has only one campaign, then that campaign is the winner
   if (eligibleCampaignsWithStorage.length === 1) {
     winnerCampaign = eligibleCampaignsWithStorage[0];
-    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-      campaignKey: eligibleCampaignsWithStorage[0].getKey(),
-      groupId,
-      userId: context.getId(),
-      algo: ''
-    }));
+    LogManager.Instance.info(
+      buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+        campaignKey: eligibleCampaignsWithStorage[0].getKey(),
+        groupId,
+        userId: context.getId(),
+        algo: '',
+      }),
+    );
   } else if (eligibleCampaignsWithStorage.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
     // if eligibleCampaignsWithStorage has more than one campaign and algo is random, then find the winner using random algo
     winnerCampaign = _normalizeWeightsAndFindWinningCampaign(
@@ -337,13 +345,14 @@ const _findWinnerCampaignAmongEligibleCampaigns = async (
     if (eligibleCampaigns.length === 1) {
       winnerCampaign = eligibleCampaigns[0];
 
-      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-        campaignKey: eligibleCampaigns[0].getKey(),
-        groupId,
-        userId: context.getId(),
-        algo: ''
-      }));
-
+      LogManager.Instance.info(
+        buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+          campaignKey: eligibleCampaigns[0].getKey(),
+          groupId,
+          userId: context.getId(),
+          algo: '',
+        }),
+      );
     } else if (eligibleCampaigns.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
       winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaigns, context, campaignIds, groupId);
     } else if (eligibleCampaigns.length > 1) {
@@ -384,12 +393,14 @@ const _normalizeWeightsAndFindWinningCampaign = (
     new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), undefined, groupId)),
   );
 
-  LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-    campaignKey: winnerCampaign.getKey(),
-    groupId,
-    userId: context.getId(),
-    algo: 'using random algorithm'
-  }));
+  LogManager.Instance.info(
+    buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+      campaignKey: winnerCampaign.getKey(),
+      groupId,
+      userId: context.getId(),
+      algo: 'using random algorithm',
+    }),
+  );
 
   if (winnerCampaign && calledCampaignIds.includes(winnerCampaign.getId())) {
     return winnerCampaign;
@@ -461,12 +472,14 @@ const _getCampaignUsingAdvancedAlgo = (
   }
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
   // also shortlistedCampaigns and wt array does not have a single campaign id in common
-  LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-    campaignKey: winnerCampaign.key,
-    groupId,
-    userId: context.getId(),
-    algo: 'using advanced algorithm'
-  }));
+  LogManager.Instance.info(
+    buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+      campaignKey: winnerCampaign.key,
+      groupId,
+      userId: context.getId(),
+      algo: 'using advanced algorithm',
+    }),
+  );
 
   if (calledCampaignIds.includes(winnerCampaign.id)) {
     return winnerCampaign;

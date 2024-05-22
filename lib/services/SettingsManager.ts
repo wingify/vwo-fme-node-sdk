@@ -64,9 +64,11 @@ export class SettingsManager implements ISettingsManager {
     // if (this.expiry > 0) {
     //   this.setSettingsExpiry();
     // }
-    LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-      service: 'Settings Manager'
-    }));
+    LogManager.Instance.debug(
+      buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+        service: 'Settings Manager',
+      }),
+    );
   }
 
   private setSettingsExpiry() {
@@ -98,9 +100,11 @@ export class SettingsManager implements ISettingsManager {
         deferredObject.resolve(res);
       })
       .catch((err) => {
-        LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-          err: JSON.stringify(err)
-        }));
+        LogManager.Instance.error(
+          buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
+            err: JSON.stringify(err),
+          }),
+        );
 
         deferredObject.resolve(null);
       });
@@ -146,9 +150,11 @@ export class SettingsManager implements ISettingsManager {
 
       return deferredObject.promise;
     } catch (err) {
-      LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-        err: JSON.stringify(err)
-      }));
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
+          err: JSON.stringify(err),
+        }),
+      );
 
       deferredObject.reject(err);
       return deferredObject.promise;

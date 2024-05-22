@@ -62,11 +62,13 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     const valueAssignedToUser = new DecisionMaker().getBucketValueForUser(`${campaign.getId()}_${userId}`);
     const isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
 
-    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
-      userId,
-      notPart: isUserPart ? '' : 'not',
-      campaignKey: campaign.getKey()
-    }));
+    LogManager.Instance.info(
+      buildMessage(InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
+        userId,
+        notPart: isUserPart ? '' : 'not',
+        campaignKey: campaign.getKey(),
+      }),
+    );
 
     return isUserPart;
   }
@@ -119,13 +121,15 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     const hashValue = new DecisionMaker().generateHashValue(`${campaign.getId()}_${accountId}_${userId}`);
     const bucketValue = new DecisionMaker().generateBucketValue(hashValue, Constants.MAX_TRAFFIC_VALUE, multiplier);
 
-    LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
-      userId,
-      campaignKey: campaign.getKey(),
-      percentTraffic,
-      bucketValue,
-      hashValue
-    }));
+    LogManager.Instance.debug(
+      buildMessage(DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
+        userId,
+        campaignKey: campaign.getKey(),
+        percentTraffic,
+        bucketValue,
+        hashValue,
+      }),
+    );
 
     return this.getVariation(campaign.getVariations(), bucketValue);
   }
@@ -141,11 +145,12 @@ export class CampaignDecisionService implements ICampaignDecisionService {
       segments = campaign.getSegments();
     }
     if (isObject(segments) && !Object.keys(segments).length) {
-
-      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_SKIP, {
-        userId: context.getId(),
-        campaignKey: campaign.getKey()
-      }));
+      LogManager.Instance.info(
+        buildMessage(InfoLogMessagesEnum.SEGMENTATION_SKIP, {
+          userId: context.getId(),
+          campaignKey: campaign.getRuleKey(),
+        }),
+      );
 
       return true;
     } else {
@@ -155,20 +160,24 @@ export class CampaignDecisionService implements ICampaignDecisionService {
       );
 
       if (!preSegmentationResult) {
-        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
-          userId: context.getId(),
-          campaignKey: campaign.getKey(),
-          status: 'failed'
-        }));
+        LogManager.Instance.info(
+          buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
+            userId: context.getId(),
+            campaignKey: campaign.getRuleKey(),
+            status: 'failed',
+          }),
+        );
 
         return false;
       }
 
-      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
-        userId: context.getId(),
-        campaignKey: campaign.getKey(),
-        status: 'passed'
-      }));
+      LogManager.Instance.info(
+        buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
+          userId: context.getId(),
+          campaignKey: campaign.getRuleKey(),
+          status: 'passed',
+        }),
+      );
 
       return true;
     }

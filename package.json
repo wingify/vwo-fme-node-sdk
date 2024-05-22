@@ -67,7 +67,7 @@
   },
   "lint-staged": {
     "**/*.{ts,json,md}": [
-      "prettier"
+      "prettier --write"
     ]
   },
   "engineStrict": true,

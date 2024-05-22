@@ -95,6 +95,7 @@ export const MEG_CAMPAIGN_ADVANCE_ALGO_SETTINGS = {
   campaigns: [
     {
       key: 'feature1_rolloutRule1',
+      name: 'feature1_rolloutRule1',
       id: 1,
       segments: {},
       isForcedVariationEnabled: false,
@@ -145,6 +146,7 @@ export const MEG_CAMPAIGN_ADVANCE_ALGO_SETTINGS = {
     },
     {
       key: 'feature1_testingRule1',
+      name: 'feature1_testingRule1',
       id: 2,
       segments: {
         or: [
@@ -242,6 +244,7 @@ export const MEG_CAMPAIGN_ADVANCE_ALGO_SETTINGS = {
     },
     {
       key: 'feature1_personalizeRule1',
+      name: 'feature1_personalizeRule1',
       id: 3,
       isForcedVariationEnabled: false,
       variations: [
@@ -300,6 +303,7 @@ export const MEG_CAMPAIGN_ADVANCE_ALGO_SETTINGS = {
     },
     {
       key: 'feature1_testingRule2',
+      name: 'feature1_testingRule2',
       id: 4,
       segments: {
         or: [
@@ -397,6 +401,7 @@ export const MEG_CAMPAIGN_ADVANCE_ALGO_SETTINGS = {
     },
     {
       key: 'feature1_testingRule3',
+      name: 'feature1_testingRule3',
       id: 5,
       segments: {
         or: [
@@ -494,6 +499,7 @@ export const MEG_CAMPAIGN_ADVANCE_ALGO_SETTINGS = {
     },
     {
       key: 'feature1_testingRule4',
+      name: 'feature1_testingRule4',
       id: 6,
       segments: {},
       isForcedVariationEnabled: false,
@@ -583,6 +589,7 @@ export const MEG_CAMPAIGN_ADVANCE_ALGO_SETTINGS = {
     },
     {
       key: 'feature1_testingRule5',
+      name: 'feature1_testingRule5',
       id: 7,
       segments: {},
       isForcedVariationEnabled: false,

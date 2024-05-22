@@ -18,12 +18,12 @@ import { v5 as uuidv5 } from 'uuid';
 
 /**
  * Generates a random UUID based on an API key.
- * @param apiKey The API key used to generate a namespace for the UUID.
+ * @param sdkKey The API key used to generate a namespace for the UUID.
  * @returns A random UUID string.
  */
-export function getRandomUUID(apiKey: string): string {
+export function getRandomUUID(sdkKey: string): string {
   // Generate a namespace based on the API key using DNS namespace
-  const namespace = uuidv5(apiKey, uuidv5.DNS);
+  const namespace = uuidv5(sdkKey, uuidv5.DNS);
   // Generate a random UUID using the namespace derived from the API key
   const randomUUID = uuidv5(uuidv4(), namespace);
 

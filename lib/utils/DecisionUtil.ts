@@ -69,10 +69,12 @@ export const checkWhitelistingAndPreSeg = async (
         return [true, whitelistedVariation];
       }
     } else {
-      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
-        campaignKey: campaign.getKey(),
-        userId: context.getId()
-      }));
+      LogManager.Instance.info(
+        buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
+          campaignKey: campaign.getRuleKey(),
+          userId: context.getId(),
+        }),
+      );
     }
   }
   // userlist segment is also available for campaign pre segmentation
@@ -128,19 +130,23 @@ export const evaluateTrafficAndGetVariation = (
 ): VariationModel => {
   const variation = new CampaignDecisionService().getVariationAlloted(userId, settings.getAccountId(), campaign);
   if (!variation) {
-    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-      campaign: campaign.getKey(),
-      userId,
-      status: 'did not get any variation'
-    }));
+    LogManager.Instance.info(
+      buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
+        campaign: campaign.getKey(),
+        userId,
+        status: 'did not get any variation',
+      }),
+    );
 
     return null;
   }
-  LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-    campaign: campaign.getKey(),
-    userId,
-    status: `got variation:${variation.getKey()}`
-  }));
+  LogManager.Instance.info(
+    buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
+      campaign: campaign.getKey(),
+      userId,
+      status: `got variation:${variation.getKey()}`,
+    }),
+  );
 
   return variation;
 };
@@ -157,24 +163,24 @@ export const evaluateTrafficAndGetVariation = (
  * @returns
  */
 const _checkCampaignWhitelisting = async (campaign: CampaignModel, context: ContextModel): Promise<any> => {
-  const campaignKey = campaign.getKey();
   // check if the campaign satisfies the whitelisting
   const whitelistingResult = await _evaluateWhitelisting(campaign, context);
   const status = whitelistingResult ? StatusEnum.PASSED : StatusEnum.FAILED;
   const variationString = whitelistingResult ? whitelistingResult.variation.key : '';
 
-  LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.WHITELISTING_STATUS, {
-    userId: context.getId(),
-    campaignKey,
-    status,
-    variationString
-  }));
+  LogManager.Instance.info(
+    buildMessage(InfoLogMessagesEnum.WHITELISTING_STATUS, {
+      userId: context.getId(),
+      campaignKey: campaign.getRuleKey(),
+      status,
+      variationString,
+    }),
+  );
 
   return whitelistingResult;
 };
 
 const _evaluateWhitelisting = async (campaign: CampaignModel, context: ContextModel): Promise<any> => {
-  const campaignKey = campaign.getKey();
   const targetedVariations = [];
   const promises: Promise<any>[] = [];
 
@@ -182,11 +188,13 @@ const _evaluateWhitelisting = async (campaign: CampaignModel, context: ContextMo
 
   campaign.getVariations().forEach((variation) => {
     if (isObject(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
-      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
-        campaignKey: campaign.getKey(),
-        userId: context.getId(),
-        variation: variation.getKey() ? `for variation: ${variation.getKey()}` : ''
-      }));
+      LogManager.Instance.info(
+        buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
+          campaignKey: campaign.getRuleKey(),
+          userId: context.getId(),
+          variation: variation.getKey() ? `for variation: ${variation.getKey()}` : '',
+        }),
+      );
 
       return;
     }

@@ -43,5 +43,4 @@ export enum InfoLogMessagesEnum {
   MEG_CAMPAIGN_FOUND_IN_STORAGE = `Campaign {campaignKey} found in storage for user ID:{userId}`,
   MEG_CAMPAIGN_ELIGIBLE = `Campaign {campaignKey} is eligible for user ID:{userId}`,
   MEG_WINNER_CAMPAIGN = `MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}`,
-
 }

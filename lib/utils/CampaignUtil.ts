@@ -40,14 +40,15 @@ export function setVariationAllocation(campaign: CampaignModel): void {
       const stepFactor = assignRangeValues(variation, currentAllocation);
       currentAllocation += stepFactor;
       // Log the range allocation for debugging
-      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
-        variationKey: variation.getKey(),
-        campaignKey: campaign.getKey(),
-        variationWeight: variation.getWeight(),
-        startRange: variation.getStartRangeVariation(),
-        endRange: variation.getEndRangeVariation()
-      }));
-
+      LogManager.Instance.info(
+        buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+          variationKey: variation.getKey(),
+          campaignKey: campaign.getKey(),
+          variationWeight: variation.getWeight(),
+          startRange: variation.getStartRangeVariation(),
+          endRange: variation.getEndRangeVariation(),
+        }),
+      );
     });
   }
 }
@@ -312,12 +313,14 @@ function _handleRolloutCampaign(campaign: CampaignModel): void {
     variation.setStartRange(1);
     variation.setEndRange(endRange);
 
-    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
-      variationKey: variation.getKey(),
-      campaignKey: campaign.getKey(),
-      variationWeight: variation.getWeight(),
-      startRange: 1,
-      endRange
-    }));
+    LogManager.Instance.info(
+      buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+        variationKey: variation.getKey(),
+        campaignKey: campaign.getKey(),
+        variationWeight: variation.getWeight(),
+        startRange: 1,
+        endRange,
+      }),
+    );
   }
 }

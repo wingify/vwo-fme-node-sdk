@@ -75,7 +75,9 @@ describe('VWOClient setAttribute method', () => {
 
     console.error = jest.fn(); // Mock console.error
     vwoClient.setAttribute(attributeKey, attributeValue, undefined);
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining(" Context should be an object and must contain a mandatory key - id, which is User ID"));
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining(' Context should be an object and must contain a mandatory key - id, which is User ID'),
+    );
   });
 
   it('should handle errors and log them if context does not have a valid User ID', async () => {
@@ -86,7 +88,9 @@ describe('VWOClient setAttribute method', () => {
 
     console.error = jest.fn(); // Mock console.error
     vwoClient.setAttribute(attributeKey, attributeValue, context);
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining(` Context should be an object and must contain a mandatory key - id, which is User ID`));
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining(` Context should be an object and must contain a mandatory key - id, which is User ID`),
+    );
   });
 
   it('should check if call is made to VWO Server if all ok', async () => {

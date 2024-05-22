@@ -18,11 +18,11 @@ export enum DebugLogMessagesEnum {
   SERVICE_INITIALIZED = `VWO {service} initialized while creating an instance of SDK`,
 
   EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED = `Rollout rule got passed for user {userId}. Hence, evaluating experiments`,
-  EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT = `No Rollout rules present for the feature. Hence, checking Experiment rules`,
+  EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT = `No Rollout rules present for the feature. Hence, checking experiment rules`,
 
-  USER_BUCKET_TO_VARIATION = `User ID: {userId} for experiment: {campaignKey} having percent traffic: {percentTraffic} got bucketValue as {bucketValue} and hashvalue as {hashValue}`,
+  USER_BUCKET_TO_VARIATION = `User ID: {userId} for experiment: {campaignKey} having percent traffic: {percentTraffic} got bucket-value as {bucketValue} and hash-value as {hashValue}`,
 
   IMPRESSION_FOR_TRACK_USER = `Impression built for vwo_variationShown event for Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}`,
   IMPRESSION_FOR_TRACK_GOAL = `Impression built for {eventName} event for Account ID:{accountId}, and user ID:{userId}`,
-  IMPRESSION_FOR_SYNC_VISITOR_PROP = `Impression built for {eventName} event for Account ID:{accountId}, and user ID:{userId}`
+  IMPRESSION_FOR_SYNC_VISITOR_PROP = `Impression built for {eventName} event for Account ID:{accountId}, and user ID:{userId}`,
 }

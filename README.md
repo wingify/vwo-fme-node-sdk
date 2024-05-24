@@ -9,7 +9,7 @@
 
 ### Requirements
 
-- Node 10+
+- Node 12+
 
 ### Installation
 
@@ -28,11 +28,11 @@ const { init } = require('vwo-fme-node-sdk');
 
 const vwoClient = await vwo.init({
   accountId: '123456', // VWO Account ID
-  sdkKey: '32-alpha-numeric-sdk-key' // SDK Key
+  sdkKey: '32-alpha-numeric-sdk-key', // SDK Key
 });
 
 // set user context
-const userContext = { id: "unique_user_id" };
+const userContext = { id: 'unique_user_id' };
 // returns a flag object
 const getFlag = await vwoClient.getFlag('feature_key', userContext);
 // check if flag is enabled

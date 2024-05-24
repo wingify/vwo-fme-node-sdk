@@ -246,10 +246,9 @@ export class RequestModel {
 
     if (this.body) {
       const postBody = JSON.stringify(this.body);
-      options.headers = {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postBody),
-      };
+      options.headers = options.headers || {};
+      options.headers['Content-Type'] = 'application/json';
+      options.headers['Content-Length'] = Buffer.byteLength(postBody);
       options.body = this.body;
     }
 

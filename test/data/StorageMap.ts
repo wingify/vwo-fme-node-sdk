@@ -38,7 +38,8 @@ const storageMap: StorageMap = {
     if (Object.prototype.hasOwnProperty.call(this.storage, key)) {
       return this.storage[key];
     }
-    return null;
+
+    return {};
   },
 
   // create a set function

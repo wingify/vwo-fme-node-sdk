@@ -12,12 +12,13 @@ jobs:
     name: Test on node ${{ matrix.node_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
           # - macos-latest
           # - windows-latest
-        node_version: [ 18.18.0 ] # [6.x, 8.x, 10.x, 12.x, 14.x, 15.x, 16.x, 17.x, 18.x, 19.x, 20.x, 21.x, 22.x]
+        node_version: [ 12.x, 13.x, 14.x, 15.x, 16.x, 18.x, 19.x, 20.x, 21.x, 22.x ] # [6.x, 8.x, 10.x, 12.x, 14.x, 15.x, 16.x, 17.x, 18.x, 19.x, 20.x, 21.x, 22.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -33,6 +34,24 @@ jobs:
           node_modules
           */*/node_modules
         key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+
+    - name: Copy appropriate package.json
+      run: |
+        if [[ ${{ matrix.node_version }} == 12* ]]; then
+          cp package-below-node-16.json package.json
+        elif [[ ${{ matrix.node_version }} == 13* ]]; then
+          cp package-below-node-16.json package.json
+        elif [[ ${{ matrix.node_version }} == 14* ]]; then
+          cp package-below-node-16.json package.json
+        elif [[ ${{ matrix.node_version }} == 15* ]]; then
+          cp package-below-node-16.json package.json
+        elif [[ ${{ matrix.node_version }} == 16* ]]; then
+          cp package-below-node-16.json package.json
+        elif [[ ${{ matrix.node_version }} == 17* ]]; then
+          cp package-below-node-16.json package.json
+        elif [[ ${{ matrix.node_version }} == 19* ]]; then
+          cp package-below-node-16.json package.json
+        fi
 
     - name: yarn install, yarn test:coverage
       run: |
@@ -50,7 +69,7 @@ jobs:
       id: slack
       uses: wingify/slack-github-action@v1.15.1-wingify
       with:
-        channel-id: 'team-testing-serverside' # team-testing-serverside
+        channel-id: 'fs-review-team' # team-testing-serverside
         slack-message: "<!here> Node.js FME SDK Test on *Node-${{ matrix.node_version }}* and *${{ matrix.os }}* got *${{job.status}}* ${{job.status == 'success' && ':heavy_check_mark:' || ':x:'}} \nCommit: `${{github.event.head_commit.message}}`. \nCheck the latest build: https://github.com/wingify/vwo-node-sdk/actions"
         color: "${{job.status == 'success' && '#00FF00' || '#FF0000'}}"
       env:

@@ -1,0 +1,40 @@
+{
+  "name": "vwo-fme-node-sdk",
+  "version": "1.2.0",
+  "description": "VWO Node SDK for Feature Management and Experimentation",
+  "main": "dist/index",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "check:versions": "node -e 'require(\"./scripts/check-versions\")'",
+    "test:coverage": "jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info",
+    "tsc": "yarn check:versions && tsc -w",
+    "typedoc": "typedoc lib/*.ts lib/**/*.ts lib/**/**/*.ts"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "murmurhash": "^1.0.x",
+    "superstruct": "^0.14.x",
+    "uuid": "^9.0.1",
+    "vwo-fme-sdk-log-messages": "^0.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.5",
+    "@babel/preset-env": "^7.24.5",
+    "@babel/preset-typescript": "^7.24.1",
+    "@types/jest": "^25.x.x",
+    "@types/node": "^20.12.7",
+    "babel-jest": "^25.x.x",
+    "express": "^4.19.2",
+    "jest": "^25.x.x",
+    "semver": "^7.6.0",
+    "shelljs": "^0.8.5",
+    "typescript": "4.9.x",
+    "vwo-fme-sdk-e2e-test-settings-n-cases": "^1.0.0"
+  },
+  "engineStrict": true,
+  "engines": {
+    "node": ">= 8.9.0",
+    "yarn": ">= 1.22.17",
+    "node_lint": ">= 18.18.0"
+  }
+}

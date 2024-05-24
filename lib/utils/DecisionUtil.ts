@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isPromise } from 'util/types';
+import { isPromise } from '../utils/DataTypeUtil';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { StatusEnum } from '../enums/StatusEnum';
 import { InfoLogMessagesEnum } from '../enums/log-messages';

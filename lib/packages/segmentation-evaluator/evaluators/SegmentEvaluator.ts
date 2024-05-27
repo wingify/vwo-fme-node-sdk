@@ -79,7 +79,8 @@ export class SegmentEvaluator implements Segmentation {
         if (
           key === SegmentOperatorValueEnum.OPERATING_SYSTEM ||
           key === SegmentOperatorValueEnum.BROWSER_AGENT ||
-          key === SegmentOperatorValueEnum.DEVICE_TYPE
+          key === SegmentOperatorValueEnum.DEVICE_TYPE ||
+          key === SegmentOperatorValueEnum.DEVICE
         ) {
           isUaParser = true;
           const value = dsl[key];
@@ -265,34 +266,29 @@ export class SegmentEvaluator implements Segmentation {
         const expectedValues = expectedMap[key];
         const actualValue = actualMap[key];
 
-        // Handle wildcard patterns for DEVICE_TYPE
-        if (key === SegmentOperatorValueEnum.DEVICE_TYPE) {
-          const wildcardPatterns = expectedValues.filter((val) => val.startsWith('wildcard(') && val.endsWith(')'));
-          if (wildcardPatterns.length > 0) {
-            // Check if any wildcard pattern matches the actual value
-            if (
-              wildcardPatterns.some((pattern) => {
-                const wildcardPattern = pattern.slice(9, -1); // Extract pattern from wildcard string
-                const regex = new RegExp(wildcardPattern.replace(/\*/g, '.*')); // Convert wildcard pattern to regex
-                return regex.test(actualValue);
-              })
-            ) {
-              continue; // Value matches, continue to next key
-            } else {
-              return false; // No wildcard pattern matched, return false
+        // Handle wildcard patterns for all keys
+        for (const val of expectedValues) {
+          // Check if the value is a wildcard pattern and matches the actual value using regex
+          if (val.startsWith('wildcard(') && val.endsWith(')')) {
+            // Extract pattern from wildcard string
+            const wildcardPattern = val.slice(9, -1);
+            // Convert wildcard pattern to regex and check if it matches the actual value
+            const regex = new RegExp(wildcardPattern.replace(/\*/g, '.*')); // Convert wildcard pattern to regex
+            // Check if the actual value matches the regex pattern for the key
+            if (regex.test(actualValue)) {
+              // match found, return true as we only need to check if any of the expected values match the actual value
+              return true;
             }
           }
-        } else {
-          // Check if the actual value is among the expected values
-          if (expectedValues.includes(actualValue)) {
-            continue; // Value found, continue to next key
-          } else {
-            return false; // Value not found, return false
-          }
+        }
+
+        // this will be checked for all cases where wildcard is not present
+        if (expectedValues.includes(actualValue)) {
+          return true; // Direct value match found, return true
         }
       }
     }
-    return true; // All keys checked and values found, return true
+    return false; // No matches found
   }
 
   /**

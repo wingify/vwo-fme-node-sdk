@@ -27,6 +27,7 @@ import UrlService from '../services/UrlService';
 import { dynamic } from '../types/Common';
 import { isObject } from './DataTypeUtil';
 import { buildMessage } from './LogMessageUtil';
+import { SettingsManager } from '../services/SettingsManager';
 
 /**
  * Constructs base properties for bulk operations.
@@ -316,8 +317,8 @@ export function sendPostApiRequest(properties: any, payload: any) {
     properties,
     payload,
     headers,
-    null,
-    UrlService.getPort(),
+    SettingsManager.Instance.protocol,
+    SettingsManager.Instance.port,
   );
 
   NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
@@ -345,8 +346,8 @@ export async function sendGetApiRequest(properties: any, endpoint: any): Promise
     properties,
     null,
     null,
-    null,
-    UrlService.getPort(),
+    SettingsManager.Instance.protocol,
+    SettingsManager.Instance.port,
   );
   try {
     const response: ResponseModel = await NetworkManager.Instance.get(request);

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { SettingsManager } from '../services/SettingsManager';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { UrlEnum } from '../enums/UrlEnum';
 import { ErrorLogMessagesEnum } from '../enums/log-messages';
@@ -35,7 +36,7 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
   const networkInstance = NetworkManager.Instance;
 
   // Check if the base URL is not set correctly
-  if (UrlService.getBaseUrl() === UrlEnum.BASE_URL) {
+  if (!SettingsManager.Instance.isGatewayServiceProvided) {
     // Log an informational message about the invalid URL
     LogManager.Instance.error(ErrorLogMessagesEnum.GATEWAY_URL_ERROR);
     // Resolve the promise with false indicating an error or invalid state
@@ -52,8 +53,8 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
       queryParams,
       null,
       null,
-      null,
-      UrlService.getPort(),
+      SettingsManager.Instance.protocol,
+      SettingsManager.Instance.port,
     );
 
     // Perform the network GET request

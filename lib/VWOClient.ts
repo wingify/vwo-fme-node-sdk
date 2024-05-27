@@ -66,8 +66,6 @@ export class VWOClient implements IVWOClient {
 
     UrlService.init({
       collectionPrefix: this.settings.getCollectionPrefix(),
-      gatewayServiceUrl: options?.gatewayService?.url,
-      gatewayServicePort: parseInt(options?.gatewayService?.port?.toString()),
     });
 
     LogManager.Instance.info(InfoLogMessagesEnum.CLIENT_INITIALIZED);

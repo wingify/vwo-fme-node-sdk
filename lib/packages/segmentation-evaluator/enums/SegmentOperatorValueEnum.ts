@@ -24,6 +24,7 @@ export enum SegmentOperatorValueEnum {
   CITY = 'city',
   OPERATING_SYSTEM = 'os',
   DEVICE_TYPE = 'device_type',
+  DEVICE = 'device',
   BROWSER_AGENT = 'browser_string',
   UA = 'ua',
   FEATURE_ID = 'featureId',

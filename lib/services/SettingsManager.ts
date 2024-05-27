@@ -40,8 +40,11 @@ export class SettingsManager implements ISettingsManager {
   accountId: number;
   expiry: number;
   networkTimeout: number;
-  settingsUrl: string;
-  settingsPort: number;
+  hostname: string;
+  port: number;
+  protocol: string;
+  isGatewayServiceProvided: boolean = false;
+  private static instance: SettingsManager;
 
   constructor(options: Record<string, any>) {
     this.sdkKey = options.sdkKey;
@@ -50,15 +53,24 @@ export class SettingsManager implements ISettingsManager {
     this.networkTimeout = options?.settings?.timeout || Constants.SETTINGS_TIMEOUT;
 
     if (options?.gatewayService?.url) {
-      const parsedUrl = new URL(`https://${options.gatewayService.url}`);
-      this.settingsUrl = parsedUrl.hostname;
+      let parsedUrl;
+      this.isGatewayServiceProvided = true;
+      if (options.gatewayService.url.startsWith('http://') || options.gatewayService.url.startsWith('https://')) {
+        parsedUrl = new URL(`${options.gatewayService.url}`);
+      } else if (options.gatewayService?.protocol) {
+        parsedUrl = new URL(`${options.gatewayService.protocol}://${options.gatewayService.url}`);
+      } else {
+        parsedUrl = new URL(`https://${options.gatewayService.url}`);
+      }
+      this.hostname = parsedUrl.hostname;
+      this.protocol = parsedUrl.protocol.replace(':', '');
       if (parsedUrl.port) {
-        this.settingsPort = parseInt(parsedUrl.port);
+        this.port = parseInt(parsedUrl.port);
       } else if (options.gatewayService?.port) {
-        this.settingsPort = options.gatewayService.port;
+        this.port = options.gatewayService.port;
       }
     } else {
-      this.settingsUrl = Constants.HOST_NAME;
+      this.hostname = Constants.HOST_NAME;
     }
 
     // if (this.expiry > 0) {
@@ -69,6 +81,11 @@ export class SettingsManager implements ISettingsManager {
         service: 'Settings Manager',
       }),
     );
+    SettingsManager.instance = this;
+  }
+
+  static get Instance(): SettingsManager {
+    return SettingsManager.instance;
   }
 
   private setSettingsExpiry() {
@@ -128,14 +145,14 @@ export class SettingsManager implements ISettingsManager {
     }
     try {
       const request: RequestModel = new RequestModel(
-        this.settingsUrl,
+        this.hostname,
         'GET',
         Constants.SETTINTS_ENDPOINT,
         options,
         null,
         null,
-        null,
-        this.settingsPort,
+        this.protocol,
+        this.port,
       );
       request.setTimeout(this.networkTimeout);
 

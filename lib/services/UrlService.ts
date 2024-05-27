@@ -15,22 +15,12 @@
  */
 import { UrlEnum } from '../enums/UrlEnum';
 import { isString } from '../utils/DataTypeUtil';
+import { SettingsManager } from './SettingsManager';
 
 interface UrlServiceType {
   collectionPrefix?: string;
-  gatewayServiceUrl?: string;
-  gatewayServicePort?: number;
-  init({
-    collectionPrefix,
-    gatewayServiceUrl,
-    gatewayServicePort,
-  }?: {
-    collectionPrefix?: string;
-    gatewayServiceUrl?: string;
-    gatewayServicePort: number;
-  }): UrlServiceType;
+  init({ collectionPrefix }?: { collectionPrefix?: string }): UrlServiceType;
   getBaseUrl(): string;
-  getPort(): number;
 }
 
 const UrlService: UrlServiceType = {
@@ -38,28 +28,12 @@ const UrlService: UrlServiceType = {
    * Initializes the UrlService with optional collectionPrefix and gatewayServiceUrl.
    * If provided, these values are set after validation.
    * @param {string} [collectionPrefix] - Optional prefix for URL collections.
-   * @param {string} [gatewayServiceUrl] - Optional web service URL.
    * @returns {UrlServiceType} The instance of UrlService with updated properties.
    */
-  init({
-    collectionPrefix,
-    gatewayServiceUrl,
-    gatewayServicePort,
-  }: { collectionPrefix?: string; gatewayServiceUrl?: string; gatewayServicePort?: number } = {}) {
+  init({ collectionPrefix }: { collectionPrefix?: string } = {}) {
     // Set collectionPrefix if it is a valid string
     if (collectionPrefix && isString(collectionPrefix)) {
       UrlService.collectionPrefix = collectionPrefix;
-    }
-
-    // Parse and set gatewayServiceUrl and port if gatewayServiceUrl is a valid string
-    if (gatewayServiceUrl && isString(gatewayServiceUrl)) {
-      const parsedUrl = new URL(`https://${gatewayServiceUrl}`);
-      UrlService.gatewayServiceUrl = parsedUrl.hostname;
-      if (parsedUrl.port) {
-        UrlService.gatewayServicePort = parseInt(parsedUrl.port);
-      } else if (gatewayServicePort !== undefined) {
-        UrlService.gatewayServicePort = gatewayServicePort;
-      }
     }
 
     return UrlService;
@@ -71,11 +45,10 @@ const UrlService: UrlServiceType = {
    * @returns {string} The base URL.
    */
   getBaseUrl() {
-    const baseUrl: string = UrlEnum.BASE_URL;
+    const baseUrl: string = SettingsManager.Instance.hostname;
 
-    // Return the gatewayServiceUrl if it exists
-    if (UrlService.gatewayServiceUrl) {
-      return UrlService.gatewayServiceUrl;
+    if (SettingsManager.Instance.isGatewayServiceProvided) {
+      return baseUrl;
     }
 
     // Construct URL with collectionPrefix if it exists
@@ -85,14 +58,6 @@ const UrlService: UrlServiceType = {
 
     // Return the default baseUrl if no specific URL components are set
     return baseUrl;
-  },
-
-  /**
-   * Retrieves the configured port for the URL service.
-   * @returns {number} The port number.
-   */
-  getPort() {
-    return UrlService.gatewayServicePort;
   },
 };
 

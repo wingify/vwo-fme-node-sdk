@@ -59,7 +59,7 @@ jobs:
         yarn test:coverage
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4.0.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         flags: ${{ runner.os }}
@@ -69,7 +69,7 @@ jobs:
       id: slack
       uses: wingify/slack-github-action@v1.15.1-wingify
       with:
-        channel-id: 'fs-review-team' # team-testing-serverside
+        channel-id: 'vwo-fs-fme-sdk-job-status'
         slack-message: "<!here> Node.js FME SDK Test on *Node-${{ matrix.node_version }}* and *${{ matrix.os }}* got *${{job.status}}* ${{job.status == 'success' && ':heavy_check_mark:' || ':x:'}} \nCommit: `${{github.event.head_commit.message}}`. \nCheck the latest build: https://github.com/wingify/vwo-node-sdk/actions"
         color: "${{job.status == 'success' && '#00FF00' || '#FF0000'}}"
       env:

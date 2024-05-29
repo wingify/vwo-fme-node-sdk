@@ -38,7 +38,7 @@ export class ConsoleTransport implements Logger {
    * @param {string} message - The message to log.
    */
   trace(message: string): void {
-    this.log(LogLevelEnum.TRACE, message);
+    this.consoleLog(LogLevelEnum.TRACE, message);
   }
 
   /**
@@ -46,7 +46,7 @@ export class ConsoleTransport implements Logger {
    * @param {string} message - The message to log.
    */
   debug(message: string): void {
-    this.log(LogLevelEnum.DEBUG, message);
+    this.consoleLog(LogLevelEnum.DEBUG, message);
   }
 
   /**
@@ -54,7 +54,7 @@ export class ConsoleTransport implements Logger {
    * @param {string} message - The message to log.
    */
   info(message: string): void {
-    this.log(LogLevelEnum.INFO, message);
+    this.consoleLog(LogLevelEnum.INFO, message);
   }
 
   /**
@@ -62,7 +62,7 @@ export class ConsoleTransport implements Logger {
    * @param {string} message - The message to log.
    */
   warn(message: string): void {
-    this.log(LogLevelEnum.WARN, message);
+    this.consoleLog(LogLevelEnum.WARN, message);
   }
 
   /**
@@ -70,7 +70,7 @@ export class ConsoleTransport implements Logger {
    * @param {string} message - The message to log.
    */
   error(message: string): void {
-    this.log(LogLevelEnum.ERROR, message);
+    this.consoleLog(LogLevelEnum.ERROR, message);
   }
 
   /**
@@ -78,7 +78,7 @@ export class ConsoleTransport implements Logger {
    * @param {string} level - The log level under which the message should be logged.
    * @param {string} message - The message to log.
    */
-  log(level: string, message: string): void {
+  consoleLog(level: string, message: string): void {
     console[level](message); // Use console's logging function dynamically based on the level
   }
 }

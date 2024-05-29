@@ -96,9 +96,6 @@ export class SettingsSchema {
       campaigns: array(this.campaignObjectSchema),
       groups: optional(object()),
       campaignGroups: optional(object()),
-      // remove these once DACDN is ready
-      isNB: optional(boolean()),
-      isNBv2: optional(boolean()),
     });
   }
 

@@ -52,7 +52,7 @@ describe('VWOClient setAttribute method', () => {
     console.error = jest.fn(); // Mock console.error
     vwoClient.setAttribute(undefined, attributeValue, context);
     expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining('attributeKey passed to setAttribute API is not of valid type'),
+      expect.stringContaining('attributeKey passed to API:setAttribute is not of valid type'),
     );
   });
 
@@ -64,7 +64,7 @@ describe('VWOClient setAttribute method', () => {
     console.error = jest.fn(); // Mock console.error
     vwoClient.setAttribute(attributeKey, undefined, context);
     expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining('attributeValue passed to setAttribute API is not of valid type'),
+      expect.stringContaining('attributeValue passed to API:setAttribute is not of valid type'),
     );
   });
 

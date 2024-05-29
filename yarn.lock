@@ -4808,10 +4808,10 @@ vwo-fme-sdk-e2e-test-settings-n-cases@^1.0.0:
   resolved "https://registry.yarnpkg.com/vwo-fme-sdk-e2e-test-settings-n-cases/-/vwo-fme-sdk-e2e-test-settings-n-cases-1.0.0.tgz#fc0316235484705b1377d4e25b612c7593d4bda9"
   integrity sha512-QxE3dKdqw5FrFbLJRwfM/wGQSpd+pVI0Mydks8z/xsJlXdyTtxjvAvGoE+nyYahh8oy9AEOg5jOWNjnMbn/TUQ==
 
-vwo-fme-sdk-log-messages@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/vwo-fme-sdk-log-messages/-/vwo-fme-sdk-log-messages-0.1.0.tgz#d1f768b86c1dfc6f37fbab72d3987f599b688b73"
-  integrity sha512-P2+l51iccpXjRazASPr3O7UP0JGR13+1pny/lI+K/TmUFJxSJmx6e7iR3wDo3YKrhxdGMt3pEFTF1zzjtHfFWw==
+vwo-fme-sdk-log-messages@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/vwo-fme-sdk-log-messages/-/vwo-fme-sdk-log-messages-0.1.2.tgz#f3e8a0e0b8f8d797ced7333b428be57d8d402652"
+  integrity sha512-L0TaFmjOrOkSKsl0SiNLiHvZafdW9mIOGsBkkf5XBinvngPVigjc2F9zo+5Qq0VuqvTeq738219fdmUOJMOXrQ==
 
 walker@^1.0.8:
   version "1.0.8"

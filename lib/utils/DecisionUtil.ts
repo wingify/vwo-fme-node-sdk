@@ -132,7 +132,7 @@ export const evaluateTrafficAndGetVariation = (
   if (!variation) {
     LogManager.Instance.info(
       buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-        campaign: campaign.getKey(),
+        campaignKey: campaign.getKey(),
         userId,
         status: 'did not get any variation',
       }),
@@ -142,7 +142,7 @@ export const evaluateTrafficAndGetVariation = (
   }
   LogManager.Instance.info(
     buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-      campaign: campaign.getKey(),
+      campaignKey: campaign.getKey(),
       userId,
       status: `got variation:${variation.getKey()}`,
     }),

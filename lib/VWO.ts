@@ -138,8 +138,8 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
   }
 }
 
-export async function onReady() {
-  const apiName = 'onReady';
+export async function onInit() {
+  const apiName = 'onInit';
 
   try {
     _global.vwoInitDeferred = new Deferred();
@@ -147,7 +147,7 @@ export async function onReady() {
 
     // If settings are already fetched, resolve the promise
     if (_global.isSettingsFetched) {
-      const msg = buildMessage(InfoLogMessagesEnum.ON_READY_ALREADY_RESOLVED, {
+      const msg = buildMessage(InfoLogMessagesEnum.ON_INIT_ALREADY_RESOLVED, {
         date,
         apiName,
       });
@@ -161,7 +161,7 @@ export async function onReady() {
           return;
         }
 
-        const msg = buildMessage(InfoLogMessagesEnum.ON_READY_SETTINGS_FAILED, {
+        const msg = buildMessage(InfoLogMessagesEnum.ON_INIT_SETTINGS_FAILED, {
           date,
         });
 

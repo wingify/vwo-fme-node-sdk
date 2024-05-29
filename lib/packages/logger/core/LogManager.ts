@@ -70,7 +70,7 @@ export class LogManager extends Logger implements ILogManager {
 
     this.config = config;
 
-    if (!LogManager.instance) {
+    if (config.isAlwaysNewInstance || !LogManager.instance) {
       LogManager.instance = this;
 
       // Initialize configuration with defaults or provided values

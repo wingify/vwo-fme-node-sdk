@@ -291,7 +291,13 @@ export class FlagApi implements IGetFlag {
 
     // Send data for Impact Campaign, if defined
     if (feature.getImpactCampaign()?.getCampaignId()) {
-      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.IMPACT_ANALYSIS, { userId: context.getId() }));
+      LogManager.Instance.info(
+        buildMessage(InfoLogMessagesEnum.IMPACT_ANALYSIS, {
+          userId: context.getId(),
+          featureKey,
+          status: isEnabled ? 'enabled' : 'disabled',
+        }),
+      );
 
       createAndSendImpressionForVariationShown(
         settings,

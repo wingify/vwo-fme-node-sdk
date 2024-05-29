@@ -42,9 +42,7 @@ import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
 export interface IVWOClient {
   readonly options?: IVWOOptions;
   settings: SettingsModel;
-  // onceReady(): Promise<Record<string, dynamic>>;
 
-  // getSettings(force: boolean): SettingsModel | Promise<SettingsModel>;
   getFlag(featureKey: string, context: Record<string, any>): Record<any, any>;
   trackEvent(
     eventName: string,

@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import { SEED_URL, HTTP_PROTOCOL, HTTPS_PROTOCOL } from './Url';
+const packageFile = require('../../package.json');
 
 export const Constants = {
-  //   SDK_NAME: packageFile.name,
-  //   SDK_VERSION: packageFile.version,
+  SDK_NAME: packageFile.name,
+  SDK_VERSION: packageFile.version,
+
   PLATFORM: 'server',
 
   MAX_TRAFFIC_PERCENT: 100,
@@ -28,8 +30,7 @@ export const Constants = {
   MAX_EVENTS_PER_REQUEST: 5000,
   DEFAULT_REQUEST_TIME_INTERVAL: 600, // 10 * 60(secs) = 600 secs i.e. 10 minutes
   DEFAULT_EVENTS_PER_REQUEST: 100,
-  SDK_NAME: '@wingify/vwo-sdk',
-  SDK_VERSION: '1.0.0',
+
   AP: 'server',
 
   SEED_URL,

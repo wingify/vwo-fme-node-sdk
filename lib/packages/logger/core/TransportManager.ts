@@ -18,6 +18,7 @@ import { dynamic } from '../../../types/Common';
 import { LogLevelEnum } from '../enums/LogLevelEnum';
 import { LogMessageBuilder } from '../LogMessageBuilder';
 import { Logger } from '../Logger';
+import { isFunction } from '../../../utils/DataTypeUtil';
 
 enum LogLevelNumberEnum {
   TRACE = 0,
@@ -70,7 +71,7 @@ export class LogTransportManager implements IlogTransport {
    */
   shouldLog(transportLevel: string, configLevel: string): boolean {
     // Default to the most specific level available
-    transportLevel = transportLevel || configLevel || this.config.level;
+    // transportLevel = transportLevel || configLevel || this.config.level;
 
     const targetLevel = LogLevelNumberEnum[transportLevel.toUpperCase()];
     const desiredLevel = LogLevelNumberEnum[(configLevel || this.config.level).toUpperCase()];
@@ -128,12 +129,12 @@ export class LogTransportManager implements IlogTransport {
       const logMessageBuilder = new LogMessageBuilder(this.config, this.transports[i]);
       const formattedMessage = logMessageBuilder.formatMessage(level, message);
       if (this.shouldLog(level, this.transports[i].level)) {
-        if (this.transports[i].logHandler) {
+        if (this.transports[i].log && isFunction(this.transports[i].log)) {
           // Use custom log handler if available
-          this.transports[i].logHandler(formattedMessage, level);
+          this.transports[i].log(level, message);
         } else {
           // Otherwise, use the default log method
-          this.transports[i][level](formattedMessage, level);
+          this.transports[i][level](formattedMessage);
         }
       }
     }

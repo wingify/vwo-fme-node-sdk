@@ -75,7 +75,11 @@ export class LogMessageBuilder implements ILogMessageBuilder {
   }
 
   getFormattedPrefix(prefix: string): string {
-    return `${AnsiColorEnum.BOLD}${AnsiColorEnum.GREEN}${prefix}${AnsiColorEnum.RESET}`;
+    if (this.loggerConfig.isAnsiColorEnabled) {
+      return `${AnsiColorEnum.BOLD}${AnsiColorEnum.GREEN}${prefix}${AnsiColorEnum.RESET}`;
+    }
+
+    return `${prefix}`;
   }
 
   /**
@@ -85,14 +89,25 @@ export class LogMessageBuilder implements ILogMessageBuilder {
    */
   getFormattedLevel(level: string): string {
     const upperCaseLevel = level.toUpperCase();
+    let LogLevelColorInfoEnum;
 
-    const LogLevelColorInfoEnum = {
-      [LogLevelEnum.TRACE]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.WHITE}${upperCaseLevel}${AnsiColorEnum.RESET}`,
-      [LogLevelEnum.DEBUG]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.LIGHTBLUE}${upperCaseLevel}${AnsiColorEnum.RESET}`,
-      [LogLevelEnum.INFO]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.CYAN}${upperCaseLevel}${AnsiColorEnum.RESET}`,
-      [LogLevelEnum.WARN]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.YELLOW}${upperCaseLevel}${AnsiColorEnum.RESET}`,
-      [LogLevelEnum.ERROR]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.RED}${upperCaseLevel}${AnsiColorEnum.RESET}`,
-    };
+    if (this.loggerConfig.isAnsiColorEnabled) {
+      LogLevelColorInfoEnum = {
+        [LogLevelEnum.TRACE]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.WHITE}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+        [LogLevelEnum.DEBUG]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.LIGHTBLUE}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+        [LogLevelEnum.INFO]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.CYAN}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+        [LogLevelEnum.WARN]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.YELLOW}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+        [LogLevelEnum.ERROR]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.RED}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+      };
+    } else {
+      LogLevelColorInfoEnum = {
+        [LogLevelEnum.TRACE]: upperCaseLevel,
+        [LogLevelEnum.DEBUG]: upperCaseLevel,
+        [LogLevelEnum.INFO]: upperCaseLevel,
+        [LogLevelEnum.WARN]: upperCaseLevel,
+        [LogLevelEnum.ERROR]: upperCaseLevel,
+      };
+    }
 
     return LogLevelColorInfoEnum[level];
   }

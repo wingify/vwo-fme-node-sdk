@@ -20,8 +20,10 @@ import { FeatureModel } from '../models/campaign/FeatureModel';
 import { VariationModel } from '../models/campaign/VariationModel';
 import { StorageService } from '../services/StorageService';
 
-import { Deferred } from '../utils/PromiseUtil';
+import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { ContextModel } from '../models/user/ContextModel';
+import { buildMessage } from '../utils/LogMessageUtil';
+import { Deferred } from '../utils/PromiseUtil';
 
 interface IStorageDecorator {
   /**
@@ -100,24 +102,42 @@ export class StorageDecorator implements IStorageDecorator {
     } = data;
 
     if (!featureKey) {
-      LogManager.Instance.error(`Feature key is not valid. Not able to store data into storage`);
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+          key: 'featureKey',
+        }),
+      );
+
       deferredObject.reject(); // Reject promise if feature key is invalid
       return;
     }
     if (!context.id) {
-      LogManager.Instance.error(`User ID is not valid. Not able to store data into storage`);
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+          key: 'Context or Context.id',
+        }),
+      );
+
       deferredObject.reject(); // Reject promise if user ID is invalid
       return;
     }
     if (rolloutKey && !experimentKey && !rolloutVariationId) {
-      LogManager.Instance.error(`Variation is not valid for Rollout rule passed. Not able to store data into storage`);
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+          key: 'Variation:(rolloutKey, experimentKey or rolloutVariationId)',
+        }),
+      );
+
       deferredObject.reject(); // Reject promise if rollout variation is invalid
       return;
     }
     if (experimentKey && !experimentVariationId) {
       LogManager.Instance.error(
-        `Variation is not valid for Experiment rule passed. Not able to store data into storage`,
+        buildMessage(ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+          key: 'Variation:(experimentKey or rolloutVariationId)',
+        }),
       );
+
       deferredObject.reject(); // Reject promise if experiment variation is invalid
       return;
     }

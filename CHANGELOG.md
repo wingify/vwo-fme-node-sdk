@@ -109,7 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integrate with Codecov to show coverage percentage in README
   - Post status of tests running on different node versions to Wingify slack channel
 
-- **onReady hook**
+- **onInit hook**
 
   ```javaScript
   vwo.init({
@@ -117,7 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     accountId: '123456'
   });
 
-  vwo.onReady().then(async (vwoClient) => {
+  vwo.onInit().then(async (vwoClient) => {
     const feature = await vwoClient.getFlag('feature-key', context);
     console.log('getFlag is: ', feature.isEnabled());
   }).catch(err => {

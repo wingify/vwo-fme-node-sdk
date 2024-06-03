@@ -247,7 +247,7 @@ export class FlagApi implements IGetFlag {
             experimentVariationToReturn = whitelistedObject.variation;
             Object.assign(passedRulesInformation, {
               experimentId: rule.getId(),
-              experimentKey: whitelistedObject.experimentKey,
+              experimentKey: rule.getKey(),
               experimentVariationId: whitelistedObject.variationId,
             });
           }

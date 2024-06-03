@@ -283,7 +283,7 @@ export class SegmentEvaluator implements Segmentation {
         }
 
         // this will be checked for all cases where wildcard is not present
-        if (expectedValues.includes(actualValue)) {
+        if (expectedValues.includes(actualValue.toLowerCase())) {
           return true; // Direct value match found, return true
         }
       }

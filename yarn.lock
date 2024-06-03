@@ -4803,10 +4803,10 @@ vscode-textmate@^8.0.0:
   resolved "https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-8.0.0.tgz#2c7a3b1163ef0441097e0b5d6389cd5504b59e5d"
   integrity sha512-AFbieoL7a5LMqcnOF04ji+rpXadgOXnZsxQr//r83kLPr7biP7am3g9zbaZIaBGwBRWeSvoMD4mgPdX3e4NWBg==
 
-vwo-fme-sdk-e2e-test-settings-n-cases@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/vwo-fme-sdk-e2e-test-settings-n-cases/-/vwo-fme-sdk-e2e-test-settings-n-cases-1.0.0.tgz#fc0316235484705b1377d4e25b612c7593d4bda9"
-  integrity sha512-QxE3dKdqw5FrFbLJRwfM/wGQSpd+pVI0Mydks8z/xsJlXdyTtxjvAvGoE+nyYahh8oy9AEOg5jOWNjnMbn/TUQ==
+vwo-fme-sdk-e2e-test-settings-n-cases@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/vwo-fme-sdk-e2e-test-settings-n-cases/-/vwo-fme-sdk-e2e-test-settings-n-cases-1.0.1.tgz#ea9c7eeb427cc1537fa7b3882a9739ede198a27a"
+  integrity sha512-qnY68XFH9lXLnWQCo0IpTVVy0ej7+0qgFOKsxdDF8dLqorBdrLSRIfsqnM83FoBKatQ90DBBrTfUxnDKHy1sQg==
 
 vwo-fme-sdk-log-messages@^0.1.2:
   version "0.1.2"

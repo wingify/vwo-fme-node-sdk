@@ -23,7 +23,7 @@ When you submit code changes, your submissions are understood to be under the sa
 
 ### Report bugs using GitHub issues
 
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/wingify/vwo-node-sdk/issues); it's that easy!
+We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/wingify/vwo-fme-node-sdk/issues); it's that easy!
 
 **Note**: Write bug reports with detail, background, and sample code
 

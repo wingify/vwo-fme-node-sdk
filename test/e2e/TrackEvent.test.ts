@@ -15,7 +15,7 @@
  */
 import { init } from '../../lib';
 import { VWOBuilder } from '../../lib/VWOBuilder';
-import { BASIC_ROLLOUT_SETTINGS } from '../data/settings';
+import { BASIC_ROLLOUT_SETTINGS } from '../data/Settings';
 
 describe('VWOClient trackEvent method', () => {
   let options;

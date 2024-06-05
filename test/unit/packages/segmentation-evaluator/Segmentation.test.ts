@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as TESTS_DATA from 'vwo-fme-sdk-e2e-test-settings-n-cases';
+
 import { SegmentEvaluator } from '../../../../lib/packages/segmentation-evaluator';
-import { SegmentEvaluatorData } from '../../../data/SegmentEvaluatorData';
 
 describe('Segmentation', () => {
   test('and operator test', async () => {
-    const andOperatorkey = Object.keys(new SegmentEvaluatorData().data['and_operator']);
-    const andOperatorDsl = new SegmentEvaluatorData().data['and_operator'];
+    const andOperatorkey = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['and_operator']);
+    const andOperatorDsl = TESTS_DATA.SEGMENTATION_TESTS['and_operator'];
     andOperatorkey.forEach(async (key) => {
       const { dsl, expectation, customVariables } = andOperatorDsl[key];
 
@@ -31,9 +32,9 @@ describe('Segmentation', () => {
 
   test('case insensitive equality operand test', async () => {
     const andOperatorkey: Array<string> = Object.keys(
-      new SegmentEvaluatorData().data['case_insensitive_equality_operand'],
+      TESTS_DATA.SEGMENTATION_TESTS['case_insensitive_equality_operand'],
     );
-    const andOperatorDsl = new SegmentEvaluatorData().data['case_insensitive_equality_operand'];
+    const andOperatorDsl = TESTS_DATA.SEGMENTATION_TESTS['case_insensitive_equality_operand'];
     andOperatorkey.forEach(async (key) => {
       const { dsl, expectation, customVariables } = andOperatorDsl[key];
 
@@ -44,8 +45,8 @@ describe('Segmentation', () => {
   });
 
   test('complex and ors test', async () => {
-    const complexOperatorkey: Array<string> = Object.keys(new SegmentEvaluatorData().data['complex_and_ors']);
-    const complexOperatorDsl = new SegmentEvaluatorData().data['complex_and_ors'];
+    const complexOperatorkey: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['complex_and_ors']);
+    const complexOperatorDsl = TESTS_DATA.SEGMENTATION_TESTS['complex_and_ors'];
     complexOperatorkey.forEach(async (key) => {
       const { dsl, expectation, customVariables } = complexOperatorDsl[key];
 
@@ -56,8 +57,8 @@ describe('Segmentation', () => {
   });
 
   test('complex dsl test', async () => {
-    let complexDSLOperatorkey = Object.keys(new SegmentEvaluatorData().data['complex_dsl_1']);
-    let complexDSLOperatorDsl = new SegmentEvaluatorData().data['complex_dsl_1'];
+    let complexDSLOperatorkey = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['complex_dsl_1']);
+    let complexDSLOperatorDsl = TESTS_DATA.SEGMENTATION_TESTS['complex_dsl_1'];
     complexDSLOperatorkey.forEach(async (key) => {
       const { dsl, expectation, customVariables } = complexDSLOperatorDsl[key];
 
@@ -66,8 +67,8 @@ describe('Segmentation', () => {
       expect(preSegmentationResult).toBe(expectation);
     });
 
-    complexDSLOperatorkey = Object.keys(new SegmentEvaluatorData().data['complex_dsl_2']);
-    let complexDSLOperatorDsl1 = new SegmentEvaluatorData().data['complex_dsl_2'];
+    complexDSLOperatorkey = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['complex_dsl_2']);
+    let complexDSLOperatorDsl1 = TESTS_DATA.SEGMENTATION_TESTS['complex_dsl_2'];
     complexDSLOperatorkey.forEach(async (key) => {
       const { dsl, expectation, customVariables } = complexDSLOperatorDsl1[key];
 
@@ -76,8 +77,8 @@ describe('Segmentation', () => {
       expect(preSegmentationResult).toBe(expectation);
     });
 
-    complexDSLOperatorkey = Object.keys(new SegmentEvaluatorData().data['complex_dsl_3']);
-    let complexDSLOperatorDsl2 = new SegmentEvaluatorData().data['complex_dsl_3'];
+    complexDSLOperatorkey = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['complex_dsl_3']);
+    let complexDSLOperatorDsl2 = TESTS_DATA.SEGMENTATION_TESTS['complex_dsl_3'];
     complexDSLOperatorkey.forEach(async (key) => {
       const { dsl, expectation, customVariables } = complexDSLOperatorDsl2[key];
 
@@ -86,8 +87,8 @@ describe('Segmentation', () => {
       expect(preSegmentationResult).toBe(expectation);
     });
 
-    complexDSLOperatorkey = Object.keys(new SegmentEvaluatorData().data['complex_dsl_4']);
-    let complexDSLOperatorDsl3 = new SegmentEvaluatorData().data['complex_dsl_4'];
+    complexDSLOperatorkey = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['complex_dsl_4']);
+    let complexDSLOperatorDsl3 = TESTS_DATA.SEGMENTATION_TESTS['complex_dsl_4'];
     complexDSLOperatorkey.forEach(async (key) => {
       const { dsl, expectation, customVariables } = complexDSLOperatorDsl3[key];
 
@@ -98,8 +99,8 @@ describe('Segmentation', () => {
   });
 
   test('contains operand test', async () => {
-    const operatorkeys: Array<string> = Object.keys(new SegmentEvaluatorData().data['contains_operand']);
-    const operatorDsl = new SegmentEvaluatorData().data['contains_operand'];
+    const operatorkeys: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['contains_operand']);
+    const operatorDsl = TESTS_DATA.SEGMENTATION_TESTS['contains_operand'];
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = operatorDsl[key];
 
@@ -110,8 +111,8 @@ describe('Segmentation', () => {
   });
 
   test('ends operand test', async () => {
-    const operatorkeys: Array<string> = Object.keys(new SegmentEvaluatorData().data['ends_with_operand']);
-    const operatorDsl = new SegmentEvaluatorData().data['ends_with_operand'];
+    const operatorkeys: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['ends_with_operand']);
+    const operatorDsl = TESTS_DATA.SEGMENTATION_TESTS['ends_with_operand'];
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = operatorDsl[key];
 
@@ -122,8 +123,8 @@ describe('Segmentation', () => {
   });
 
   test('equality operand test', async () => {
-    const operatorkeys: Array<string> = Object.keys(new SegmentEvaluatorData().data['equality_operand']);
-    const operatorDsl = new SegmentEvaluatorData().data['equality_operand'];
+    const operatorkeys: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['equality_operand']);
+    const operatorDsl = TESTS_DATA.SEGMENTATION_TESTS['equality_operand'];
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = operatorDsl[key];
 
@@ -134,8 +135,8 @@ describe('Segmentation', () => {
   });
 
   test('new cases for decimal mismatch test', async () => {
-    const operatorkeys: Array<string> = Object.keys(new SegmentEvaluatorData().data['new_cases_for_decimal_mismatch']);
-    const operatorDsl = new SegmentEvaluatorData().data['new_cases_for_decimal_mismatch'];
+    const operatorkeys: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['new_cases_for_decimal_mismatch']);
+    const operatorDsl = TESTS_DATA.SEGMENTATION_TESTS['new_cases_for_decimal_mismatch'];
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = operatorDsl[key];
 
@@ -146,8 +147,8 @@ describe('Segmentation', () => {
   });
 
   test('not operator test', async () => {
-    const operatorkeys: Array<string> = Object.keys(new SegmentEvaluatorData().data['not_operator']);
-    const operatorDsl = new SegmentEvaluatorData().data['not_operator'];
+    const operatorkeys: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['not_operator']);
+    const operatorDsl = TESTS_DATA.SEGMENTATION_TESTS['not_operator'];
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = operatorDsl[key];
 
@@ -158,8 +159,8 @@ describe('Segmentation', () => {
   });
 
   test('or operator test', async () => {
-    const operatorkeys: Array<string> = Object.keys(new SegmentEvaluatorData().data['or_operator']);
-    const operatorDsl = new SegmentEvaluatorData().data['or_operator'];
+    const operatorkeys: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['or_operator']);
+    const operatorDsl = TESTS_DATA.SEGMENTATION_TESTS['or_operator'];
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = operatorDsl[key];
 
@@ -170,8 +171,8 @@ describe('Segmentation', () => {
   });
 
   test('regex test', async () => {
-    const operatorkeys: Array<string> = Object.keys(new SegmentEvaluatorData().data['regex']);
-    const operatorDsl = new SegmentEvaluatorData().data['regex'];
+    const operatorkeys: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['regex']);
+    const operatorDsl = TESTS_DATA.SEGMENTATION_TESTS['regex'];
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = operatorDsl[key];
 
@@ -182,8 +183,8 @@ describe('Segmentation', () => {
   });
 
   test('simple and ors test', async () => {
-    const operatorkeys: Array<string> = Object.keys(new SegmentEvaluatorData().data['simple_and_ors']);
-    const operatorDsl = new SegmentEvaluatorData().data['simple_and_ors'];
+    const operatorkeys: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['simple_and_ors']);
+    const operatorDsl = TESTS_DATA.SEGMENTATION_TESTS['simple_and_ors'];
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = operatorDsl[key];
 
@@ -194,8 +195,8 @@ describe('Segmentation', () => {
   });
 
   test('starts with operand test', async () => {
-    const operatorkeys: Array<string> = Object.keys(new SegmentEvaluatorData().data['starts_with_operand']);
-    const operatorDsl = new SegmentEvaluatorData().data['starts_with_operand'];
+    const operatorkeys: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['starts_with_operand']);
+    const operatorDsl = TESTS_DATA.SEGMENTATION_TESTS['starts_with_operand'];
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = operatorDsl[key];
 
@@ -206,8 +207,8 @@ describe('Segmentation', () => {
   });
 
   test('special characters test', async () => {
-    const operatorkeys: Array<string> = Object.keys(new SegmentEvaluatorData().data['special_characters']);
-    const operatorDsl = new SegmentEvaluatorData().data['special_characters'];
+    const operatorkeys: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['special_characters']);
+    const operatorDsl = TESTS_DATA.SEGMENTATION_TESTS['special_characters'];
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = operatorDsl[key];
 
@@ -218,8 +219,8 @@ describe('Segmentation', () => {
   });
 
   test('user operand evaluator test', async () => {
-    const operatorkeys: Array<string> = Object.keys(new SegmentEvaluatorData().data['user_operand_evaluator']);
-    const operatorDsl = new SegmentEvaluatorData().data['user_operand_evaluator'];
+    const operatorkeys: Array<string> = Object.keys(TESTS_DATA.SEGMENTATION_TESTS['user_operand_evaluator']);
+    const operatorDsl = TESTS_DATA.SEGMENTATION_TESTS['user_operand_evaluator'];
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = operatorDsl[key];
 
@@ -231,11 +232,11 @@ describe('Segmentation', () => {
 
   test('user operand evaluator with customVariables test', async () => {
     const operatorkeys: Array<string> = Object.keys(
-      new SegmentEvaluatorData().data['user_operand_evaluator_with_customVariables'],
+      TESTS_DATA.SEGMENTATION_TESTS['user_operand_evaluator_with_customVariables'],
     );
 
     const dslKey = 'user_operand_evaluator_with_customVariables';
-    const evaluatingDsl = new SegmentEvaluatorData().data[dslKey];
+    const evaluatingDsl = TESTS_DATA.SEGMENTATION_TESTS[dslKey];
 
     operatorkeys.forEach(async (key) => {
       const { dsl, expectation, customVariables } = evaluatingDsl[key];

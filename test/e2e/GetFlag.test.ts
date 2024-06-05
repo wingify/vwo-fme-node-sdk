@@ -17,25 +17,25 @@ import { init } from '../../lib';
 import { IVWOOptions } from '../../lib/models/VWOOptionsModel';
 import { VWOBuilder } from '../../lib/VWOBuilder';
 
-import { TEST_SETTINGS_N_CASES, TEST_DATA } from '../data/settings';
+import { TESTS_DATA, GETFLAG_TESTS } from '../data/Settings';
 
 import storageMap from '../data/StorageMap';
 
 describe('VWO', () => {
   describe('getFLag without storage', () => {
-    runTests(TEST_DATA.GETFLAG_WITHOUT_STORAGE);
+    runTests(GETFLAG_TESTS.GETFLAG_WITHOUT_STORAGE);
   });
 
   describe('getFLag with MEG - random Algo', () => {
-    runTests(TEST_DATA.GETFLAG_MEG_RANDOM);
+    runTests(GETFLAG_TESTS.GETFLAG_MEG_RANDOM);
   });
 
   describe('getFlag with MEG - Advance algo', () => {
-    runTests(TEST_DATA.GETFLAG_MEG_ADVANCE);
+    runTests(GETFLAG_TESTS.GETFLAG_MEG_ADVANCE);
   });
 
   describe('getFLag with storage', () => {
-    runTests(TEST_DATA.GETFLAG_WITH_STORAGE, storageMap);
+    runTests(GETFLAG_TESTS.GETFLAG_WITH_STORAGE, storageMap);
   });
 });
 
@@ -54,7 +54,7 @@ async function runTests(tests, storageMap?: any) {
       }
       const vwoBuilder = new VWOBuilder(vwoOptions);
 
-      jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(TEST_SETTINGS_N_CASES[testData.settings] as any);
+      jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(TESTS_DATA[testData.settings] as any);
 
       const options = {
         sdkKey: 'sdk-key',

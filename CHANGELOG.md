@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2024-06-05
+
+### Fixed
+
+- Fix: use experiment-key from rule instead of whitelisted object
+- Use [vwo-fme-sdk-e2e-test-settings-n-cases](https://github.com/wingify/vwo-fme-sdk-e2e-test-settings-n-cases) for importing segmentation tests instead of using hardcoded
+
+## [1.2.1] - 2024-05-30
+
+### Fixed
+
+- Handle how device was being used by User-Agent parser.
+- Refactor VWO Gateway service code to handle non-US accounts
+- Fix passing required headers in the network-calls for tracking user details to VWO servers
+- Fix some log messages where variables were not getting interpolated correctly
+
+### Changed
+
+- Instead of hardcoding the test-cases and expectations for `getFlag` API, we create a separate repo where tests and expectations were written in a JSON format. This is done to make sure we have common and same tests passing across our FME SDKs. Node SDK is using it as dependency - [vwo-fme-sdk-e2e-test-settings-n-cases](https://github.com/wingify/vwo-fme-sdk-e2e-test-settings-n-cases)
+- SDK is now fully supported from Node 12+ versions. We ensured this by running exhaustive unit/E2E tests via GitHub actions for all the Node 12+ versions
+- Add a new github-action to generate and publish code documentation generated via `typedoc`
+
 ## [1.2.0] - 2024-05-22
 
 ### Changed

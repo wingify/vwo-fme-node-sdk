@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { LogLevelEnum } from './packages/logger/enums/LogLevelEnum';
-import { Connector } from './packages/storage/Connector';
-
-export { LogLevelEnum, Connector as StorageConnector };
-export { init, onInit } from './VWO';
+export enum PlatformEnum {
+  CLIENT = 'client',
+  SERVER = 'server',
+}

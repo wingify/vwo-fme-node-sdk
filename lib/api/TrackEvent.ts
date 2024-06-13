@@ -18,7 +18,7 @@ import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { ContextModel } from '../models/user/ContextModel';
 import { LogManager } from '../packages/logger';
-import HooksManager from '../services/HooksManager';
+import HooksManager from '../services/HooksService';
 import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
 import { buildMessage } from '../utils/LogMessageUtil';
 import { getEventsBaseProperties, getTrackGoalPayloadData, sendPostApiRequest } from '../utils/NetworkUtil';

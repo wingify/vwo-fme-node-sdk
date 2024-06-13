@@ -15,7 +15,7 @@
  */
 import { dynamic } from '../../../types/Common';
 
-const HTTP = 'http';
+const HTTPS = 'https';
 
 /**
  * Represents a model for HTTP requests.
@@ -51,7 +51,7 @@ export class RequestModel {
     query: Record<string, dynamic>,
     body: Record<string, dynamic>,
     headers: Record<string, string>,
-    scheme: string = HTTP,
+    scheme: string = HTTPS,
     port: number,
   ) {
     this.url = url;
@@ -248,7 +248,12 @@ export class RequestModel {
       const postBody = JSON.stringify(this.body);
       options.headers = options.headers || {};
       options.headers['Content-Type'] = 'application/json';
-      options.headers['Content-Length'] = Buffer.byteLength(postBody);
+
+      if (typeof Buffer === 'undefined') {
+        options.headers['Content-Length'] = new TextEncoder().encode(postBody).length;
+      } else {
+        options.headers['Content-Length'] = Buffer.byteLength(postBody);
+      }
       options.body = this.body;
     }
 

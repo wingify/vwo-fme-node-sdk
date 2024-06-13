@@ -27,7 +27,7 @@ import { VariationModel } from '../models/campaign/VariationModel';
 import { ContextModel } from '../models/user/ContextModel';
 import { LogManager } from '../packages/logger';
 import { SegmentationManager } from '../packages/segmentation-evaluator';
-import HooksManager from '../services/HooksManager';
+import HooksManager from '../services/HooksService';
 import { StorageService } from '../services/StorageService';
 import { getVariationFromCampaignKey } from '../utils/CampaignUtil';
 import { isObject } from '../utils/DataTypeUtil';

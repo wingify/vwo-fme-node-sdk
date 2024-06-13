@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { NetworkClient } from './client/NetworkClient';
+
+let NetworkClient;
+
+if ((typeof process.env as any) === 'undefined') {
+  NetworkClient = require('./client/NetworkBrowserClient').NetworkBrowserClient;
+} else {
+  NetworkClient = require('./client/NetworkClient').NetworkClient;
+}
+
+export { NetworkClient };
 export { NetworkClientInterface } from './client/NetworkClientInterface';
 export { NetworkManager } from './manager/NetworkManager';
 export { GlobalRequestModel } from './models/GlobalRequestModel';

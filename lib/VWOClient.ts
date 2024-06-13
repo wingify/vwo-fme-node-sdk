@@ -28,8 +28,8 @@ import { dynamic } from './types/Common';
 
 import { SettingsSchema } from './models/schemas/SettingsSchemaValidation';
 import { ContextModel } from './models/user/ContextModel';
-import HooksManager from './services/HooksManager';
-import UrlService from './services/UrlService';
+import HooksManager from './services/HooksService';
+import { UrlUtil } from './utils/UrlUtil';
 
 import { getType, isObject, isString } from './utils/DataTypeUtil';
 
@@ -62,7 +62,7 @@ export class VWOClient implements IVWOClient {
 
     setSettingsAndAddCampaignsToRules(settings, this);
 
-    UrlService.init({
+    UrlUtil.init({
       collectionPrefix: this.settings.getCollectionPrefix(),
     });
 

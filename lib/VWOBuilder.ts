@@ -23,7 +23,7 @@ import { Storage } from './packages/storage';
 
 import { IVWOClient, VWOClient } from './VWOClient';
 import { SettingsModel } from './models/settings/SettingsModel';
-import { SettingsManager } from './services/SettingsManager';
+import { SettingsManager } from './services/SettingsService';
 
 import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';
 import { IVWOOptions } from './models/VWOOptionsModel';

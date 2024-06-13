@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IVWOBuilder, VWOBuilder } from './VWOBuilder';
+import { VWOBuilder } from './VWOBuilder';
 import { IVWOClient } from './VWOClient';
 import { IVWOOptions } from './models/VWOOptionsModel';
 import { SettingsModel } from './models/settings/SettingsModel';
@@ -22,11 +22,8 @@ import { isObject, isString } from './utils/DataTypeUtil';
 import { Deferred } from './utils/PromiseUtil';
 
 import { InfoLogMessagesEnum, ErrorLogMessagesEnum } from './enums/log-messages';
-import { LogLevelEnum } from './packages/logger/enums/LogLevelEnum';
-import { Connector } from './packages/storage/Connector';
 import { buildMessage } from './utils/LogMessageUtil';
-
-export { LogLevelEnum, Connector as StorageConnector };
+import { PlatformEnum } from './enums/PLATFORMEnum';
 
 export class VWO {
   private static vwoBuilder: VWOBuilder;
@@ -111,6 +108,12 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
         date,
       });
       console.error(msg); // Validates accountId presence and type.
+    }
+
+    if (typeof process.env === 'undefined') {
+      options.platform = PlatformEnum.CLIENT;
+    } else {
+      options.platform = PlatformEnum.SERVER;
     }
 
     const instance: any = new VWO(options); // Creates a new VWO instance with the validated options.

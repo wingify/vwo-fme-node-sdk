@@ -15,7 +15,7 @@
  */
 
 import { IVWOBuilder } from '../VWOBuilder';
-import { LogManager } from '../packages/logger';
+import { ILogManager } from '../packages/logger';
 import { NetworkClientInterface } from '../packages/network-layer/client/NetworkClientInterface';
 import { SegmentEvaluator } from '../packages/segmentation-evaluator';
 import { Connector } from '../packages/storage/Connector';
@@ -36,10 +36,11 @@ export interface IVWOOptions {
   storage?: Connector | Record<any, any>;
   gatewayService?: IGatewayService;
   pollInterval?: number;
-  logger?: LogManager;
+  logger?: ILogManager;
   segmentation?: SegmentEvaluator;
   integrations?: IIntegrationOptions;
   network?: INetworkOptions;
+  platform?: string;
 
   vwoBuilder?: IVWOBuilder;
 }
@@ -51,7 +52,7 @@ export class VWOOptionsModel implements IVWOOptions {
   storage?: Connector | Record<any, any>;
   gatewayService?: IGatewayService;
   pollInterval?: number;
-  logger?: LogManager;
+  logger?: ILogManager;
   segmentation?: SegmentEvaluator;
   integrations?: IIntegrationOptions;
   network?: INetworkOptions;
@@ -114,7 +115,7 @@ export class VWOOptionsModel implements IVWOOptions {
     return this.pollInterval;
   }
 
-  getLogger(): LogManager {
+  getLogger(): ILogManager {
     return this.logger;
   }
 

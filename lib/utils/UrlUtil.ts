@@ -13,30 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { UrlEnum } from '../enums/UrlEnum';
-import { isString } from '../utils/DataTypeUtil';
-import { SettingsManager } from './SettingsManager';
+import { SettingsManager } from '../services/SettingsService';
+import { isString } from './DataTypeUtil';
 
-interface UrlServiceType {
+interface IUrlUtil {
   collectionPrefix?: string;
-  init({ collectionPrefix }?: { collectionPrefix?: string }): UrlServiceType;
+  init({ collectionPrefix }?: { collectionPrefix?: string }): IUrlUtil;
   getBaseUrl(): string;
 }
 
-const UrlService: UrlServiceType = {
+export const UrlUtil: IUrlUtil = {
   /**
-   * Initializes the UrlService with optional collectionPrefix and gatewayServiceUrl.
+   * Initializes the UrlUtil with optional collectionPrefix and gatewayServiceUrl.
    * If provided, these values are set after validation.
    * @param {string} [collectionPrefix] - Optional prefix for URL collections.
-   * @returns {UrlServiceType} The instance of UrlService with updated properties.
+   * @returns {IUrlUtil} The instance of UrlUtil with updated properties.
    */
-  init({ collectionPrefix }: { collectionPrefix?: string } = {}) {
+  init: ({ collectionPrefix }: { collectionPrefix?: string } = {}) => {
     // Set collectionPrefix if it is a valid string
     if (collectionPrefix && isString(collectionPrefix)) {
-      UrlService.collectionPrefix = collectionPrefix;
+      UrlUtil.collectionPrefix = collectionPrefix;
     }
 
-    return UrlService;
+    return UrlUtil;
   },
 
   /**
@@ -44,7 +43,7 @@ const UrlService: UrlServiceType = {
    * If gatewayServiceUrl is set, it returns that; otherwise, it constructs the URL using baseUrl and collectionPrefix.
    * @returns {string} The base URL.
    */
-  getBaseUrl() {
+  getBaseUrl: () => {
     const baseUrl: string = SettingsManager.Instance.hostname;
 
     if (SettingsManager.Instance.isGatewayServiceProvided) {
@@ -52,13 +51,11 @@ const UrlService: UrlServiceType = {
     }
 
     // Construct URL with collectionPrefix if it exists
-    if (UrlService.collectionPrefix) {
-      return `${baseUrl}/${UrlService.collectionPrefix}`;
+    if (UrlUtil.collectionPrefix) {
+      return `${baseUrl}/${UrlUtil.collectionPrefix}`;
     }
 
     // Return the default baseUrl if no specific URL components are set
     return baseUrl;
   },
 };
-
-export default UrlService;

@@ -16,7 +16,12 @@
 import { IVWOOptions } from '../models/VWOOptionsModel';
 import { isFunction } from '../utils/DataTypeUtil';
 
-class HooksManager {
+interface IHooksManager {
+  execute(properties: Record<string, any>): void;
+  set(properties: Record<string, any>): void;
+  get(): Record<string, any>;
+}
+class HooksManager implements IHooksManager {
   private callback: ((properties: Record<string, any>) => void) | undefined;
   private isCallBackFunction: boolean;
   private decision: Record<string, any>;

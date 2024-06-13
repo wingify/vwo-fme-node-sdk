@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { VWO, init } from '../../lib/index';
+import { init, onInit, LogLevelEnum, StorageConnector } from '../../lib/index';
 
 test('Check is VWO is defined', () => {
-  expect(typeof VWO).toBe('function');
+  expect(init).toBeDefined();
+  expect(onInit).toBeDefined();
+  expect(LogLevelEnum).toBeDefined();
+  expect(StorageConnector).toBeDefined();
+
   expect(typeof init).toBe('function');
+  expect(typeof onInit).toBe('function');
+  expect(typeof LogLevelEnum).toBe('object');
+  expect(typeof StorageConnector).toBe('function');
 });

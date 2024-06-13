@@ -138,8 +138,8 @@ export class SettingsManager implements ISettingsManager {
 
     const networkInstance = NetworkManager.Instance;
     const options: Record<string, dynamic> = getSettingsPath(this.sdkKey, this.accountId);
-    options.platform = 'server';
-    options['api-version'] = 1;
+    options.platform = Constants.PLATFORM;
+    options['api-version'] = Constants.API_VERSION;
     if (!networkInstance.getConfig().getDevelopmentMode()) {
       options.s = 'prod';
     }

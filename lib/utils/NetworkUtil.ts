@@ -23,11 +23,11 @@ import { DebugLogMessagesEnum, ErrorLogMessagesEnum } from '../enums/log-message
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
-import UrlService from '../services/UrlService';
+import { UrlUtil } from './UrlUtil';
 import { dynamic } from '../types/Common';
 import { isObject } from './DataTypeUtil';
 import { buildMessage } from './LogMessageUtil';
-import { SettingsManager } from '../services/SettingsManager';
+import { SettingsManager } from '../services/SettingsService';
 
 /**
  * Constructs base properties for bulk operations.
@@ -74,7 +74,7 @@ export function getTrackEventPath(event: string, accountId: string, userId: stri
     sdk: Constants.SDK_NAME, // SDK name constant
     'sdk-v': Constants.SDK_VERSION, // SDK version
     random: getRandomNumber(), // Random number for uniqueness
-    ap: Constants.AP, // Application platform
+    ap: Constants.PLATFORM, // Application platform
     sId: getCurrentUnixTimestamp(), // Session ID
     ed: JSON.stringify({ p: 'server' }), // Additional encoded data
   };
@@ -122,7 +122,7 @@ export function getEventsBaseProperties(
     visitor_ip: ipAddress,
   });
 
-  properties.url = Constants.HTTPS_PROTOCOL + UrlService.getBaseUrl() + UrlEnum.EVENTS;
+  properties.url = Constants.HTTPS_PROTOCOL + UrlUtil.getBaseUrl() + UrlEnum.EVENTS;
   return properties;
 }
 
@@ -311,7 +311,7 @@ export function sendPostApiRequest(properties: any, payload: any) {
   if (ipAddress) headers[HeadersEnum.IP] = ipAddress;
 
   const request: RequestModel = new RequestModel(
-    UrlService.getBaseUrl(),
+    UrlUtil.getBaseUrl(),
     'POST',
     UrlEnum.EVENTS,
     properties,
@@ -340,7 +340,7 @@ export function sendPostApiRequest(properties: any, payload: any) {
 export async function sendGetApiRequest(properties: any, endpoint: any): Promise<any> {
   NetworkManager.Instance.attachClient();
   const request: RequestModel = new RequestModel(
-    UrlService.getBaseUrl(),
+    UrlUtil.getBaseUrl(),
     'GET',
     endpoint,
     properties,

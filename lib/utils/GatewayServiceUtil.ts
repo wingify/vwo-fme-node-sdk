@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SettingsManager } from '../services/SettingsManager';
+import { SettingsManager } from '../services/SettingsService';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
-import { UrlEnum } from '../enums/UrlEnum';
 import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
-import UrlService from '../services/UrlService';
+import { UrlUtil } from './UrlUtil';
 import { Deferred } from './PromiseUtil';
 
 /**
@@ -47,7 +46,7 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
   try {
     // Create a new request model instance with the provided parameters
     const request: RequestModel = new RequestModel(
-      UrlService.getBaseUrl(),
+      UrlUtil.getBaseUrl(),
       'GET',
       endpoint,
       queryParams,

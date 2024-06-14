@@ -57,6 +57,12 @@ export class SegmentationManager {
     this.evaluator.settings = settings; // Set settings in evaluator
     this.evaluator.context = context; // Set context in evaluator
     this.evaluator.feature = feature; // Set feature in evaluator
+
+    // if both user agent and ip is null then we should not get data from gateway service
+    if (context?.getUserAgent() === null && context?.getIpAddress() === null) {
+      return;
+    }
+
     if (feature.getIsGatewayServiceRequired() === true) {
       if (
         SettingsManager.Instance.isGatewayServiceProvided &&

@@ -1,6 +1,6 @@
 {
   "name": "vwo-fme-node-sdk",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "VWO Node SDK for Feature Management and Experimentation",
   "main": "dist/index",
   "types": "dist/index.d.ts",

@@ -37,6 +37,7 @@ export class SettingsSchema {
       identifier: string(),
       mca: optional(union([number(), string()])),
       hasProps: optional(boolean()),
+      revenueProp: optional(string()),
     });
 
     this.variableObjectSchema = object({
@@ -105,7 +106,6 @@ export class SettingsSchema {
     }
 
     const [error] = validate(settings, this.settingsSchema);
-
     return !error;
   }
 }

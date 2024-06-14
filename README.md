@@ -1,11 +1,10 @@
 ## VWO Feature Management and Experimentation SDK for Node.js
 
-[![npm version](https://badge.fury.io/js/vwo-fme-node-sdk.svg)](https://www.npmjs.com/package/vwo-fme-node-sdk)
-[![CI](https://github.com/wingify/vwo-fme-node-sdk/workflows/CI/badge.svg?branch=master)](https://github.com/wingify/vwo-fme-node-sdk/actions?query=workflow%3ACI)
+[![npm version](https://img.shields.io/npm/v/vwo-fme-node-sdk?style=for-the-badge&color=grey&logo=npm)](https://www.npmjs.com/package/vwo-fme-node-sdk)
+[![License](https://img.shields.io/github/license/wingify/vwo-fme-node-sdk?style=for-the-badge&color=blue)](http://www.apache.org/licenses/LICENSE-2.0)
 
-[![codecov](https://codecov.io/gh/wingify/vwo-fme-node-sdk/branch/master/graph/badge.svg?token=813UYYMWGM)](https://codecov.io/gh/wingify/vwo-fme-node-sdk)
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+[![CI](https://img.shields.io/github/actions/workflow/status/wingify/vwo-fme-node-sdk/main.yml?style=for-the-badge&logo=github)](https://github.com/wingify/vwo-fme-node-sdk/actions?query=workflow%3ACI)
+[![codecov](https://img.shields.io/codecov/c/github/wingify/vwo-fme-node-sdk?token=813UYYMWGM&style=for-the-badge&logo=codecov)](https://codecov.io/gh/wingify/vwo-fme-node-sdk)
 
 ### Requirements
 

@@ -40,7 +40,7 @@ const isFlagEnabled = getFlag.isEnabled();
 const intVar = getFlag.getVariable('int_variable_key');
 
 // track event
-vwoClient.trackEvent('addToCart', userContext, eventProperties);
+vwoClient.trackEvent('add_to_cart', userContext, eventProperties);
 ```
 
 ### Development Scripts

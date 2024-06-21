@@ -57,11 +57,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ```javascript
     {
       id: 'user-id',           // MANDATORY
-      ip: '1.2.3.4',           // OPTIONAL - required for user targeting
-      ua: '...',               // OPTIONAL - required for user targeting
-      other_attributes: '...', // OPTIONAL - required for user targeting
+      ipAddress: '1.2.3.4',    // OPTIONAL - required for user targeting
+      userAgent: '...',        // OPTIONAL - required for user targeting
       // For pre-segmentation in campaigns
       customVariables: {
+        price: 300
         // ...
       }
     }

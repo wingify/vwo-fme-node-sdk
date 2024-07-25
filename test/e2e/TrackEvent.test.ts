@@ -44,7 +44,7 @@ describe('VWOClient trackEvent method', () => {
     const context = { id: '123' };
 
     // Call the trackEvent method
-    const result = await vwoClient.trackEvent(eventName, eventProperties, context);
+    const result = await vwoClient.trackEvent(eventName, context, eventProperties);
 
     // Assert that the method resolves with the correct data
     expect(result).toEqual({ [eventName]: true });
@@ -59,7 +59,7 @@ describe('VWOClient trackEvent method', () => {
     const context = { id: '123' };
 
     // Call the trackEvent method
-    const result = await vwoClient.trackEvent(eventName, eventProperties, context);
+    const result = await vwoClient.trackEvent(eventName, context, eventProperties);
 
     // Assert that the method resolves with the correct data
     expect(result).toEqual({ [eventName]: false });
@@ -74,7 +74,7 @@ describe('VWOClient trackEvent method', () => {
     const context = { id: '123' };
 
     // Call the trackEvent method
-    const result = await vwoClient.trackEvent(eventName, eventProperties, context);
+    const result = await vwoClient.trackEvent(eventName, context, eventProperties);
 
     // Assert that the method resolves with the correct data
     expect(result).toEqual({ [eventName]: false });
@@ -89,7 +89,7 @@ describe('VWOClient trackEvent method', () => {
     const context = { id: '123' };
 
     // Call the trackEvent method
-    const result = await vwoClient.trackEvent(eventName, eventProperties, context);
+    const result = await vwoClient.trackEvent(eventName, context, eventProperties);
 
     // Assert that the method resolves with the correct data
     expect(result).toEqual({ [eventName]: false });
@@ -104,7 +104,7 @@ describe('VWOClient trackEvent method', () => {
     const context = {}; // Invalid context without userId
 
     // Call the trackEvent method
-    const result = await vwoClient.trackEvent(eventName, eventProperties, context);
+    const result = await vwoClient.trackEvent(eventName, context, eventProperties);
 
     // Assert that the method resolves with the correct data
     expect(result).toEqual({ [eventName]: false });

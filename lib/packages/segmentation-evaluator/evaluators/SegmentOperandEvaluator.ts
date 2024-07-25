@@ -53,7 +53,7 @@ export class SegmentOperandEvaluator {
       const listIdRegex = /inlist\((\w+:\d+)\)/;
       const match = operand.match(listIdRegex);
       if (!match || match.length < 2) {
-        console.error("Invalid 'inList' operand format");
+        LogManager.Instance.error("Invalid 'inList' operand format");
         return false;
       }
 
@@ -74,7 +74,7 @@ export class SegmentOperandEvaluator {
         }
         return res;
       } catch (error) {
-        console.error('Error while fetching data:', error);
+        LogManager.Instance.error('Error while fetching data: ' + error);
         return false;
       }
     } else {

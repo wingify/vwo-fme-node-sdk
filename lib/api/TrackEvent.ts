@@ -28,16 +28,16 @@ interface ITrack {
    * Tracks an event with given properties and context.
    * @param settings Configuration settings for the tracking.
    * @param eventName Name of the event to track.
-   * @param eventProperties Properties associated with the event.
    * @param context Contextual information like user details.
+   * @param eventProperties Properties associated with the event.
    * @param hookManager Manager for handling hooks and callbacks.
    * @returns A promise that resolves to a record indicating the success or failure of the event tracking.
    */
   track(
     settings: SettingsModel,
     eventName: string,
-    eventProperties: any,
     context: ContextModel,
+    eventProperties: any,
     hookManager: HooksManager,
   ): Promise<Record<string, boolean>>;
 }
@@ -50,8 +50,8 @@ export class TrackApi implements ITrack {
   async track(
     settings: SettingsModel,
     eventName: string,
-    eventProperties: any,
     context: ContextModel,
+    eventProperties: any,
     hookManager: HooksManager,
   ): Promise<Record<string, boolean>> {
     if (doesEventBelongToAnyFeature(eventName, settings)) {

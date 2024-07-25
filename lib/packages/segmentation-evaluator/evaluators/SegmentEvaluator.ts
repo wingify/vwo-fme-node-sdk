@@ -106,16 +106,20 @@ export class SegmentEvaluator implements Segmentation {
           const featureIdKey: string = Object.keys(featureIdObject)[0];
           const featureIdValue: string = featureIdObject[featureIdKey];
 
-          if (featureIdValue === 'on') {
+          if (featureIdValue === 'on' || featureIdValue === 'off') {
             const features = this.settings.getFeatures();
             const feature = features.find((feature) => feature.getId() === parseInt(featureIdKey));
 
             if (feature) {
               const featureKey = feature.getKey();
               const result = await this.checkInUserStorage(this.settings, featureKey, this.context);
+              // if the result is false, then we need to return true as feature is not present in the user storage
+              if (featureIdValue === 'off') {
+                return !result;
+              }
               return result;
             } else {
-              console.error('Feature not found with featureIdKey:', featureIdKey);
+              LogManager.Instance.error('Feature not found with featureIdKey: ' + featureIdKey);
               return null; // Handle the case when feature is not found
             }
           }
@@ -197,7 +201,7 @@ export class SegmentEvaluator implements Segmentation {
   async checkLocationPreSegmentation(locationMap: Record<string, dynamic>): Promise<boolean> {
     // Ensure user's IP address is available
     if (this.context?.getIpAddress() === undefined) {
-      LogManager.Instance.info('To evaluate location pre Segment, please pass ipAddress in context object');
+      LogManager.Instance.error('To evaluate location pre Segment, please pass ipAddress in context object');
       return false;
     }
     // Check if location data is available and matches the expected values
@@ -219,7 +223,7 @@ export class SegmentEvaluator implements Segmentation {
   async checkUserAgentParser(uaParserMap: Record<string, string[]>): Promise<boolean> {
     // Ensure user's user agent is available
     if (!this.context?.getUserAgent() || this.context?.getUserAgent() === undefined) {
-      LogManager.Instance.info('To evaluate user agent related segments, please pass userAgent in context object');
+      LogManager.Instance.error('To evaluate user agent related segments, please pass userAgent in context object');
       return false;
     }
     // Check if user agent data is available and matches the expected values
@@ -264,6 +268,10 @@ export class SegmentEvaluator implements Segmentation {
     for (const key in actualMap) {
       if (Object.prototype.hasOwnProperty.call(expectedMap, key)) {
         const expectedValues = expectedMap[key];
+        // convert expected values to lowercase
+        expectedValues.forEach((value, index) => {
+          expectedValues[index] = value.toLowerCase();
+        });
         const actualValue = actualMap[key];
 
         // Handle wildcard patterns for all keys
@@ -273,7 +281,7 @@ export class SegmentEvaluator implements Segmentation {
             // Extract pattern from wildcard string
             const wildcardPattern = val.slice(9, -1);
             // Convert wildcard pattern to regex and check if it matches the actual value
-            const regex = new RegExp(wildcardPattern.replace(/\*/g, '.*')); // Convert wildcard pattern to regex
+            const regex = new RegExp(wildcardPattern.replace(/\*/g, '.*'), 'i'); // Convert wildcard pattern to regex, 'i' for case-insensitive
             // Check if the actual value matches the regex pattern for the key
             if (regex.test(actualValue)) {
               // match found, return true as we only need to check if any of the expected values match the actual value

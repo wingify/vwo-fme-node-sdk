@@ -46,8 +46,8 @@ export interface IVWOClient {
   getFlag(featureKey: string, context: Record<string, any>): Record<any, any>;
   trackEvent(
     eventName: string,
-    eventProperties: Record<string, dynamic>,
     context: Record<string, any>,
+    eventProperties: Record<string, dynamic>,
   ): Promise<Record<string, boolean>>;
   setAttribute(attributeKey: string, attributeValue: string, context: Record<string, any>): void;
 }
@@ -151,14 +151,14 @@ export class VWOClient implements IVWOClient {
    * This method validates the types of the inputs and ensures the settings and user context are valid before proceeding.
    *
    * @param {string} eventName - The name of the event to track.
-   * @param {Record<string, dynamic>} eventProperties - The properties associated with the event.
    * @param {ContextModel} context - The context in which the event is being tracked, must include a valid user ID.
+   * @param {Record<string, dynamic>} eventProperties - The properties associated with the event.
    * @returns {Promise<Record<string, boolean>>} - A promise that resolves to the result of the tracking operation.
    */
   trackEvent(
     eventName: string,
-    eventProperties: Record<string, dynamic> = {},
     context: Record<string, any>,
+    eventProperties: Record<string, dynamic> = {},
   ): Promise<Record<string, boolean>> {
     const apiName = 'trackEvent';
     const deferredObject = new Deferred();
@@ -192,7 +192,7 @@ export class VWOClient implements IVWOClient {
         LogManager.Instance.error(
           buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
             apiName,
-            key: 'featureKey',
+            key: 'eventProperties',
             type: getType(eventProperties),
             correctType: 'object',
           }),
@@ -217,7 +217,7 @@ export class VWOClient implements IVWOClient {
 
       // Proceed with tracking the event
       new TrackApi()
-        .track(this.settings, eventName, eventProperties, contextModel, hookManager)
+        .track(this.settings, eventName, contextModel, eventProperties, hookManager)
         .then((data) => {
           deferredObject.resolve(data);
         })

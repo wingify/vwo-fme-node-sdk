@@ -18,11 +18,10 @@ import * as https from 'https';
 import { dynamic } from '../../../types/Common';
 import { Deferred } from '../../../utils/PromiseUtil';
 
+import { HTTPS } from '../../../constants/Url';
 import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { NetworkClientInterface } from './NetworkClientInterface';
-
-const HTTPS = 'HTTPS';
 
 /**
  * Implements the NetworkClientInterface to handle network requests.

@@ -18,7 +18,7 @@ import { LogManager } from '../packages/logger';
 import { StorageEnum } from '../enums/StorageEnum';
 import { FeatureModel } from '../models/campaign/FeatureModel';
 import { VariationModel } from '../models/campaign/VariationModel';
-import { StorageService } from '../services/StorageService';
+import { IStorageService } from '../services/StorageService';
 
 import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { ContextModel } from '../models/user/ContextModel';
@@ -32,7 +32,7 @@ interface IStorageDecorator {
    * @param storageService The storage service instance.
    * @returns A promise that resolves to a VariationModel.
    */
-  setDataInStorage(data: Record<any, any>, storageService: StorageService): Promise<VariationModel>;
+  setDataInStorage(data: Record<any, any>, storageService: IStorageService): Promise<VariationModel>;
 
   /**
    * Retrieves a feature from storage.
@@ -41,7 +41,7 @@ interface IStorageDecorator {
    * @param storageService The storage service instance.
    * @returns A promise that resolves to the retrieved feature or relevant status.
    */
-  getFeatureFromStorage(featureKey: FeatureModel, context: ContextModel, storageService: StorageService): Promise<any>;
+  getFeatureFromStorage(featureKey: FeatureModel, context: ContextModel, storageService: IStorageService): Promise<any>;
 }
 
 export class StorageDecorator implements IStorageDecorator {
@@ -52,7 +52,7 @@ export class StorageDecorator implements IStorageDecorator {
    * @param storageService The storage service instance.
    * @returns A promise that resolves to the retrieved feature or relevant status.
    */
-  async getFeatureFromStorage(featureKey: any, context: ContextModel, storageService: StorageService): Promise<any> {
+  async getFeatureFromStorage(featureKey: any, context: ContextModel, storageService: IStorageService): Promise<any> {
     const deferredObject = new Deferred();
     storageService.getDataInStorage(featureKey, context).then((campaignMap: Record<any, any> | StorageEnum) => {
       switch (campaignMap) {
@@ -88,7 +88,7 @@ export class StorageDecorator implements IStorageDecorator {
    * @param storageService The storage service instance.
    * @returns A promise that resolves when the data is successfully stored.
    */
-  setDataInStorage(data: Record<any, any>, storageService: StorageService): Promise<VariationModel> {
+  setDataInStorage(data: Record<any, any>, storageService: IStorageService): Promise<VariationModel> {
     const deferredObject = new Deferred();
     const {
       featureKey,

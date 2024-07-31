@@ -18,16 +18,17 @@ import { getUUID } from './UuidUtil';
 
 import { Constants } from '../constants';
 import { HeadersEnum } from '../enums/HeadersEnum';
+import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 import { UrlEnum } from '../enums/UrlEnum';
 import { DebugLogMessagesEnum, ErrorLogMessagesEnum } from '../enums/log-messages';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
-import UrlService from '../services/UrlService';
+import { SettingsService } from '../services/SettingsService';
 import { dynamic } from '../types/Common';
 import { isObject } from './DataTypeUtil';
 import { buildMessage } from './LogMessageUtil';
-import { SettingsManager } from '../services/SettingsManager';
+import { UrlUtil } from './UrlUtil';
 
 /**
  * Constructs base properties for bulk operations.
@@ -74,7 +75,7 @@ export function getTrackEventPath(event: string, accountId: string, userId: stri
     sdk: Constants.SDK_NAME, // SDK name constant
     'sdk-v': Constants.SDK_VERSION, // SDK version
     random: getRandomNumber(), // Random number for uniqueness
-    ap: Constants.AP, // Application platform
+    ap: Constants.PLATFORM, // Application platform
     sId: getCurrentUnixTimestamp(), // Session ID
     ed: JSON.stringify({ p: 'server' }), // Additional encoded data
   };
@@ -122,7 +123,7 @@ export function getEventsBaseProperties(
     visitor_ip: ipAddress,
   });
 
-  properties.url = Constants.HTTPS_PROTOCOL + UrlService.getBaseUrl() + UrlEnum.EVENTS;
+  properties.url = Constants.HTTPS_PROTOCOL + UrlUtil.getBaseUrl() + UrlEnum.EVENTS;
   return properties;
 }
 
@@ -311,20 +312,20 @@ export function sendPostApiRequest(properties: any, payload: any) {
   if (ipAddress) headers[HeadersEnum.IP] = ipAddress;
 
   const request: RequestModel = new RequestModel(
-    UrlService.getBaseUrl(),
-    'POST',
+    UrlUtil.getBaseUrl(),
+    HttpMethodEnum.POST,
     UrlEnum.EVENTS,
     properties,
     payload,
     headers,
-    SettingsManager.Instance.protocol,
-    SettingsManager.Instance.port,
+    SettingsService.Instance.protocol,
+    SettingsService.Instance.port,
   );
 
   NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
     LogManager.Instance.error(
       buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-        method: 'POST',
+        method: HttpMethodEnum.POST,
         err,
       }),
     );
@@ -340,14 +341,14 @@ export function sendPostApiRequest(properties: any, payload: any) {
 export async function sendGetApiRequest(properties: any, endpoint: any): Promise<any> {
   NetworkManager.Instance.attachClient();
   const request: RequestModel = new RequestModel(
-    UrlService.getBaseUrl(),
-    'GET',
+    UrlUtil.getBaseUrl(),
+    HttpMethodEnum.GET,
     endpoint,
     properties,
     null,
     null,
-    SettingsManager.Instance.protocol,
-    SettingsManager.Instance.port,
+    SettingsService.Instance.protocol,
+    SettingsService.Instance.port,
   );
   try {
     const response: ResponseModel = await NetworkManager.Instance.get(request);
@@ -355,7 +356,7 @@ export async function sendGetApiRequest(properties: any, endpoint: any): Promise
   } catch (err) {
     LogManager.Instance.error(
       buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-        method: 'GET',
+        method: HttpMethodEnum.GET,
         err,
       }),
     );

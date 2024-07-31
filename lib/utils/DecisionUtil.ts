@@ -26,7 +26,7 @@ import { DecisionMaker } from '../packages/decision-maker';
 import { LogManager } from '../packages/logger';
 import { SegmentationManager } from '../packages/segmentation-evaluator';
 import { CampaignDecisionService } from '../services/CampaignDecisionService';
-import { StorageService } from '../services/StorageService';
+import { IStorageService } from '../services/StorageService';
 import { isObject } from '../utils/DataTypeUtil';
 import {
   assignRangeValues,
@@ -46,7 +46,7 @@ export const checkWhitelistingAndPreSeg = async (
   context: ContextModel,
   evaluatedFeatureMap: Map<string, any>,
   megGroupWinnerCampaigns: Map<number, number>,
-  storageService: StorageService,
+  storageService: IStorageService,
   decision: any,
 ): Promise<[boolean, any]> => {
   const vwoUserId = getUUID(context.getId(), settings.getAccountId());

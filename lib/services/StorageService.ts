@@ -24,7 +24,11 @@ import { isNull, isUndefined } from '../utils/DataTypeUtil';
 import { buildMessage } from '../utils/LogMessageUtil';
 import { Deferred } from '../utils/PromiseUtil';
 
-export class StorageService {
+export interface IStorageService {
+  getDataInStorage(featureKey: any, context: ContextModel): Promise<Record<any, any>>;
+  setDataInStorage(data: Record<any, any>): Promise<void>;
+}
+export class StorageService implements IStorageService {
   private storageData: Record<string, dynamic> = {};
 
   /**

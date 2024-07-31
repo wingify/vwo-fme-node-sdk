@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Deferred } from '../../../utils/PromiseUtil';
-import { NetworkClient } from '../client/NetworkClient';
 import { NetworkClientInterface } from '../client/NetworkClientInterface';
 import { RequestHandler } from '../handlers/RequestHandler';
 import { GlobalRequestModel } from '../models/GlobalRequestModel';
@@ -31,7 +30,18 @@ export class NetworkManager {
    * @param {NetworkClientInterface} client - The client to attach, optional.
    */
   attachClient(client?: NetworkClientInterface): void {
-    this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+    if ((typeof process.env as any) === 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { NetworkBrowserClient } = require('../client/NetworkBrowserClient');
+
+      this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { NetworkClient } = require('../client/NetworkClient');
+
+      this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+    }
+
     this.config = new GlobalRequestModel(null, null, null, null); // Initialize with default config
   }
 

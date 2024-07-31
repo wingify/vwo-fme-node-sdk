@@ -97,6 +97,7 @@ export class SettingsSchema {
       campaigns: array(this.campaignObjectSchema),
       groups: optional(object()),
       campaignGroups: optional(object()),
+      collectionPrefix: optional(string()),
     });
   }
 

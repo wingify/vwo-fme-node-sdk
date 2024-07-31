@@ -18,7 +18,8 @@ import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { ContextModel } from '../models/user/ContextModel';
 import { LogManager } from '../packages/logger';
-import HooksManager from '../services/HooksManager';
+import IHooksService from '../services/HooksService';
+import { dynamic } from '../types/Common';
 import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
 import { buildMessage } from '../utils/LogMessageUtil';
 import { getEventsBaseProperties, getTrackGoalPayloadData, sendPostApiRequest } from '../utils/NetworkUtil';
@@ -30,15 +31,15 @@ interface ITrack {
    * @param eventName Name of the event to track.
    * @param context Contextual information like user details.
    * @param eventProperties Properties associated with the event.
-   * @param hookManager Manager for handling hooks and callbacks.
+   * @param hooksService Manager for handling hooks and callbacks.
    * @returns A promise that resolves to a record indicating the success or failure of the event tracking.
    */
   track(
     settings: SettingsModel,
     eventName: string,
     context: ContextModel,
-    eventProperties: any,
-    hookManager: HooksManager,
+    eventProperties: Record<string, dynamic>,
+    hooksService: IHooksService,
   ): Promise<Record<string, boolean>>;
 }
 
@@ -52,14 +53,14 @@ export class TrackApi implements ITrack {
     eventName: string,
     context: ContextModel,
     eventProperties: any,
-    hookManager: HooksManager,
+    hooksService: IHooksService,
   ): Promise<Record<string, boolean>> {
     if (doesEventBelongToAnyFeature(eventName, settings)) {
       // Create an impression for the track event
       createImpressionForTrack(settings, eventName, context, eventProperties);
       // Set and execute integration callback for the track event
-      hookManager.set({ eventName: eventName, api: ApiEnum.TRACK });
-      hookManager.execute(hookManager.get());
+      hooksService.set({ eventName: eventName, api: ApiEnum.TRACK });
+      hooksService.execute(hooksService.get());
 
       return { [eventName]: true };
     }

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HttpMethodEnum } from '../../../enums/HttpMethodEnum';
 import { dynamic } from '../../../types/Common';
-
-const HTTP = 'http';
+import { HTTPS } from '../../../constants/Url';
 
 /**
  * Represents a model for HTTP requests.
@@ -46,12 +46,12 @@ export class RequestModel {
    */
   constructor(
     url: string,
-    method: string = 'GET',
+    method: string = HttpMethodEnum.GET,
     path: string,
     query: Record<string, dynamic>,
     body: Record<string, dynamic>,
     headers: Record<string, string>,
-    scheme: string = HTTP,
+    scheme: string = HTTPS,
     port: number,
   ) {
     this.url = url;
@@ -225,8 +225,10 @@ export class RequestModel {
       const queryString = `${key}=${this.query[key]}&`;
       queryParams += queryString;
     }
+
+    const [hostname, collectionPrefix] = this.url.split('/');
     const options: Record<string, any> = {
-      hostname: this.url,
+      hostname, // if url is example.com/as01, hostname will be example.com
       agent: false,
     };
 
@@ -248,7 +250,12 @@ export class RequestModel {
       const postBody = JSON.stringify(this.body);
       options.headers = options.headers || {};
       options.headers['Content-Type'] = 'application/json';
-      options.headers['Content-Length'] = Buffer.byteLength(postBody);
+
+      if (typeof Buffer === 'undefined') {
+        options.headers['Content-Length'] = new TextEncoder().encode(postBody).length;
+      } else {
+        options.headers['Content-Length'] = Buffer.byteLength(postBody);
+      }
       options.body = this.body;
     }
 
@@ -258,6 +265,10 @@ export class RequestModel {
       } else {
         options.path = this.path;
       }
+    }
+
+    if (collectionPrefix) {
+      options.path = `/${collectionPrefix}` + options.path;
     }
     if (this.timeout) {
       options.timeout = this.timeout;

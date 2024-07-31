@@ -159,7 +159,7 @@ export function setCampaignAllocation(campaigns: any[]) {
  */
 export function getGroupDetailsIfCampaignPartOfIt(settings: SettingsModel, campaignId: any) {
   // Check if the campaign is associated with a group and return the group details
-  if (settings.getCampaignGroups() && settings.getCampaignGroups().hasOwnProperty(campaignId)) {
+  if (campaignId in settings.getCampaignGroups() && settings.getCampaignGroups()) {
     return {
       groupId: settings.getCampaignGroups()[campaignId],
       groupName: settings.getGroups()[settings.getCampaignGroups()[campaignId]].name,

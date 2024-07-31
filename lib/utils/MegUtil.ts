@@ -25,7 +25,7 @@ import { ContextModel } from '../models/user/ContextModel';
 import { DecisionMaker } from '../packages/decision-maker';
 import { LogManager } from '../packages/logger';
 import { CampaignDecisionService } from '../services/CampaignDecisionService';
-import { StorageService } from '../services/StorageService';
+import { IStorageService } from '../services/StorageService';
 import { evaluateRule } from '../utils/RuleEvaluationUtil';
 import {
   getBucketingSeed,
@@ -57,7 +57,7 @@ export const evaluateGroups = async (
   groupId: number,
   evaluatedFeatureMap: Map<string, any>,
   context: ContextModel,
-  storageService: StorageService,
+  storageService: IStorageService,
 ): Promise<any> => {
   const featureToSkip = [];
   const campaignMap: Map<string, any[]> = new Map();
@@ -147,13 +147,10 @@ const _isRolloutRuleForFeaturePassed = async (
   feature: FeatureModel,
   evaluatedFeatureMap: Map<string, any>,
   featureToSkip: any[],
-  storageService: StorageService,
+  storageService: IStorageService,
   context: ContextModel,
 ): Promise<boolean> => {
-  if (
-    evaluatedFeatureMap.has(feature.getKey()) &&
-    evaluatedFeatureMap.get(feature.getKey()).hasOwnProperty('rolloutId')
-  ) {
+  if (evaluatedFeatureMap.has(feature.getKey()) && 'rolloutId' in evaluatedFeatureMap.get(feature.getKey())) {
     return true;
   }
   const rollOutRules = getSpecificRulesBasedOnType(feature, CampaignTypeEnum.ROLLOUT);
@@ -214,7 +211,7 @@ const _getEligbleCampaigns = async (
   settings: SettingsModel,
   campaignMap: Map<string, any[]>,
   context: ContextModel,
-  storageService: StorageService,
+  storageService: IStorageService,
 ): Promise<any> => {
   const eligibleCampaigns = [];
   const eligibleCampaignsWithStorage = [];

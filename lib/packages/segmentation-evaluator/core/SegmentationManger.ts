@@ -22,7 +22,7 @@ import { LogManager } from '../../logger';
 import { ContextModel } from '../../../models/user/ContextModel';
 import { FeatureModel } from '../../../models/campaign/FeatureModel';
 import { ContextVWOModel } from '../../../models/user/ContextVWOModel';
-import { SettingsManager } from '../../../services/SettingsManager';
+import { SettingsService } from '../../../services/SettingsService';
 import { isUndefined } from '../../../utils/DataTypeUtil';
 
 export class SegmentationManager {
@@ -65,7 +65,7 @@ export class SegmentationManager {
 
     if (feature.getIsGatewayServiceRequired() === true) {
       if (
-        SettingsManager.Instance.isGatewayServiceProvided &&
+        SettingsService.Instance.isGatewayServiceProvided &&
         (isUndefined(context.getVwo()) || context.getVwo() === null)
       ) {
         const queryParams = {};

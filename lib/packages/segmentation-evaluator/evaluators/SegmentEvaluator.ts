@@ -45,8 +45,7 @@ export class SegmentEvaluator implements Segmentation {
     // Evaluate based on the type of segmentation operator
     switch (operator) {
       case SegmentOperatorValueEnum.NOT:
-        const result = await this.isSegmentationValid(subDsl, properties);
-        return !result;
+        return !(await this.isSegmentationValid(subDsl, properties));
       case SegmentOperatorValueEnum.AND:
         return await this.every(subDsl, properties);
       case SegmentOperatorValueEnum.OR:
@@ -155,9 +154,9 @@ export class SegmentEvaluator implements Segmentation {
     for (const dsl of dslNodes) {
       // Check if the DSL node contains location-related keys
       if (
-        dsl.hasOwnProperty(SegmentOperatorValueEnum.COUNTRY) ||
-        dsl.hasOwnProperty(SegmentOperatorValueEnum.REGION) ||
-        dsl.hasOwnProperty(SegmentOperatorValueEnum.CITY)
+        SegmentOperatorValueEnum.COUNTRY in dsl ||
+        SegmentOperatorValueEnum.REGION in dsl ||
+        SegmentOperatorValueEnum.CITY in dsl
       ) {
         this.addLocationValuesToMap(dsl, locationMap);
         // Check if the number of location keys matches the number of DSL nodes
@@ -182,13 +181,13 @@ export class SegmentEvaluator implements Segmentation {
    */
   addLocationValuesToMap(dsl: Record<string, dynamic>, locationMap: Record<string, dynamic>): void {
     // Add country, region, and city information to the location map if present
-    if (dsl.hasOwnProperty(SegmentOperatorValueEnum.COUNTRY)) {
+    if (SegmentOperatorValueEnum.COUNTRY in dsl) {
       locationMap[SegmentOperatorValueEnum.COUNTRY] = dsl[SegmentOperatorValueEnum.COUNTRY];
     }
-    if (dsl.hasOwnProperty(SegmentOperatorValueEnum.REGION)) {
+    if (SegmentOperatorValueEnum.REGION in dsl) {
       locationMap[SegmentOperatorValueEnum.REGION] = dsl[SegmentOperatorValueEnum.REGION];
     }
-    if (dsl.hasOwnProperty(SegmentOperatorValueEnum.CITY)) {
+    if (SegmentOperatorValueEnum.CITY in dsl) {
       locationMap[SegmentOperatorValueEnum.CITY] = dsl[SegmentOperatorValueEnum.CITY];
     }
   }
@@ -307,7 +306,7 @@ export class SegmentEvaluator implements Segmentation {
    */
   async valuesMatch(expectedLocationMap, userLocation) {
     for (const [key, value] of Object.entries(expectedLocationMap)) {
-      if (userLocation.hasOwnProperty(key)) {
+      if (key in userLocation) {
         const normalizedValue1 = this.normalizeValue(value);
         const normalizedValue2 = this.normalizeValue(userLocation[key]);
         if (normalizedValue1 !== normalizedValue2) {

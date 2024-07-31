@@ -1,9 +1,6 @@
 {
   "name": "vwo-fme-node-sdk",
-  "version": "1.2.0",
   "description": "VWO Node SDK for Feature Management and Experimentation",
-  "main": "dist/index",
-  "types": "dist/index.d.ts",
   "scripts": {
     "check:versions": "node -e 'require(\"./scripts/check-versions\")'",
     "test:coverage": "jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info",
@@ -35,6 +32,6 @@
   "engines": {
     "node": ">= 8.9.0",
     "yarn": ">= 1.22.17",
-    "node_lint": ">= 18.18.0"
+    "nodeLint": ">= 18.18.0"
   }
 }

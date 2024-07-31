@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
     "noEmit": false,
-    "moduleResolution":"Node",
+    "moduleResolution": "Node",
     "baseUrl": "./lib",
     "paths": {
       "*": ["node_modules", "lib"]
     },
-    "outDir": "dist/",
+    "outDir": "dist/server-unpacked",
+    "declarationDir": "./dist/types",
+    // "emitDeclarationOnly": true,
     "noImplicitAny": false,
     "noImplicitThis": false,
     "module": "commonjs",
@@ -14,20 +16,15 @@
     "declaration": true,
     "removeComments": false,
     "sourceMap": true,
-    "lib": [
-      "ES5",
-      "DOM"
-    ],
-    "plugins": [{
-      "name": "typescript-tslint-plugin"
-    }]
+    "lib": ["ES5", "DOM"],
+    "plugins": [
+      {
+        "name": "typescript-tslint-plugin"
+      }
+    ]
   },
   "include": ["./lib/**/*"],
-  "exclude": [
-    "node_modules",
-    "**/*.(spec|test).ts",
-    "*.js"
-  ],
+  "exclude": ["node_modules", "**/*.(spec|test).ts", "*.js"],
   "baseUrl": "types",
   "typeRoots": ["types", "./node_modules/@types"]
 }

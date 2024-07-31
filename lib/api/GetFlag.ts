@@ -27,7 +27,7 @@ import { VariationModel } from '../models/campaign/VariationModel';
 import { ContextModel } from '../models/user/ContextModel';
 import { LogManager } from '../packages/logger';
 import { SegmentationManager } from '../packages/segmentation-evaluator';
-import HooksManager from '../services/HooksManager';
+import IHooksService from '../services/HooksService';
 import { StorageService } from '../services/StorageService';
 import { getVariationFromCampaignKey } from '../utils/CampaignUtil';
 import { isObject } from '../utils/DataTypeUtil';
@@ -43,7 +43,7 @@ interface IGetFlag {
     featureKey: string,
     settings: SettingsModel,
     context: ContextModel,
-    hookManager: HooksManager,
+    hooksService: IHooksService,
   ): Promise<FeatureModel>;
 }
 
@@ -52,7 +52,7 @@ export class FlagApi implements IGetFlag {
     featureKey: string,
     settings: SettingsModel,
     context: ContextModel,
-    hookManager: HooksManager,
+    hooksService: IHooksService,
   ): Promise<FeatureModel> {
     let isEnabled = false;
     let rolloutVariationToReturn = null;
@@ -286,8 +286,8 @@ export class FlagApi implements IGetFlag {
     }
 
     // call integration callback, if defined
-    hookManager.set(decision);
-    hookManager.execute(hookManager.get());
+    hooksService.set(decision);
+    hooksService.execute(hooksService.get());
 
     // Send data for Impact Campaign, if defined
     if (feature.getImpactCampaign()?.getCampaignId()) {

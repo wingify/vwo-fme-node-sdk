@@ -7,8 +7,8 @@ node_modules
 # *.todo
 coverage/
 
-# TODO: remove
-dist/
+dist/node_modules
+dist/package.json
 demo/
 example/
-docs/
+docs-html/

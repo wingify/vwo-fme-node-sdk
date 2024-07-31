@@ -13,4 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { init, onInit, VWO, LogLevelEnum, StorageConnector } from './VWO';
+
+import { LogLevelEnum } from './packages/logger/enums/LogLevelEnum';
+import { Connector } from './packages/storage/Connector';
+
+export { LogLevelEnum, Connector as StorageConnector };
+export { init, onInit } from './VWO';

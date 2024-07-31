@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2024-08-01
+
+### Changed
+
+- Modified code to support browser and Node.js environment
+- The same SDK can be used in the browser and Node.js environment without any changes in the code from the customer side
+- Refactored code to use interfaces and types wherever missing or required
+
+### Added
+
+Client-side Javascript SDK
+
+- Used webpack for bundling code
+- Separate builds for Node.js and browser using `webpack`
+- SDK is compatible to be run on browser(as a Script, client-side rendering with React ,Ionic framework, etc.)
+- Node.js environment can now use one single bundled file too, if required
+
 ## [1.3.1] - 2024-07-225
 
 ### Fixed

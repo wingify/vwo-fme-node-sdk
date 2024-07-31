@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SettingsManager } from '../services/SettingsManager';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
-import { UrlEnum } from '../enums/UrlEnum';
+import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
-import UrlService from '../services/UrlService';
+import { SettingsService } from '../services/SettingsService';
 import { Deferred } from './PromiseUtil';
+import { UrlUtil } from './UrlUtil';
 
 /**
  * Asynchronously retrieves data from a web service using the specified query parameters and endpoint.
@@ -36,7 +36,7 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
   const networkInstance = NetworkManager.Instance;
 
   // Check if the base URL is not set correctly
-  if (!SettingsManager.Instance.isGatewayServiceProvided) {
+  if (!SettingsService.Instance.isGatewayServiceProvided) {
     // Log an informational message about the invalid URL
     LogManager.Instance.error(ErrorLogMessagesEnum.GATEWAY_URL_ERROR);
     // Resolve the promise with false indicating an error or invalid state
@@ -47,14 +47,14 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
   try {
     // Create a new request model instance with the provided parameters
     const request: RequestModel = new RequestModel(
-      UrlService.getBaseUrl(),
-      'GET',
+      UrlUtil.getBaseUrl(),
+      HttpMethodEnum.GET,
       endpoint,
       queryParams,
       null,
       null,
-      SettingsManager.Instance.protocol,
-      SettingsManager.Instance.port,
+      SettingsService.Instance.protocol,
+      SettingsService.Instance.port,
     );
 
     // Perform the network GET request
@@ -103,7 +103,7 @@ export function addIsGatewayServiceRequiredFlag(settings: SettingsModel): void {
   // \b(?<!\"custom_variable\"[^\}]*)(country|region|city|os|device_type|browser_string|ua)\b: This part matches the usual patterns (like country, region, etc.) that are not under custom_variable
   // |(?<="custom_variable"\s*:\s*{\s*"[^)]*"\s*:\s*")inlist\([^)]*\)(?="): This part matches inlist(*) only when it appears under "custom_variable" : { ".*" : "
   const pattern =
-    /\b(?<!\"custom_variable\"[^\}]*)(country|region|city|os|device_type|browser_string|ua)\b|(?<="custom_variable"\s*:\s*{\s*"name"\s*:\s*")inlist\([^)]*\)(?=")/g;
+    /\b(?<!"custom_variable"[^}]*)(country|region|city|os|device_type|browser_string|ua)\b|(?<="custom_variable"\s*:\s*{\s*"name"\s*:\s*")inlist\([^)]*\)(?=")/g;
 
   for (const feature of settings.getFeatures()) {
     const rules = feature.getRulesLinkedCampaign();

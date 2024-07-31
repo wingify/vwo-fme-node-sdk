@@ -16,10 +16,10 @@
 
 export interface IGatewayService {
   url: string;
-  port: number;
-  modelFromDictionary(gatewayServiceModel: GatewayServiceModel): this;
-  getUrl(): string;
-  getPort(): number;
+  port?: number;
+  modelFromDictionary?(gatewayServiceModel: GatewayServiceModel): this;
+  getUrl?(): string;
+  getPort?(): number;
 }
 
 export class GatewayServiceModel implements IGatewayService {

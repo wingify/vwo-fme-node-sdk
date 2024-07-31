@@ -17,7 +17,7 @@ import { CampaignModel } from '../models/campaign/CampaignModel';
 import { FeatureModel } from '../models/campaign/FeatureModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { ContextModel } from '../models/user/ContextModel';
-import { StorageService } from '../services/StorageService';
+import { IStorageService } from '../services/StorageService';
 import { isObject } from './DataTypeUtil';
 import { checkWhitelistingAndPreSeg } from './DecisionUtil';
 import { createAndSendImpressionForVariationShown } from './ImpressionUtil';
@@ -45,7 +45,7 @@ export const evaluateRule = async (
   context: ContextModel,
   evaluatedFeatureMap: Map<string, unknown>,
   megGroupWinnerCampaigns: Map<number, number>,
-  storageService: StorageService,
+  storageService: IStorageService,
   decision: any,
 ): Promise<Record<string, any>> => {
   // Perform whitelisting and pre-segmentation checks

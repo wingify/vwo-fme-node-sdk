@@ -1,0 +1,24 @@
+export declare const Constants: {
+  SDK_NAME: any;
+  SDK_VERSION: any;
+  PLATFORM: any;
+  MAX_TRAFFIC_PERCENT: number;
+  MAX_TRAFFIC_VALUE: number;
+  STATUS_RUNNING: string;
+  SEED_VALUE: number;
+  MAX_EVENTS_PER_REQUEST: number;
+  DEFAULT_REQUEST_TIME_INTERVAL: number;
+  DEFAULT_EVENTS_PER_REQUEST: number;
+  SEED_URL: string;
+  HTTP_PROTOCOL: string;
+  HTTPS_PROTOCOL: string;
+  SETTINGS: string;
+  SETTINGS_EXPIRY: number;
+  SETTINGS_TIMEOUT: number;
+  HOST_NAME: string;
+  SETTINTS_ENDPOINT: string;
+  LOCATION_ENDPOINT: string;
+  VWO_FS_ENVIRONMENT: string;
+  RANDOM_ALGO: number;
+  API_VERSION: string;
+};

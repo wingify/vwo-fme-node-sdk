@@ -1,3 +1,4 @@
 yarn check:license
 yarn lint
-yarn test
+yarn test:prod
+yarn build

@@ -28,19 +28,19 @@ import { LogLevelEnum } from '../enums/LogLevelEnum';
  * Interface defining the structure and methods for LogManager.
  */
 export interface ILogManager {
-  transportManager: LogTransportManager;
-  config: Record<string, dynamic>;
-  name: string;
-  requestId: string;
+  transportManager?: LogTransportManager;
+  config?: Record<string, dynamic>;
+  name?: string;
+  requestId?: string;
   level: string;
-  prefix: string;
-  dateTimeFormat: () => string;
+  prefix?: string;
+  dateTimeFormat?: () => string;
 
-  transport: Record<string, dynamic>;
-  transports: Array<Record<string, dynamic>>;
+  transport?: Record<string, dynamic>;
+  transports?: Array<Record<string, dynamic>>;
 
-  addTransport(transportObject: Record<string, dynamic>): void;
-  addTransports(transportsList: Array<Record<string, dynamic>>): void;
+  addTransport?(transportObject: Record<string, dynamic>): void;
+  addTransports?(transportsList: Array<Record<string, dynamic>>): void;
 }
 
 /**

@@ -23,7 +23,7 @@ import { Storage } from './packages/storage';
 
 import { IVWOClient, VWOClient } from './VWOClient';
 import { SettingsModel } from './models/settings/SettingsModel';
-import { SettingsManager } from './services/SettingsManager';
+import { SettingsService } from './services/SettingsService';
 
 import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';
 import { IVWOOptions } from './models/VWOOptionsModel';
@@ -44,7 +44,7 @@ export interface IVWOBuilder {
   build(settings: SettingsModel): IVWOClient; // Builds and returns a new VWOClient instance
 
   fetchSettings(): Promise<SettingsModel>; // Asynchronously fetches settings from the server
-  setSettingsManager(): this; // Sets up the settings manager with provided options
+  setSettingsService(): this; // Sets up the settings manager with provided options
   getSettings(force: boolean): Promise<dynamic>; // Fetches settings, optionally forcing a refresh
   setStorage(): this; // Sets up the storage connector based on provided options
   setNetworkManager(): this; // Configures the network manager with client and mode
@@ -59,7 +59,7 @@ export class VWOBuilder implements IVWOBuilder {
   readonly sdkKey: string;
   readonly options: IVWOOptions;
 
-  private settingFileManager: SettingsManager;
+  private settingFileManager: SettingsService;
 
   settings: SettingsModel;
   storage: Storage;
@@ -179,8 +179,8 @@ export class VWOBuilder implements IVWOBuilder {
    * Sets the settings manager with the provided options.
    * @returns {this} The instance of this builder.
    */
-  setSettingsManager(): this {
-    this.settingFileManager = new SettingsManager(this.options);
+  setSettingsService(): this {
+    this.settingFileManager = new SettingsService(this.options);
 
     return this;
   }

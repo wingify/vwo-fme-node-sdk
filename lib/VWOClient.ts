@@ -28,10 +28,10 @@ import { dynamic } from './types/Common';
 
 import { SettingsSchema } from './models/schemas/SettingsSchemaValidation';
 import { ContextModel } from './models/user/ContextModel';
-import HooksManager from './services/HooksManager';
-import UrlService from './services/UrlService';
+import HooksService from './services/HooksService';
+import { UrlUtil } from './utils/UrlUtil';
 
-import { getType, isObject, isString } from './utils/DataTypeUtil';
+import { getType, isBoolean, isNumber, isObject, isString } from './utils/DataTypeUtil';
 
 import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
@@ -49,7 +49,7 @@ export interface IVWOClient {
     context: Record<string, any>,
     eventProperties: Record<string, dynamic>,
   ): Promise<Record<string, boolean>>;
-  setAttribute(attributeKey: string, attributeValue: string, context: Record<string, any>): void;
+  setAttribute(attributeKey: string, attributeValue: boolean | string | number, context: Record<string, any>): void;
 }
 
 export class VWOClient implements IVWOClient {
@@ -62,7 +62,7 @@ export class VWOClient implements IVWOClient {
 
     setSettingsAndAddCampaignsToRules(settings, this);
 
-    UrlService.init({
+    UrlUtil.init({
       collectionPrefix: this.settings.getCollectionPrefix(),
     });
 
@@ -88,7 +88,7 @@ export class VWOClient implements IVWOClient {
     };
 
     try {
-      const hookManager = new HooksManager(this.options);
+      const hooksService = new HooksService(this.options);
 
       LogManager.Instance.debug(
         buildMessage(DebugLogMessagesEnum.API_CALLED, {
@@ -125,11 +125,11 @@ export class VWOClient implements IVWOClient {
       const contextModel = new ContextModel().modelFromDictionary(context);
 
       new FlagApi()
-        .get(featureKey, this.settings, contextModel, hookManager)
+        .get(featureKey, this.settings, contextModel, hooksService)
         .then((data: any) => {
           deferredObject.resolve(data);
         })
-        .catch((_err: any) => {
+        .catch(() => {
           deferredObject.resolve(errorReturnSchema);
         });
     } catch (err) {
@@ -164,7 +164,7 @@ export class VWOClient implements IVWOClient {
     const deferredObject = new Deferred();
 
     try {
-      const hookManager = new HooksManager(this.options);
+      const hooksService = new HooksService(this.options);
 
       // Log the API call
       LogManager.Instance.debug(
@@ -217,11 +217,11 @@ export class VWOClient implements IVWOClient {
 
       // Proceed with tracking the event
       new TrackApi()
-        .track(this.settings, eventName, contextModel, eventProperties, hookManager)
+        .track(this.settings, eventName, contextModel, eventProperties, hooksService)
         .then((data) => {
           deferredObject.resolve(data);
         })
-        .catch((_err: any) => {
+        .catch(() => {
           deferredObject.resolve({ [eventName]: false });
         });
     } catch (err) {
@@ -247,7 +247,7 @@ export class VWOClient implements IVWOClient {
    * @param {string} attributeValue - The value of the attribute to set.
    * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
    */
-  setAttribute(attributeKey: string, attributeValue: string, context: Record<string, any>): void {
+  setAttribute(attributeKey: string, attributeValue: boolean | string | number, context: Record<string, any>): void {
     const apiName = 'setAttribute';
 
     try {
@@ -272,13 +272,13 @@ export class VWOClient implements IVWOClient {
         throw new TypeError('TypeError: attributeKey should be a string');
       }
       // Validate attributeValue is a string
-      if (!isString(attributeValue)) {
+      if (!isString(attributeValue) && !isNumber(attributeValue) && !isBoolean(attributeValue)) {
         LogManager.Instance.error(
           buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
             apiName,
             key: 'attributeValue',
             type: getType(attributeValue),
-            correctType: 'string',
+            correctType: 'boolean | string | number',
           }),
         );
 

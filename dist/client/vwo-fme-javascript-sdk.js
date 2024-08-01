@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.3.1
+ * vwo-fme-javascript-sdk - v1.4.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -1530,7 +1530,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.3.1", // will be replaced by webpack for browser build
+        version: "1.4.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }

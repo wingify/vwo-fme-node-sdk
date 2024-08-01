@@ -1,16 +1,16 @@
 {
   "name": "vwo-fme-node-sdk",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "VWO Node/JavaScript SDK for Feature Management and Experimentation",
-  "main": "dist/server-unpacked/index",
+  "main": "dist/server-unpacked/index.js",
   "browser": "dist/client/vwo-fme-javascript-sdk",
   "exports": {
     ".": {
       "node": {
         "types": "./dist/types/index.d.ts",
-        "import": "./dist/server-unpacked/index",
-        "require": "./dist/server-unpacked/index",
-        "default": "./dist/server-unpacked/index"
+        "import": "./dist/server-unpacked/index.js",
+        "require": "./dist/server-unpacked/index.js",
+        "default": "./dist/server-unpacked/index.js"
       },
       "default": {
         "types": "./dist/types/index.d.ts",
@@ -21,9 +21,9 @@
     },
     "./node": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/server-unpacked/index",
-      "require": "./dist/server-unpacked/index",
-      "default": "./dist/server-unpacked/index"
+      "import": "./dist/server-unpacked/index.js",
+      "require": "./dist/server-unpacked/index.js",
+      "default": "./dist/server-unpacked/index.js"
     },
     "./browser": {
       "types": "./dist/types/index.d.ts",

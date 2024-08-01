@@ -27,7 +27,7 @@ yarn add vwo-fme-node-sdk
 ```javascript
 const { init } = require('vwo-fme-node-sdk');
 
-const vwoClient = await vwo.init({
+const vwoClient = await init({
   accountId: '123456', // VWO Account ID
   sdkKey: '32-alpha-numeric-sdk-key', // SDK Key
 });

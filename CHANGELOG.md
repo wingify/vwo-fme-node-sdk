@@ -98,7 +98,7 @@ Client-side Javascript SDK
   - Example on how to pass storage
 
   ```javascript
-  class StorageConnector extends vwo.StorageConnector {
+  class StorageConnector extends StorageConnector {
     constructor() {
       super();
     }
@@ -114,7 +114,7 @@ Client-side Javascript SDK
     }
   }
 
-  vwo.init({
+  init({
     sdkKey: '...',
     accountId: '123456',
     storage: StorageConnector,
@@ -136,7 +136,7 @@ Client-side Javascript SDK
 
   ```javascript
   logger:  {
-    level: vwo.LogLevelEnum.DEBUG,    // DEBUG, INFO, ERROR, TRACE< WARN
+    level: LogLevelEnum.DEBUG,    // DEBUG, INFO, ERROR, TRACE< WARN
     prefix: 'CUSTOM LOG PREFIX',      // VWO-SDK default
     transport: {                      // Custom Logger
       debug: msg => console.log(msg),
@@ -147,7 +147,7 @@ Client-side Javascript SDK
     }
   }
 
-  vwo.init({
+  init({
     sdkKey: '...',
     accountId: '123456',
     logger: logger
@@ -171,12 +171,12 @@ Client-side Javascript SDK
 - **onInit hook**
 
   ```javaScript
-  vwo.init({
+  init({
     sdkKey: '...',
     accountId: '123456'
   });
 
-  vwo.onInit().then(async (vwoClient) => {
+  onInit().then(async (vwoClient) => {
     const feature = await vwoClient.getFlag('feature-key', context);
     console.log('getFlag is: ', feature.isEnabled());
   }).catch(err => {
@@ -193,7 +193,7 @@ Client-side Javascript SDK
   - Provide a way to fetch settings periodically and update the instance to use the latest settings
 
   ```javaScript
-  const vwoClient = await vwo.init({
+  const vwoClient = await init({
     sdkKey: '...',
     accountId: '123456',
     pollInterval: 5000 // in milliseconds
@@ -209,7 +209,7 @@ Client-side Javascript SDK
   ```javascript
   const { init } = require('vwo-fme-node-sdk');
 
-  const vwoClient = await vwo.init({
+  const vwoClient = await init({
     accountId: '123456', // VWO Account ID
     sdkKey: '32-alpha-numeric-sdk-key', // SDK Key
   });

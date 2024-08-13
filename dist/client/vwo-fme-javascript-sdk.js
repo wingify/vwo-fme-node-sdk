@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.4.0
+ * vwo-fme-javascript-sdk - v1.5.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -1330,7 +1330,7 @@ exports.SetAttributeApi = SetAttributeApi;
 var createImpressionForAttribute = function (settings, attributeKey, attributeValue, context) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
-        properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, context.getUserAgent(), context.getIpAddress());
+        properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
         payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributeKey, attributeValue, context.getUserAgent(), context.getIpAddress());
         // Send the constructed payload via POST request
         (0, NetworkUtil_1.sendPostApiRequest)(properties, payload);
@@ -1448,7 +1448,7 @@ exports.TrackApi = TrackApi;
 var createImpressionForTrack = function (settings, eventName, context, eventProperties) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
-        properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, eventName, context.getUserAgent(), context.getIpAddress());
+        properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
         payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
         // Send the prepared payload via POST API request
         (0, NetworkUtil_1.sendPostApiRequest)(properties, payload);
@@ -1530,7 +1530,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.4.0", // will be replaced by webpack for browser build
+        version: "1.5.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -8425,7 +8425,7 @@ function sendPostApiRequest(properties, payload) {
     network_layer_1.NetworkManager.Instance.post(request).catch(function (err) {
         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
             method: HttpMethodEnum_1.HttpMethodEnum.POST,
-            err: err,
+            err: (0, DataTypeUtil_1.isObject)(err) ? JSON.stringify(err) : err,
         }));
     });
 }
@@ -8455,7 +8455,7 @@ function sendGetApiRequest(properties, endpoint) {
                     err_1 = _a.sent();
                     logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
                         method: HttpMethodEnum_1.HttpMethodEnum.GET,
-                        err: err_1,
+                        err: (0, DataTypeUtil_1.isObject)(err_1) ? JSON.stringify(err_1) : err_1,
                     }));
                     return [2 /*return*/, null];
                 case 4: return [2 /*return*/];

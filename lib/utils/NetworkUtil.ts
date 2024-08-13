@@ -326,7 +326,7 @@ export function sendPostApiRequest(properties: any, payload: any) {
     LogManager.Instance.error(
       buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
         method: HttpMethodEnum.POST,
-        err,
+        err: isObject(err) ? JSON.stringify(err) : err,
       }),
     );
   });
@@ -357,7 +357,7 @@ export async function sendGetApiRequest(properties: any, endpoint: any): Promise
     LogManager.Instance.error(
       buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
         method: HttpMethodEnum.GET,
-        err,
+        err: isObject(err) ? JSON.stringify(err) : err,
       }),
     );
     return null;

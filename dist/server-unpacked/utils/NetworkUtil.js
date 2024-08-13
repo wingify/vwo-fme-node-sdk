@@ -294,7 +294,7 @@ function sendPostApiRequest(properties, payload) {
     network_layer_1.NetworkManager.Instance.post(request).catch(function (err) {
         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
             method: HttpMethodEnum_1.HttpMethodEnum.POST,
-            err: err,
+            err: (0, DataTypeUtil_1.isObject)(err) ? JSON.stringify(err) : err,
         }));
     });
 }
@@ -324,7 +324,7 @@ function sendGetApiRequest(properties, endpoint) {
                     err_1 = _a.sent();
                     logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
                         method: HttpMethodEnum_1.HttpMethodEnum.GET,
-                        err: err_1,
+                        err: (0, DataTypeUtil_1.isObject)(err_1) ? JSON.stringify(err_1) : err_1,
                     }));
                     return [2 /*return*/, null];
                 case 4: return [2 /*return*/];

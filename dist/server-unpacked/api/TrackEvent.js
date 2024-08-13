@@ -98,7 +98,7 @@ exports.TrackApi = TrackApi;
 var createImpressionForTrack = function (settings, eventName, context, eventProperties) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
-        properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, eventName, context.getUserAgent(), context.getIpAddress());
+        properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
         payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
         // Send the prepared payload via POST API request
         (0, NetworkUtil_1.sendPostApiRequest)(properties, payload);

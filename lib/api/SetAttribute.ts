@@ -59,7 +59,7 @@ const createImpressionForAttribute = async (
   const properties = getEventsBaseProperties(
     settings,
     EventEnum.VWO_SYNC_VISITOR_PROP,
-    context.getUserAgent(),
+    encodeURIComponent(context.getUserAgent()),
     context.getIpAddress(),
   );
   // Construct payload data for the attribute

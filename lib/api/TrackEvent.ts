@@ -89,7 +89,12 @@ const createImpressionForTrack = async (
   eventProperties: any,
 ) => {
   // Get base properties for the event
-  const properties = getEventsBaseProperties(settings, eventName, context.getUserAgent(), context.getIpAddress());
+  const properties = getEventsBaseProperties(
+    settings,
+    eventName,
+    encodeURIComponent(context.getUserAgent()),
+    context.getIpAddress(),
+  );
   // Prepare the payload for the track goal
   const payload = getTrackGoalPayloadData(
     settings,

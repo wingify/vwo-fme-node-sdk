@@ -65,7 +65,7 @@ exports.SetAttributeApi = SetAttributeApi;
 var createImpressionForAttribute = function (settings, attributeKey, attributeValue, context) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
-        properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, context.getUserAgent(), context.getIpAddress());
+        properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
         payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributeKey, attributeValue, context.getUserAgent(), context.getIpAddress());
         // Send the constructed payload via POST request
         (0, NetworkUtil_1.sendPostApiRequest)(properties, payload);

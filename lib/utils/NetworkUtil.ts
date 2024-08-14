@@ -298,9 +298,8 @@ export function getAttributePayloadData(
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
- * @returns {Promise<any>}
  */
-export function sendPostApiRequest(properties: any, payload: any) {
+export function sendPostApiRequest(properties: any, payload: any): Promise<ResponseModel | void> {
   NetworkManager.Instance.attachClient();
 
   const headers: Record<string, string> = {};

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { dynamic } from '../../types/Common';
-export declare class VariableModel {
+export declare class VariableModel<T = dynamic> {
   private val;
   private value;
   private type;
@@ -22,8 +22,9 @@ export declare class VariableModel {
   private key;
   private i;
   private id;
-  modelFromDictionary(variable: VariableModel): this;
-  setValue(value: dynamic): void;
+  constructor(id: number, type: string, key: string, value: T);
+  static modelFromDictionary<T = unknown>(variable: VariableModel<T>): VariableModel<T>;
+  setValue(value: T): void;
   setKey(key: string): void;
   setType(type: string): void;
   getId(): number;

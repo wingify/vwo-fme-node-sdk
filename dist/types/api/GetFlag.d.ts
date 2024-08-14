@@ -13,24 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FeatureModel } from '../models/campaign/FeatureModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
+import { VariableModel } from '../models/campaign/VariableModel';
+import { VariationModel } from '../models/campaign/VariationModel';
 import { ContextModel } from '../models/user/ContextModel';
 import IHooksService from '../services/HooksService';
-interface IGetFlag {
-  get(
+export declare class Flag {
+  private readonly enabled;
+  private variation;
+  constructor(isEnabled: boolean, variation?: VariationModel | null);
+  isEnabled(): boolean;
+  getVariables(): VariableModel<import('../types/Common').dynamic>[];
+  getVariable<T = unknown>(
+    key: string,
+    defaultValue: T,
+  ):
+    | string
+    | number
+    | true
+    | Date
+    | Record<string, any>
+    | import('../types/Common').dynamicArray[]
+    | Map<string, import('../types/Common').dynamicArray>
+    | T;
+}
+export declare class FlagApi {
+  static get(
     featureKey: string,
     settings: SettingsModel,
     context: ContextModel,
     hooksService: IHooksService,
-  ): Promise<FeatureModel>;
+  ): Promise<Flag>;
 }
-export declare class FlagApi implements IGetFlag {
-  get(
-    featureKey: string,
-    settings: SettingsModel,
-    context: ContextModel,
-    hooksService: IHooksService,
-  ): Promise<FeatureModel>;
-}
-export {};

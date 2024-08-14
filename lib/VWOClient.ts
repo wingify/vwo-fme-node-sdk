@@ -16,7 +16,7 @@
 import { LogManager } from './packages/logger';
 import { Storage } from './packages/storage';
 
-import { FlagApi } from './api/GetFlag';
+import { Flag, FlagApi } from './api/GetFlag';
 import { SetAttributeApi } from './api/SetAttribute';
 import { TrackApi } from './api/TrackEvent';
 
@@ -38,6 +38,7 @@ import { Deferred } from './utils/PromiseUtil';
 
 import { IVWOOptions } from './models/VWOOptionsModel';
 import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
+import { VariationModel } from './models/campaign/VariationModel';
 import { setShouldWaitForTrackingCalls } from './utils/NetworkUtil';
 import { SettingsService } from './services/SettingsService';
 import { ApiEnum } from './enums/ApiEnum';
@@ -47,7 +48,7 @@ export interface IVWOClient {
   settings: SettingsModel;
   originalSettings: Record<any, any>;
 
-  getFlag(featureKey: string, context: Record<string, any>): Promise<Record<any, any>>;
+  getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
   trackEvent(
     eventName: string,
     context: Record<string, any>,
@@ -91,16 +92,12 @@ export class VWOClient implements IVWOClient {
    *
    * @param {string} featureKey - The key of the feature to retrieve.
    * @param {ContextModel} context - The context in which the feature flag is being retrieved, must include a valid user ID.
-   * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
+   * @returns {Promise<Flag>} - A promise that resolves to the feature flag value.
    */
-  getFlag(featureKey: string, context: Record<string, any>): Promise<Record<any, any>> {
+  getFlag(featureKey: string, context: Record<string, any>): Promise<Flag> {
     const apiName = ApiEnum.GET_FLAG;
     const deferredObject = new Deferred();
-    const errorReturnSchema = {
-      isEnabled: (): boolean => false,
-      getVariables: (): Array<Record<string, dynamic>> => [],
-      getVariable: (_key: string, defaultValue: any): dynamic => defaultValue,
-    };
+    const errorReturnSchema = new Flag(false, new VariationModel());
 
     try {
       const hooksService = new HooksService(this.options);
@@ -139,9 +136,8 @@ export class VWOClient implements IVWOClient {
 
       const contextModel = new ContextModel().modelFromDictionary(context);
 
-      new FlagApi()
-        .get(featureKey, this.settings, contextModel, hooksService)
-        .then((data: any) => {
+      FlagApi.get(featureKey, this.settings, contextModel, hooksService)
+        .then((data) => {
           deferredObject.resolve(data);
         })
         .catch(() => {

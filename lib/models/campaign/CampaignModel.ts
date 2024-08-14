@@ -59,7 +59,7 @@ export class CampaignModel {
       } else {
         const variableList: Array<VariableModel> = campaign.variables; // campaign.var ||
         variableList.forEach((variable: any) => {
-          this.variables.push(new VariableModel().modelFromDictionary(variable));
+          this.variables.push(VariableModel.modelFromDictionary(variable));
         });
       }
     }

@@ -660,6 +660,7 @@ var DataTypeUtil_1 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./lib/util
 var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 var SettingsUtil_1 = __webpack_require__(/*! ./utils/SettingsUtil */ "./lib/utils/SettingsUtil.ts");
+var VariationModel_1 = __webpack_require__(/*! ./models/campaign/VariationModel */ "./lib/models/campaign/VariationModel.ts");
 var NetworkUtil_1 = __webpack_require__(/*! ./utils/NetworkUtil */ "./lib/utils/NetworkUtil.ts");
 var SettingsService_1 = __webpack_require__(/*! ./services/SettingsService */ "./lib/services/SettingsService.ts");
 var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
@@ -681,16 +682,12 @@ var VWOClient = /** @class */ (function () {
      *
      * @param {string} featureKey - The key of the feature to retrieve.
      * @param {ContextModel} context - The context in which the feature flag is being retrieved, must include a valid user ID.
-     * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
+     * @returns {Promise<Flag>} - A promise that resolves to the feature flag value.
      */
     VWOClient.prototype.getFlag = function (featureKey, context) {
         var apiName = ApiEnum_1.ApiEnum.GET_FLAG;
         var deferredObject = new PromiseUtil_1.Deferred();
-        var errorReturnSchema = {
-            isEnabled: function () { return false; },
-            getVariables: function () { return []; },
-            getVariable: function (_key, defaultValue) { return defaultValue; },
-        };
+        var errorReturnSchema = new GetFlag_1.Flag(false, new VariationModel_1.VariationModel());
         try {
             var hooksService = new HooksService_1.default(this.options);
             logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
@@ -717,8 +714,7 @@ var VWOClient = /** @class */ (function () {
                 throw new TypeError('TypeError: Invalid context');
             }
             var contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
-            new GetFlag_1.FlagApi()
-                .get(featureKey, this.settings, contextModel, hooksService)
+            GetFlag_1.FlagApi.get(featureKey, this.settings, contextModel, hooksService)
                 .then(function (data) {
                 deferredObject.resolve(data);
             })
@@ -1070,13 +1066,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.FlagApi = void 0;
+exports.FlagApi = exports.Flag = void 0;
 var StorageDecorator_1 = __webpack_require__(/*! ../decorators/StorageDecorator */ "./lib/decorators/StorageDecorator.ts");
 var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
 var CampaignTypeEnum_1 = __webpack_require__(/*! ../enums/CampaignTypeEnum */ "./lib/enums/CampaignTypeEnum.ts");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
 var CampaignModel_1 = __webpack_require__(/*! ../models/campaign/CampaignModel */ "./lib/models/campaign/CampaignModel.ts");
 var VariableModel_1 = __webpack_require__(/*! ../models/campaign/VariableModel */ "./lib/models/campaign/VariableModel.ts");
+var VariationModel_1 = __webpack_require__(/*! ../models/campaign/VariationModel */ "./lib/models/campaign/VariationModel.ts");
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./lib/packages/logger/index.ts");
 var segmentation_evaluator_1 = __webpack_require__(/*! ../packages/segmentation-evaluator */ "./lib/packages/segmentation-evaluator/index.ts");
 var StorageService_1 = __webpack_require__(/*! ../services/StorageService */ "./lib/services/StorageService.ts");
@@ -1089,15 +1086,34 @@ var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./lib
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 var RuleEvaluationUtil_1 = __webpack_require__(/*! ../utils/RuleEvaluationUtil */ "./lib/utils/RuleEvaluationUtil.ts");
 var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./lib/utils/NetworkUtil.ts");
+var Flag = /** @class */ (function () {
+    function Flag(isEnabled, variation) {
+        this.enabled = isEnabled;
+        this.variation = variation;
+    }
+    Flag.prototype.isEnabled = function () {
+        return this.enabled;
+    };
+    Flag.prototype.getVariables = function () {
+        var _a;
+        return (_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables();
+    };
+    Flag.prototype.getVariable = function (key, defaultValue) {
+        var _a, _b;
+        return (((_b = (_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables().find(function (variable) { return VariableModel_1.VariableModel.modelFromDictionary(variable).getKey() === key; })) === null || _b === void 0 ? void 0 : _b.getValue()) || defaultValue);
+    };
+    return Flag;
+}());
+exports.Flag = Flag;
 var FlagApi = /** @class */ (function () {
     function FlagApi() {
     }
-    FlagApi.prototype.get = function (featureKey, settings, context, hooksService) {
+    FlagApi.get = function (featureKey, settings, context, hooksService) {
         return __awaiter(this, void 0, void 0, function () {
-            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, storageService, storedData, variation_1, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation, variablesForEvaluatedFlag;
-            var _d, _e, _f, _g, _h, _j;
-            return __generator(this, function (_k) {
-                switch (_k.label) {
+            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, storageService, storedData, variation, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation;
+            var _d, _e, _f, _g;
+            return __generator(this, function (_h) {
+                switch (_h.label) {
                     case 0:
                         isEnabled = false;
                         rolloutVariationToReturn = null;
@@ -1117,25 +1133,18 @@ var FlagApi = /** @class */ (function () {
                         storageService = new StorageService_1.StorageService();
                         return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService)];
                     case 1:
-                        storedData = _k.sent();
+                        storedData = _h.sent();
                         if (storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId) {
                             if (storedData.experimentKey) {
-                                variation_1 = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.experimentKey, storedData.experimentVariationId);
-                                if (variation_1) {
+                                variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.experimentKey, storedData.experimentVariationId);
+                                if (variation) {
                                     logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
-                                        variationKey: variation_1.getKey(),
+                                        variationKey: variation.getKey(),
                                         userId: context.getId(),
                                         experimentType: 'experiment',
                                         experimentKey: storedData.experimentKey,
                                     }));
-                                    deferredObject.resolve({
-                                        isEnabled: function () { return true; },
-                                        getVariables: function () { return variation_1 === null || variation_1 === void 0 ? void 0 : variation_1.getVariables(); },
-                                        getVariable: function (key, defaultValue) {
-                                            var _a;
-                                            return ((_a = variation_1 === null || variation_1 === void 0 ? void 0 : variation_1.getVariables().find(function (variable) { return new VariableModel_1.VariableModel().modelFromDictionary(variable).getKey() === key; })) === null || _a === void 0 ? void 0 : _a.getValue()) || defaultValue;
-                                        },
-                                    });
+                                    deferredObject.resolve(new Flag(true, variation));
                                     return [2 /*return*/, deferredObject.promise];
                                 }
                             }
@@ -1175,18 +1184,18 @@ var FlagApi = /** @class */ (function () {
                         return [4 /*yield*/, segmentation_evaluator_1.SegmentationManager.Instance.setContextualData(settings, feature, context)];
                     case 2:
                         // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
-                        _k.sent();
+                        _h.sent();
                         rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
                         if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 10];
                         rolloutRulesToEvaluate = [];
                         _i = 0, rollOutRules_1 = rollOutRules;
-                        _k.label = 3;
+                        _h.label = 3;
                     case 3:
                         if (!(_i < rollOutRules_1.length)) return [3 /*break*/, 6];
                         rule = rollOutRules_1[_i];
                         return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
                     case 4:
-                        _a = _k.sent(), preSegmentationResult = _a.preSegmentationResult, updatedDecision = _a.updatedDecision;
+                        _a = _h.sent(), preSegmentationResult = _a.preSegmentationResult, updatedDecision = _a.updatedDecision;
                         Object.assign(decision, updatedDecision);
                         if (preSegmentationResult) {
                             // if pre segment passed, then break the loop and check the traffic allocation
@@ -1214,31 +1223,31 @@ var FlagApi = /** @class */ (function () {
                         if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 8];
                         return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context)];
                     case 7:
-                        _k.sent();
+                        _h.sent();
                         return [3 /*break*/, 9];
                     case 8:
                         (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context);
-                        _k.label = 9;
+                        _h.label = 9;
                     case 9: return [3 /*break*/, 11];
                     case 10:
                         if (rollOutRules.length === 0) {
                             logger_1.LogManager.Instance.debug(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
                             shouldCheckForExperimentsRules = true;
                         }
-                        _k.label = 11;
+                        _h.label = 11;
                     case 11:
                         if (!shouldCheckForExperimentsRules) return [3 /*break*/, 18];
                         experimentRulesToEvaluate = [];
                         experimentRules = (0, FunctionUtil_1.getAllExperimentRules)(feature);
                         megGroupWinnerCampaigns = new Map();
                         _b = 0, experimentRules_1 = experimentRules;
-                        _k.label = 12;
+                        _h.label = 12;
                     case 12:
                         if (!(_b < experimentRules_1.length)) return [3 /*break*/, 15];
                         rule = experimentRules_1[_b];
                         return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
                     case 13:
-                        _c = _k.sent(), preSegmentationResult = _c.preSegmentationResult, whitelistedObject = _c.whitelistedObject, updatedDecision = _c.updatedDecision;
+                        _c = _h.sent(), preSegmentationResult = _c.preSegmentationResult, whitelistedObject = _c.whitelistedObject, updatedDecision = _c.updatedDecision;
                         Object.assign(decision, updatedDecision);
                         if (preSegmentationResult) {
                             if (whitelistedObject === null) {
@@ -1271,11 +1280,11 @@ var FlagApi = /** @class */ (function () {
                         if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 17];
                         return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context)];
                     case 16:
-                        _k.sent();
+                        _h.sent();
                         return [3 /*break*/, 18];
                     case 17:
                         (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context);
-                        _k.label = 18;
+                        _h.label = 18;
                     case 18:
                         // If flag is enabled, store it in data
                         if (isEnabled) {
@@ -1295,23 +1304,14 @@ var FlagApi = /** @class */ (function () {
                         return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_f = feature.getImpactCampaign()) === null || _f === void 0 ? void 0 : _f.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
                             context)];
                     case 19:
-                        _k.sent();
+                        _h.sent();
                         return [3 /*break*/, 21];
                     case 20:
                         (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_g = feature.getImpactCampaign()) === null || _g === void 0 ? void 0 : _g.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
                         context);
-                        _k.label = 21;
+                        _h.label = 21;
                     case 21:
-                        variablesForEvaluatedFlag = (_j = (_h = experimentVariationToReturn === null || experimentVariationToReturn === void 0 ? void 0 : experimentVariationToReturn.variables) !== null && _h !== void 0 ? _h : rolloutVariationToReturn === null || rolloutVariationToReturn === void 0 ? void 0 : rolloutVariationToReturn.variables) !== null && _j !== void 0 ? _j : [];
-                        deferredObject.resolve({
-                            isEnabled: function () { return isEnabled; },
-                            getVariables: function () { return variablesForEvaluatedFlag; },
-                            getVariable: function (key, defaultValue) {
-                                var _a;
-                                var variable = variablesForEvaluatedFlag.find(function (variable) { return variable.key === key; });
-                                return (_a = variable === null || variable === void 0 ? void 0 : variable.value) !== null && _a !== void 0 ? _a : defaultValue;
-                            },
-                        });
+                        deferredObject.resolve(new Flag(isEnabled, new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
                         return [2 /*return*/, deferredObject.promise];
                 }
             });
@@ -2280,7 +2280,7 @@ var CampaignModel = /** @class */ (function () {
             else {
                 var variableList = campaign.variables; // campaign.var ||
                 variableList.forEach(function (variable) {
-                    _this.variables.push(new VariableModel_1.VariableModel().modelFromDictionary(variable));
+                    _this.variables.push(VariableModel_1.VariableModel.modelFromDictionary(variable));
                 });
             }
         }
@@ -2636,14 +2636,15 @@ exports.RuleModel = RuleModel;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VariableModel = void 0;
 var VariableModel = /** @class */ (function () {
-    function VariableModel() {
+    function VariableModel(id, type, key, value) {
+        this.value = value;
+        this.type = type;
+        this.key = key;
+        this.id = id;
     }
-    VariableModel.prototype.modelFromDictionary = function (variable) {
-        this.value = variable.val || variable.value;
-        this.type = variable.type;
-        this.key = variable.k || variable.key;
-        this.id = variable.i || variable.id;
-        return this;
+    VariableModel.modelFromDictionary = function (variable) {
+        var _a, _b;
+        return new VariableModel((_a = variable.i) !== null && _a !== void 0 ? _a : variable.id, variable.type, (_b = variable.k) !== null && _b !== void 0 ? _b : variable.key, variable.val || variable.value);
     };
     VariableModel.prototype.setValue = function (value) {
         this.value = value;
@@ -2709,7 +2710,7 @@ var VariationModel = /** @class */ (function () {
             else {
                 var variableList = variation.variables;
                 variableList.forEach(function (variable) {
-                    _this.variables.push(new VariableModel_1.VariableModel().modelFromDictionary(variable));
+                    _this.variables.push(VariableModel_1.VariableModel.modelFromDictionary(variable));
                 });
             }
         }
@@ -12377,7 +12378,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty. Nothing to flush."}');
+module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}"}');
 
 /***/ }),
 
@@ -12388,7 +12389,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}","CONFIG_PARAMETER_INVALID":"{parameter} paased in {api} API is not correct. It should be of type:{type}}","BATCH_QUEUE_EMPTY":"No batch queue present for account:{accountId} when calling flushEvents API. Check batchEvents config in launch API"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}"}');
 
 /***/ }),
 
@@ -12399,7 +12400,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} not passed in SDK configuration, setting it default to {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}"}');
 
 /***/ }),
 

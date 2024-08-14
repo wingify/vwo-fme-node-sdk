@@ -123,7 +123,7 @@ export class VWOClient implements IVWOClient {
       const contextModel = new ContextModel().modelFromDictionary(context);
 
       FlagApi.get(featureKey, this.settings, contextModel, hooksService)
-        .then((data: any) => {
+        .then((data) => {
           deferredObject.resolve(data);
         })
         .catch(() => {

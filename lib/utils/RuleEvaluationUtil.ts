@@ -70,7 +70,7 @@ export const evaluateRule = async (
     });
 
     // Send an impression for the variation shown
-    createAndSendImpressionForVariationShown(settings, campaign.getId(), whitelistedObject.variation.id, context);
+    await createAndSendImpressionForVariationShown(settings, campaign.getId(), whitelistedObject.variation.id, context);
   }
 
   // Return the results of the evaluation

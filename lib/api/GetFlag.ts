@@ -209,7 +209,7 @@ export class FlagApi implements IGetFlag {
 
           _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
 
-          createAndSendImpressionForVariationShown(settings, passedRolloutCampaign.getId(), variation.getId(), context);
+          await createAndSendImpressionForVariationShown(settings, passedRolloutCampaign.getId(), variation.getId(), context);
         }
       }
     } else if (rollOutRules.length === 0) {
@@ -267,7 +267,7 @@ export class FlagApi implements IGetFlag {
 
           _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
 
-          createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
+          await createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
         }
       }
     }
@@ -299,7 +299,7 @@ export class FlagApi implements IGetFlag {
         }),
       );
 
-      createAndSendImpressionForVariationShown(
+      await createAndSendImpressionForVariationShown(
         settings,
         feature.getImpactCampaign()?.getCampaignId(),
         isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)

@@ -57,7 +57,7 @@ export class TrackApi implements ITrack {
   ): Promise<Record<string, boolean>> {
     if (doesEventBelongToAnyFeature(eventName, settings)) {
       // Create an impression for the track event
-      createImpressionForTrack(settings, eventName, context, eventProperties);
+      await createImpressionForTrack(settings, eventName, context, eventProperties);
       // Set and execute integration callback for the track event
       hooksService.set({ eventName: eventName, api: ApiEnum.TRACK });
       hooksService.execute(hooksService.get());
@@ -104,6 +104,7 @@ const createImpressionForTrack = async (
     context?.getUserAgent(),
     context?.getIpAddress(),
   );
+
   // Send the prepared payload via POST API request
-  sendPostApiRequest(properties, payload);
+  await sendPostApiRequest(properties, payload);
 };

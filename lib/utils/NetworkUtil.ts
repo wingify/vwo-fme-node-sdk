@@ -298,6 +298,7 @@ export function getAttributePayloadData(
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
+ * @returns {Promise<any>}
  */
 export function sendPostApiRequest(properties: any, payload: any) {
   NetworkManager.Instance.attachClient();
@@ -322,7 +323,7 @@ export function sendPostApiRequest(properties: any, payload: any) {
     SettingsService.Instance.port,
   );
 
-  NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
+  return NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
     LogManager.Instance.error(
       buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
         method: HttpMethodEnum.POST,

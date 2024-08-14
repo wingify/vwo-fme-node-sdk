@@ -26,7 +26,7 @@ interface ISetAttribute {
    * @param attributeValue The value of the attribute.
    * @param context Context containing user information.
    */
-  setAttribute(settings: SettingsModel, attributeKey: string, attributeValue: any, context: ContextModel): void;
+  setAttribute(settings: SettingsModel, attributeKey: string, attributeValue: any, context: ContextModel): Promise<void>;
 }
 
 export class SetAttributeApi implements ISetAttribute {
@@ -37,8 +37,8 @@ export class SetAttributeApi implements ISetAttribute {
    * @param attributeValue The value of the attribute.
    * @param context Context containing user information.
    */
-  setAttribute(settings: SettingsModel, attributeKey: string, attributeValue: any, context: ContextModel): void {
-    createImpressionForAttribute(settings, attributeKey, attributeValue, context);
+  async setAttribute(settings: SettingsModel, attributeKey: string, attributeValue: any, context: ContextModel): Promise<void> {
+    await createImpressionForAttribute(settings, attributeKey, attributeValue, context);
   }
 }
 
@@ -74,5 +74,5 @@ const createImpressionForAttribute = async (
   );
 
   // Send the constructed payload via POST request
-  sendPostApiRequest(properties, payload);
+  await sendPostApiRequest(properties, payload);
 };

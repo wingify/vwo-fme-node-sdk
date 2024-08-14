@@ -29,7 +29,7 @@ import { EventEnum } from '../enums/EventEnum';
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-export const createAndSendImpressionForVariationShown = (
+export const createAndSendImpressionForVariationShown = async (
   settings: SettingsModel,
   campaignId: number,
   variationId: number,
@@ -55,5 +55,5 @@ export const createAndSendImpressionForVariationShown = (
   );
 
   // Send the constructed properties and payload as a POST request
-  sendPostApiRequest(properties, payload);
+  await sendPostApiRequest(properties, payload);
 };

@@ -51,7 +51,7 @@ export class VariationModel {
       } else {
         const variableList: Array<VariableModel> = variation.variables;
         variableList.forEach((variable) => {
-          this.variables.push(new VariableModel().modelFromDictionary(variable));
+          this.variables.push(VariableModel.modelFromDictionary(variable));
         });
       }
     }

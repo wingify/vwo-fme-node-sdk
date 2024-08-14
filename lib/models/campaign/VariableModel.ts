@@ -15,9 +15,9 @@
  */
 import { dynamic } from '../../types/Common';
 
-export class VariableModel {
-  private val: dynamic;
-  private value: dynamic;
+export class VariableModel<T = dynamic> {
+  private val: T;
+  private value: T;
 
   private type: string;
 
@@ -27,16 +27,23 @@ export class VariableModel {
   private i: number;
   private id: number;
 
-  modelFromDictionary(variable: VariableModel): this {
-    this.value = variable.val || variable.value;
-    this.type = variable.type;
-    this.key = variable.k || variable.key;
-    this.id = variable.i || variable.id;
-
-    return this;
+  constructor(id: number, type: string, key: string, value: T) {
+    this.value = value;
+    this.type = type;
+    this.key = key;
+    this.id = id;
   }
 
-  setValue(value: dynamic): void {
+  static modelFromDictionary<T = unknown>(variable: VariableModel<T>) {
+    return new VariableModel<T>(
+      variable.i ?? variable.id,
+      variable.type,
+      variable.k ?? variable.key,
+      variable.val || variable.value,
+    );
+  }
+
+  setValue(value: T): void {
     this.value = value;
   }
 

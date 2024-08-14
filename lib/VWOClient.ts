@@ -16,7 +16,7 @@
 import { LogManager } from './packages/logger';
 import { Storage } from './packages/storage';
 
-import { FlagApi } from './api/GetFlag';
+import { Flag, FlagApi } from './api/GetFlag';
 import { SetAttributeApi } from './api/SetAttribute';
 import { TrackApi } from './api/TrackEvent';
 
@@ -24,8 +24,6 @@ import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from 
 import { SettingsModel } from './models/settings/SettingsModel';
 
 import { dynamic } from './types/Common';
-// import { BatchEventsQueue } from './services/batchEventsQueue';
-
 import { SettingsSchema } from './models/schemas/SettingsSchemaValidation';
 import { ContextModel } from './models/user/ContextModel';
 import HooksService from './services/HooksService';
@@ -38,17 +36,19 @@ import { Deferred } from './utils/PromiseUtil';
 
 import { IVWOOptions } from './models/VWOOptionsModel';
 import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
+import { VariationModel } from './models/campaign/VariationModel';
 
 export interface IVWOClient {
   readonly options?: IVWOOptions;
   settings: SettingsModel;
 
-  getFlag(featureKey: string, context: Record<string, any>): Record<any, any>;
+  getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
   trackEvent(
     eventName: string,
     context: Record<string, any>,
     eventProperties: Record<string, dynamic>,
   ): Promise<Record<string, boolean>>;
+
   setAttribute(attributeKey: string, attributeValue: boolean | string | number, context: Record<string, any>): void;
 }
 
@@ -69,23 +69,21 @@ export class VWOClient implements IVWOClient {
     LogManager.Instance.info(InfoLogMessagesEnum.CLIENT_INITIALIZED);
     return this;
   }
+
   options?: IVWOOptions;
+
   /**
    * Retrieves the value of a feature flag for a given feature key and context.
    * This method validates the feature key and context, ensures the settings are valid, and then uses the FlagApi to get the flag value.
    *
    * @param {string} featureKey - The key of the feature to retrieve.
    * @param {ContextModel} context - The context in which the feature flag is being retrieved, must include a valid user ID.
-   * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
+   * @returns {Promise<Flag>} - A promise that resolves to the feature flag value.
    */
-  getFlag(featureKey: string, context: Record<string, any>): Record<any, any> {
+  getFlag(featureKey: string, context: Record<string, any>): Promise<Flag> {
     const apiName = 'getFlag';
     const deferredObject = new Deferred();
-    const errorReturnSchema = {
-      isEnabled: (): boolean => false,
-      getVariables: (): Array<Record<string, dynamic>> => [],
-      getVariable: (_key: string, defaultValue: any): dynamic => defaultValue,
-    };
+    const errorReturnSchema = new Flag(false, new VariationModel());
 
     try {
       const hooksService = new HooksService(this.options);
@@ -124,8 +122,7 @@ export class VWOClient implements IVWOClient {
 
       const contextModel = new ContextModel().modelFromDictionary(context);
 
-      new FlagApi()
-        .get(featureKey, this.settings, contextModel, hooksService)
+      FlagApi.get(featureKey, this.settings, contextModel, hooksService)
         .then((data: any) => {
           deferredObject.resolve(data);
         })

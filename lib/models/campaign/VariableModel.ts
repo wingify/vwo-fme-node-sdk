@@ -39,7 +39,7 @@ export class VariableModel<T = dynamic> {
       variable.i ?? variable.id,
       variable.type,
       variable.k ?? variable.key,
-      variable.val || variable.value,
+      variable.val ?? variable.value,
     );
   }
 

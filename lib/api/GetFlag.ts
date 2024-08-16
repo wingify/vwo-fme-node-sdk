@@ -59,7 +59,7 @@ export class Flag {
       this.variation
         ?.getVariables()
         .find((variable) => VariableModel.modelFromDictionary(variable).getKey() === key)
-        ?.getValue() || defaultValue
+        ?.getValue() ?? defaultValue
     );
   }
 }

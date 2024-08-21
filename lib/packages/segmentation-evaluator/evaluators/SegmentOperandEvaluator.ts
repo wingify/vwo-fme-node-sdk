@@ -50,7 +50,7 @@ export class SegmentOperandEvaluator {
 
     // Handle 'inlist' operand
     if (operand.includes('inlist')) {
-      const listIdRegex = /inlist\((\w+:\d+)\)/;
+      const listIdRegex = /inlist\(([^:]+)\)/;
       const match = operand.match(listIdRegex);
       if (!match || match.length < 2) {
         LogManager.Instance.error("Invalid 'inList' operand format");

@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.5.0
+ * vwo-fme-javascript-sdk - v1.5.1
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -1530,7 +1530,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.5.0", // will be replaced by webpack for browser build
+        version: "1.5.1", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -4657,10 +4657,10 @@ var SegmentOperandRegexEnum;
     SegmentOperandRegexEnum["REGEX_MATCH"] = "^regex\\((.*)\\)";
     SegmentOperandRegexEnum["STARTING_STAR"] = "^\\*";
     SegmentOperandRegexEnum["ENDING_STAR"] = "\\*$";
-    SegmentOperandRegexEnum["GREATER_THAN_MATCH"] = "^gt(((d+.?d*)|(.d+)))";
-    SegmentOperandRegexEnum["GREATER_THAN_EQUAL_TO_MATCH"] = "^gte(((d+.?d*)|(.d+)))";
-    SegmentOperandRegexEnum["LESS_THAN_MATCH"] = "^lt(((d+.?d*)|(.d+)))";
-    SegmentOperandRegexEnum["LESS_THAN_EQUAL_TO_MATCH"] = "^lte(((d+.?d*)|(.d+)))";
+    SegmentOperandRegexEnum["GREATER_THAN_MATCH"] = "^gt\\((\\d+\\.?\\d*|\\.\\d+)\\)";
+    SegmentOperandRegexEnum["GREATER_THAN_EQUAL_TO_MATCH"] = "^gte\\((\\d+\\.?\\d*|\\.\\d+)\\)";
+    SegmentOperandRegexEnum["LESS_THAN_MATCH"] = "^lt\\((\\d+\\.?\\d*|\\.\\d+)\\)";
+    SegmentOperandRegexEnum["LESS_THAN_EQUAL_TO_MATCH"] = "^lte\\((\\d+\\.?\\d*|\\.\\d+)\\)";
 })(SegmentOperandRegexEnum || (exports.SegmentOperandRegexEnum = SegmentOperandRegexEnum = {}));
 
 
@@ -5305,7 +5305,7 @@ var SegmentOperandEvaluator = /** @class */ (function () {
                             return [2 /*return*/, false];
                         }
                         if (!operand.includes('inlist')) return [3 /*break*/, 5];
-                        listIdRegex = /inlist\((\w+:\d+)\)/;
+                        listIdRegex = /inlist\(([^:]+)\)/;
                         match = operand.match(listIdRegex);
                         if (!match || match.length < 2) {
                             logger_1.LogManager.Instance.error("Invalid 'inList' operand format");

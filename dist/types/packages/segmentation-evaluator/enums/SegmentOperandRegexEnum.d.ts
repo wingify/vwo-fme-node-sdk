@@ -22,8 +22,8 @@ export declare enum SegmentOperandRegexEnum {
   REGEX_MATCH = '^regex\\((.*)\\)',
   STARTING_STAR = '^\\*',
   ENDING_STAR = '\\*$',
-  GREATER_THAN_MATCH = '^gt(((d+.?d*)|(.d+)))',
-  GREATER_THAN_EQUAL_TO_MATCH = '^gte(((d+.?d*)|(.d+)))',
-  LESS_THAN_MATCH = '^lt(((d+.?d*)|(.d+)))',
-  LESS_THAN_EQUAL_TO_MATCH = '^lte(((d+.?d*)|(.d+)))',
+  GREATER_THAN_MATCH = '^gt\\((\\d+\\.?\\d*|\\.\\d+)\\)',
+  GREATER_THAN_EQUAL_TO_MATCH = '^gte\\((\\d+\\.?\\d*|\\.\\d+)\\)',
+  LESS_THAN_MATCH = '^lt\\((\\d+\\.?\\d*|\\.\\d+)\\)',
+  LESS_THAN_EQUAL_TO_MATCH = '^lte\\((\\d+\\.?\\d*|\\.\\d+)\\)',
 }

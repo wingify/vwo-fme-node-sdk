@@ -5,17 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2024-08-27
+
+### Fixed
+
+- Update key name from `user` to `userId` for storing User ID in storage connector.
+
+  ```javascript
+  class StorageConnector extends StorageConnector {
+    constructor() {
+      super();
+    }
+
+    /**
+     * Get data from storage
+     * @param {string} featureKey
+     * @param {string} userId
+     * @returns {Promise<any>}
+     */
+    async get(featureKey, userId) {
+      // return await data (based on featureKey and userId)
+    }
+
+    /**
+     * Set data in storage
+     * @param {object} data
+     */
+    async set(data) {
+      // Set data corresponding to a featureKey and user ID
+      // Use data.featureKey and data.userId to store the above data for a specific feature and a user
+    }
+  }
+  ```
+
 ## [1.5.2] - 2024-08-20
 
 ### Fixed
 
-- fix: Updated regular expressions for `GREATER_THAN_MATCH`, `GREATER_THAN_EQUAL_TO_MATCH`, `LESS_THAN_MATCH`, and `LESS_THAN_EQUAL_TO_MATCH` segmentation operators
+- Updated regular expressions for `GREATER_THAN_MATCH`, `GREATER_THAN_EQUAL_TO_MATCH`, `LESS_THAN_MATCH`, and `LESS_THAN_EQUAL_TO_MATCH` segmentation operators
 
 ## [1.5.1] - 2024-08-13
 
 ### Fixed
 
-- fix: Encode user-agent in `setAttribute` and `trackEvent` APIs before making a call to VWO server`
+- Encode user-agent in `setAttribute` and `trackEvent` APIs before making a call to VWO server`
 
 ## [1.5.0] - 2024-08-01
 
@@ -115,14 +148,23 @@ Client-side Javascript SDK
       super();
     }
 
-    async get(key) {
-      // return promise based data for feature-key
-      // return await this.map[key];
+    /**
+     * Get data from storage
+     * @param {string} featureKey
+     * @param {string} userId
+     * @returns {Promise<any>}
+     */
+    async get(featureKey, userId) {
+      // return await data (based on featureKey and userId)
     }
 
-    async set(key, data) {
-      // Set data for feature-key
-      // this.map[key] = data;
+    /**
+     * Set data in storage
+     * @param {object} data
+     */
+    async set(data) {
+      // Set data corresponding to a featureKey and user ID
+      // Use data.featureKey and data.userId to store the above data for a specific feature and a user
     }
   }
 

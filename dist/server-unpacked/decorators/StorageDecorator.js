@@ -139,7 +139,7 @@ var StorageDecorator = /** @class */ (function () {
         }
         storageService.setDataInStorage({
             featureKey: featureKey,
-            user: context.id,
+            userId: context.id,
             rolloutId: rolloutId,
             rolloutKey: rolloutKey,
             rolloutVariationId: rolloutVariationId,

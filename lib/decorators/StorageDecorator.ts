@@ -144,7 +144,7 @@ export class StorageDecorator implements IStorageDecorator {
 
     storageService.setDataInStorage({
       featureKey,
-      user: context.id,
+      userId: context.id,
       rolloutId,
       rolloutKey,
       rolloutVariationId,

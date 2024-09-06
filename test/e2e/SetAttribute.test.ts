@@ -24,6 +24,8 @@ jest.mock('../../lib/utils/NetworkUtil', () => ({
   getEventsBaseProperties: jest.fn(),
   getAttributePayloadData: jest.fn(),
   sendPostApiRequest: jest.fn(),
+  getShouldWaitForTrackingCalls: jest.fn(),
+  setShouldWaitForTrackingCalls: jest.fn(),
 }));
 
 describe('VWOClient setAttribute method', () => {

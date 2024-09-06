@@ -23,6 +23,9 @@ var VWOOptionsModel = /** @class */ (function () {
         this.accountId = options.accountId;
         this.sdkKey = options.sdkKey;
         this.vwoBuilder = options.vwoBuilder;
+        if (options === null || options === void 0 ? void 0 : options.shouldWaitForTrackingCalls) {
+            this.shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
+        }
         if (options === null || options === void 0 ? void 0 : options.isDevelopmentMode) {
             this.isDevelopmentMode = options.isDevelopmentMode;
         }

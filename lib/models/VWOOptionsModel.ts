@@ -41,6 +41,7 @@ export interface IVWOOptions {
   integrations?: IIntegrationOptions;
   network?: INetworkOptions;
   platform?: string;
+  shouldWaitForTrackingCalls?: boolean;
 
   vwoBuilder?: IVWOBuilder;
 }
@@ -56,6 +57,7 @@ export class VWOOptionsModel implements IVWOOptions {
   segmentation?: SegmentEvaluator;
   integrations?: IIntegrationOptions;
   network?: INetworkOptions;
+  shouldWaitForTrackingCalls?: boolean;
 
   vwoBuilder?: IVWOBuilder;
 
@@ -63,6 +65,10 @@ export class VWOOptionsModel implements IVWOOptions {
     this.accountId = options.accountId;
     this.sdkKey = options.sdkKey;
     this.vwoBuilder = options.vwoBuilder;
+
+    if (options?.shouldWaitForTrackingCalls) {
+      this.shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
+    }
     if (options?.isDevelopmentMode) {
       this.isDevelopmentMode = options.isDevelopmentMode;
     }

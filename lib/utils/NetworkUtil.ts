@@ -299,7 +299,7 @@ export function getAttributePayloadData(
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
  */
-export function sendPostApiRequest(properties: any, payload: any) {
+export async function sendPostApiRequest(properties: any, payload: any): Promise<void> {
   NetworkManager.Instance.attachClient();
 
   const headers: Record<string, string> = {};
@@ -322,7 +322,7 @@ export function sendPostApiRequest(properties: any, payload: any) {
     SettingsService.Instance.port,
   );
 
-  NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
+  await NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
     LogManager.Instance.error(
       buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
         method: HttpMethodEnum.POST,
@@ -362,4 +362,23 @@ export async function sendGetApiRequest(properties: any, endpoint: any): Promise
     );
     return null;
   }
+}
+
+// Flag to determine if the SDK should wait for a network response.
+let shouldWaitForTrackingCalls = false;
+
+/**
+ * Checks if the SDK should wait for a network response.
+ * @returns {boolean} - True if the SDK should wait for a network response, false otherwise.
+ */
+export function getShouldWaitForTrackingCalls(): boolean {
+  return shouldWaitForTrackingCalls;
+}
+
+/**
+ * Sets the value to determine if the SDK should wait for a network response.
+ * @param value - The value to set.
+ */
+export function setShouldWaitForTrackingCalls(value: boolean): void {
+  shouldWaitForTrackingCalls = value;
 }

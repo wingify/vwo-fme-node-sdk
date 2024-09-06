@@ -115,7 +115,7 @@ export declare function getAttributePayloadData(
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
  */
-export declare function sendPostApiRequest(properties: any, payload: any): void;
+export declare function sendPostApiRequest(properties: any, payload: any): Promise<void>;
 /**
  * Sends a GET API request to the specified endpoint with the given properties.
  * @param {any} properties - Properties for the request.
@@ -123,3 +123,13 @@ export declare function sendPostApiRequest(properties: any, payload: any): void;
  * @returns {Promise<any>} - The response from the GET request.
  */
 export declare function sendGetApiRequest(properties: any, endpoint: any): Promise<any>;
+/**
+ * Checks if the SDK should wait for a network response.
+ * @returns {boolean} - True if the SDK should wait for a network response, false otherwise.
+ */
+export declare function getShouldWaitForTrackingCalls(): boolean;
+/**
+ * Sets the value to determine if the SDK should wait for a network response.
+ * @param value - The value to set.
+ */
+export declare function setShouldWaitForTrackingCalls(value: boolean): void;

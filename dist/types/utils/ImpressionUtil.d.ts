@@ -30,4 +30,4 @@ export declare const createAndSendImpressionForVariationShown: (
   campaignId: number,
   variationId: number,
   context: ContextModel,
-) => void;
+) => Promise<void>;

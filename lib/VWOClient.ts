@@ -38,6 +38,7 @@ import { Deferred } from './utils/PromiseUtil';
 
 import { IVWOOptions } from './models/VWOOptionsModel';
 import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
+import { setShouldWaitForTrackingCalls } from './utils/NetworkUtil';
 
 export interface IVWOClient {
   readonly options?: IVWOOptions;
@@ -49,7 +50,11 @@ export interface IVWOClient {
     context: Record<string, any>,
     eventProperties: Record<string, dynamic>,
   ): Promise<Record<string, boolean>>;
-  setAttribute(attributeKey: string, attributeValue: boolean | string | number, context: Record<string, any>): void;
+  setAttribute(
+    attributeKey: string,
+    attributeValue: boolean | string | number,
+    context: Record<string, any>,
+  ): Promise<void>;
 }
 
 export class VWOClient implements IVWOClient {
@@ -65,6 +70,8 @@ export class VWOClient implements IVWOClient {
     UrlUtil.init({
       collectionPrefix: this.settings.getCollectionPrefix(),
     });
+
+    setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
 
     LogManager.Instance.info(InfoLogMessagesEnum.CLIENT_INITIALIZED);
     return this;
@@ -247,7 +254,11 @@ export class VWOClient implements IVWOClient {
    * @param {string} attributeValue - The value of the attribute to set.
    * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
    */
-  setAttribute(attributeKey: string, attributeValue: boolean | string | number, context: Record<string, any>): void {
+  async setAttribute(
+    attributeKey: string,
+    attributeValue: boolean | string | number,
+    context: Record<string, any>,
+  ): Promise<void> {
     const apiName = 'setAttribute';
 
     try {
@@ -294,7 +305,7 @@ export class VWOClient implements IVWOClient {
       const contextModel = new ContextModel().modelFromDictionary(context);
 
       // Proceed with setting the attribute if validation is successful
-      new SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, contextModel);
+      await new SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, contextModel);
     } catch (err) {
       // Log any errors encountered during the operation
       LogManager.Instance.info(

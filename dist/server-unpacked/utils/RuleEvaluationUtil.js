@@ -39,6 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.evaluateRule = void 0;
 var DataTypeUtil_1 = require("./DataTypeUtil");
 var DecisionUtil_1 = require("./DecisionUtil");
+var NetworkUtil_1 = require("./NetworkUtil");
 var ImpressionUtil_1 = require("./ImpressionUtil");
 /**
  * Evaluates the rules for a given campaign and feature based on the provided context.
@@ -63,19 +64,24 @@ var evaluateRule = function (settings, feature, campaign, context, evaluatedFeat
             case 0: return [4 /*yield*/, (0, DecisionUtil_1.checkWhitelistingAndPreSeg)(settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
             case 1:
                 _a = _b.sent(), preSegmentationResult = _a[0], whitelistedObject = _a[1];
-                // If pre-segmentation is successful and a whitelisted object exists, proceed to send an impression
-                if (preSegmentationResult && (0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0) {
-                    // Update the decision object with campaign and variation details
-                    Object.assign(decision, {
-                        experimentId: campaign.getId(),
-                        experimentKey: campaign.getKey(),
-                        experimentVariationId: whitelistedObject.variationId,
-                    });
-                    // Send an impression for the variation shown
-                    (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context);
-                }
-                // Return the results of the evaluation
-                return [2 /*return*/, { preSegmentationResult: preSegmentationResult, whitelistedObject: whitelistedObject, updatedDecision: decision }];
+                if (!(preSegmentationResult && (0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0)) return [3 /*break*/, 4];
+                // Update the decision object with campaign and variation details
+                Object.assign(decision, {
+                    experimentId: campaign.getId(),
+                    experimentKey: campaign.getKey(),
+                    experimentVariationId: whitelistedObject.variationId,
+                });
+                if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 3];
+                return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context)];
+            case 2:
+                _b.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context);
+                _b.label = 4;
+            case 4: 
+            // Return the results of the evaluation
+            return [2 /*return*/, { preSegmentationResult: preSegmentationResult, whitelistedObject: whitelistedObject, updatedDecision: decision }];
         }
     });
 }); };

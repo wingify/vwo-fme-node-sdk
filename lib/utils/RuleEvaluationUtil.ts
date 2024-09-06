@@ -20,6 +20,7 @@ import { ContextModel } from '../models/user/ContextModel';
 import { IStorageService } from '../services/StorageService';
 import { isObject } from './DataTypeUtil';
 import { checkWhitelistingAndPreSeg } from './DecisionUtil';
+import { getShouldWaitForTrackingCalls } from './NetworkUtil';
 import { createAndSendImpressionForVariationShown } from './ImpressionUtil';
 
 /**
@@ -70,7 +71,16 @@ export const evaluateRule = async (
     });
 
     // Send an impression for the variation shown
-    createAndSendImpressionForVariationShown(settings, campaign.getId(), whitelistedObject.variation.id, context);
+    if (getShouldWaitForTrackingCalls()) {
+      await createAndSendImpressionForVariationShown(
+        settings,
+        campaign.getId(),
+        whitelistedObject.variation.id,
+        context,
+      );
+    } else {
+      createAndSendImpressionForVariationShown(settings, campaign.getId(), whitelistedObject.variation.id, context);
+    }
   }
 
   // Return the results of the evaluation

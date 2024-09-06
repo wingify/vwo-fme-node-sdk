@@ -23,7 +23,12 @@ interface ISetAttribute {
    * @param attributeValue The value of the attribute.
    * @param context Context containing user information.
    */
-  setAttribute(settings: SettingsModel, attributeKey: string, attributeValue: any, context: ContextModel): void;
+  setAttribute(
+    settings: SettingsModel,
+    attributeKey: string,
+    attributeValue: any,
+    context: ContextModel,
+  ): Promise<void>;
 }
 export declare class SetAttributeApi implements ISetAttribute {
   /**
@@ -33,6 +38,11 @@ export declare class SetAttributeApi implements ISetAttribute {
    * @param attributeValue The value of the attribute.
    * @param context Context containing user information.
    */
-  setAttribute(settings: SettingsModel, attributeKey: string, attributeValue: any, context: ContextModel): void;
+  setAttribute(
+    settings: SettingsModel,
+    attributeKey: string,
+    attributeValue: any,
+    context: ContextModel,
+  ): Promise<void>;
 }
 export {};

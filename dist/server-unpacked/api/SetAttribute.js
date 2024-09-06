@@ -50,7 +50,22 @@ var SetAttributeApi = /** @class */ (function () {
      * @param context Context containing user information.
      */
     SetAttributeApi.prototype.setAttribute = function (settings, attributeKey, attributeValue, context) {
-        createImpressionForAttribute(settings, attributeKey, attributeValue, context);
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 2];
+                        return [4 /*yield*/, createImpressionForAttribute(settings, attributeKey, attributeValue, context)];
+                    case 1:
+                        _a.sent();
+                        return [3 /*break*/, 3];
+                    case 2:
+                        createImpressionForAttribute(settings, attributeKey, attributeValue, context);
+                        _a.label = 3;
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
     };
     return SetAttributeApi;
 }());
@@ -65,11 +80,17 @@ exports.SetAttributeApi = SetAttributeApi;
 var createImpressionForAttribute = function (settings, attributeKey, attributeValue, context) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
-        properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-        payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributeKey, attributeValue, context.getUserAgent(), context.getIpAddress());
-        // Send the constructed payload via POST request
-        (0, NetworkUtil_1.sendPostApiRequest)(properties, payload);
-        return [2 /*return*/];
+        switch (_a.label) {
+            case 0:
+                properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+                payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributeKey, attributeValue, context.getUserAgent(), context.getIpAddress());
+                // Send the constructed payload via POST request
+                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
+            case 1:
+                // Send the constructed payload via POST request
+                _a.sent();
+                return [2 /*return*/];
+        }
     });
 }); };
 //# sourceMappingURL=SetAttribute.js.map

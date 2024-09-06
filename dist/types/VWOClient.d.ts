@@ -11,7 +11,11 @@ export interface IVWOClient {
     context: Record<string, any>,
     eventProperties: Record<string, dynamic>,
   ): Promise<Record<string, boolean>>;
-  setAttribute(attributeKey: string, attributeValue: boolean | string | number, context: Record<string, any>): void;
+  setAttribute(
+    attributeKey: string,
+    attributeValue: boolean | string | number,
+    context: Record<string, any>,
+  ): Promise<void>;
 }
 export declare class VWOClient implements IVWOClient {
   settings: SettingsModel;
@@ -50,5 +54,9 @@ export declare class VWOClient implements IVWOClient {
    * @param {string} attributeValue - The value of the attribute to set.
    * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
    */
-  setAttribute(attributeKey: string, attributeValue: boolean | string | number, context: Record<string, any>): void;
+  setAttribute(
+    attributeKey: string,
+    attributeValue: boolean | string | number,
+    context: Record<string, any>,
+  ): Promise<void>;
 }

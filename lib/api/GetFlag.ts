@@ -37,6 +37,7 @@ import { createAndSendImpressionForVariationShown } from '../utils/ImpressionUti
 import { buildMessage } from '../utils/LogMessageUtil';
 import { Deferred } from '../utils/PromiseUtil';
 import { evaluateRule } from '../utils/RuleEvaluationUtil';
+import { getShouldWaitForTrackingCalls } from '../utils/NetworkUtil';
 
 interface IGetFlag {
   get(
@@ -209,7 +210,21 @@ export class FlagApi implements IGetFlag {
 
           _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
 
-          createAndSendImpressionForVariationShown(settings, passedRolloutCampaign.getId(), variation.getId(), context);
+          if (getShouldWaitForTrackingCalls()) {
+            await createAndSendImpressionForVariationShown(
+              settings,
+              passedRolloutCampaign.getId(),
+              variation.getId(),
+              context,
+            );
+          } else {
+            createAndSendImpressionForVariationShown(
+              settings,
+              passedRolloutCampaign.getId(),
+              variation.getId(),
+              context,
+            );
+          }
         }
       }
     } else if (rollOutRules.length === 0) {
@@ -266,8 +281,11 @@ export class FlagApi implements IGetFlag {
           experimentVariationToReturn = variation;
 
           _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
-
-          createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
+          if (getShouldWaitForTrackingCalls()) {
+            await createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
+          } else {
+            createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
+          }
         }
       }
     }
@@ -298,13 +316,21 @@ export class FlagApi implements IGetFlag {
           status: isEnabled ? 'enabled' : 'disabled',
         }),
       );
-
-      createAndSendImpressionForVariationShown(
-        settings,
-        feature.getImpactCampaign()?.getCampaignId(),
-        isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-        context,
-      );
+      if (getShouldWaitForTrackingCalls()) {
+        await createAndSendImpressionForVariationShown(
+          settings,
+          feature.getImpactCampaign()?.getCampaignId(),
+          isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
+          context,
+        );
+      } else {
+        createAndSendImpressionForVariationShown(
+          settings,
+          feature.getImpactCampaign()?.getCampaignId(),
+          isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
+          context,
+        );
+      }
     }
 
     const variablesForEvaluatedFlag =

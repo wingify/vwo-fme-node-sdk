@@ -19,10 +19,12 @@ import { VariableModel } from './VariableModel';
 export class VariationModel {
   private i: number;
   private id: number;
+  private type: string;
 
   private n: string;
   private key: string;
   private name: string;
+  private ruleKey: string;
 
   private w: number;
   private weight: number;
@@ -39,6 +41,8 @@ export class VariationModel {
     this.id = variation.i || variation.id;
     this.key = variation.n || variation.key || variation.name;
     this.weight = variation.w || variation.weight;
+    this.ruleKey = variation.ruleKey;
+    this.type = variation.type;
     this.setStartRange(variation.startRangeVariation);
     this.setEndRange(variation.endRangeVariation);
     if (variation.seg || variation.segments) {
@@ -90,6 +94,10 @@ export class VariationModel {
     return this.key;
   }
 
+  getRuleKey(): string {
+    return this.ruleKey;
+  }
+
   getWeight(): number {
     return this.weight;
   }
@@ -112,5 +120,9 @@ export class VariationModel {
 
   getVariations(): Array<VariationModel> {
     return this.variations;
+  }
+
+  getType(): string {
+    return this.type;
   }
 }

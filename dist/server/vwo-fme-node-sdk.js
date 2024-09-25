@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.6.0
+ * vwo-fme-node-sdk - v1.7.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -1923,7 +1923,8 @@ exports.Constants = {
   LOCATION_ENDPOINT: '/getLocation',
   VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
   RANDOM_ALGO: 1,
-  API_VERSION: '1'
+  API_VERSION: '1',
+  VWO_META_MEG_KEY: '_vwo_meta_meg_'
 };
 
 /***/ }),
@@ -2994,6 +2995,8 @@ var VariationModel = /** @class */function () {
     this.id = variation.i || variation.id;
     this.key = variation.n || variation.key || variation.name;
     this.weight = variation.w || variation.weight;
+    this.ruleKey = variation.ruleKey;
+    this.type = variation.type;
     this.setStartRange(variation.startRangeVariation);
     this.setEndRange(variation.endRangeVariation);
     if (variation.seg || variation.segments) {
@@ -3036,6 +3039,9 @@ var VariationModel = /** @class */function () {
   VariationModel.prototype.getKey = function () {
     return this.key;
   };
+  VariationModel.prototype.getRuleKey = function () {
+    return this.ruleKey;
+  };
   VariationModel.prototype.getWeight = function () {
     return this.weight;
   };
@@ -3053,6 +3059,9 @@ var VariationModel = /** @class */function () {
   };
   VariationModel.prototype.getVariations = function () {
     return this.variations;
+  };
+  VariationModel.prototype.getType = function () {
+    return this.type;
   };
   return VariationModel;
 }();
@@ -6229,7 +6238,7 @@ var SegmentOperandEvaluator = /** @class */function () {
               return [2 /*return*/, false];
             }
             if (!operand.includes('inlist')) return [3 /*break*/, 5];
-            listIdRegex = /inlist\(([^:]+)\)/;
+            listIdRegex = /inlist\(([^)]+)\)/;
             match = operand.match(listIdRegex);
             if (!match || match.length < 2) {
               logger_1.LogManager.Instance.error("Invalid 'inList' operand format");
@@ -6902,7 +6911,7 @@ var CampaignDecisionService = /** @class */function () {
     logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
       userId: userId,
       notPart: isUserPart ? '' : 'not',
-      campaignKey: campaign.getKey()
+      campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey()
     }));
     return isUserPart;
   };
@@ -6972,7 +6981,7 @@ var CampaignDecisionService = /** @class */function () {
             if (!((0, DataTypeUtil_1.isObject)(segments) && !Object.keys(segments).length)) return [3 /*break*/, 1];
             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_SKIP, {
               userId: context.getId(),
-              campaignKey: campaign.getRuleKey()
+              campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey()
             }));
             return [2 /*return*/, true];
           case 1:
@@ -6982,14 +6991,14 @@ var CampaignDecisionService = /** @class */function () {
             if (!preSegmentationResult) {
               logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
                 userId: context.getId(),
-                campaignKey: campaign.getRuleKey(),
+                campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
                 status: 'failed'
               }));
               return [2 /*return*/, false];
             }
             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
               userId: context.getId(),
-              campaignKey: campaign.getRuleKey(),
+              campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
               status: 'passed'
             }));
             return [2 /*return*/, true];
@@ -7746,14 +7755,28 @@ exports.setCampaignAllocation = setCampaignAllocation;
  * Determines if a campaign is part of a group.
  * @param {SettingsModel} settings - The settings model containing group associations.
  * @param {string} campaignId - The ID of the campaign to check.
+ * @param {any} [variationId=null] - The optional variation ID.
  * @returns {Object} An object containing the group ID and name if the campaign is part of a group, otherwise an empty object.
  */
-function getGroupDetailsIfCampaignPartOfIt(settings, campaignId) {
-  // Check if the campaign is associated with a group and return the group details
-  if (campaignId in settings.getCampaignGroups() && settings.getCampaignGroups()) {
+function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId) {
+  if (variationId === void 0) {
+    variationId = null;
+  }
+  /**
+   * If variationId is null, that means that campaign is testing campaign
+   * If variationId is not null, that means that campaign is personalization campaign and we need to append variationId to campaignId using _
+   * then check if the current campaign is part of any group
+   */
+  var campaignToCheck = campaignId.toString();
+  // check if variationId is not null
+  if (variationId !== null) {
+    // if variationId is not null, then append it to the campaignId like campaignId_variationId
+    campaignToCheck = "".concat(campaignId, "_").concat(variationId).toString();
+  }
+  if (settings.getCampaignGroups() && Object.prototype.hasOwnProperty.call(settings.getCampaignGroups(), campaignToCheck)) {
     return {
-      groupId: settings.getCampaignGroups()[campaignId],
-      groupName: settings.getGroups()[settings.getCampaignGroups()[campaignId]].name
+      groupId: settings.getCampaignGroups()[campaignToCheck],
+      groupName: settings.getGroups()[settings.getCampaignGroups()[campaignToCheck]].name
     };
   }
   return {};
@@ -7766,21 +7789,22 @@ exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
  * @returns {Array} An array of groups associated with the feature.
  */
 function findGroupsFeaturePartOf(settings, featureKey) {
-  var campaignIds = [];
-  // Loop over all rules inside the feature where the feature key matches and collect all campaign IDs
+  // Initialize an array to store all rules for the given feature to fetch campaignId and variationId later
+  var ruleArray = [];
+  // Loop over all rules inside the feature where the feature key matches and collect all rules
   settings.getFeatures().forEach(function (feature) {
     if (feature.getKey() === featureKey) {
       feature.getRules().forEach(function (rule) {
-        if (campaignIds.indexOf(rule.getCampaignId()) === -1) {
-          campaignIds.push(rule.getCampaignId());
+        if (ruleArray.indexOf(rule) === -1) {
+          ruleArray.push(rule);
         }
       });
     }
   });
   // Loop over all campaigns and find the group for each campaign
   var groups = [];
-  campaignIds.forEach(function (campaignId) {
-    var group = getGroupDetailsIfCampaignPartOfIt(settings, campaignId);
+  ruleArray.forEach(function (rule) {
+    var group = getGroupDetailsIfCampaignPartOfIt(settings, rule.getCampaignId(), rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? rule.getVariationId() : null);
     if (group.groupId) {
       // Check if the group is already added to the groups array to avoid duplicates
       var groupIndex = groups.findIndex(function (grp) {
@@ -7812,23 +7836,40 @@ exports.getCampaignsByGroupId = getCampaignsByGroupId;
 /**
  * Retrieves feature keys from a list of campaign IDs.
  * @param {SettingsModel} settings - The settings model containing all features.
- * @param {any} campaignIds - An array of campaign IDs.
+ * @param {any} campaignIdWithVariation - An array of campaign IDs and variation IDs in format campaignId_variationId.
  * @returns {Array} An array of feature keys associated with the provided campaign IDs.
  */
-function getFeatureKeysFromCampaignIds(settings, campaignIds) {
+function getFeatureKeysFromCampaignIds(settings, campaignIdWithVariation) {
   var featureKeys = [];
-  var _loop_1 = function (campaignId) {
+  var _loop_1 = function (campaign) {
+    // split key with _ to separate campaignId and variationId
+    var _a = campaign.split('_').map(Number),
+      campaignId = _a[0],
+      variationId = _a[1];
     settings.getFeatures().forEach(function (feature) {
+      // check if feature already exists in the featureKeys array
+      if (featureKeys.indexOf(feature.getKey()) !== -1) {
+        return;
+      }
       feature.getRules().forEach(function (rule) {
         if (rule.getCampaignId() === campaignId) {
-          featureKeys.push(feature.getKey()); // Add feature key if campaign ID matches
+          // Check if variationId is provided and matches the rule's variationId
+          if (variationId !== undefined && variationId !== null) {
+            // Add feature key if variationId matches
+            if (rule.getVariationId() === variationId) {
+              featureKeys.push(feature.getKey());
+            }
+          } else {
+            // Add feature key if no variationId is provided
+            featureKeys.push(feature.getKey());
+          }
         }
       });
     });
   };
-  for (var _i = 0, campaignIds_1 = campaignIds; _i < campaignIds_1.length; _i++) {
-    var campaignId = campaignIds_1[_i];
-    _loop_1(campaignId);
+  for (var _i = 0, campaignIdWithVariation_1 = campaignIdWithVariation; _i < campaignIdWithVariation_1.length; _i++) {
+    var campaign = campaignIdWithVariation_1[_i];
+    _loop_1(campaign);
   }
   return featureKeys;
 }
@@ -8237,14 +8278,16 @@ var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpa
 var segmentation_evaluator_1 = __webpack_require__(/*! ../packages/segmentation-evaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/index.js");
 var CampaignDecisionService_1 = __webpack_require__(/*! ../services/CampaignDecisionService */ "./dist/server-unpacked/services/CampaignDecisionService.js");
 var DataTypeUtil_2 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var MegUtil_1 = __webpack_require__(/*! ./MegUtil */ "./dist/server-unpacked/utils/MegUtil.js");
 var UuidUtil_1 = __webpack_require__(/*! ./UuidUtil */ "./dist/server-unpacked/utils/UuidUtil.js");
+var StorageDecorator_1 = __webpack_require__(/*! ../decorators/StorageDecorator */ "./dist/server-unpacked/decorators/StorageDecorator.js");
 var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) {
   return __awaiter(void 0, void 0, void 0, function () {
-    var vwoUserId, campaignId, whitelistedVariation, groupId, groupWinnerCampaignId, isPreSegmentationPassed, winnerCampaign;
+    var vwoUserId, campaignId, whitelistedVariation, groupId, groupWinnerCampaignId, storedData, isPreSegmentationPassed, winnerCampaign;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
@@ -8280,29 +8323,85 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
           Object.assign(decision, {
             customVariables: context.getCustomVariables()
           }); // for integeration
-          groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(settings, campaignId).groupId;
+          groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(settings, campaign.getId(), campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null).groupId;
           groupWinnerCampaignId = megGroupWinnerCampaigns === null || megGroupWinnerCampaigns === void 0 ? void 0 : megGroupWinnerCampaigns.get(groupId);
-          if (groupWinnerCampaignId) {
+          if (!groupWinnerCampaignId) return [3 /*break*/, 4];
+          if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
             // check if the campaign is the winner of the group
             if (groupWinnerCampaignId === campaignId) {
               return [2 /*return*/, [true, null]];
             }
-            // as group is already evaluated, no need to check again, return false directly
+          } else if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+            // check if the campaign is the winner of the group
+            if (groupWinnerCampaignId === campaignId + '_' + campaign.getVariations()[0].getId()) {
+              return [2 /*return*/, [true, null]];
+            }
+          }
+          // as group is already evaluated, no need to check again, return false directly
+          return [2 /*return*/, [false, null]];
+        case 4:
+          return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService)];
+        case 5:
+          storedData = _a.sent();
+          if (storedData && storedData.experimentKey && storedData.experimentId) {
+            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+              campaignKey: storedData.experimentKey,
+              userId: context.getId()
+            }));
+            if (storedData.experimentId === campaignId) {
+              // return the campaign if the called campaignId matches
+              if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+                if (storedData.experimentVariationId === campaign.getVariations()[0].getId()) {
+                  // if personalise then check if the reqeusted variation is the winner
+                  return [2 /*return*/, [true, null]];
+                } else {
+                  // if requested variation is not the winner then set the winner campaign in the map and return
+                  megGroupWinnerCampaigns.set(groupId, storedData.experimentId + '_' + storedData.experimentVariationId);
+                  return [2 /*return*/, [false, null]];
+                }
+              } else {
+                return [2 /*return*/, [true, null]];
+              }
+            }
+            if (storedData.experimentVariationId != -1) {
+              megGroupWinnerCampaigns.set(groupId, storedData.experimentId + '_' + storedData.experimentVariationId);
+            } else {
+              megGroupWinnerCampaigns.set(groupId, storedData.experimentId);
+            }
             return [2 /*return*/, [false, null]];
           }
+          _a.label = 6;
+        case 6:
           return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(campaign, context)];
-        case 4:
+        case 7:
           isPreSegmentationPassed = _a.sent();
-          if (!(isPreSegmentationPassed && groupId)) return [3 /*break*/, 6];
+          if (!(isPreSegmentationPassed && groupId)) return [3 /*break*/, 9];
           return [4 /*yield*/, (0, MegUtil_1.evaluateGroups)(settings, feature, groupId, evaluatedFeatureMap, context, storageService)];
-        case 5:
+        case 8:
           winnerCampaign = _a.sent();
           if (winnerCampaign && winnerCampaign.id === campaignId) {
-            return [2 /*return*/, [true, null]];
+            if (winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
+              return [2 /*return*/, [true, null]];
+            } else {
+              // if personalise then check if the reqeusted variation is the winner
+              if (winnerCampaign.variations[0].id === campaign.getVariations()[0].getId()) {
+                return [2 /*return*/, [true, null]];
+              } else {
+                megGroupWinnerCampaigns.set(groupId, winnerCampaign.id + '_' + winnerCampaign.variations[0].id);
+                return [2 /*return*/, [false, null]];
+              }
+            }
+          } else if (winnerCampaign) {
+            if (winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
+              megGroupWinnerCampaigns.set(groupId, winnerCampaign.id);
+            } else {
+              megGroupWinnerCampaigns.set(groupId, winnerCampaign.id + '_' + winnerCampaign.variations[0].id);
+            }
+            return [2 /*return*/, [false, null]];
           }
-          megGroupWinnerCampaigns.set(groupId, (winnerCampaign === null || winnerCampaign === void 0 ? void 0 : winnerCampaign.id) || 0);
+          megGroupWinnerCampaigns.set(groupId, -1);
           return [2 /*return*/, [false, null]];
-        case 6:
+        case 9:
           return [2 /*return*/, [isPreSegmentationPassed, null]];
       }
     });
@@ -8313,14 +8412,14 @@ var evaluateTrafficAndGetVariation = function (settings, campaign, userId) {
   var variation = new CampaignDecisionService_1.CampaignDecisionService().getVariationAlloted(userId, settings.getAccountId(), campaign);
   if (!variation) {
     logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-      campaignKey: campaign.getKey(),
+      campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
       userId: userId,
       status: 'did not get any variation'
     }));
     return null;
   }
   logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-    campaignKey: campaign.getKey(),
+    campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
     userId: userId,
     status: "got variation:".concat(variation.getKey())
   }));
@@ -8350,7 +8449,7 @@ var _checkCampaignWhitelisting = function (campaign, context) {
           variationString = whitelistingResult ? whitelistingResult.variation.key : '';
           logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_STATUS, {
             userId: context.getId(),
-            campaignKey: campaign.getRuleKey(),
+            campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
             status: status,
             variationString: variationString
           }));
@@ -8370,7 +8469,7 @@ var _evaluateWhitelisting = function (campaign, context) {
           campaign.getVariations().forEach(function (variation) {
             if ((0, DataTypeUtil_2.isObject)(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
               logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
-                campaignKey: campaign.getRuleKey(),
+                campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
                 userId: context.getId(),
                 variation: variation.getKey() ? "for variation: ".concat(variation.getKey()) : ''
               }));
@@ -9278,12 +9377,11 @@ var evaluateGroups = function (settings, feature, groupId, evaluatedFeatureMap, 
           campaignMap = new Map();
           _a = getFeatureKeysFromGroup(settings, groupId), featureKeys = _a.featureKeys, groupCampaignIds = _a.groupCampaignIds;
           _loop_1 = function (featureKey) {
-            var feature_1, featureCampaignIds, isRolloutRulePassed;
+            var feature_1, isRolloutRulePassed;
             return __generator(this, function (_d) {
               switch (_d.label) {
                 case 0:
                   feature_1 = (0, FunctionUtil_1.getFeatureFromKey)(settings, featureKey);
-                  featureCampaignIds = (0, CampaignUtil_1.getCampaignIdsFromFeatureKey)(settings, featureKey);
                   // check if the feature is already evaluated
                   if (featureToSkip.includes(featureKey)) {
                     return [2 /*return*/, "continue"];
@@ -9292,19 +9390,21 @@ var evaluateGroups = function (settings, feature, groupId, evaluatedFeatureMap, 
                 case 1:
                   isRolloutRulePassed = _d.sent();
                   if (isRolloutRulePassed) {
-                    settings.getCampaigns().forEach(function (campaign) {
-                      // groupCampaignIds.includes(campaign.getId()) -> campaign we are adding should be in the group
-                      // featureCampaignIds.includes(campaign.getId()) -> checks that campaign should be part of the feature that we evaluated
-                      if (groupCampaignIds.includes(campaign.getId()) && featureCampaignIds.includes(campaign.getId())) {
-                        if (!campaignMap.has(featureKey)) {
-                          campaignMap.set(featureKey, []);
-                        }
-                        // check if the campaign is already present in the campaignMap for the feature
-                        if (campaignMap.get(featureKey).findIndex(function (item) {
-                          return item.key === campaign.getKey();
-                        }) === -1) {
-                          campaignMap.get(featureKey).push(campaign);
-                        }
+                    settings.getFeatures().forEach(function (feature) {
+                      if (feature.getKey() === featureKey) {
+                        feature.getRulesLinkedCampaign().forEach(function (rule) {
+                          if (groupCampaignIds.includes(rule.getId().toString()) || groupCampaignIds.includes("".concat(rule.getId(), "_").concat(rule.getVariations()[0].getId()).toString())) {
+                            if (!campaignMap.has(featureKey)) {
+                              campaignMap.set(featureKey, []);
+                            }
+                            // check if the campaign is already present in the campaignMap for the feature
+                            if (campaignMap.get(featureKey).findIndex(function (item) {
+                              return item.ruleKey === rule.getRuleKey();
+                            }) === -1) {
+                              campaignMap.get(featureKey).push(rule);
+                            }
+                          }
+                        });
                       }
                     });
                   }
@@ -9328,7 +9428,7 @@ var evaluateGroups = function (settings, feature, groupId, evaluatedFeatureMap, 
           return [4 /*yield*/, _getEligbleCampaigns(settings, campaignMap, context, storageService)];
         case 5:
           _b = _c.sent(), eligibleCampaigns = _b.eligibleCampaigns, eligibleCampaignsWithStorage = _b.eligibleCampaignsWithStorage;
-          return [4 /*yield*/, _findWinnerCampaignAmongEligibleCampaigns(settings, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context)];
+          return [4 /*yield*/, _findWinnerCampaignAmongEligibleCampaigns(settings, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService)];
         case 6:
           return [2 /*return*/, _c.sent()];
       }
@@ -9474,8 +9574,8 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
                 case 2:
                   // Check if user is eligible for the campaign
                   if (_d.sent() && new CampaignDecisionService_1.CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign)) {
-                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
-                      campaignKey: campaign.getKey(),
+                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_ELIGIBLE, {
+                      campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
                       userId: context.getId()
                     }));
                     eligibleCampaigns.push(campaign);
@@ -9522,7 +9622,7 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
  * @param context - The context model.
  * @returns A promise that resolves to the winner campaign.
  */
-var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context) {
+var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService) {
   return __awaiter(void 0, void 0, void 0, function () {
     var winnerCampaign, campaignIds, megAlgoNumber;
     var _a;
@@ -9534,31 +9634,31 @@ var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, 
       if (eligibleCampaignsWithStorage.length === 1) {
         winnerCampaign = eligibleCampaignsWithStorage[0];
         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-          campaignKey: eligibleCampaignsWithStorage[0].getKey(),
+          campaignKey: eligibleCampaignsWithStorage[0].getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? eligibleCampaignsWithStorage[0].getKey() : eligibleCampaignsWithStorage[0].getName() + '_' + eligibleCampaignsWithStorage[0].getRuleKey(),
           groupId: groupId,
           userId: context.getId(),
           algo: ''
         }));
       } else if (eligibleCampaignsWithStorage.length > 1 && megAlgoNumber === constants_1.Constants.RANDOM_ALGO) {
         // if eligibleCampaignsWithStorage has more than one campaign and algo is random, then find the winner using random algo
-        winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaignsWithStorage, context, campaignIds, groupId);
+        winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
       } else if (eligibleCampaignsWithStorage.length > 1) {
         // if eligibleCampaignsWithStorage has more than one campaign and algo is not random, then find the winner using advanced algo
-        winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaignsWithStorage, context, campaignIds, groupId);
+        winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
       }
       if (eligibleCampaignsWithStorage.length === 0) {
         if (eligibleCampaigns.length === 1) {
           winnerCampaign = eligibleCampaigns[0];
           logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-            campaignKey: eligibleCampaigns[0].getKey(),
+            campaignKey: eligibleCampaigns[0].getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? eligibleCampaigns[0].getKey() : eligibleCampaigns[0].getName() + '_' + eligibleCampaigns[0].getRuleKey(),
             groupId: groupId,
             userId: context.getId(),
             algo: ''
           }));
         } else if (eligibleCampaigns.length > 1 && megAlgoNumber === constants_1.Constants.RANDOM_ALGO) {
-          winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaigns, context, campaignIds, groupId);
+          winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaigns, context, campaignIds, groupId, storageService);
         } else if (eligibleCampaigns.length > 1) {
-          winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaigns, context, campaignIds, groupId);
+          winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaigns, context, campaignIds, groupId, storageService);
         }
       }
       return [2 /*return*/, winnerCampaign];
@@ -9574,10 +9674,10 @@ var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, 
  * @param groupId - The ID of the group.
  * @returns The winning campaign or null if none is found.
  */
-var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, context, calledCampaignIds, groupId) {
+var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
   // Normalize the weights of all the shortlisted campaigns
   shortlistedCampaigns.forEach(function (campaign) {
-    campaign.weight = Math.floor(100 / shortlistedCampaigns.length);
+    campaign.weight = Math.round(100 / shortlistedCampaigns.length * 10000) / 10000;
   });
   // make shortlistedCampaigns as array of VariationModel
   shortlistedCampaigns = shortlistedCampaigns.map(function (campaign) {
@@ -9587,13 +9687,22 @@ var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, co
   (0, CampaignUtil_1.setCampaignAllocation)(shortlistedCampaigns);
   var winnerCampaign = new CampaignDecisionService_1.CampaignDecisionService().getVariation(shortlistedCampaigns, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getId(), undefined, groupId)));
   logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-    campaignKey: winnerCampaign.getKey(),
+    campaignKey: winnerCampaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? winnerCampaign.getKey() : winnerCampaign.getKey() + '_' + winnerCampaign.getRuleKey(),
     groupId: groupId,
     userId: context.getId(),
     algo: 'using random algorithm'
   }));
-  if (winnerCampaign && calledCampaignIds.includes(winnerCampaign.getId())) {
-    return winnerCampaign;
+  if (winnerCampaign) {
+    new StorageDecorator_1.StorageDecorator().setDataInStorage({
+      featureKey: "".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId),
+      context: context,
+      experimentId: winnerCampaign.getId(),
+      experimentKey: winnerCampaign.getKey(),
+      experimentVariationId: winnerCampaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? winnerCampaign.getVariations()[0].getId() : -1
+    }, storageService);
+    if (calledCampaignIds.includes(winnerCampaign.getId())) {
+      return winnerCampaign;
+    }
   }
   return null;
 };
@@ -9607,14 +9716,18 @@ var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, co
  * @param groupId - The ID of the group.
  * @returns The winning campaign or null if none is found.
  */
-var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, context, calledCampaignIds, groupId) {
+var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
   var winnerCampaign = null;
   var found = false; // flag to check whether winnerCampaign has been found or not and helps to break from the outer loop
   var priorityOrder = !(0, DataTypeUtil_1.isUndefined)(settings.getGroups()[groupId].p) ? settings.getGroups()[groupId].p : {};
   var wt = !(0, DataTypeUtil_1.isUndefined)(settings.getGroups()[groupId].wt) ? settings.getGroups()[groupId].wt : {};
   for (var i = 0; i < priorityOrder.length; i++) {
     for (var j = 0; j < shortlistedCampaigns.length; j++) {
-      if (shortlistedCampaigns[j].id === priorityOrder[i]) {
+      if (shortlistedCampaigns[j].id == priorityOrder[i]) {
+        winnerCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[j]);
+        found = true;
+        break;
+      } else if (shortlistedCampaigns[j].id + '_' + shortlistedCampaigns[j].variations[0].id === priorityOrder[i]) {
         winnerCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[j]);
         found = true;
         break;
@@ -9633,6 +9746,10 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
         var clonedCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[i]);
         clonedCampaign.weight = wt[campaignId];
         participatingCampaignList.push(clonedCampaign);
+      } else if (!(0, DataTypeUtil_1.isUndefined)(wt[campaignId + '_' + shortlistedCampaigns[i].variations[0].id])) {
+        var clonedCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[i]);
+        clonedCampaign.weight = wt[campaignId + '_' + shortlistedCampaigns[i].variations[0].id];
+        participatingCampaignList.push(clonedCampaign);
       }
     }
     /* Finding winner campaign using weighted Distibution :
@@ -9649,14 +9766,34 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
   }
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
   // also shortlistedCampaigns and wt array does not have a single campaign id in common
-  logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-    campaignKey: winnerCampaign.key,
-    groupId: groupId,
-    userId: context.getId(),
-    algo: 'using advanced algorithm'
-  }));
-  if (calledCampaignIds.includes(winnerCampaign.id)) {
-    return winnerCampaign;
+  if (winnerCampaign) {
+    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+      campaignKey: winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB ? winnerCampaign.key : winnerCampaign.key + '_' + winnerCampaign.ruleKey,
+      groupId: groupId,
+      userId: context.getId(),
+      algo: 'using advanced algorithm'
+    }));
+  } else {
+    // TODO -- Log the error message
+    // LogManager.Instance.info(
+    //   buildMessage(InfoLogMessagesEnum.MEG_NO_WINNER_CAMPAIGN, {
+    //     groupId,
+    //     userId: context.getId(),
+    //   }),
+    // );
+    logger_1.LogManager.Instance.info("No winner campaign found for MEG group: ".concat(groupId));
+  }
+  if (winnerCampaign) {
+    new StorageDecorator_1.StorageDecorator().setDataInStorage({
+      featureKey: "".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId),
+      context: context,
+      experimentId: winnerCampaign.id,
+      experimentKey: winnerCampaign.key,
+      experimentVariationId: winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? winnerCampaign.variations[0].id : -1
+    }, storageService);
+    if (calledCampaignIds.includes(winnerCampaign.id)) {
+      return winnerCampaign;
+    }
   }
   return null;
 };
@@ -10738,7 +10875,7 @@ module.exports = require("https");
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.6.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^0.1.2"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.1.1","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.7.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^0.1.2"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.3.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
 
 /***/ })
 

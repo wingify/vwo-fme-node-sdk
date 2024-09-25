@@ -66,7 +66,10 @@ export class CampaignDecisionService implements ICampaignDecisionService {
       buildMessage(InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
         userId,
         notPart: isUserPart ? '' : 'not',
-        campaignKey: campaign.getKey(),
+        campaignKey:
+          campaign.getType() === CampaignTypeEnum.AB
+            ? campaign.getKey()
+            : campaign.getName() + '_' + campaign.getRuleKey(),
       }),
     );
 
@@ -148,7 +151,10 @@ export class CampaignDecisionService implements ICampaignDecisionService {
       LogManager.Instance.info(
         buildMessage(InfoLogMessagesEnum.SEGMENTATION_SKIP, {
           userId: context.getId(),
-          campaignKey: campaign.getRuleKey(),
+          campaignKey:
+            campaign.getType() === CampaignTypeEnum.AB
+              ? campaign.getKey()
+              : campaign.getName() + '_' + campaign.getRuleKey(),
         }),
       );
 
@@ -163,7 +169,10 @@ export class CampaignDecisionService implements ICampaignDecisionService {
         LogManager.Instance.info(
           buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
             userId: context.getId(),
-            campaignKey: campaign.getRuleKey(),
+            campaignKey:
+              campaign.getType() === CampaignTypeEnum.AB
+                ? campaign.getKey()
+                : campaign.getName() + '_' + campaign.getRuleKey(),
             status: 'failed',
           }),
         );
@@ -174,7 +183,10 @@ export class CampaignDecisionService implements ICampaignDecisionService {
       LogManager.Instance.info(
         buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
           userId: context.getId(),
-          campaignKey: campaign.getRuleKey(),
+          campaignKey:
+            campaign.getType() === CampaignTypeEnum.AB
+              ? campaign.getKey()
+              : campaign.getName() + '_' + campaign.getRuleKey(),
           status: 'passed',
         }),
       );

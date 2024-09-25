@@ -86,7 +86,7 @@ var SegmentOperandEvaluator = /** @class */ (function () {
                             return [2 /*return*/, false];
                         }
                         if (!operand.includes('inlist')) return [3 /*break*/, 5];
-                        listIdRegex = /inlist\(([^:]+)\)/;
+                        listIdRegex = /inlist\(([^)]+)\)/;
                         match = operand.match(listIdRegex);
                         if (!match || match.length < 2) {
                             logger_1.LogManager.Instance.error("Invalid 'inList' operand format");

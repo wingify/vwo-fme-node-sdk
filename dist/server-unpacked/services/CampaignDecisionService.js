@@ -90,7 +90,9 @@ var CampaignDecisionService = /** @class */ (function () {
         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
             userId: userId,
             notPart: isUserPart ? '' : 'not',
-            campaignKey: campaign.getKey(),
+            campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+                ? campaign.getKey()
+                : campaign.getName() + '_' + campaign.getRuleKey(),
         }));
         return isUserPart;
     };
@@ -161,7 +163,9 @@ var CampaignDecisionService = /** @class */ (function () {
                         if (!((0, DataTypeUtil_1.isObject)(segments) && !Object.keys(segments).length)) return [3 /*break*/, 1];
                         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_SKIP, {
                             userId: context.getId(),
-                            campaignKey: campaign.getRuleKey(),
+                            campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+                                ? campaign.getKey()
+                                : campaign.getName() + '_' + campaign.getRuleKey(),
                         }));
                         return [2 /*return*/, true];
                     case 1: return [4 /*yield*/, segmentation_evaluator_1.SegmentationManager.Instance.validateSegmentation(segments, context.getCustomVariables())];
@@ -170,14 +174,18 @@ var CampaignDecisionService = /** @class */ (function () {
                         if (!preSegmentationResult) {
                             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
                                 userId: context.getId(),
-                                campaignKey: campaign.getRuleKey(),
+                                campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+                                    ? campaign.getKey()
+                                    : campaign.getName() + '_' + campaign.getRuleKey(),
                                 status: 'failed',
                             }));
                             return [2 /*return*/, false];
                         }
                         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
                             userId: context.getId(),
-                            campaignKey: campaign.getRuleKey(),
+                            campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+                                ? campaign.getKey()
+                                : campaign.getName() + '_' + campaign.getRuleKey(),
                             status: 'passed',
                         }));
                         return [2 /*return*/, true];

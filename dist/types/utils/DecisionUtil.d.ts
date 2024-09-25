@@ -10,7 +10,7 @@ export declare const checkWhitelistingAndPreSeg: (
   campaign: CampaignModel,
   context: ContextModel,
   evaluatedFeatureMap: Map<string, any>,
-  megGroupWinnerCampaigns: Map<number, number>,
+  megGroupWinnerCampaigns: Map<number, any>,
   storageService: IStorageService,
   decision: any,
 ) => Promise<[boolean, any]>;

@@ -18,9 +18,11 @@ import { VariableModel } from './VariableModel';
 export declare class VariationModel {
   private i;
   private id;
+  private type;
   private n;
   private key;
   private name;
+  private ruleKey;
   private w;
   private weight;
   private startRangeVariation;
@@ -35,10 +37,12 @@ export declare class VariationModel {
   setWeight(weight: number): void;
   getId(): number;
   getKey(): string;
+  getRuleKey(): string;
   getWeight(): number;
   getSegments(): Record<string, dynamic>;
   getStartRangeVariation(): number;
   getEndRangeVariation(): number;
   getVariables(): Array<VariableModel>;
   getVariations(): Array<VariationModel>;
+  getType(): string;
 }

@@ -45,7 +45,7 @@ export const evaluateRule = async (
   campaign: CampaignModel,
   context: ContextModel,
   evaluatedFeatureMap: Map<string, unknown>,
-  megGroupWinnerCampaigns: Map<number, number>,
+  megGroupWinnerCampaigns: Map<number, any>,
   storageService: IStorageService,
   decision: any,
 ): Promise<Record<string, any>> => {

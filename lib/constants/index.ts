@@ -67,4 +67,6 @@ export const Constants = {
   RANDOM_ALGO: 1,
 
   API_VERSION: '1',
+
+  VWO_META_MEG_KEY: '_vwo_meta_meg_',
 };

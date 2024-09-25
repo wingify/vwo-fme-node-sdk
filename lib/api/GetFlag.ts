@@ -237,7 +237,7 @@ export class FlagApi implements IGetFlag {
 
       // if rollout rule is passed, get all ab and Personalize rules
       const experimentRules = getAllExperimentRules(feature);
-      const megGroupWinnerCampaigns: Map<number, number> = new Map();
+      const megGroupWinnerCampaigns: Map<number, any> = new Map();
 
       for (const rule of experimentRules) {
         const { preSegmentationResult, whitelistedObject, updatedDecision } = await evaluateRule(

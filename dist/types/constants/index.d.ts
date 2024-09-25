@@ -21,4 +21,5 @@ export declare const Constants: {
   VWO_FS_ENVIRONMENT: string;
   RANDOM_ALGO: number;
   API_VERSION: string;
+  VWO_META_MEG_KEY: string;
 };

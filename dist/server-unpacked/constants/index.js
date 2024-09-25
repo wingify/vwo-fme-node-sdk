@@ -58,5 +58,6 @@ exports.Constants = {
     VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
     RANDOM_ALGO: 1,
     API_VERSION: '1',
+    VWO_META_MEG_KEY: '_vwo_meta_meg_',
 };
 //# sourceMappingURL=index.js.map

@@ -42,6 +42,7 @@ export interface IVWOOptions {
   network?: INetworkOptions;
   platform?: string;
   shouldWaitForTrackingCalls?: boolean;
+  settings?: Record<any, any>;
 
   vwoBuilder?: IVWOBuilder;
 }
@@ -58,6 +59,7 @@ export class VWOOptionsModel implements IVWOOptions {
   integrations?: IIntegrationOptions;
   network?: INetworkOptions;
   shouldWaitForTrackingCalls?: boolean;
+  settings?: Record<any, any>;
 
   vwoBuilder?: IVWOBuilder;
 
@@ -92,6 +94,10 @@ export class VWOOptionsModel implements IVWOOptions {
     }
     if (options?.network) {
       this.network = options.network;
+    }
+
+    if (options?.settings) {
+      this.settings = options.settings;
     }
 
     return this;
@@ -135,5 +141,9 @@ export class VWOOptionsModel implements IVWOOptions {
 
   getVWOBuilder(): IVWOBuilder {
     return this.vwoBuilder;
+  }
+
+  getSettings(): Record<any, any> {
+    return this.settings;
   }
 }

@@ -25,16 +25,15 @@ import { HTTPS_PROTOCOL, HTTP_PROTOCOL } from '../constants/Url';
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation';
-import { SettingsModel } from '../models/settings/SettingsModel';
 import { buildMessage } from '../utils/LogMessageUtil';
 import { getSettingsPath } from '../utils/NetworkUtil';
 
 interface ISettingsService {
   sdkKey: string;
 
-  getSettings(forceFetch: boolean): Promise<dynamic>;
+  getSettings(forceFetch: boolean): Promise<Record<any, any>>;
 
-  fetchSettings(): Promise<dynamic>;
+  fetchSettings(): Promise<Record<any, any>>;
 }
 
 export class SettingsService implements ISettingsService {
@@ -134,7 +133,7 @@ export class SettingsService implements ISettingsService {
     return deferredObject.promise;
   }
 
-  fetchSettings(): Promise<SettingsModel> {
+  fetchSettings(): Promise<Record<any, any>> {
     const deferredObject = new Deferred();
 
     if (!this.sdkKey || !this.accountId) {
@@ -186,11 +185,11 @@ export class SettingsService implements ISettingsService {
     }
   }
 
-  getSettings(forceFetch = false): Promise<SettingsModel> {
+  getSettings(forceFetch = false): Promise<Record<any, any>> {
     const deferredObject = new Deferred();
 
     if (forceFetch) {
-      this.fetchSettingsAndCacheInStorage().then((settings) => {
+      this.fetchSettingsAndCacheInStorage().then((settings: Record<any, any>) => {
         deferredObject.resolve(settings);
       });
     } else {
@@ -219,7 +218,7 @@ export class SettingsService implements ISettingsService {
       //       });
       //     });
       // } else {
-      this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
+      this.fetchSettingsAndCacheInStorage().then((fetchedSettings: Record<any, any>) => {
         const isSettingsValid = new SettingsSchema().isSettingsValid(fetchedSettings);
         if (isSettingsValid) {
           LogManager.Instance.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);

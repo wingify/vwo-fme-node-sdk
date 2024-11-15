@@ -5,6 +5,7 @@ import { IVWOOptions } from './models/VWOOptionsModel';
 export interface IVWOClient {
   readonly options?: IVWOOptions;
   settings: SettingsModel;
+  originalSettings: Record<any, any>;
   getFlag(featureKey: string, context: Record<string, any>): Record<any, any>;
   trackEvent(
     eventName: string,
@@ -21,7 +22,7 @@ export declare class VWOClient implements IVWOClient {
   settings: SettingsModel;
   originalSettings: Record<any, any>;
   storage: Storage;
-  constructor(settings: SettingsModel, options: IVWOOptions);
+  constructor(settings: Record<any, any>, options: IVWOOptions);
   options?: IVWOOptions;
   /**
    * Retrieves the value of a feature flag for a given feature key and context.

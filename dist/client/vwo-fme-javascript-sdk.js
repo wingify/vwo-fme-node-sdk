@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.7.0
+ * vwo-fme-javascript-sdk - v1.8.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -275,6 +275,9 @@ var VWO = /** @class */ (function () {
             // .initBatching()        // Initializes batching for bulk data processing.
             .initPolling(); // Starts polling mechanism for regular updates.
         // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
+        if (options === null || options === void 0 ? void 0 : options.settings) {
+            return Promise.resolve(this.vwoBuilder.build(options.settings));
+        }
         return this.vwoBuilder.getSettings().then(function (settings) {
             return _this.vwoBuilder.build(settings); // Builds the VWO instance with the fetched settings.
         });
@@ -1637,7 +1640,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.7.0", // will be replaced by webpack for browser build
+        version: "1.8.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -8957,26 +8960,17 @@ exports.evaluateRule = evaluateRule;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setSettingsAndAddCampaignsToRules = void 0;
-/**
- * Copyright 2024 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 var SettingsModel_1 = __webpack_require__(/*! ../models/settings/SettingsModel */ "./lib/models/settings/SettingsModel.ts");
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./lib/utils/CampaignUtil.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./lib/utils/FunctionUtil.ts");
 var GatewayServiceUtil_1 = __webpack_require__(/*! ./GatewayServiceUtil */ "./lib/utils/GatewayServiceUtil.ts");
+/**
+ * Sets settings and adds campaigns to rules
+ * @param settings settings
+ * @param vwoClientInstance VWOClient instance
+ */
 function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance) {
+    // create settings model and set it to vwoClientInstance
     vwoClientInstance.settings = new SettingsModel_1.SettingsModel(settings);
     vwoClientInstance.originalSettings = settings;
     // Optimize loop by avoiding multiple calls to `getCampaigns()`
@@ -11445,7 +11439,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SET_USER_ALIAS":"Error in setting user alias for user ID:{userId} and alias ID:{aliasUserId}. Error:{err}","GET_USER_ALIAS":"Error in getting user alias for user ID:{userId}. Error:{err}"}');
 
 /***/ }),
 

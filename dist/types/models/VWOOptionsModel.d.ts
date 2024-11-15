@@ -38,6 +38,7 @@ export interface IVWOOptions {
   network?: INetworkOptions;
   platform?: string;
   shouldWaitForTrackingCalls?: boolean;
+  settings?: Record<any, any>;
   vwoBuilder?: IVWOBuilder;
 }
 export declare class VWOOptionsModel implements IVWOOptions {
@@ -52,6 +53,7 @@ export declare class VWOOptionsModel implements IVWOOptions {
   integrations?: IIntegrationOptions;
   network?: INetworkOptions;
   shouldWaitForTrackingCalls?: boolean;
+  settings?: Record<any, any>;
   vwoBuilder?: IVWOBuilder;
   modelFromDictionary(options: VWOOptionsModel): this;
   getAccountId(): string;
@@ -64,5 +66,6 @@ export declare class VWOOptionsModel implements IVWOOptions {
   getSegmentation(): SegmentEvaluator;
   getNetwork(): INetworkOptions;
   getVWOBuilder(): IVWOBuilder;
+  getSettings(): Record<any, any>;
 }
 export {};

@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IVWOClient } from './../VWOClient';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { setVariationAllocation } from './CampaignUtil';
 import { addLinkedCampaignsToSettings } from './FunctionUtil';
 import { addIsGatewayServiceRequiredFlag } from './GatewayServiceUtil';
 
-export function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance) {
+/**
+ * Sets settings and adds campaigns to rules
+ * @param settings settings
+ * @param vwoClientInstance VWOClient instance
+ */
+export function setSettingsAndAddCampaignsToRules(settings: any, vwoClientInstance: IVWOClient) {
+  // create settings model and set it to vwoClientInstance
   vwoClientInstance.settings = new SettingsModel(settings);
   vwoClientInstance.originalSettings = settings;
   // Optimize loop by avoiding multiple calls to `getCampaigns()`

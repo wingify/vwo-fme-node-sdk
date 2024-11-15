@@ -43,6 +43,7 @@ import { setShouldWaitForTrackingCalls } from './utils/NetworkUtil';
 export interface IVWOClient {
   readonly options?: IVWOOptions;
   settings: SettingsModel;
+  originalSettings: Record<any, any>;
 
   getFlag(featureKey: string, context: Record<string, any>): Record<any, any>;
   trackEvent(
@@ -62,7 +63,7 @@ export class VWOClient implements IVWOClient {
   originalSettings: Record<any, any>;
   storage: Storage;
 
-  constructor(settings: SettingsModel, options: IVWOOptions) {
+  constructor(settings: Record<any, any>, options: IVWOOptions) {
     this.options = options;
 
     setSettingsAndAddCampaignsToRules(settings, this);

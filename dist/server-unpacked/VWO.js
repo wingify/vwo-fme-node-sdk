@@ -87,6 +87,9 @@ var VWO = /** @class */ (function () {
             // .initBatching()        // Initializes batching for bulk data processing.
             .initPolling(); // Starts polling mechanism for regular updates.
         // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
+        if (options === null || options === void 0 ? void 0 : options.settings) {
+            return Promise.resolve(this.vwoBuilder.build(options.settings));
+        }
         return this.vwoBuilder.getSettings().then(function (settings) {
             return _this.vwoBuilder.build(settings); // Builds the VWO instance with the fetched settings.
         });

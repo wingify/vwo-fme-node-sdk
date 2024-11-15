@@ -35,17 +35,17 @@ import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
 import { getRandomUUID } from './utils/UuidUtil';
 
 export interface IVWOBuilder {
-  settings: SettingsModel; // Holds the configuration settings for the VWO client
+  settings: Record<any, any>; // Holds the configuration settings for the VWO client
   storage: Storage; // Interface for storage management
   logManager: ILogManager; // Manages logging across the VWO SDK
   isSettingsFetchInProgress: boolean; // Flag to check if settings fetch is in progress
   vwoInstance: IVWOClient;
 
-  build(settings: SettingsModel): IVWOClient; // Builds and returns a new VWOClient instance
+  build(settings: Record<any, any>): IVWOClient; // Builds and returns a new VWOClient instance
 
-  fetchSettings(): Promise<SettingsModel>; // Asynchronously fetches settings from the server
+  fetchSettings(): Promise<Record<any, any>>; // Asynchronously fetches settings from the server
   setSettingsService(): this; // Sets up the settings manager with provided options
-  getSettings(force: boolean): Promise<dynamic>; // Fetches settings, optionally forcing a refresh
+  getSettings(force: boolean): Promise<Record<any, any>>; // Fetches settings, optionally forcing a refresh
   setStorage(): this; // Sets up the storage connector based on provided options
   setNetworkManager(): this; // Configures the network manager with client and mode
   // initBatching(): this; // Initializes event batching with provided configuration
@@ -61,7 +61,7 @@ export class VWOBuilder implements IVWOBuilder {
 
   private settingFileManager: SettingsService;
 
-  settings: SettingsModel;
+  settings: Record<any, any>;
   storage: Storage;
   logManager: ILogManager;
   originalSettings: dynamic;
@@ -110,13 +110,13 @@ export class VWOBuilder implements IVWOBuilder {
    * @param {boolean} [force=false] - Force fetch ignoring cache.
    * @returns {Promise<SettingsModel>} A promise that resolves to the fetched settings.
    */
-  fetchSettings(force?: boolean): Promise<SettingsModel> {
+  fetchSettings(force?: boolean): Promise<Record<any, any>> {
     const deferredObject = new Deferred();
 
     // Check if a fetch operation is already in progress
     if (!this.isSettingsFetchInProgress) {
       this.isSettingsFetchInProgress = true;
-      this.settingFileManager.getSettings(force).then((settings: SettingsModel) => {
+      this.settingFileManager.getSettings(force).then((settings: Record<any, any>) => {
         // if force is false, update original settings, if true the request is from polling and no need to update original settings
         if (!force) {
           this.originalSettings = settings;
@@ -138,7 +138,7 @@ export class VWOBuilder implements IVWOBuilder {
    * @param {boolean} [force=false] - Force fetch ignoring cache.
    * @returns {Promise<SettingsModel>} A promise that resolves to the settings.
    */
-  getSettings(force?: boolean): Promise<SettingsModel> {
+  getSettings(force?: boolean): Promise<Record<any, any>> {
     const deferredObject = new Deferred();
 
     try {
@@ -148,7 +148,7 @@ export class VWOBuilder implements IVWOBuilder {
         deferredObject.resolve(this.settings);
       } else {
         // Fetch settings if not cached or forced
-        this.fetchSettings(force).then((settings: SettingsModel) => {
+        this.fetchSettings(force).then((settings: Record<any, any>) => {
           deferredObject.resolve(settings);
         });
       }
@@ -323,7 +323,7 @@ export class VWOBuilder implements IVWOBuilder {
    * @param {SettingsModel} settings - The settings for the VWOClient.
    * @returns {VWOClient} The new VWOClient instance.
    */
-  build(settings: SettingsModel): IVWOClient {
+  build(settings: Record<any, any>): IVWOClient {
     this.vwoInstance = new VWOClient(settings, this.options);
 
     return this.vwoInstance;

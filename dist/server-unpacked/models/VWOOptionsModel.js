@@ -50,6 +50,9 @@ var VWOOptionsModel = /** @class */ (function () {
         if (options === null || options === void 0 ? void 0 : options.network) {
             this.network = options.network;
         }
+        if (options === null || options === void 0 ? void 0 : options.settings) {
+            this.settings = options.settings;
+        }
         return this;
     };
     VWOOptionsModel.prototype.getAccountId = function () {
@@ -81,6 +84,9 @@ var VWOOptionsModel = /** @class */ (function () {
     };
     VWOOptionsModel.prototype.getVWOBuilder = function () {
         return this.vwoBuilder;
+    };
+    VWOOptionsModel.prototype.getSettings = function () {
+        return this.settings;
     };
     return VWOOptionsModel;
 }());

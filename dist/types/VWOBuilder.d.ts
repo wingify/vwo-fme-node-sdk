@@ -17,18 +17,17 @@ import { dynamic } from './types/Common';
 import { ILogManager } from './packages/logger';
 import { Storage } from './packages/storage';
 import { IVWOClient } from './VWOClient';
-import { SettingsModel } from './models/settings/SettingsModel';
 import { IVWOOptions } from './models/VWOOptionsModel';
 export interface IVWOBuilder {
-  settings: SettingsModel;
+  settings: Record<any, any>;
   storage: Storage;
   logManager: ILogManager;
   isSettingsFetchInProgress: boolean;
   vwoInstance: IVWOClient;
-  build(settings: SettingsModel): IVWOClient;
-  fetchSettings(): Promise<SettingsModel>;
+  build(settings: Record<any, any>): IVWOClient;
+  fetchSettings(): Promise<Record<any, any>>;
   setSettingsService(): this;
-  getSettings(force: boolean): Promise<dynamic>;
+  getSettings(force: boolean): Promise<Record<any, any>>;
   setStorage(): this;
   setNetworkManager(): this;
   initPolling(): this;
@@ -39,7 +38,7 @@ export declare class VWOBuilder implements IVWOBuilder {
   readonly sdkKey: string;
   readonly options: IVWOOptions;
   private settingFileManager;
-  settings: SettingsModel;
+  settings: Record<any, any>;
   storage: Storage;
   logManager: ILogManager;
   originalSettings: dynamic;
@@ -61,13 +60,13 @@ export declare class VWOBuilder implements IVWOBuilder {
    * @param {boolean} [force=false] - Force fetch ignoring cache.
    * @returns {Promise<SettingsModel>} A promise that resolves to the fetched settings.
    */
-  fetchSettings(force?: boolean): Promise<SettingsModel>;
+  fetchSettings(force?: boolean): Promise<Record<any, any>>;
   /**
    * Gets the settings, fetching them if not cached or if forced.
    * @param {boolean} [force=false] - Force fetch ignoring cache.
    * @returns {Promise<SettingsModel>} A promise that resolves to the settings.
    */
-  getSettings(force?: boolean): Promise<SettingsModel>;
+  getSettings(force?: boolean): Promise<Record<any, any>>;
   /**
    * Sets the storage connector based on the provided storage options.
    * @returns {this} The instance of this builder.
@@ -106,7 +105,7 @@ export declare class VWOBuilder implements IVWOBuilder {
    * @param {SettingsModel} settings - The settings for the VWOClient.
    * @returns {VWOClient} The new VWOClient instance.
    */
-  build(settings: SettingsModel): IVWOClient;
+  build(settings: Record<any, any>): IVWOClient;
   /**
    * Checks and polls for settings updates at the provided interval.
    */

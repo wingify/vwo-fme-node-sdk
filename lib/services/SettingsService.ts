@@ -133,7 +133,7 @@ export class SettingsService implements ISettingsService {
     return deferredObject.promise;
   }
 
-  fetchSettings(): Promise<Record<any, any>> {
+  fetchSettings(isViaWebhook = false): Promise<Record<any, any>> {
     const deferredObject = new Deferred();
 
     if (!this.sdkKey || !this.accountId) {
@@ -150,11 +150,16 @@ export class SettingsService implements ISettingsService {
       options.s = 'prod';
     }
 
+    let path = Constants.SETTINTS_ENDPOINT;
+    if (isViaWebhook) {
+      path = Constants.WEBHOOK_SETTINTS_ENDPOINT;
+    }
+
     try {
       const request: RequestModel = new RequestModel(
         this.hostname,
         HttpMethodEnum.GET,
-        Constants.SETTINTS_ENDPOINT,
+        path,
         options,
         null,
         null,

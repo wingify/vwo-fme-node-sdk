@@ -17,11 +17,13 @@ export interface IVWOClient {
     attributeValue: boolean | string | number,
     context: Record<string, any>,
   ): Promise<void>;
+  updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
 }
 export declare class VWOClient implements IVWOClient {
   settings: SettingsModel;
   originalSettings: Record<any, any>;
   storage: Storage;
+  vwoClientInstance: VWOClient;
   constructor(settings: Record<any, any>, options: IVWOOptions);
   options?: IVWOOptions;
   /**
@@ -60,4 +62,11 @@ export declare class VWOClient implements IVWOClient {
     attributeValue: boolean | string | number,
     context: Record<string, any>,
   ): Promise<void>;
+  /**
+   * Updates the settings by fetching the latest settings from the VWO server.
+   * @param settings - The settings to update.
+   * @param isViaWebhook - Whether to fetch the settings from the webhook endpoint.
+   * @returns Promise<void>
+   */
+  updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
 }

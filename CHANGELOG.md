@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2024-11-22
+
+### Added
+
+- added new method `updateSettings` to update settings on the client instance.
+
 ## [1.9.0] - 2024-11-14
 
 ### Added
@@ -15,13 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- feat: added support for Personalise rules within `Mutually Exclusive Groups`.
+- added support for Personalise rules within `Mutually Exclusive Groups`.
 
 ## [1.7.0] - 2024-09-03
 
 ### Added
 
-- feat: added support to wait for network response incase of edge like environment.
+- added support to wait for network response incase of edge like environment.
 
   ```javascript
   const { init } = require('vwo-fme-node-sdk');

@@ -67,6 +67,7 @@ var LogMessageUtil_1 = require("./utils/LogMessageUtil");
 var PromiseUtil_1 = require("./utils/PromiseUtil");
 var SettingsUtil_1 = require("./utils/SettingsUtil");
 var NetworkUtil_1 = require("./utils/NetworkUtil");
+var SettingsService_1 = require("./services/SettingsService");
 var VWOClient = /** @class */ (function () {
     function VWOClient(settings, options) {
         this.options = options;
@@ -76,6 +77,7 @@ var VWOClient = /** @class */ (function () {
         });
         (0, NetworkUtil_1.setShouldWaitForTrackingCalls)(this.options.shouldWaitForTrackingCalls || false);
         logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.CLIENT_INITIALIZED);
+        this.vwoClientInstance = this;
         return this;
     }
     /**
@@ -273,6 +275,55 @@ var VWOClient = /** @class */ (function () {
                         }));
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Updates the settings by fetching the latest settings from the VWO server.
+     * @param settings - The settings to update.
+     * @param isViaWebhook - Whether to fetch the settings from the webhook endpoint.
+     * @returns Promise<void>
+     */
+    VWOClient.prototype.updateSettings = function (settings_1) {
+        return __awaiter(this, arguments, void 0, function (settings, isViaWebhook) {
+            var apiName, settingsToUpdate, _a, err_2;
+            if (isViaWebhook === void 0) { isViaWebhook = true; }
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        apiName = 'updateSettings';
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 5, , 6]);
+                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
+                        if (!(!settings || Object.keys(settings).length === 0)) return [3 /*break*/, 3];
+                        return [4 /*yield*/, SettingsService_1.SettingsService.Instance.fetchSettings(isViaWebhook)];
+                    case 2:
+                        _a = _b.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        _a = settings;
+                        _b.label = 4;
+                    case 4:
+                        settingsToUpdate = _a;
+                        // validate settings schema
+                        if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(settingsToUpdate)) {
+                            throw new Error('TypeError: Invalid Settings schema');
+                        }
+                        // set the settings on the client instance
+                        (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settingsToUpdate, this.vwoClientInstance);
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName: apiName, isViaWebhook: isViaWebhook }));
+                        return [3 /*break*/, 6];
+                    case 5:
+                        err_2 = _b.sent();
+                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_FAILED, {
+                            apiName: apiName,
+                            isViaWebhook: isViaWebhook,
+                            err: JSON.stringify(err_2),
+                        }));
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         });

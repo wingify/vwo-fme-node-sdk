@@ -60,6 +60,7 @@ export const Constants = {
 
   HOST_NAME: 'dev.visualwebsiteoptimizer.com',
   SETTINTS_ENDPOINT: '/server-side/v2-settings',
+  WEBHOOK_SETTINTS_ENDPOINT: '/server-side/v2-pull',
   LOCATION_ENDPOINT: '/getLocation',
 
   VWO_FS_ENVIRONMENT: 'vwo_fs_environment',

@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.8.0
+ * vwo-fme-javascript-sdk - v1.9.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -20,7 +20,7 @@
  *  1. murmurhash - ^2.0.1
  *  2. superstruct - ^0.14.x
  *  3. uuid - ^9.0.1
- *  4. vwo-fme-sdk-log-messages - ^0.1.2
+ *  4. vwo-fme-sdk-log-messages - ^1.0.1
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	// CommonJS2
@@ -769,6 +769,7 @@ var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./lib/
 var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 var SettingsUtil_1 = __webpack_require__(/*! ./utils/SettingsUtil */ "./lib/utils/SettingsUtil.ts");
 var NetworkUtil_1 = __webpack_require__(/*! ./utils/NetworkUtil */ "./lib/utils/NetworkUtil.ts");
+var SettingsService_1 = __webpack_require__(/*! ./services/SettingsService */ "./lib/services/SettingsService.ts");
 var VWOClient = /** @class */ (function () {
     function VWOClient(settings, options) {
         this.options = options;
@@ -778,6 +779,7 @@ var VWOClient = /** @class */ (function () {
         });
         (0, NetworkUtil_1.setShouldWaitForTrackingCalls)(this.options.shouldWaitForTrackingCalls || false);
         logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.CLIENT_INITIALIZED);
+        this.vwoClientInstance = this;
         return this;
     }
     /**
@@ -975,6 +977,55 @@ var VWOClient = /** @class */ (function () {
                         }));
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Updates the settings by fetching the latest settings from the VWO server.
+     * @param settings - The settings to update.
+     * @param isViaWebhook - Whether to fetch the settings from the webhook endpoint.
+     * @returns Promise<void>
+     */
+    VWOClient.prototype.updateSettings = function (settings_1) {
+        return __awaiter(this, arguments, void 0, function (settings, isViaWebhook) {
+            var apiName, settingsToUpdate, _a, err_2;
+            if (isViaWebhook === void 0) { isViaWebhook = true; }
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        apiName = 'updateSettings';
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 5, , 6]);
+                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
+                        if (!(!settings || Object.keys(settings).length === 0)) return [3 /*break*/, 3];
+                        return [4 /*yield*/, SettingsService_1.SettingsService.Instance.fetchSettings(isViaWebhook)];
+                    case 2:
+                        _a = _b.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        _a = settings;
+                        _b.label = 4;
+                    case 4:
+                        settingsToUpdate = _a;
+                        // validate settings schema
+                        if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(settingsToUpdate)) {
+                            throw new Error('TypeError: Invalid Settings schema');
+                        }
+                        // set the settings on the client instance
+                        (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settingsToUpdate, this.vwoClientInstance);
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName: apiName, isViaWebhook: isViaWebhook }));
+                        return [3 /*break*/, 6];
+                    case 5:
+                        err_2 = _b.sent();
+                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_FAILED, {
+                            apiName: apiName,
+                            isViaWebhook: isViaWebhook,
+                            err: JSON.stringify(err_2),
+                        }));
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
@@ -1640,7 +1691,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.8.0", // will be replaced by webpack for browser build
+        version: "1.9.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -1664,6 +1715,7 @@ exports.Constants = {
     SETTINGS_TIMEOUT: 50000,
     HOST_NAME: 'dev.visualwebsiteoptimizer.com',
     SETTINTS_ENDPOINT: '/server-side/v2-settings',
+    WEBHOOK_SETTINTS_ENDPOINT: '/server-side/v2-pull',
     LOCATION_ENDPOINT: '/getLocation',
     VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
     RANDOM_ALGO: 1,
@@ -6334,7 +6386,8 @@ var SettingsService = /** @class */ (function () {
         });
         return deferredObject.promise;
     };
-    SettingsService.prototype.fetchSettings = function () {
+    SettingsService.prototype.fetchSettings = function (isViaWebhook) {
+        if (isViaWebhook === void 0) { isViaWebhook = false; }
         var deferredObject = new PromiseUtil_1.Deferred();
         if (!this.sdkKey || !this.accountId) {
             deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
@@ -6346,8 +6399,12 @@ var SettingsService = /** @class */ (function () {
         if (!networkInstance.getConfig().getDevelopmentMode()) {
             options.s = 'prod';
         }
+        var path = constants_1.Constants.SETTINTS_ENDPOINT;
+        if (isViaWebhook) {
+            path = constants_1.Constants.WEBHOOK_SETTINTS_ENDPOINT;
+        }
         try {
-            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, constants_1.Constants.SETTINTS_ENDPOINT, options, null, null, this.protocol, this.port);
+            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port);
             request.setTimeout(this.networkTimeout);
             networkInstance
                 .get(request)

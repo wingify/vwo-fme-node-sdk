@@ -39,6 +39,7 @@ import { Deferred } from './utils/PromiseUtil';
 import { IVWOOptions } from './models/VWOOptionsModel';
 import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
 import { setShouldWaitForTrackingCalls } from './utils/NetworkUtil';
+import { SettingsService } from './services/SettingsService';
 
 export interface IVWOClient {
   readonly options?: IVWOOptions;
@@ -56,12 +57,14 @@ export interface IVWOClient {
     attributeValue: boolean | string | number,
     context: Record<string, any>,
   ): Promise<void>;
+  updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
 }
 
 export class VWOClient implements IVWOClient {
   settings: SettingsModel;
   originalSettings: Record<any, any>;
   storage: Storage;
+  vwoClientInstance: VWOClient;
 
   constructor(settings: Record<any, any>, options: IVWOOptions) {
     this.options = options;
@@ -75,6 +78,7 @@ export class VWOClient implements IVWOClient {
     setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
 
     LogManager.Instance.info(InfoLogMessagesEnum.CLIENT_INITIALIZED);
+    this.vwoClientInstance = this;
     return this;
   }
   options?: IVWOOptions;
@@ -313,6 +317,41 @@ export class VWOClient implements IVWOClient {
         buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
           apiName,
           err,
+        }),
+      );
+    }
+  }
+
+  /**
+   * Updates the settings by fetching the latest settings from the VWO server.
+   * @param settings - The settings to update.
+   * @param isViaWebhook - Whether to fetch the settings from the webhook endpoint.
+   * @returns Promise<void>
+   */
+  async updateSettings(settings?: Record<string, any>, isViaWebhook = true): Promise<void> {
+    const apiName = 'updateSettings';
+    try {
+      LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName }));
+      // fetch settings from the server or use the provided settings file if it's not empty
+      const settingsToUpdate =
+        !settings || Object.keys(settings).length === 0
+          ? await SettingsService.Instance.fetchSettings(isViaWebhook)
+          : settings;
+
+      // validate settings schema
+      if (!new SettingsSchema().isSettingsValid(settingsToUpdate)) {
+        throw new Error('TypeError: Invalid Settings schema');
+      }
+
+      // set the settings on the client instance
+      setSettingsAndAddCampaignsToRules(settingsToUpdate, this.vwoClientInstance);
+      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName, isViaWebhook }));
+    } catch (err) {
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_FAILED, {
+          apiName,
+          isViaWebhook,
+          err: JSON.stringify(err),
         }),
       );
     }

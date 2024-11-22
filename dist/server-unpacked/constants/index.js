@@ -54,6 +54,7 @@ exports.Constants = {
     SETTINGS_TIMEOUT: 50000,
     HOST_NAME: 'dev.visualwebsiteoptimizer.com',
     SETTINTS_ENDPOINT: '/server-side/v2-settings',
+    WEBHOOK_SETTINTS_ENDPOINT: '/server-side/v2-pull',
     LOCATION_ENDPOINT: '/getLocation',
     VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
     RANDOM_ALGO: 1,

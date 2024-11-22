@@ -17,6 +17,7 @@ export declare const Constants: {
   SETTINGS_TIMEOUT: number;
   HOST_NAME: string;
   SETTINTS_ENDPOINT: string;
+  WEBHOOK_SETTINTS_ENDPOINT: string;
   LOCATION_ENDPOINT: string;
   VWO_FS_ENVIRONMENT: string;
   RANDOM_ALGO: number;

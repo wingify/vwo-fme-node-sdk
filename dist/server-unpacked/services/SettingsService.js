@@ -132,7 +132,8 @@ var SettingsService = /** @class */ (function () {
         });
         return deferredObject.promise;
     };
-    SettingsService.prototype.fetchSettings = function () {
+    SettingsService.prototype.fetchSettings = function (isViaWebhook) {
+        if (isViaWebhook === void 0) { isViaWebhook = false; }
         var deferredObject = new PromiseUtil_1.Deferred();
         if (!this.sdkKey || !this.accountId) {
             deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
@@ -144,8 +145,12 @@ var SettingsService = /** @class */ (function () {
         if (!networkInstance.getConfig().getDevelopmentMode()) {
             options.s = 'prod';
         }
+        var path = constants_1.Constants.SETTINTS_ENDPOINT;
+        if (isViaWebhook) {
+            path = constants_1.Constants.WEBHOOK_SETTINTS_ENDPOINT;
+        }
         try {
-            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, constants_1.Constants.SETTINTS_ENDPOINT, options, null, null, this.protocol, this.port);
+            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port);
             request.setTimeout(this.networkTimeout);
             networkInstance
                 .get(request)

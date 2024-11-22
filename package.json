@@ -82,7 +82,7 @@
     "murmurhash": "^2.0.1",
     "superstruct": "^0.14.x",
     "uuid": "^9.0.1",
-    "vwo-fme-sdk-log-messages": "^0.1.2"
+    "vwo-fme-sdk-log-messages": "^1.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",

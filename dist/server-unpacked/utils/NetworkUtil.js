@@ -241,7 +241,7 @@ function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, v
             properties.d.event.props[prop] = eventProperties[prop];
         }
     }
-    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_GOAL, {
         eventName: eventName,
         accountId: settings.getAccountId(),
         userId: userId,
@@ -267,7 +267,7 @@ function getAttributePayloadData(settings, userId, eventName, attributeKey, attr
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
     properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
-    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
         eventName: eventName,
         accountId: settings.getAccountId(),
         userId: userId,

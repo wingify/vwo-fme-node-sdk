@@ -105,8 +105,13 @@ function getBucketingSeed(userId, campaign, groupId) {
     if (groupId) {
         return "".concat(groupId, "_").concat(userId);
     }
+    var isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+    // get salt
+    var salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
+    // get bucket key
+    var bucketKey = salt ? "".concat(salt, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(userId);
     // Return a seed combining campaign ID and user ID otherwise
-    return "".concat(campaign.getId(), "_").concat(userId);
+    return bucketKey;
 }
 exports.getBucketingSeed = getBucketingSeed;
 /**

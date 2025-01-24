@@ -25,6 +25,7 @@ export class VariationModel {
   private key: string;
   private name: string;
   private ruleKey: string;
+  private salt: string;
 
   private w: number;
   private weight: number;
@@ -42,6 +43,7 @@ export class VariationModel {
     this.key = variation.n || variation.key || variation.name;
     this.weight = variation.w || variation.weight;
     this.ruleKey = variation.ruleKey;
+    this.salt = variation.salt;
     this.type = variation.type;
     this.setStartRange(variation.startRangeVariation);
     this.setEndRange(variation.endRangeVariation);
@@ -124,5 +126,9 @@ export class VariationModel {
 
   getType(): string {
     return this.type;
+  }
+
+  getSalt(): string {
+    return this.salt;
   }
 }

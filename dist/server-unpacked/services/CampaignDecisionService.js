@@ -78,14 +78,17 @@ var CampaignDecisionService = /** @class */ (function () {
         if (!campaign || !userId) {
             return false;
         }
-        var trafficAllocation;
-        if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
-            trafficAllocation = campaign.getVariations()[0].getWeight();
-        }
-        else {
-            trafficAllocation = campaign.getTraffic();
-        }
-        var valueAssignedToUser = new decision_maker_1.DecisionMaker().getBucketValueForUser("".concat(campaign.getId(), "_").concat(userId));
+        // check if campaign is rollout or personalize
+        var isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+        // get salt
+        var salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
+        // get traffic allocation
+        var trafficAllocation = isRolloutOrPersonalize ? campaign.getVariations()[0].getWeight() : campaign.getTraffic();
+        // get bucket key
+        var bucketKey = salt ? "".concat(salt, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(userId);
+        // get bucket value for user
+        var valueAssignedToUser = new decision_maker_1.DecisionMaker().getBucketValueForUser(bucketKey);
+        // check if user is part of campaign
         var isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
             userId: userId,
@@ -135,7 +138,12 @@ var CampaignDecisionService = /** @class */ (function () {
             multiplier = 1;
         }
         var percentTraffic = campaign.getTraffic();
-        var hashValue = new decision_maker_1.DecisionMaker().generateHashValue("".concat(campaign.getId(), "_").concat(accountId, "_").concat(userId));
+        // get salt
+        var salt = campaign.getSalt();
+        // get bucket key
+        var bucketKey = salt ? "".concat(salt, "_").concat(accountId, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(accountId, "_").concat(userId);
+        // get hash value
+        var hashValue = new decision_maker_1.DecisionMaker().generateHashValue(bucketKey);
         var bucketValue = new decision_maker_1.DecisionMaker().generateBucketValue(hashValue, constants_1.Constants.MAX_TRAFFIC_VALUE, multiplier);
         logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
             userId: userId,

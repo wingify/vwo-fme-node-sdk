@@ -53,13 +53,19 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     if (!campaign || !userId) {
       return false;
     }
-    let trafficAllocation;
-    if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
-      trafficAllocation = campaign.getVariations()[0].getWeight();
-    } else {
-      trafficAllocation = campaign.getTraffic();
-    }
-    const valueAssignedToUser = new DecisionMaker().getBucketValueForUser(`${campaign.getId()}_${userId}`);
+
+    // check if campaign is rollout or personalize
+    const isRolloutOrPersonalize =
+      campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE;
+    // get salt
+    const salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
+    // get traffic allocation
+    const trafficAllocation = isRolloutOrPersonalize ? campaign.getVariations()[0].getWeight() : campaign.getTraffic();
+    // get bucket key
+    const bucketKey = salt ? `${salt}_${userId}` : `${campaign.getId()}_${userId}`;
+    // get bucket value for user
+    const valueAssignedToUser = new DecisionMaker().getBucketValueForUser(bucketKey);
+    // check if user is part of campaign
     const isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
 
     LogManager.Instance.info(
@@ -121,7 +127,12 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     }
 
     const percentTraffic = campaign.getTraffic();
-    const hashValue = new DecisionMaker().generateHashValue(`${campaign.getId()}_${accountId}_${userId}`);
+    // get salt
+    const salt = campaign.getSalt();
+    // get bucket key
+    const bucketKey = salt ? `${salt}_${accountId}_${userId}` : `${campaign.getId()}_${accountId}_${userId}`;
+    // get hash value
+    const hashValue = new DecisionMaker().generateHashValue(bucketKey);
     const bucketValue = new DecisionMaker().generateBucketValue(hashValue, Constants.MAX_TRAFFIC_VALUE, multiplier);
 
     LogManager.Instance.debug(

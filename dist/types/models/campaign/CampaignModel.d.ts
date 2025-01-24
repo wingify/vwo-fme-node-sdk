@@ -20,6 +20,7 @@ import { VariationModel } from './VariationModel';
 export declare class CampaignModel {
   private id;
   private segments;
+  private salt;
   private percentTraffic;
   private isUserListEnabled;
   private key;
@@ -48,4 +49,5 @@ export declare class CampaignModel {
   getVariations(): Array<VariationModel>;
   getVariables(): Array<VariableModel>;
   getRuleKey(): string;
+  getSalt(): string;
 }

@@ -106,8 +106,14 @@ export function getBucketingSeed(userId: string, campaign: CampaignModel, groupI
   if (groupId) {
     return `${groupId}_${userId}`;
   }
+  const isRolloutOrPersonalize =
+    campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE;
+  // get salt
+  const salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
+  // get bucket key
+  const bucketKey = salt ? `${salt}_${userId}` : `${campaign.getId()}_${userId}`;
   // Return a seed combining campaign ID and user ID otherwise
-  return `${campaign.getId()}_${userId}`;
+  return bucketKey;
 }
 
 /**

@@ -21,6 +21,7 @@ import { VariationModel } from './VariationModel';
 export class CampaignModel {
   private id: number;
   private segments: Record<string, dynamic>;
+  private salt: string;
   private percentTraffic: number;
   private isUserListEnabled: boolean;
   private key: string;
@@ -104,6 +105,7 @@ export class CampaignModel {
     this.key = campaign.key; // campaign.k ||
     // this.priority = campaign.pr || campaign.priority;
     this.type = campaign.type; // campaign.t ||
+    this.salt = campaign.salt;
   }
 
   getId(): number {
@@ -152,5 +154,9 @@ export class CampaignModel {
 
   getRuleKey(): string {
     return this.ruleKey;
+  }
+
+  getSalt(): string {
+    return this.salt;
   }
 }

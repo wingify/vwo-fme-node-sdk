@@ -13,6 +13,7 @@ var VariationModel = /** @class */ (function () {
         this.key = variation.n || variation.key || variation.name;
         this.weight = variation.w || variation.weight;
         this.ruleKey = variation.ruleKey;
+        this.salt = variation.salt;
         this.type = variation.type;
         this.setStartRange(variation.startRangeVariation);
         this.setEndRange(variation.endRangeVariation);
@@ -81,6 +82,9 @@ var VariationModel = /** @class */ (function () {
     };
     VariationModel.prototype.getType = function () {
         return this.type;
+    };
+    VariationModel.prototype.getSalt = function () {
+        return this.salt;
     };
     return VariationModel;
 }());

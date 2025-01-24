@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.9.0
+ * vwo-fme-javascript-sdk - v1.10.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -1691,7 +1691,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.9.0", // will be replaced by webpack for browser build
+        version: "1.10.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -2330,6 +2330,7 @@ var CampaignModel = /** @class */ (function () {
         this.key = campaign.key; // campaign.k ||
         // this.priority = campaign.pr || campaign.priority;
         this.type = campaign.type; // campaign.t ||
+        this.salt = campaign.salt;
     };
     CampaignModel.prototype.getId = function () {
         return this.id;
@@ -2366,6 +2367,9 @@ var CampaignModel = /** @class */ (function () {
     };
     CampaignModel.prototype.getRuleKey = function () {
         return this.ruleKey;
+    };
+    CampaignModel.prototype.getSalt = function () {
+        return this.salt;
     };
     return CampaignModel;
 }());
@@ -2697,6 +2701,7 @@ var VariationModel = /** @class */ (function () {
         this.key = variation.n || variation.key || variation.name;
         this.weight = variation.w || variation.weight;
         this.ruleKey = variation.ruleKey;
+        this.salt = variation.salt;
         this.type = variation.type;
         this.setStartRange(variation.startRangeVariation);
         this.setEndRange(variation.endRangeVariation);
@@ -2766,6 +2771,9 @@ var VariationModel = /** @class */ (function () {
     VariationModel.prototype.getType = function () {
         return this.type;
     };
+    VariationModel.prototype.getSalt = function () {
+        return this.salt;
+    };
     return VariationModel;
 }());
 exports.VariationModel = VariationModel;
@@ -2826,6 +2834,7 @@ var SettingsSchema = /** @class */ (function () {
             variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema)),
             startRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
             endRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
+            salt: (0, superstruct_1.optional)((0, superstruct_1.string)()),
         });
         this.campaignObjectSchema = (0, superstruct_1.object)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
@@ -2838,6 +2847,7 @@ var SettingsSchema = /** @class */ (function () {
             isForcedVariationEnabled: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
             isAlwaysCheckSegment: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
             name: (0, superstruct_1.string)(),
+            salt: (0, superstruct_1.optional)((0, superstruct_1.string)()),
         });
         this.ruleSchema = (0, superstruct_1.object)({
             type: (0, superstruct_1.string)(),
@@ -6055,14 +6065,17 @@ var CampaignDecisionService = /** @class */ (function () {
         if (!campaign || !userId) {
             return false;
         }
-        var trafficAllocation;
-        if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
-            trafficAllocation = campaign.getVariations()[0].getWeight();
-        }
-        else {
-            trafficAllocation = campaign.getTraffic();
-        }
-        var valueAssignedToUser = new decision_maker_1.DecisionMaker().getBucketValueForUser("".concat(campaign.getId(), "_").concat(userId));
+        // check if campaign is rollout or personalize
+        var isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+        // get salt
+        var salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
+        // get traffic allocation
+        var trafficAllocation = isRolloutOrPersonalize ? campaign.getVariations()[0].getWeight() : campaign.getTraffic();
+        // get bucket key
+        var bucketKey = salt ? "".concat(salt, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(userId);
+        // get bucket value for user
+        var valueAssignedToUser = new decision_maker_1.DecisionMaker().getBucketValueForUser(bucketKey);
+        // check if user is part of campaign
         var isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
             userId: userId,
@@ -6112,7 +6125,12 @@ var CampaignDecisionService = /** @class */ (function () {
             multiplier = 1;
         }
         var percentTraffic = campaign.getTraffic();
-        var hashValue = new decision_maker_1.DecisionMaker().generateHashValue("".concat(campaign.getId(), "_").concat(accountId, "_").concat(userId));
+        // get salt
+        var salt = campaign.getSalt();
+        // get bucket key
+        var bucketKey = salt ? "".concat(salt, "_").concat(accountId, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(accountId, "_").concat(userId);
+        // get hash value
+        var hashValue = new decision_maker_1.DecisionMaker().generateHashValue(bucketKey);
         var bucketValue = new decision_maker_1.DecisionMaker().generateBucketValue(hashValue, constants_1.Constants.MAX_TRAFFIC_VALUE, multiplier);
         logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
             userId: userId,
@@ -6734,8 +6752,13 @@ function getBucketingSeed(userId, campaign, groupId) {
     if (groupId) {
         return "".concat(groupId, "_").concat(userId);
     }
+    var isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+    // get salt
+    var salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
+    // get bucket key
+    var bucketKey = salt ? "".concat(salt, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(userId);
     // Return a seed combining campaign ID and user ID otherwise
-    return "".concat(campaign.getId(), "_").concat(userId);
+    return bucketKey;
 }
 exports.getBucketingSeed = getBucketingSeed;
 /**
@@ -8754,7 +8777,7 @@ function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, v
             properties.d.event.props[prop] = eventProperties[prop];
         }
     }
-    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_GOAL, {
         eventName: eventName,
         accountId: settings.getAccountId(),
         userId: userId,
@@ -8780,7 +8803,7 @@ function getAttributePayloadData(settings, userId, eventName, attributeKey, attr
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
     properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
-    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
         eventName: eventName,
         accountId: settings.getAccountId(),
         userId: userId,

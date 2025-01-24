@@ -247,7 +247,7 @@ export function getTrackGoalPayloadData(
   }
 
   LogManager.Instance.debug(
-    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_GOAL, {
       eventName,
       accountId: settings.getAccountId(),
       userId,
@@ -284,7 +284,7 @@ export function getAttributePayloadData(
   properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
 
   LogManager.Instance.debug(
-    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
       eventName,
       accountId: settings.getAccountId(),
       userId,

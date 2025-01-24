@@ -23,6 +23,7 @@ export declare class VariationModel {
   private key;
   private name;
   private ruleKey;
+  private salt;
   private w;
   private weight;
   private startRangeVariation;
@@ -45,4 +46,5 @@ export declare class VariationModel {
   getVariables(): Array<VariableModel>;
   getVariations(): Array<VariationModel>;
   getType(): string;
+  getSalt(): string;
 }

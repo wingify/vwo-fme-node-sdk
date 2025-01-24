@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2024-12-20
+
+### Added
+
+- added support for custom salt values in campaign rules to ensure consistent user bucketing across different campaigns. This allows multiple campaigns to share the same salt value, resulting in users being assigned to the same variations across those campaigns. Salt for a campaign can be configured inside VWO application only when the campaign is in the draft state.
+
 ## [1.10.0] - 2024-11-22
 
 ### Added

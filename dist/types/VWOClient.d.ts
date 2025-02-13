@@ -17,6 +17,7 @@ export interface IVWOClient {
     attributeValue: boolean | string | number,
     context: Record<string, any>,
   ): Promise<void>;
+  setAttribute(attributes: Record<string, boolean | string | number>, context: Record<string, any>): Promise<void>;
   updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
 }
 export declare class VWOClient implements IVWOClient {
@@ -50,17 +51,21 @@ export declare class VWOClient implements IVWOClient {
     eventProperties?: Record<string, dynamic>,
   ): Promise<Record<string, boolean>>;
   /**
-   * Sets an attribute for a user in the context provided.
+   * Sets an attribute or multiple attributes for a user in the provided context.
    * This method validates the types of the inputs before proceeding with the API call.
+   * There are two cases handled:
+   * 1. When attributes are passed as a map (key-value pairs).
+   * 2. When a single attribute (key-value) is passed.
    *
-   * @param {string} attributeKey - The key of the attribute to set.
-   * @param {string} attributeValue - The value of the attribute to set.
-   * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
+   * @param {string | Record<string, boolean | string | number>} attributeOrAttributes - Either a single attribute key (string) and value (boolean | string | number),
+   *                                                                                        or a map of attributes with keys and values (boolean | string | number).
+   * @param {boolean | string | number | Record<string, any>} [attributeValueOrContext] - The value for the attribute in case of a single attribute, or the context when multiple attributes are passed.
+   * @param {Record<string, any>} [context] - The context which must include a valid user ID. This is required if multiple attributes are passed.
    */
   setAttribute(
-    attributeKey: string,
-    attributeValue: boolean | string | number,
-    context: Record<string, any>,
+    attributeOrAttributes: string | Record<string, boolean | string | number>,
+    attributeValueOrContext?: boolean | string | number | Record<string, any>,
+    context?: Record<string, any>,
   ): Promise<void>;
   /**
    * Updates the settings by fetching the latest settings from the VWO server.

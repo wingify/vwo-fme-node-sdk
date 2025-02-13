@@ -213,68 +213,114 @@ var VWOClient = /** @class */ (function () {
         return deferredObject.promise;
     };
     /**
-     * Sets an attribute for a user in the context provided.
+     * Sets an attribute or multiple attributes for a user in the provided context.
      * This method validates the types of the inputs before proceeding with the API call.
+     * There are two cases handled:
+     * 1. When attributes are passed as a map (key-value pairs).
+     * 2. When a single attribute (key-value) is passed.
      *
-     * @param {string} attributeKey - The key of the attribute to set.
-     * @param {string} attributeValue - The value of the attribute to set.
-     * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
+     * @param {string | Record<string, boolean | string | number>} attributeOrAttributes - Either a single attribute key (string) and value (boolean | string | number),
+     *                                                                                        or a map of attributes with keys and values (boolean | string | number).
+     * @param {boolean | string | number | Record<string, any>} [attributeValueOrContext] - The value for the attribute in case of a single attribute, or the context when multiple attributes are passed.
+     * @param {Record<string, any>} [context] - The context which must include a valid user ID. This is required if multiple attributes are passed.
      */
-    VWOClient.prototype.setAttribute = function (attributeKey, attributeValue, context) {
+    VWOClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, contextModel, err_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var apiName, attributes, contextModel, attributeKey, attributeValue, contextModel, attributeMap, err_1;
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         apiName = 'setAttribute';
-                        _a.label = 1;
+                        _b.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
+                        _b.trys.push([1, 6, , 7]);
+                        if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 3];
                         // Log the API call
                         logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
-                        // Validate attributeKey is a string
-                        if (!(0, DataTypeUtil_1.isString)(attributeKey)) {
-                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                        if (Object.entries(attributeOrAttributes).length < 1) {
+                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)('Attributes map must contain atleast 1 key-value pair', {
                                 apiName: apiName,
-                                key: 'attributeKey',
-                                type: (0, DataTypeUtil_1.getType)(attributeKey),
-                                correctType: 'string',
+                                key: 'attributes',
+                                type: (0, DataTypeUtil_1.getType)(attributeOrAttributes),
+                                correctType: 'object',
                             }));
-                            throw new TypeError('TypeError: attributeKey should be a string');
+                            throw new TypeError('TypeError: Attributes should be an object containing atleast 1 key-value pair');
                         }
-                        // Validate attributeValue is a string
-                        if (!(0, DataTypeUtil_1.isString)(attributeValue) && !(0, DataTypeUtil_1.isNumber)(attributeValue) && !(0, DataTypeUtil_1.isBoolean)(attributeValue)) {
-                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
-                                apiName: apiName,
-                                key: 'attributeValue',
-                                type: (0, DataTypeUtil_1.getType)(attributeValue),
-                                correctType: 'boolean | string | number',
-                            }));
-                            throw new TypeError('TypeError: attributeValue should be a string');
+                        attributes = attributeOrAttributes;
+                        // Validate attributes is an object
+                        if (!(0, DataTypeUtil_1.isObject)(attributes)) {
+                            throw new TypeError('TypeError: attributes should be an object containing key-value pairs');
+                        }
+                        // Validate that each attribute value is of a supported type
+                        Object.entries(attributes).forEach(function (_a) {
+                            var key = _a[0], value = _a[1];
+                            if (typeof value !== 'boolean' && typeof value !== 'string' && typeof value !== 'number') {
+                                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                                    apiName: apiName,
+                                    key: key,
+                                    type: (0, DataTypeUtil_1.getType)(value),
+                                    correctType: ' boolean, string or number',
+                                }));
+                                throw new TypeError("Invalid attribute type for key \"".concat(key, "\". Expected boolean, string or number, but got ").concat((0, DataTypeUtil_1.getType)(value)));
+                            }
+                            // Reject arrays and objects explicitly
+                            if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+                                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                                    apiName: apiName,
+                                    key: key,
+                                    type: (0, DataTypeUtil_1.getType)(value),
+                                    correctType: ' boolean | string | number | null',
+                                }));
+                                throw new TypeError("Invalid attribute value for key \"".concat(key, "\". Arrays and objects are not supported."));
+                            }
+                        });
+                        // If we have only two arguments (attributeMap and context)
+                        if (!context && attributeValueOrContext) {
+                            context = attributeValueOrContext; // Assign context explicitly
                         }
                         // Validate user ID is present in context
                         if (!context || !context.id) {
                             logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
-                            throw new TypeError('TypeError: Invalid context');
                         }
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
-                        // Proceed with setting the attribute if validation is successful
-                        return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, contextModel)];
+                        // Proceed with setting the attributes if validation is successful
+                        return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributes, contextModel)];
                     case 2:
-                        // Proceed with setting the attribute if validation is successful
-                        _a.sent();
-                        return [3 /*break*/, 4];
+                        // Proceed with setting the attributes if validation is successful
+                        _b.sent();
+                        return [3 /*break*/, 5];
                     case 3:
-                        err_1 = _a.sent();
-                        // Log any errors encountered during the operation
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
-                            apiName: apiName,
-                            err: err_1,
-                        }));
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
+                        attributeKey = attributeOrAttributes;
+                        attributeValue = attributeValueOrContext;
+                        // Validate attributeKey is a string
+                        if (!(0, DataTypeUtil_1.isString)(attributeKey)) {
+                            throw new TypeError('attributeKey should be a string');
+                        }
+                        // Validate attributeValue is of valid type
+                        if (!(0, DataTypeUtil_1.isBoolean)(attributeValue) && !(0, DataTypeUtil_1.isString)(attributeValue) && !(0, DataTypeUtil_1.isNumber)(attributeValue)) {
+                            throw new TypeError('attributeValue should be a boolean, string, or number');
+                        }
+                        // Validate user ID is present in context
+                        if (!context || !context.id) {
+                            throw new TypeError('Invalid context');
+                        }
+                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+                        attributeMap = (_a = {}, _a[attributeKey] = attributeValue, _a);
+                        // Proceed with setting the attribute map if validation is successful
+                        return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributeMap, contextModel)];
+                    case 4:
+                        // Proceed with setting the attribute map if validation is successful
+                        _b.sent();
+                        _b.label = 5;
+                    case 5: return [3 /*break*/, 7];
+                    case 6:
+                        err_1 = _b.sent();
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName: apiName, err: err_1 }));
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         });

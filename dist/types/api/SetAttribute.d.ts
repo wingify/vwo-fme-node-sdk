@@ -17,31 +17,27 @@ import { ContextModel } from '../models/user/ContextModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
 interface ISetAttribute {
   /**
-   * Sets an attribute for a user.
+   * Sets multiple attributes for a user in a single network call.
    * @param settings Configuration settings.
-   * @param attributeKey The key of the attribute to set.
-   * @param attributeValue The value of the attribute.
+   * @param attributes Key-value map of attributes.
    * @param context Context containing user information.
    */
   setAttribute(
     settings: SettingsModel,
-    attributeKey: string,
-    attributeValue: any,
+    attributes: Record<string, boolean | string | number>,
     context: ContextModel,
   ): Promise<void>;
 }
 export declare class SetAttributeApi implements ISetAttribute {
   /**
-   * Implementation of setAttribute to create an impression for a user attribute.
+   * Implementation of setAttributes to create an impression for multiple user attributes.
    * @param settings Configuration settings.
-   * @param attributeKey The key of the attribute to set.
-   * @param attributeValue The value of the attribute.
+   * @param attributes Key-value map of attributes.
    * @param context Context containing user information.
    */
   setAttribute(
     settings: SettingsModel,
-    attributeKey: string,
-    attributeValue: any,
+    attributes: Record<string, boolean | string | number>,
     context: ContextModel,
   ): Promise<void>;
 }

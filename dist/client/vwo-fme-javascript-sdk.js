@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.10.0
+ * vwo-fme-javascript-sdk - v1.11.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -915,68 +915,114 @@ var VWOClient = /** @class */ (function () {
         return deferredObject.promise;
     };
     /**
-     * Sets an attribute for a user in the context provided.
+     * Sets an attribute or multiple attributes for a user in the provided context.
      * This method validates the types of the inputs before proceeding with the API call.
+     * There are two cases handled:
+     * 1. When attributes are passed as a map (key-value pairs).
+     * 2. When a single attribute (key-value) is passed.
      *
-     * @param {string} attributeKey - The key of the attribute to set.
-     * @param {string} attributeValue - The value of the attribute to set.
-     * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
+     * @param {string | Record<string, boolean | string | number>} attributeOrAttributes - Either a single attribute key (string) and value (boolean | string | number),
+     *                                                                                        or a map of attributes with keys and values (boolean | string | number).
+     * @param {boolean | string | number | Record<string, any>} [attributeValueOrContext] - The value for the attribute in case of a single attribute, or the context when multiple attributes are passed.
+     * @param {Record<string, any>} [context] - The context which must include a valid user ID. This is required if multiple attributes are passed.
      */
-    VWOClient.prototype.setAttribute = function (attributeKey, attributeValue, context) {
+    VWOClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, contextModel, err_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var apiName, attributes, contextModel, attributeKey, attributeValue, contextModel, attributeMap, err_1;
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         apiName = 'setAttribute';
-                        _a.label = 1;
+                        _b.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
+                        _b.trys.push([1, 6, , 7]);
+                        if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 3];
                         // Log the API call
                         logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
-                        // Validate attributeKey is a string
-                        if (!(0, DataTypeUtil_1.isString)(attributeKey)) {
-                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                        if (Object.entries(attributeOrAttributes).length < 1) {
+                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)('Attributes map must contain atleast 1 key-value pair', {
                                 apiName: apiName,
-                                key: 'attributeKey',
-                                type: (0, DataTypeUtil_1.getType)(attributeKey),
-                                correctType: 'string',
+                                key: 'attributes',
+                                type: (0, DataTypeUtil_1.getType)(attributeOrAttributes),
+                                correctType: 'object',
                             }));
-                            throw new TypeError('TypeError: attributeKey should be a string');
+                            throw new TypeError('TypeError: Attributes should be an object containing atleast 1 key-value pair');
                         }
-                        // Validate attributeValue is a string
-                        if (!(0, DataTypeUtil_1.isString)(attributeValue) && !(0, DataTypeUtil_1.isNumber)(attributeValue) && !(0, DataTypeUtil_1.isBoolean)(attributeValue)) {
-                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
-                                apiName: apiName,
-                                key: 'attributeValue',
-                                type: (0, DataTypeUtil_1.getType)(attributeValue),
-                                correctType: 'boolean | string | number',
-                            }));
-                            throw new TypeError('TypeError: attributeValue should be a string');
+                        attributes = attributeOrAttributes;
+                        // Validate attributes is an object
+                        if (!(0, DataTypeUtil_1.isObject)(attributes)) {
+                            throw new TypeError('TypeError: attributes should be an object containing key-value pairs');
+                        }
+                        // Validate that each attribute value is of a supported type
+                        Object.entries(attributes).forEach(function (_a) {
+                            var key = _a[0], value = _a[1];
+                            if (typeof value !== 'boolean' && typeof value !== 'string' && typeof value !== 'number') {
+                                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                                    apiName: apiName,
+                                    key: key,
+                                    type: (0, DataTypeUtil_1.getType)(value),
+                                    correctType: ' boolean, string or number',
+                                }));
+                                throw new TypeError("Invalid attribute type for key \"".concat(key, "\". Expected boolean, string or number, but got ").concat((0, DataTypeUtil_1.getType)(value)));
+                            }
+                            // Reject arrays and objects explicitly
+                            if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+                                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                                    apiName: apiName,
+                                    key: key,
+                                    type: (0, DataTypeUtil_1.getType)(value),
+                                    correctType: ' boolean | string | number | null',
+                                }));
+                                throw new TypeError("Invalid attribute value for key \"".concat(key, "\". Arrays and objects are not supported."));
+                            }
+                        });
+                        // If we have only two arguments (attributeMap and context)
+                        if (!context && attributeValueOrContext) {
+                            context = attributeValueOrContext; // Assign context explicitly
                         }
                         // Validate user ID is present in context
                         if (!context || !context.id) {
                             logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
-                            throw new TypeError('TypeError: Invalid context');
                         }
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
-                        // Proceed with setting the attribute if validation is successful
-                        return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, contextModel)];
+                        // Proceed with setting the attributes if validation is successful
+                        return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributes, contextModel)];
                     case 2:
-                        // Proceed with setting the attribute if validation is successful
-                        _a.sent();
-                        return [3 /*break*/, 4];
+                        // Proceed with setting the attributes if validation is successful
+                        _b.sent();
+                        return [3 /*break*/, 5];
                     case 3:
-                        err_1 = _a.sent();
-                        // Log any errors encountered during the operation
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
-                            apiName: apiName,
-                            err: err_1,
-                        }));
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
+                        attributeKey = attributeOrAttributes;
+                        attributeValue = attributeValueOrContext;
+                        // Validate attributeKey is a string
+                        if (!(0, DataTypeUtil_1.isString)(attributeKey)) {
+                            throw new TypeError('attributeKey should be a string');
+                        }
+                        // Validate attributeValue is of valid type
+                        if (!(0, DataTypeUtil_1.isBoolean)(attributeValue) && !(0, DataTypeUtil_1.isString)(attributeValue) && !(0, DataTypeUtil_1.isNumber)(attributeValue)) {
+                            throw new TypeError('attributeValue should be a boolean, string, or number');
+                        }
+                        // Validate user ID is present in context
+                        if (!context || !context.id) {
+                            throw new TypeError('Invalid context');
+                        }
+                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+                        attributeMap = (_a = {}, _a[attributeKey] = attributeValue, _a);
+                        // Proceed with setting the attribute map if validation is successful
+                        return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributeMap, contextModel)];
+                    case 4:
+                        // Proceed with setting the attribute map if validation is successful
+                        _b.sent();
+                        _b.label = 5;
+                    case 5: return [3 /*break*/, 7];
+                    case 6:
+                        err_1 = _b.sent();
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName: apiName, err: err_1 }));
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
@@ -1388,6 +1434,21 @@ function _updateIntegrationsDecisionObject(campaign, variation, passedRulesInfor
 
 "use strict";
 
+/**
+ * Copyright 2024 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1432,24 +1493,23 @@ var SetAttributeApi = /** @class */ (function () {
     function SetAttributeApi() {
     }
     /**
-     * Implementation of setAttribute to create an impression for a user attribute.
+     * Implementation of setAttributes to create an impression for multiple user attributes.
      * @param settings Configuration settings.
-     * @param attributeKey The key of the attribute to set.
-     * @param attributeValue The value of the attribute.
+     * @param attributes Key-value map of attributes.
      * @param context Context containing user information.
      */
-    SetAttributeApi.prototype.setAttribute = function (settings, attributeKey, attributeValue, context) {
+    SetAttributeApi.prototype.setAttribute = function (settings, attributes, context) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 2];
-                        return [4 /*yield*/, createImpressionForAttribute(settings, attributeKey, attributeValue, context)];
+                        return [4 /*yield*/, createImpressionForAttributes(settings, attributes, context)];
                     case 1:
                         _a.sent();
                         return [3 /*break*/, 3];
                     case 2:
-                        createImpressionForAttribute(settings, attributeKey, attributeValue, context);
+                        createImpressionForAttributes(settings, attributes, context);
                         _a.label = 3;
                     case 3: return [2 /*return*/];
                 }
@@ -1460,19 +1520,18 @@ var SetAttributeApi = /** @class */ (function () {
 }());
 exports.SetAttributeApi = SetAttributeApi;
 /**
- * Creates an impression for a user attribute and sends it to the server.
+ * Creates an impression for multiple user attributes and sends it to the server.
  * @param settings Configuration settings.
- * @param attributeKey The key of the attribute.
- * @param attributeValue The value of the attribute.
- * @param user User details.
+ * @param attributes Key-value map of attributes.
+ * @param context Context containing user information.
  */
-var createImpressionForAttribute = function (settings, attributeKey, attributeValue, context) { return __awaiter(void 0, void 0, void 0, function () {
+var createImpressionForAttributes = function (settings, attributes, context) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-                payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributeKey, attributeValue, context.getUserAgent(), context.getIpAddress());
+                payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress());
                 // Send the constructed payload via POST request
                 return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
             case 1:
@@ -1691,7 +1750,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.10.0", // will be replaced by webpack for browser build
+        version: "1.11.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -8786,23 +8845,26 @@ function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, v
 }
 exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 /**
- * Constructs the payload data for syncing visitor attributes.
- * @param {any} settings - Configuration settings.
- * @param {any} userId - User identifier.
- * @param {string} eventName - Name of the event.
- * @param {any} attributeKey - Key of the attribute to sync.
- * @param {any} attributeValue - Value of the attribute.
- * @param {string} [visitorUserAgent=''] - Visitor's user agent.
- * @param {string} [ipAddress=''] - Visitor's IP address.
- * @returns {any} - The constructed payload data.
+ * Constructs the payload data for syncing multiple visitor attributes.
+ * @param {SettingsModel} settings - Configuration settings.
+ * @param {string | number} userId - User ID.
+ * @param {string} eventName - Event name.
+ * @param {Record<string, any>} attributes - Key-value map of attributes.
+ * @param {string} [visitorUserAgent=''] - Visitor's User-Agent (optional).
+ * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
+ * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
-function getAttributePayloadData(settings, userId, eventName, attributeKey, attributeValue, visitorUserAgent, ipAddress) {
+function getAttributePayloadData(settings, userId, eventName, attributes, visitorUserAgent, ipAddress) {
     if (visitorUserAgent === void 0) { visitorUserAgent = ''; }
     if (ipAddress === void 0) { ipAddress = ''; }
     var properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
-    properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
+    // Iterate over the attributes map and append to the visitor properties
+    for (var _i = 0, _a = Object.entries(attributes); _i < _a.length; _i++) {
+        var _b = _a[_i], key = _b[0], value = _b[1];
+        properties.d.visitor.props[key] = value;
+    }
     logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
         eventName: eventName,
         accountId: settings.getAccountId(),
@@ -11519,7 +11581,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SET_USER_ALIAS":"Error in setting user alias for user ID:{userId} and alias ID:{aliasUserId}. Error:{err}","GET_USER_ALIAS":"Error in getting user alias for user ID:{userId}. Error:{err}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}"}');
 
 /***/ }),
 
@@ -11530,7 +11592,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}"}');
 
 /***/ }),
 

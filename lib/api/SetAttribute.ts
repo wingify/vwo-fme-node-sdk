@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { ContextModel } from '../models/user/ContextModel';
 import { EventEnum } from '../enums/EventEnum';
 import {
@@ -25,53 +26,47 @@ import { SettingsModel } from '../models/settings/SettingsModel';
 
 interface ISetAttribute {
   /**
-   * Sets an attribute for a user.
+   * Sets multiple attributes for a user in a single network call.
    * @param settings Configuration settings.
-   * @param attributeKey The key of the attribute to set.
-   * @param attributeValue The value of the attribute.
+   * @param attributes Key-value map of attributes.
    * @param context Context containing user information.
    */
   setAttribute(
     settings: SettingsModel,
-    attributeKey: string,
-    attributeValue: any,
+    attributes: Record<string, boolean | string | number>,
     context: ContextModel,
   ): Promise<void>;
 }
 
 export class SetAttributeApi implements ISetAttribute {
   /**
-   * Implementation of setAttribute to create an impression for a user attribute.
+   * Implementation of setAttributes to create an impression for multiple user attributes.
    * @param settings Configuration settings.
-   * @param attributeKey The key of the attribute to set.
-   * @param attributeValue The value of the attribute.
+   * @param attributes Key-value map of attributes.
    * @param context Context containing user information.
    */
   async setAttribute(
     settings: SettingsModel,
-    attributeKey: string,
-    attributeValue: any,
+    attributes: Record<string, boolean | string | number>,
     context: ContextModel,
   ): Promise<void> {
     if (getShouldWaitForTrackingCalls()) {
-      await createImpressionForAttribute(settings, attributeKey, attributeValue, context);
+      await createImpressionForAttributes(settings, attributes, context);
     } else {
-      createImpressionForAttribute(settings, attributeKey, attributeValue, context);
+      createImpressionForAttributes(settings, attributes, context);
     }
   }
 }
 
 /**
- * Creates an impression for a user attribute and sends it to the server.
+ * Creates an impression for multiple user attributes and sends it to the server.
  * @param settings Configuration settings.
- * @param attributeKey The key of the attribute.
- * @param attributeValue The value of the attribute.
- * @param user User details.
+ * @param attributes Key-value map of attributes.
+ * @param context Context containing user information.
  */
-const createImpressionForAttribute = async (
+const createImpressionForAttributes = async (
   settings: SettingsModel,
-  attributeKey: string,
-  attributeValue: any,
+  attributes: Record<string, boolean | string | number>,
   context: ContextModel,
 ) => {
   // Retrieve base properties for the event
@@ -81,13 +76,12 @@ const createImpressionForAttribute = async (
     encodeURIComponent(context.getUserAgent()),
     context.getIpAddress(),
   );
-  // Construct payload data for the attribute
+  // Construct payload data for multiple attributes
   const payload = getAttributePayloadData(
     settings,
     context.getId(),
     EventEnum.VWO_SYNC_VISITOR_PROP,
-    attributeKey,
-    attributeValue,
+    attributes,
     context.getUserAgent(),
     context.getIpAddress(),
   );

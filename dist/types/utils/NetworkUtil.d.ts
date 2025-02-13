@@ -91,22 +91,20 @@ export declare function getTrackGoalPayloadData(
   ipAddress?: string,
 ): Record<string, any>;
 /**
- * Constructs the payload data for syncing visitor attributes.
- * @param {any} settings - Configuration settings.
- * @param {any} userId - User identifier.
- * @param {string} eventName - Name of the event.
- * @param {any} attributeKey - Key of the attribute to sync.
- * @param {any} attributeValue - Value of the attribute.
- * @param {string} [visitorUserAgent=''] - Visitor's user agent.
- * @param {string} [ipAddress=''] - Visitor's IP address.
- * @returns {any} - The constructed payload data.
+ * Constructs the payload data for syncing multiple visitor attributes.
+ * @param {SettingsModel} settings - Configuration settings.
+ * @param {string | number} userId - User ID.
+ * @param {string} eventName - Event name.
+ * @param {Record<string, any>} attributes - Key-value map of attributes.
+ * @param {string} [visitorUserAgent=''] - Visitor's User-Agent (optional).
+ * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
+ * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
 export declare function getAttributePayloadData(
   settings: SettingsModel,
   userId: string | number,
   eventName: string,
-  attributeKey: string,
-  attributeValue: dynamic,
+  attributes: Record<string, any>,
   visitorUserAgent?: string,
   ipAddress?: string,
 ): Record<string, any>;

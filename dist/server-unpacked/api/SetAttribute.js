@@ -1,4 +1,19 @@
 "use strict";
+/**
+ * Copyright 2024 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -43,24 +58,23 @@ var SetAttributeApi = /** @class */ (function () {
     function SetAttributeApi() {
     }
     /**
-     * Implementation of setAttribute to create an impression for a user attribute.
+     * Implementation of setAttributes to create an impression for multiple user attributes.
      * @param settings Configuration settings.
-     * @param attributeKey The key of the attribute to set.
-     * @param attributeValue The value of the attribute.
+     * @param attributes Key-value map of attributes.
      * @param context Context containing user information.
      */
-    SetAttributeApi.prototype.setAttribute = function (settings, attributeKey, attributeValue, context) {
+    SetAttributeApi.prototype.setAttribute = function (settings, attributes, context) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 2];
-                        return [4 /*yield*/, createImpressionForAttribute(settings, attributeKey, attributeValue, context)];
+                        return [4 /*yield*/, createImpressionForAttributes(settings, attributes, context)];
                     case 1:
                         _a.sent();
                         return [3 /*break*/, 3];
                     case 2:
-                        createImpressionForAttribute(settings, attributeKey, attributeValue, context);
+                        createImpressionForAttributes(settings, attributes, context);
                         _a.label = 3;
                     case 3: return [2 /*return*/];
                 }
@@ -71,19 +85,18 @@ var SetAttributeApi = /** @class */ (function () {
 }());
 exports.SetAttributeApi = SetAttributeApi;
 /**
- * Creates an impression for a user attribute and sends it to the server.
+ * Creates an impression for multiple user attributes and sends it to the server.
  * @param settings Configuration settings.
- * @param attributeKey The key of the attribute.
- * @param attributeValue The value of the attribute.
- * @param user User details.
+ * @param attributes Key-value map of attributes.
+ * @param context Context containing user information.
  */
-var createImpressionForAttribute = function (settings, attributeKey, attributeValue, context) { return __awaiter(void 0, void 0, void 0, function () {
+var createImpressionForAttributes = function (settings, attributes, context) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-                payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributeKey, attributeValue, context.getUserAgent(), context.getIpAddress());
+                payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress());
                 // Send the constructed payload via POST request
                 return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
             case 1:

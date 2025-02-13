@@ -250,23 +250,26 @@ function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, v
 }
 exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 /**
- * Constructs the payload data for syncing visitor attributes.
- * @param {any} settings - Configuration settings.
- * @param {any} userId - User identifier.
- * @param {string} eventName - Name of the event.
- * @param {any} attributeKey - Key of the attribute to sync.
- * @param {any} attributeValue - Value of the attribute.
- * @param {string} [visitorUserAgent=''] - Visitor's user agent.
- * @param {string} [ipAddress=''] - Visitor's IP address.
- * @returns {any} - The constructed payload data.
+ * Constructs the payload data for syncing multiple visitor attributes.
+ * @param {SettingsModel} settings - Configuration settings.
+ * @param {string | number} userId - User ID.
+ * @param {string} eventName - Event name.
+ * @param {Record<string, any>} attributes - Key-value map of attributes.
+ * @param {string} [visitorUserAgent=''] - Visitor's User-Agent (optional).
+ * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
+ * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
-function getAttributePayloadData(settings, userId, eventName, attributeKey, attributeValue, visitorUserAgent, ipAddress) {
+function getAttributePayloadData(settings, userId, eventName, attributes, visitorUserAgent, ipAddress) {
     if (visitorUserAgent === void 0) { visitorUserAgent = ''; }
     if (ipAddress === void 0) { ipAddress = ''; }
     var properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
-    properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
+    // Iterate over the attributes map and append to the visitor properties
+    for (var _i = 0, _a = Object.entries(attributes); _i < _a.length; _i++) {
+        var _b = _a[_i], key = _b[0], value = _b[1];
+        properties.d.visitor.props[key] = value;
+    }
     logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
         eventName: eventName,
         accountId: settings.getAccountId(),

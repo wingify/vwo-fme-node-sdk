@@ -258,22 +258,20 @@ export function getTrackGoalPayloadData(
 }
 
 /**
- * Constructs the payload data for syncing visitor attributes.
- * @param {any} settings - Configuration settings.
- * @param {any} userId - User identifier.
- * @param {string} eventName - Name of the event.
- * @param {any} attributeKey - Key of the attribute to sync.
- * @param {any} attributeValue - Value of the attribute.
- * @param {string} [visitorUserAgent=''] - Visitor's user agent.
- * @param {string} [ipAddress=''] - Visitor's IP address.
- * @returns {any} - The constructed payload data.
+ * Constructs the payload data for syncing multiple visitor attributes.
+ * @param {SettingsModel} settings - Configuration settings.
+ * @param {string | number} userId - User ID.
+ * @param {string} eventName - Event name.
+ * @param {Record<string, any>} attributes - Key-value map of attributes.
+ * @param {string} [visitorUserAgent=''] - Visitor's User-Agent (optional).
+ * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
+ * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
 export function getAttributePayloadData(
   settings: SettingsModel,
   userId: string | number,
   eventName: string,
-  attributeKey: string,
-  attributeValue: dynamic,
+  attributes: Record<string, any>,
   visitorUserAgent: string = '',
   ipAddress: string = '',
 ): Record<string, any> {
@@ -281,7 +279,11 @@ export function getAttributePayloadData(
 
   properties.d.event.props.isCustomEvent = true; // Mark as a custom event
   properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
-  properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
+
+  // Iterate over the attributes map and append to the visitor properties
+  for (const [key, value] of Object.entries(attributes)) {
+    properties.d.visitor.props[key] = value;
+  }
 
   LogManager.Instance.debug(
     buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {

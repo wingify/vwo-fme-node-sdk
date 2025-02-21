@@ -25,6 +25,11 @@ import { dynamic } from '../types/Common';
  */
 export declare function cloneObject(obj: dynamic): any;
 /**
+ * Gets the current time in ISO string format.
+ * @returns {string} The current time in ISO string format.
+ */
+export declare function getCurrentTime(): string;
+/**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.
  */

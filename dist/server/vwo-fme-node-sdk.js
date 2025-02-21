@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.11.0
+ * vwo-fme-node-sdk - v1.12.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -4548,6 +4548,84 @@ exports.NetworkClient = NetworkClient;
 
 /***/ }),
 
+/***/ "./dist/server-unpacked/packages/network-layer/client/NetworkServerLessClient.js":
+/*!***************************************************************************************!*\
+  !*** ./dist/server-unpacked/packages/network-layer/client/NetworkServerLessClient.js ***!
+  \***************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.NetworkServerLessClient = void 0;
+/**
+ * Copyright 2024 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var FetchUtil_1 = __webpack_require__(/*! ../../../utils/FetchUtil */ "./dist/server-unpacked/utils/FetchUtil.js");
+var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
+var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
+/**
+ * Implements the NetworkClientInterface to handle network requests.
+ */
+var NetworkServerLessClient = /** @class */function () {
+  function NetworkServerLessClient() {}
+  /**
+   * Performs a GET request using the provided RequestModel.
+   * @param {RequestModel} requestModel - The model containing request options.
+   * @returns {Promise<ResponseModel>} A promise that resolves to a ResponseModel.
+   */
+  NetworkServerLessClient.prototype.GET = function (requestModel) {
+    var deferred = new PromiseUtil_1.Deferred();
+    // Extract network options from the request model.
+    var networkOptions = requestModel.getOptions();
+    var responseModel = new ResponseModel_1.ResponseModel();
+    (0, FetchUtil_1.sendGetCall)(networkOptions).then(function (data) {
+      responseModel.setData(data);
+      deferred.resolve(responseModel);
+    }).catch(function (error) {
+      responseModel.setError(error);
+      deferred.reject(responseModel);
+    });
+    return deferred.promise;
+  };
+  /**
+   * Performs a POST request using the provided RequestModel.
+   * @param {RequestModel} request - The model containing request options.
+   * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
+   */
+  NetworkServerLessClient.prototype.POST = function (request) {
+    var deferred = new PromiseUtil_1.Deferred();
+    var networkOptions = request.getOptions();
+    var responseModel = new ResponseModel_1.ResponseModel();
+    (0, FetchUtil_1.sendPostCall)(networkOptions).then(function (data) {
+      responseModel.setData(data);
+      deferred.resolve(responseModel);
+    }).catch(function (error) {
+      responseModel.setError(error);
+      deferred.reject(responseModel);
+    });
+    return deferred.promise;
+  };
+  return NetworkServerLessClient;
+}();
+exports.NetworkServerLessClient = NetworkServerLessClient;
+
+/***/ }),
+
 /***/ "./dist/server-unpacked/packages/network-layer/handlers/RequestHandler.js":
 /*!********************************************************************************!*\
   !*** ./dist/server-unpacked/packages/network-layer/handlers/RequestHandler.js ***!
@@ -4710,11 +4788,21 @@ var NetworkManager = /** @class */function () {
    * @param {NetworkClientInterface} client - The client to attach, optional.
    */
   NetworkManager.prototype.attachClient = function (client) {
+    // if env is undefined, we are in browser
     if (typeof process.env === 'undefined') {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      var NetworkBrowserClient = (__webpack_require__(/*! ../client/NetworkBrowserClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkBrowserClient.js").NetworkBrowserClient);
-      this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+      // if XMLHttpRequest is undefined, we are in serverless
+      if (typeof XMLHttpRequest === 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        var NetworkServerLessClient = (__webpack_require__(/*! ../client/NetworkServerLessClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkServerLessClient.js").NetworkServerLessClient);
+        this.client = client || new NetworkServerLessClient();
+      } else {
+        // if XMLHttpRequest is defined, we are in browser
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        var NetworkBrowserClient = (__webpack_require__(/*! ../client/NetworkBrowserClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkBrowserClient.js").NetworkBrowserClient);
+        this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+      }
     } else {
+      // if env is defined, we are in node
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       var NetworkClient = (__webpack_require__(/*! ../client/NetworkClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkClient.js").NetworkClient);
       this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
@@ -8675,6 +8763,97 @@ var _evaluateWhitelisting = function (campaign, context) {
 
 /***/ }),
 
+/***/ "./dist/server-unpacked/utils/FetchUtil.js":
+/*!*************************************************!*\
+  !*** ./dist/server-unpacked/utils/FetchUtil.js ***!
+  \*************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+
+/**
+ * Copyright 2024 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.sendPostCall = exports.sendGetCall = void 0;
+var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
+var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
+function sendGetCall(networkOptions) {
+  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, networkOptions);
+}
+exports.sendGetCall = sendGetCall;
+function sendPostCall(networkOptions) {
+  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, networkOptions);
+}
+exports.sendPostCall = sendPostCall;
+/**
+ * Sends a request to the server using the Fetch API.
+ * @param method - The HTTP method to use for the request.
+ * @param networkOptions - The options for the request.
+ * @returns A Promise that resolves to the response data.
+ */
+function sendRequest(method, networkOptions) {
+  var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+  return new Promise(function (resolve, reject) {
+    if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
+      networkOptions.body = JSON.stringify(networkOptions.body);
+    }
+    fetch(url, networkOptions).then(function (res) {
+      // Some endpoints return empty strings as the response body; treat
+      // as raw text and handle potential JSON parsing errors below
+      return res.text().then(function (text) {
+        var jsonData = {};
+        try {
+          if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+            jsonData = JSON.parse(text);
+          } else {
+            jsonData = text;
+          }
+        } catch (err) {
+          console.info("VWO-SDK - [INFO]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " VWO didn't send JSON response which is expected: ").concat(err));
+        }
+        if (res.status === 200) {
+          resolve(jsonData);
+        } else {
+          var errorMessage = '';
+          if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+            errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " Request failed for fetching account settings. Got Status Code: ").concat(res.status);
+          } else if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
+            errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " Request failed while making a POST request. Got Status Code: ").concat(res.status);
+          }
+          console.error(errorMessage);
+          reject(errorMessage);
+        }
+      });
+    }).catch(function (err) {
+      var errorMessage = '';
+      if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+        errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " GET request failed for fetching account settings. Error: ").concat(err);
+      } else if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
+        errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " POST request failed while sending data. Error: ").concat(err);
+      }
+      console.error(errorMessage);
+      reject(errorMessage);
+    });
+  });
+}
+
+/***/ }),
+
 /***/ "./dist/server-unpacked/utils/FunctionUtil.js":
 /*!****************************************************!*\
   !*** ./dist/server-unpacked/utils/FunctionUtil.js ***!
@@ -8696,7 +8875,7 @@ var __assign = this && this.__assign || function () {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.addLinkedCampaignsToSettings = exports.doesEventBelongToAnyFeature = exports.getFeatureFromKey = exports.getAllExperimentRules = exports.getSpecificRulesBasedOnType = exports.getRandomNumber = exports.getCurrentUnixTimestampInMillis = exports.getCurrentUnixTimestamp = exports.cloneObject = void 0;
+exports.addLinkedCampaignsToSettings = exports.doesEventBelongToAnyFeature = exports.getFeatureFromKey = exports.getAllExperimentRules = exports.getSpecificRulesBasedOnType = exports.getRandomNumber = exports.getCurrentUnixTimestampInMillis = exports.getCurrentUnixTimestamp = exports.getCurrentTime = exports.cloneObject = void 0;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -8730,6 +8909,14 @@ function cloneObject(obj) {
   return clonedObj;
 }
 exports.cloneObject = cloneObject;
+/**
+ * Gets the current time in ISO string format.
+ * @returns {string} The current time in ISO string format.
+ */
+function getCurrentTime() {
+  return new Date().toISOString();
+}
+exports.getCurrentTime = getCurrentTime;
 /**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.
@@ -11029,7 +11216,7 @@ module.exports = require("https");
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.11.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.0.1"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.12.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.0.1"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
 
 /***/ })
 

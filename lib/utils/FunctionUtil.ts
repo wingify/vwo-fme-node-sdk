@@ -36,6 +36,14 @@ export function cloneObject(obj: dynamic): any {
 }
 
 /**
+ * Gets the current time in ISO string format.
+ * @returns {string} The current time in ISO string format.
+ */
+export function getCurrentTime(): string {
+  return new Date().toISOString();
+}
+
+/**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.
  */

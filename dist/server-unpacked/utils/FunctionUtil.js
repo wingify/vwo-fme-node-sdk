@@ -11,7 +11,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addLinkedCampaignsToSettings = exports.doesEventBelongToAnyFeature = exports.getFeatureFromKey = exports.getAllExperimentRules = exports.getSpecificRulesBasedOnType = exports.getRandomNumber = exports.getCurrentUnixTimestampInMillis = exports.getCurrentUnixTimestamp = exports.cloneObject = void 0;
+exports.addLinkedCampaignsToSettings = exports.doesEventBelongToAnyFeature = exports.getFeatureFromKey = exports.getAllExperimentRules = exports.getSpecificRulesBasedOnType = exports.getRandomNumber = exports.getCurrentUnixTimestampInMillis = exports.getCurrentUnixTimestamp = exports.getCurrentTime = exports.cloneObject = void 0;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -45,6 +45,14 @@ function cloneObject(obj) {
     return clonedObj;
 }
 exports.cloneObject = cloneObject;
+/**
+ * Gets the current time in ISO string format.
+ * @returns {string} The current time in ISO string format.
+ */
+function getCurrentTime() {
+    return new Date().toISOString();
+}
+exports.getCurrentTime = getCurrentTime;
 /**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.

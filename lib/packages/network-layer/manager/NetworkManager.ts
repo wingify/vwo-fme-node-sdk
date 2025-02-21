@@ -30,12 +30,22 @@ export class NetworkManager {
    * @param {NetworkClientInterface} client - The client to attach, optional.
    */
   attachClient(client?: NetworkClientInterface): void {
+    // if env is undefined, we are in browser
     if ((typeof process.env as any) === 'undefined') {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { NetworkBrowserClient } = require('../client/NetworkBrowserClient');
+      // if XMLHttpRequest is undefined, we are in serverless
+      if (typeof XMLHttpRequest === 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { NetworkServerLessClient } = require('../client/NetworkServerLessClient');
+        this.client = client || new NetworkServerLessClient();
+      } else {
+        // if XMLHttpRequest is defined, we are in browser
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { NetworkBrowserClient } = require('../client/NetworkBrowserClient');
 
-      this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+        this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+      }
     } else {
+      // if env is defined, we are in node
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { NetworkClient } = require('../client/NetworkClient');
 

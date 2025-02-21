@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.11.0
+ * vwo-fme-javascript-sdk - v1.12.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -1750,7 +1750,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.11.0", // will be replaced by webpack for browser build
+        version: "1.12.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -4009,6 +4009,88 @@ exports.NetworkBrowserClient = NetworkBrowserClient;
 
 /***/ }),
 
+/***/ "./lib/packages/network-layer/client/NetworkServerLessClient.ts":
+/*!**********************************************************************!*\
+  !*** ./lib/packages/network-layer/client/NetworkServerLessClient.ts ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.NetworkServerLessClient = void 0;
+/**
+ * Copyright 2024 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var FetchUtil_1 = __webpack_require__(/*! ../../../utils/FetchUtil */ "./lib/utils/FetchUtil.ts");
+var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
+var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./lib/packages/network-layer/models/ResponseModel.ts");
+/**
+ * Implements the NetworkClientInterface to handle network requests.
+ */
+var NetworkServerLessClient = /** @class */ (function () {
+    function NetworkServerLessClient() {
+    }
+    /**
+     * Performs a GET request using the provided RequestModel.
+     * @param {RequestModel} requestModel - The model containing request options.
+     * @returns {Promise<ResponseModel>} A promise that resolves to a ResponseModel.
+     */
+    NetworkServerLessClient.prototype.GET = function (requestModel) {
+        var deferred = new PromiseUtil_1.Deferred();
+        // Extract network options from the request model.
+        var networkOptions = requestModel.getOptions();
+        var responseModel = new ResponseModel_1.ResponseModel();
+        (0, FetchUtil_1.sendGetCall)(networkOptions)
+            .then(function (data) {
+            responseModel.setData(data);
+            deferred.resolve(responseModel);
+        })
+            .catch(function (error) {
+            responseModel.setError(error);
+            deferred.reject(responseModel);
+        });
+        return deferred.promise;
+    };
+    /**
+     * Performs a POST request using the provided RequestModel.
+     * @param {RequestModel} request - The model containing request options.
+     * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
+     */
+    NetworkServerLessClient.prototype.POST = function (request) {
+        var deferred = new PromiseUtil_1.Deferred();
+        var networkOptions = request.getOptions();
+        var responseModel = new ResponseModel_1.ResponseModel();
+        (0, FetchUtil_1.sendPostCall)(networkOptions)
+            .then(function (data) {
+            responseModel.setData(data);
+            deferred.resolve(responseModel);
+        })
+            .catch(function (error) {
+            responseModel.setError(error);
+            deferred.reject(responseModel);
+        });
+        return deferred.promise;
+    };
+    return NetworkServerLessClient;
+}());
+exports.NetworkServerLessClient = NetworkServerLessClient;
+
+
+/***/ }),
+
 /***/ "./lib/packages/network-layer/handlers/RequestHandler.ts":
 /*!***************************************************************!*\
   !*** ./lib/packages/network-layer/handlers/RequestHandler.ts ***!
@@ -4148,10 +4230,20 @@ var NetworkManager = /** @class */ (function () {
      * @param {NetworkClientInterface} client - The client to attach, optional.
      */
     NetworkManager.prototype.attachClient = function (client) {
+        // if env is undefined, we are in browser
         if (true) {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            var NetworkBrowserClient = (__webpack_require__(/*! ../client/NetworkBrowserClient */ "./lib/packages/network-layer/client/NetworkBrowserClient.ts").NetworkBrowserClient);
-            this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+            // if XMLHttpRequest is undefined, we are in serverless
+            if (typeof XMLHttpRequest === 'undefined') {
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                var NetworkServerLessClient = (__webpack_require__(/*! ../client/NetworkServerLessClient */ "./lib/packages/network-layer/client/NetworkServerLessClient.ts").NetworkServerLessClient);
+                this.client = client || new NetworkServerLessClient();
+            }
+            else {
+                // if XMLHttpRequest is defined, we are in browser
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                var NetworkBrowserClient = (__webpack_require__(/*! ../client/NetworkBrowserClient */ "./lib/packages/network-layer/client/NetworkBrowserClient.ts").NetworkBrowserClient);
+                this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+            }
         }
         else { var NetworkClient; }
         this.config = new GlobalRequestModel_1.GlobalRequestModel(null, null, null, null); // Initialize with default config
@@ -7558,6 +7650,103 @@ var _evaluateWhitelisting = function (campaign, context) { return __awaiter(void
 
 /***/ }),
 
+/***/ "./lib/utils/FetchUtil.ts":
+/*!********************************!*\
+  !*** ./lib/utils/FetchUtil.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.sendPostCall = exports.sendGetCall = void 0;
+var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./lib/enums/HttpMethodEnum.ts");
+var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./lib/utils/FunctionUtil.ts");
+function sendGetCall(networkOptions) {
+    return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, networkOptions);
+}
+exports.sendGetCall = sendGetCall;
+function sendPostCall(networkOptions) {
+    return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, networkOptions);
+}
+exports.sendPostCall = sendPostCall;
+/**
+ * Sends a request to the server using the Fetch API.
+ * @param method - The HTTP method to use for the request.
+ * @param networkOptions - The options for the request.
+ * @returns A Promise that resolves to the response data.
+ */
+function sendRequest(method, networkOptions) {
+    var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+    return new Promise(function (resolve, reject) {
+        if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
+            networkOptions.body = JSON.stringify(networkOptions.body);
+        }
+        fetch(url, networkOptions)
+            .then(function (res) {
+            // Some endpoints return empty strings as the response body; treat
+            // as raw text and handle potential JSON parsing errors below
+            return res.text().then(function (text) {
+                var jsonData = {};
+                try {
+                    if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+                        jsonData = JSON.parse(text);
+                    }
+                    else {
+                        jsonData = text;
+                    }
+                }
+                catch (err) {
+                    console.info("VWO-SDK - [INFO]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " VWO didn't send JSON response which is expected: ").concat(err));
+                }
+                if (res.status === 200) {
+                    resolve(jsonData);
+                }
+                else {
+                    var errorMessage = '';
+                    if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+                        errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " Request failed for fetching account settings. Got Status Code: ").concat(res.status);
+                    }
+                    else if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
+                        errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " Request failed while making a POST request. Got Status Code: ").concat(res.status);
+                    }
+                    console.error(errorMessage);
+                    reject(errorMessage);
+                }
+            });
+        })
+            .catch(function (err) {
+            var errorMessage = '';
+            if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+                errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " GET request failed for fetching account settings. Error: ").concat(err);
+            }
+            else if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
+                errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " POST request failed while sending data. Error: ").concat(err);
+            }
+            console.error(errorMessage);
+            reject(errorMessage);
+        });
+    });
+}
+
+
+/***/ }),
+
 /***/ "./lib/utils/FunctionUtil.ts":
 /*!***********************************!*\
   !*** ./lib/utils/FunctionUtil.ts ***!
@@ -7578,7 +7767,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.addLinkedCampaignsToSettings = exports.doesEventBelongToAnyFeature = exports.getFeatureFromKey = exports.getAllExperimentRules = exports.getSpecificRulesBasedOnType = exports.getRandomNumber = exports.getCurrentUnixTimestampInMillis = exports.getCurrentUnixTimestamp = exports.cloneObject = void 0;
+exports.addLinkedCampaignsToSettings = exports.doesEventBelongToAnyFeature = exports.getFeatureFromKey = exports.getAllExperimentRules = exports.getSpecificRulesBasedOnType = exports.getRandomNumber = exports.getCurrentUnixTimestampInMillis = exports.getCurrentUnixTimestamp = exports.getCurrentTime = exports.cloneObject = void 0;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -7612,6 +7801,14 @@ function cloneObject(obj) {
     return clonedObj;
 }
 exports.cloneObject = cloneObject;
+/**
+ * Gets the current time in ISO string format.
+ * @returns {string} The current time in ISO string format.
+ */
+function getCurrentTime() {
+    return new Date().toISOString();
+}
+exports.getCurrentTime = getCurrentTime;
 /**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.

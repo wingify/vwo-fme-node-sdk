@@ -30,6 +30,7 @@ import { isObject } from './DataTypeUtil';
 import { buildMessage } from './LogMessageUtil';
 import { UrlUtil } from './UrlUtil';
 import { Deferred } from './PromiseUtil';
+import { HTTPS } from '../constants/Url';
 
 /**
  * Constructs base properties for bulk operations.
@@ -408,15 +409,6 @@ export function getMessagingEventPayload(messageType: string, message: string, e
     },
   };
   properties.d.event.props.data = data;
-
-  LogManager.Instance.debug(
-    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_VWO_LOG_EVENT, {
-      eventName,
-      accountId: SettingsService.Instance.accountId,
-      userId,
-    }),
-  );
-
   return properties;
 }
 
@@ -441,7 +433,7 @@ export async function sendMessagingEvent(properties: Record<string, any>, payloa
       properties,
       payload,
       null,
-      Constants.HTTPS_PROTOCOL,
+      HTTPS,
       null,
     );
 

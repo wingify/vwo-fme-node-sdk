@@ -80,6 +80,7 @@ var DataTypeUtil_1 = require("./DataTypeUtil");
 var LogMessageUtil_1 = require("./LogMessageUtil");
 var UrlUtil_1 = require("./UrlUtil");
 var PromiseUtil_1 = require("./PromiseUtil");
+var Url_1 = require("../constants/Url");
 /**
  * Constructs base properties for bulk operations.
  * @param {string} accountId - The account identifier.
@@ -387,11 +388,6 @@ function getMessagingEventPayload(messageType, message, eventName) {
         },
     };
     properties.d.event.props.data = data;
-    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_VWO_LOG_EVENT, {
-        eventName: eventName,
-        accountId: SettingsService_1.SettingsService.Instance.accountId,
-        userId: userId,
-    }));
     return properties;
 }
 /**
@@ -407,7 +403,7 @@ function sendMessagingEvent(properties, payload) {
             deferredObject = new PromiseUtil_1.Deferred();
             networkInstance = network_layer_1.NetworkManager.Instance;
             try {
-                request = new network_layer_1.RequestModel(constants_1.Constants.HOST_NAME, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, constants_1.Constants.HTTPS_PROTOCOL, null);
+                request = new network_layer_1.RequestModel(constants_1.Constants.HOST_NAME, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null);
                 // Perform the network GET request
                 networkInstance
                     .post(request)

@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.13.0
+ * vwo-fme-javascript-sdk - v1.14.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -1610,7 +1610,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.13.0", // will be replaced by webpack for browser build
+        version: "1.14.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -8754,6 +8754,7 @@ var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./lib/utils/Data
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./lib/utils/UrlUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./lib/utils/PromiseUtil.ts");
+var Url_1 = __webpack_require__(/*! ../constants/Url */ "./lib/constants/Url.ts");
 /**
  * Constructs base properties for bulk operations.
  * @param {string} accountId - The account identifier.
@@ -9061,11 +9062,6 @@ function getMessagingEventPayload(messageType, message, eventName) {
         },
     };
     properties.d.event.props.data = data;
-    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_VWO_LOG_EVENT, {
-        eventName: eventName,
-        accountId: SettingsService_1.SettingsService.Instance.accountId,
-        userId: userId,
-    }));
     return properties;
 }
 /**
@@ -9081,7 +9077,7 @@ function sendMessagingEvent(properties, payload) {
             deferredObject = new PromiseUtil_1.Deferred();
             networkInstance = network_layer_1.NetworkManager.Instance;
             try {
-                request = new network_layer_1.RequestModel(constants_1.Constants.HOST_NAME, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, constants_1.Constants.HTTPS_PROTOCOL, null);
+                request = new network_layer_1.RequestModel(constants_1.Constants.HOST_NAME, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null);
                 // Perform the network GET request
                 networkInstance
                     .post(request)

@@ -11,7 +11,16 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addLinkedCampaignsToSettings = exports.doesEventBelongToAnyFeature = exports.getFeatureFromKey = exports.getAllExperimentRules = exports.getSpecificRulesBasedOnType = exports.getRandomNumber = exports.getCurrentUnixTimestampInMillis = exports.getCurrentUnixTimestamp = exports.getCurrentTime = exports.cloneObject = void 0;
+exports.cloneObject = cloneObject;
+exports.getCurrentTime = getCurrentTime;
+exports.getCurrentUnixTimestamp = getCurrentUnixTimestamp;
+exports.getCurrentUnixTimestampInMillis = getCurrentUnixTimestampInMillis;
+exports.getRandomNumber = getRandomNumber;
+exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
+exports.getAllExperimentRules = getAllExperimentRules;
+exports.getFeatureFromKey = getFeatureFromKey;
+exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
+exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -44,7 +53,6 @@ function cloneObject(obj) {
     var clonedObj = JSON.parse(JSON.stringify(obj));
     return clonedObj;
 }
-exports.cloneObject = cloneObject;
 /**
  * Gets the current time in ISO string format.
  * @returns {string} The current time in ISO string format.
@@ -52,7 +60,6 @@ exports.cloneObject = cloneObject;
 function getCurrentTime() {
     return new Date().toISOString();
 }
-exports.getCurrentTime = getCurrentTime;
 /**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.
@@ -61,7 +68,6 @@ function getCurrentUnixTimestamp() {
     // Convert the current date to Unix timestamp in seconds
     return Math.ceil(+new Date() / 1000);
 }
-exports.getCurrentUnixTimestamp = getCurrentUnixTimestamp;
 /**
  * Gets the current Unix timestamp in milliseconds.
  * @returns {number} The current Unix timestamp in milliseconds.
@@ -70,7 +76,6 @@ function getCurrentUnixTimestampInMillis() {
     // Convert the current date to Unix timestamp in milliseconds
     return +new Date();
 }
-exports.getCurrentUnixTimestampInMillis = getCurrentUnixTimestampInMillis;
 /**
  * Generates a random number between 0 and 1.
  * @returns {number} A random number.
@@ -79,7 +84,6 @@ function getRandomNumber() {
     // Use Math.random to generate a random number
     return Math.random();
 }
-exports.getRandomNumber = getRandomNumber;
 /**
  * Retrieves specific rules based on the type from a feature.
  * @param {FeatureModel} feature - The key of the feature.
@@ -102,7 +106,6 @@ function getSpecificRulesBasedOnType(feature, type) {
     // Return all linked campaigns if no type is specified
     return feature.getRulesLinkedCampaign();
 }
-exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
 /**
  * Retrieves all AB and Personalize rules from a feature.
  * @param {any} settings - The settings containing features.
@@ -114,7 +117,6 @@ function getAllExperimentRules(feature) {
     // Filter the rules to include only AB and Personalize types
     return ((feature === null || feature === void 0 ? void 0 : feature.getRulesLinkedCampaign().filter(function (rule) { return rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB || rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE; })) || []);
 }
-exports.getAllExperimentRules = getAllExperimentRules;
 /**
  * Retrieves a feature by its key from the settings.
  * @param {any} settings - The settings containing features.
@@ -126,7 +128,6 @@ function getFeatureFromKey(settings, featureKey) {
     // Find the feature by its key
     return (_a = settings === null || settings === void 0 ? void 0 : settings.getFeatures()) === null || _a === void 0 ? void 0 : _a.find(function (feature) { return feature.getKey() === featureKey; });
 }
-exports.getFeatureFromKey = getFeatureFromKey;
 /**
  * Checks if an event exists within any feature's metrics.
  * @param {string} eventName - The name of the event to check.
@@ -139,7 +140,6 @@ function doesEventBelongToAnyFeature(eventName, settings) {
         .getFeatures()
         .some(function (feature) { return feature.getMetrics().some(function (metric) { return metric.getIdentifier() === eventName; }); });
 }
-exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
 /**
  * Adds linked campaigns to each feature in the settings based on rules.
  * @param {any} settings - The settings file to modify.
@@ -177,5 +177,4 @@ function addLinkedCampaignsToSettings(settings) {
         feature.setRulesLinkedCampaign(rulesLinkedCampaignModel);
     }
 }
-exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 //# sourceMappingURL=FunctionUtil.js.map

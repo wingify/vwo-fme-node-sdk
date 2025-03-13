@@ -35,7 +35,6 @@ export declare function getEventBatchingQueryParams(accountId: string): Record<s
  * @returns properties
  */
 export declare function getEventsBaseProperties(
-  setting: SettingsModel,
   eventName: string,
   visitorUserAgent?: string,
   ipAddress?: string,
@@ -131,3 +130,22 @@ export declare function getShouldWaitForTrackingCalls(): boolean;
  * @param value - The value to set.
  */
 export declare function setShouldWaitForTrackingCalls(value: boolean): void;
+/**
+ * Constructs the payload for a messaging event.
+ * @param messageType - The type of the message.
+ * @param message - The message to send.
+ * @param eventName - The name of the event.
+ * @returns The constructed payload.
+ */
+export declare function getMessagingEventPayload(
+  messageType: string,
+  message: string,
+  eventName: string,
+): Record<string, any>;
+/**
+ * Sends a messaging event to DACDN
+ * @param properties - Query parameters for the request.
+ * @param payload - The payload for the request.
+ * @returns A promise that resolves to the response from DACDN.
+ */
+export declare function sendMessagingEvent(properties: Record<string, any>, payload: Record<string, any>): Promise<any>;

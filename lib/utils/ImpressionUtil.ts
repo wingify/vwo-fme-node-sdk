@@ -37,7 +37,6 @@ export const createAndSendImpressionForVariationShown = async (
 ) => {
   // Get base properties for the event
   const properties = getEventsBaseProperties(
-    settings,
     EventEnum.VWO_VARIATION_SHOWN,
     encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
     context.getIpAddress(),

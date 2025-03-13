@@ -71,7 +71,6 @@ const createImpressionForAttributes = async (
 ) => {
   // Retrieve base properties for the event
   const properties = getEventsBaseProperties(
-    settings,
     EventEnum.VWO_SYNC_VISITOR_PROP,
     encodeURIComponent(context.getUserAgent()),
     context.getIpAddress(),

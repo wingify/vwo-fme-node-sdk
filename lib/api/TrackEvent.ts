@@ -99,7 +99,6 @@ const createImpressionForTrack = async (
 ) => {
   // Get base properties for the event
   const properties = getEventsBaseProperties(
-    settings,
     eventName,
     encodeURIComponent(context.getUserAgent()),
     context.getIpAddress(),

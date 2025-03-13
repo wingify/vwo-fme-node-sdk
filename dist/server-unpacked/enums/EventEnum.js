@@ -20,5 +20,6 @@ var EventEnum;
 (function (EventEnum) {
     EventEnum["VWO_VARIATION_SHOWN"] = "vwo_variationShown";
     EventEnum["VWO_SYNC_VISITOR_PROP"] = "vwo_syncVisitorProp";
+    EventEnum["VWO_LOG_EVENT"] = "vwo_log";
 })(EventEnum || (exports.EventEnum = EventEnum = {}));
 //# sourceMappingURL=EventEnum.js.map

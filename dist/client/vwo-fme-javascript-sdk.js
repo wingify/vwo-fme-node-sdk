@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.12.0
+ * vwo-fme-javascript-sdk - v1.13.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -39,146 +39,6 @@
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./node_modules/murmurhash/murmurhash.js":
-/*!***********************************************!*\
-  !*** ./node_modules/murmurhash/murmurhash.js ***!
-  \***********************************************/
-/***/ ((module) => {
-
-(function(){
-  const _global = this;
-
-  const createBuffer = (val) => new TextEncoder().encode(val)
-
-  /**
-   * JS Implementation of MurmurHash2
-   *
-   * @author <a href="mailto:gary.court@gmail.com">Gary Court</a>
-   * @see http://github.com/garycourt/murmurhash-js
-   * @author <a href="mailto:aappleby@gmail.com">Austin Appleby</a>
-   * @see http://sites.google.com/site/murmurhash/
-   *
-   * @param {Uint8Array | string} str ASCII only
-   * @param {number} seed Positive integer only
-   * @return {number} 32-bit positive integer hash
-   */
-  function MurmurHashV2(str, seed) {
-    if (typeof str === 'string') str = createBuffer(str);
-    let
-      l = str.length,
-      h = seed ^ l,
-      i = 0,
-      k;
-
-    while (l >= 4) {
-      k =
-        ((str[i] & 0xff)) |
-        ((str[++i] & 0xff) << 8) |
-        ((str[++i] & 0xff) << 16) |
-        ((str[++i] & 0xff) << 24);
-
-      k = (((k & 0xffff) * 0x5bd1e995) + ((((k >>> 16) * 0x5bd1e995) & 0xffff) << 16));
-      k ^= k >>> 24;
-      k = (((k & 0xffff) * 0x5bd1e995) + ((((k >>> 16) * 0x5bd1e995) & 0xffff) << 16));
-
-    h = (((h & 0xffff) * 0x5bd1e995) + ((((h >>> 16) * 0x5bd1e995) & 0xffff) << 16)) ^ k;
-
-      l -= 4;
-      ++i;
-    }
-
-    switch (l) {
-    case 3: h ^= (str[i + 2] & 0xff) << 16;
-    case 2: h ^= (str[i + 1] & 0xff) << 8;
-    case 1: h ^= (str[i] & 0xff);
-            h = (((h & 0xffff) * 0x5bd1e995) + ((((h >>> 16) * 0x5bd1e995) & 0xffff) << 16));
-    }
-
-    h ^= h >>> 13;
-    h = (((h & 0xffff) * 0x5bd1e995) + ((((h >>> 16) * 0x5bd1e995) & 0xffff) << 16));
-    h ^= h >>> 15;
-
-    return h >>> 0;
-  };
-
-  /*
-   * JS Implementation of MurmurHash3 (r136) (as of May 20, 2011)
-   *
-   * @author <a href="mailto:gary.court@gmail.com">Gary Court</a>
-   * @see http://github.com/garycourt/murmurhash-js
-   * @author <a href="mailto:aappleby@gmail.com">Austin Appleby</a>
-   * @see http://sites.google.com/site/murmurhash/
-   *
-   * @param {Uint8Array | string} key ASCII only
-   * @param {number} seed Positive integer only
-   * @return {number} 32-bit positive integer hash
-   */
-  function MurmurHashV3(key, seed) {
-    if (typeof key === 'string') key = createBuffer(key);
-
-    let remainder, bytes, h1, h1b, c1, c1b, c2, c2b, k1, i;
-
-    remainder = key.length & 3; // key.length % 4
-    bytes = key.length - remainder;
-    h1 = seed;
-    c1 = 0xcc9e2d51;
-    c2 = 0x1b873593;
-    i = 0;
-
-    while (i < bytes) {
-        k1 =
-          ((key[i] & 0xff)) |
-          ((key[++i] & 0xff) << 8) |
-          ((key[++i] & 0xff) << 16) |
-          ((key[++i] & 0xff) << 24);
-      ++i;
-
-      k1 = ((((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16))) & 0xffffffff;
-      k1 = (k1 << 15) | (k1 >>> 17);
-      k1 = ((((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16))) & 0xffffffff;
-
-      h1 ^= k1;
-          h1 = (h1 << 13) | (h1 >>> 19);
-      h1b = ((((h1 & 0xffff) * 5) + ((((h1 >>> 16) * 5) & 0xffff) << 16))) & 0xffffffff;
-      h1 = (((h1b & 0xffff) + 0x6b64) + ((((h1b >>> 16) + 0xe654) & 0xffff) << 16));
-    }
-
-    k1 = 0;
-
-    switch (remainder) {
-      case 3: k1 ^= (key[i + 2] & 0xff) << 16;
-      case 2: k1 ^= (key[i + 1] & 0xff) << 8;
-      case 1: k1 ^= (key[i] & 0xff);
-
-      k1 = (((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
-      k1 = (k1 << 15) | (k1 >>> 17);
-      k1 = (((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16)) & 0xffffffff;
-      h1 ^= k1;
-    }
-
-    h1 ^= key.length;
-
-    h1 ^= h1 >>> 16;
-    h1 = (((h1 & 0xffff) * 0x85ebca6b) + ((((h1 >>> 16) * 0x85ebca6b) & 0xffff) << 16)) & 0xffffffff;
-    h1 ^= h1 >>> 13;
-    h1 = ((((h1 & 0xffff) * 0xc2b2ae35) + ((((h1 >>> 16) * 0xc2b2ae35) & 0xffff) << 16))) & 0xffffffff;
-    h1 ^= h1 >>> 16;
-
-    return h1 >>> 0;
-  }
-
-  const murmur = MurmurHashV3;
-  murmur.v2 = MurmurHashV2;
-  murmur.v3 = MurmurHashV3;
-
-  if (true) {
-    module.exports = murmur;
-  } else {}
-}());
-
-
-/***/ }),
-
 /***/ "./lib/VWO.ts":
 /*!********************!*\
   !*** ./lib/VWO.ts ***!
@@ -197,8 +57,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -224,7 +84,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.onInit = exports.init = exports.VWO = void 0;
+exports.VWO = void 0;
+exports.init = init;
+exports.onInit = onInit;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -359,7 +221,6 @@ function init(options) {
         });
     });
 }
-exports.init = init;
 function onInit() {
     return __awaiter(this, void 0, void 0, function () {
         var apiName, date_1, msg, msg;
@@ -403,7 +264,6 @@ function onInit() {
         });
     });
 }
-exports.onInit = onInit;
 
 
 /***/ }),
@@ -711,8 +571,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -1127,8 +987,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -1459,8 +1319,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -1530,7 +1390,7 @@ var createImpressionForAttributes = function (settings, attributes, context) { r
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+                properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
                 payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress());
                 // Send the constructed payload via POST request
                 return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
@@ -1563,8 +1423,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -1664,7 +1524,7 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+                properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
                 payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
                 // Send the prepared payload via POST API request
                 return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
@@ -1750,7 +1610,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.12.0", // will be replaced by webpack for browser build
+        version: "1.13.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -1803,8 +1663,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -2049,6 +1909,7 @@ var EventEnum;
 (function (EventEnum) {
     EventEnum["VWO_VARIATION_SHOWN"] = "vwo_variationShown";
     EventEnum["VWO_SYNC_VISITOR_PROP"] = "vwo_syncVisitorProp";
+    EventEnum["VWO_LOG_EVENT"] = "vwo_log";
 })(EventEnum || (exports.EventEnum = EventEnum = {}));
 
 
@@ -3431,6 +3292,7 @@ var ConsoleTransport_1 = __webpack_require__(/*! ../transports/ConsoleTransport 
 var TransportManager_1 = __webpack_require__(/*! ./TransportManager */ "./lib/packages/logger/core/TransportManager.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var LogLevelEnum_1 = __webpack_require__(/*! ../enums/LogLevelEnum */ "./lib/packages/logger/enums/LogLevelEnum.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 /**
  * LogManager class provides logging functionality with support for multiple transports.
  * It is designed as a singleton to ensure a single instance throughout the application.
@@ -3544,6 +3406,7 @@ var LogManager = /** @class */ (function (_super) {
      */
     LogManager.prototype.error = function (message) {
         this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
+        (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
     };
     return LogManager;
 }(Logger_1.Logger));
@@ -4809,8 +4672,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -5104,8 +4967,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -5560,8 +5423,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -5972,7 +5835,8 @@ Object.defineProperty(exports, "SegmentEvaluator", ({ enumerable: true, get: fun
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.matchWithRegex = exports.getKeyValue = void 0;
+exports.getKeyValue = getKeyValue;
+exports.matchWithRegex = matchWithRegex;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -6009,7 +5873,6 @@ function getKeyValue(obj) {
         value: value,
     };
 }
-exports.getKeyValue = getKeyValue;
 /**
  * Matches a string against a regular expression and returns the match result.
  * @param {string} string - The string to match against the regex.
@@ -6026,7 +5889,6 @@ function matchWithRegex(string, regex) {
         return null;
     }
 }
-exports.matchWithRegex = matchWithRegex;
 
 
 /***/ }),
@@ -6147,8 +6009,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -6432,8 +6294,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -6666,8 +6528,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -6798,7 +6660,19 @@ exports.StorageService = StorageService;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getRuleTypeUsingCampaignIdFromFeature = exports.assignRangeValuesMEG = exports.getCampaignIdsFromFeatureKey = exports.getFeatureKeysFromCampaignIds = exports.getCampaignsByGroupId = exports.findGroupsFeaturePartOf = exports.getGroupDetailsIfCampaignPartOfIt = exports.setCampaignAllocation = exports.getVariationFromCampaignKey = exports.getBucketingSeed = exports.scaleVariationWeights = exports.assignRangeValues = exports.setVariationAllocation = void 0;
+exports.setVariationAllocation = setVariationAllocation;
+exports.assignRangeValues = assignRangeValues;
+exports.scaleVariationWeights = scaleVariationWeights;
+exports.getBucketingSeed = getBucketingSeed;
+exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
+exports.setCampaignAllocation = setCampaignAllocation;
+exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
+exports.findGroupsFeaturePartOf = findGroupsFeaturePartOf;
+exports.getCampaignsByGroupId = getCampaignsByGroupId;
+exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
+exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
+exports.assignRangeValuesMEG = assignRangeValuesMEG;
+exports.getRuleTypeUsingCampaignIdFromFeature = getRuleTypeUsingCampaignIdFromFeature;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -6849,7 +6723,6 @@ function setVariationAllocation(campaign) {
         });
     }
 }
-exports.setVariationAllocation = setVariationAllocation;
 /**
  * Assigns start and end range values to a variation based on its weight.
  * @param {VariationModel} data - The variation model to assign range values.
@@ -6870,7 +6743,6 @@ function assignRangeValues(data, currentAllocation) {
     }
     return stepFactor;
 }
-exports.assignRangeValues = assignRangeValues;
 /**
  * Scales the weights of variations to sum up to 100%.
  * @param {any[]} variations - The list of variations to scale.
@@ -6890,7 +6762,6 @@ function scaleVariationWeights(variations) {
         variations.forEach(function (variation) { return (variation.weight = (variation.weight / totalWeight) * 100); });
     }
 }
-exports.scaleVariationWeights = scaleVariationWeights;
 /**
  * Generates a bucketing seed based on user ID, campaign, and optional group ID.
  * @param {string} userId - The user ID.
@@ -6911,7 +6782,6 @@ function getBucketingSeed(userId, campaign, groupId) {
     // Return a seed combining campaign ID and user ID otherwise
     return bucketKey;
 }
-exports.getBucketingSeed = getBucketingSeed;
 /**
  * Retrieves a variation by its ID within a specific campaign identified by its key.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -6936,7 +6806,6 @@ function getVariationFromCampaignKey(settings, campaignKey, variationId) {
     }
     return null;
 }
-exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
 /**
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.
@@ -6950,7 +6819,6 @@ function setCampaignAllocation(campaigns) {
         currentAllocation += stepFactor;
     }
 }
-exports.setCampaignAllocation = setCampaignAllocation;
 /**
  * Determines if a campaign is part of a group.
  * @param {SettingsModel} settings - The settings model containing group associations.
@@ -6980,7 +6848,6 @@ function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId) {
     }
     return {};
 }
-exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
 /**
  * Finds all groups associated with a feature specified by its key.
  * @param {SettingsModel} settings - The settings model containing all features and groups.
@@ -7014,7 +6881,6 @@ function findGroupsFeaturePartOf(settings, featureKey) {
     });
     return groups;
 }
-exports.findGroupsFeaturePartOf = findGroupsFeaturePartOf;
 /**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
@@ -7030,7 +6896,6 @@ function getCampaignsByGroupId(settings, groupId) {
         return []; // Return an empty array if the group ID is not found
     }
 }
-exports.getCampaignsByGroupId = getCampaignsByGroupId;
 /**
  * Retrieves feature keys from a list of campaign IDs.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -7070,7 +6935,6 @@ function getFeatureKeysFromCampaignIds(settings, campaignIdWithVariation) {
     }
     return featureKeys;
 }
-exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 /**
  * Retrieves campaign IDs from a specific feature key.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -7088,7 +6952,6 @@ function getCampaignIdsFromFeatureKey(settings, featureKey) {
     });
     return campaignIds;
 }
-exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 /**
  * Assigns range values to a campaign based on its weight.
  * @param {any} data - The campaign data containing weight.
@@ -7107,7 +6970,6 @@ function assignRangeValuesMEG(data, currentAllocation) {
     }
     return stepFactor;
 }
-exports.assignRangeValuesMEG = assignRangeValuesMEG;
 /**
  * Retrieves the rule type using a campaign ID from a specific feature.
  * @param {any} feature - The feature containing rules.
@@ -7118,7 +6980,6 @@ function getRuleTypeUsingCampaignIdFromFeature(feature, campaignId) {
     var rule = feature.getRules().find(function (rule) { return rule.getCampaignId() === campaignId; });
     return rule ? rule.getType() : ''; // Return the rule type if found
 }
-exports.getRuleTypeUsingCampaignIdFromFeature = getRuleTypeUsingCampaignIdFromFeature;
 /**
  * Calculates the bucket range for a variation based on its weight.
  * @param {number} variationWeight - The weight of the variation.
@@ -7164,7 +7025,20 @@ function _handleRolloutCampaign(campaign) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getType = exports.isPromise = exports.isRegex = exports.isFunction = exports.isDate = exports.isNaN = exports.isBoolean = exports.isString = exports.isNumber = exports.isDefined = exports.isUndefined = exports.isNull = exports.isArray = exports.isObject = void 0;
+exports.isObject = isObject;
+exports.isArray = isArray;
+exports.isNull = isNull;
+exports.isUndefined = isUndefined;
+exports.isDefined = isDefined;
+exports.isNumber = isNumber;
+exports.isString = isString;
+exports.isBoolean = isBoolean;
+exports.isNaN = isNaN;
+exports.isDate = isDate;
+exports.isFunction = isFunction;
+exports.isRegex = isRegex;
+exports.isPromise = isPromise;
+exports.getType = getType;
 /**
  * Checks if a value is an object excluding arrays, functions, regexes, promises, and dates.
  * @param val The value to check.
@@ -7174,7 +7048,6 @@ function isObject(val) {
     // Using Object.prototype.toString to get a precise string representation of the value type
     return Object.prototype.toString.call(val) === '[object Object]';
 }
-exports.isObject = isObject;
 /**
  * Checks if a value is an array.
  * @param val The value to check.
@@ -7183,7 +7056,6 @@ exports.isObject = isObject;
 function isArray(val) {
     return Object.prototype.toString.call(val) === '[object Array]';
 }
-exports.isArray = isArray;
 /**
  * Checks if a value is null.
  * @param val The value to check.
@@ -7192,7 +7064,6 @@ exports.isArray = isArray;
 function isNull(val) {
     return Object.prototype.toString.call(val) === '[object Null]';
 }
-exports.isNull = isNull;
 /**
  * Checks if a value is undefined.
  * @param val The value to check.
@@ -7201,7 +7072,6 @@ exports.isNull = isNull;
 function isUndefined(val) {
     return Object.prototype.toString.call(val) === '[object Undefined]';
 }
-exports.isUndefined = isUndefined;
 /**
  * Checks if a value is defined, i.e., not undefined and not null.
  * @param val The value to check.
@@ -7210,7 +7080,6 @@ exports.isUndefined = isUndefined;
 function isDefined(val) {
     return !isUndefined(val) && !isNull(val);
 }
-exports.isDefined = isDefined;
 /**
  * Checks if a value is a number, including NaN.
  * @param val The value to check.
@@ -7220,7 +7089,6 @@ function isNumber(val) {
     // Note: NaN is also a number
     return Object.prototype.toString.call(val) === '[object Number]';
 }
-exports.isNumber = isNumber;
 /**
  * Checks if a value is a string.
  * @param val The value to check.
@@ -7229,7 +7097,6 @@ exports.isNumber = isNumber;
 function isString(val) {
     return Object.prototype.toString.call(val) === '[object String]';
 }
-exports.isString = isString;
 /**
  * Checks if a value is a boolean.
  * @param val The value to check.
@@ -7238,7 +7105,6 @@ exports.isString = isString;
 function isBoolean(val) {
     return Object.prototype.toString.call(val) === '[object Boolean]';
 }
-exports.isBoolean = isBoolean;
 /**
  * Checks if a value is NaN.
  * @param val The value to check.
@@ -7248,7 +7114,6 @@ function isNaN(val) {
     // NaN is the only JavaScript value that is treated as unequal to itself
     return val !== val;
 }
-exports.isNaN = isNaN;
 /**
  * Checks if a value is a Date object.
  * @param val The value to check.
@@ -7257,7 +7122,6 @@ exports.isNaN = isNaN;
 function isDate(val) {
     return Object.prototype.toString.call(val) === '[object Date]';
 }
-exports.isDate = isDate;
 /**
  * Checks if a value is a function.
  * @param val The value to check.
@@ -7266,7 +7130,6 @@ exports.isDate = isDate;
 function isFunction(val) {
     return Object.prototype.toString.call(val) === '[object Function]';
 }
-exports.isFunction = isFunction;
 /**
  * Checks if a value is a regular expression.
  * @param val The value to check.
@@ -7275,7 +7138,6 @@ exports.isFunction = isFunction;
 function isRegex(val) {
     return Object.prototype.toString.call(val) === '[object RegExp]';
 }
-exports.isRegex = isRegex;
 /**
  * Checks if a value is a Promise.
  * @param val The value to check.
@@ -7284,7 +7146,6 @@ exports.isRegex = isRegex;
 function isPromise(val) {
     return Object.prototype.toString.call(val) === '[object Promise]';
 }
-exports.isPromise = isPromise;
 /**
  * Determines the type of the given value using various type-checking utility functions.
  * @param val The value to determine the type of.
@@ -7330,7 +7191,6 @@ function getType(val) {
                                                                                                 : // If none of the above, return 'Unknown Type'
                                                                                                     'Unknown Type';
 }
-exports.getType = getType;
 
 
 /***/ }),
@@ -7353,8 +7213,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -7674,17 +7534,16 @@ var _evaluateWhitelisting = function (campaign, context) { return __awaiter(void
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sendPostCall = exports.sendGetCall = void 0;
+exports.sendGetCall = sendGetCall;
+exports.sendPostCall = sendPostCall;
 var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./lib/enums/HttpMethodEnum.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./lib/utils/FunctionUtil.ts");
 function sendGetCall(networkOptions) {
     return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, networkOptions);
 }
-exports.sendGetCall = sendGetCall;
 function sendPostCall(networkOptions) {
     return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, networkOptions);
 }
-exports.sendPostCall = sendPostCall;
 /**
  * Sends a request to the server using the Fetch API.
  * @param method - The HTTP method to use for the request.
@@ -7767,7 +7626,16 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.addLinkedCampaignsToSettings = exports.doesEventBelongToAnyFeature = exports.getFeatureFromKey = exports.getAllExperimentRules = exports.getSpecificRulesBasedOnType = exports.getRandomNumber = exports.getCurrentUnixTimestampInMillis = exports.getCurrentUnixTimestamp = exports.getCurrentTime = exports.cloneObject = void 0;
+exports.cloneObject = cloneObject;
+exports.getCurrentTime = getCurrentTime;
+exports.getCurrentUnixTimestamp = getCurrentUnixTimestamp;
+exports.getCurrentUnixTimestampInMillis = getCurrentUnixTimestampInMillis;
+exports.getRandomNumber = getRandomNumber;
+exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
+exports.getAllExperimentRules = getAllExperimentRules;
+exports.getFeatureFromKey = getFeatureFromKey;
+exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
+exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -7800,7 +7668,6 @@ function cloneObject(obj) {
     var clonedObj = JSON.parse(JSON.stringify(obj));
     return clonedObj;
 }
-exports.cloneObject = cloneObject;
 /**
  * Gets the current time in ISO string format.
  * @returns {string} The current time in ISO string format.
@@ -7808,7 +7675,6 @@ exports.cloneObject = cloneObject;
 function getCurrentTime() {
     return new Date().toISOString();
 }
-exports.getCurrentTime = getCurrentTime;
 /**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.
@@ -7817,7 +7683,6 @@ function getCurrentUnixTimestamp() {
     // Convert the current date to Unix timestamp in seconds
     return Math.ceil(+new Date() / 1000);
 }
-exports.getCurrentUnixTimestamp = getCurrentUnixTimestamp;
 /**
  * Gets the current Unix timestamp in milliseconds.
  * @returns {number} The current Unix timestamp in milliseconds.
@@ -7826,7 +7691,6 @@ function getCurrentUnixTimestampInMillis() {
     // Convert the current date to Unix timestamp in milliseconds
     return +new Date();
 }
-exports.getCurrentUnixTimestampInMillis = getCurrentUnixTimestampInMillis;
 /**
  * Generates a random number between 0 and 1.
  * @returns {number} A random number.
@@ -7835,7 +7699,6 @@ function getRandomNumber() {
     // Use Math.random to generate a random number
     return Math.random();
 }
-exports.getRandomNumber = getRandomNumber;
 /**
  * Retrieves specific rules based on the type from a feature.
  * @param {FeatureModel} feature - The key of the feature.
@@ -7858,7 +7721,6 @@ function getSpecificRulesBasedOnType(feature, type) {
     // Return all linked campaigns if no type is specified
     return feature.getRulesLinkedCampaign();
 }
-exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
 /**
  * Retrieves all AB and Personalize rules from a feature.
  * @param {any} settings - The settings containing features.
@@ -7870,7 +7732,6 @@ function getAllExperimentRules(feature) {
     // Filter the rules to include only AB and Personalize types
     return ((feature === null || feature === void 0 ? void 0 : feature.getRulesLinkedCampaign().filter(function (rule) { return rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB || rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE; })) || []);
 }
-exports.getAllExperimentRules = getAllExperimentRules;
 /**
  * Retrieves a feature by its key from the settings.
  * @param {any} settings - The settings containing features.
@@ -7882,7 +7743,6 @@ function getFeatureFromKey(settings, featureKey) {
     // Find the feature by its key
     return (_a = settings === null || settings === void 0 ? void 0 : settings.getFeatures()) === null || _a === void 0 ? void 0 : _a.find(function (feature) { return feature.getKey() === featureKey; });
 }
-exports.getFeatureFromKey = getFeatureFromKey;
 /**
  * Checks if an event exists within any feature's metrics.
  * @param {string} eventName - The name of the event to check.
@@ -7895,7 +7755,6 @@ function doesEventBelongToAnyFeature(eventName, settings) {
         .getFeatures()
         .some(function (feature) { return feature.getMetrics().some(function (metric) { return metric.getIdentifier() === eventName; }); });
 }
-exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
 /**
  * Adds linked campaigns to each feature in the settings based on rules.
  * @param {any} settings - The settings file to modify.
@@ -7933,7 +7792,6 @@ function addLinkedCampaignsToSettings(settings) {
         feature.setRulesLinkedCampaign(rulesLinkedCampaignModel);
     }
 }
-exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 
 
 /***/ }),
@@ -7956,8 +7814,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -7983,7 +7841,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.addIsGatewayServiceRequiredFlag = exports.getQueryParams = exports.getFromGatewayService = void 0;
+exports.getFromGatewayService = getFromGatewayService;
+exports.getQueryParams = getQueryParams;
+exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -8051,7 +7911,6 @@ function getFromGatewayService(queryParams, endpoint) {
         });
     });
 }
-exports.getFromGatewayService = getFromGatewayService;
 /**
  * Encodes the query parameters to ensure they are URL-safe.
  * @param queryParams  The query parameters to be encoded.
@@ -8068,7 +7927,6 @@ function getQueryParams(queryParams) {
     }
     return encodedParams;
 }
-exports.getQueryParams = getQueryParams;
 /**
  * Adds isGatewayServiceRequired flag to each feature in the settings based on pre segmentation.
  * @param {any} settings - The settings file to modify.
@@ -8100,7 +7958,6 @@ function addIsGatewayServiceRequiredFlag(settings) {
         }
     }
 }
-exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 
 
 /***/ }),
@@ -8138,8 +7995,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -8183,7 +8040,7 @@ var createAndSendImpressionForVariationShown = function (settings, campaignId, v
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
+                properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
                 context.getIpAddress());
                 payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context.getUserAgent(), context.getIpAddress());
                 // Send the constructed properties and payload as a POST request
@@ -8209,7 +8066,8 @@ exports.createAndSendImpressionForVariationShown = createAndSendImpressionForVar
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.buildMessage = void 0;
+exports.buildMessage = buildMessage;
+exports.sendLogToVWO = sendLogToVWO;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -8225,8 +8083,12 @@ exports.buildMessage = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
 var nargs = /\{([0-9a-zA-Z_]+)\}/g;
+var storedMessages = new Set();
 /**
  * Constructs a message by replacing placeholders in a template with corresponding values from a data object.
  *
@@ -8256,7 +8118,27 @@ function buildMessage(template, data) {
         return template; // Return the original template in case of an error
     }
 }
-exports.buildMessage = buildMessage;
+/**
+ * Sends a log message to VWO.
+ * @param {string} message - The message to log.
+ * @param {string} messageType - The type of message to log.
+ */
+function sendLogToVWO(message, messageType) {
+    if (process.env.TEST_ENV === 'true') {
+        return;
+    }
+    var messageToSend = message + '-' + constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION;
+    if (!storedMessages.has(messageToSend)) {
+        // add the message to the set
+        storedMessages.add(messageToSend);
+        // create the query parameters
+        var properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_LOG_EVENT);
+        // create the payload
+        var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT);
+        // Send the constructed payload via POST request
+        (0, NetworkUtil_1.sendMessagingEvent)(properties, payload);
+    }
+}
 
 
 /***/ }),
@@ -8279,8 +8161,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -8306,7 +8188,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getFeatureKeysFromGroup = exports.evaluateGroups = void 0;
+exports.evaluateGroups = void 0;
+exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -8424,7 +8307,6 @@ function getFeatureKeysFromGroup(settings, groupId) {
     var featureKeys = (0, CampaignUtil_1.getFeatureKeysFromCampaignIds)(settings, groupCampaignIds);
     return { featureKeys: featureKeys, groupCampaignIds: groupCampaignIds };
 }
-exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
 /*******************************
  * PRIVATE methods - MegUtil
  ******************************/
@@ -8801,8 +8683,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -8828,7 +8710,21 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setShouldWaitForTrackingCalls = exports.getShouldWaitForTrackingCalls = exports.sendGetApiRequest = exports.sendPostApiRequest = exports.getAttributePayloadData = exports.getTrackGoalPayloadData = exports.getTrackUserPayloadData = exports._getEventBasePayload = exports.getEventsBaseProperties = exports.getEventBatchingQueryParams = exports.getTrackEventPath = exports.getSettingsPath = exports.getBasePropertiesForBulk = void 0;
+exports.getBasePropertiesForBulk = getBasePropertiesForBulk;
+exports.getSettingsPath = getSettingsPath;
+exports.getTrackEventPath = getTrackEventPath;
+exports.getEventBatchingQueryParams = getEventBatchingQueryParams;
+exports.getEventsBaseProperties = getEventsBaseProperties;
+exports._getEventBasePayload = _getEventBasePayload;
+exports.getTrackUserPayloadData = getTrackUserPayloadData;
+exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
+exports.getAttributePayloadData = getAttributePayloadData;
+exports.sendPostApiRequest = sendPostApiRequest;
+exports.sendGetApiRequest = sendGetApiRequest;
+exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
+exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
+exports.getMessagingEventPayload = getMessagingEventPayload;
+exports.sendMessagingEvent = sendMessagingEvent;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -8857,6 +8753,7 @@ var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "
 var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./lib/utils/UrlUtil.ts");
+var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 /**
  * Constructs base properties for bulk operations.
  * @param {string} accountId - The account identifier.
@@ -8870,7 +8767,6 @@ function getBasePropertiesForBulk(accountId, userId) {
     };
     return path;
 }
-exports.getBasePropertiesForBulk = getBasePropertiesForBulk;
 /**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
@@ -8885,7 +8781,6 @@ function getSettingsPath(sdkKey, accountId) {
     };
     return path;
 }
-exports.getSettingsPath = getSettingsPath;
 /**
  * Constructs the tracking path for an event.
  * @param {string} event - The event type.
@@ -8908,7 +8803,6 @@ function getTrackEventPath(event, accountId, userId) {
     };
     return path;
 }
-exports.getTrackEventPath = getTrackEventPath;
 /**
  * Constructs query parameters for event batching.
  * @param {string} accountId - The account identifier.
@@ -8922,20 +8816,19 @@ function getEventBatchingQueryParams(accountId) {
     };
     return path;
 }
-exports.getEventBatchingQueryParams = getEventBatchingQueryParams;
 /**
  * Builds generic properties for different tracking calls required by VWO servers.
  * @param {Object} configObj
  * @param {String} eventName
  * @returns properties
  */
-function getEventsBaseProperties(setting, eventName, visitorUserAgent, ipAddress) {
+function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress) {
     if (visitorUserAgent === void 0) { visitorUserAgent = ''; }
     if (ipAddress === void 0) { ipAddress = ''; }
-    var sdkKey = setting.getSdkkey();
+    var sdkKey = SettingsService_1.SettingsService.Instance.sdkKey;
     var properties = Object.assign({
         en: eventName,
-        a: setting.getAccountId(),
+        a: SettingsService_1.SettingsService.Instance.accountId,
         env: sdkKey,
         eTime: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)(),
         random: (0, FunctionUtil_1.getRandomNumber)(),
@@ -8946,7 +8839,6 @@ function getEventsBaseProperties(setting, eventName, visitorUserAgent, ipAddress
     properties.url = constants_1.Constants.HTTPS_PROTOCOL + UrlUtil_1.UrlUtil.getBaseUrl() + UrlEnum_1.UrlEnum.EVENTS;
     return properties;
 }
-exports.getEventsBaseProperties = getEventsBaseProperties;
 /**
  * Builds generic payload required by all the different tracking calls.
  * @param {Object} settings   settings file
@@ -8957,8 +8849,8 @@ exports.getEventsBaseProperties = getEventsBaseProperties;
 function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress) {
     if (visitorUserAgent === void 0) { visitorUserAgent = ''; }
     if (ipAddress === void 0) { ipAddress = ''; }
-    var uuid = (0, UuidUtil_1.getUUID)(userId.toString(), settings.getAccountId());
-    var sdkKey = settings.getSdkkey();
+    var uuid = (0, UuidUtil_1.getUUID)(userId.toString(), SettingsService_1.SettingsService.Instance.accountId.toString());
+    var sdkKey = SettingsService_1.SettingsService.Instance.sdkKey;
     var props = {
         vwo_sdkName: constants_1.Constants.SDK_NAME,
         vwo_sdkVersion: constants_1.Constants.SDK_VERSION,
@@ -8985,7 +8877,6 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipA
     };
     return properties;
 }
-exports._getEventBasePayload = _getEventBasePayload;
 /**
  * Builds payload to track the visitor.
  * @param {Object} configObj
@@ -9009,7 +8900,6 @@ function getTrackUserPayloadData(settings, userId, eventName, campaignId, variat
     }));
     return properties;
 }
-exports.getTrackUserPayloadData = getTrackUserPayloadData;
 /**
  * Constructs the payload data for tracking goals with custom event properties.
  * @param {any} settings - Configuration settings.
@@ -9040,7 +8930,6 @@ function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, v
     }));
     return properties;
 }
-exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
  * @param {SettingsModel} settings - Configuration settings.
@@ -9069,7 +8958,6 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
     }));
     return properties;
 }
-exports.getAttributePayloadData = getAttributePayloadData;
 /**
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
@@ -9104,7 +8992,6 @@ function sendPostApiRequest(properties, payload) {
         });
     });
 }
-exports.sendPostApiRequest = sendPostApiRequest;
 /**
  * Sends a GET API request to the specified endpoint with the given properties.
  * @param {any} properties - Properties for the request.
@@ -9138,7 +9025,6 @@ function sendGetApiRequest(properties, endpoint) {
         });
     });
 }
-exports.sendGetApiRequest = sendGetApiRequest;
 // Flag to determine if the SDK should wait for a network response.
 var shouldWaitForTrackingCalls = false;
 /**
@@ -9148,7 +9034,6 @@ var shouldWaitForTrackingCalls = false;
 function getShouldWaitForTrackingCalls() {
     return shouldWaitForTrackingCalls;
 }
-exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
 /**
  * Sets the value to determine if the SDK should wait for a network response.
  * @param value - The value to set.
@@ -9156,7 +9041,69 @@ exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
 function setShouldWaitForTrackingCalls(value) {
     shouldWaitForTrackingCalls = value;
 }
-exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
+/**
+ * Constructs the payload for a messaging event.
+ * @param messageType - The type of the message.
+ * @param message - The message to send.
+ * @param eventName - The name of the event.
+ * @returns The constructed payload.
+ */
+function getMessagingEventPayload(messageType, message, eventName) {
+    var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
+    var properties = _getEventBasePayload(null, userId, eventName, null, null);
+    properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey; // Set environment key
+    properties.d.event.props.product = 'fme';
+    var data = {
+        type: messageType,
+        content: {
+            title: message,
+            dateTime: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)(),
+        },
+    };
+    properties.d.event.props.data = data;
+    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_VWO_LOG_EVENT, {
+        eventName: eventName,
+        accountId: SettingsService_1.SettingsService.Instance.accountId,
+        userId: userId,
+    }));
+    return properties;
+}
+/**
+ * Sends a messaging event to DACDN
+ * @param properties - Query parameters for the request.
+ * @param payload - The payload for the request.
+ * @returns A promise that resolves to the response from DACDN.
+ */
+function sendMessagingEvent(properties, payload) {
+    return __awaiter(this, void 0, void 0, function () {
+        var deferredObject, networkInstance, request;
+        return __generator(this, function (_a) {
+            deferredObject = new PromiseUtil_1.Deferred();
+            networkInstance = network_layer_1.NetworkManager.Instance;
+            try {
+                request = new network_layer_1.RequestModel(constants_1.Constants.HOST_NAME, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, constants_1.Constants.HTTPS_PROTOCOL, null);
+                // Perform the network GET request
+                networkInstance
+                    .post(request)
+                    .then(function (response) {
+                    // Resolve the deferred object with the data from the response
+                    deferredObject.resolve(response.getData());
+                })
+                    .catch(function (err) {
+                    // Reject the deferred object with the error response
+                    deferredObject.reject(err);
+                });
+                return [2 /*return*/, deferredObject.promise];
+            }
+            catch (err) {
+                // Resolve the promise with false as fallback
+                deferredObject.resolve(false);
+                return [2 /*return*/, deferredObject.promise];
+            }
+            return [2 /*return*/];
+        });
+    });
+}
 
 
 /***/ }),
@@ -9170,7 +9117,7 @@ exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Deferred = void 0;
+exports.Deferred = Deferred;
 /**
  * Creates a Deferred object with properties for promise, resolve, and reject.
  * This allows manual control over the resolution and rejection of a promise.
@@ -9185,7 +9132,6 @@ function Deferred() {
     });
     return this; // Return the Deferred object with attached methods
 }
-exports.Deferred = Deferred;
 
 
 /***/ }),
@@ -9208,8 +9154,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -9298,7 +9244,7 @@ exports.evaluateRule = evaluateRule;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setSettingsAndAddCampaignsToRules = void 0;
+exports.setSettingsAndAddCampaignsToRules = setSettingsAndAddCampaignsToRules;
 var SettingsModel_1 = __webpack_require__(/*! ../models/settings/SettingsModel */ "./lib/models/settings/SettingsModel.ts");
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./lib/utils/CampaignUtil.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./lib/utils/FunctionUtil.ts");
@@ -9321,7 +9267,6 @@ function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance) {
     (0, FunctionUtil_1.addLinkedCampaignsToSettings)(vwoClientInstance.settings);
     (0, GatewayServiceUtil_1.addIsGatewayServiceRequiredFlag)(vwoClientInstance.settings);
 }
-exports.setSettingsAndAddCampaignsToRules = setSettingsAndAddCampaignsToRules;
 
 
 /***/ }),
@@ -9399,7 +9344,9 @@ exports.UrlUtil = {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.generateUUID = exports.getUUID = exports.getRandomUUID = void 0;
+exports.getRandomUUID = getRandomUUID;
+exports.getUUID = getUUID;
+exports.generateUUID = generateUUID;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -9430,7 +9377,6 @@ function getRandomUUID(sdkKey) {
     var randomUUID = (0, uuid_2.v5)((0, uuid_1.v4)(), namespace);
     return randomUUID;
 }
-exports.getRandomUUID = getRandomUUID;
 /**
  * Generates a UUID for a user based on their userId and accountId.
  * @param userId The user's ID.
@@ -9450,7 +9396,6 @@ function getUUID(userId, accountId) {
     var desiredUuid = uuidForUserIdAccountId === null || uuidForUserIdAccountId === void 0 ? void 0 : uuidForUserIdAccountId.replace(/-/gi, '').toUpperCase();
     return desiredUuid;
 }
-exports.getUUID = getUUID;
 /**
  * Helper function to generate a UUID v5 based on a name and a namespace.
  * @param name The name from which to generate the UUID.
@@ -9465,7 +9410,6 @@ function generateUUID(name, namespace) {
     // Generate and return the UUID v5
     return (0, uuid_2.v5)(name, namespace);
 }
-exports.generateUUID = generateUUID;
 
 
 /***/ }),
@@ -9479,7 +9423,8 @@ exports.generateUUID = generateUUID;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sendPostCall = exports.sendGetCall = void 0;
+exports.sendGetCall = sendGetCall;
+exports.sendPostCall = sendPostCall;
 /**
  * Copyright 2024 Wingify Software Pvt. Ltd.
  *
@@ -9503,11 +9448,9 @@ var noop = function () { };
 function sendGetCall(options) {
     sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options);
 }
-exports.sendGetCall = sendGetCall;
 function sendPostCall(options) {
     sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options);
 }
-exports.sendPostCall = sendPostCall;
 function sendRequest(method, options) {
     var networkOptions = options.networkOptions, _a = options.successCallback, successCallback = _a === void 0 ? noop : _a, _b = options.errorCallback, errorCallback = _b === void 0 ? noop : _b;
     var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
@@ -9576,1026 +9519,142 @@ function sendRequest(method, options) {
 
 /***/ }),
 
-/***/ "./node_modules/uuid/dist/commonjs-browser/index.js":
-/*!**********************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/index.js ***!
-  \**********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-Object.defineProperty(exports, "NIL", ({
-  enumerable: true,
-  get: function get() {
-    return _nil.default;
-  }
-}));
-Object.defineProperty(exports, "parse", ({
-  enumerable: true,
-  get: function get() {
-    return _parse.default;
-  }
-}));
-Object.defineProperty(exports, "stringify", ({
-  enumerable: true,
-  get: function get() {
-    return _stringify.default;
-  }
-}));
-Object.defineProperty(exports, "v1", ({
-  enumerable: true,
-  get: function get() {
-    return _v.default;
-  }
-}));
-Object.defineProperty(exports, "v3", ({
-  enumerable: true,
-  get: function get() {
-    return _v2.default;
-  }
-}));
-Object.defineProperty(exports, "v4", ({
-  enumerable: true,
-  get: function get() {
-    return _v3.default;
-  }
-}));
-Object.defineProperty(exports, "v5", ({
-  enumerable: true,
-  get: function get() {
-    return _v4.default;
-  }
-}));
-Object.defineProperty(exports, "validate", ({
-  enumerable: true,
-  get: function get() {
-    return _validate.default;
-  }
-}));
-Object.defineProperty(exports, "version", ({
-  enumerable: true,
-  get: function get() {
-    return _version.default;
-  }
-}));
-
-var _v = _interopRequireDefault(__webpack_require__(/*! ./v1.js */ "./node_modules/uuid/dist/commonjs-browser/v1.js"));
-
-var _v2 = _interopRequireDefault(__webpack_require__(/*! ./v3.js */ "./node_modules/uuid/dist/commonjs-browser/v3.js"));
-
-var _v3 = _interopRequireDefault(__webpack_require__(/*! ./v4.js */ "./node_modules/uuid/dist/commonjs-browser/v4.js"));
-
-var _v4 = _interopRequireDefault(__webpack_require__(/*! ./v5.js */ "./node_modules/uuid/dist/commonjs-browser/v5.js"));
-
-var _nil = _interopRequireDefault(__webpack_require__(/*! ./nil.js */ "./node_modules/uuid/dist/commonjs-browser/nil.js"));
-
-var _version = _interopRequireDefault(__webpack_require__(/*! ./version.js */ "./node_modules/uuid/dist/commonjs-browser/version.js"));
-
-var _validate = _interopRequireDefault(__webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/commonjs-browser/validate.js"));
-
-var _stringify = _interopRequireDefault(__webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/commonjs-browser/stringify.js"));
-
-var _parse = _interopRequireDefault(__webpack_require__(/*! ./parse.js */ "./node_modules/uuid/dist/commonjs-browser/parse.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/md5.js":
-/*!********************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/md5.js ***!
-  \********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-/*
- * Browser-compatible JavaScript MD5
- *
- * Modification of JavaScript MD5
- * https://github.com/blueimp/JavaScript-MD5
- *
- * Copyright 2011, Sebastian Tschan
- * https://blueimp.net
- *
- * Licensed under the MIT license:
- * https://opensource.org/licenses/MIT
- *
- * Based on
- * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
- * Digest Algorithm, as defined in RFC 1321.
- * Version 2.2 Copyright (C) Paul Johnston 1999 - 2009
- * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
- * Distributed under the BSD License
- * See http://pajhome.org.uk/crypt/md5 for more info.
- */
-function md5(bytes) {
-  if (typeof bytes === 'string') {
-    const msg = unescape(encodeURIComponent(bytes)); // UTF8 escape
-
-    bytes = new Uint8Array(msg.length);
-
-    for (let i = 0; i < msg.length; ++i) {
-      bytes[i] = msg.charCodeAt(i);
-    }
-  }
-
-  return md5ToHexEncodedArray(wordsToMd5(bytesToWords(bytes), bytes.length * 8));
-}
-/*
- * Convert an array of little-endian words to an array of bytes
- */
-
-
-function md5ToHexEncodedArray(input) {
-  const output = [];
-  const length32 = input.length * 32;
-  const hexTab = '0123456789abcdef';
-
-  for (let i = 0; i < length32; i += 8) {
-    const x = input[i >> 5] >>> i % 32 & 0xff;
-    const hex = parseInt(hexTab.charAt(x >>> 4 & 0x0f) + hexTab.charAt(x & 0x0f), 16);
-    output.push(hex);
-  }
-
-  return output;
-}
-/**
- * Calculate output length with padding and bit length
- */
-
-
-function getOutputLength(inputLength8) {
-  return (inputLength8 + 64 >>> 9 << 4) + 14 + 1;
-}
-/*
- * Calculate the MD5 of an array of little-endian words, and a bit length.
- */
-
-
-function wordsToMd5(x, len) {
-  /* append padding */
-  x[len >> 5] |= 0x80 << len % 32;
-  x[getOutputLength(len) - 1] = len;
-  let a = 1732584193;
-  let b = -271733879;
-  let c = -1732584194;
-  let d = 271733878;
-
-  for (let i = 0; i < x.length; i += 16) {
-    const olda = a;
-    const oldb = b;
-    const oldc = c;
-    const oldd = d;
-    a = md5ff(a, b, c, d, x[i], 7, -680876936);
-    d = md5ff(d, a, b, c, x[i + 1], 12, -389564586);
-    c = md5ff(c, d, a, b, x[i + 2], 17, 606105819);
-    b = md5ff(b, c, d, a, x[i + 3], 22, -1044525330);
-    a = md5ff(a, b, c, d, x[i + 4], 7, -176418897);
-    d = md5ff(d, a, b, c, x[i + 5], 12, 1200080426);
-    c = md5ff(c, d, a, b, x[i + 6], 17, -1473231341);
-    b = md5ff(b, c, d, a, x[i + 7], 22, -45705983);
-    a = md5ff(a, b, c, d, x[i + 8], 7, 1770035416);
-    d = md5ff(d, a, b, c, x[i + 9], 12, -1958414417);
-    c = md5ff(c, d, a, b, x[i + 10], 17, -42063);
-    b = md5ff(b, c, d, a, x[i + 11], 22, -1990404162);
-    a = md5ff(a, b, c, d, x[i + 12], 7, 1804603682);
-    d = md5ff(d, a, b, c, x[i + 13], 12, -40341101);
-    c = md5ff(c, d, a, b, x[i + 14], 17, -1502002290);
-    b = md5ff(b, c, d, a, x[i + 15], 22, 1236535329);
-    a = md5gg(a, b, c, d, x[i + 1], 5, -165796510);
-    d = md5gg(d, a, b, c, x[i + 6], 9, -1069501632);
-    c = md5gg(c, d, a, b, x[i + 11], 14, 643717713);
-    b = md5gg(b, c, d, a, x[i], 20, -373897302);
-    a = md5gg(a, b, c, d, x[i + 5], 5, -701558691);
-    d = md5gg(d, a, b, c, x[i + 10], 9, 38016083);
-    c = md5gg(c, d, a, b, x[i + 15], 14, -660478335);
-    b = md5gg(b, c, d, a, x[i + 4], 20, -405537848);
-    a = md5gg(a, b, c, d, x[i + 9], 5, 568446438);
-    d = md5gg(d, a, b, c, x[i + 14], 9, -1019803690);
-    c = md5gg(c, d, a, b, x[i + 3], 14, -187363961);
-    b = md5gg(b, c, d, a, x[i + 8], 20, 1163531501);
-    a = md5gg(a, b, c, d, x[i + 13], 5, -1444681467);
-    d = md5gg(d, a, b, c, x[i + 2], 9, -51403784);
-    c = md5gg(c, d, a, b, x[i + 7], 14, 1735328473);
-    b = md5gg(b, c, d, a, x[i + 12], 20, -1926607734);
-    a = md5hh(a, b, c, d, x[i + 5], 4, -378558);
-    d = md5hh(d, a, b, c, x[i + 8], 11, -2022574463);
-    c = md5hh(c, d, a, b, x[i + 11], 16, 1839030562);
-    b = md5hh(b, c, d, a, x[i + 14], 23, -35309556);
-    a = md5hh(a, b, c, d, x[i + 1], 4, -1530992060);
-    d = md5hh(d, a, b, c, x[i + 4], 11, 1272893353);
-    c = md5hh(c, d, a, b, x[i + 7], 16, -155497632);
-    b = md5hh(b, c, d, a, x[i + 10], 23, -1094730640);
-    a = md5hh(a, b, c, d, x[i + 13], 4, 681279174);
-    d = md5hh(d, a, b, c, x[i], 11, -358537222);
-    c = md5hh(c, d, a, b, x[i + 3], 16, -722521979);
-    b = md5hh(b, c, d, a, x[i + 6], 23, 76029189);
-    a = md5hh(a, b, c, d, x[i + 9], 4, -640364487);
-    d = md5hh(d, a, b, c, x[i + 12], 11, -421815835);
-    c = md5hh(c, d, a, b, x[i + 15], 16, 530742520);
-    b = md5hh(b, c, d, a, x[i + 2], 23, -995338651);
-    a = md5ii(a, b, c, d, x[i], 6, -198630844);
-    d = md5ii(d, a, b, c, x[i + 7], 10, 1126891415);
-    c = md5ii(c, d, a, b, x[i + 14], 15, -1416354905);
-    b = md5ii(b, c, d, a, x[i + 5], 21, -57434055);
-    a = md5ii(a, b, c, d, x[i + 12], 6, 1700485571);
-    d = md5ii(d, a, b, c, x[i + 3], 10, -1894986606);
-    c = md5ii(c, d, a, b, x[i + 10], 15, -1051523);
-    b = md5ii(b, c, d, a, x[i + 1], 21, -2054922799);
-    a = md5ii(a, b, c, d, x[i + 8], 6, 1873313359);
-    d = md5ii(d, a, b, c, x[i + 15], 10, -30611744);
-    c = md5ii(c, d, a, b, x[i + 6], 15, -1560198380);
-    b = md5ii(b, c, d, a, x[i + 13], 21, 1309151649);
-    a = md5ii(a, b, c, d, x[i + 4], 6, -145523070);
-    d = md5ii(d, a, b, c, x[i + 11], 10, -1120210379);
-    c = md5ii(c, d, a, b, x[i + 2], 15, 718787259);
-    b = md5ii(b, c, d, a, x[i + 9], 21, -343485551);
-    a = safeAdd(a, olda);
-    b = safeAdd(b, oldb);
-    c = safeAdd(c, oldc);
-    d = safeAdd(d, oldd);
-  }
-
-  return [a, b, c, d];
-}
-/*
- * Convert an array bytes to an array of little-endian words
- * Characters >255 have their high-byte silently ignored.
- */
-
-
-function bytesToWords(input) {
-  if (input.length === 0) {
-    return [];
-  }
-
-  const length8 = input.length * 8;
-  const output = new Uint32Array(getOutputLength(length8));
-
-  for (let i = 0; i < length8; i += 8) {
-    output[i >> 5] |= (input[i / 8] & 0xff) << i % 32;
-  }
-
-  return output;
-}
-/*
- * Add integers, wrapping at 2^32. This uses 16-bit operations internally
- * to work around bugs in some JS interpreters.
- */
-
-
-function safeAdd(x, y) {
-  const lsw = (x & 0xffff) + (y & 0xffff);
-  const msw = (x >> 16) + (y >> 16) + (lsw >> 16);
-  return msw << 16 | lsw & 0xffff;
-}
-/*
- * Bitwise rotate a 32-bit number to the left.
- */
-
-
-function bitRotateLeft(num, cnt) {
-  return num << cnt | num >>> 32 - cnt;
-}
-/*
- * These functions implement the four basic operations the algorithm uses.
- */
-
-
-function md5cmn(q, a, b, x, s, t) {
-  return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b);
-}
-
-function md5ff(a, b, c, d, x, s, t) {
-  return md5cmn(b & c | ~b & d, a, b, x, s, t);
-}
-
-function md5gg(a, b, c, d, x, s, t) {
-  return md5cmn(b & d | c & ~d, a, b, x, s, t);
-}
-
-function md5hh(a, b, c, d, x, s, t) {
-  return md5cmn(b ^ c ^ d, a, b, x, s, t);
-}
-
-function md5ii(a, b, c, d, x, s, t) {
-  return md5cmn(c ^ (b | ~d), a, b, x, s, t);
-}
-
-var _default = md5;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/native.js":
-/*!***********************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/native.js ***!
-  \***********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-const randomUUID = typeof crypto !== 'undefined' && crypto.randomUUID && crypto.randomUUID.bind(crypto);
-var _default = {
-  randomUUID
-};
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/nil.js":
-/*!********************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/nil.js ***!
-  \********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-var _default = '00000000-0000-0000-0000-000000000000';
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/parse.js":
-/*!**********************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/parse.js ***!
-  \**********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _validate = _interopRequireDefault(__webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/commonjs-browser/validate.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function parse(uuid) {
-  if (!(0, _validate.default)(uuid)) {
-    throw TypeError('Invalid UUID');
-  }
-
-  let v;
-  const arr = new Uint8Array(16); // Parse ########-....-....-....-............
-
-  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
-  arr[1] = v >>> 16 & 0xff;
-  arr[2] = v >>> 8 & 0xff;
-  arr[3] = v & 0xff; // Parse ........-####-....-....-............
-
-  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
-  arr[5] = v & 0xff; // Parse ........-....-####-....-............
-
-  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
-  arr[7] = v & 0xff; // Parse ........-....-....-####-............
-
-  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
-  arr[9] = v & 0xff; // Parse ........-....-....-....-############
-  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
-
-  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
-  arr[11] = v / 0x100000000 & 0xff;
-  arr[12] = v >>> 24 & 0xff;
-  arr[13] = v >>> 16 & 0xff;
-  arr[14] = v >>> 8 & 0xff;
-  arr[15] = v & 0xff;
-  return arr;
-}
-
-var _default = parse;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/regex.js":
-/*!**********************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/regex.js ***!
-  \**********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/rng.js":
-/*!********************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/rng.js ***!
-  \********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = rng;
-// Unique ID creation requires a high quality random # generator. In the browser we therefore
-// require the crypto API and do not support built-in fallback to lower quality random number
-// generators (like Math.random()).
-let getRandomValues;
-const rnds8 = new Uint8Array(16);
-
-function rng() {
-  // lazy load so that environments that need to polyfill have a chance to do so
-  if (!getRandomValues) {
-    // getRandomValues needs to be invoked in a context where "this" is a Crypto implementation.
-    getRandomValues = typeof crypto !== 'undefined' && crypto.getRandomValues && crypto.getRandomValues.bind(crypto);
-
-    if (!getRandomValues) {
-      throw new Error('crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported');
-    }
-  }
-
-  return getRandomValues(rnds8);
-}
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/sha1.js":
-/*!*********************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/sha1.js ***!
-  \*********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-// Adapted from Chris Veness' SHA1 code at
-// http://www.movable-type.co.uk/scripts/sha1.html
-function f(s, x, y, z) {
-  switch (s) {
-    case 0:
-      return x & y ^ ~x & z;
-
-    case 1:
-      return x ^ y ^ z;
-
-    case 2:
-      return x & y ^ x & z ^ y & z;
-
-    case 3:
-      return x ^ y ^ z;
-  }
-}
-
-function ROTL(x, n) {
-  return x << n | x >>> 32 - n;
-}
-
-function sha1(bytes) {
-  const K = [0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6];
-  const H = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
-
-  if (typeof bytes === 'string') {
-    const msg = unescape(encodeURIComponent(bytes)); // UTF8 escape
-
-    bytes = [];
-
-    for (let i = 0; i < msg.length; ++i) {
-      bytes.push(msg.charCodeAt(i));
-    }
-  } else if (!Array.isArray(bytes)) {
-    // Convert Array-like to Array
-    bytes = Array.prototype.slice.call(bytes);
-  }
-
-  bytes.push(0x80);
-  const l = bytes.length / 4 + 2;
-  const N = Math.ceil(l / 16);
-  const M = new Array(N);
-
-  for (let i = 0; i < N; ++i) {
-    const arr = new Uint32Array(16);
-
-    for (let j = 0; j < 16; ++j) {
-      arr[j] = bytes[i * 64 + j * 4] << 24 | bytes[i * 64 + j * 4 + 1] << 16 | bytes[i * 64 + j * 4 + 2] << 8 | bytes[i * 64 + j * 4 + 3];
+/***/ "./node_modules/murmurhash/murmurhash.js":
+/*!***********************************************!*\
+  !*** ./node_modules/murmurhash/murmurhash.js ***!
+  \***********************************************/
+/***/ ((module) => {
+
+(function(){
+  const _global = this;
+
+  const createBuffer = (val) => new TextEncoder().encode(val)
+
+  /**
+   * JS Implementation of MurmurHash2
+   *
+   * @author <a href="mailto:gary.court@gmail.com">Gary Court</a>
+   * @see http://github.com/garycourt/murmurhash-js
+   * @author <a href="mailto:aappleby@gmail.com">Austin Appleby</a>
+   * @see http://sites.google.com/site/murmurhash/
+   *
+   * @param {Uint8Array | string} str ASCII only
+   * @param {number} seed Positive integer only
+   * @return {number} 32-bit positive integer hash
+   */
+  function MurmurHashV2(str, seed) {
+    if (typeof str === 'string') str = createBuffer(str);
+    let
+      l = str.length,
+      h = seed ^ l,
+      i = 0,
+      k;
+
+    while (l >= 4) {
+      k =
+        ((str[i] & 0xff)) |
+        ((str[++i] & 0xff) << 8) |
+        ((str[++i] & 0xff) << 16) |
+        ((str[++i] & 0xff) << 24);
+
+      k = (((k & 0xffff) * 0x5bd1e995) + ((((k >>> 16) * 0x5bd1e995) & 0xffff) << 16));
+      k ^= k >>> 24;
+      k = (((k & 0xffff) * 0x5bd1e995) + ((((k >>> 16) * 0x5bd1e995) & 0xffff) << 16));
+
+    h = (((h & 0xffff) * 0x5bd1e995) + ((((h >>> 16) * 0x5bd1e995) & 0xffff) << 16)) ^ k;
+
+      l -= 4;
+      ++i;
     }
 
-    M[i] = arr;
-  }
-
-  M[N - 1][14] = (bytes.length - 1) * 8 / Math.pow(2, 32);
-  M[N - 1][14] = Math.floor(M[N - 1][14]);
-  M[N - 1][15] = (bytes.length - 1) * 8 & 0xffffffff;
-
-  for (let i = 0; i < N; ++i) {
-    const W = new Uint32Array(80);
-
-    for (let t = 0; t < 16; ++t) {
-      W[t] = M[i][t];
+    switch (l) {
+    case 3: h ^= (str[i + 2] & 0xff) << 16;
+    case 2: h ^= (str[i + 1] & 0xff) << 8;
+    case 1: h ^= (str[i] & 0xff);
+            h = (((h & 0xffff) * 0x5bd1e995) + ((((h >>> 16) * 0x5bd1e995) & 0xffff) << 16));
     }
 
-    for (let t = 16; t < 80; ++t) {
-      W[t] = ROTL(W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], 1);
+    h ^= h >>> 13;
+    h = (((h & 0xffff) * 0x5bd1e995) + ((((h >>> 16) * 0x5bd1e995) & 0xffff) << 16));
+    h ^= h >>> 15;
+
+    return h >>> 0;
+  };
+
+  /*
+   * JS Implementation of MurmurHash3 (r136) (as of May 20, 2011)
+   *
+   * @author <a href="mailto:gary.court@gmail.com">Gary Court</a>
+   * @see http://github.com/garycourt/murmurhash-js
+   * @author <a href="mailto:aappleby@gmail.com">Austin Appleby</a>
+   * @see http://sites.google.com/site/murmurhash/
+   *
+   * @param {Uint8Array | string} key ASCII only
+   * @param {number} seed Positive integer only
+   * @return {number} 32-bit positive integer hash
+   */
+  function MurmurHashV3(key, seed) {
+    if (typeof key === 'string') key = createBuffer(key);
+
+    let remainder, bytes, h1, h1b, c1, c1b, c2, c2b, k1, i;
+
+    remainder = key.length & 3; // key.length % 4
+    bytes = key.length - remainder;
+    h1 = seed;
+    c1 = 0xcc9e2d51;
+    c2 = 0x1b873593;
+    i = 0;
+
+    while (i < bytes) {
+        k1 =
+          ((key[i] & 0xff)) |
+          ((key[++i] & 0xff) << 8) |
+          ((key[++i] & 0xff) << 16) |
+          ((key[++i] & 0xff) << 24);
+      ++i;
+
+      k1 = ((((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16))) & 0xffffffff;
+      k1 = (k1 << 15) | (k1 >>> 17);
+      k1 = ((((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16))) & 0xffffffff;
+
+      h1 ^= k1;
+          h1 = (h1 << 13) | (h1 >>> 19);
+      h1b = ((((h1 & 0xffff) * 5) + ((((h1 >>> 16) * 5) & 0xffff) << 16))) & 0xffffffff;
+      h1 = (((h1b & 0xffff) + 0x6b64) + ((((h1b >>> 16) + 0xe654) & 0xffff) << 16));
     }
 
-    let a = H[0];
-    let b = H[1];
-    let c = H[2];
-    let d = H[3];
-    let e = H[4];
+    k1 = 0;
 
-    for (let t = 0; t < 80; ++t) {
-      const s = Math.floor(t / 20);
-      const T = ROTL(a, 5) + f(s, b, c, d) + e + K[s] + W[t] >>> 0;
-      e = d;
-      d = c;
-      c = ROTL(b, 30) >>> 0;
-      b = a;
-      a = T;
+    switch (remainder) {
+      case 3: k1 ^= (key[i + 2] & 0xff) << 16;
+      case 2: k1 ^= (key[i + 1] & 0xff) << 8;
+      case 1: k1 ^= (key[i] & 0xff);
+
+      k1 = (((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
+      k1 = (k1 << 15) | (k1 >>> 17);
+      k1 = (((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16)) & 0xffffffff;
+      h1 ^= k1;
     }
 
-    H[0] = H[0] + a >>> 0;
-    H[1] = H[1] + b >>> 0;
-    H[2] = H[2] + c >>> 0;
-    H[3] = H[3] + d >>> 0;
-    H[4] = H[4] + e >>> 0;
+    h1 ^= key.length;
+
+    h1 ^= h1 >>> 16;
+    h1 = (((h1 & 0xffff) * 0x85ebca6b) + ((((h1 >>> 16) * 0x85ebca6b) & 0xffff) << 16)) & 0xffffffff;
+    h1 ^= h1 >>> 13;
+    h1 = ((((h1 & 0xffff) * 0xc2b2ae35) + ((((h1 >>> 16) * 0xc2b2ae35) & 0xffff) << 16))) & 0xffffffff;
+    h1 ^= h1 >>> 16;
+
+    return h1 >>> 0;
   }
 
-  return [H[0] >> 24 & 0xff, H[0] >> 16 & 0xff, H[0] >> 8 & 0xff, H[0] & 0xff, H[1] >> 24 & 0xff, H[1] >> 16 & 0xff, H[1] >> 8 & 0xff, H[1] & 0xff, H[2] >> 24 & 0xff, H[2] >> 16 & 0xff, H[2] >> 8 & 0xff, H[2] & 0xff, H[3] >> 24 & 0xff, H[3] >> 16 & 0xff, H[3] >> 8 & 0xff, H[3] & 0xff, H[4] >> 24 & 0xff, H[4] >> 16 & 0xff, H[4] >> 8 & 0xff, H[4] & 0xff];
-}
-
-var _default = sha1;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/stringify.js":
-/*!**************************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/stringify.js ***!
-  \**************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-exports.unsafeStringify = unsafeStringify;
-
-var _validate = _interopRequireDefault(__webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/commonjs-browser/validate.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * Convert array of 16 byte values to UUID string format of the form:
- * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
- */
-const byteToHex = [];
-
-for (let i = 0; i < 256; ++i) {
-  byteToHex.push((i + 0x100).toString(16).slice(1));
-}
-
-function unsafeStringify(arr, offset = 0) {
-  // Note: Be careful editing this code!  It's been tuned for performance
-  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
-  return byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]];
-}
-
-function stringify(arr, offset = 0) {
-  const uuid = unsafeStringify(arr, offset); // Consistency check for valid UUID.  If this throws, it's likely due to one
-  // of the following:
-  // - One or more input array values don't map to a hex octet (leading to
-  // "undefined" in the uuid)
-  // - Invalid input values for the RFC `version` or `variant` fields
-
-  if (!(0, _validate.default)(uuid)) {
-    throw TypeError('Stringified UUID is invalid');
-  }
-
-  return uuid;
-}
-
-var _default = stringify;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/v1.js":
-/*!*******************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/v1.js ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _rng = _interopRequireDefault(__webpack_require__(/*! ./rng.js */ "./node_modules/uuid/dist/commonjs-browser/rng.js"));
-
-var _stringify = __webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/commonjs-browser/stringify.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// **`v1()` - Generate time-based UUID**
-//
-// Inspired by https://github.com/LiosK/UUID.js
-// and http://docs.python.org/library/uuid.html
-let _nodeId;
-
-let _clockseq; // Previous uuid creation time
-
-
-let _lastMSecs = 0;
-let _lastNSecs = 0; // See https://github.com/uuidjs/uuid for API details
-
-function v1(options, buf, offset) {
-  let i = buf && offset || 0;
-  const b = buf || new Array(16);
-  options = options || {};
-  let node = options.node || _nodeId;
-  let clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq; // node and clockseq need to be initialized to random values if they're not
-  // specified.  We do this lazily to minimize issues related to insufficient
-  // system entropy.  See #189
-
-  if (node == null || clockseq == null) {
-    const seedBytes = options.random || (options.rng || _rng.default)();
-
-    if (node == null) {
-      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-      node = _nodeId = [seedBytes[0] | 0x01, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
-    }
-
-    if (clockseq == null) {
-      // Per 4.2.2, randomize (14 bit) clockseq
-      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
-    }
-  } // UUID timestamps are 100 nano-second units since the Gregorian epoch,
-  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
-  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-
-
-  let msecs = options.msecs !== undefined ? options.msecs : Date.now(); // Per 4.2.1.2, use count of uuid's generated during the current clock
-  // cycle to simulate higher resolution clock
-
-  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1; // Time since last uuid creation (in msecs)
-
-  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000; // Per 4.2.1.2, Bump clockseq on clock regression
-
-  if (dt < 0 && options.clockseq === undefined) {
-    clockseq = clockseq + 1 & 0x3fff;
-  } // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-  // time interval
-
-
-  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
-    nsecs = 0;
-  } // Per 4.2.1.2 Throw error if too many uuids are requested
-
-
-  if (nsecs >= 10000) {
-    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
-  }
-
-  _lastMSecs = msecs;
-  _lastNSecs = nsecs;
-  _clockseq = clockseq; // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-
-  msecs += 12219292800000; // `time_low`
-
-  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
-  b[i++] = tl >>> 24 & 0xff;
-  b[i++] = tl >>> 16 & 0xff;
-  b[i++] = tl >>> 8 & 0xff;
-  b[i++] = tl & 0xff; // `time_mid`
-
-  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
-  b[i++] = tmh >>> 8 & 0xff;
-  b[i++] = tmh & 0xff; // `time_high_and_version`
-
-  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
-
-  b[i++] = tmh >>> 16 & 0xff; // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-
-  b[i++] = clockseq >>> 8 | 0x80; // `clock_seq_low`
-
-  b[i++] = clockseq & 0xff; // `node`
-
-  for (let n = 0; n < 6; ++n) {
-    b[i + n] = node[n];
-  }
-
-  return buf || (0, _stringify.unsafeStringify)(b);
-}
-
-var _default = v1;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/v3.js":
-/*!*******************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/v3.js ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _v = _interopRequireDefault(__webpack_require__(/*! ./v35.js */ "./node_modules/uuid/dist/commonjs-browser/v35.js"));
-
-var _md = _interopRequireDefault(__webpack_require__(/*! ./md5.js */ "./node_modules/uuid/dist/commonjs-browser/md5.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const v3 = (0, _v.default)('v3', 0x30, _md.default);
-var _default = v3;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/v35.js":
-/*!********************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/v35.js ***!
-  \********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.URL = exports.DNS = void 0;
-exports["default"] = v35;
-
-var _stringify = __webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/commonjs-browser/stringify.js");
-
-var _parse = _interopRequireDefault(__webpack_require__(/*! ./parse.js */ "./node_modules/uuid/dist/commonjs-browser/parse.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function stringToBytes(str) {
-  str = unescape(encodeURIComponent(str)); // UTF8 escape
-
-  const bytes = [];
-
-  for (let i = 0; i < str.length; ++i) {
-    bytes.push(str.charCodeAt(i));
-  }
-
-  return bytes;
-}
-
-const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
-exports.DNS = DNS;
-const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
-exports.URL = URL;
-
-function v35(name, version, hashfunc) {
-  function generateUUID(value, namespace, buf, offset) {
-    var _namespace;
-
-    if (typeof value === 'string') {
-      value = stringToBytes(value);
-    }
-
-    if (typeof namespace === 'string') {
-      namespace = (0, _parse.default)(namespace);
-    }
-
-    if (((_namespace = namespace) === null || _namespace === void 0 ? void 0 : _namespace.length) !== 16) {
-      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
-    } // Compute hash of namespace and value, Per 4.3
-    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
-    // hashfunc([...namespace, ... value])`
-
-
-    let bytes = new Uint8Array(16 + value.length);
-    bytes.set(namespace);
-    bytes.set(value, namespace.length);
-    bytes = hashfunc(bytes);
-    bytes[6] = bytes[6] & 0x0f | version;
-    bytes[8] = bytes[8] & 0x3f | 0x80;
-
-    if (buf) {
-      offset = offset || 0;
-
-      for (let i = 0; i < 16; ++i) {
-        buf[offset + i] = bytes[i];
-      }
-
-      return buf;
-    }
-
-    return (0, _stringify.unsafeStringify)(bytes);
-  } // Function#name is not settable on some platforms (#270)
-
-
-  try {
-    generateUUID.name = name; // eslint-disable-next-line no-empty
-  } catch (err) {} // For CommonJS default export support
-
-
-  generateUUID.DNS = DNS;
-  generateUUID.URL = URL;
-  return generateUUID;
-}
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/v4.js":
-/*!*******************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/v4.js ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _native = _interopRequireDefault(__webpack_require__(/*! ./native.js */ "./node_modules/uuid/dist/commonjs-browser/native.js"));
-
-var _rng = _interopRequireDefault(__webpack_require__(/*! ./rng.js */ "./node_modules/uuid/dist/commonjs-browser/rng.js"));
-
-var _stringify = __webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/commonjs-browser/stringify.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function v4(options, buf, offset) {
-  if (_native.default.randomUUID && !buf && !options) {
-    return _native.default.randomUUID();
-  }
-
-  options = options || {};
-
-  const rnds = options.random || (options.rng || _rng.default)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-
-
-  rnds[6] = rnds[6] & 0x0f | 0x40;
-  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
-
-  if (buf) {
-    offset = offset || 0;
-
-    for (let i = 0; i < 16; ++i) {
-      buf[offset + i] = rnds[i];
-    }
-
-    return buf;
-  }
-
-  return (0, _stringify.unsafeStringify)(rnds);
-}
-
-var _default = v4;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/v5.js":
-/*!*******************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/v5.js ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _v = _interopRequireDefault(__webpack_require__(/*! ./v35.js */ "./node_modules/uuid/dist/commonjs-browser/v35.js"));
-
-var _sha = _interopRequireDefault(__webpack_require__(/*! ./sha1.js */ "./node_modules/uuid/dist/commonjs-browser/sha1.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const v5 = (0, _v.default)('v5', 0x50, _sha.default);
-var _default = v5;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/validate.js":
-/*!*************************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/validate.js ***!
-  \*************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _regex = _interopRequireDefault(__webpack_require__(/*! ./regex.js */ "./node_modules/uuid/dist/commonjs-browser/regex.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function validate(uuid) {
-  return typeof uuid === 'string' && _regex.default.test(uuid);
-}
-
-var _default = validate;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/commonjs-browser/version.js":
-/*!************************************************************!*\
-  !*** ./node_modules/uuid/dist/commonjs-browser/version.js ***!
-  \************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _validate = _interopRequireDefault(__webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/commonjs-browser/validate.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function version(uuid) {
-  if (!(0, _validate.default)(uuid)) {
-    throw TypeError('Invalid UUID');
-  }
-
-  return parseInt(uuid.slice(14, 15), 16);
-}
-
-var _default = version;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ "./node_modules/vwo-fme-sdk-log-messages/index.js":
-/*!********************************************************!*\
-  !*** ./node_modules/vwo-fme-sdk-log-messages/index.js ***!
-  \********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-module.exports = {
-  debugMessages: __webpack_require__(/*! ./src/debug-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/debug-messages.json"),
-  infoMessages: __webpack_require__(/*! ./src/info-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/info-messages.json"),
-  warnMessages: __webpack_require__(/*! ./src/warn-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/warn-messages.json"),
-  errorMessages: __webpack_require__(/*! ./src/error-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/error-messages.json"),
-  traceMessages: __webpack_require__(/*! ./src/trace-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/trace-messages.json")
-}
+  const murmur = MurmurHashV3;
+  murmur.v2 = MurmurHashV2;
+  murmur.v3 = MurmurHashV3;
+
+  if (true) {
+    module.exports = murmur;
+  } else {}
+}());
 
 
 /***/ }),
@@ -11760,6 +10819,1030 @@ exports.validate = validate;
 
 /***/ }),
 
+/***/ "./node_modules/uuid/dist/commonjs-browser/index.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/index.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+Object.defineProperty(exports, "NIL", ({
+  enumerable: true,
+  get: function get() {
+    return _nil.default;
+  }
+}));
+Object.defineProperty(exports, "parse", ({
+  enumerable: true,
+  get: function get() {
+    return _parse.default;
+  }
+}));
+Object.defineProperty(exports, "stringify", ({
+  enumerable: true,
+  get: function get() {
+    return _stringify.default;
+  }
+}));
+Object.defineProperty(exports, "v1", ({
+  enumerable: true,
+  get: function get() {
+    return _v.default;
+  }
+}));
+Object.defineProperty(exports, "v3", ({
+  enumerable: true,
+  get: function get() {
+    return _v2.default;
+  }
+}));
+Object.defineProperty(exports, "v4", ({
+  enumerable: true,
+  get: function get() {
+    return _v3.default;
+  }
+}));
+Object.defineProperty(exports, "v5", ({
+  enumerable: true,
+  get: function get() {
+    return _v4.default;
+  }
+}));
+Object.defineProperty(exports, "validate", ({
+  enumerable: true,
+  get: function get() {
+    return _validate.default;
+  }
+}));
+Object.defineProperty(exports, "version", ({
+  enumerable: true,
+  get: function get() {
+    return _version.default;
+  }
+}));
+
+var _v = _interopRequireDefault(__webpack_require__(/*! ./v1.js */ "./node_modules/uuid/dist/commonjs-browser/v1.js"));
+
+var _v2 = _interopRequireDefault(__webpack_require__(/*! ./v3.js */ "./node_modules/uuid/dist/commonjs-browser/v3.js"));
+
+var _v3 = _interopRequireDefault(__webpack_require__(/*! ./v4.js */ "./node_modules/uuid/dist/commonjs-browser/v4.js"));
+
+var _v4 = _interopRequireDefault(__webpack_require__(/*! ./v5.js */ "./node_modules/uuid/dist/commonjs-browser/v5.js"));
+
+var _nil = _interopRequireDefault(__webpack_require__(/*! ./nil.js */ "./node_modules/uuid/dist/commonjs-browser/nil.js"));
+
+var _version = _interopRequireDefault(__webpack_require__(/*! ./version.js */ "./node_modules/uuid/dist/commonjs-browser/version.js"));
+
+var _validate = _interopRequireDefault(__webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/commonjs-browser/validate.js"));
+
+var _stringify = _interopRequireDefault(__webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/commonjs-browser/stringify.js"));
+
+var _parse = _interopRequireDefault(__webpack_require__(/*! ./parse.js */ "./node_modules/uuid/dist/commonjs-browser/parse.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/md5.js":
+/*!********************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/md5.js ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+/*
+ * Browser-compatible JavaScript MD5
+ *
+ * Modification of JavaScript MD5
+ * https://github.com/blueimp/JavaScript-MD5
+ *
+ * Copyright 2011, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * https://opensource.org/licenses/MIT
+ *
+ * Based on
+ * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
+ * Digest Algorithm, as defined in RFC 1321.
+ * Version 2.2 Copyright (C) Paul Johnston 1999 - 2009
+ * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
+ * Distributed under the BSD License
+ * See http://pajhome.org.uk/crypt/md5 for more info.
+ */
+function md5(bytes) {
+  if (typeof bytes === 'string') {
+    const msg = unescape(encodeURIComponent(bytes)); // UTF8 escape
+
+    bytes = new Uint8Array(msg.length);
+
+    for (let i = 0; i < msg.length; ++i) {
+      bytes[i] = msg.charCodeAt(i);
+    }
+  }
+
+  return md5ToHexEncodedArray(wordsToMd5(bytesToWords(bytes), bytes.length * 8));
+}
+/*
+ * Convert an array of little-endian words to an array of bytes
+ */
+
+
+function md5ToHexEncodedArray(input) {
+  const output = [];
+  const length32 = input.length * 32;
+  const hexTab = '0123456789abcdef';
+
+  for (let i = 0; i < length32; i += 8) {
+    const x = input[i >> 5] >>> i % 32 & 0xff;
+    const hex = parseInt(hexTab.charAt(x >>> 4 & 0x0f) + hexTab.charAt(x & 0x0f), 16);
+    output.push(hex);
+  }
+
+  return output;
+}
+/**
+ * Calculate output length with padding and bit length
+ */
+
+
+function getOutputLength(inputLength8) {
+  return (inputLength8 + 64 >>> 9 << 4) + 14 + 1;
+}
+/*
+ * Calculate the MD5 of an array of little-endian words, and a bit length.
+ */
+
+
+function wordsToMd5(x, len) {
+  /* append padding */
+  x[len >> 5] |= 0x80 << len % 32;
+  x[getOutputLength(len) - 1] = len;
+  let a = 1732584193;
+  let b = -271733879;
+  let c = -1732584194;
+  let d = 271733878;
+
+  for (let i = 0; i < x.length; i += 16) {
+    const olda = a;
+    const oldb = b;
+    const oldc = c;
+    const oldd = d;
+    a = md5ff(a, b, c, d, x[i], 7, -680876936);
+    d = md5ff(d, a, b, c, x[i + 1], 12, -389564586);
+    c = md5ff(c, d, a, b, x[i + 2], 17, 606105819);
+    b = md5ff(b, c, d, a, x[i + 3], 22, -1044525330);
+    a = md5ff(a, b, c, d, x[i + 4], 7, -176418897);
+    d = md5ff(d, a, b, c, x[i + 5], 12, 1200080426);
+    c = md5ff(c, d, a, b, x[i + 6], 17, -1473231341);
+    b = md5ff(b, c, d, a, x[i + 7], 22, -45705983);
+    a = md5ff(a, b, c, d, x[i + 8], 7, 1770035416);
+    d = md5ff(d, a, b, c, x[i + 9], 12, -1958414417);
+    c = md5ff(c, d, a, b, x[i + 10], 17, -42063);
+    b = md5ff(b, c, d, a, x[i + 11], 22, -1990404162);
+    a = md5ff(a, b, c, d, x[i + 12], 7, 1804603682);
+    d = md5ff(d, a, b, c, x[i + 13], 12, -40341101);
+    c = md5ff(c, d, a, b, x[i + 14], 17, -1502002290);
+    b = md5ff(b, c, d, a, x[i + 15], 22, 1236535329);
+    a = md5gg(a, b, c, d, x[i + 1], 5, -165796510);
+    d = md5gg(d, a, b, c, x[i + 6], 9, -1069501632);
+    c = md5gg(c, d, a, b, x[i + 11], 14, 643717713);
+    b = md5gg(b, c, d, a, x[i], 20, -373897302);
+    a = md5gg(a, b, c, d, x[i + 5], 5, -701558691);
+    d = md5gg(d, a, b, c, x[i + 10], 9, 38016083);
+    c = md5gg(c, d, a, b, x[i + 15], 14, -660478335);
+    b = md5gg(b, c, d, a, x[i + 4], 20, -405537848);
+    a = md5gg(a, b, c, d, x[i + 9], 5, 568446438);
+    d = md5gg(d, a, b, c, x[i + 14], 9, -1019803690);
+    c = md5gg(c, d, a, b, x[i + 3], 14, -187363961);
+    b = md5gg(b, c, d, a, x[i + 8], 20, 1163531501);
+    a = md5gg(a, b, c, d, x[i + 13], 5, -1444681467);
+    d = md5gg(d, a, b, c, x[i + 2], 9, -51403784);
+    c = md5gg(c, d, a, b, x[i + 7], 14, 1735328473);
+    b = md5gg(b, c, d, a, x[i + 12], 20, -1926607734);
+    a = md5hh(a, b, c, d, x[i + 5], 4, -378558);
+    d = md5hh(d, a, b, c, x[i + 8], 11, -2022574463);
+    c = md5hh(c, d, a, b, x[i + 11], 16, 1839030562);
+    b = md5hh(b, c, d, a, x[i + 14], 23, -35309556);
+    a = md5hh(a, b, c, d, x[i + 1], 4, -1530992060);
+    d = md5hh(d, a, b, c, x[i + 4], 11, 1272893353);
+    c = md5hh(c, d, a, b, x[i + 7], 16, -155497632);
+    b = md5hh(b, c, d, a, x[i + 10], 23, -1094730640);
+    a = md5hh(a, b, c, d, x[i + 13], 4, 681279174);
+    d = md5hh(d, a, b, c, x[i], 11, -358537222);
+    c = md5hh(c, d, a, b, x[i + 3], 16, -722521979);
+    b = md5hh(b, c, d, a, x[i + 6], 23, 76029189);
+    a = md5hh(a, b, c, d, x[i + 9], 4, -640364487);
+    d = md5hh(d, a, b, c, x[i + 12], 11, -421815835);
+    c = md5hh(c, d, a, b, x[i + 15], 16, 530742520);
+    b = md5hh(b, c, d, a, x[i + 2], 23, -995338651);
+    a = md5ii(a, b, c, d, x[i], 6, -198630844);
+    d = md5ii(d, a, b, c, x[i + 7], 10, 1126891415);
+    c = md5ii(c, d, a, b, x[i + 14], 15, -1416354905);
+    b = md5ii(b, c, d, a, x[i + 5], 21, -57434055);
+    a = md5ii(a, b, c, d, x[i + 12], 6, 1700485571);
+    d = md5ii(d, a, b, c, x[i + 3], 10, -1894986606);
+    c = md5ii(c, d, a, b, x[i + 10], 15, -1051523);
+    b = md5ii(b, c, d, a, x[i + 1], 21, -2054922799);
+    a = md5ii(a, b, c, d, x[i + 8], 6, 1873313359);
+    d = md5ii(d, a, b, c, x[i + 15], 10, -30611744);
+    c = md5ii(c, d, a, b, x[i + 6], 15, -1560198380);
+    b = md5ii(b, c, d, a, x[i + 13], 21, 1309151649);
+    a = md5ii(a, b, c, d, x[i + 4], 6, -145523070);
+    d = md5ii(d, a, b, c, x[i + 11], 10, -1120210379);
+    c = md5ii(c, d, a, b, x[i + 2], 15, 718787259);
+    b = md5ii(b, c, d, a, x[i + 9], 21, -343485551);
+    a = safeAdd(a, olda);
+    b = safeAdd(b, oldb);
+    c = safeAdd(c, oldc);
+    d = safeAdd(d, oldd);
+  }
+
+  return [a, b, c, d];
+}
+/*
+ * Convert an array bytes to an array of little-endian words
+ * Characters >255 have their high-byte silently ignored.
+ */
+
+
+function bytesToWords(input) {
+  if (input.length === 0) {
+    return [];
+  }
+
+  const length8 = input.length * 8;
+  const output = new Uint32Array(getOutputLength(length8));
+
+  for (let i = 0; i < length8; i += 8) {
+    output[i >> 5] |= (input[i / 8] & 0xff) << i % 32;
+  }
+
+  return output;
+}
+/*
+ * Add integers, wrapping at 2^32. This uses 16-bit operations internally
+ * to work around bugs in some JS interpreters.
+ */
+
+
+function safeAdd(x, y) {
+  const lsw = (x & 0xffff) + (y & 0xffff);
+  const msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+  return msw << 16 | lsw & 0xffff;
+}
+/*
+ * Bitwise rotate a 32-bit number to the left.
+ */
+
+
+function bitRotateLeft(num, cnt) {
+  return num << cnt | num >>> 32 - cnt;
+}
+/*
+ * These functions implement the four basic operations the algorithm uses.
+ */
+
+
+function md5cmn(q, a, b, x, s, t) {
+  return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b);
+}
+
+function md5ff(a, b, c, d, x, s, t) {
+  return md5cmn(b & c | ~b & d, a, b, x, s, t);
+}
+
+function md5gg(a, b, c, d, x, s, t) {
+  return md5cmn(b & d | c & ~d, a, b, x, s, t);
+}
+
+function md5hh(a, b, c, d, x, s, t) {
+  return md5cmn(b ^ c ^ d, a, b, x, s, t);
+}
+
+function md5ii(a, b, c, d, x, s, t) {
+  return md5cmn(c ^ (b | ~d), a, b, x, s, t);
+}
+
+var _default = md5;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/native.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/native.js ***!
+  \***********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+const randomUUID = typeof crypto !== 'undefined' && crypto.randomUUID && crypto.randomUUID.bind(crypto);
+var _default = {
+  randomUUID
+};
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/nil.js":
+/*!********************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/nil.js ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var _default = '00000000-0000-0000-0000-000000000000';
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/parse.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/parse.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _validate = _interopRequireDefault(__webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/commonjs-browser/validate.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function parse(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  let v;
+  const arr = new Uint8Array(16); // Parse ########-....-....-....-............
+
+  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
+  arr[1] = v >>> 16 & 0xff;
+  arr[2] = v >>> 8 & 0xff;
+  arr[3] = v & 0xff; // Parse ........-####-....-....-............
+
+  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
+  arr[5] = v & 0xff; // Parse ........-....-####-....-............
+
+  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
+  arr[7] = v & 0xff; // Parse ........-....-....-####-............
+
+  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
+  arr[9] = v & 0xff; // Parse ........-....-....-....-############
+  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
+
+  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
+  arr[11] = v / 0x100000000 & 0xff;
+  arr[12] = v >>> 24 & 0xff;
+  arr[13] = v >>> 16 & 0xff;
+  arr[14] = v >>> 8 & 0xff;
+  arr[15] = v & 0xff;
+  return arr;
+}
+
+var _default = parse;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/regex.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/regex.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/rng.js":
+/*!********************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/rng.js ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = rng;
+// Unique ID creation requires a high quality random # generator. In the browser we therefore
+// require the crypto API and do not support built-in fallback to lower quality random number
+// generators (like Math.random()).
+let getRandomValues;
+const rnds8 = new Uint8Array(16);
+
+function rng() {
+  // lazy load so that environments that need to polyfill have a chance to do so
+  if (!getRandomValues) {
+    // getRandomValues needs to be invoked in a context where "this" is a Crypto implementation.
+    getRandomValues = typeof crypto !== 'undefined' && crypto.getRandomValues && crypto.getRandomValues.bind(crypto);
+
+    if (!getRandomValues) {
+      throw new Error('crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported');
+    }
+  }
+
+  return getRandomValues(rnds8);
+}
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/sha1.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/sha1.js ***!
+  \*********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+// Adapted from Chris Veness' SHA1 code at
+// http://www.movable-type.co.uk/scripts/sha1.html
+function f(s, x, y, z) {
+  switch (s) {
+    case 0:
+      return x & y ^ ~x & z;
+
+    case 1:
+      return x ^ y ^ z;
+
+    case 2:
+      return x & y ^ x & z ^ y & z;
+
+    case 3:
+      return x ^ y ^ z;
+  }
+}
+
+function ROTL(x, n) {
+  return x << n | x >>> 32 - n;
+}
+
+function sha1(bytes) {
+  const K = [0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6];
+  const H = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
+
+  if (typeof bytes === 'string') {
+    const msg = unescape(encodeURIComponent(bytes)); // UTF8 escape
+
+    bytes = [];
+
+    for (let i = 0; i < msg.length; ++i) {
+      bytes.push(msg.charCodeAt(i));
+    }
+  } else if (!Array.isArray(bytes)) {
+    // Convert Array-like to Array
+    bytes = Array.prototype.slice.call(bytes);
+  }
+
+  bytes.push(0x80);
+  const l = bytes.length / 4 + 2;
+  const N = Math.ceil(l / 16);
+  const M = new Array(N);
+
+  for (let i = 0; i < N; ++i) {
+    const arr = new Uint32Array(16);
+
+    for (let j = 0; j < 16; ++j) {
+      arr[j] = bytes[i * 64 + j * 4] << 24 | bytes[i * 64 + j * 4 + 1] << 16 | bytes[i * 64 + j * 4 + 2] << 8 | bytes[i * 64 + j * 4 + 3];
+    }
+
+    M[i] = arr;
+  }
+
+  M[N - 1][14] = (bytes.length - 1) * 8 / Math.pow(2, 32);
+  M[N - 1][14] = Math.floor(M[N - 1][14]);
+  M[N - 1][15] = (bytes.length - 1) * 8 & 0xffffffff;
+
+  for (let i = 0; i < N; ++i) {
+    const W = new Uint32Array(80);
+
+    for (let t = 0; t < 16; ++t) {
+      W[t] = M[i][t];
+    }
+
+    for (let t = 16; t < 80; ++t) {
+      W[t] = ROTL(W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], 1);
+    }
+
+    let a = H[0];
+    let b = H[1];
+    let c = H[2];
+    let d = H[3];
+    let e = H[4];
+
+    for (let t = 0; t < 80; ++t) {
+      const s = Math.floor(t / 20);
+      const T = ROTL(a, 5) + f(s, b, c, d) + e + K[s] + W[t] >>> 0;
+      e = d;
+      d = c;
+      c = ROTL(b, 30) >>> 0;
+      b = a;
+      a = T;
+    }
+
+    H[0] = H[0] + a >>> 0;
+    H[1] = H[1] + b >>> 0;
+    H[2] = H[2] + c >>> 0;
+    H[3] = H[3] + d >>> 0;
+    H[4] = H[4] + e >>> 0;
+  }
+
+  return [H[0] >> 24 & 0xff, H[0] >> 16 & 0xff, H[0] >> 8 & 0xff, H[0] & 0xff, H[1] >> 24 & 0xff, H[1] >> 16 & 0xff, H[1] >> 8 & 0xff, H[1] & 0xff, H[2] >> 24 & 0xff, H[2] >> 16 & 0xff, H[2] >> 8 & 0xff, H[2] & 0xff, H[3] >> 24 & 0xff, H[3] >> 16 & 0xff, H[3] >> 8 & 0xff, H[3] & 0xff, H[4] >> 24 & 0xff, H[4] >> 16 & 0xff, H[4] >> 8 & 0xff, H[4] & 0xff];
+}
+
+var _default = sha1;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/stringify.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/stringify.js ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+exports.unsafeStringify = unsafeStringify;
+
+var _validate = _interopRequireDefault(__webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/commonjs-browser/validate.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Convert array of 16 byte values to UUID string format of the form:
+ * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+ */
+const byteToHex = [];
+
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 0x100).toString(16).slice(1));
+}
+
+function unsafeStringify(arr, offset = 0) {
+  // Note: Be careful editing this code!  It's been tuned for performance
+  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
+  return byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]];
+}
+
+function stringify(arr, offset = 0) {
+  const uuid = unsafeStringify(arr, offset); // Consistency check for valid UUID.  If this throws, it's likely due to one
+  // of the following:
+  // - One or more input array values don't map to a hex octet (leading to
+  // "undefined" in the uuid)
+  // - Invalid input values for the RFC `version` or `variant` fields
+
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Stringified UUID is invalid');
+  }
+
+  return uuid;
+}
+
+var _default = stringify;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/v1.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/v1.js ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _rng = _interopRequireDefault(__webpack_require__(/*! ./rng.js */ "./node_modules/uuid/dist/commonjs-browser/rng.js"));
+
+var _stringify = __webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/commonjs-browser/stringify.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// **`v1()` - Generate time-based UUID**
+//
+// Inspired by https://github.com/LiosK/UUID.js
+// and http://docs.python.org/library/uuid.html
+let _nodeId;
+
+let _clockseq; // Previous uuid creation time
+
+
+let _lastMSecs = 0;
+let _lastNSecs = 0; // See https://github.com/uuidjs/uuid for API details
+
+function v1(options, buf, offset) {
+  let i = buf && offset || 0;
+  const b = buf || new Array(16);
+  options = options || {};
+  let node = options.node || _nodeId;
+  let clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq; // node and clockseq need to be initialized to random values if they're not
+  // specified.  We do this lazily to minimize issues related to insufficient
+  // system entropy.  See #189
+
+  if (node == null || clockseq == null) {
+    const seedBytes = options.random || (options.rng || _rng.default)();
+
+    if (node == null) {
+      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+      node = _nodeId = [seedBytes[0] | 0x01, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
+    }
+
+    if (clockseq == null) {
+      // Per 4.2.2, randomize (14 bit) clockseq
+      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
+    }
+  } // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+
+
+  let msecs = options.msecs !== undefined ? options.msecs : Date.now(); // Per 4.2.1.2, use count of uuid's generated during the current clock
+  // cycle to simulate higher resolution clock
+
+  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1; // Time since last uuid creation (in msecs)
+
+  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000; // Per 4.2.1.2, Bump clockseq on clock regression
+
+  if (dt < 0 && options.clockseq === undefined) {
+    clockseq = clockseq + 1 & 0x3fff;
+  } // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+  // time interval
+
+
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+    nsecs = 0;
+  } // Per 4.2.1.2 Throw error if too many uuids are requested
+
+
+  if (nsecs >= 10000) {
+    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
+  }
+
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq; // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+
+  msecs += 12219292800000; // `time_low`
+
+  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+  b[i++] = tl >>> 24 & 0xff;
+  b[i++] = tl >>> 16 & 0xff;
+  b[i++] = tl >>> 8 & 0xff;
+  b[i++] = tl & 0xff; // `time_mid`
+
+  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
+  b[i++] = tmh >>> 8 & 0xff;
+  b[i++] = tmh & 0xff; // `time_high_and_version`
+
+  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+
+  b[i++] = tmh >>> 16 & 0xff; // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+
+  b[i++] = clockseq >>> 8 | 0x80; // `clock_seq_low`
+
+  b[i++] = clockseq & 0xff; // `node`
+
+  for (let n = 0; n < 6; ++n) {
+    b[i + n] = node[n];
+  }
+
+  return buf || (0, _stringify.unsafeStringify)(b);
+}
+
+var _default = v1;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/v3.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/v3.js ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _v = _interopRequireDefault(__webpack_require__(/*! ./v35.js */ "./node_modules/uuid/dist/commonjs-browser/v35.js"));
+
+var _md = _interopRequireDefault(__webpack_require__(/*! ./md5.js */ "./node_modules/uuid/dist/commonjs-browser/md5.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v3 = (0, _v.default)('v3', 0x30, _md.default);
+var _default = v3;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/v35.js":
+/*!********************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/v35.js ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.URL = exports.DNS = void 0;
+exports["default"] = v35;
+
+var _stringify = __webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/commonjs-browser/stringify.js");
+
+var _parse = _interopRequireDefault(__webpack_require__(/*! ./parse.js */ "./node_modules/uuid/dist/commonjs-browser/parse.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function stringToBytes(str) {
+  str = unescape(encodeURIComponent(str)); // UTF8 escape
+
+  const bytes = [];
+
+  for (let i = 0; i < str.length; ++i) {
+    bytes.push(str.charCodeAt(i));
+  }
+
+  return bytes;
+}
+
+const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+exports.DNS = DNS;
+const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+exports.URL = URL;
+
+function v35(name, version, hashfunc) {
+  function generateUUID(value, namespace, buf, offset) {
+    var _namespace;
+
+    if (typeof value === 'string') {
+      value = stringToBytes(value);
+    }
+
+    if (typeof namespace === 'string') {
+      namespace = (0, _parse.default)(namespace);
+    }
+
+    if (((_namespace = namespace) === null || _namespace === void 0 ? void 0 : _namespace.length) !== 16) {
+      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
+    } // Compute hash of namespace and value, Per 4.3
+    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
+    // hashfunc([...namespace, ... value])`
+
+
+    let bytes = new Uint8Array(16 + value.length);
+    bytes.set(namespace);
+    bytes.set(value, namespace.length);
+    bytes = hashfunc(bytes);
+    bytes[6] = bytes[6] & 0x0f | version;
+    bytes[8] = bytes[8] & 0x3f | 0x80;
+
+    if (buf) {
+      offset = offset || 0;
+
+      for (let i = 0; i < 16; ++i) {
+        buf[offset + i] = bytes[i];
+      }
+
+      return buf;
+    }
+
+    return (0, _stringify.unsafeStringify)(bytes);
+  } // Function#name is not settable on some platforms (#270)
+
+
+  try {
+    generateUUID.name = name; // eslint-disable-next-line no-empty
+  } catch (err) {} // For CommonJS default export support
+
+
+  generateUUID.DNS = DNS;
+  generateUUID.URL = URL;
+  return generateUUID;
+}
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/v4.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/v4.js ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _native = _interopRequireDefault(__webpack_require__(/*! ./native.js */ "./node_modules/uuid/dist/commonjs-browser/native.js"));
+
+var _rng = _interopRequireDefault(__webpack_require__(/*! ./rng.js */ "./node_modules/uuid/dist/commonjs-browser/rng.js"));
+
+var _stringify = __webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/commonjs-browser/stringify.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function v4(options, buf, offset) {
+  if (_native.default.randomUUID && !buf && !options) {
+    return _native.default.randomUUID();
+  }
+
+  options = options || {};
+
+  const rnds = options.random || (options.rng || _rng.default)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+
+
+  rnds[6] = rnds[6] & 0x0f | 0x40;
+  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
+
+  if (buf) {
+    offset = offset || 0;
+
+    for (let i = 0; i < 16; ++i) {
+      buf[offset + i] = rnds[i];
+    }
+
+    return buf;
+  }
+
+  return (0, _stringify.unsafeStringify)(rnds);
+}
+
+var _default = v4;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/v5.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/v5.js ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _v = _interopRequireDefault(__webpack_require__(/*! ./v35.js */ "./node_modules/uuid/dist/commonjs-browser/v35.js"));
+
+var _sha = _interopRequireDefault(__webpack_require__(/*! ./sha1.js */ "./node_modules/uuid/dist/commonjs-browser/sha1.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v5 = (0, _v.default)('v5', 0x50, _sha.default);
+var _default = v5;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/validate.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/validate.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _regex = _interopRequireDefault(__webpack_require__(/*! ./regex.js */ "./node_modules/uuid/dist/commonjs-browser/regex.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function validate(uuid) {
+  return typeof uuid === 'string' && _regex.default.test(uuid);
+}
+
+var _default = validate;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/uuid/dist/commonjs-browser/version.js":
+/*!************************************************************!*\
+  !*** ./node_modules/uuid/dist/commonjs-browser/version.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _validate = _interopRequireDefault(__webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/commonjs-browser/validate.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function version(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  return parseInt(uuid.slice(14, 15), 16);
+}
+
+var _default = version;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/vwo-fme-sdk-log-messages/index.js":
+/*!********************************************************!*\
+  !*** ./node_modules/vwo-fme-sdk-log-messages/index.js ***!
+  \********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+module.exports = {
+  debugMessages: __webpack_require__(/*! ./src/debug-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/debug-messages.json"),
+  infoMessages: __webpack_require__(/*! ./src/info-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/info-messages.json"),
+  warnMessages: __webpack_require__(/*! ./src/warn-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/warn-messages.json"),
+  errorMessages: __webpack_require__(/*! ./src/error-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/error-messages.json"),
+  traceMessages: __webpack_require__(/*! ./src/trace-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/trace-messages.json")
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/vwo-fme-sdk-log-messages/src/debug-messages.json":
 /*!***********************************************************************!*\
   !*** ./node_modules/vwo-fme-sdk-log-messages/src/debug-messages.json ***!
@@ -11778,7 +11861,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}"}');
 
 /***/ }),
 
@@ -11789,7 +11872,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}"}');
 
 /***/ }),
 
@@ -11843,7 +11926,7 @@ module.exports = {};
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
 "use strict";
 var exports = __webpack_exports__;

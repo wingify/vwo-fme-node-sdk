@@ -23,6 +23,7 @@ import { LogTransportManager } from './TransportManager';
 
 import { isObject } from '../../../utils/DataTypeUtil';
 import { LogLevelEnum } from '../enums/LogLevelEnum';
+import { sendLogToVWO } from '../../../utils/LogMessageUtil';
 
 /**
  * Interface defining the structure and methods for LogManager.
@@ -173,5 +174,6 @@ export class LogManager extends Logger implements ILogManager {
    */
   error(message: string): void {
     this.transportManager.log(LogLevelEnum.ERROR, message);
+    sendLogToVWO(message, LogLevelEnum.ERROR);
   }
 }

@@ -21,6 +21,7 @@ describe('VWOClient trackEvent method', () => {
   let options;
 
   beforeEach(() => {
+    process.env.TEST_ENV = 'true';
     const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
     jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(BASIC_ROLLOUT_SETTINGS as any);
 
@@ -32,6 +33,7 @@ describe('VWOClient trackEvent method', () => {
   });
 
   afterEach(() => {
+    process.env.TEST_ENV = undefined;
     jest.clearAllMocks();
   });
 

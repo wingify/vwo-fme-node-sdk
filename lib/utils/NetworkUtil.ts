@@ -29,6 +29,7 @@ import { dynamic } from '../types/Common';
 import { isObject } from './DataTypeUtil';
 import { buildMessage } from './LogMessageUtil';
 import { UrlUtil } from './UrlUtil';
+import { Deferred } from './PromiseUtil';
 
 /**
  * Constructs base properties for bulk operations.
@@ -105,16 +106,15 @@ export function getEventBatchingQueryParams(accountId: string): Record<string, d
  * @returns properties
  */
 export function getEventsBaseProperties(
-  setting: SettingsModel,
   eventName: string,
   visitorUserAgent: string = '',
   ipAddress: string = '',
 ): Record<string, any> {
-  const sdkKey = setting.getSdkkey();
+  const sdkKey = SettingsService.Instance.sdkKey;
 
   const properties = Object.assign({
     en: eventName,
-    a: setting.getAccountId(),
+    a: SettingsService.Instance.accountId,
     env: sdkKey,
     eTime: getCurrentUnixTimestampInMillis(),
     random: getRandomNumber(),
@@ -141,8 +141,8 @@ export function _getEventBasePayload(
   visitorUserAgent = '',
   ipAddress = '',
 ): Record<string, any> {
-  const uuid = getUUID(userId.toString(), settings.getAccountId());
-  const sdkKey = settings.getSdkkey();
+  const uuid = getUUID(userId.toString(), SettingsService.Instance.accountId.toString());
+  const sdkKey = SettingsService.Instance.sdkKey;
 
   const props: {
     vwo_sdkName: string;
@@ -152,6 +152,8 @@ export function _getEventBasePayload(
     variation?: string | number;
     isFirst?: number;
     isCustomEvent?: boolean;
+    data?: Record<string, any>;
+    product?: string;
   } = {
     vwo_sdkName: Constants.SDK_NAME,
     vwo_sdkVersion: Constants.SDK_VERSION,
@@ -383,4 +385,82 @@ export function getShouldWaitForTrackingCalls(): boolean {
  */
 export function setShouldWaitForTrackingCalls(value: boolean): void {
   shouldWaitForTrackingCalls = value;
+}
+
+/**
+ * Constructs the payload for a messaging event.
+ * @param messageType - The type of the message.
+ * @param message - The message to send.
+ * @param eventName - The name of the event.
+ * @returns The constructed payload.
+ */
+export function getMessagingEventPayload(messageType: string, message: string, eventName: string): Record<string, any> {
+  const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
+  const properties = _getEventBasePayload(null, userId, eventName, null, null);
+
+  properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = SettingsService.Instance.sdkKey; // Set environment key
+  properties.d.event.props.product = 'fme';
+  const data = {
+    type: messageType,
+    content: {
+      title: message,
+      dateTime: getCurrentUnixTimestampInMillis(),
+    },
+  };
+  properties.d.event.props.data = data;
+
+  LogManager.Instance.debug(
+    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_VWO_LOG_EVENT, {
+      eventName,
+      accountId: SettingsService.Instance.accountId,
+      userId,
+    }),
+  );
+
+  return properties;
+}
+
+/**
+ * Sends a messaging event to DACDN
+ * @param properties - Query parameters for the request.
+ * @param payload - The payload for the request.
+ * @returns A promise that resolves to the response from DACDN.
+ */
+export async function sendMessagingEvent(properties: Record<string, any>, payload: Record<string, any>): Promise<any> {
+  // Create a new deferred object to manage promise resolution
+  const deferredObject = new Deferred();
+  // Singleton instance of the network manager
+  const networkInstance = NetworkManager.Instance;
+
+  try {
+    // Create a new request model instance with the provided parameters
+    const request: RequestModel = new RequestModel(
+      Constants.HOST_NAME,
+      HttpMethodEnum.POST,
+      UrlEnum.EVENTS,
+      properties,
+      payload,
+      null,
+      Constants.HTTPS_PROTOCOL,
+      null,
+    );
+
+    // Perform the network GET request
+    networkInstance
+      .post(request)
+      .then((response: ResponseModel) => {
+        // Resolve the deferred object with the data from the response
+        deferredObject.resolve(response.getData());
+      })
+      .catch((err: ResponseModel) => {
+        // Reject the deferred object with the error response
+        deferredObject.reject(err);
+      });
+
+    return deferredObject.promise;
+  } catch (err) {
+    // Resolve the promise with false as fallback
+    deferredObject.resolve(false);
+    return deferredObject.promise;
+  }
 }

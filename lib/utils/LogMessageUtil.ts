@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Constants } from '../constants';
+import { EventEnum } from '../enums/EventEnum';
 import { isFunction } from '../utils/DataTypeUtil';
+import { getEventsBaseProperties, getMessagingEventPayload, sendMessagingEvent } from './NetworkUtil';
 
 const nargs = /\{([0-9a-zA-Z_]+)\}/g;
+let storedMessages = new Set<string>();
 
 /**
  * Constructs a message by replacing placeholders in a template with corresponding values from a data object.
@@ -45,5 +49,33 @@ export function buildMessage(template: string, data: Record<string, any> = {}): 
     });
   } catch (err) {
     return template; // Return the original template in case of an error
+  }
+}
+
+/**
+ * Sends a log message to VWO.
+ * @param {string} message - The message to log.
+ * @param {string} messageType - The type of message to log.
+ */
+
+export function sendLogToVWO(message: string, messageType: string) {
+  if (process.env.TEST_ENV === 'true') {
+    return;
+  }
+
+  const messageToSend = message + '-' + Constants.SDK_NAME + '-' + Constants.SDK_VERSION;
+
+  if (!storedMessages.has(messageToSend)) {
+    // add the message to the set
+    storedMessages.add(messageToSend);
+
+    // create the query parameters
+    const properties = getEventsBaseProperties(EventEnum.VWO_LOG_EVENT);
+
+    // create the payload
+    const payload = getMessagingEventPayload(messageType, message, EventEnum.VWO_LOG_EVENT);
+
+    // Send the constructed payload via POST request
+    sendMessagingEvent(properties, payload);
   }
 }

@@ -37,6 +37,7 @@ var ConsoleTransport_1 = require("../transports/ConsoleTransport");
 var TransportManager_1 = require("./TransportManager");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var LogLevelEnum_1 = require("../enums/LogLevelEnum");
+var LogMessageUtil_1 = require("../../../utils/LogMessageUtil");
 /**
  * LogManager class provides logging functionality with support for multiple transports.
  * It is designed as a singleton to ensure a single instance throughout the application.
@@ -150,6 +151,7 @@ var LogManager = /** @class */ (function (_super) {
      */
     LogManager.prototype.error = function (message) {
         this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
+        (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
     };
     return LogManager;
 }(Logger_1.Logger));

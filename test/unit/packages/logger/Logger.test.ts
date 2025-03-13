@@ -20,8 +20,11 @@ import { LogLevelEnum } from '../../../../lib/packages/logger/enums/LogLevelEnum
 describe('End-to-End Tests for Logger Module', () => {
   let logManager: LogManager;
 
-  beforeAll(() => {});
+  beforeAll(() => {
+    process.env.TEST_ENV = 'true';
+  });
   afterAll(() => {
+    process.env.TEST_ENV = undefined;
     jest.clearAllMocks();
   });
 

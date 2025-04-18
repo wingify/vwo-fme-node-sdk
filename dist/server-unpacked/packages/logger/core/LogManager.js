@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,9 +149,12 @@ var LogManager = /** @class */ (function (_super) {
      * Logs an error message.
      * @param {string} message - The message to log at error level.
      */
-    LogManager.prototype.error = function (message) {
+    LogManager.prototype.error = function (message, shouldSendToVWO) {
+        if (shouldSendToVWO === void 0) { shouldSendToVWO = true; }
         this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
-        (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
+        if (shouldSendToVWO) {
+            (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
+        }
     };
     return LogManager;
 }(Logger_1.Logger));

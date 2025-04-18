@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@ import { Constants } from '../constants';
 import { EventEnum } from '../enums/EventEnum';
 import { isFunction } from '../utils/DataTypeUtil';
 import { getEventsBaseProperties, getMessagingEventPayload, sendMessagingEvent } from './NetworkUtil';
+import { ResponseModel } from '../packages/network-layer/models/ResponseModel';
+import { LogManager } from '../packages/logger/core/LogManager';
+import { ErrorLogMessagesEnum } from '../enums/log-messages';
+import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 
 const nargs = /\{([0-9a-zA-Z_]+)\}/g;
 let storedMessages = new Set<string>();
@@ -76,6 +80,14 @@ export function sendLogToVWO(message: string, messageType: string) {
     const payload = getMessagingEventPayload(messageType, message, EventEnum.VWO_LOG_EVENT);
 
     // Send the constructed payload via POST request
-    sendMessagingEvent(properties, payload);
+    sendMessagingEvent(properties, payload).catch((err: ResponseModel) => {
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+          method: HttpMethodEnum.POST + ' ' + EventEnum.VWO_LOG_EVENT,
+          err: err.getError(),
+        }),
+        false,
+      );
+    });
   }
 }

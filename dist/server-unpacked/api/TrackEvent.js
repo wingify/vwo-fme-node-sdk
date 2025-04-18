@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TrackApi = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
                 payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
                 // Send the prepared payload via POST API request
-                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
+                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
             case 1:
                 // Send the prepared payload via POST API request
                 _a.sent();

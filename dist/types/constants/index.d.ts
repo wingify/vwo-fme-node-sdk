@@ -23,4 +23,6 @@ export declare const Constants: {
   RANDOM_ALGO: number;
   API_VERSION: string;
   VWO_META_MEG_KEY: string;
+  MAX_RETRIES: number;
+  RETRY_DELAY: number;
 };

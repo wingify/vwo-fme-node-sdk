@@ -52,7 +52,7 @@ exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 exports.getMessagingEventPayload = getMessagingEventPayload;
 exports.sendMessagingEvent = sendMessagingEvent;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -289,8 +289,9 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
+ * @param {string} userId - User ID.
  */
-function sendPostApiRequest(properties, payload) {
+function sendPostApiRequest(properties, payload, userId) {
     return __awaiter(this, void 0, void 0, function () {
         var headers, userAgent, ipAddress, request;
         return __generator(this, function (_a) {
@@ -306,7 +307,17 @@ function sendPostApiRequest(properties, payload) {
                     if (ipAddress)
                         headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
                     request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
-                    return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request).catch(function (err) {
+                    return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request)
+                            .then(function () {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
+                                event: properties.en,
+                                endPoint: UrlEnum_1.UrlEnum.EVENTS,
+                                accountId: SettingsService_1.SettingsService.Instance.accountId,
+                                userId: userId,
+                                uuid: payload.d.visId,
+                            }));
+                        })
+                            .catch(function (err) {
                             logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
                                 method: HttpMethodEnum_1.HttpMethodEnum.POST,
                                 err: (0, DataTypeUtil_1.isObject)(err) ? JSON.stringify(err) : err,

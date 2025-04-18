@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.14.0
+ * vwo-fme-node-sdk - v1.14.1
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.14.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.0.1"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.14.1","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.0.1"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
 
 /***/ }),
 
@@ -162,7 +162,7 @@ exports.VWO = void 0;
 exports.init = init;
 exports.onInit = onInit;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -734,7 +734,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VWOClient = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1099,7 +1099,7 @@ exports.VWOClient = VWOClient;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1532,7 +1532,7 @@ function _updateIntegrationsDecisionObject(campaign, variation, passedRulesInfor
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1708,7 +1708,7 @@ var createImpressionForAttributes = function (settings, attributes, context) {
           properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
           payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress());
           // Send the constructed payload via POST request
-          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
         case 1:
           // Send the constructed payload via POST request
           _a.sent();
@@ -1844,7 +1844,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.TrackApi = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1922,7 +1922,7 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
           properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
           payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
           // Send the prepared payload via POST API request
-          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
         case 1:
           // Send the prepared payload via POST API request
           _a.sent();
@@ -1947,7 +1947,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BASE_URL = exports.HTTPS_PROTOCOL = exports.HTTP_PROTOCOL = exports.SEED_URL = exports.HTTPS = exports.HTTP = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1983,7 +1983,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Constants = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2041,7 +2041,9 @@ exports.Constants = {
   VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
   RANDOM_ALGO: 1,
   API_VERSION: '1',
-  VWO_META_MEG_KEY: '_vwo_meta_meg_'
+  VWO_META_MEG_KEY: '_vwo_meta_meg_',
+  MAX_RETRIES: 3,
+  RETRY_DELAY: 1000 // 1 second
 };
 
 /***/ }),
@@ -2170,7 +2172,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StorageDecorator = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2308,7 +2310,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ApiEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2343,7 +2345,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.CampaignTypeEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2379,7 +2381,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.EventEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2415,7 +2417,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.HeadersEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2450,7 +2452,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.HttpMethodEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2485,7 +2487,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.PlatformEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2520,7 +2522,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StatusEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2555,7 +2557,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StorageEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2594,7 +2596,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.UrlEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2634,7 +2636,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ErrorLogMessagesEnum = exports.InfoLogMessagesEnum = exports.DebugLogMessagesEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2901,7 +2903,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ImpactCapmaignModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2947,7 +2949,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.MetricModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2997,7 +2999,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RuleModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3204,7 +3206,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SettingsSchema = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3315,7 +3317,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SettingsModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3469,7 +3471,7 @@ exports.ContextModel = ContextModel;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3519,7 +3521,7 @@ exports.ContextVWOModel = ContextVWOModel;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3706,7 +3708,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Logger = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3741,7 +3743,7 @@ exports.Logger = Logger;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3895,9 +3897,14 @@ var LogManager = /** @class */function (_super) {
    * Logs an error message.
    * @param {string} message - The message to log at error level.
    */
-  LogManager.prototype.error = function (message) {
+  LogManager.prototype.error = function (message, shouldSendToVWO) {
+    if (shouldSendToVWO === void 0) {
+      shouldSendToVWO = true;
+    }
     this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
-    (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
+    if (shouldSendToVWO) {
+      (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
+    }
   };
   return LogManager;
 }(Logger_1.Logger);
@@ -3914,7 +3921,7 @@ exports.LogManager = LogManager;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4046,7 +4053,7 @@ exports.LogTransportManager = LogTransportManager;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4088,7 +4095,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.LogLevelEnum = exports.LogManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4132,7 +4139,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ConsoleTransport = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4225,7 +4232,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NetworkBrowserClient = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4385,7 +4392,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NetworkClient = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4404,6 +4411,10 @@ var https = __webpack_require__(/*! https */ "https");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./dist/server-unpacked/constants/Url.js");
 var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
+var constants_1 = __webpack_require__(/*! ../../../constants */ "./dist/server-unpacked/constants/index.js");
+var logger_1 = __webpack_require__(/*! ../../../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
+var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -4415,67 +4426,70 @@ var NetworkClient = /** @class */function () {
    * @returns {Promise<ResponseModel>} A promise that resolves to a ResponseModel.
    */
   NetworkClient.prototype.GET = function (requestModel) {
-    var deferred = new PromiseUtil_1.Deferred();
-    // Extract network options from the request model.
-    var networkOptions = requestModel.getOptions();
-    var responseModel = new ResponseModel_1.ResponseModel();
-    try {
-      // Choose HTTP or HTTPS client based on the scheme.
-      var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
-      // Perform the HTTP GET request.
-      var req = httpClient.get(networkOptions, function (res) {
-        responseModel.setStatusCode(res.statusCode);
-        var contentType = res.headers['content-type'];
-        var error;
-        var rawData = '';
-        // Check for expected content-type.
-        if (!/^application\/json/.test(contentType)) {
-          error = "Invalid content-type.\nExpected application/json but received ".concat(contentType);
-        }
-        if (error) {
-          // Log error and consume response data to free up memory.
-          res.resume();
-          responseModel.setError(error);
-          deferred.reject(responseModel);
-        }
-        res.setEncoding('utf8');
-        // Collect data chunks.
-        res.on('data', function (chunk) {
-          rawData += chunk;
-        });
-        // Handle the end of the response.
-        res.on('end', function () {
-          try {
-            var parsedData = JSON.parse(rawData);
-            // Check for successful response status.
-            if (responseModel.getStatusCode() !== 200) {
-              var error_1 = "Request failed. Got Status Code: ".concat(responseModel.getStatusCode(), " and message: ").concat(rawData);
-              responseModel.setError(error_1);
-              deferred.reject(responseModel);
-              return;
-            }
-            responseModel.setData(parsedData);
-            deferred.resolve(responseModel);
-          } catch (err) {
-            responseModel.setError(err);
-            deferred.reject(responseModel);
+    var _this = this;
+    var attemptRequest = function (attempt) {
+      var deferred = new PromiseUtil_1.Deferred();
+      // Extract network options from the request model.
+      var networkOptions = requestModel.getOptions();
+      var responseModel = new ResponseModel_1.ResponseModel();
+      try {
+        // Choose HTTP or HTTPS client based on the scheme.
+        var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
+        // Perform the HTTP GET request.
+        var req = httpClient.get(networkOptions, function (res) {
+          responseModel.setStatusCode(res.statusCode);
+          var contentType = res.headers['content-type'];
+          var error;
+          var rawData = '';
+          // Check for expected content-type.
+          if (!/^application\/json/.test(contentType)) {
+            error = "Invalid content-type.\nExpected application/json but received ".concat(contentType, ". Status Code: ").concat(res === null || res === void 0 ? void 0 : res.statusCode);
           }
+          if (error) {
+            // Log error and consume response data to free up memory.
+            res.resume();
+            return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+          }
+          res.setEncoding('utf8');
+          // Collect data chunks.
+          res.on('data', function (chunk) {
+            rawData += chunk;
+          });
+          // Handle the end of the response.
+          res.on('end', function () {
+            try {
+              var parsedData = JSON.parse(rawData);
+              // Check for successful response status.
+              if (responseModel.getStatusCode() < 200 || responseModel.getStatusCode() >= 300) {
+                var error_1 = "".concat(rawData, ", Status Code: ").concat(responseModel.getStatusCode());
+                // if status code is 400, reject the promise as it is a bad request
+                if (responseModel.getStatusCode() === 400) {
+                  responseModel.setError(error_1);
+                  deferred.reject(responseModel);
+                  return;
+                }
+                return _this.retryOrReject(error_1, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+              }
+              responseModel.setData(parsedData);
+              deferred.resolve(responseModel);
+            } catch (err) {
+              return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+            }
+          });
         });
-      });
-      // Handle request timeout.
-      req.on('timeout', function () {
-        responseModel.setError(new Error('timeout'));
-        deferred.reject(responseModel);
-      });
-      req.on('error', function (err) {
-        responseModel.setError(err);
-        deferred.reject(responseModel);
-      });
-    } catch (err) {
-      responseModel.setError(err);
-      deferred.reject(responseModel);
-    }
-    return deferred.promise;
+        // Handle request timeout.
+        req.on('timeout', function () {
+          return _this.retryOrReject(new Error('timeout'), attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+        });
+        req.on('error', function (err) {
+          return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+        });
+      } catch (err) {
+        _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+      }
+      return deferred.promise;
+    };
+    return attemptRequest(0);
   };
   /**
    * Performs a POST request using the provided RequestModel.
@@ -4483,53 +4497,91 @@ var NetworkClient = /** @class */function () {
    * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
    */
   NetworkClient.prototype.POST = function (request) {
-    var deferred = new PromiseUtil_1.Deferred();
-    var networkOptions = request.getOptions();
-    var responseModel = new ResponseModel_1.ResponseModel();
-    try {
-      // Choose HTTP or HTTPS client based on the scheme.
-      var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
-      // Perform the HTTP POST request.
-      var req = httpClient.request(networkOptions, function (res) {
-        var rawData = '';
-        res.setEncoding('utf8');
-        // Collect data chunks.
-        res.on('data', function (chunk) {
-          rawData += chunk;
+    var _this = this;
+    var attemptRequest = function (attempt) {
+      var deferred = new PromiseUtil_1.Deferred();
+      var networkOptions = request.getOptions();
+      var responseModel = new ResponseModel_1.ResponseModel();
+      try {
+        // Choose HTTP or HTTPS client based on the scheme.
+        var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
+        // Perform the HTTP POST request.
+        var req = httpClient.request(networkOptions, function (res) {
+          var rawData = '';
+          res.setEncoding('utf8');
+          // Collect data chunks.
+          res.on('data', function (chunk) {
+            rawData += chunk;
+          });
+          // Handle the end of the response.
+          res.on('end', function () {
+            try {
+              if (res.statusCode === 200) {
+                responseModel.setData(request.getBody());
+                deferred.resolve(responseModel);
+              } else {
+                var error = "Raw Data: ".concat(rawData, ", Status Code: ").concat(res.statusCode);
+                // if status code is 400, reject the promise as it is a bad request
+                if (res.statusCode === 400) {
+                  responseModel.setError(error);
+                  deferred.reject(responseModel);
+                  return;
+                }
+                return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+              }
+            } catch (err) {
+              return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+            }
+          });
         });
-        // Handle the end of the response.
-        res.on('end', function () {
-          if (res.statusCode === 200) {
-            responseModel.setData(request.getBody());
-            deferred.resolve(responseModel);
-          } else if (res.statusCode === 413) {
-            var parsedData = JSON.parse(rawData);
-            responseModel.setError(parsedData.error);
-            responseModel.setData(request.getBody());
-            deferred.reject(responseModel);
-          } else {
-            var parsedData = JSON.parse(rawData);
-            responseModel.setError(parsedData.message);
-            responseModel.setData(request.getBody());
-            deferred.reject(responseModel);
-          }
+        // Handle request timeout.
+        req.on('timeout', function () {
+          var error = "Timeout: ".concat(networkOptions.timeout);
+          return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
         });
-      });
-      // Handle request timeout.
-      req.on('timeout', function () {
-        responseModel.setError(new Error('timeout'));
-        responseModel.setData(request.getBody());
-        deferred.reject(responseModel);
-      });
-      // Write data to the request body and end the request.
-      req.write(JSON.stringify(networkOptions.body));
-      req.end();
-    } catch (err) {
-      responseModel.setError(err);
-      responseModel.setData(request.getBody());
+        req.on('error', function (err) {
+          return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+        });
+        // Write data to the request body and end the request.
+        req.write(JSON.stringify(networkOptions.body));
+        req.end();
+      } catch (err) {
+        _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+      }
+      return deferred.promise;
+    };
+    return attemptRequest(0);
+  };
+  /**
+   * Helper function to retry or reject
+   * @param {any} error - The error to retry or reject
+   * @param {number} attempt - The attempt number
+   * @param {any} deferred - The deferred object
+   * @param {string} operation - The operation to retry or reject
+   * @param {Function} attemptRequest - The function to attempt the request
+   */
+  NetworkClient.prototype.retryOrReject = function (error, attempt, deferred, endpoint, attemptRequest) {
+    var delay = constants_1.Constants.RETRY_DELAY * Math.pow(2, attempt + 1);
+    if (attempt < constants_1.Constants.MAX_RETRIES) {
+      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
+        endPoint: endpoint,
+        err: error,
+        delay: delay / 1000,
+        attempt: attempt + 1,
+        maxRetries: constants_1.Constants.MAX_RETRIES
+      }));
+      setTimeout(function () {
+        attemptRequest(attempt + 1).then(deferred.resolve).catch(deferred.reject);
+      }, delay);
+    } else {
+      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+        endPoint: endpoint,
+        err: error
+      }));
+      var responseModel = new ResponseModel_1.ResponseModel();
+      responseModel.setError(error);
       deferred.reject(responseModel);
     }
-    return deferred.promise;
   };
   return NetworkClient;
 }();
@@ -4550,7 +4602,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NetworkServerLessClient = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4683,7 +4735,7 @@ exports.RequestHandler = RequestHandler;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4753,7 +4805,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NetworkManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5012,7 +5064,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RequestModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5463,7 +5515,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentationManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5593,7 +5645,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperandRegexEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5638,7 +5690,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperandValueEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5681,7 +5733,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperatorValueEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5839,7 +5891,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentEvaluator = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6393,7 +6445,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperandEvaluator = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6733,7 +6785,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentEvaluator = exports.SegmentationManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6778,7 +6830,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.getKeyValue = getKeyValue;
 exports.matchWithRegex = matchWithRegex;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6910,7 +6962,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Storage = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7058,7 +7110,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.CampaignDecisionService = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7711,7 +7763,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StorageService = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7821,7 +7873,7 @@ exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 exports.assignRangeValuesMEG = assignRangeValuesMEG;
 exports.getRuleTypeUsingCampaignIdFromFeature = getRuleTypeUsingCampaignIdFromFeature;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8459,7 +8511,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.evaluateTrafficAndGetVariation = exports.checkWhitelistingAndPreSeg = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8730,7 +8782,7 @@ var _evaluateWhitelisting = function (campaign, context) {
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8843,7 +8895,7 @@ exports.getFeatureFromKey = getFeatureFromKey;
 exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
 exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9141,7 +9193,7 @@ exports.getFromGatewayService = getFromGatewayService;
 exports.getQueryParams = getQueryParams;
 exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9263,7 +9315,7 @@ function addIsGatewayServiceRequiredFlag(settings) {
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9415,7 +9467,7 @@ var createAndSendImpressionForVariationShown = function (settings, campaignId, v
           context.getIpAddress());
           payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context.getUserAgent(), context.getIpAddress());
           // Send the constructed properties and payload as a POST request
-          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
         case 1:
           // Send the constructed properties and payload as a POST request
           _a.sent();
@@ -9442,7 +9494,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.buildMessage = buildMessage;
 exports.sendLogToVWO = sendLogToVWO;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9460,6 +9512,9 @@ var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacke
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
+var LogManager_1 = __webpack_require__(/*! ../packages/logger/core/LogManager */ "./dist/server-unpacked/packages/logger/core/LogManager.js");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
 var nargs = /\{([0-9a-zA-Z_]+)\}/g;
 var storedMessages = new Set();
 /**
@@ -9510,7 +9565,12 @@ function sendLogToVWO(message, messageType) {
     // create the payload
     var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT);
     // Send the constructed payload via POST request
-    (0, NetworkUtil_1.sendMessagingEvent)(properties, payload);
+    (0, NetworkUtil_1.sendMessagingEvent)(properties, payload).catch(function (err) {
+      LogManager_1.LogManager.Instance.error(buildMessage(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+        method: HttpMethodEnum_1.HttpMethodEnum.POST + ' ' + EventEnum_1.EventEnum.VWO_LOG_EVENT,
+        err: err.getError()
+      }), false);
+    });
   }
 }
 
@@ -9641,7 +9701,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.evaluateGroups = void 0;
 exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10251,7 +10311,7 @@ exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 exports.getMessagingEventPayload = getMessagingEventPayload;
 exports.sendMessagingEvent = sendMessagingEvent;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10526,8 +10586,9 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
+ * @param {string} userId - User ID.
  */
-function sendPostApiRequest(properties, payload) {
+function sendPostApiRequest(properties, payload, userId) {
   return __awaiter(this, void 0, void 0, function () {
     var headers, userAgent, ipAddress, request;
     return __generator(this, function (_a) {
@@ -10541,7 +10602,15 @@ function sendPostApiRequest(properties, payload) {
           if (userAgent) headers[HeadersEnum_1.HeadersEnum.USER_AGENT] = userAgent;
           if (ipAddress) headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
           request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
-          return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request).catch(function (err) {
+          return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request).then(function () {
+            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
+              event: properties.en,
+              endPoint: UrlEnum_1.UrlEnum.EVENTS,
+              accountId: SettingsService_1.SettingsService.Instance.accountId,
+              userId: userId,
+              uuid: payload.d.visId
+            }));
+          }).catch(function (err) {
             logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
               method: HttpMethodEnum_1.HttpMethodEnum.POST,
               err: (0, DataTypeUtil_1.isObject)(err) ? JSON.stringify(err) : err
@@ -10923,7 +10992,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.UrlUtil = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10991,7 +11060,7 @@ exports.getRandomUUID = getRandomUUID;
 exports.getUUID = getUUID;
 exports.generateUUID = generateUUID;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11070,7 +11139,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.sendGetCall = sendGetCall;
 exports.sendPostCall = sendPostCall;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11088,6 +11157,7 @@ var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dis
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
 var noop = function () {};
 function sendGetCall(options) {
   sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options);
@@ -11101,64 +11171,79 @@ function sendRequest(method, options) {
     successCallback = _a === void 0 ? noop : _a,
     _b = options.errorCallback,
     errorCallback = _b === void 0 ? noop : _b;
-  var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
-  if (networkOptions.port) {
-    url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
-  }
-  var body = networkOptions.body;
-  var customHeaders = networkOptions.headers || {};
-  var timeout = networkOptions.timeout;
-  var xhr = new XMLHttpRequest();
-  if (timeout) {
-    xhr.timeout = timeout;
-  }
-  xhr.onload = function () {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      var response = xhr.responseText;
-      if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-        var parsedResponse = JSON.parse(response);
-        successCallback(parsedResponse);
+  var retryCount = 0;
+  function executeRequest() {
+    var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+    if (networkOptions.port) {
+      url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
+    }
+    var body = networkOptions.body;
+    var customHeaders = networkOptions.headers || {};
+    var timeout = networkOptions.timeout;
+    var xhr = new XMLHttpRequest();
+    if (timeout) {
+      xhr.timeout = timeout;
+    }
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        var response = xhr.responseText;
+        if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+          var parsedResponse = JSON.parse(response);
+          successCallback(parsedResponse);
+        } else {
+          successCallback(response);
+        }
+      } else if (xhr.status === 400) {
+        errorCallback(xhr.statusText);
       } else {
-        successCallback(response);
+        handleError(xhr.statusText);
       }
-    } else {
-      errorCallback(xhr.statusText);
-    }
-  };
-  // Set up a callback function that is called if the request fails
-  xhr.onerror = function () {
-    // An error occurred during the transaction
-    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-      method: HttpMethodEnum_1.HttpMethodEnum.POST,
-      err: "".concat(xhr.statusText, ", status: ").concat(xhr.status)
-    }));
-    errorCallback(xhr.statusText);
-  };
-  // Set up a callback function that is called if the request times out
-  if (timeout) {
-    xhr.ontimeout = function () {
-      // The request timed out
-      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-        method: HttpMethodEnum_1.HttpMethodEnum.POST,
-        err: "Request timed out"
-      }));
     };
-  }
-  xhr.open(method, url, true);
-  for (var headerName in customHeaders) {
-    if (headerName in customHeaders) {
-      // Skip the Content-Type header
-      // Request header field content-type is not allowed by Access-Control-Allow-Headers
-      if (headerName !== 'Content-Type' && headerName !== 'Content-Length') {
-        xhr.setRequestHeader(headerName, customHeaders[headerName]);
+    xhr.onerror = function () {
+      handleError("".concat(xhr.statusText, ", status: ").concat(xhr.status));
+    };
+    if (timeout) {
+      xhr.ontimeout = function () {
+        handleError('Request timed out');
+      };
+    }
+    function handleError(error) {
+      if (retryCount < constants_1.Constants.MAX_RETRIES) {
+        retryCount++;
+        var delay = constants_1.Constants.RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
+          endPoint: url.split('?')[0],
+          err: error,
+          delay: delay / 1000,
+          attempt: retryCount,
+          maxRetries: constants_1.Constants.MAX_RETRIES
+        }));
+        setTimeout(executeRequest, delay);
+      } else {
+        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+          endPoint: url.split('?')[0],
+          err: error
+        }));
+        errorCallback(error);
       }
     }
+    xhr.open(method, url, true);
+    for (var headerName in customHeaders) {
+      if (headerName in customHeaders) {
+        // Skip the Content-Type header
+        // Request header field content-type is not allowed by Access-Control-Allow-Headers
+        if (headerName !== 'Content-Type' && headerName !== 'Content-Length') {
+          xhr.setRequestHeader(headerName, customHeaders[headerName]);
+        }
+      }
+    }
+    if (method === HttpMethodEnum_1.HttpMethodEnum.POST && typeof body !== 'string') {
+      xhr.send(JSON.stringify(body));
+    } else if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+      xhr.send();
+    }
   }
-  if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
-    xhr.send(JSON.stringify(body));
-  } else if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-    xhr.send();
-  }
+  executeRequest();
 }
 
 /***/ }),
@@ -11260,7 +11345,7 @@ var exports = __webpack_exports__;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.14.0
+ * vwo-fme-javascript-sdk - v1.14.1
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -88,7 +88,7 @@ exports.VWO = void 0;
 exports.init = init;
 exports.onInit = onInit;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -600,7 +600,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VWOClient = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -952,7 +952,7 @@ exports.VWOClient = VWOClient;
 "use strict";
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1295,7 +1295,7 @@ function _updateIntegrationsDecisionObject(campaign, variation, passedRulesInfor
 "use strict";
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1393,7 +1393,7 @@ var createImpressionForAttributes = function (settings, attributes, context) { r
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
                 payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress());
                 // Send the constructed payload via POST request
-                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
+                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
             case 1:
                 // Send the constructed payload via POST request
                 _a.sent();
@@ -1452,7 +1452,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TrackApi = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1527,7 +1527,7 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
                 payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
                 // Send the prepared payload via POST API request
-                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
+                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
             case 1:
                 // Send the prepared payload via POST API request
                 _a.sent();
@@ -1550,7 +1550,7 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BASE_URL = exports.HTTPS_PROTOCOL = exports.HTTP_PROTOCOL = exports.SEED_URL = exports.HTTPS = exports.HTTP = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1585,7 +1585,7 @@ exports.BASE_URL = 'dev.visualwebsiteoptimizer.com';
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Constants = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1610,7 +1610,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.14.0", // will be replaced by webpack for browser build
+        version: "1.14.1", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -1640,6 +1640,8 @@ exports.Constants = {
     RANDOM_ALGO: 1,
     API_VERSION: '1',
     VWO_META_MEG_KEY: '_vwo_meta_meg_',
+    MAX_RETRIES: 3,
+    RETRY_DELAY: 1000, // 1 second
 };
 
 
@@ -1692,7 +1694,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StorageDecorator = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1822,7 +1824,7 @@ exports.StorageDecorator = StorageDecorator;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ApiEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1856,7 +1858,7 @@ var ApiEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CampaignTypeEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1891,7 +1893,7 @@ var CampaignTypeEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.EventEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1926,7 +1928,7 @@ var EventEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.HeadersEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1960,7 +1962,7 @@ var HeadersEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.HttpMethodEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1994,7 +1996,7 @@ var HttpMethodEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PlatformEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2028,7 +2030,7 @@ var PlatformEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StatusEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2062,7 +2064,7 @@ var StatusEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StorageEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2100,7 +2102,7 @@ var StorageEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UrlEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2139,7 +2141,7 @@ var UrlEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ErrorLogMessagesEnum = exports.InfoLogMessagesEnum = exports.DebugLogMessagesEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2408,7 +2410,7 @@ exports.FeatureModel = FeatureModel;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ImpactCapmaignModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2454,7 +2456,7 @@ exports.ImpactCapmaignModel = ImpactCapmaignModel;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MetricModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2504,7 +2506,7 @@ exports.MetricModel = MetricModel;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RuleModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2712,7 +2714,7 @@ exports.VariationModel = VariationModel;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SettingsSchema = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2822,7 +2824,7 @@ exports.SettingsSchema = SettingsSchema;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SettingsModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2979,7 +2981,7 @@ exports.ContextModel = ContextModel;
 "use strict";
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3029,7 +3031,7 @@ exports.ContextVWOModel = ContextVWOModel;
 "use strict";
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3218,7 +3220,7 @@ exports.LogMessageBuilder = LogMessageBuilder;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Logger = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3255,7 +3257,7 @@ exports.Logger = Logger;
 "use strict";
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3404,9 +3406,12 @@ var LogManager = /** @class */ (function (_super) {
      * Logs an error message.
      * @param {string} message - The message to log at error level.
      */
-    LogManager.prototype.error = function (message) {
+    LogManager.prototype.error = function (message, shouldSendToVWO) {
+        if (shouldSendToVWO === void 0) { shouldSendToVWO = true; }
         this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
-        (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
+        if (shouldSendToVWO) {
+            (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
+        }
     };
     return LogManager;
 }(Logger_1.Logger));
@@ -3424,7 +3429,7 @@ exports.LogManager = LogManager;
 "use strict";
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3556,7 +3561,7 @@ exports.LogTransportManager = LogTransportManager;
 "use strict";
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3595,7 +3600,7 @@ var LogLevelEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LogLevelEnum = exports.LogManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3628,7 +3633,7 @@ Object.defineProperty(exports, "LogLevelEnum", ({ enumerable: true, get: functio
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ConsoleTransport = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3718,7 +3723,7 @@ exports.ConsoleTransport = ConsoleTransport;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NetworkBrowserClient = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3883,7 +3888,7 @@ exports.NetworkBrowserClient = NetworkBrowserClient;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NetworkServerLessClient = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4023,7 +4028,7 @@ exports.RequestHandler = RequestHandler;
 "use strict";
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4068,7 +4073,7 @@ Object.defineProperty(exports, "ResponseModel", ({ enumerable: true, get: functi
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NetworkManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4331,7 +4336,7 @@ exports.GlobalRequestModel = GlobalRequestModel;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RequestModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4701,7 +4706,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SegmentationManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4828,7 +4833,7 @@ exports.SegmentationManager = SegmentationManager;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SegmentOperandRegexEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4872,7 +4877,7 @@ var SegmentOperandRegexEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SegmentOperandValueEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4914,7 +4919,7 @@ var SegmentOperandValueEnum;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SegmentOperatorValueEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4996,7 +5001,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SegmentEvaluator = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5452,7 +5457,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SegmentOperandEvaluator = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5804,7 +5809,7 @@ exports.SegmentOperandEvaluator = SegmentOperandEvaluator;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SegmentEvaluator = exports.SegmentationManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5838,7 +5843,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getKeyValue = getKeyValue;
 exports.matchWithRegex = matchWithRegex;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5971,7 +5976,7 @@ exports.Storage = Storage;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Storage = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6038,7 +6043,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CampaignDecisionService = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6557,7 +6562,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StorageService = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6674,7 +6679,7 @@ exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 exports.assignRangeValuesMEG = assignRangeValuesMEG;
 exports.getRuleTypeUsingCampaignIdFromFeature = getRuleTypeUsingCampaignIdFromFeature;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7242,7 +7247,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.evaluateTrafficAndGetVariation = exports.checkWhitelistingAndPreSeg = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7519,7 +7524,7 @@ var _evaluateWhitelisting = function (campaign, context) { return __awaiter(void
 "use strict";
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7637,7 +7642,7 @@ exports.getFeatureFromKey = getFeatureFromKey;
 exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
 exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7845,7 +7850,7 @@ exports.getFromGatewayService = getFromGatewayService;
 exports.getQueryParams = getQueryParams;
 exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7971,7 +7976,7 @@ function addIsGatewayServiceRequiredFlag(settings) {
 "use strict";
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8044,7 +8049,7 @@ var createAndSendImpressionForVariationShown = function (settings, campaignId, v
                 context.getIpAddress());
                 payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context.getUserAgent(), context.getIpAddress());
                 // Send the constructed properties and payload as a POST request
-                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
+                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
             case 1:
                 // Send the constructed properties and payload as a POST request
                 _a.sent();
@@ -8069,7 +8074,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.buildMessage = buildMessage;
 exports.sendLogToVWO = sendLogToVWO;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8087,6 +8092,9 @@ var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
+var LogManager_1 = __webpack_require__(/*! ../packages/logger/core/LogManager */ "./lib/packages/logger/core/LogManager.ts");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./lib/enums/HttpMethodEnum.ts");
 var nargs = /\{([0-9a-zA-Z_]+)\}/g;
 var storedMessages = new Set();
 /**
@@ -8136,7 +8144,12 @@ function sendLogToVWO(message, messageType) {
         // create the payload
         var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT);
         // Send the constructed payload via POST request
-        (0, NetworkUtil_1.sendMessagingEvent)(properties, payload);
+        (0, NetworkUtil_1.sendMessagingEvent)(properties, payload).catch(function (err) {
+            LogManager_1.LogManager.Instance.error(buildMessage(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+                method: HttpMethodEnum_1.HttpMethodEnum.POST + ' ' + EventEnum_1.EventEnum.VWO_LOG_EVENT,
+                err: err.getError(),
+            }), false);
+        });
     }
 }
 
@@ -8191,7 +8204,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.evaluateGroups = void 0;
 exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8726,7 +8739,7 @@ exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 exports.getMessagingEventPayload = getMessagingEventPayload;
 exports.sendMessagingEvent = sendMessagingEvent;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8963,8 +8976,9 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
+ * @param {string} userId - User ID.
  */
-function sendPostApiRequest(properties, payload) {
+function sendPostApiRequest(properties, payload, userId) {
     return __awaiter(this, void 0, void 0, function () {
         var headers, userAgent, ipAddress, request;
         return __generator(this, function (_a) {
@@ -8980,7 +8994,17 @@ function sendPostApiRequest(properties, payload) {
                     if (ipAddress)
                         headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
                     request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
-                    return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request).catch(function (err) {
+                    return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request)
+                            .then(function () {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
+                                event: properties.en,
+                                endPoint: UrlEnum_1.UrlEnum.EVENTS,
+                                accountId: SettingsService_1.SettingsService.Instance.accountId,
+                                userId: userId,
+                                uuid: payload.d.visId,
+                            }));
+                        })
+                            .catch(function (err) {
                             logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
                                 method: HttpMethodEnum_1.HttpMethodEnum.POST,
                                 err: (0, DataTypeUtil_1.isObject)(err) ? JSON.stringify(err) : err,
@@ -9278,7 +9302,7 @@ function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UrlUtil = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9344,7 +9368,7 @@ exports.getRandomUUID = getRandomUUID;
 exports.getUUID = getUUID;
 exports.generateUUID = generateUUID;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9422,7 +9446,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.sendGetCall = sendGetCall;
 exports.sendPostCall = sendPostCall;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9440,6 +9464,7 @@ var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./lib
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./lib/packages/logger/index.ts");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
 var noop = function () { };
 function sendGetCall(options) {
     sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options);
@@ -9449,67 +9474,84 @@ function sendPostCall(options) {
 }
 function sendRequest(method, options) {
     var networkOptions = options.networkOptions, _a = options.successCallback, successCallback = _a === void 0 ? noop : _a, _b = options.errorCallback, errorCallback = _b === void 0 ? noop : _b;
-    var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
-    if (networkOptions.port) {
-        url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
-    }
-    var body = networkOptions.body;
-    var customHeaders = networkOptions.headers || {};
-    var timeout = networkOptions.timeout;
-    var xhr = new XMLHttpRequest();
-    if (timeout) {
-        xhr.timeout = timeout;
-    }
-    xhr.onload = function () {
-        if (xhr.status >= 200 && xhr.status < 300) {
-            var response = xhr.responseText;
-            if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-                var parsedResponse = JSON.parse(response);
-                successCallback(parsedResponse);
+    var retryCount = 0;
+    function executeRequest() {
+        var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+        if (networkOptions.port) {
+            url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
+        }
+        var body = networkOptions.body;
+        var customHeaders = networkOptions.headers || {};
+        var timeout = networkOptions.timeout;
+        var xhr = new XMLHttpRequest();
+        if (timeout) {
+            xhr.timeout = timeout;
+        }
+        xhr.onload = function () {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                var response = xhr.responseText;
+                if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+                    var parsedResponse = JSON.parse(response);
+                    successCallback(parsedResponse);
+                }
+                else {
+                    successCallback(response);
+                }
+            }
+            else if (xhr.status === 400) {
+                errorCallback(xhr.statusText);
             }
             else {
-                successCallback(response);
+                handleError(xhr.statusText);
             }
-        }
-        else {
-            errorCallback(xhr.statusText);
-        }
-    };
-    // Set up a callback function that is called if the request fails
-    xhr.onerror = function () {
-        // An error occurred during the transaction
-        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-            method: HttpMethodEnum_1.HttpMethodEnum.POST,
-            err: "".concat(xhr.statusText, ", status: ").concat(xhr.status),
-        }));
-        errorCallback(xhr.statusText);
-    };
-    // Set up a callback function that is called if the request times out
-    if (timeout) {
-        xhr.ontimeout = function () {
-            // The request timed out
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-                method: HttpMethodEnum_1.HttpMethodEnum.POST,
-                err: "Request timed out",
-            }));
         };
-    }
-    xhr.open(method, url, true);
-    for (var headerName in customHeaders) {
-        if (headerName in customHeaders) {
-            // Skip the Content-Type header
-            // Request header field content-type is not allowed by Access-Control-Allow-Headers
-            if (headerName !== 'Content-Type' && headerName !== 'Content-Length') {
-                xhr.setRequestHeader(headerName, customHeaders[headerName]);
+        xhr.onerror = function () {
+            handleError("".concat(xhr.statusText, ", status: ").concat(xhr.status));
+        };
+        if (timeout) {
+            xhr.ontimeout = function () {
+                handleError('Request timed out');
+            };
+        }
+        function handleError(error) {
+            if (retryCount < constants_1.Constants.MAX_RETRIES) {
+                retryCount++;
+                var delay = constants_1.Constants.RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
+                    endPoint: url.split('?')[0],
+                    err: error,
+                    delay: delay / 1000,
+                    attempt: retryCount,
+                    maxRetries: constants_1.Constants.MAX_RETRIES,
+                }));
+                setTimeout(executeRequest, delay);
+            }
+            else {
+                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+                    endPoint: url.split('?')[0],
+                    err: error,
+                }));
+                errorCallback(error);
             }
         }
+        xhr.open(method, url, true);
+        for (var headerName in customHeaders) {
+            if (headerName in customHeaders) {
+                // Skip the Content-Type header
+                // Request header field content-type is not allowed by Access-Control-Allow-Headers
+                if (headerName !== 'Content-Type' && headerName !== 'Content-Length') {
+                    xhr.setRequestHeader(headerName, customHeaders[headerName]);
+                }
+            }
+        }
+        if (method === HttpMethodEnum_1.HttpMethodEnum.POST && typeof body !== 'string') {
+            xhr.send(JSON.stringify(body));
+        }
+        else if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+            xhr.send();
+        }
     }
-    if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
-        xhr.send(JSON.stringify(body));
-    }
-    else if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-        xhr.send();
-    }
+    executeRequest();
 }
 
 
@@ -11846,7 +11888,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty. Nothing to flush."}');
 
 /***/ }),
 
@@ -11857,7 +11899,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}","CONFIG_PARAMETER_INVALID":"{parameter} paased in {api} API is not correct. It should be of type:{type}}","BATCH_QUEUE_EMPTY":"No batch queue present for account:{accountId} when calling flushEvents API. Check batchEvents config in launch API"}');
 
 /***/ }),
 
@@ -11868,7 +11910,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} not passed in SDK configuration, setting it default to {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details"}');
 
 /***/ }),
 
@@ -11931,7 +11973,7 @@ var exports = __webpack_exports__;
   \**********************/
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

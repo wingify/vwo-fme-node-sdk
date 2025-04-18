@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildMessage = buildMessage;
 exports.sendLogToVWO = sendLogToVWO;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,9 @@ var constants_1 = require("../constants");
 var EventEnum_1 = require("../enums/EventEnum");
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
 var NetworkUtil_1 = require("./NetworkUtil");
+var LogManager_1 = require("../packages/logger/core/LogManager");
+var log_messages_1 = require("../enums/log-messages");
+var HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
 var nargs = /\{([0-9a-zA-Z_]+)\}/g;
 var storedMessages = new Set();
 /**
@@ -70,7 +73,12 @@ function sendLogToVWO(message, messageType) {
         // create the payload
         var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT);
         // Send the constructed payload via POST request
-        (0, NetworkUtil_1.sendMessagingEvent)(properties, payload);
+        (0, NetworkUtil_1.sendMessagingEvent)(properties, payload).catch(function (err) {
+            LogManager_1.LogManager.Instance.error(buildMessage(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+                method: HttpMethodEnum_1.HttpMethodEnum.POST + ' ' + EventEnum_1.EventEnum.VWO_LOG_EVENT,
+                err: err.getError(),
+            }), false);
+        });
     }
 }
 //# sourceMappingURL=LogMessageUtil.js.map

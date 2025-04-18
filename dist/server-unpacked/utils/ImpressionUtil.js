@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ var createAndSendImpressionForVariationShown = function (settings, campaignId, v
                 context.getIpAddress());
                 payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context.getUserAgent(), context.getIpAddress());
                 // Send the constructed properties and payload as a POST request
-                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload)];
+                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
             case 1:
                 // Send the constructed properties and payload as a POST request
                 _a.sent();

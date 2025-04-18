@@ -111,8 +111,9 @@ export declare function getAttributePayloadData(
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
+ * @param {string} userId - User ID.
  */
-export declare function sendPostApiRequest(properties: any, payload: any): Promise<void>;
+export declare function sendPostApiRequest(properties: any, payload: any, userId: string): Promise<void>;
 /**
  * Sends a GET API request to the specified endpoint with the given properties.
  * @param {any} properties - Properties for the request.

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import { Constants } from '../constants';
 import { HeadersEnum } from '../enums/HeadersEnum';
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 import { UrlEnum } from '../enums/UrlEnum';
-import { DebugLogMessagesEnum, ErrorLogMessagesEnum } from '../enums/log-messages';
+import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
@@ -303,8 +303,9 @@ export function getAttributePayloadData(
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
+ * @param {string} userId - User ID.
  */
-export async function sendPostApiRequest(properties: any, payload: any): Promise<void> {
+export async function sendPostApiRequest(properties: any, payload: any, userId: string): Promise<void> {
   NetworkManager.Instance.attachClient();
 
   const headers: Record<string, string> = {};
@@ -327,14 +328,26 @@ export async function sendPostApiRequest(properties: any, payload: any): Promise
     SettingsService.Instance.port,
   );
 
-  await NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
-    LogManager.Instance.error(
-      buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-        method: HttpMethodEnum.POST,
-        err: isObject(err) ? JSON.stringify(err) : err,
-      }),
-    );
-  });
+  await NetworkManager.Instance.post(request)
+    .then(() => {
+      LogManager.Instance.info(
+        buildMessage(InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
+          event: properties.en,
+          endPoint: UrlEnum.EVENTS,
+          accountId: SettingsService.Instance.accountId,
+          userId: userId,
+          uuid: payload.d.visId,
+        }),
+      );
+    })
+    .catch((err: ResponseModel) => {
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+          method: HttpMethodEnum.POST,
+          err: isObject(err) ? JSON.stringify(err) : err,
+        }),
+      );
+    });
 }
 
 /**

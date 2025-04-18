@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,4 +70,7 @@ export const Constants = {
   API_VERSION: '1',
 
   VWO_META_MEG_KEY: '_vwo_meta_meg_',
+
+  MAX_RETRIES: 3,
+  RETRY_DELAY: 1000, // 1 second
 };

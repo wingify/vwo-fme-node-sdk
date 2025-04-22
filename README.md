@@ -61,15 +61,16 @@ const { init } = require('vwo-fme-node-sdk');
 
 To customize the SDK further, additional parameters can be passed to the `init()` API. Here’s a table describing each option:
 
-| **Parameter**                | **Description**                                                                                                                                             | **Required** | **Type** | **Example**                     |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------- | ------------------------------- |
-| `accountId`                  | VWO Account ID for authentication.                                                                                                                          | Yes          | String   | `'123456'`                      |
-| `sdkKey`                     | SDK key corresponding to the specific environment to initialize the VWO SDK Client. You can get this key from VWO Application.                              | Yes          | String   | `'32-alpha-numeric-sdk-key'`    |
-| `pollInterval`               | Time interval for fetching updates from VWO servers (in milliseconds).                                                                                      | No           | Number   | `60000`                         |
-| `gatewayService`             | An object representing configuration for integrating VWO Gateway Service.                                                                                   | No           | Object   | see [Gateway](#gateway) section |
-| `storage`                    | Custom storage connector for persisting user decisions and campaign data.                                                                                   | No           | Object   | See [Storage](#storage) section |
-| `logger`                     | Toggle log levels for more insights or for debugging purposes. You can also customize your own transport in order to have better control over log messages. | No           | Object   | See [Logger](#logger) section   |
-| `shouldWaitForTrackingCalls` | Ensures tracking calls complete before resolving promises, useful for edge computing environments like Cloudflare Workers                                   | No           | Boolean  | `true`                          |
+| **Parameter**                | **Description**                                                                                                                                             | **Required** | **Type** | **Example**                       |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------- | --------------------------------- |
+| `accountId`                  | VWO Account ID for authentication.                                                                                                                          | Yes          | String   | `'123456'`                        |
+| `sdkKey`                     | SDK key corresponding to the specific environment to initialize the VWO SDK Client. You can get this key from VWO Application.                              | Yes          | String   | `'32-alpha-numeric-sdk-key'`      |
+| `pollInterval`               | Time interval for fetching updates from VWO servers (in milliseconds).                                                                                      | No           | Number   | `60000`                           |
+| `gatewayService`             | An object representing configuration for integrating VWO Gateway Service.                                                                                   | No           | Object   | see [Gateway](#gateway) section   |
+| `storage`                    | Custom storage connector for persisting user decisions and campaign data.                                                                                   | No           | Object   | See [Storage](#storage) section   |
+| `logger`                     | Toggle log levels for more insights or for debugging purposes. You can also customize your own transport in order to have better control over log messages. | No           | Object   | See [Logger](#logger) section     |
+| `shouldWaitForTrackingCalls` | Ensures tracking calls complete before resolving promises, useful for edge computing environments like Cloudflare Workers                                   | No           | Boolean  | `true`                            |
+| `integrations`               | A callback function that receives data which can be pushed to any external tool that you need to integrate with.                                            | No           | Object   | See [Integrations](#integrations) |
 
 Refer to the [official VWO documentation](https://developers.vwo.com/v2/docs/fme-node-install) for additional parameter details.
 
@@ -306,13 +307,52 @@ const vwoClient3 = await init({
   accountId: '123456',
   sdkKey: '32-alpha-numeric-sdk-key',
   logger: {
-    level: 'DEBUG',
     transport: {
-      debug: (msg) => console.log(`DEBUG: ${msg}`),
-      info: (msg) => console.log(`INFO: ${msg}`),
-      warn: (msg) => console.log(`WARN: ${msg}`),
-      error: (msg) => console.log(`ERROR: ${msg}`),
-      trace: (msg) => console.log(`TRACE: ${msg}`),
+      level: 'INFO',
+      log: (level, message) => {
+        // your custom implementation here
+      },
+    },
+  },
+});
+```
+
+For multiple transports you can use the `transports` parameter. For example:
+
+```javascript
+const vwoClient3 = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  logger: {
+    transports: [
+      {
+        level: 'INFO',
+        log: (level, message) => {
+          // your custom implementation here
+        },
+      },
+      {
+        level: 'ERROR',
+        log: (level, message) => {
+          // your custom implementation here
+        },
+      },
+    ],
+  },
+});
+```
+
+### Integrations
+
+VWO FME SDKs provide seamless integration with third-party tools like analytics platforms, monitoring services, customer data platforms (CDPs), and messaging systems. This is achieved through a simple yet powerful callback mechanism that receives VWO-specific properties and can forward them to any third-party tool of your choice.
+
+```javascript
+const vwoClient = await vwo.init({
+  sdkKey: '32-alpha-numeric-sdk-key', //replace with the SDK key for your environment
+  accountId: '123456', //replace with your VWO account ID
+  integrations: {
+    callback(properties) {
+      // your custom implementation here
     },
   },
 });

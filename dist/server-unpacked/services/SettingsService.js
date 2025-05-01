@@ -114,12 +114,13 @@ var SettingsService = /** @class */ (function () {
         this.fetchSettings()
             .then(function (res) { return __awaiter(_this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                // LogManager.Instance.info('Settings fetched successfully');
-                // const method = update ? 'update' : 'set';
-                // storageConnector[method](Constants.SETTINGS, res).then(() => {
-                //   LogManager.Instance.info('Settings persisted in cache: memory');
-                //   deferredObject.resolve(res);
-                // });
+                // if the features and campaigns are empty object, then update them as empty array
+                if (Object.keys(res.features).length === 0) {
+                    res.features = [];
+                }
+                if (Object.keys(res.campaigns).length === 0) {
+                    res.campaigns = [];
+                }
                 deferredObject.resolve(res);
                 return [2 /*return*/];
             });

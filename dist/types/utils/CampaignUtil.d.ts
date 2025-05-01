@@ -50,11 +50,13 @@ export declare function setCampaignAllocation(campaigns: any[]): void;
  * Determines if a campaign is part of a group.
  * @param {SettingsModel} settings - The settings model containing group associations.
  * @param {string} campaignId - The ID of the campaign to check.
+ * @param {any} [variationId=null] - The optional variation ID.
  * @returns {Object} An object containing the group ID and name if the campaign is part of a group, otherwise an empty object.
  */
 export declare function getGroupDetailsIfCampaignPartOfIt(
   settings: SettingsModel,
   campaignId: any,
+  variationId?: any,
 ):
   | {
       groupId: number;
@@ -81,10 +83,10 @@ export declare function getCampaignsByGroupId(settings: SettingsModel, groupId: 
 /**
  * Retrieves feature keys from a list of campaign IDs.
  * @param {SettingsModel} settings - The settings model containing all features.
- * @param {any} campaignIds - An array of campaign IDs.
+ * @param {any} campaignIdWithVariation - An array of campaign IDs and variation IDs in format campaignId_variationId.
  * @returns {Array} An array of feature keys associated with the provided campaign IDs.
  */
-export declare function getFeatureKeysFromCampaignIds(settings: SettingsModel, campaignIds: any): any[];
+export declare function getFeatureKeysFromCampaignIds(settings: SettingsModel, campaignIdWithVariation: any): any[];
 /**
  * Retrieves campaign IDs from a specific feature key.
  * @param {SettingsModel} settings - The settings model containing all features.

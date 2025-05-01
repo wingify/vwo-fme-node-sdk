@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ export const Constants = {
 
   HOST_NAME: 'dev.visualwebsiteoptimizer.com',
   SETTINTS_ENDPOINT: '/server-side/v2-settings',
+  WEBHOOK_SETTINTS_ENDPOINT: '/server-side/v2-pull',
   LOCATION_ENDPOINT: '/getLocation',
 
   VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
@@ -67,4 +68,9 @@ export const Constants = {
   RANDOM_ALGO: 1,
 
   API_VERSION: '1',
+
+  VWO_META_MEG_KEY: '_vwo_meta_meg_',
+
+  MAX_RETRIES: 3,
+  RETRY_DELAY: 1000, // 1 second
 };

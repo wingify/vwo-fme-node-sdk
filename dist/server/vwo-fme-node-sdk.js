@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.5.0
+ * vwo-fme-node-sdk - v1.14.1
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -20,11 +20,21 @@
  *  1. murmurhash - ^2.0.1
  *  2. superstruct - ^0.14.x
  *  3. uuid - ^9.0.1
- *  4. vwo-fme-sdk-log-messages - ^0.1.2
+ *  4. vwo-fme-sdk-log-messages - ^1.0.1
  */
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
+
+/***/ "./dist/package.json":
+/*!***************************!*\
+  !*** ./dist/package.json ***!
+  \***************************/
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.14.1","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.0.1"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+
+/***/ }),
 
 /***/ "./dist/server-unpacked/VWO.js":
 /*!*************************************!*\
@@ -74,12 +84,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -152,9 +158,11 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.onInit = exports.init = exports.VWO = void 0;
+exports.VWO = void 0;
+exports.init = init;
+exports.onInit = onInit;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -202,6 +210,9 @@ var VWO = /** @class */function () {
     // .initBatching()        // Initializes batching for bulk data processing.
     .initPolling(); // Starts polling mechanism for regular updates.
     // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
+    if (options === null || options === void 0 ? void 0 : options.settings) {
+      return Promise.resolve(this.vwoBuilder.build(options.settings));
+    }
     return this.vwoBuilder.getSettings().then(function (settings) {
       return _this.vwoBuilder.build(settings); // Builds the VWO instance with the fetched settings.
     });
@@ -283,7 +294,6 @@ function init(options) {
     });
   });
 }
-exports.init = init;
 function onInit() {
   return __awaiter(this, void 0, void 0, function () {
     var apiName, date_1, msg, msg;
@@ -325,7 +335,6 @@ function onInit() {
     });
   });
 }
-exports.onInit = onInit;
 
 /***/ }),
 
@@ -605,16 +614,127 @@ exports.VWOBuilder = VWOBuilder;
 /*!*******************************************!*\
   !*** ./dist/server-unpacked/VWOClient.js ***!
   \*******************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
 
+var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function (resolve) {
+      resolve(value);
+    });
+  }
+  return new (P || (P = Promise))(function (resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator = this && this.__generator || function (thisArg, body) {
+  var _ = {
+      label: 0,
+      sent: function () {
+        if (t[0] & 1) throw t[1];
+        return t[1];
+      },
+      trys: [],
+      ops: []
+    },
+    f,
+    y,
+    t,
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    return this;
+  }), g;
+  function verb(n) {
+    return function (v) {
+      return step([n, v]);
+    };
+  }
+  function step(op) {
+    if (f) throw new TypeError("Generator is already executing.");
+    while (g && (g = 0, op[0] && (_ = 0)), _) try {
+      if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+      if (y = 0, t) op = [op[0] & 2, t.value];
+      switch (op[0]) {
+        case 0:
+        case 1:
+          t = op;
+          break;
+        case 4:
+          _.label++;
+          return {
+            value: op[1],
+            done: false
+          };
+        case 5:
+          _.label++;
+          y = op[1];
+          op = [0];
+          continue;
+        case 7:
+          op = _.ops.pop();
+          _.trys.pop();
+          continue;
+        default:
+          if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+            _ = 0;
+            continue;
+          }
+          if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+            _.label = op[1];
+            break;
+          }
+          if (op[0] === 6 && _.label < t[1]) {
+            _.label = t[1];
+            t = op;
+            break;
+          }
+          if (t && _.label < t[2]) {
+            _.label = t[2];
+            _.ops.push(op);
+            break;
+          }
+          if (t[2]) _.ops.pop();
+          _.trys.pop();
+          continue;
+      }
+      op = body.call(thisArg, _);
+    } catch (e) {
+      op = [6, e];
+      y = 0;
+    } finally {
+      f = t = 0;
+    }
+    if (op[0] & 5) throw op[1];
+    return {
+      value: op[0] ? op[1] : void 0,
+      done: true
+    };
+  }
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.VWOClient = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -642,6 +762,8 @@ var DataTypeUtil_1 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./dist/ser
 var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var SettingsUtil_1 = __webpack_require__(/*! ./utils/SettingsUtil */ "./dist/server-unpacked/utils/SettingsUtil.js");
+var NetworkUtil_1 = __webpack_require__(/*! ./utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
+var SettingsService_1 = __webpack_require__(/*! ./services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 var VWOClient = /** @class */function () {
   function VWOClient(settings, options) {
     this.options = options;
@@ -649,7 +771,9 @@ var VWOClient = /** @class */function () {
     UrlUtil_1.UrlUtil.init({
       collectionPrefix: this.settings.getCollectionPrefix()
     });
+    (0, NetworkUtil_1.setShouldWaitForTrackingCalls)(this.options.shouldWaitForTrackingCalls || false);
     logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.CLIENT_INITIALIZED);
+    this.vwoClientInstance = this;
     return this;
   }
   /**
@@ -785,55 +909,180 @@ var VWOClient = /** @class */function () {
     return deferredObject.promise;
   };
   /**
-   * Sets an attribute for a user in the context provided.
+   * Sets an attribute or multiple attributes for a user in the provided context.
    * This method validates the types of the inputs before proceeding with the API call.
+   * There are two cases handled:
+   * 1. When attributes are passed as a map (key-value pairs).
+   * 2. When a single attribute (key-value) is passed.
    *
-   * @param {string} attributeKey - The key of the attribute to set.
-   * @param {string} attributeValue - The value of the attribute to set.
-   * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
+   * @param {string | Record<string, boolean | string | number>} attributeOrAttributes - Either a single attribute key (string) and value (boolean | string | number),
+   *                                                                                        or a map of attributes with keys and values (boolean | string | number).
+   * @param {boolean | string | number | Record<string, any>} [attributeValueOrContext] - The value for the attribute in case of a single attribute, or the context when multiple attributes are passed.
+   * @param {Record<string, any>} [context] - The context which must include a valid user ID. This is required if multiple attributes are passed.
    */
-  VWOClient.prototype.setAttribute = function (attributeKey, attributeValue, context) {
-    var apiName = 'setAttribute';
-    try {
-      // Log the API call
-      logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
-        apiName: apiName
-      }));
-      // Validate attributeKey is a string
-      if (!(0, DataTypeUtil_1.isString)(attributeKey)) {
-        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
-          apiName: apiName,
-          key: 'attributeKey',
-          type: (0, DataTypeUtil_1.getType)(attributeKey),
-          correctType: 'string'
-        }));
-        throw new TypeError('TypeError: attributeKey should be a string');
+  VWOClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
+    return __awaiter(this, void 0, void 0, function () {
+      var apiName, attributes, contextModel, attributeKey, attributeValue, contextModel, attributeMap, err_1;
+      var _a;
+      return __generator(this, function (_b) {
+        switch (_b.label) {
+          case 0:
+            apiName = 'setAttribute';
+            _b.label = 1;
+          case 1:
+            _b.trys.push([1, 6,, 7]);
+            if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 3];
+            // Log the API call
+            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+              apiName: apiName
+            }));
+            if (Object.entries(attributeOrAttributes).length < 1) {
+              logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)('Attributes map must contain atleast 1 key-value pair', {
+                apiName: apiName,
+                key: 'attributes',
+                type: (0, DataTypeUtil_1.getType)(attributeOrAttributes),
+                correctType: 'object'
+              }));
+              throw new TypeError('TypeError: Attributes should be an object containing atleast 1 key-value pair');
+            }
+            attributes = attributeOrAttributes;
+            // Validate attributes is an object
+            if (!(0, DataTypeUtil_1.isObject)(attributes)) {
+              throw new TypeError('TypeError: attributes should be an object containing key-value pairs');
+            }
+            // Validate that each attribute value is of a supported type
+            Object.entries(attributes).forEach(function (_a) {
+              var key = _a[0],
+                value = _a[1];
+              if (typeof value !== 'boolean' && typeof value !== 'string' && typeof value !== 'number') {
+                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                  apiName: apiName,
+                  key: key,
+                  type: (0, DataTypeUtil_1.getType)(value),
+                  correctType: ' boolean, string or number'
+                }));
+                throw new TypeError("Invalid attribute type for key \"".concat(key, "\". Expected boolean, string or number, but got ").concat((0, DataTypeUtil_1.getType)(value)));
+              }
+              // Reject arrays and objects explicitly
+              if (Array.isArray(value) || typeof value === 'object' && value !== null) {
+                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                  apiName: apiName,
+                  key: key,
+                  type: (0, DataTypeUtil_1.getType)(value),
+                  correctType: ' boolean | string | number | null'
+                }));
+                throw new TypeError("Invalid attribute value for key \"".concat(key, "\". Arrays and objects are not supported."));
+              }
+            });
+            // If we have only two arguments (attributeMap and context)
+            if (!context && attributeValueOrContext) {
+              context = attributeValueOrContext; // Assign context explicitly
+            }
+            // Validate user ID is present in context
+            if (!context || !context.id) {
+              logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+            }
+            contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+            // Proceed with setting the attributes if validation is successful
+            return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributes, contextModel)];
+          case 2:
+            // Proceed with setting the attributes if validation is successful
+            _b.sent();
+            return [3 /*break*/, 5];
+          case 3:
+            attributeKey = attributeOrAttributes;
+            attributeValue = attributeValueOrContext;
+            // Validate attributeKey is a string
+            if (!(0, DataTypeUtil_1.isString)(attributeKey)) {
+              throw new TypeError('attributeKey should be a string');
+            }
+            // Validate attributeValue is of valid type
+            if (!(0, DataTypeUtil_1.isBoolean)(attributeValue) && !(0, DataTypeUtil_1.isString)(attributeValue) && !(0, DataTypeUtil_1.isNumber)(attributeValue)) {
+              throw new TypeError('attributeValue should be a boolean, string, or number');
+            }
+            // Validate user ID is present in context
+            if (!context || !context.id) {
+              throw new TypeError('Invalid context');
+            }
+            contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+            attributeMap = (_a = {}, _a[attributeKey] = attributeValue, _a);
+            // Proceed with setting the attribute map if validation is successful
+            return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributeMap, contextModel)];
+          case 4:
+            // Proceed with setting the attribute map if validation is successful
+            _b.sent();
+            _b.label = 5;
+          case 5:
+            return [3 /*break*/, 7];
+          case 6:
+            err_1 = _b.sent();
+            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+              apiName: apiName,
+              err: err_1
+            }));
+            return [3 /*break*/, 7];
+          case 7:
+            return [2 /*return*/];
+        }
+      });
+    });
+  };
+  /**
+   * Updates the settings by fetching the latest settings from the VWO server.
+   * @param settings - The settings to update.
+   * @param isViaWebhook - Whether to fetch the settings from the webhook endpoint.
+   * @returns Promise<void>
+   */
+  VWOClient.prototype.updateSettings = function (settings_1) {
+    return __awaiter(this, arguments, void 0, function (settings, isViaWebhook) {
+      var apiName, settingsToUpdate, _a, err_2;
+      if (isViaWebhook === void 0) {
+        isViaWebhook = true;
       }
-      // Validate attributeValue is a string
-      if (!(0, DataTypeUtil_1.isString)(attributeValue) && !(0, DataTypeUtil_1.isNumber)(attributeValue) && !(0, DataTypeUtil_1.isBoolean)(attributeValue)) {
-        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
-          apiName: apiName,
-          key: 'attributeValue',
-          type: (0, DataTypeUtil_1.getType)(attributeValue),
-          correctType: 'boolean | string | number'
-        }));
-        throw new TypeError('TypeError: attributeValue should be a string');
-      }
-      // Validate user ID is present in context
-      if (!context || !context.id) {
-        logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
-        throw new TypeError('TypeError: Invalid context');
-      }
-      var contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
-      // Proceed with setting the attribute if validation is successful
-      new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, contextModel);
-    } catch (err) {
-      // Log any errors encountered during the operation
-      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
-        apiName: apiName,
-        err: err
-      }));
-    }
+      return __generator(this, function (_b) {
+        switch (_b.label) {
+          case 0:
+            apiName = 'updateSettings';
+            _b.label = 1;
+          case 1:
+            _b.trys.push([1, 5,, 6]);
+            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+              apiName: apiName
+            }));
+            if (!(!settings || Object.keys(settings).length === 0)) return [3 /*break*/, 3];
+            return [4 /*yield*/, SettingsService_1.SettingsService.Instance.fetchSettings(isViaWebhook)];
+          case 2:
+            _a = _b.sent();
+            return [3 /*break*/, 4];
+          case 3:
+            _a = settings;
+            _b.label = 4;
+          case 4:
+            settingsToUpdate = _a;
+            // validate settings schema
+            if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(settingsToUpdate)) {
+              throw new Error('TypeError: Invalid Settings schema');
+            }
+            // set the settings on the client instance
+            (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settingsToUpdate, this.vwoClientInstance);
+            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, {
+              apiName: apiName,
+              isViaWebhook: isViaWebhook
+            }));
+            return [3 /*break*/, 6];
+          case 5:
+            err_2 = _b.sent();
+            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_FAILED, {
+              apiName: apiName,
+              isViaWebhook: isViaWebhook,
+              err: JSON.stringify(err_2)
+            }));
+            return [3 /*break*/, 6];
+          case 6:
+            return [2 /*return*/];
+        }
+      });
+    });
   };
   return VWOClient;
 }();
@@ -850,7 +1099,7 @@ exports.VWOClient = VWOClient;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -914,12 +1163,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -1010,14 +1255,15 @@ var ImpressionUtil_1 = __webpack_require__(/*! ../utils/ImpressionUtil */ "./dis
 var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var RuleEvaluationUtil_1 = __webpack_require__(/*! ../utils/RuleEvaluationUtil */ "./dist/server-unpacked/utils/RuleEvaluationUtil.js");
+var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var FlagApi = /** @class */function () {
   function FlagApi() {}
   FlagApi.prototype.get = function (featureKey, settings, context, hooksService) {
     return __awaiter(this, void 0, void 0, function () {
       var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, storageService, storedData, variation_1, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation, variablesForEvaluatedFlag;
-      var _d, _e, _f, _g, _h;
-      return __generator(this, function (_j) {
-        switch (_j.label) {
+      var _d, _e, _f, _g, _h, _j;
+      return __generator(this, function (_k) {
+        switch (_k.label) {
           case 0:
             isEnabled = false;
             rolloutVariationToReturn = null;
@@ -1037,7 +1283,7 @@ var FlagApi = /** @class */function () {
             storageService = new StorageService_1.StorageService();
             return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService)];
           case 1:
-            storedData = _j.sent();
+            storedData = _k.sent();
             if (storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId) {
               if (storedData.experimentKey) {
                 variation_1 = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.experimentKey, storedData.experimentVariationId);
@@ -1100,18 +1346,18 @@ var FlagApi = /** @class */function () {
             return [4 /*yield*/, segmentation_evaluator_1.SegmentationManager.Instance.setContextualData(settings, feature, context)];
           case 2:
             // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
-            _j.sent();
+            _k.sent();
             rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
-            if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 7];
+            if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 10];
             rolloutRulesToEvaluate = [];
             _i = 0, rollOutRules_1 = rollOutRules;
-            _j.label = 3;
+            _k.label = 3;
           case 3:
             if (!(_i < rollOutRules_1.length)) return [3 /*break*/, 6];
             rule = rollOutRules_1[_i];
             return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
           case 4:
-            _a = _j.sent(), preSegmentationResult = _a.preSegmentationResult, updatedDecision = _a.updatedDecision;
+            _a = _k.sent(), preSegmentationResult = _a.preSegmentationResult, updatedDecision = _a.updatedDecision;
             Object.assign(decision, updatedDecision);
             if (preSegmentationResult) {
               // if pre segment passed, then break the loop and check the traffic allocation
@@ -1129,37 +1375,43 @@ var FlagApi = /** @class */function () {
             _i++;
             return [3 /*break*/, 3];
           case 6:
-            if (rolloutRulesToEvaluate.length > 0) {
-              passedRolloutCampaign = new CampaignModel_1.CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
-              variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(settings, passedRolloutCampaign, context.getId());
-              if ((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0) {
-                isEnabled = true;
-                shouldCheckForExperimentsRules = true;
-                rolloutVariationToReturn = variation;
-                _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
-                (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context);
-              }
-            }
-            return [3 /*break*/, 8];
+            if (!(rolloutRulesToEvaluate.length > 0)) return [3 /*break*/, 9];
+            passedRolloutCampaign = new CampaignModel_1.CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
+            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(settings, passedRolloutCampaign, context.getId());
+            if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 9];
+            isEnabled = true;
+            shouldCheckForExperimentsRules = true;
+            rolloutVariationToReturn = variation;
+            _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
+            if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 8];
+            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context)];
           case 7:
+            _k.sent();
+            return [3 /*break*/, 9];
+          case 8:
+            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context);
+            _k.label = 9;
+          case 9:
+            return [3 /*break*/, 11];
+          case 10:
             if (rollOutRules.length === 0) {
               logger_1.LogManager.Instance.debug(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
               shouldCheckForExperimentsRules = true;
             }
-            _j.label = 8;
-          case 8:
-            if (!shouldCheckForExperimentsRules) return [3 /*break*/, 13];
+            _k.label = 11;
+          case 11:
+            if (!shouldCheckForExperimentsRules) return [3 /*break*/, 18];
             experimentRulesToEvaluate = [];
             experimentRules = (0, FunctionUtil_1.getAllExperimentRules)(feature);
             megGroupWinnerCampaigns = new Map();
             _b = 0, experimentRules_1 = experimentRules;
-            _j.label = 9;
-          case 9:
-            if (!(_b < experimentRules_1.length)) return [3 /*break*/, 12];
+            _k.label = 12;
+          case 12:
+            if (!(_b < experimentRules_1.length)) return [3 /*break*/, 15];
             rule = experimentRules_1[_b];
             return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
-          case 10:
-            _c = _j.sent(), preSegmentationResult = _c.preSegmentationResult, whitelistedObject = _c.whitelistedObject, updatedDecision = _c.updatedDecision;
+          case 13:
+            _c = _k.sent(), preSegmentationResult = _c.preSegmentationResult, whitelistedObject = _c.whitelistedObject, updatedDecision = _c.updatedDecision;
             Object.assign(decision, updatedDecision);
             if (preSegmentationResult) {
               if (whitelistedObject === null) {
@@ -1174,25 +1426,29 @@ var FlagApi = /** @class */function () {
                   experimentVariationId: whitelistedObject.variationId
                 });
               }
-              return [3 /*break*/, 12];
+              return [3 /*break*/, 15];
             }
-            return [3 /*break*/, 11];
-          case 11:
+            return [3 /*break*/, 14];
+          case 14:
             _b++;
-            return [3 /*break*/, 9];
-          case 12:
-            if (experimentRulesToEvaluate.length > 0) {
-              campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
-              variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(settings, campaign, context.getId());
-              if ((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0) {
-                isEnabled = true;
-                experimentVariationToReturn = variation;
-                _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
-                (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context);
-              }
-            }
-            _j.label = 13;
-          case 13:
+            return [3 /*break*/, 12];
+          case 15:
+            if (!(experimentRulesToEvaluate.length > 0)) return [3 /*break*/, 18];
+            campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
+            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(settings, campaign, context.getId());
+            if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 18];
+            isEnabled = true;
+            experimentVariationToReturn = variation;
+            _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
+            if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 17];
+            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context)];
+          case 16:
+            _k.sent();
+            return [3 /*break*/, 18];
+          case 17:
+            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context);
+            _k.label = 18;
+          case 18:
             // If flag is enabled, store it in data
             if (isEnabled) {
               // set storage data
@@ -1204,18 +1460,26 @@ var FlagApi = /** @class */function () {
             // call integration callback, if defined
             hooksService.set(decision);
             hooksService.execute(hooksService.get());
-            // Send data for Impact Campaign, if defined
-            if ((_e = feature.getImpactCampaign()) === null || _e === void 0 ? void 0 : _e.getCampaignId()) {
-              logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
-                userId: context.getId(),
-                featureKey: featureKey,
-                status: isEnabled ? 'enabled' : 'disabled'
-              }));
-              (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_f = feature.getImpactCampaign()) === null || _f === void 0 ? void 0 : _f.getCampaignId(), isEnabled ? 2 : 1,
-              // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-              context);
-            }
-            variablesForEvaluatedFlag = (_h = (_g = experimentVariationToReturn === null || experimentVariationToReturn === void 0 ? void 0 : experimentVariationToReturn.variables) !== null && _g !== void 0 ? _g : rolloutVariationToReturn === null || rolloutVariationToReturn === void 0 ? void 0 : rolloutVariationToReturn.variables) !== null && _h !== void 0 ? _h : [];
+            if (!((_e = feature.getImpactCampaign()) === null || _e === void 0 ? void 0 : _e.getCampaignId())) return [3 /*break*/, 21];
+            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
+              userId: context.getId(),
+              featureKey: featureKey,
+              status: isEnabled ? 'enabled' : 'disabled'
+            }));
+            if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 20];
+            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_f = feature.getImpactCampaign()) === null || _f === void 0 ? void 0 : _f.getCampaignId(), isEnabled ? 2 : 1,
+            // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
+            context)];
+          case 19:
+            _k.sent();
+            return [3 /*break*/, 21];
+          case 20:
+            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_g = feature.getImpactCampaign()) === null || _g === void 0 ? void 0 : _g.getCampaignId(), isEnabled ? 2 : 1,
+            // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
+            context);
+            _k.label = 21;
+          case 21:
+            variablesForEvaluatedFlag = (_j = (_h = experimentVariationToReturn === null || experimentVariationToReturn === void 0 ? void 0 : experimentVariationToReturn.variables) !== null && _h !== void 0 ? _h : rolloutVariationToReturn === null || rolloutVariationToReturn === void 0 ? void 0 : rolloutVariationToReturn.variables) !== null && _j !== void 0 ? _j : [];
             deferredObject.resolve({
               isEnabled: function () {
                 return isEnabled;
@@ -1267,6 +1531,21 @@ function _updateIntegrationsDecisionObject(campaign, variation, passedRulesInfor
 
 
 
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function (resolve) {
@@ -1307,12 +1586,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -1391,34 +1666,54 @@ var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./dist/serv
 var SetAttributeApi = /** @class */function () {
   function SetAttributeApi() {}
   /**
-   * Implementation of setAttribute to create an impression for a user attribute.
+   * Implementation of setAttributes to create an impression for multiple user attributes.
    * @param settings Configuration settings.
-   * @param attributeKey The key of the attribute to set.
-   * @param attributeValue The value of the attribute.
+   * @param attributes Key-value map of attributes.
    * @param context Context containing user information.
    */
-  SetAttributeApi.prototype.setAttribute = function (settings, attributeKey, attributeValue, context) {
-    createImpressionForAttribute(settings, attributeKey, attributeValue, context);
+  SetAttributeApi.prototype.setAttribute = function (settings, attributes, context) {
+    return __awaiter(this, void 0, void 0, function () {
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 2];
+            return [4 /*yield*/, createImpressionForAttributes(settings, attributes, context)];
+          case 1:
+            _a.sent();
+            return [3 /*break*/, 3];
+          case 2:
+            createImpressionForAttributes(settings, attributes, context);
+            _a.label = 3;
+          case 3:
+            return [2 /*return*/];
+        }
+      });
+    });
   };
   return SetAttributeApi;
 }();
 exports.SetAttributeApi = SetAttributeApi;
 /**
- * Creates an impression for a user attribute and sends it to the server.
+ * Creates an impression for multiple user attributes and sends it to the server.
  * @param settings Configuration settings.
- * @param attributeKey The key of the attribute.
- * @param attributeValue The value of the attribute.
- * @param user User details.
+ * @param attributes Key-value map of attributes.
+ * @param context Context containing user information.
  */
-var createImpressionForAttribute = function (settings, attributeKey, attributeValue, context) {
+var createImpressionForAttributes = function (settings, attributes, context) {
   return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
-      properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-      payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributeKey, attributeValue, context.getUserAgent(), context.getIpAddress());
-      // Send the constructed payload via POST request
-      (0, NetworkUtil_1.sendPostApiRequest)(properties, payload);
-      return [2 /*return*/];
+      switch (_a.label) {
+        case 0:
+          properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+          payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress());
+          // Send the constructed payload via POST request
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+        case 1:
+          // Send the constructed payload via POST request
+          _a.sent();
+          return [2 /*return*/];
+      }
     });
   });
 };
@@ -1473,12 +1768,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -1553,7 +1844,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.TrackApi = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1583,22 +1874,32 @@ var TrackApi = /** @class */function () {
     return __awaiter(this, void 0, void 0, function () {
       var _a, _b;
       return __generator(this, function (_c) {
-        if ((0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, settings)) {
-          // Create an impression for the track event
-          createImpressionForTrack(settings, eventName, context, eventProperties);
-          // Set and execute integration callback for the track event
-          hooksService.set({
-            eventName: eventName,
-            api: ApiEnum_1.ApiEnum.TRACK
-          });
-          hooksService.execute(hooksService.get());
-          return [2 /*return*/, (_a = {}, _a[eventName] = true, _a)];
+        switch (_c.label) {
+          case 0:
+            if (!(0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, settings)) return [3 /*break*/, 4];
+            if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 2];
+            return [4 /*yield*/, createImpressionForTrack(settings, eventName, context, eventProperties)];
+          case 1:
+            _c.sent();
+            return [3 /*break*/, 3];
+          case 2:
+            createImpressionForTrack(settings, eventName, context, eventProperties);
+            _c.label = 3;
+          case 3:
+            // Set and execute integration callback for the track event
+            hooksService.set({
+              eventName: eventName,
+              api: ApiEnum_1.ApiEnum.TRACK
+            });
+            hooksService.execute(hooksService.get());
+            return [2 /*return*/, (_a = {}, _a[eventName] = true, _a)];
+          case 4:
+            // Log an error if the event does not exist
+            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EVENT_NOT_FOUND, {
+              eventName: eventName
+            }));
+            return [2 /*return*/, (_b = {}, _b[eventName] = false, _b)];
         }
-        // Log an error if the event does not exist
-        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EVENT_NOT_FOUND, {
-          eventName: eventName
-        }));
-        return [2 /*return*/, (_b = {}, _b[eventName] = false, _b)];
       });
     });
   };
@@ -1616,11 +1917,17 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
   return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
-      properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-      payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
-      // Send the prepared payload via POST API request
-      (0, NetworkUtil_1.sendPostApiRequest)(properties, payload);
-      return [2 /*return*/];
+      switch (_a.label) {
+        case 0:
+          properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+          payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
+          // Send the prepared payload via POST API request
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+        case 1:
+          // Send the prepared payload via POST API request
+          _a.sent();
+          return [2 /*return*/];
+      }
     });
   });
 };
@@ -1640,7 +1947,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BASE_URL = exports.HTTPS_PROTOCOL = exports.HTTP_PROTOCOL = exports.SEED_URL = exports.HTTPS = exports.HTTP = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1676,7 +1983,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Constants = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1729,10 +2036,14 @@ exports.Constants = {
   SETTINGS_TIMEOUT: 50000,
   HOST_NAME: 'dev.visualwebsiteoptimizer.com',
   SETTINTS_ENDPOINT: '/server-side/v2-settings',
+  WEBHOOK_SETTINTS_ENDPOINT: '/server-side/v2-pull',
   LOCATION_ENDPOINT: '/getLocation',
   VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
   RANDOM_ALGO: 1,
-  API_VERSION: '1'
+  API_VERSION: '1',
+  VWO_META_MEG_KEY: '_vwo_meta_meg_',
+  MAX_RETRIES: 3,
+  RETRY_DELAY: 1000 // 1 second
 };
 
 /***/ }),
@@ -1785,12 +2096,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -1865,7 +2172,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StorageDecorator = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1973,7 +2280,7 @@ var StorageDecorator = /** @class */function () {
     }
     storageService.setDataInStorage({
       featureKey: featureKey,
-      user: context.id,
+      userId: context.id,
       rolloutId: rolloutId,
       rolloutKey: rolloutKey,
       rolloutVariationId: rolloutVariationId,
@@ -2003,7 +2310,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ApiEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2038,7 +2345,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.CampaignTypeEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2074,7 +2381,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.EventEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2092,6 +2399,7 @@ var EventEnum;
 (function (EventEnum) {
   EventEnum["VWO_VARIATION_SHOWN"] = "vwo_variationShown";
   EventEnum["VWO_SYNC_VISITOR_PROP"] = "vwo_syncVisitorProp";
+  EventEnum["VWO_LOG_EVENT"] = "vwo_log";
 })(EventEnum || (exports.EventEnum = EventEnum = {}));
 
 /***/ }),
@@ -2109,7 +2417,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.HeadersEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2144,7 +2452,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.HttpMethodEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2179,7 +2487,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.PlatformEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2214,7 +2522,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StatusEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2249,7 +2557,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StorageEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2288,7 +2596,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.UrlEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2328,7 +2636,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ErrorLogMessagesEnum = exports.InfoLogMessagesEnum = exports.DebugLogMessagesEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2437,6 +2745,7 @@ var CampaignModel = /** @class */function () {
     this.key = campaign.key; // campaign.k ||
     // this.priority = campaign.pr || campaign.priority;
     this.type = campaign.type; // campaign.t ||
+    this.salt = campaign.salt;
   };
   CampaignModel.prototype.getId = function () {
     return this.id;
@@ -2473,6 +2782,9 @@ var CampaignModel = /** @class */function () {
   };
   CampaignModel.prototype.getRuleKey = function () {
     return this.ruleKey;
+  };
+  CampaignModel.prototype.getSalt = function () {
+    return this.salt;
   };
   return CampaignModel;
 }();
@@ -2591,7 +2903,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ImpactCapmaignModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2637,7 +2949,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.MetricModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2687,7 +2999,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RuleModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2803,6 +3115,9 @@ var VariationModel = /** @class */function () {
     this.id = variation.i || variation.id;
     this.key = variation.n || variation.key || variation.name;
     this.weight = variation.w || variation.weight;
+    this.ruleKey = variation.ruleKey;
+    this.salt = variation.salt;
+    this.type = variation.type;
     this.setStartRange(variation.startRangeVariation);
     this.setEndRange(variation.endRangeVariation);
     if (variation.seg || variation.segments) {
@@ -2845,6 +3160,9 @@ var VariationModel = /** @class */function () {
   VariationModel.prototype.getKey = function () {
     return this.key;
   };
+  VariationModel.prototype.getRuleKey = function () {
+    return this.ruleKey;
+  };
   VariationModel.prototype.getWeight = function () {
     return this.weight;
   };
@@ -2862,6 +3180,12 @@ var VariationModel = /** @class */function () {
   };
   VariationModel.prototype.getVariations = function () {
     return this.variations;
+  };
+  VariationModel.prototype.getType = function () {
+    return this.type;
+  };
+  VariationModel.prototype.getSalt = function () {
+    return this.salt;
   };
   return VariationModel;
 }();
@@ -2882,7 +3206,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SettingsSchema = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2923,7 +3247,8 @@ var SettingsSchema = /** @class */function () {
       segments: (0, superstruct_1.optional)((0, superstruct_1.object)()),
       variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema)),
       startRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
-      endRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)())
+      endRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
+      salt: (0, superstruct_1.optional)((0, superstruct_1.string)())
     });
     this.campaignObjectSchema = (0, superstruct_1.object)({
       id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
@@ -2935,7 +3260,8 @@ var SettingsSchema = /** @class */function () {
       segments: (0, superstruct_1.object)(),
       isForcedVariationEnabled: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
       isAlwaysCheckSegment: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
-      name: (0, superstruct_1.string)()
+      name: (0, superstruct_1.string)(),
+      salt: (0, superstruct_1.optional)((0, superstruct_1.string)())
     });
     this.ruleSchema = (0, superstruct_1.object)({
       type: (0, superstruct_1.string)(),
@@ -2991,7 +3317,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SettingsModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3145,7 +3471,7 @@ exports.ContextModel = ContextModel;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3195,7 +3521,7 @@ exports.ContextVWOModel = ContextVWOModel;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3382,7 +3708,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Logger = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3417,7 +3743,7 @@ exports.Logger = Logger;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3461,6 +3787,7 @@ var ConsoleTransport_1 = __webpack_require__(/*! ../transports/ConsoleTransport 
 var TransportManager_1 = __webpack_require__(/*! ./TransportManager */ "./dist/server-unpacked/packages/logger/core/TransportManager.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var LogLevelEnum_1 = __webpack_require__(/*! ../enums/LogLevelEnum */ "./dist/server-unpacked/packages/logger/enums/LogLevelEnum.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 /**
  * LogManager class provides logging functionality with support for multiple transports.
  * It is designed as a singleton to ensure a single instance throughout the application.
@@ -3570,8 +3897,14 @@ var LogManager = /** @class */function (_super) {
    * Logs an error message.
    * @param {string} message - The message to log at error level.
    */
-  LogManager.prototype.error = function (message) {
+  LogManager.prototype.error = function (message, shouldSendToVWO) {
+    if (shouldSendToVWO === void 0) {
+      shouldSendToVWO = true;
+    }
     this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
+    if (shouldSendToVWO) {
+      (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
+    }
   };
   return LogManager;
 }(Logger_1.Logger);
@@ -3588,7 +3921,7 @@ exports.LogManager = LogManager;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3720,7 +4053,7 @@ exports.LogTransportManager = LogTransportManager;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3762,7 +4095,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.LogLevelEnum = exports.LogManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3806,7 +4139,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ConsoleTransport = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3899,7 +4232,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NetworkBrowserClient = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4059,7 +4392,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NetworkClient = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4078,6 +4411,10 @@ var https = __webpack_require__(/*! https */ "https");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./dist/server-unpacked/constants/Url.js");
 var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
+var constants_1 = __webpack_require__(/*! ../../../constants */ "./dist/server-unpacked/constants/index.js");
+var logger_1 = __webpack_require__(/*! ../../../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
+var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -4089,67 +4426,70 @@ var NetworkClient = /** @class */function () {
    * @returns {Promise<ResponseModel>} A promise that resolves to a ResponseModel.
    */
   NetworkClient.prototype.GET = function (requestModel) {
-    var deferred = new PromiseUtil_1.Deferred();
-    // Extract network options from the request model.
-    var networkOptions = requestModel.getOptions();
-    var responseModel = new ResponseModel_1.ResponseModel();
-    try {
-      // Choose HTTP or HTTPS client based on the scheme.
-      var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
-      // Perform the HTTP GET request.
-      var req = httpClient.get(networkOptions, function (res) {
-        responseModel.setStatusCode(res.statusCode);
-        var contentType = res.headers['content-type'];
-        var error;
-        var rawData = '';
-        // Check for expected content-type.
-        if (!/^application\/json/.test(contentType)) {
-          error = "Invalid content-type.\nExpected application/json but received ".concat(contentType);
-        }
-        if (error) {
-          // Log error and consume response data to free up memory.
-          res.resume();
-          responseModel.setError(error);
-          deferred.reject(responseModel);
-        }
-        res.setEncoding('utf8');
-        // Collect data chunks.
-        res.on('data', function (chunk) {
-          rawData += chunk;
-        });
-        // Handle the end of the response.
-        res.on('end', function () {
-          try {
-            var parsedData = JSON.parse(rawData);
-            // Check for successful response status.
-            if (responseModel.getStatusCode() !== 200) {
-              var error_1 = "Request failed. Got Status Code: ".concat(responseModel.getStatusCode(), " and message: ").concat(rawData);
-              responseModel.setError(error_1);
-              deferred.reject(responseModel);
-              return;
-            }
-            responseModel.setData(parsedData);
-            deferred.resolve(responseModel);
-          } catch (err) {
-            responseModel.setError(err);
-            deferred.reject(responseModel);
+    var _this = this;
+    var attemptRequest = function (attempt) {
+      var deferred = new PromiseUtil_1.Deferred();
+      // Extract network options from the request model.
+      var networkOptions = requestModel.getOptions();
+      var responseModel = new ResponseModel_1.ResponseModel();
+      try {
+        // Choose HTTP or HTTPS client based on the scheme.
+        var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
+        // Perform the HTTP GET request.
+        var req = httpClient.get(networkOptions, function (res) {
+          responseModel.setStatusCode(res.statusCode);
+          var contentType = res.headers['content-type'];
+          var error;
+          var rawData = '';
+          // Check for expected content-type.
+          if (!/^application\/json/.test(contentType)) {
+            error = "Invalid content-type.\nExpected application/json but received ".concat(contentType, ". Status Code: ").concat(res === null || res === void 0 ? void 0 : res.statusCode);
           }
+          if (error) {
+            // Log error and consume response data to free up memory.
+            res.resume();
+            return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+          }
+          res.setEncoding('utf8');
+          // Collect data chunks.
+          res.on('data', function (chunk) {
+            rawData += chunk;
+          });
+          // Handle the end of the response.
+          res.on('end', function () {
+            try {
+              var parsedData = JSON.parse(rawData);
+              // Check for successful response status.
+              if (responseModel.getStatusCode() < 200 || responseModel.getStatusCode() >= 300) {
+                var error_1 = "".concat(rawData, ", Status Code: ").concat(responseModel.getStatusCode());
+                // if status code is 400, reject the promise as it is a bad request
+                if (responseModel.getStatusCode() === 400) {
+                  responseModel.setError(error_1);
+                  deferred.reject(responseModel);
+                  return;
+                }
+                return _this.retryOrReject(error_1, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+              }
+              responseModel.setData(parsedData);
+              deferred.resolve(responseModel);
+            } catch (err) {
+              return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+            }
+          });
         });
-      });
-      // Handle request timeout.
-      req.on('timeout', function () {
-        responseModel.setError(new Error('timeout'));
-        deferred.reject(responseModel);
-      });
-      req.on('error', function (err) {
-        responseModel.setError(err);
-        deferred.reject(responseModel);
-      });
-    } catch (err) {
-      responseModel.setError(err);
-      deferred.reject(responseModel);
-    }
-    return deferred.promise;
+        // Handle request timeout.
+        req.on('timeout', function () {
+          return _this.retryOrReject(new Error('timeout'), attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+        });
+        req.on('error', function (err) {
+          return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+        });
+      } catch (err) {
+        _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+      }
+      return deferred.promise;
+    };
+    return attemptRequest(0);
   };
   /**
    * Performs a POST request using the provided RequestModel.
@@ -4157,57 +4497,173 @@ var NetworkClient = /** @class */function () {
    * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
    */
   NetworkClient.prototype.POST = function (request) {
-    var deferred = new PromiseUtil_1.Deferred();
-    var networkOptions = request.getOptions();
-    var responseModel = new ResponseModel_1.ResponseModel();
-    try {
-      // Choose HTTP or HTTPS client based on the scheme.
-      var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
-      // Perform the HTTP POST request.
-      var req = httpClient.request(networkOptions, function (res) {
-        var rawData = '';
-        res.setEncoding('utf8');
-        // Collect data chunks.
-        res.on('data', function (chunk) {
-          rawData += chunk;
+    var _this = this;
+    var attemptRequest = function (attempt) {
+      var deferred = new PromiseUtil_1.Deferred();
+      var networkOptions = request.getOptions();
+      var responseModel = new ResponseModel_1.ResponseModel();
+      try {
+        // Choose HTTP or HTTPS client based on the scheme.
+        var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
+        // Perform the HTTP POST request.
+        var req = httpClient.request(networkOptions, function (res) {
+          var rawData = '';
+          res.setEncoding('utf8');
+          // Collect data chunks.
+          res.on('data', function (chunk) {
+            rawData += chunk;
+          });
+          // Handle the end of the response.
+          res.on('end', function () {
+            try {
+              if (res.statusCode === 200) {
+                responseModel.setData(request.getBody());
+                deferred.resolve(responseModel);
+              } else {
+                var error = "Raw Data: ".concat(rawData, ", Status Code: ").concat(res.statusCode);
+                // if status code is 400, reject the promise as it is a bad request
+                if (res.statusCode === 400) {
+                  responseModel.setError(error);
+                  deferred.reject(responseModel);
+                  return;
+                }
+                return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+              }
+            } catch (err) {
+              return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+            }
+          });
         });
-        // Handle the end of the response.
-        res.on('end', function () {
-          if (res.statusCode === 200) {
-            responseModel.setData(request.getBody());
-            deferred.resolve(responseModel);
-          } else if (res.statusCode === 413) {
-            var parsedData = JSON.parse(rawData);
-            responseModel.setError(parsedData.error);
-            responseModel.setData(request.getBody());
-            deferred.reject(responseModel);
-          } else {
-            var parsedData = JSON.parse(rawData);
-            responseModel.setError(parsedData.message);
-            responseModel.setData(request.getBody());
-            deferred.reject(responseModel);
-          }
+        // Handle request timeout.
+        req.on('timeout', function () {
+          var error = "Timeout: ".concat(networkOptions.timeout);
+          return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
         });
-      });
-      // Handle request timeout.
-      req.on('timeout', function () {
-        responseModel.setError(new Error('timeout'));
-        responseModel.setData(request.getBody());
-        deferred.reject(responseModel);
-      });
-      // Write data to the request body and end the request.
-      req.write(JSON.stringify(networkOptions.body));
-      req.end();
-    } catch (err) {
-      responseModel.setError(err);
-      responseModel.setData(request.getBody());
+        req.on('error', function (err) {
+          return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+        });
+        // Write data to the request body and end the request.
+        req.write(JSON.stringify(networkOptions.body));
+        req.end();
+      } catch (err) {
+        _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+      }
+      return deferred.promise;
+    };
+    return attemptRequest(0);
+  };
+  /**
+   * Helper function to retry or reject
+   * @param {any} error - The error to retry or reject
+   * @param {number} attempt - The attempt number
+   * @param {any} deferred - The deferred object
+   * @param {string} operation - The operation to retry or reject
+   * @param {Function} attemptRequest - The function to attempt the request
+   */
+  NetworkClient.prototype.retryOrReject = function (error, attempt, deferred, endpoint, attemptRequest) {
+    var delay = constants_1.Constants.RETRY_DELAY * Math.pow(2, attempt + 1);
+    if (attempt < constants_1.Constants.MAX_RETRIES) {
+      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
+        endPoint: endpoint,
+        err: error,
+        delay: delay / 1000,
+        attempt: attempt + 1,
+        maxRetries: constants_1.Constants.MAX_RETRIES
+      }));
+      setTimeout(function () {
+        attemptRequest(attempt + 1).then(deferred.resolve).catch(deferred.reject);
+      }, delay);
+    } else {
+      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+        endPoint: endpoint,
+        err: error
+      }));
+      var responseModel = new ResponseModel_1.ResponseModel();
+      responseModel.setError(error);
       deferred.reject(responseModel);
     }
-    return deferred.promise;
   };
   return NetworkClient;
 }();
 exports.NetworkClient = NetworkClient;
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/packages/network-layer/client/NetworkServerLessClient.js":
+/*!***************************************************************************************!*\
+  !*** ./dist/server-unpacked/packages/network-layer/client/NetworkServerLessClient.js ***!
+  \***************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.NetworkServerLessClient = void 0;
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var FetchUtil_1 = __webpack_require__(/*! ../../../utils/FetchUtil */ "./dist/server-unpacked/utils/FetchUtil.js");
+var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
+var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
+/**
+ * Implements the NetworkClientInterface to handle network requests.
+ */
+var NetworkServerLessClient = /** @class */function () {
+  function NetworkServerLessClient() {}
+  /**
+   * Performs a GET request using the provided RequestModel.
+   * @param {RequestModel} requestModel - The model containing request options.
+   * @returns {Promise<ResponseModel>} A promise that resolves to a ResponseModel.
+   */
+  NetworkServerLessClient.prototype.GET = function (requestModel) {
+    var deferred = new PromiseUtil_1.Deferred();
+    // Extract network options from the request model.
+    var networkOptions = requestModel.getOptions();
+    var responseModel = new ResponseModel_1.ResponseModel();
+    (0, FetchUtil_1.sendGetCall)(networkOptions).then(function (data) {
+      responseModel.setData(data);
+      deferred.resolve(responseModel);
+    }).catch(function (error) {
+      responseModel.setError(error);
+      deferred.reject(responseModel);
+    });
+    return deferred.promise;
+  };
+  /**
+   * Performs a POST request using the provided RequestModel.
+   * @param {RequestModel} request - The model containing request options.
+   * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
+   */
+  NetworkServerLessClient.prototype.POST = function (request) {
+    var deferred = new PromiseUtil_1.Deferred();
+    var networkOptions = request.getOptions();
+    var responseModel = new ResponseModel_1.ResponseModel();
+    (0, FetchUtil_1.sendPostCall)(networkOptions).then(function (data) {
+      responseModel.setData(data);
+      deferred.resolve(responseModel);
+    }).catch(function (error) {
+      responseModel.setError(error);
+      deferred.reject(responseModel);
+    });
+    return deferred.promise;
+  };
+  return NetworkServerLessClient;
+}();
+exports.NetworkServerLessClient = NetworkServerLessClient;
 
 /***/ }),
 
@@ -4279,7 +4735,7 @@ exports.RequestHandler = RequestHandler;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4349,7 +4805,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NetworkManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4373,11 +4829,21 @@ var NetworkManager = /** @class */function () {
    * @param {NetworkClientInterface} client - The client to attach, optional.
    */
   NetworkManager.prototype.attachClient = function (client) {
+    // if env is undefined, we are in browser
     if (typeof process.env === 'undefined') {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      var NetworkBrowserClient = (__webpack_require__(/*! ../client/NetworkBrowserClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkBrowserClient.js").NetworkBrowserClient);
-      this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+      // if XMLHttpRequest is undefined, we are in serverless
+      if (typeof XMLHttpRequest === 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        var NetworkServerLessClient = (__webpack_require__(/*! ../client/NetworkServerLessClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkServerLessClient.js").NetworkServerLessClient);
+        this.client = client || new NetworkServerLessClient();
+      } else {
+        // if XMLHttpRequest is defined, we are in browser
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        var NetworkBrowserClient = (__webpack_require__(/*! ../client/NetworkBrowserClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkBrowserClient.js").NetworkBrowserClient);
+        this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+      }
     } else {
+      // if env is defined, we are in node
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       var NetworkClient = (__webpack_require__(/*! ../client/NetworkClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkClient.js").NetworkClient);
       this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
@@ -4598,7 +5064,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RequestModel = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4973,12 +5439,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -5053,7 +5515,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentationManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5183,7 +5645,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperandRegexEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5207,10 +5669,10 @@ var SegmentOperandRegexEnum;
   SegmentOperandRegexEnum["REGEX_MATCH"] = "^regex\\((.*)\\)";
   SegmentOperandRegexEnum["STARTING_STAR"] = "^\\*";
   SegmentOperandRegexEnum["ENDING_STAR"] = "\\*$";
-  SegmentOperandRegexEnum["GREATER_THAN_MATCH"] = "^gt(((d+.?d*)|(.d+)))";
-  SegmentOperandRegexEnum["GREATER_THAN_EQUAL_TO_MATCH"] = "^gte(((d+.?d*)|(.d+)))";
-  SegmentOperandRegexEnum["LESS_THAN_MATCH"] = "^lt(((d+.?d*)|(.d+)))";
-  SegmentOperandRegexEnum["LESS_THAN_EQUAL_TO_MATCH"] = "^lte(((d+.?d*)|(.d+)))";
+  SegmentOperandRegexEnum["GREATER_THAN_MATCH"] = "^gt\\((\\d+\\.?\\d*|\\.\\d+)\\)";
+  SegmentOperandRegexEnum["GREATER_THAN_EQUAL_TO_MATCH"] = "^gte\\((\\d+\\.?\\d*|\\.\\d+)\\)";
+  SegmentOperandRegexEnum["LESS_THAN_MATCH"] = "^lt\\((\\d+\\.?\\d*|\\.\\d+)\\)";
+  SegmentOperandRegexEnum["LESS_THAN_EQUAL_TO_MATCH"] = "^lte\\((\\d+\\.?\\d*|\\.\\d+)\\)";
 })(SegmentOperandRegexEnum || (exports.SegmentOperandRegexEnum = SegmentOperandRegexEnum = {}));
 
 /***/ }),
@@ -5228,7 +5690,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperandValueEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5271,7 +5733,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperatorValueEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5353,12 +5815,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -5433,7 +5891,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentEvaluator = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5911,12 +6369,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -5991,7 +6445,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperandEvaluator = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6038,7 +6492,7 @@ var SegmentOperandEvaluator = /** @class */function () {
               return [2 /*return*/, false];
             }
             if (!operand.includes('inlist')) return [3 /*break*/, 5];
-            listIdRegex = /inlist\((\w+:\d+)\)/;
+            listIdRegex = /inlist\(([^)]+)\)/;
             match = operand.match(listIdRegex);
             if (!match || match.length < 2) {
               logger_1.LogManager.Instance.error("Invalid 'inList' operand format");
@@ -6331,7 +6785,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentEvaluator = exports.SegmentationManager = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6373,9 +6827,10 @@ Object.defineProperty(exports, "SegmentEvaluator", ({
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.matchWithRegex = exports.getKeyValue = void 0;
+exports.getKeyValue = getKeyValue;
+exports.matchWithRegex = matchWithRegex;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6410,7 +6865,6 @@ function getKeyValue(obj) {
     value: value
   };
 }
-exports.getKeyValue = getKeyValue;
 /**
  * Matches a string against a regular expression and returns the match result.
  * @param {string} string - The string to match against the regex.
@@ -6426,7 +6880,6 @@ function matchWithRegex(string, regex) {
     return null;
   }
 }
-exports.matchWithRegex = matchWithRegex;
 
 /***/ }),
 
@@ -6509,7 +6962,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Storage = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6581,12 +7034,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -6661,7 +7110,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.CampaignDecisionService = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6700,18 +7149,22 @@ var CampaignDecisionService = /** @class */function () {
     if (!campaign || !userId) {
       return false;
     }
-    var trafficAllocation;
-    if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
-      trafficAllocation = campaign.getVariations()[0].getWeight();
-    } else {
-      trafficAllocation = campaign.getTraffic();
-    }
-    var valueAssignedToUser = new decision_maker_1.DecisionMaker().getBucketValueForUser("".concat(campaign.getId(), "_").concat(userId));
+    // check if campaign is rollout or personalize
+    var isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+    // get salt
+    var salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
+    // get traffic allocation
+    var trafficAllocation = isRolloutOrPersonalize ? campaign.getVariations()[0].getWeight() : campaign.getTraffic();
+    // get bucket key
+    var bucketKey = salt ? "".concat(salt, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(userId);
+    // get bucket value for user
+    var valueAssignedToUser = new decision_maker_1.DecisionMaker().getBucketValueForUser(bucketKey);
+    // check if user is part of campaign
     var isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
     logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
       userId: userId,
       notPart: isUserPart ? '' : 'not',
-      campaignKey: campaign.getKey()
+      campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey()
     }));
     return isUserPart;
   };
@@ -6754,7 +7207,12 @@ var CampaignDecisionService = /** @class */function () {
       multiplier = 1;
     }
     var percentTraffic = campaign.getTraffic();
-    var hashValue = new decision_maker_1.DecisionMaker().generateHashValue("".concat(campaign.getId(), "_").concat(accountId, "_").concat(userId));
+    // get salt
+    var salt = campaign.getSalt();
+    // get bucket key
+    var bucketKey = salt ? "".concat(salt, "_").concat(accountId, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(accountId, "_").concat(userId);
+    // get hash value
+    var hashValue = new decision_maker_1.DecisionMaker().generateHashValue(bucketKey);
     var bucketValue = new decision_maker_1.DecisionMaker().generateBucketValue(hashValue, constants_1.Constants.MAX_TRAFFIC_VALUE, multiplier);
     logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
       userId: userId,
@@ -6781,7 +7239,7 @@ var CampaignDecisionService = /** @class */function () {
             if (!((0, DataTypeUtil_1.isObject)(segments) && !Object.keys(segments).length)) return [3 /*break*/, 1];
             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_SKIP, {
               userId: context.getId(),
-              campaignKey: campaign.getRuleKey()
+              campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey()
             }));
             return [2 /*return*/, true];
           case 1:
@@ -6791,14 +7249,14 @@ var CampaignDecisionService = /** @class */function () {
             if (!preSegmentationResult) {
               logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
                 userId: context.getId(),
-                campaignKey: campaign.getRuleKey(),
+                campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
                 status: 'failed'
               }));
               return [2 /*return*/, false];
             }
             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
               userId: context.getId(),
-              campaignKey: campaign.getRuleKey(),
+              campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
               status: 'passed'
             }));
             return [2 /*return*/, true];
@@ -6926,12 +7384,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -7095,7 +7549,10 @@ var SettingsService = /** @class */function () {
     });
     return deferredObject.promise;
   };
-  SettingsService.prototype.fetchSettings = function () {
+  SettingsService.prototype.fetchSettings = function (isViaWebhook) {
+    if (isViaWebhook === void 0) {
+      isViaWebhook = false;
+    }
     var deferredObject = new PromiseUtil_1.Deferred();
     if (!this.sdkKey || !this.accountId) {
       deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
@@ -7107,8 +7564,12 @@ var SettingsService = /** @class */function () {
     if (!networkInstance.getConfig().getDevelopmentMode()) {
       options.s = 'prod';
     }
+    var path = constants_1.Constants.SETTINTS_ENDPOINT;
+    if (isViaWebhook) {
+      path = constants_1.Constants.WEBHOOK_SETTINTS_ENDPOINT;
+    }
     try {
-      var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, constants_1.Constants.SETTINTS_ENDPOINT, options, null, null, this.protocol, this.port);
+      var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port);
       request.setTimeout(this.networkTimeout);
       networkInstance.get(request).then(function (response) {
         deferredObject.resolve(response.getData());
@@ -7226,12 +7687,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -7306,7 +7763,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StorageService = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7402,9 +7859,21 @@ exports.StorageService = StorageService;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getRuleTypeUsingCampaignIdFromFeature = exports.assignRangeValuesMEG = exports.getCampaignIdsFromFeatureKey = exports.getFeatureKeysFromCampaignIds = exports.getCampaignsByGroupId = exports.findGroupsFeaturePartOf = exports.getGroupDetailsIfCampaignPartOfIt = exports.setCampaignAllocation = exports.getVariationFromCampaignKey = exports.getBucketingSeed = exports.scaleVariationWeights = exports.assignRangeValues = exports.setVariationAllocation = void 0;
+exports.setVariationAllocation = setVariationAllocation;
+exports.assignRangeValues = assignRangeValues;
+exports.scaleVariationWeights = scaleVariationWeights;
+exports.getBucketingSeed = getBucketingSeed;
+exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
+exports.setCampaignAllocation = setCampaignAllocation;
+exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
+exports.findGroupsFeaturePartOf = findGroupsFeaturePartOf;
+exports.getCampaignsByGroupId = getCampaignsByGroupId;
+exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
+exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
+exports.assignRangeValuesMEG = assignRangeValuesMEG;
+exports.getRuleTypeUsingCampaignIdFromFeature = getRuleTypeUsingCampaignIdFromFeature;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7452,7 +7921,6 @@ function setVariationAllocation(campaign) {
     });
   }
 }
-exports.setVariationAllocation = setVariationAllocation;
 /**
  * Assigns start and end range values to a variation based on its weight.
  * @param {VariationModel} data - The variation model to assign range values.
@@ -7472,7 +7940,6 @@ function assignRangeValues(data, currentAllocation) {
   }
   return stepFactor;
 }
-exports.assignRangeValues = assignRangeValues;
 /**
  * Scales the weights of variations to sum up to 100%.
  * @param {any[]} variations - The list of variations to scale.
@@ -7495,7 +7962,6 @@ function scaleVariationWeights(variations) {
     });
   }
 }
-exports.scaleVariationWeights = scaleVariationWeights;
 /**
  * Generates a bucketing seed based on user ID, campaign, and optional group ID.
  * @param {string} userId - The user ID.
@@ -7508,10 +7974,14 @@ function getBucketingSeed(userId, campaign, groupId) {
   if (groupId) {
     return "".concat(groupId, "_").concat(userId);
   }
+  var isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+  // get salt
+  var salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
+  // get bucket key
+  var bucketKey = salt ? "".concat(salt, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(userId);
   // Return a seed combining campaign ID and user ID otherwise
-  return "".concat(campaign.getId(), "_").concat(userId);
+  return bucketKey;
 }
-exports.getBucketingSeed = getBucketingSeed;
 /**
  * Retrieves a variation by its ID within a specific campaign identified by its key.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -7536,7 +8006,6 @@ function getVariationFromCampaignKey(settings, campaignKey, variationId) {
   }
   return null;
 }
-exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
 /**
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.
@@ -7550,24 +8019,36 @@ function setCampaignAllocation(campaigns) {
     currentAllocation += stepFactor;
   }
 }
-exports.setCampaignAllocation = setCampaignAllocation;
 /**
  * Determines if a campaign is part of a group.
  * @param {SettingsModel} settings - The settings model containing group associations.
  * @param {string} campaignId - The ID of the campaign to check.
+ * @param {any} [variationId=null] - The optional variation ID.
  * @returns {Object} An object containing the group ID and name if the campaign is part of a group, otherwise an empty object.
  */
-function getGroupDetailsIfCampaignPartOfIt(settings, campaignId) {
-  // Check if the campaign is associated with a group and return the group details
-  if (campaignId in settings.getCampaignGroups() && settings.getCampaignGroups()) {
+function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId) {
+  if (variationId === void 0) {
+    variationId = null;
+  }
+  /**
+   * If variationId is null, that means that campaign is testing campaign
+   * If variationId is not null, that means that campaign is personalization campaign and we need to append variationId to campaignId using _
+   * then check if the current campaign is part of any group
+   */
+  var campaignToCheck = campaignId.toString();
+  // check if variationId is not null
+  if (variationId !== null) {
+    // if variationId is not null, then append it to the campaignId like campaignId_variationId
+    campaignToCheck = "".concat(campaignId, "_").concat(variationId).toString();
+  }
+  if (settings.getCampaignGroups() && Object.prototype.hasOwnProperty.call(settings.getCampaignGroups(), campaignToCheck)) {
     return {
-      groupId: settings.getCampaignGroups()[campaignId],
-      groupName: settings.getGroups()[settings.getCampaignGroups()[campaignId]].name
+      groupId: settings.getCampaignGroups()[campaignToCheck],
+      groupName: settings.getGroups()[settings.getCampaignGroups()[campaignToCheck]].name
     };
   }
   return {};
 }
-exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
 /**
  * Finds all groups associated with a feature specified by its key.
  * @param {SettingsModel} settings - The settings model containing all features and groups.
@@ -7575,21 +8056,22 @@ exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
  * @returns {Array} An array of groups associated with the feature.
  */
 function findGroupsFeaturePartOf(settings, featureKey) {
-  var campaignIds = [];
-  // Loop over all rules inside the feature where the feature key matches and collect all campaign IDs
+  // Initialize an array to store all rules for the given feature to fetch campaignId and variationId later
+  var ruleArray = [];
+  // Loop over all rules inside the feature where the feature key matches and collect all rules
   settings.getFeatures().forEach(function (feature) {
     if (feature.getKey() === featureKey) {
       feature.getRules().forEach(function (rule) {
-        if (campaignIds.indexOf(rule.getCampaignId()) === -1) {
-          campaignIds.push(rule.getCampaignId());
+        if (ruleArray.indexOf(rule) === -1) {
+          ruleArray.push(rule);
         }
       });
     }
   });
   // Loop over all campaigns and find the group for each campaign
   var groups = [];
-  campaignIds.forEach(function (campaignId) {
-    var group = getGroupDetailsIfCampaignPartOfIt(settings, campaignId);
+  ruleArray.forEach(function (rule) {
+    var group = getGroupDetailsIfCampaignPartOfIt(settings, rule.getCampaignId(), rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? rule.getVariationId() : null);
     if (group.groupId) {
       // Check if the group is already added to the groups array to avoid duplicates
       var groupIndex = groups.findIndex(function (grp) {
@@ -7602,7 +8084,6 @@ function findGroupsFeaturePartOf(settings, featureKey) {
   });
   return groups;
 }
-exports.findGroupsFeaturePartOf = findGroupsFeaturePartOf;
 /**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
@@ -7617,31 +8098,46 @@ function getCampaignsByGroupId(settings, groupId) {
     return []; // Return an empty array if the group ID is not found
   }
 }
-exports.getCampaignsByGroupId = getCampaignsByGroupId;
 /**
  * Retrieves feature keys from a list of campaign IDs.
  * @param {SettingsModel} settings - The settings model containing all features.
- * @param {any} campaignIds - An array of campaign IDs.
+ * @param {any} campaignIdWithVariation - An array of campaign IDs and variation IDs in format campaignId_variationId.
  * @returns {Array} An array of feature keys associated with the provided campaign IDs.
  */
-function getFeatureKeysFromCampaignIds(settings, campaignIds) {
+function getFeatureKeysFromCampaignIds(settings, campaignIdWithVariation) {
   var featureKeys = [];
-  var _loop_1 = function (campaignId) {
+  var _loop_1 = function (campaign) {
+    // split key with _ to separate campaignId and variationId
+    var _a = campaign.split('_').map(Number),
+      campaignId = _a[0],
+      variationId = _a[1];
     settings.getFeatures().forEach(function (feature) {
+      // check if feature already exists in the featureKeys array
+      if (featureKeys.indexOf(feature.getKey()) !== -1) {
+        return;
+      }
       feature.getRules().forEach(function (rule) {
         if (rule.getCampaignId() === campaignId) {
-          featureKeys.push(feature.getKey()); // Add feature key if campaign ID matches
+          // Check if variationId is provided and matches the rule's variationId
+          if (variationId !== undefined && variationId !== null) {
+            // Add feature key if variationId matches
+            if (rule.getVariationId() === variationId) {
+              featureKeys.push(feature.getKey());
+            }
+          } else {
+            // Add feature key if no variationId is provided
+            featureKeys.push(feature.getKey());
+          }
         }
       });
     });
   };
-  for (var _i = 0, campaignIds_1 = campaignIds; _i < campaignIds_1.length; _i++) {
-    var campaignId = campaignIds_1[_i];
-    _loop_1(campaignId);
+  for (var _i = 0, campaignIdWithVariation_1 = campaignIdWithVariation; _i < campaignIdWithVariation_1.length; _i++) {
+    var campaign = campaignIdWithVariation_1[_i];
+    _loop_1(campaign);
   }
   return featureKeys;
 }
-exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 /**
  * Retrieves campaign IDs from a specific feature key.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -7659,7 +8155,6 @@ function getCampaignIdsFromFeatureKey(settings, featureKey) {
   });
   return campaignIds;
 }
-exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 /**
  * Assigns range values to a campaign based on its weight.
  * @param {any} data - The campaign data containing weight.
@@ -7677,7 +8172,6 @@ function assignRangeValuesMEG(data, currentAllocation) {
   }
   return stepFactor;
 }
-exports.assignRangeValuesMEG = assignRangeValuesMEG;
 /**
  * Retrieves the rule type using a campaign ID from a specific feature.
  * @param {any} feature - The feature containing rules.
@@ -7690,7 +8184,6 @@ function getRuleTypeUsingCampaignIdFromFeature(feature, campaignId) {
   });
   return rule ? rule.getType() : ''; // Return the rule type if found
 }
-exports.getRuleTypeUsingCampaignIdFromFeature = getRuleTypeUsingCampaignIdFromFeature;
 /**
  * Calculates the bucket range for a variation based on its weight.
  * @param {number} variationWeight - The weight of the variation.
@@ -7737,7 +8230,20 @@ function _handleRolloutCampaign(campaign) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getType = exports.isPromise = exports.isRegex = exports.isFunction = exports.isDate = exports.isNaN = exports.isBoolean = exports.isString = exports.isNumber = exports.isDefined = exports.isUndefined = exports.isNull = exports.isArray = exports.isObject = void 0;
+exports.isObject = isObject;
+exports.isArray = isArray;
+exports.isNull = isNull;
+exports.isUndefined = isUndefined;
+exports.isDefined = isDefined;
+exports.isNumber = isNumber;
+exports.isString = isString;
+exports.isBoolean = isBoolean;
+exports.isNaN = isNaN;
+exports.isDate = isDate;
+exports.isFunction = isFunction;
+exports.isRegex = isRegex;
+exports.isPromise = isPromise;
+exports.getType = getType;
 /**
  * Checks if a value is an object excluding arrays, functions, regexes, promises, and dates.
  * @param val The value to check.
@@ -7747,7 +8253,6 @@ function isObject(val) {
   // Using Object.prototype.toString to get a precise string representation of the value type
   return Object.prototype.toString.call(val) === '[object Object]';
 }
-exports.isObject = isObject;
 /**
  * Checks if a value is an array.
  * @param val The value to check.
@@ -7756,7 +8261,6 @@ exports.isObject = isObject;
 function isArray(val) {
   return Object.prototype.toString.call(val) === '[object Array]';
 }
-exports.isArray = isArray;
 /**
  * Checks if a value is null.
  * @param val The value to check.
@@ -7765,7 +8269,6 @@ exports.isArray = isArray;
 function isNull(val) {
   return Object.prototype.toString.call(val) === '[object Null]';
 }
-exports.isNull = isNull;
 /**
  * Checks if a value is undefined.
  * @param val The value to check.
@@ -7774,7 +8277,6 @@ exports.isNull = isNull;
 function isUndefined(val) {
   return Object.prototype.toString.call(val) === '[object Undefined]';
 }
-exports.isUndefined = isUndefined;
 /**
  * Checks if a value is defined, i.e., not undefined and not null.
  * @param val The value to check.
@@ -7783,7 +8285,6 @@ exports.isUndefined = isUndefined;
 function isDefined(val) {
   return !isUndefined(val) && !isNull(val);
 }
-exports.isDefined = isDefined;
 /**
  * Checks if a value is a number, including NaN.
  * @param val The value to check.
@@ -7793,7 +8294,6 @@ function isNumber(val) {
   // Note: NaN is also a number
   return Object.prototype.toString.call(val) === '[object Number]';
 }
-exports.isNumber = isNumber;
 /**
  * Checks if a value is a string.
  * @param val The value to check.
@@ -7802,7 +8302,6 @@ exports.isNumber = isNumber;
 function isString(val) {
   return Object.prototype.toString.call(val) === '[object String]';
 }
-exports.isString = isString;
 /**
  * Checks if a value is a boolean.
  * @param val The value to check.
@@ -7811,7 +8310,6 @@ exports.isString = isString;
 function isBoolean(val) {
   return Object.prototype.toString.call(val) === '[object Boolean]';
 }
-exports.isBoolean = isBoolean;
 /**
  * Checks if a value is NaN.
  * @param val The value to check.
@@ -7821,7 +8319,6 @@ function isNaN(val) {
   // NaN is the only JavaScript value that is treated as unequal to itself
   return val !== val;
 }
-exports.isNaN = isNaN;
 /**
  * Checks if a value is a Date object.
  * @param val The value to check.
@@ -7830,7 +8327,6 @@ exports.isNaN = isNaN;
 function isDate(val) {
   return Object.prototype.toString.call(val) === '[object Date]';
 }
-exports.isDate = isDate;
 /**
  * Checks if a value is a function.
  * @param val The value to check.
@@ -7839,7 +8335,6 @@ exports.isDate = isDate;
 function isFunction(val) {
   return Object.prototype.toString.call(val) === '[object Function]';
 }
-exports.isFunction = isFunction;
 /**
  * Checks if a value is a regular expression.
  * @param val The value to check.
@@ -7848,7 +8343,6 @@ exports.isFunction = isFunction;
 function isRegex(val) {
   return Object.prototype.toString.call(val) === '[object RegExp]';
 }
-exports.isRegex = isRegex;
 /**
  * Checks if a value is a Promise.
  * @param val The value to check.
@@ -7857,7 +8351,6 @@ exports.isRegex = isRegex;
 function isPromise(val) {
   return Object.prototype.toString.call(val) === '[object Promise]';
 }
-exports.isPromise = isPromise;
 /**
  * Determines the type of the given value using various type-checking utility functions.
  * @param val The value to determine the type of.
@@ -7891,7 +8384,6 @@ function getType(val) {
   // If none of the above, return 'Unknown Type'
   'Unknown Type';
 }
-exports.getType = getType;
 
 /***/ }),
 
@@ -7943,12 +8435,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -8023,7 +8511,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.evaluateTrafficAndGetVariation = exports.checkWhitelistingAndPreSeg = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8046,14 +8534,16 @@ var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpa
 var segmentation_evaluator_1 = __webpack_require__(/*! ../packages/segmentation-evaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/index.js");
 var CampaignDecisionService_1 = __webpack_require__(/*! ../services/CampaignDecisionService */ "./dist/server-unpacked/services/CampaignDecisionService.js");
 var DataTypeUtil_2 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var MegUtil_1 = __webpack_require__(/*! ./MegUtil */ "./dist/server-unpacked/utils/MegUtil.js");
 var UuidUtil_1 = __webpack_require__(/*! ./UuidUtil */ "./dist/server-unpacked/utils/UuidUtil.js");
+var StorageDecorator_1 = __webpack_require__(/*! ../decorators/StorageDecorator */ "./dist/server-unpacked/decorators/StorageDecorator.js");
 var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) {
   return __awaiter(void 0, void 0, void 0, function () {
-    var vwoUserId, campaignId, whitelistedVariation, groupId, groupWinnerCampaignId, isPreSegmentationPassed, winnerCampaign;
+    var vwoUserId, campaignId, whitelistedVariation, groupId, groupWinnerCampaignId, storedData, isPreSegmentationPassed, winnerCampaign;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
@@ -8089,29 +8579,85 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
           Object.assign(decision, {
             customVariables: context.getCustomVariables()
           }); // for integeration
-          groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(settings, campaignId).groupId;
+          groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(settings, campaign.getId(), campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null).groupId;
           groupWinnerCampaignId = megGroupWinnerCampaigns === null || megGroupWinnerCampaigns === void 0 ? void 0 : megGroupWinnerCampaigns.get(groupId);
-          if (groupWinnerCampaignId) {
+          if (!groupWinnerCampaignId) return [3 /*break*/, 4];
+          if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
             // check if the campaign is the winner of the group
             if (groupWinnerCampaignId === campaignId) {
               return [2 /*return*/, [true, null]];
             }
-            // as group is already evaluated, no need to check again, return false directly
+          } else if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+            // check if the campaign is the winner of the group
+            if (groupWinnerCampaignId === campaignId + '_' + campaign.getVariations()[0].getId()) {
+              return [2 /*return*/, [true, null]];
+            }
+          }
+          // as group is already evaluated, no need to check again, return false directly
+          return [2 /*return*/, [false, null]];
+        case 4:
+          return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService)];
+        case 5:
+          storedData = _a.sent();
+          if (storedData && storedData.experimentKey && storedData.experimentId) {
+            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+              campaignKey: storedData.experimentKey,
+              userId: context.getId()
+            }));
+            if (storedData.experimentId === campaignId) {
+              // return the campaign if the called campaignId matches
+              if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+                if (storedData.experimentVariationId === campaign.getVariations()[0].getId()) {
+                  // if personalise then check if the reqeusted variation is the winner
+                  return [2 /*return*/, [true, null]];
+                } else {
+                  // if requested variation is not the winner then set the winner campaign in the map and return
+                  megGroupWinnerCampaigns.set(groupId, storedData.experimentId + '_' + storedData.experimentVariationId);
+                  return [2 /*return*/, [false, null]];
+                }
+              } else {
+                return [2 /*return*/, [true, null]];
+              }
+            }
+            if (storedData.experimentVariationId != -1) {
+              megGroupWinnerCampaigns.set(groupId, storedData.experimentId + '_' + storedData.experimentVariationId);
+            } else {
+              megGroupWinnerCampaigns.set(groupId, storedData.experimentId);
+            }
             return [2 /*return*/, [false, null]];
           }
+          _a.label = 6;
+        case 6:
           return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(campaign, context)];
-        case 4:
+        case 7:
           isPreSegmentationPassed = _a.sent();
-          if (!(isPreSegmentationPassed && groupId)) return [3 /*break*/, 6];
+          if (!(isPreSegmentationPassed && groupId)) return [3 /*break*/, 9];
           return [4 /*yield*/, (0, MegUtil_1.evaluateGroups)(settings, feature, groupId, evaluatedFeatureMap, context, storageService)];
-        case 5:
+        case 8:
           winnerCampaign = _a.sent();
           if (winnerCampaign && winnerCampaign.id === campaignId) {
-            return [2 /*return*/, [true, null]];
+            if (winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
+              return [2 /*return*/, [true, null]];
+            } else {
+              // if personalise then check if the reqeusted variation is the winner
+              if (winnerCampaign.variations[0].id === campaign.getVariations()[0].getId()) {
+                return [2 /*return*/, [true, null]];
+              } else {
+                megGroupWinnerCampaigns.set(groupId, winnerCampaign.id + '_' + winnerCampaign.variations[0].id);
+                return [2 /*return*/, [false, null]];
+              }
+            }
+          } else if (winnerCampaign) {
+            if (winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
+              megGroupWinnerCampaigns.set(groupId, winnerCampaign.id);
+            } else {
+              megGroupWinnerCampaigns.set(groupId, winnerCampaign.id + '_' + winnerCampaign.variations[0].id);
+            }
+            return [2 /*return*/, [false, null]];
           }
-          megGroupWinnerCampaigns.set(groupId, (winnerCampaign === null || winnerCampaign === void 0 ? void 0 : winnerCampaign.id) || 0);
+          megGroupWinnerCampaigns.set(groupId, -1);
           return [2 /*return*/, [false, null]];
-        case 6:
+        case 9:
           return [2 /*return*/, [isPreSegmentationPassed, null]];
       }
     });
@@ -8122,14 +8668,14 @@ var evaluateTrafficAndGetVariation = function (settings, campaign, userId) {
   var variation = new CampaignDecisionService_1.CampaignDecisionService().getVariationAlloted(userId, settings.getAccountId(), campaign);
   if (!variation) {
     logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-      campaignKey: campaign.getKey(),
+      campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
       userId: userId,
       status: 'did not get any variation'
     }));
     return null;
   }
   logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-    campaignKey: campaign.getKey(),
+    campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
     userId: userId,
     status: "got variation:".concat(variation.getKey())
   }));
@@ -8159,7 +8705,7 @@ var _checkCampaignWhitelisting = function (campaign, context) {
           variationString = whitelistingResult ? whitelistingResult.variation.key : '';
           logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_STATUS, {
             userId: context.getId(),
-            campaignKey: campaign.getRuleKey(),
+            campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
             status: status,
             variationString: variationString
           }));
@@ -8179,7 +8725,7 @@ var _evaluateWhitelisting = function (campaign, context) {
           campaign.getVariations().forEach(function (variation) {
             if ((0, DataTypeUtil_2.isObject)(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
               logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
-                campaignKey: campaign.getRuleKey(),
+                campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
                 userId: context.getId(),
                 variation: variation.getKey() ? "for variation: ".concat(variation.getKey()) : ''
               }));
@@ -8227,6 +8773,96 @@ var _evaluateWhitelisting = function (campaign, context) {
 
 /***/ }),
 
+/***/ "./dist/server-unpacked/utils/FetchUtil.js":
+/*!*************************************************!*\
+  !*** ./dist/server-unpacked/utils/FetchUtil.js ***!
+  \*************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.sendGetCall = sendGetCall;
+exports.sendPostCall = sendPostCall;
+var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
+var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
+function sendGetCall(networkOptions) {
+  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, networkOptions);
+}
+function sendPostCall(networkOptions) {
+  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, networkOptions);
+}
+/**
+ * Sends a request to the server using the Fetch API.
+ * @param method - The HTTP method to use for the request.
+ * @param networkOptions - The options for the request.
+ * @returns A Promise that resolves to the response data.
+ */
+function sendRequest(method, networkOptions) {
+  var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+  return new Promise(function (resolve, reject) {
+    if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
+      networkOptions.body = JSON.stringify(networkOptions.body);
+    }
+    fetch(url, networkOptions).then(function (res) {
+      // Some endpoints return empty strings as the response body; treat
+      // as raw text and handle potential JSON parsing errors below
+      return res.text().then(function (text) {
+        var jsonData = {};
+        try {
+          if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+            jsonData = JSON.parse(text);
+          } else {
+            jsonData = text;
+          }
+        } catch (err) {
+          console.info("VWO-SDK - [INFO]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " VWO didn't send JSON response which is expected: ").concat(err));
+        }
+        if (res.status === 200) {
+          resolve(jsonData);
+        } else {
+          var errorMessage = '';
+          if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+            errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " Request failed for fetching account settings. Got Status Code: ").concat(res.status);
+          } else if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
+            errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " Request failed while making a POST request. Got Status Code: ").concat(res.status);
+          }
+          console.error(errorMessage);
+          reject(errorMessage);
+        }
+      });
+    }).catch(function (err) {
+      var errorMessage = '';
+      if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+        errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " GET request failed for fetching account settings. Error: ").concat(err);
+      } else if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
+        errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " POST request failed while sending data. Error: ").concat(err);
+      }
+      console.error(errorMessage);
+      reject(errorMessage);
+    });
+  });
+}
+
+/***/ }),
+
 /***/ "./dist/server-unpacked/utils/FunctionUtil.js":
 /*!****************************************************!*\
   !*** ./dist/server-unpacked/utils/FunctionUtil.js ***!
@@ -8248,9 +8884,18 @@ var __assign = this && this.__assign || function () {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.addLinkedCampaignsToSettings = exports.doesEventBelongToAnyFeature = exports.getFeatureFromKey = exports.getAllExperimentRules = exports.getSpecificRulesBasedOnType = exports.getRandomNumber = exports.getCurrentUnixTimestampInMillis = exports.getCurrentUnixTimestamp = exports.cloneObject = void 0;
+exports.cloneObject = cloneObject;
+exports.getCurrentTime = getCurrentTime;
+exports.getCurrentUnixTimestamp = getCurrentUnixTimestamp;
+exports.getCurrentUnixTimestampInMillis = getCurrentUnixTimestampInMillis;
+exports.getRandomNumber = getRandomNumber;
+exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
+exports.getAllExperimentRules = getAllExperimentRules;
+exports.getFeatureFromKey = getFeatureFromKey;
+exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
+exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8281,7 +8926,13 @@ function cloneObject(obj) {
   var clonedObj = JSON.parse(JSON.stringify(obj));
   return clonedObj;
 }
-exports.cloneObject = cloneObject;
+/**
+ * Gets the current time in ISO string format.
+ * @returns {string} The current time in ISO string format.
+ */
+function getCurrentTime() {
+  return new Date().toISOString();
+}
 /**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.
@@ -8290,7 +8941,6 @@ function getCurrentUnixTimestamp() {
   // Convert the current date to Unix timestamp in seconds
   return Math.ceil(+new Date() / 1000);
 }
-exports.getCurrentUnixTimestamp = getCurrentUnixTimestamp;
 /**
  * Gets the current Unix timestamp in milliseconds.
  * @returns {number} The current Unix timestamp in milliseconds.
@@ -8299,7 +8949,6 @@ function getCurrentUnixTimestampInMillis() {
   // Convert the current date to Unix timestamp in milliseconds
   return +new Date();
 }
-exports.getCurrentUnixTimestampInMillis = getCurrentUnixTimestampInMillis;
 /**
  * Generates a random number between 0 and 1.
  * @returns {number} A random number.
@@ -8308,7 +8957,6 @@ function getRandomNumber() {
   // Use Math.random to generate a random number
   return Math.random();
 }
-exports.getRandomNumber = getRandomNumber;
 /**
  * Retrieves specific rules based on the type from a feature.
  * @param {FeatureModel} feature - The key of the feature.
@@ -8333,7 +8981,6 @@ function getSpecificRulesBasedOnType(feature, type) {
   // Return all linked campaigns if no type is specified
   return feature.getRulesLinkedCampaign();
 }
-exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
 /**
  * Retrieves all AB and Personalize rules from a feature.
  * @param {any} settings - The settings containing features.
@@ -8347,7 +8994,6 @@ function getAllExperimentRules(feature) {
     return rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB || rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
   })) || [];
 }
-exports.getAllExperimentRules = getAllExperimentRules;
 /**
  * Retrieves a feature by its key from the settings.
  * @param {any} settings - The settings containing features.
@@ -8361,7 +9007,6 @@ function getFeatureFromKey(settings, featureKey) {
     return feature.getKey() === featureKey;
   });
 }
-exports.getFeatureFromKey = getFeatureFromKey;
 /**
  * Checks if an event exists within any feature's metrics.
  * @param {string} eventName - The name of the event to check.
@@ -8376,7 +9021,6 @@ function doesEventBelongToAnyFeature(eventName, settings) {
     });
   });
 }
-exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
 /**
  * Adds linked campaigns to each feature in the settings based on rules.
  * @param {any} settings - The settings file to modify.
@@ -8420,7 +9064,6 @@ function addLinkedCampaignsToSettings(settings) {
     feature.setRulesLinkedCampaign(rulesLinkedCampaignModel);
   }
 }
-exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 
 /***/ }),
 
@@ -8472,12 +9115,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -8550,9 +9189,11 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.addIsGatewayServiceRequiredFlag = exports.getQueryParams = exports.getFromGatewayService = void 0;
+exports.getFromGatewayService = getFromGatewayService;
+exports.getQueryParams = getQueryParams;
+exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8614,7 +9255,6 @@ function getFromGatewayService(queryParams, endpoint) {
     });
   });
 }
-exports.getFromGatewayService = getFromGatewayService;
 /**
  * Encodes the query parameters to ensure they are URL-safe.
  * @param queryParams  The query parameters to be encoded.
@@ -8633,7 +9273,6 @@ function getQueryParams(queryParams) {
   }
   return encodedParams;
 }
-exports.getQueryParams = getQueryParams;
 /**
  * Adds isGatewayServiceRequired flag to each feature in the settings based on pre segmentation.
  * @param {any} settings - The settings file to modify.
@@ -8664,7 +9303,6 @@ function addIsGatewayServiceRequiredFlag(settings) {
     }
   }
 }
-exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 
 /***/ }),
 
@@ -8672,126 +9310,25 @@ exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 /*!******************************************************!*\
   !*** ./dist/server-unpacked/utils/ImpressionUtil.js ***!
   \******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-
-/**
- * Copyright 2024 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.createAndSendImpressionForVariationShown = void 0;
-var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
-var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
-/**
- * Creates and sends an impression for a variation shown event.
- * This function constructs the necessary properties and payload for the event
- * and uses the NetworkUtil to send a POST API request.
- *
- * @param {SettingsModel} settings - The settings model containing configuration.
- * @param {number} campaignId - The ID of the campaign.
- * @param {number} variationId - The ID of the variation shown to the user.
- * @param {ContextModel} context - The user context model containing user-specific data.
- */
-var createAndSendImpressionForVariationShown = function (settings, campaignId, variationId, context) {
-  // Get base properties for the event
-  var properties = (0, NetworkUtil_1.getEventsBaseProperties)(settings, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()),
-  // Encode user agent to ensure URL safety
-  context.getIpAddress());
-  // Construct payload data for tracking the user
-  var payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context.getUserAgent(), context.getIpAddress());
-  // Send the constructed properties and payload as a POST request
-  (0, NetworkUtil_1.sendPostApiRequest)(properties, payload);
-};
-exports.createAndSendImpressionForVariationShown = createAndSendImpressionForVariationShown;
-
-/***/ }),
-
-/***/ "./dist/server-unpacked/utils/LogMessageUtil.js":
-/*!******************************************************!*\
-  !*** ./dist/server-unpacked/utils/LogMessageUtil.js ***!
-  \******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.buildMessage = void 0;
-/**
- * Copyright 2024 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
-var nargs = /\{([0-9a-zA-Z_]+)\}/g;
-/**
- * Constructs a message by replacing placeholders in a template with corresponding values from a data object.
- *
- * @param {string} template - The message template containing placeholders in the format `{key}`.
- * @param {Record<string, any>} data - An object containing keys and values used to replace the placeholders in the template.
- * @returns {string} The constructed message with all placeholders replaced by their corresponding values from the data object.
- */
-function buildMessage(template, data) {
-  if (data === void 0) {
-    data = {};
-  }
-  try {
-    return template.replace(nargs, function (match, key, index) {
-      // Check for escaped placeholders
-      if (template[index - 1] === '{' && template[index + match.length] === '}') {
-        return key;
-      }
-      // Retrieve the value from the data object
-      var value = data[key];
-      // If the key does not exist or the value is null/undefined, return an empty string
-      if (value === undefined || value === null) {
-        return '';
-      }
-      // If the value is a function, evaluate it
-      return (0, DataTypeUtil_1.isFunction)(value) ? value() : value;
-    });
-  } catch (err) {
-    return template; // Return the original template in case of an error
-  }
-}
-exports.buildMessage = buildMessage;
-
-/***/ }),
-
-/***/ "./dist/server-unpacked/utils/MegUtil.js":
-/*!***********************************************!*\
-  !*** ./dist/server-unpacked/utils/MegUtil.js ***!
-  \***********************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
 
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function (resolve) {
@@ -8832,12 +9369,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -8910,9 +9443,265 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getFeatureKeysFromGroup = exports.evaluateGroups = void 0;
+exports.createAndSendImpressionForVariationShown = void 0;
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Creates and sends an impression for a variation shown event.
+ * This function constructs the necessary properties and payload for the event
+ * and uses the NetworkUtil to send a POST API request.
+ *
+ * @param {SettingsModel} settings - The settings model containing configuration.
+ * @param {number} campaignId - The ID of the campaign.
+ * @param {number} variationId - The ID of the variation shown to the user.
+ * @param {ContextModel} context - The user context model containing user-specific data.
+ */
+var createAndSendImpressionForVariationShown = function (settings, campaignId, variationId, context) {
+  return __awaiter(void 0, void 0, void 0, function () {
+    var properties, payload;
+    return __generator(this, function (_a) {
+      switch (_a.label) {
+        case 0:
+          properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()),
+          // Encode user agent to ensure URL safety
+          context.getIpAddress());
+          payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context.getUserAgent(), context.getIpAddress());
+          // Send the constructed properties and payload as a POST request
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+        case 1:
+          // Send the constructed properties and payload as a POST request
+          _a.sent();
+          return [2 /*return*/];
+      }
+    });
+  });
+};
+exports.createAndSendImpressionForVariationShown = createAndSendImpressionForVariationShown;
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/utils/LogMessageUtil.js":
+/*!******************************************************!*\
+  !*** ./dist/server-unpacked/utils/LogMessageUtil.js ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.buildMessage = buildMessage;
+exports.sendLogToVWO = sendLogToVWO;
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
+var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
+var LogManager_1 = __webpack_require__(/*! ../packages/logger/core/LogManager */ "./dist/server-unpacked/packages/logger/core/LogManager.js");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
+var nargs = /\{([0-9a-zA-Z_]+)\}/g;
+var storedMessages = new Set();
+/**
+ * Constructs a message by replacing placeholders in a template with corresponding values from a data object.
+ *
+ * @param {string} template - The message template containing placeholders in the format `{key}`.
+ * @param {Record<string, any>} data - An object containing keys and values used to replace the placeholders in the template.
+ * @returns {string} The constructed message with all placeholders replaced by their corresponding values from the data object.
+ */
+function buildMessage(template, data) {
+  if (data === void 0) {
+    data = {};
+  }
+  try {
+    return template.replace(nargs, function (match, key, index) {
+      // Check for escaped placeholders
+      if (template[index - 1] === '{' && template[index + match.length] === '}') {
+        return key;
+      }
+      // Retrieve the value from the data object
+      var value = data[key];
+      // If the key does not exist or the value is null/undefined, return an empty string
+      if (value === undefined || value === null) {
+        return '';
+      }
+      // If the value is a function, evaluate it
+      return (0, DataTypeUtil_1.isFunction)(value) ? value() : value;
+    });
+  } catch (err) {
+    return template; // Return the original template in case of an error
+  }
+}
+/**
+ * Sends a log message to VWO.
+ * @param {string} message - The message to log.
+ * @param {string} messageType - The type of message to log.
+ */
+function sendLogToVWO(message, messageType) {
+  if (process.env.TEST_ENV === 'true') {
+    return;
+  }
+  var messageToSend = message + '-' + constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION;
+  if (!storedMessages.has(messageToSend)) {
+    // add the message to the set
+    storedMessages.add(messageToSend);
+    // create the query parameters
+    var properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_LOG_EVENT);
+    // create the payload
+    var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT);
+    // Send the constructed payload via POST request
+    (0, NetworkUtil_1.sendMessagingEvent)(properties, payload).catch(function (err) {
+      LogManager_1.LogManager.Instance.error(buildMessage(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+        method: HttpMethodEnum_1.HttpMethodEnum.POST + ' ' + EventEnum_1.EventEnum.VWO_LOG_EVENT,
+        err: err.getError()
+      }), false);
+    });
+  }
+}
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/utils/MegUtil.js":
+/*!***********************************************!*\
+  !*** ./dist/server-unpacked/utils/MegUtil.js ***!
+  \***********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+
+var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function (resolve) {
+      resolve(value);
+    });
+  }
+  return new (P || (P = Promise))(function (resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator = this && this.__generator || function (thisArg, body) {
+  var _ = {
+      label: 0,
+      sent: function () {
+        if (t[0] & 1) throw t[1];
+        return t[1];
+      },
+      trys: [],
+      ops: []
+    },
+    f,
+    y,
+    t,
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    return this;
+  }), g;
+  function verb(n) {
+    return function (v) {
+      return step([n, v]);
+    };
+  }
+  function step(op) {
+    if (f) throw new TypeError("Generator is already executing.");
+    while (g && (g = 0, op[0] && (_ = 0)), _) try {
+      if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+      if (y = 0, t) op = [op[0] & 2, t.value];
+      switch (op[0]) {
+        case 0:
+        case 1:
+          t = op;
+          break;
+        case 4:
+          _.label++;
+          return {
+            value: op[1],
+            done: false
+          };
+        case 5:
+          _.label++;
+          y = op[1];
+          op = [0];
+          continue;
+        case 7:
+          op = _.ops.pop();
+          _.trys.pop();
+          continue;
+        default:
+          if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+            _ = 0;
+            continue;
+          }
+          if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+            _.label = op[1];
+            break;
+          }
+          if (op[0] === 6 && _.label < t[1]) {
+            _.label = t[1];
+            t = op;
+            break;
+          }
+          if (t && _.label < t[2]) {
+            _.label = t[2];
+            _.ops.push(op);
+            break;
+          }
+          if (t[2]) _.ops.pop();
+          _.trys.pop();
+          continue;
+      }
+      op = body.call(thisArg, _);
+    } catch (e) {
+      op = [6, e];
+      y = 0;
+    } finally {
+      f = t = 0;
+    }
+    if (op[0] & 5) throw op[1];
+    return {
+      value: op[0] ? op[1] : void 0,
+      done: true
+    };
+  }
+};
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.evaluateGroups = void 0;
+exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8962,12 +9751,11 @@ var evaluateGroups = function (settings, feature, groupId, evaluatedFeatureMap, 
           campaignMap = new Map();
           _a = getFeatureKeysFromGroup(settings, groupId), featureKeys = _a.featureKeys, groupCampaignIds = _a.groupCampaignIds;
           _loop_1 = function (featureKey) {
-            var feature_1, featureCampaignIds, isRolloutRulePassed;
+            var feature_1, isRolloutRulePassed;
             return __generator(this, function (_d) {
               switch (_d.label) {
                 case 0:
                   feature_1 = (0, FunctionUtil_1.getFeatureFromKey)(settings, featureKey);
-                  featureCampaignIds = (0, CampaignUtil_1.getCampaignIdsFromFeatureKey)(settings, featureKey);
                   // check if the feature is already evaluated
                   if (featureToSkip.includes(featureKey)) {
                     return [2 /*return*/, "continue"];
@@ -8976,19 +9764,21 @@ var evaluateGroups = function (settings, feature, groupId, evaluatedFeatureMap, 
                 case 1:
                   isRolloutRulePassed = _d.sent();
                   if (isRolloutRulePassed) {
-                    settings.getCampaigns().forEach(function (campaign) {
-                      // groupCampaignIds.includes(campaign.getId()) -> campaign we are adding should be in the group
-                      // featureCampaignIds.includes(campaign.getId()) -> checks that campaign should be part of the feature that we evaluated
-                      if (groupCampaignIds.includes(campaign.getId()) && featureCampaignIds.includes(campaign.getId())) {
-                        if (!campaignMap.has(featureKey)) {
-                          campaignMap.set(featureKey, []);
-                        }
-                        // check if the campaign is already present in the campaignMap for the feature
-                        if (campaignMap.get(featureKey).findIndex(function (item) {
-                          return item.key === campaign.getKey();
-                        }) === -1) {
-                          campaignMap.get(featureKey).push(campaign);
-                        }
+                    settings.getFeatures().forEach(function (feature) {
+                      if (feature.getKey() === featureKey) {
+                        feature.getRulesLinkedCampaign().forEach(function (rule) {
+                          if (groupCampaignIds.includes(rule.getId().toString()) || groupCampaignIds.includes("".concat(rule.getId(), "_").concat(rule.getVariations()[0].getId()).toString())) {
+                            if (!campaignMap.has(featureKey)) {
+                              campaignMap.set(featureKey, []);
+                            }
+                            // check if the campaign is already present in the campaignMap for the feature
+                            if (campaignMap.get(featureKey).findIndex(function (item) {
+                              return item.ruleKey === rule.getRuleKey();
+                            }) === -1) {
+                              campaignMap.get(featureKey).push(rule);
+                            }
+                          }
+                        });
                       }
                     });
                   }
@@ -9012,7 +9802,7 @@ var evaluateGroups = function (settings, feature, groupId, evaluatedFeatureMap, 
           return [4 /*yield*/, _getEligbleCampaigns(settings, campaignMap, context, storageService)];
         case 5:
           _b = _c.sent(), eligibleCampaigns = _b.eligibleCampaigns, eligibleCampaignsWithStorage = _b.eligibleCampaignsWithStorage;
-          return [4 /*yield*/, _findWinnerCampaignAmongEligibleCampaigns(settings, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context)];
+          return [4 /*yield*/, _findWinnerCampaignAmongEligibleCampaigns(settings, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService)];
         case 6:
           return [2 /*return*/, _c.sent()];
       }
@@ -9035,7 +9825,6 @@ function getFeatureKeysFromGroup(settings, groupId) {
     groupCampaignIds: groupCampaignIds
   };
 }
-exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
 /*******************************
  * PRIVATE methods - MegUtil
  ******************************/
@@ -9158,8 +9947,8 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
                 case 2:
                   // Check if user is eligible for the campaign
                   if (_d.sent() && new CampaignDecisionService_1.CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign)) {
-                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
-                      campaignKey: campaign.getKey(),
+                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_ELIGIBLE, {
+                      campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
                       userId: context.getId()
                     }));
                     eligibleCampaigns.push(campaign);
@@ -9206,7 +9995,7 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
  * @param context - The context model.
  * @returns A promise that resolves to the winner campaign.
  */
-var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context) {
+var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService) {
   return __awaiter(void 0, void 0, void 0, function () {
     var winnerCampaign, campaignIds, megAlgoNumber;
     var _a;
@@ -9218,31 +10007,31 @@ var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, 
       if (eligibleCampaignsWithStorage.length === 1) {
         winnerCampaign = eligibleCampaignsWithStorage[0];
         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-          campaignKey: eligibleCampaignsWithStorage[0].getKey(),
+          campaignKey: eligibleCampaignsWithStorage[0].getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? eligibleCampaignsWithStorage[0].getKey() : eligibleCampaignsWithStorage[0].getName() + '_' + eligibleCampaignsWithStorage[0].getRuleKey(),
           groupId: groupId,
           userId: context.getId(),
           algo: ''
         }));
       } else if (eligibleCampaignsWithStorage.length > 1 && megAlgoNumber === constants_1.Constants.RANDOM_ALGO) {
         // if eligibleCampaignsWithStorage has more than one campaign and algo is random, then find the winner using random algo
-        winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaignsWithStorage, context, campaignIds, groupId);
+        winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
       } else if (eligibleCampaignsWithStorage.length > 1) {
         // if eligibleCampaignsWithStorage has more than one campaign and algo is not random, then find the winner using advanced algo
-        winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaignsWithStorage, context, campaignIds, groupId);
+        winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
       }
       if (eligibleCampaignsWithStorage.length === 0) {
         if (eligibleCampaigns.length === 1) {
           winnerCampaign = eligibleCampaigns[0];
           logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-            campaignKey: eligibleCampaigns[0].getKey(),
+            campaignKey: eligibleCampaigns[0].getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? eligibleCampaigns[0].getKey() : eligibleCampaigns[0].getName() + '_' + eligibleCampaigns[0].getRuleKey(),
             groupId: groupId,
             userId: context.getId(),
             algo: ''
           }));
         } else if (eligibleCampaigns.length > 1 && megAlgoNumber === constants_1.Constants.RANDOM_ALGO) {
-          winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaigns, context, campaignIds, groupId);
+          winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaigns, context, campaignIds, groupId, storageService);
         } else if (eligibleCampaigns.length > 1) {
-          winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaigns, context, campaignIds, groupId);
+          winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaigns, context, campaignIds, groupId, storageService);
         }
       }
       return [2 /*return*/, winnerCampaign];
@@ -9258,10 +10047,10 @@ var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, 
  * @param groupId - The ID of the group.
  * @returns The winning campaign or null if none is found.
  */
-var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, context, calledCampaignIds, groupId) {
+var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
   // Normalize the weights of all the shortlisted campaigns
   shortlistedCampaigns.forEach(function (campaign) {
-    campaign.weight = Math.floor(100 / shortlistedCampaigns.length);
+    campaign.weight = Math.round(100 / shortlistedCampaigns.length * 10000) / 10000;
   });
   // make shortlistedCampaigns as array of VariationModel
   shortlistedCampaigns = shortlistedCampaigns.map(function (campaign) {
@@ -9271,13 +10060,22 @@ var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, co
   (0, CampaignUtil_1.setCampaignAllocation)(shortlistedCampaigns);
   var winnerCampaign = new CampaignDecisionService_1.CampaignDecisionService().getVariation(shortlistedCampaigns, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getId(), undefined, groupId)));
   logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-    campaignKey: winnerCampaign.getKey(),
+    campaignKey: winnerCampaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? winnerCampaign.getKey() : winnerCampaign.getKey() + '_' + winnerCampaign.getRuleKey(),
     groupId: groupId,
     userId: context.getId(),
     algo: 'using random algorithm'
   }));
-  if (winnerCampaign && calledCampaignIds.includes(winnerCampaign.getId())) {
-    return winnerCampaign;
+  if (winnerCampaign) {
+    new StorageDecorator_1.StorageDecorator().setDataInStorage({
+      featureKey: "".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId),
+      context: context,
+      experimentId: winnerCampaign.getId(),
+      experimentKey: winnerCampaign.getKey(),
+      experimentVariationId: winnerCampaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? winnerCampaign.getVariations()[0].getId() : -1
+    }, storageService);
+    if (calledCampaignIds.includes(winnerCampaign.getId())) {
+      return winnerCampaign;
+    }
   }
   return null;
 };
@@ -9291,14 +10089,18 @@ var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, co
  * @param groupId - The ID of the group.
  * @returns The winning campaign or null if none is found.
  */
-var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, context, calledCampaignIds, groupId) {
+var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
   var winnerCampaign = null;
   var found = false; // flag to check whether winnerCampaign has been found or not and helps to break from the outer loop
   var priorityOrder = !(0, DataTypeUtil_1.isUndefined)(settings.getGroups()[groupId].p) ? settings.getGroups()[groupId].p : {};
   var wt = !(0, DataTypeUtil_1.isUndefined)(settings.getGroups()[groupId].wt) ? settings.getGroups()[groupId].wt : {};
   for (var i = 0; i < priorityOrder.length; i++) {
     for (var j = 0; j < shortlistedCampaigns.length; j++) {
-      if (shortlistedCampaigns[j].id === priorityOrder[i]) {
+      if (shortlistedCampaigns[j].id == priorityOrder[i]) {
+        winnerCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[j]);
+        found = true;
+        break;
+      } else if (shortlistedCampaigns[j].id + '_' + shortlistedCampaigns[j].variations[0].id === priorityOrder[i]) {
         winnerCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[j]);
         found = true;
         break;
@@ -9317,6 +10119,10 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
         var clonedCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[i]);
         clonedCampaign.weight = wt[campaignId];
         participatingCampaignList.push(clonedCampaign);
+      } else if (!(0, DataTypeUtil_1.isUndefined)(wt[campaignId + '_' + shortlistedCampaigns[i].variations[0].id])) {
+        var clonedCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[i]);
+        clonedCampaign.weight = wt[campaignId + '_' + shortlistedCampaigns[i].variations[0].id];
+        participatingCampaignList.push(clonedCampaign);
       }
     }
     /* Finding winner campaign using weighted Distibution :
@@ -9333,14 +10139,34 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
   }
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
   // also shortlistedCampaigns and wt array does not have a single campaign id in common
-  logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-    campaignKey: winnerCampaign.key,
-    groupId: groupId,
-    userId: context.getId(),
-    algo: 'using advanced algorithm'
-  }));
-  if (calledCampaignIds.includes(winnerCampaign.id)) {
-    return winnerCampaign;
+  if (winnerCampaign) {
+    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+      campaignKey: winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB ? winnerCampaign.key : winnerCampaign.key + '_' + winnerCampaign.ruleKey,
+      groupId: groupId,
+      userId: context.getId(),
+      algo: 'using advanced algorithm'
+    }));
+  } else {
+    // TODO -- Log the error message
+    // LogManager.Instance.info(
+    //   buildMessage(InfoLogMessagesEnum.MEG_NO_WINNER_CAMPAIGN, {
+    //     groupId,
+    //     userId: context.getId(),
+    //   }),
+    // );
+    logger_1.LogManager.Instance.info("No winner campaign found for MEG group: ".concat(groupId));
+  }
+  if (winnerCampaign) {
+    new StorageDecorator_1.StorageDecorator().setDataInStorage({
+      featureKey: "".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId),
+      context: context,
+      experimentId: winnerCampaign.id,
+      experimentKey: winnerCampaign.key,
+      experimentVariationId: winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? winnerCampaign.variations[0].id : -1
+    }, storageService);
+    if (calledCampaignIds.includes(winnerCampaign.id)) {
+      return winnerCampaign;
+    }
   }
   return null;
 };
@@ -9395,12 +10221,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -9473,9 +10295,23 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.sendGetApiRequest = exports.sendPostApiRequest = exports.getAttributePayloadData = exports.getTrackGoalPayloadData = exports.getTrackUserPayloadData = exports._getEventBasePayload = exports.getEventsBaseProperties = exports.getEventBatchingQueryParams = exports.getTrackEventPath = exports.getSettingsPath = exports.getBasePropertiesForBulk = void 0;
+exports.getBasePropertiesForBulk = getBasePropertiesForBulk;
+exports.getSettingsPath = getSettingsPath;
+exports.getTrackEventPath = getTrackEventPath;
+exports.getEventBatchingQueryParams = getEventBatchingQueryParams;
+exports.getEventsBaseProperties = getEventsBaseProperties;
+exports._getEventBasePayload = _getEventBasePayload;
+exports.getTrackUserPayloadData = getTrackUserPayloadData;
+exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
+exports.getAttributePayloadData = getAttributePayloadData;
+exports.sendPostApiRequest = sendPostApiRequest;
+exports.sendGetApiRequest = sendGetApiRequest;
+exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
+exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
+exports.getMessagingEventPayload = getMessagingEventPayload;
+exports.sendMessagingEvent = sendMessagingEvent;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9502,6 +10338,8 @@ var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "
 var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./dist/server-unpacked/utils/UrlUtil.js");
+var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
+var Url_1 = __webpack_require__(/*! ../constants/Url */ "./dist/server-unpacked/constants/Url.js");
 /**
  * Constructs base properties for bulk operations.
  * @param {string} accountId - The account identifier.
@@ -9516,7 +10354,6 @@ function getBasePropertiesForBulk(accountId, userId) {
   };
   return path;
 }
-exports.getBasePropertiesForBulk = getBasePropertiesForBulk;
 /**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
@@ -9533,7 +10370,6 @@ function getSettingsPath(sdkKey, accountId) {
   };
   return path;
 }
-exports.getSettingsPath = getSettingsPath;
 /**
  * Constructs the tracking path for an event.
  * @param {string} event - The event type.
@@ -9567,7 +10403,6 @@ function getTrackEventPath(event, accountId, userId) {
   };
   return path;
 }
-exports.getTrackEventPath = getTrackEventPath;
 /**
  * Constructs query parameters for event batching.
  * @param {string} accountId - The account identifier.
@@ -9583,24 +10418,23 @@ function getEventBatchingQueryParams(accountId) {
   };
   return path;
 }
-exports.getEventBatchingQueryParams = getEventBatchingQueryParams;
 /**
  * Builds generic properties for different tracking calls required by VWO servers.
  * @param {Object} configObj
  * @param {String} eventName
  * @returns properties
  */
-function getEventsBaseProperties(setting, eventName, visitorUserAgent, ipAddress) {
+function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress) {
   if (visitorUserAgent === void 0) {
     visitorUserAgent = '';
   }
   if (ipAddress === void 0) {
     ipAddress = '';
   }
-  var sdkKey = setting.getSdkkey();
+  var sdkKey = SettingsService_1.SettingsService.Instance.sdkKey;
   var properties = Object.assign({
     en: eventName,
-    a: setting.getAccountId(),
+    a: SettingsService_1.SettingsService.Instance.accountId,
     env: sdkKey,
     eTime: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)(),
     random: (0, FunctionUtil_1.getRandomNumber)(),
@@ -9611,7 +10445,6 @@ function getEventsBaseProperties(setting, eventName, visitorUserAgent, ipAddress
   properties.url = constants_1.Constants.HTTPS_PROTOCOL + UrlUtil_1.UrlUtil.getBaseUrl() + UrlEnum_1.UrlEnum.EVENTS;
   return properties;
 }
-exports.getEventsBaseProperties = getEventsBaseProperties;
 /**
  * Builds generic payload required by all the different tracking calls.
  * @param {Object} settings   settings file
@@ -9626,8 +10459,8 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipA
   if (ipAddress === void 0) {
     ipAddress = '';
   }
-  var uuid = (0, UuidUtil_1.getUUID)(userId.toString(), settings.getAccountId());
-  var sdkKey = settings.getSdkkey();
+  var uuid = (0, UuidUtil_1.getUUID)(userId.toString(), SettingsService_1.SettingsService.Instance.accountId.toString());
+  var sdkKey = SettingsService_1.SettingsService.Instance.sdkKey;
   var props = {
     vwo_sdkName: constants_1.Constants.SDK_NAME,
     vwo_sdkVersion: constants_1.Constants.SDK_VERSION,
@@ -9654,7 +10487,6 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipA
   };
   return properties;
 }
-exports._getEventBasePayload = _getEventBasePayload;
 /**
  * Builds payload to track the visitor.
  * @param {Object} configObj
@@ -9682,7 +10514,6 @@ function getTrackUserPayloadData(settings, userId, eventName, campaignId, variat
   }));
   return properties;
 }
-exports.getTrackUserPayloadData = getTrackUserPayloadData;
 /**
  * Constructs the payload data for tracking goals with custom event properties.
  * @param {any} settings - Configuration settings.
@@ -9710,26 +10541,24 @@ function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, v
       properties.d.event.props[prop] = eventProperties[prop];
     }
   }
-  logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+  logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_GOAL, {
     eventName: eventName,
     accountId: settings.getAccountId(),
     userId: userId
   }));
   return properties;
 }
-exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 /**
- * Constructs the payload data for syncing visitor attributes.
- * @param {any} settings - Configuration settings.
- * @param {any} userId - User identifier.
- * @param {string} eventName - Name of the event.
- * @param {any} attributeKey - Key of the attribute to sync.
- * @param {any} attributeValue - Value of the attribute.
- * @param {string} [visitorUserAgent=''] - Visitor's user agent.
- * @param {string} [ipAddress=''] - Visitor's IP address.
- * @returns {any} - The constructed payload data.
+ * Constructs the payload data for syncing multiple visitor attributes.
+ * @param {SettingsModel} settings - Configuration settings.
+ * @param {string | number} userId - User ID.
+ * @param {string} eventName - Event name.
+ * @param {Record<string, any>} attributes - Key-value map of attributes.
+ * @param {string} [visitorUserAgent=''] - Visitor's User-Agent (optional).
+ * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
+ * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
-function getAttributePayloadData(settings, userId, eventName, attributeKey, attributeValue, visitorUserAgent, ipAddress) {
+function getAttributePayloadData(settings, userId, eventName, attributes, visitorUserAgent, ipAddress) {
   if (visitorUserAgent === void 0) {
     visitorUserAgent = '';
   }
@@ -9739,37 +10568,61 @@ function getAttributePayloadData(settings, userId, eventName, attributeKey, attr
   var properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
   properties.d.event.props.isCustomEvent = true; // Mark as a custom event
   properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
-  properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
-  logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+  // Iterate over the attributes map and append to the visitor properties
+  for (var _i = 0, _a = Object.entries(attributes); _i < _a.length; _i++) {
+    var _b = _a[_i],
+      key = _b[0],
+      value = _b[1];
+    properties.d.visitor.props[key] = value;
+  }
+  logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
     eventName: eventName,
     accountId: settings.getAccountId(),
     userId: userId
   }));
   return properties;
 }
-exports.getAttributePayloadData = getAttributePayloadData;
 /**
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
+ * @param {string} userId - User ID.
  */
-function sendPostApiRequest(properties, payload) {
-  network_layer_1.NetworkManager.Instance.attachClient();
-  var headers = {};
-  var userAgent = payload.d.visitor_ua; // Extract user agent from payload
-  var ipAddress = payload.d.visitor_ip; // Extract IP address from payload
-  // Set headers if available
-  if (userAgent) headers[HeadersEnum_1.HeadersEnum.USER_AGENT] = userAgent;
-  if (ipAddress) headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
-  var request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
-  network_layer_1.NetworkManager.Instance.post(request).catch(function (err) {
-    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-      method: HttpMethodEnum_1.HttpMethodEnum.POST,
-      err: (0, DataTypeUtil_1.isObject)(err) ? JSON.stringify(err) : err
-    }));
+function sendPostApiRequest(properties, payload, userId) {
+  return __awaiter(this, void 0, void 0, function () {
+    var headers, userAgent, ipAddress, request;
+    return __generator(this, function (_a) {
+      switch (_a.label) {
+        case 0:
+          network_layer_1.NetworkManager.Instance.attachClient();
+          headers = {};
+          userAgent = payload.d.visitor_ua;
+          ipAddress = payload.d.visitor_ip;
+          // Set headers if available
+          if (userAgent) headers[HeadersEnum_1.HeadersEnum.USER_AGENT] = userAgent;
+          if (ipAddress) headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
+          request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+          return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request).then(function () {
+            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
+              event: properties.en,
+              endPoint: UrlEnum_1.UrlEnum.EVENTS,
+              accountId: SettingsService_1.SettingsService.Instance.accountId,
+              userId: userId,
+              uuid: payload.d.visId
+            }));
+          }).catch(function (err) {
+            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+              method: HttpMethodEnum_1.HttpMethodEnum.POST,
+              err: (0, DataTypeUtil_1.isObject)(err) ? JSON.stringify(err) : err
+            }));
+          })];
+        case 1:
+          _a.sent();
+          return [2 /*return*/];
+      }
+    });
   });
 }
-exports.sendPostApiRequest = sendPostApiRequest;
 /**
  * Sends a GET API request to the specified endpoint with the given properties.
  * @param {any} properties - Properties for the request.
@@ -9805,7 +10658,76 @@ function sendGetApiRequest(properties, endpoint) {
     });
   });
 }
-exports.sendGetApiRequest = sendGetApiRequest;
+// Flag to determine if the SDK should wait for a network response.
+var shouldWaitForTrackingCalls = false;
+/**
+ * Checks if the SDK should wait for a network response.
+ * @returns {boolean} - True if the SDK should wait for a network response, false otherwise.
+ */
+function getShouldWaitForTrackingCalls() {
+  return shouldWaitForTrackingCalls;
+}
+/**
+ * Sets the value to determine if the SDK should wait for a network response.
+ * @param value - The value to set.
+ */
+function setShouldWaitForTrackingCalls(value) {
+  shouldWaitForTrackingCalls = value;
+}
+/**
+ * Constructs the payload for a messaging event.
+ * @param messageType - The type of the message.
+ * @param message - The message to send.
+ * @param eventName - The name of the event.
+ * @returns The constructed payload.
+ */
+function getMessagingEventPayload(messageType, message, eventName) {
+  var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
+  var properties = _getEventBasePayload(null, userId, eventName, null, null);
+  properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey; // Set environment key
+  properties.d.event.props.product = 'fme';
+  var data = {
+    type: messageType,
+    content: {
+      title: message,
+      dateTime: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)()
+    }
+  };
+  properties.d.event.props.data = data;
+  return properties;
+}
+/**
+ * Sends a messaging event to DACDN
+ * @param properties - Query parameters for the request.
+ * @param payload - The payload for the request.
+ * @returns A promise that resolves to the response from DACDN.
+ */
+function sendMessagingEvent(properties, payload) {
+  return __awaiter(this, void 0, void 0, function () {
+    var deferredObject, networkInstance, request;
+    return __generator(this, function (_a) {
+      deferredObject = new PromiseUtil_1.Deferred();
+      networkInstance = network_layer_1.NetworkManager.Instance;
+      try {
+        request = new network_layer_1.RequestModel(constants_1.Constants.HOST_NAME, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null);
+        // Perform the network GET request
+        networkInstance.post(request).then(function (response) {
+          // Resolve the deferred object with the data from the response
+          deferredObject.resolve(response.getData());
+        }).catch(function (err) {
+          // Reject the deferred object with the error response
+          deferredObject.reject(err);
+        });
+        return [2 /*return*/, deferredObject.promise];
+      } catch (err) {
+        // Resolve the promise with false as fallback
+        deferredObject.resolve(false);
+        return [2 /*return*/, deferredObject.promise];
+      }
+      return [2 /*return*/];
+    });
+  });
+}
 
 /***/ }),
 
@@ -9820,7 +10742,7 @@ exports.sendGetApiRequest = sendGetApiRequest;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.Deferred = void 0;
+exports.Deferred = Deferred;
 /**
  * Creates a Deferred object with properties for promise, resolve, and reject.
  * This allows manual control over the resolution and rejection of a promise.
@@ -9835,7 +10757,6 @@ function Deferred() {
   });
   return this; // Return the Deferred object with attached methods
 }
-exports.Deferred = Deferred;
 
 /***/ }),
 
@@ -9887,12 +10808,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -9968,6 +10885,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.evaluateRule = void 0;
 var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var DecisionUtil_1 = __webpack_require__(/*! ./DecisionUtil */ "./dist/server-unpacked/utils/DecisionUtil.js");
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var ImpressionUtil_1 = __webpack_require__(/*! ./ImpressionUtil */ "./dist/server-unpacked/utils/ImpressionUtil.js");
 /**
  * Evaluates the rules for a given campaign and feature based on the provided context.
@@ -9994,17 +10912,22 @@ var evaluateRule = function (settings, feature, campaign, context, evaluatedFeat
           return [4 /*yield*/, (0, DecisionUtil_1.checkWhitelistingAndPreSeg)(settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
         case 1:
           _a = _b.sent(), preSegmentationResult = _a[0], whitelistedObject = _a[1];
-          // If pre-segmentation is successful and a whitelisted object exists, proceed to send an impression
-          if (preSegmentationResult && (0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0) {
-            // Update the decision object with campaign and variation details
-            Object.assign(decision, {
-              experimentId: campaign.getId(),
-              experimentKey: campaign.getKey(),
-              experimentVariationId: whitelistedObject.variationId
-            });
-            // Send an impression for the variation shown
-            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context);
-          }
+          if (!(preSegmentationResult && (0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0)) return [3 /*break*/, 4];
+          // Update the decision object with campaign and variation details
+          Object.assign(decision, {
+            experimentId: campaign.getId(),
+            experimentKey: campaign.getKey(),
+            experimentVariationId: whitelistedObject.variationId
+          });
+          if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 3];
+          return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context)];
+        case 2:
+          _b.sent();
+          return [3 /*break*/, 4];
+        case 3:
+          (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context);
+          _b.label = 4;
+        case 4:
           // Return the results of the evaluation
           return [2 /*return*/, {
             preSegmentationResult: preSegmentationResult,
@@ -10030,27 +10953,18 @@ exports.evaluateRule = evaluateRule;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.setSettingsAndAddCampaignsToRules = void 0;
-/**
- * Copyright 2024 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+exports.setSettingsAndAddCampaignsToRules = setSettingsAndAddCampaignsToRules;
 var SettingsModel_1 = __webpack_require__(/*! ../models/settings/SettingsModel */ "./dist/server-unpacked/models/settings/SettingsModel.js");
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var GatewayServiceUtil_1 = __webpack_require__(/*! ./GatewayServiceUtil */ "./dist/server-unpacked/utils/GatewayServiceUtil.js");
+/**
+ * Sets settings and adds campaigns to rules
+ * @param settings settings
+ * @param vwoClientInstance VWOClient instance
+ */
 function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance) {
+  // create settings model and set it to vwoClientInstance
   vwoClientInstance.settings = new SettingsModel_1.SettingsModel(settings);
   vwoClientInstance.originalSettings = settings;
   // Optimize loop by avoiding multiple calls to `getCampaigns()`
@@ -10062,7 +10976,6 @@ function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance) {
   (0, FunctionUtil_1.addLinkedCampaignsToSettings)(vwoClientInstance.settings);
   (0, GatewayServiceUtil_1.addIsGatewayServiceRequiredFlag)(vwoClientInstance.settings);
 }
-exports.setSettingsAndAddCampaignsToRules = setSettingsAndAddCampaignsToRules;
 
 /***/ }),
 
@@ -10079,7 +10992,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.UrlUtil = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10143,9 +11056,11 @@ exports.UrlUtil = {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.generateUUID = exports.getUUID = exports.getRandomUUID = void 0;
+exports.getRandomUUID = getRandomUUID;
+exports.getUUID = getUUID;
+exports.generateUUID = generateUUID;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10174,7 +11089,6 @@ function getRandomUUID(sdkKey) {
   var randomUUID = (0, uuid_2.v5)((0, uuid_1.v4)(), namespace);
   return randomUUID;
 }
-exports.getRandomUUID = getRandomUUID;
 /**
  * Generates a UUID for a user based on their userId and accountId.
  * @param userId The user's ID.
@@ -10194,7 +11108,6 @@ function getUUID(userId, accountId) {
   var desiredUuid = uuidForUserIdAccountId === null || uuidForUserIdAccountId === void 0 ? void 0 : uuidForUserIdAccountId.replace(/-/gi, '').toUpperCase();
   return desiredUuid;
 }
-exports.getUUID = getUUID;
 /**
  * Helper function to generate a UUID v5 based on a name and a namespace.
  * @param name The name from which to generate the UUID.
@@ -10209,7 +11122,6 @@ function generateUUID(name, namespace) {
   // Generate and return the UUID v5
   return (0, uuid_2.v5)(name, namespace);
 }
-exports.generateUUID = generateUUID;
 
 /***/ }),
 
@@ -10224,9 +11136,10 @@ exports.generateUUID = generateUUID;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.sendPostCall = exports.sendGetCall = void 0;
+exports.sendGetCall = sendGetCall;
+exports.sendPostCall = sendPostCall;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10244,80 +11157,114 @@ var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dis
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
 var noop = function () {};
 function sendGetCall(options) {
   sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options);
 }
-exports.sendGetCall = sendGetCall;
 function sendPostCall(options) {
   sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options);
 }
-exports.sendPostCall = sendPostCall;
 function sendRequest(method, options) {
   var networkOptions = options.networkOptions,
     _a = options.successCallback,
     successCallback = _a === void 0 ? noop : _a,
     _b = options.errorCallback,
     errorCallback = _b === void 0 ? noop : _b;
-  var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
-  if (networkOptions.port) {
-    url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
-  }
-  var body = networkOptions.body;
-  var customHeaders = networkOptions.headers || {};
-  var timeout = networkOptions.timeout;
-  var xhr = new XMLHttpRequest();
-  if (timeout) {
-    xhr.timeout = timeout;
-  }
-  xhr.onload = function () {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      var response = xhr.responseText;
-      if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-        var parsedResponse = JSON.parse(response);
-        successCallback(parsedResponse);
+  var retryCount = 0;
+  function executeRequest() {
+    var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+    if (networkOptions.port) {
+      url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
+    }
+    var body = networkOptions.body;
+    var customHeaders = networkOptions.headers || {};
+    var timeout = networkOptions.timeout;
+    var xhr = new XMLHttpRequest();
+    if (timeout) {
+      xhr.timeout = timeout;
+    }
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        var response = xhr.responseText;
+        if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+          var parsedResponse = JSON.parse(response);
+          successCallback(parsedResponse);
+        } else {
+          successCallback(response);
+        }
+      } else if (xhr.status === 400) {
+        errorCallback(xhr.statusText);
       } else {
-        successCallback(response);
+        handleError(xhr.statusText);
       }
-    } else {
-      errorCallback(xhr.statusText);
-    }
-  };
-  // Set up a callback function that is called if the request fails
-  xhr.onerror = function () {
-    // An error occurred during the transaction
-    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-      method: HttpMethodEnum_1.HttpMethodEnum.POST,
-      err: "".concat(xhr.statusText, ", status: ").concat(xhr.status)
-    }));
-    errorCallback(xhr.statusText);
-  };
-  // Set up a callback function that is called if the request times out
-  if (timeout) {
-    xhr.ontimeout = function () {
-      // The request timed out
-      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-        method: HttpMethodEnum_1.HttpMethodEnum.POST,
-        err: "Request timed out"
-      }));
     };
-  }
-  xhr.open(method, url, true);
-  for (var headerName in customHeaders) {
-    if (headerName in customHeaders) {
-      // Skip the Content-Type header
-      // Request header field content-type is not allowed by Access-Control-Allow-Headers
-      if (headerName !== 'Content-Type' && headerName !== 'Content-Length') {
-        xhr.setRequestHeader(headerName, customHeaders[headerName]);
+    xhr.onerror = function () {
+      handleError("".concat(xhr.statusText, ", status: ").concat(xhr.status));
+    };
+    if (timeout) {
+      xhr.ontimeout = function () {
+        handleError('Request timed out');
+      };
+    }
+    function handleError(error) {
+      if (retryCount < constants_1.Constants.MAX_RETRIES) {
+        retryCount++;
+        var delay = constants_1.Constants.RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
+          endPoint: url.split('?')[0],
+          err: error,
+          delay: delay / 1000,
+          attempt: retryCount,
+          maxRetries: constants_1.Constants.MAX_RETRIES
+        }));
+        setTimeout(executeRequest, delay);
+      } else {
+        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+          endPoint: url.split('?')[0],
+          err: error
+        }));
+        errorCallback(error);
       }
     }
+    xhr.open(method, url, true);
+    for (var headerName in customHeaders) {
+      if (headerName in customHeaders) {
+        // Skip the Content-Type header
+        // Request header field content-type is not allowed by Access-Control-Allow-Headers
+        if (headerName !== 'Content-Type' && headerName !== 'Content-Length') {
+          xhr.setRequestHeader(headerName, customHeaders[headerName]);
+        }
+      }
+    }
+    if (method === HttpMethodEnum_1.HttpMethodEnum.POST && typeof body !== 'string') {
+      xhr.send(JSON.stringify(body));
+    } else if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+      xhr.send();
+    }
   }
-  if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
-    xhr.send(JSON.stringify(body));
-  } else if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-    xhr.send();
-  }
+  executeRequest();
 }
+
+/***/ }),
+
+/***/ "http":
+/*!***********************!*\
+  !*** external "http" ***!
+  \***********************/
+/***/ ((module) => {
+
+module.exports = require("http");
+
+/***/ }),
+
+/***/ "https":
+/*!************************!*\
+  !*** external "https" ***!
+  \************************/
+/***/ ((module) => {
+
+module.exports = require("https");
 
 /***/ }),
 
@@ -10359,36 +11306,6 @@ module.exports = require("uuid");
 
 module.exports = require("vwo-fme-sdk-log-messages");
 
-/***/ }),
-
-/***/ "http":
-/*!***********************!*\
-  !*** external "http" ***!
-  \***********************/
-/***/ ((module) => {
-
-module.exports = require("http");
-
-/***/ }),
-
-/***/ "https":
-/*!************************!*\
-  !*** external "https" ***!
-  \************************/
-/***/ ((module) => {
-
-module.exports = require("https");
-
-/***/ }),
-
-/***/ "./dist/package.json":
-/*!***************************!*\
-  !*** ./dist/package.json ***!
-  \***************************/
-/***/ ((module) => {
-
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.5.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^0.1.2"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.1.1","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
-
 /***/ })
 
 /******/ 	});
@@ -10419,7 +11336,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
 var exports = __webpack_exports__;
 /*!***************************************!*\
@@ -10428,7 +11345,7 @@ var exports = __webpack_exports__;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

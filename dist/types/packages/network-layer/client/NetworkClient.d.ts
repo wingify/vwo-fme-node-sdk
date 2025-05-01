@@ -17,4 +17,13 @@ export declare class NetworkClient implements NetworkClientInterface {
    * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
    */
   POST(request: RequestModel): Promise<ResponseModel>;
+  /**
+   * Helper function to retry or reject
+   * @param {any} error - The error to retry or reject
+   * @param {number} attempt - The attempt number
+   * @param {any} deferred - The deferred object
+   * @param {string} operation - The operation to retry or reject
+   * @param {Function} attemptRequest - The function to attempt the request
+   */
+  private retryOrReject;
 }

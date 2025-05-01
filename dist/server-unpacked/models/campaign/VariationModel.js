@@ -12,6 +12,9 @@ var VariationModel = /** @class */ (function () {
         this.id = variation.i || variation.id;
         this.key = variation.n || variation.key || variation.name;
         this.weight = variation.w || variation.weight;
+        this.ruleKey = variation.ruleKey;
+        this.salt = variation.salt;
+        this.type = variation.type;
         this.setStartRange(variation.startRangeVariation);
         this.setEndRange(variation.endRangeVariation);
         if (variation.seg || variation.segments) {
@@ -56,6 +59,9 @@ var VariationModel = /** @class */ (function () {
     VariationModel.prototype.getKey = function () {
         return this.key;
     };
+    VariationModel.prototype.getRuleKey = function () {
+        return this.ruleKey;
+    };
     VariationModel.prototype.getWeight = function () {
         return this.weight;
     };
@@ -73,6 +79,12 @@ var VariationModel = /** @class */ (function () {
     };
     VariationModel.prototype.getVariations = function () {
         return this.variations;
+    };
+    VariationModel.prototype.getType = function () {
+        return this.type;
+    };
+    VariationModel.prototype.getSalt = function () {
+        return this.salt;
     };
     return VariationModel;
 }());

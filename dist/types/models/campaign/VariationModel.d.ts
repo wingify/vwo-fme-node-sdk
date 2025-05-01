@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@ import { VariableModel } from './VariableModel';
 export declare class VariationModel {
   private i;
   private id;
+  private type;
   private n;
   private key;
   private name;
+  private ruleKey;
+  private salt;
   private w;
   private weight;
   private startRangeVariation;
@@ -35,10 +38,13 @@ export declare class VariationModel {
   setWeight(weight: number): void;
   getId(): number;
   getKey(): string;
+  getRuleKey(): string;
   getWeight(): number;
   getSegments(): Record<string, dynamic>;
   getStartRangeVariation(): number;
   getEndRangeVariation(): number;
   getVariables(): Array<VariableModel>;
   getVariations(): Array<VariationModel>;
+  getType(): string;
+  getSalt(): string;
 }

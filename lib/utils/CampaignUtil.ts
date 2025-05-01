@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import { VariationModel } from '../models/campaign/VariationModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
 import { buildMessage } from './LogMessageUtil';
+import { RuleModel } from '../models/campaign/RuleModel';
 /**
  * Sets the variation allocation for a given campaign based on its type.
  * If the campaign type is ROLLOUT or PERSONALIZE, it handles the campaign using `_handleRolloutCampaign`.
@@ -105,8 +106,14 @@ export function getBucketingSeed(userId: string, campaign: CampaignModel, groupI
   if (groupId) {
     return `${groupId}_${userId}`;
   }
+  const isRolloutOrPersonalize =
+    campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE;
+  // get salt
+  const salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
+  // get bucket key
+  const bucketKey = salt ? `${salt}_${userId}` : `${campaign.getId()}_${userId}`;
   // Return a seed combining campaign ID and user ID otherwise
-  return `${campaign.getId()}_${userId}`;
+  return bucketKey;
 }
 
 /**
@@ -155,14 +162,28 @@ export function setCampaignAllocation(campaigns: any[]) {
  * Determines if a campaign is part of a group.
  * @param {SettingsModel} settings - The settings model containing group associations.
  * @param {string} campaignId - The ID of the campaign to check.
+ * @param {any} [variationId=null] - The optional variation ID.
  * @returns {Object} An object containing the group ID and name if the campaign is part of a group, otherwise an empty object.
  */
-export function getGroupDetailsIfCampaignPartOfIt(settings: SettingsModel, campaignId: any) {
-  // Check if the campaign is associated with a group and return the group details
-  if (campaignId in settings.getCampaignGroups() && settings.getCampaignGroups()) {
+export function getGroupDetailsIfCampaignPartOfIt(settings: SettingsModel, campaignId: any, variationId: any = null) {
+  /**
+   * If variationId is null, that means that campaign is testing campaign
+   * If variationId is not null, that means that campaign is personalization campaign and we need to append variationId to campaignId using _
+   * then check if the current campaign is part of any group
+   */
+  let campaignToCheck = campaignId.toString();
+  // check if variationId is not null
+  if (variationId !== null) {
+    // if variationId is not null, then append it to the campaignId like campaignId_variationId
+    campaignToCheck = `${campaignId}_${variationId}`.toString();
+  }
+  if (
+    settings.getCampaignGroups() &&
+    Object.prototype.hasOwnProperty.call(settings.getCampaignGroups(), campaignToCheck)
+  ) {
     return {
-      groupId: settings.getCampaignGroups()[campaignId],
-      groupName: settings.getGroups()[settings.getCampaignGroups()[campaignId]].name,
+      groupId: settings.getCampaignGroups()[campaignToCheck],
+      groupName: settings.getGroups()[settings.getCampaignGroups()[campaignToCheck]].name,
     };
   }
   return {};
@@ -175,13 +196,14 @@ export function getGroupDetailsIfCampaignPartOfIt(settings: SettingsModel, campa
  * @returns {Array} An array of groups associated with the feature.
  */
 export function findGroupsFeaturePartOf(settings: SettingsModel, featureKey: string) {
-  const campaignIds: Array<number> = [];
-  // Loop over all rules inside the feature where the feature key matches and collect all campaign IDs
+  // Initialize an array to store all rules for the given feature to fetch campaignId and variationId later
+  const ruleArray: Array<RuleModel> = [];
+  // Loop over all rules inside the feature where the feature key matches and collect all rules
   settings.getFeatures().forEach((feature) => {
     if (feature.getKey() === featureKey) {
       feature.getRules().forEach((rule) => {
-        if (campaignIds.indexOf(rule.getCampaignId()) === -1) {
-          campaignIds.push(rule.getCampaignId());
+        if (ruleArray.indexOf(rule) === -1) {
+          ruleArray.push(rule);
         }
       });
     }
@@ -189,8 +211,12 @@ export function findGroupsFeaturePartOf(settings: SettingsModel, featureKey: str
 
   // Loop over all campaigns and find the group for each campaign
   const groups: Array<any> = [];
-  campaignIds.forEach((campaignId) => {
-    const group = getGroupDetailsIfCampaignPartOfIt(settings, campaignId);
+  ruleArray.forEach((rule) => {
+    const group = getGroupDetailsIfCampaignPartOfIt(
+      settings,
+      rule.getCampaignId(),
+      rule.getType() === CampaignTypeEnum.PERSONALIZE ? rule.getVariationId() : null,
+    );
     if (group.groupId) {
       // Check if the group is already added to the groups array to avoid duplicates
       const groupIndex = groups.findIndex((grp) => grp.groupId === group.groupId);
@@ -220,16 +246,31 @@ export function getCampaignsByGroupId(settings: SettingsModel, groupId: number) 
 /**
  * Retrieves feature keys from a list of campaign IDs.
  * @param {SettingsModel} settings - The settings model containing all features.
- * @param {any} campaignIds - An array of campaign IDs.
+ * @param {any} campaignIdWithVariation - An array of campaign IDs and variation IDs in format campaignId_variationId.
  * @returns {Array} An array of feature keys associated with the provided campaign IDs.
  */
-export function getFeatureKeysFromCampaignIds(settings: SettingsModel, campaignIds: any) {
+export function getFeatureKeysFromCampaignIds(settings: SettingsModel, campaignIdWithVariation: any) {
   const featureKeys = [];
-  for (const campaignId of campaignIds) {
+  for (const campaign of campaignIdWithVariation) {
+    // split key with _ to separate campaignId and variationId
+    const [campaignId, variationId] = campaign.split('_').map(Number);
     settings.getFeatures().forEach((feature) => {
+      // check if feature already exists in the featureKeys array
+      if (featureKeys.indexOf(feature.getKey()) !== -1) {
+        return;
+      }
       feature.getRules().forEach((rule) => {
         if (rule.getCampaignId() === campaignId) {
-          featureKeys.push(feature.getKey()); // Add feature key if campaign ID matches
+          // Check if variationId is provided and matches the rule's variationId
+          if (variationId !== undefined && variationId !== null) {
+            // Add feature key if variationId matches
+            if (rule.getVariationId() === variationId) {
+              featureKeys.push(feature.getKey());
+            }
+          } else {
+            // Add feature key if no variationId is provided
+            featureKeys.push(feature.getKey());
+          }
         }
       });
     });

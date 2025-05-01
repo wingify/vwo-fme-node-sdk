@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import { ContextModel } from '../models/user/ContextModel';
 import { IStorageService } from '../services/StorageService';
 import { isObject } from './DataTypeUtil';
 import { checkWhitelistingAndPreSeg } from './DecisionUtil';
+import { getShouldWaitForTrackingCalls } from './NetworkUtil';
 import { createAndSendImpressionForVariationShown } from './ImpressionUtil';
 
 /**
@@ -44,7 +45,7 @@ export const evaluateRule = async (
   campaign: CampaignModel,
   context: ContextModel,
   evaluatedFeatureMap: Map<string, unknown>,
-  megGroupWinnerCampaigns: Map<number, number>,
+  megGroupWinnerCampaigns: Map<number, any>,
   storageService: IStorageService,
   decision: any,
 ): Promise<Record<string, any>> => {
@@ -70,7 +71,16 @@ export const evaluateRule = async (
     });
 
     // Send an impression for the variation shown
-    createAndSendImpressionForVariationShown(settings, campaign.getId(), whitelistedObject.variation.id, context);
+    if (getShouldWaitForTrackingCalls()) {
+      await createAndSendImpressionForVariationShown(
+        settings,
+        campaign.getId(),
+        whitelistedObject.variation.id,
+        context,
+      );
+    } else {
+      createAndSendImpressionForVariationShown(settings, campaign.getId(), whitelistedObject.variation.id, context);
+    }
   }
 
   // Return the results of the evaluation

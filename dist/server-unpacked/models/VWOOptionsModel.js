@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ var VWOOptionsModel = /** @class */ (function () {
         this.accountId = options.accountId;
         this.sdkKey = options.sdkKey;
         this.vwoBuilder = options.vwoBuilder;
+        if (options === null || options === void 0 ? void 0 : options.shouldWaitForTrackingCalls) {
+            this.shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
+        }
         if (options === null || options === void 0 ? void 0 : options.isDevelopmentMode) {
             this.isDevelopmentMode = options.isDevelopmentMode;
         }
@@ -46,6 +49,9 @@ var VWOOptionsModel = /** @class */ (function () {
         }
         if (options === null || options === void 0 ? void 0 : options.network) {
             this.network = options.network;
+        }
+        if (options === null || options === void 0 ? void 0 : options.settings) {
+            this.settings = options.settings;
         }
         return this;
     };
@@ -78,6 +84,9 @@ var VWOOptionsModel = /** @class */ (function () {
     };
     VWOOptionsModel.prototype.getVWOBuilder = function () {
         return this.vwoBuilder;
+    };
+    VWOOptionsModel.prototype.getSettings = function () {
+        return this.settings;
     };
     return VWOOptionsModel;
 }());

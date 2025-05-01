@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,10 @@ describe('VWO', () => {
 
   describe('getFlag with storage', () => {
     runTests(GETFLAG_TESTS.GETFLAG_WITH_STORAGE, storageMap);
+  });
+
+  describe('getFLag with salt', () => {
+    runSaltTests(GETFLAG_TESTS.GETFLAG_WITH_SALT);
   });
 });
 
@@ -102,5 +106,45 @@ async function runTests(tests, storageMap?: any) {
         expect(storageData.experimentVariationId).toEqual(testData.expectation.storageData.experimentVariationId);
       }
     });
+  }
+}
+
+async function runSaltTests(tests: any) {
+  for (let i = 0; i < tests.length; i++) {
+    const testData: any = tests[i];
+
+    const vwoOptions: IVWOOptions = {
+      accountId: '123456',
+      sdkKey: 'abcdef',
+    };
+
+    const vwoBuilder = new VWOBuilder(vwoOptions);
+
+    jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(TESTS_DATA[testData.settings] as any);
+
+    const options = {
+      sdkKey: 'sdk-key',
+      accountId: 'account-id',
+      vwoBuilder, // pass only for E2E tests
+    };
+    const vwoClient = await init(options);
+
+    const userIds = testData.context.id;
+
+    // loop through userIds and get flag for each user
+    for (let i = 0; i < userIds.length; i++) {
+      const featureFlag = await vwoClient.getFlag(testData.featureKey, { id: userIds[i] });
+      const featureFlagVariables = featureFlag.getVariables();
+      const featureFlag2 = await vwoClient.getFlag(testData.featureKey_2, { id: userIds[i] });
+      const featureFlag2Variables = featureFlag2.getVariables();
+
+      if (testData.expectation.shouldReturnSameVariation) {
+        // both variables should be same if variation is same
+        expect(featureFlagVariables).toEqual(featureFlag2Variables);
+      } else {
+        // both variables should be different if variation is different
+        expect(featureFlagVariables).not.toEqual(featureFlag2Variables);
+      }
+    }
   }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,12 @@ import IHooksService from '../services/HooksService';
 import { dynamic } from '../types/Common';
 import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
 import { buildMessage } from '../utils/LogMessageUtil';
-import { getEventsBaseProperties, getTrackGoalPayloadData, sendPostApiRequest } from '../utils/NetworkUtil';
+import {
+  getEventsBaseProperties,
+  getTrackGoalPayloadData,
+  sendPostApiRequest,
+  getShouldWaitForTrackingCalls,
+} from '../utils/NetworkUtil';
 
 interface ITrack {
   /**
@@ -57,7 +62,11 @@ export class TrackApi implements ITrack {
   ): Promise<Record<string, boolean>> {
     if (doesEventBelongToAnyFeature(eventName, settings)) {
       // Create an impression for the track event
-      createImpressionForTrack(settings, eventName, context, eventProperties);
+      if (getShouldWaitForTrackingCalls()) {
+        await createImpressionForTrack(settings, eventName, context, eventProperties);
+      } else {
+        createImpressionForTrack(settings, eventName, context, eventProperties);
+      }
       // Set and execute integration callback for the track event
       hooksService.set({ eventName: eventName, api: ApiEnum.TRACK });
       hooksService.execute(hooksService.get());
@@ -90,7 +99,6 @@ const createImpressionForTrack = async (
 ) => {
   // Get base properties for the event
   const properties = getEventsBaseProperties(
-    settings,
     eventName,
     encodeURIComponent(context.getUserAgent()),
     context.getIpAddress(),
@@ -105,5 +113,5 @@ const createImpressionForTrack = async (
     context?.getIpAddress(),
   );
   // Send the prepared payload via POST API request
-  sendPostApiRequest(properties, payload);
+  await sendPostApiRequest(properties, payload, context.getId());
 };

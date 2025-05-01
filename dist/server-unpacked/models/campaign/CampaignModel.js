@@ -77,6 +77,7 @@ var CampaignModel = /** @class */ (function () {
         this.key = campaign.key; // campaign.k ||
         // this.priority = campaign.pr || campaign.priority;
         this.type = campaign.type; // campaign.t ||
+        this.salt = campaign.salt;
     };
     CampaignModel.prototype.getId = function () {
         return this.id;
@@ -113,6 +114,9 @@ var CampaignModel = /** @class */ (function () {
     };
     CampaignModel.prototype.getRuleKey = function () {
         return this.ruleKey;
+    };
+    CampaignModel.prototype.getSalt = function () {
+        return this.salt;
     };
     return CampaignModel;
 }());

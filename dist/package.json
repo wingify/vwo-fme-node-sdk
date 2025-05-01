@@ -1,6 +1,6 @@
 {
   "name": "vwo-fme-node-sdk",
-  "version": "1.5.0",
+  "version": "1.14.1",
   "description": "VWO Node/JavaScript SDK for Feature Management and Experimentation",
   "main": "dist/server-unpacked/index.js",
   "browser": "dist/client/vwo-fme-javascript-sdk",
@@ -82,7 +82,7 @@
     "murmurhash": "^2.0.1",
     "superstruct": "^0.14.x",
     "uuid": "^9.0.1",
-    "vwo-fme-sdk-log-messages": "^0.1.2"
+    "vwo-fme-sdk-log-messages": "^1.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",
@@ -110,7 +110,7 @@
     "typedoc-plugin-markdown": "^4.0.3",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.8.0",
-    "vwo-fme-sdk-e2e-test-settings-n-cases": "^1.1.1",
+    "vwo-fme-sdk-e2e-test-settings-n-cases": "^1.4.0",
     "webpack": "^5.91.0",
     "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.1.4",

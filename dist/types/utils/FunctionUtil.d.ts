@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,11 @@ import { dynamic } from '../types/Common';
  * @returns {any} The cloned object.
  */
 export declare function cloneObject(obj: dynamic): any;
+/**
+ * Gets the current time in ISO string format.
+ * @returns {string} The current time in ISO string format.
+ */
+export declare function getCurrentTime(): string;
 /**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.

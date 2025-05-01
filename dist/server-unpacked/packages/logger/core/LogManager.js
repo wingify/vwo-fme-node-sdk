@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ var ConsoleTransport_1 = require("../transports/ConsoleTransport");
 var TransportManager_1 = require("./TransportManager");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var LogLevelEnum_1 = require("../enums/LogLevelEnum");
+var LogMessageUtil_1 = require("../../../utils/LogMessageUtil");
 /**
  * LogManager class provides logging functionality with support for multiple transports.
  * It is designed as a singleton to ensure a single instance throughout the application.
@@ -148,8 +149,12 @@ var LogManager = /** @class */ (function (_super) {
      * Logs an error message.
      * @param {string} message - The message to log at error level.
      */
-    LogManager.prototype.error = function (message) {
+    LogManager.prototype.error = function (message, shouldSendToVWO) {
+        if (shouldSendToVWO === void 0) { shouldSendToVWO = true; }
         this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
+        if (shouldSendToVWO) {
+            (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
+        }
     };
     return LogManager;
 }(Logger_1.Logger));

@@ -5,11 +5,125 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.0] - 2025-04-18
+
+### Added
+
+- Added exponential backoff retry mechanism for failed network requests. This improves reliability by automatically retrying failed requests with increasing delays between attempts.
+
+## [1.14.1] - 2025-03-13
+
+### Fixed
+
+- Fixed the issue where the SDK was not sending error logs to VWO server for better debugging.
+
+## [1.14.0] - 2025-03-12
+
+### Added
+
+- Added support for sending error logs to VWO server for better debugging.
+
+## [1.13.0] - 2025-02-21
+
+### Fixed
+
+- Fixed network request handling in serverless environments by replacing `XMLHttpRequest` with `fetch` API for improved compatibility and reliability.
+
+## [1.12.0] - 2024-02-13
+
+### Added
+
+- Support for `Object` in `setAttribute` method to send multiple attributes at once.
+
+  ```javascript
+  const attributes = { attr1: value1, attr2: value2 };
+  client.setAttribute(attributes, context);
+  ```
+
+## [1.11.0] - 2024-12-20
+
+### Added
+
+- added support for custom salt values in campaign rules to ensure consistent user bucketing across different campaigns. This allows multiple campaigns to share the same salt value, resulting in users being assigned to the same variations across those campaigns. Salt for a campaign can be configured inside VWO application only when the campaign is in the draft state.
+
+## [1.10.0] - 2024-11-22
+
+### Added
+
+- added new method `updateSettings` to update settings on the client instance.
+
+## [1.9.0] - 2024-11-14
+
+### Added
+
+- Added support to pass settings in `init` method.
+
+## [1.8.0] - 2024-09-25
+
+### Added
+
+- added support for Personalise rules within `Mutually Exclusive Groups`.
+
+## [1.7.0] - 2024-09-03
+
+### Added
+
+- added support to wait for network response incase of edge like environment.
+
+  ```javascript
+  const { init } = require('vwo-fme-node-sdk');
+
+  const vwoClient = await init({
+    accountId: '123456', // VWO Account ID
+    sdkKey: '32-alpha-numeric-sdk-key', // SDK Key
+    shouldWaitForTrackingCalls: true, // if running on edge env
+  });
+  ```
+
+## [1.6.0] - 2024-08-27
+
+### Fixed
+
+- Update key name from `user` to `userId` for storing User ID in storage connector.
+
+  ```javascript
+  class StorageConnector extends StorageConnector {
+    constructor() {
+      super();
+    }
+
+    /**
+     * Get data from storage
+     * @param {string} featureKey
+     * @param {string} userId
+     * @returns {Promise<any>}
+     */
+    async get(featureKey, userId) {
+      // return await data (based on featureKey and userId)
+    }
+
+    /**
+     * Set data in storage
+     * @param {object} data
+     */
+    async set(data) {
+      // Set data corresponding to a featureKey and user ID
+      // Use data.featureKey and data.userId to store the above data for a specific feature and a user
+    }
+  }
+  ```
+
+## [1.5.2] - 2024-08-20
+
+### Fixed
+
+- Updated regular expressions for `GREATER_THAN_MATCH`, `GREATER_THAN_EQUAL_TO_MATCH`, `LESS_THAN_MATCH`, and `LESS_THAN_EQUAL_TO_MATCH` segmentation operators
+
 ## [1.5.1] - 2024-08-13
 
 ### Fixed
 
-- fix: Encode user-agent in `setAttribute` and `trackEvent` APIs before making a call to VWO server`
+- Encode user-agent in `setAttribute` and `trackEvent` APIs before making a call to VWO server`
 
 ## [1.5.0] - 2024-08-01
 
@@ -109,14 +223,23 @@ Client-side Javascript SDK
       super();
     }
 
-    async get(key) {
-      // return promise based data for feature-key
-      // return await this.map[key];
+    /**
+     * Get data from storage
+     * @param {string} featureKey
+     * @param {string} userId
+     * @returns {Promise<any>}
+     */
+    async get(featureKey, userId) {
+      // return await data (based on featureKey and userId)
     }
 
-    async set(key, data) {
-      // Set data for feature-key
-      // this.map[key] = data;
+    /**
+     * Set data in storage
+     * @param {object} data
+     */
+    async set(data) {
+      // Set data corresponding to a featureKey and user ID
+      // Use data.featureKey and data.userId to store the above data for a specific feature and a user
     }
   }
 

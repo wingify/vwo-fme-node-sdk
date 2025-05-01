@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import { Constants } from '../constants';
 import { HeadersEnum } from '../enums/HeadersEnum';
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 import { UrlEnum } from '../enums/UrlEnum';
-import { DebugLogMessagesEnum, ErrorLogMessagesEnum } from '../enums/log-messages';
+import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
@@ -29,6 +29,8 @@ import { dynamic } from '../types/Common';
 import { isObject } from './DataTypeUtil';
 import { buildMessage } from './LogMessageUtil';
 import { UrlUtil } from './UrlUtil';
+import { Deferred } from './PromiseUtil';
+import { HTTPS } from '../constants/Url';
 
 /**
  * Constructs base properties for bulk operations.
@@ -105,16 +107,15 @@ export function getEventBatchingQueryParams(accountId: string): Record<string, d
  * @returns properties
  */
 export function getEventsBaseProperties(
-  setting: SettingsModel,
   eventName: string,
   visitorUserAgent: string = '',
   ipAddress: string = '',
 ): Record<string, any> {
-  const sdkKey = setting.getSdkkey();
+  const sdkKey = SettingsService.Instance.sdkKey;
 
   const properties = Object.assign({
     en: eventName,
-    a: setting.getAccountId(),
+    a: SettingsService.Instance.accountId,
     env: sdkKey,
     eTime: getCurrentUnixTimestampInMillis(),
     random: getRandomNumber(),
@@ -141,8 +142,8 @@ export function _getEventBasePayload(
   visitorUserAgent = '',
   ipAddress = '',
 ): Record<string, any> {
-  const uuid = getUUID(userId.toString(), settings.getAccountId());
-  const sdkKey = settings.getSdkkey();
+  const uuid = getUUID(userId.toString(), SettingsService.Instance.accountId.toString());
+  const sdkKey = SettingsService.Instance.sdkKey;
 
   const props: {
     vwo_sdkName: string;
@@ -152,6 +153,8 @@ export function _getEventBasePayload(
     variation?: string | number;
     isFirst?: number;
     isCustomEvent?: boolean;
+    data?: Record<string, any>;
+    product?: string;
   } = {
     vwo_sdkName: Constants.SDK_NAME,
     vwo_sdkVersion: Constants.SDK_VERSION,
@@ -247,7 +250,7 @@ export function getTrackGoalPayloadData(
   }
 
   LogManager.Instance.debug(
-    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_GOAL, {
       eventName,
       accountId: settings.getAccountId(),
       userId,
@@ -258,22 +261,20 @@ export function getTrackGoalPayloadData(
 }
 
 /**
- * Constructs the payload data for syncing visitor attributes.
- * @param {any} settings - Configuration settings.
- * @param {any} userId - User identifier.
- * @param {string} eventName - Name of the event.
- * @param {any} attributeKey - Key of the attribute to sync.
- * @param {any} attributeValue - Value of the attribute.
- * @param {string} [visitorUserAgent=''] - Visitor's user agent.
- * @param {string} [ipAddress=''] - Visitor's IP address.
- * @returns {any} - The constructed payload data.
+ * Constructs the payload data for syncing multiple visitor attributes.
+ * @param {SettingsModel} settings - Configuration settings.
+ * @param {string | number} userId - User ID.
+ * @param {string} eventName - Event name.
+ * @param {Record<string, any>} attributes - Key-value map of attributes.
+ * @param {string} [visitorUserAgent=''] - Visitor's User-Agent (optional).
+ * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
+ * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
 export function getAttributePayloadData(
   settings: SettingsModel,
   userId: string | number,
   eventName: string,
-  attributeKey: string,
-  attributeValue: dynamic,
+  attributes: Record<string, any>,
   visitorUserAgent: string = '',
   ipAddress: string = '',
 ): Record<string, any> {
@@ -281,10 +282,14 @@ export function getAttributePayloadData(
 
   properties.d.event.props.isCustomEvent = true; // Mark as a custom event
   properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
-  properties.d.visitor.props[attributeKey] = attributeValue; // Set attribute value
+
+  // Iterate over the attributes map and append to the visitor properties
+  for (const [key, value] of Object.entries(attributes)) {
+    properties.d.visitor.props[key] = value;
+  }
 
   LogManager.Instance.debug(
-    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
       eventName,
       accountId: settings.getAccountId(),
       userId,
@@ -298,8 +303,9 @@ export function getAttributePayloadData(
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
+ * @param {string} userId - User ID.
  */
-export function sendPostApiRequest(properties: any, payload: any) {
+export async function sendPostApiRequest(properties: any, payload: any, userId: string): Promise<void> {
   NetworkManager.Instance.attachClient();
 
   const headers: Record<string, string> = {};
@@ -322,14 +328,26 @@ export function sendPostApiRequest(properties: any, payload: any) {
     SettingsService.Instance.port,
   );
 
-  NetworkManager.Instance.post(request).catch((err: ResponseModel) => {
-    LogManager.Instance.error(
-      buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-        method: HttpMethodEnum.POST,
-        err: isObject(err) ? JSON.stringify(err) : err,
-      }),
-    );
-  });
+  await NetworkManager.Instance.post(request)
+    .then(() => {
+      LogManager.Instance.info(
+        buildMessage(InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
+          event: properties.en,
+          endPoint: UrlEnum.EVENTS,
+          accountId: SettingsService.Instance.accountId,
+          userId: userId,
+          uuid: payload.d.visId,
+        }),
+      );
+    })
+    .catch((err: ResponseModel) => {
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+          method: HttpMethodEnum.POST,
+          err: isObject(err) ? JSON.stringify(err) : err,
+        }),
+      );
+    });
 }
 
 /**
@@ -361,5 +379,93 @@ export async function sendGetApiRequest(properties: any, endpoint: any): Promise
       }),
     );
     return null;
+  }
+}
+
+// Flag to determine if the SDK should wait for a network response.
+let shouldWaitForTrackingCalls = false;
+
+/**
+ * Checks if the SDK should wait for a network response.
+ * @returns {boolean} - True if the SDK should wait for a network response, false otherwise.
+ */
+export function getShouldWaitForTrackingCalls(): boolean {
+  return shouldWaitForTrackingCalls;
+}
+
+/**
+ * Sets the value to determine if the SDK should wait for a network response.
+ * @param value - The value to set.
+ */
+export function setShouldWaitForTrackingCalls(value: boolean): void {
+  shouldWaitForTrackingCalls = value;
+}
+
+/**
+ * Constructs the payload for a messaging event.
+ * @param messageType - The type of the message.
+ * @param message - The message to send.
+ * @param eventName - The name of the event.
+ * @returns The constructed payload.
+ */
+export function getMessagingEventPayload(messageType: string, message: string, eventName: string): Record<string, any> {
+  const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
+  const properties = _getEventBasePayload(null, userId, eventName, null, null);
+
+  properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = SettingsService.Instance.sdkKey; // Set environment key
+  properties.d.event.props.product = 'fme';
+  const data = {
+    type: messageType,
+    content: {
+      title: message,
+      dateTime: getCurrentUnixTimestampInMillis(),
+    },
+  };
+  properties.d.event.props.data = data;
+  return properties;
+}
+
+/**
+ * Sends a messaging event to DACDN
+ * @param properties - Query parameters for the request.
+ * @param payload - The payload for the request.
+ * @returns A promise that resolves to the response from DACDN.
+ */
+export async function sendMessagingEvent(properties: Record<string, any>, payload: Record<string, any>): Promise<any> {
+  // Create a new deferred object to manage promise resolution
+  const deferredObject = new Deferred();
+  // Singleton instance of the network manager
+  const networkInstance = NetworkManager.Instance;
+
+  try {
+    // Create a new request model instance with the provided parameters
+    const request: RequestModel = new RequestModel(
+      Constants.HOST_NAME,
+      HttpMethodEnum.POST,
+      UrlEnum.EVENTS,
+      properties,
+      payload,
+      null,
+      HTTPS,
+      null,
+    );
+
+    // Perform the network GET request
+    networkInstance
+      .post(request)
+      .then((response: ResponseModel) => {
+        // Resolve the deferred object with the data from the response
+        deferredObject.resolve(response.getData());
+      })
+      .catch((err: ResponseModel) => {
+        // Reject the deferred object with the error response
+        deferredObject.reject(err);
+      });
+
+    return deferredObject.promise;
+  } catch (err) {
+    // Resolve the promise with false as fallback
+    deferredObject.resolve(false);
+    return deferredObject.promise;
   }
 }

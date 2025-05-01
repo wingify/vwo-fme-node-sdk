@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingsSchema = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ var SettingsSchema = /** @class */ (function () {
             variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema)),
             startRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
             endRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
+            salt: (0, superstruct_1.optional)((0, superstruct_1.string)()),
         });
         this.campaignObjectSchema = (0, superstruct_1.object)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
@@ -56,6 +57,7 @@ var SettingsSchema = /** @class */ (function () {
             isForcedVariationEnabled: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
             isAlwaysCheckSegment: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
             name: (0, superstruct_1.string)(),
+            salt: (0, superstruct_1.optional)((0, superstruct_1.string)()),
         });
         this.ruleSchema = (0, superstruct_1.object)({
             type: (0, superstruct_1.string)(),

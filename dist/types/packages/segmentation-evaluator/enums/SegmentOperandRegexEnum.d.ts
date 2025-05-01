@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ export declare enum SegmentOperandRegexEnum {
   REGEX_MATCH = '^regex\\((.*)\\)',
   STARTING_STAR = '^\\*',
   ENDING_STAR = '\\*$',
-  GREATER_THAN_MATCH = '^gt(((d+.?d*)|(.d+)))',
-  GREATER_THAN_EQUAL_TO_MATCH = '^gte(((d+.?d*)|(.d+)))',
-  LESS_THAN_MATCH = '^lt(((d+.?d*)|(.d+)))',
-  LESS_THAN_EQUAL_TO_MATCH = '^lte(((d+.?d*)|(.d+)))',
+  GREATER_THAN_MATCH = '^gt\\((\\d+\\.?\\d*|\\.\\d+)\\)',
+  GREATER_THAN_EQUAL_TO_MATCH = '^gte\\((\\d+\\.?\\d*|\\.\\d+)\\)',
+  LESS_THAN_MATCH = '^lt\\((\\d+\\.?\\d*|\\.\\d+)\\)',
+  LESS_THAN_EQUAL_TO_MATCH = '^lte\\((\\d+\\.?\\d*|\\.\\d+)\\)',
 }

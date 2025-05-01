@@ -1,4 +1,4 @@
 yarn check:license
 yarn lint
 yarn test:prod
-yarn build
+yarn build && git add dist && git commit -m "chore: build"

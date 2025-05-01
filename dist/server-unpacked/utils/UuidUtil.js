@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateUUID = exports.getUUID = exports.getRandomUUID = void 0;
+exports.getRandomUUID = getRandomUUID;
+exports.getUUID = getUUID;
+exports.generateUUID = generateUUID;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +33,6 @@ function getRandomUUID(sdkKey) {
     var randomUUID = (0, uuid_2.v5)((0, uuid_1.v4)(), namespace);
     return randomUUID;
 }
-exports.getRandomUUID = getRandomUUID;
 /**
  * Generates a UUID for a user based on their userId and accountId.
  * @param userId The user's ID.
@@ -51,7 +52,6 @@ function getUUID(userId, accountId) {
     var desiredUuid = uuidForUserIdAccountId === null || uuidForUserIdAccountId === void 0 ? void 0 : uuidForUserIdAccountId.replace(/-/gi, '').toUpperCase();
     return desiredUuid;
 }
-exports.getUUID = getUUID;
 /**
  * Helper function to generate a UUID v5 based on a name and a namespace.
  * @param name The name from which to generate the UUID.
@@ -66,5 +66,4 @@ function generateUUID(name, namespace) {
     // Generate and return the UUID v5
     return (0, uuid_2.v5)(name, namespace);
 }
-exports.generateUUID = generateUUID;
 //# sourceMappingURL=UuidUtil.js.map

@@ -35,7 +35,6 @@ export declare function getEventBatchingQueryParams(accountId: string): Record<s
  * @returns properties
  */
 export declare function getEventsBaseProperties(
-  setting: SettingsModel,
   eventName: string,
   visitorUserAgent?: string,
   ipAddress?: string,
@@ -91,22 +90,20 @@ export declare function getTrackGoalPayloadData(
   ipAddress?: string,
 ): Record<string, any>;
 /**
- * Constructs the payload data for syncing visitor attributes.
- * @param {any} settings - Configuration settings.
- * @param {any} userId - User identifier.
- * @param {string} eventName - Name of the event.
- * @param {any} attributeKey - Key of the attribute to sync.
- * @param {any} attributeValue - Value of the attribute.
- * @param {string} [visitorUserAgent=''] - Visitor's user agent.
- * @param {string} [ipAddress=''] - Visitor's IP address.
- * @returns {any} - The constructed payload data.
+ * Constructs the payload data for syncing multiple visitor attributes.
+ * @param {SettingsModel} settings - Configuration settings.
+ * @param {string | number} userId - User ID.
+ * @param {string} eventName - Event name.
+ * @param {Record<string, any>} attributes - Key-value map of attributes.
+ * @param {string} [visitorUserAgent=''] - Visitor's User-Agent (optional).
+ * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
+ * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
 export declare function getAttributePayloadData(
   settings: SettingsModel,
   userId: string | number,
   eventName: string,
-  attributeKey: string,
-  attributeValue: dynamic,
+  attributes: Record<string, any>,
   visitorUserAgent?: string,
   ipAddress?: string,
 ): Record<string, any>;
@@ -114,8 +111,9 @@ export declare function getAttributePayloadData(
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
+ * @param {string} userId - User ID.
  */
-export declare function sendPostApiRequest(properties: any, payload: any): void;
+export declare function sendPostApiRequest(properties: any, payload: any, userId: string): Promise<void>;
 /**
  * Sends a GET API request to the specified endpoint with the given properties.
  * @param {any} properties - Properties for the request.
@@ -123,3 +121,32 @@ export declare function sendPostApiRequest(properties: any, payload: any): void;
  * @returns {Promise<any>} - The response from the GET request.
  */
 export declare function sendGetApiRequest(properties: any, endpoint: any): Promise<any>;
+/**
+ * Checks if the SDK should wait for a network response.
+ * @returns {boolean} - True if the SDK should wait for a network response, false otherwise.
+ */
+export declare function getShouldWaitForTrackingCalls(): boolean;
+/**
+ * Sets the value to determine if the SDK should wait for a network response.
+ * @param value - The value to set.
+ */
+export declare function setShouldWaitForTrackingCalls(value: boolean): void;
+/**
+ * Constructs the payload for a messaging event.
+ * @param messageType - The type of the message.
+ * @param message - The message to send.
+ * @param eventName - The name of the event.
+ * @returns The constructed payload.
+ */
+export declare function getMessagingEventPayload(
+  messageType: string,
+  message: string,
+  eventName: string,
+): Record<string, any>;
+/**
+ * Sends a messaging event to DACDN
+ * @param properties - Query parameters for the request.
+ * @param payload - The payload for the request.
+ * @returns A promise that resolves to the response from DACDN.
+ */
+export declare function sendMessagingEvent(properties: Record<string, any>, payload: Record<string, any>): Promise<any>;

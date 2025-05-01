@@ -9,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.evaluateTrafficAndGetVariation = exports.checkWhitelistingAndPreSeg = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,13 +61,15 @@ var logger_1 = require("../packages/logger");
 var segmentation_evaluator_1 = require("../packages/segmentation-evaluator");
 var CampaignDecisionService_1 = require("../services/CampaignDecisionService");
 var DataTypeUtil_2 = require("../utils/DataTypeUtil");
+var constants_1 = require("../constants");
 var CampaignUtil_1 = require("./CampaignUtil");
 var FunctionUtil_1 = require("./FunctionUtil");
 var LogMessageUtil_1 = require("./LogMessageUtil");
 var MegUtil_1 = require("./MegUtil");
 var UuidUtil_1 = require("./UuidUtil");
+var StorageDecorator_1 = require("../decorators/StorageDecorator");
 var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) { return __awaiter(void 0, void 0, void 0, function () {
-    var vwoUserId, campaignId, whitelistedVariation, groupId, groupWinnerCampaignId, isPreSegmentationPassed, winnerCampaign;
+    var vwoUserId, campaignId, whitelistedVariation, groupId, groupWinnerCampaignId, storedData, isPreSegmentationPassed, winnerCampaign;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -99,29 +101,91 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
                     _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
                 }));
                 Object.assign(decision, { customVariables: context.getCustomVariables() }); // for integeration
-                groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(settings, campaignId).groupId;
+                groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(settings, campaign.getId(), campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null).groupId;
                 groupWinnerCampaignId = megGroupWinnerCampaigns === null || megGroupWinnerCampaigns === void 0 ? void 0 : megGroupWinnerCampaigns.get(groupId);
-                if (groupWinnerCampaignId) {
+                if (!groupWinnerCampaignId) return [3 /*break*/, 4];
+                if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
                     // check if the campaign is the winner of the group
                     if (groupWinnerCampaignId === campaignId) {
                         return [2 /*return*/, [true, null]];
                     }
-                    // as group is already evaluated, no need to check again, return false directly
+                }
+                else if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+                    // check if the campaign is the winner of the group
+                    if (groupWinnerCampaignId === campaignId + '_' + campaign.getVariations()[0].getId()) {
+                        return [2 /*return*/, [true, null]];
+                    }
+                }
+                // as group is already evaluated, no need to check again, return false directly
+                return [2 /*return*/, [false, null]];
+            case 4: return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService)];
+            case 5:
+                storedData = _a.sent();
+                if (storedData && storedData.experimentKey && storedData.experimentId) {
+                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+                        campaignKey: storedData.experimentKey,
+                        userId: context.getId(),
+                    }));
+                    if (storedData.experimentId === campaignId) {
+                        // return the campaign if the called campaignId matches
+                        if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+                            if (storedData.experimentVariationId === campaign.getVariations()[0].getId()) {
+                                // if personalise then check if the reqeusted variation is the winner
+                                return [2 /*return*/, [true, null]];
+                            }
+                            else {
+                                // if requested variation is not the winner then set the winner campaign in the map and return
+                                megGroupWinnerCampaigns.set(groupId, storedData.experimentId + '_' + storedData.experimentVariationId);
+                                return [2 /*return*/, [false, null]];
+                            }
+                        }
+                        else {
+                            return [2 /*return*/, [true, null]];
+                        }
+                    }
+                    if (storedData.experimentVariationId != -1) {
+                        megGroupWinnerCampaigns.set(groupId, storedData.experimentId + '_' + storedData.experimentVariationId);
+                    }
+                    else {
+                        megGroupWinnerCampaigns.set(groupId, storedData.experimentId);
+                    }
                     return [2 /*return*/, [false, null]];
                 }
-                return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(campaign, context)];
-            case 4:
+                _a.label = 6;
+            case 6: return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(campaign, context)];
+            case 7:
                 isPreSegmentationPassed = _a.sent();
-                if (!(isPreSegmentationPassed && groupId)) return [3 /*break*/, 6];
+                if (!(isPreSegmentationPassed && groupId)) return [3 /*break*/, 9];
                 return [4 /*yield*/, (0, MegUtil_1.evaluateGroups)(settings, feature, groupId, evaluatedFeatureMap, context, storageService)];
-            case 5:
+            case 8:
                 winnerCampaign = _a.sent();
                 if (winnerCampaign && winnerCampaign.id === campaignId) {
-                    return [2 /*return*/, [true, null]];
+                    if (winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
+                        return [2 /*return*/, [true, null]];
+                    }
+                    else {
+                        // if personalise then check if the reqeusted variation is the winner
+                        if (winnerCampaign.variations[0].id === campaign.getVariations()[0].getId()) {
+                            return [2 /*return*/, [true, null]];
+                        }
+                        else {
+                            megGroupWinnerCampaigns.set(groupId, winnerCampaign.id + '_' + winnerCampaign.variations[0].id);
+                            return [2 /*return*/, [false, null]];
+                        }
+                    }
                 }
-                megGroupWinnerCampaigns.set(groupId, (winnerCampaign === null || winnerCampaign === void 0 ? void 0 : winnerCampaign.id) || 0);
+                else if (winnerCampaign) {
+                    if (winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
+                        megGroupWinnerCampaigns.set(groupId, winnerCampaign.id);
+                    }
+                    else {
+                        megGroupWinnerCampaigns.set(groupId, winnerCampaign.id + '_' + winnerCampaign.variations[0].id);
+                    }
+                    return [2 /*return*/, [false, null]];
+                }
+                megGroupWinnerCampaigns.set(groupId, -1);
                 return [2 /*return*/, [false, null]];
-            case 6: return [2 /*return*/, [isPreSegmentationPassed, null]];
+            case 9: return [2 /*return*/, [isPreSegmentationPassed, null]];
         }
     });
 }); };
@@ -130,14 +194,18 @@ var evaluateTrafficAndGetVariation = function (settings, campaign, userId) {
     var variation = new CampaignDecisionService_1.CampaignDecisionService().getVariationAlloted(userId, settings.getAccountId(), campaign);
     if (!variation) {
         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-            campaignKey: campaign.getKey(),
+            campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+                ? campaign.getKey()
+                : campaign.getName() + '_' + campaign.getRuleKey(),
             userId: userId,
             status: 'did not get any variation',
         }));
         return null;
     }
     logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-        campaignKey: campaign.getKey(),
+        campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+            ? campaign.getKey()
+            : campaign.getName() + '_' + campaign.getRuleKey(),
         userId: userId,
         status: "got variation:".concat(variation.getKey()),
     }));
@@ -165,7 +233,9 @@ var _checkCampaignWhitelisting = function (campaign, context) { return __awaiter
                 variationString = whitelistingResult ? whitelistingResult.variation.key : '';
                 logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_STATUS, {
                     userId: context.getId(),
-                    campaignKey: campaign.getRuleKey(),
+                    campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+                        ? campaign.getKey()
+                        : campaign.getName() + '_' + campaign.getRuleKey(),
                     status: status,
                     variationString: variationString,
                 }));
@@ -183,7 +253,9 @@ var _evaluateWhitelisting = function (campaign, context) { return __awaiter(void
                 campaign.getVariations().forEach(function (variation) {
                     if ((0, DataTypeUtil_2.isObject)(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
                         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
-                            campaignKey: campaign.getRuleKey(),
+                            campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+                                ? campaign.getKey()
+                                : campaign.getName() + '_' + campaign.getRuleKey(),
                             userId: context.getId(),
                             variation: variation.getKey() ? "for variation: ".concat(variation.getKey()) : '',
                         }));

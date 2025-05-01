@@ -9,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -132,7 +132,8 @@ var SettingsService = /** @class */ (function () {
         });
         return deferredObject.promise;
     };
-    SettingsService.prototype.fetchSettings = function () {
+    SettingsService.prototype.fetchSettings = function (isViaWebhook) {
+        if (isViaWebhook === void 0) { isViaWebhook = false; }
         var deferredObject = new PromiseUtil_1.Deferred();
         if (!this.sdkKey || !this.accountId) {
             deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
@@ -144,8 +145,12 @@ var SettingsService = /** @class */ (function () {
         if (!networkInstance.getConfig().getDevelopmentMode()) {
             options.s = 'prod';
         }
+        var path = constants_1.Constants.SETTINTS_ENDPOINT;
+        if (isViaWebhook) {
+            path = constants_1.Constants.WEBHOOK_SETTINTS_ENDPOINT;
+        }
         try {
-            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, constants_1.Constants.SETTINTS_ENDPOINT, options, null, null, this.protocol, this.port);
+            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port);
             request.setTimeout(this.networkTimeout);
             networkInstance
                 .get(request)

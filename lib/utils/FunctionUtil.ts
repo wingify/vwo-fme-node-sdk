@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,14 @@ export function cloneObject(obj: dynamic): any {
   // Use JSON stringify and parse method to perform a deep clone
   const clonedObj = JSON.parse(JSON.stringify(obj));
   return clonedObj;
+}
+
+/**
+ * Gets the current time in ISO string format.
+ * @returns {string} The current time in ISO string format.
+ */
+export function getCurrentTime(): string {
+  return new Date().toISOString();
 }
 
 /**

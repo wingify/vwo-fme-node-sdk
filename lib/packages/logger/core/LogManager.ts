@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import { LogTransportManager } from './TransportManager';
 
 import { isObject } from '../../../utils/DataTypeUtil';
 import { LogLevelEnum } from '../enums/LogLevelEnum';
+import { sendLogToVWO } from '../../../utils/LogMessageUtil';
 
 /**
  * Interface defining the structure and methods for LogManager.
@@ -171,7 +172,10 @@ export class LogManager extends Logger implements ILogManager {
    * Logs an error message.
    * @param {string} message - The message to log at error level.
    */
-  error(message: string): void {
+  error(message: string, shouldSendToVWO: boolean = true): void {
     this.transportManager.log(LogLevelEnum.ERROR, message);
+    if (shouldSendToVWO) {
+      sendLogToVWO(message, LogLevelEnum.ERROR);
+    }
   }
 }

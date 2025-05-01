@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SegmentOperandRegexEnum = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ var SegmentOperandRegexEnum;
     SegmentOperandRegexEnum["REGEX_MATCH"] = "^regex\\((.*)\\)";
     SegmentOperandRegexEnum["STARTING_STAR"] = "^\\*";
     SegmentOperandRegexEnum["ENDING_STAR"] = "\\*$";
-    SegmentOperandRegexEnum["GREATER_THAN_MATCH"] = "^gt(((d+.?d*)|(.d+)))";
-    SegmentOperandRegexEnum["GREATER_THAN_EQUAL_TO_MATCH"] = "^gte(((d+.?d*)|(.d+)))";
-    SegmentOperandRegexEnum["LESS_THAN_MATCH"] = "^lt(((d+.?d*)|(.d+)))";
-    SegmentOperandRegexEnum["LESS_THAN_EQUAL_TO_MATCH"] = "^lte(((d+.?d*)|(.d+)))";
+    SegmentOperandRegexEnum["GREATER_THAN_MATCH"] = "^gt\\((\\d+\\.?\\d*|\\.\\d+)\\)";
+    SegmentOperandRegexEnum["GREATER_THAN_EQUAL_TO_MATCH"] = "^gte\\((\\d+\\.?\\d*|\\.\\d+)\\)";
+    SegmentOperandRegexEnum["LESS_THAN_MATCH"] = "^lt\\((\\d+\\.?\\d*|\\.\\d+)\\)";
+    SegmentOperandRegexEnum["LESS_THAN_EQUAL_TO_MATCH"] = "^lte\\((\\d+\\.?\\d*|\\.\\d+)\\)";
 })(SegmentOperandRegexEnum || (exports.SegmentOperandRegexEnum = SegmentOperandRegexEnum = {}));
 //# sourceMappingURL=SegmentOperandRegexEnum.js.map

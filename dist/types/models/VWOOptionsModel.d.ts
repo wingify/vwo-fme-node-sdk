@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,8 @@ export interface IVWOOptions {
   integrations?: IIntegrationOptions;
   network?: INetworkOptions;
   platform?: string;
+  shouldWaitForTrackingCalls?: boolean;
+  settings?: Record<any, any>;
   vwoBuilder?: IVWOBuilder;
 }
 export declare class VWOOptionsModel implements IVWOOptions {
@@ -50,6 +52,8 @@ export declare class VWOOptionsModel implements IVWOOptions {
   segmentation?: SegmentEvaluator;
   integrations?: IIntegrationOptions;
   network?: INetworkOptions;
+  shouldWaitForTrackingCalls?: boolean;
+  settings?: Record<any, any>;
   vwoBuilder?: IVWOBuilder;
   modelFromDictionary(options: VWOOptionsModel): this;
   getAccountId(): string;
@@ -62,5 +66,6 @@ export declare class VWOOptionsModel implements IVWOOptions {
   getSegmentation(): SegmentEvaluator;
   getNetwork(): INetworkOptions;
   getVWOBuilder(): IVWOBuilder;
+  getSettings(): Record<any, any>;
 }
 export {};

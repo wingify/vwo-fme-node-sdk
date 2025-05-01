@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import { EventEnum } from '../enums/EventEnum';
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-export const createAndSendImpressionForVariationShown = (
+export const createAndSendImpressionForVariationShown = async (
   settings: SettingsModel,
   campaignId: number,
   variationId: number,
@@ -37,7 +37,6 @@ export const createAndSendImpressionForVariationShown = (
 ) => {
   // Get base properties for the event
   const properties = getEventsBaseProperties(
-    settings,
     EventEnum.VWO_VARIATION_SHOWN,
     encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
     context.getIpAddress(),
@@ -55,5 +54,5 @@ export const createAndSendImpressionForVariationShown = (
   );
 
   // Send the constructed properties and payload as a POST request
-  sendPostApiRequest(properties, payload);
+  await sendPostApiRequest(properties, payload, context.getId());
 };

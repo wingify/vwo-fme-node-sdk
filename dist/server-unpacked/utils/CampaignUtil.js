@@ -1,8 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRuleTypeUsingCampaignIdFromFeature = exports.assignRangeValuesMEG = exports.getCampaignIdsFromFeatureKey = exports.getFeatureKeysFromCampaignIds = exports.getCampaignsByGroupId = exports.findGroupsFeaturePartOf = exports.getGroupDetailsIfCampaignPartOfIt = exports.setCampaignAllocation = exports.getVariationFromCampaignKey = exports.getBucketingSeed = exports.scaleVariationWeights = exports.assignRangeValues = exports.setVariationAllocation = void 0;
+exports.setVariationAllocation = setVariationAllocation;
+exports.assignRangeValues = assignRangeValues;
+exports.scaleVariationWeights = scaleVariationWeights;
+exports.getBucketingSeed = getBucketingSeed;
+exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
+exports.setCampaignAllocation = setCampaignAllocation;
+exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
+exports.findGroupsFeaturePartOf = findGroupsFeaturePartOf;
+exports.getCampaignsByGroupId = getCampaignsByGroupId;
+exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
+exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
+exports.assignRangeValuesMEG = assignRangeValuesMEG;
+exports.getRuleTypeUsingCampaignIdFromFeature = getRuleTypeUsingCampaignIdFromFeature;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +63,6 @@ function setVariationAllocation(campaign) {
         });
     }
 }
-exports.setVariationAllocation = setVariationAllocation;
 /**
  * Assigns start and end range values to a variation based on its weight.
  * @param {VariationModel} data - The variation model to assign range values.
@@ -72,7 +83,6 @@ function assignRangeValues(data, currentAllocation) {
     }
     return stepFactor;
 }
-exports.assignRangeValues = assignRangeValues;
 /**
  * Scales the weights of variations to sum up to 100%.
  * @param {any[]} variations - The list of variations to scale.
@@ -92,7 +102,6 @@ function scaleVariationWeights(variations) {
         variations.forEach(function (variation) { return (variation.weight = (variation.weight / totalWeight) * 100); });
     }
 }
-exports.scaleVariationWeights = scaleVariationWeights;
 /**
  * Generates a bucketing seed based on user ID, campaign, and optional group ID.
  * @param {string} userId - The user ID.
@@ -105,10 +114,14 @@ function getBucketingSeed(userId, campaign, groupId) {
     if (groupId) {
         return "".concat(groupId, "_").concat(userId);
     }
+    var isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+    // get salt
+    var salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
+    // get bucket key
+    var bucketKey = salt ? "".concat(salt, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(userId);
     // Return a seed combining campaign ID and user ID otherwise
-    return "".concat(campaign.getId(), "_").concat(userId);
+    return bucketKey;
 }
-exports.getBucketingSeed = getBucketingSeed;
 /**
  * Retrieves a variation by its ID within a specific campaign identified by its key.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -133,7 +146,6 @@ function getVariationFromCampaignKey(settings, campaignKey, variationId) {
     }
     return null;
 }
-exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
 /**
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.
@@ -147,24 +159,35 @@ function setCampaignAllocation(campaigns) {
         currentAllocation += stepFactor;
     }
 }
-exports.setCampaignAllocation = setCampaignAllocation;
 /**
  * Determines if a campaign is part of a group.
  * @param {SettingsModel} settings - The settings model containing group associations.
  * @param {string} campaignId - The ID of the campaign to check.
+ * @param {any} [variationId=null] - The optional variation ID.
  * @returns {Object} An object containing the group ID and name if the campaign is part of a group, otherwise an empty object.
  */
-function getGroupDetailsIfCampaignPartOfIt(settings, campaignId) {
-    // Check if the campaign is associated with a group and return the group details
-    if (campaignId in settings.getCampaignGroups() && settings.getCampaignGroups()) {
+function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId) {
+    if (variationId === void 0) { variationId = null; }
+    /**
+     * If variationId is null, that means that campaign is testing campaign
+     * If variationId is not null, that means that campaign is personalization campaign and we need to append variationId to campaignId using _
+     * then check if the current campaign is part of any group
+     */
+    var campaignToCheck = campaignId.toString();
+    // check if variationId is not null
+    if (variationId !== null) {
+        // if variationId is not null, then append it to the campaignId like campaignId_variationId
+        campaignToCheck = "".concat(campaignId, "_").concat(variationId).toString();
+    }
+    if (settings.getCampaignGroups() &&
+        Object.prototype.hasOwnProperty.call(settings.getCampaignGroups(), campaignToCheck)) {
         return {
-            groupId: settings.getCampaignGroups()[campaignId],
-            groupName: settings.getGroups()[settings.getCampaignGroups()[campaignId]].name,
+            groupId: settings.getCampaignGroups()[campaignToCheck],
+            groupName: settings.getGroups()[settings.getCampaignGroups()[campaignToCheck]].name,
         };
     }
     return {};
 }
-exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
 /**
  * Finds all groups associated with a feature specified by its key.
  * @param {SettingsModel} settings - The settings model containing all features and groups.
@@ -172,21 +195,22 @@ exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
  * @returns {Array} An array of groups associated with the feature.
  */
 function findGroupsFeaturePartOf(settings, featureKey) {
-    var campaignIds = [];
-    // Loop over all rules inside the feature where the feature key matches and collect all campaign IDs
+    // Initialize an array to store all rules for the given feature to fetch campaignId and variationId later
+    var ruleArray = [];
+    // Loop over all rules inside the feature where the feature key matches and collect all rules
     settings.getFeatures().forEach(function (feature) {
         if (feature.getKey() === featureKey) {
             feature.getRules().forEach(function (rule) {
-                if (campaignIds.indexOf(rule.getCampaignId()) === -1) {
-                    campaignIds.push(rule.getCampaignId());
+                if (ruleArray.indexOf(rule) === -1) {
+                    ruleArray.push(rule);
                 }
             });
         }
     });
     // Loop over all campaigns and find the group for each campaign
     var groups = [];
-    campaignIds.forEach(function (campaignId) {
-        var group = getGroupDetailsIfCampaignPartOfIt(settings, campaignId);
+    ruleArray.forEach(function (rule) {
+        var group = getGroupDetailsIfCampaignPartOfIt(settings, rule.getCampaignId(), rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? rule.getVariationId() : null);
         if (group.groupId) {
             // Check if the group is already added to the groups array to avoid duplicates
             var groupIndex = groups.findIndex(function (grp) { return grp.groupId === group.groupId; });
@@ -197,7 +221,6 @@ function findGroupsFeaturePartOf(settings, featureKey) {
     });
     return groups;
 }
-exports.findGroupsFeaturePartOf = findGroupsFeaturePartOf;
 /**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
@@ -213,31 +236,45 @@ function getCampaignsByGroupId(settings, groupId) {
         return []; // Return an empty array if the group ID is not found
     }
 }
-exports.getCampaignsByGroupId = getCampaignsByGroupId;
 /**
  * Retrieves feature keys from a list of campaign IDs.
  * @param {SettingsModel} settings - The settings model containing all features.
- * @param {any} campaignIds - An array of campaign IDs.
+ * @param {any} campaignIdWithVariation - An array of campaign IDs and variation IDs in format campaignId_variationId.
  * @returns {Array} An array of feature keys associated with the provided campaign IDs.
  */
-function getFeatureKeysFromCampaignIds(settings, campaignIds) {
+function getFeatureKeysFromCampaignIds(settings, campaignIdWithVariation) {
     var featureKeys = [];
-    var _loop_1 = function (campaignId) {
+    var _loop_1 = function (campaign) {
+        // split key with _ to separate campaignId and variationId
+        var _a = campaign.split('_').map(Number), campaignId = _a[0], variationId = _a[1];
         settings.getFeatures().forEach(function (feature) {
+            // check if feature already exists in the featureKeys array
+            if (featureKeys.indexOf(feature.getKey()) !== -1) {
+                return;
+            }
             feature.getRules().forEach(function (rule) {
                 if (rule.getCampaignId() === campaignId) {
-                    featureKeys.push(feature.getKey()); // Add feature key if campaign ID matches
+                    // Check if variationId is provided and matches the rule's variationId
+                    if (variationId !== undefined && variationId !== null) {
+                        // Add feature key if variationId matches
+                        if (rule.getVariationId() === variationId) {
+                            featureKeys.push(feature.getKey());
+                        }
+                    }
+                    else {
+                        // Add feature key if no variationId is provided
+                        featureKeys.push(feature.getKey());
+                    }
                 }
             });
         });
     };
-    for (var _i = 0, campaignIds_1 = campaignIds; _i < campaignIds_1.length; _i++) {
-        var campaignId = campaignIds_1[_i];
-        _loop_1(campaignId);
+    for (var _i = 0, campaignIdWithVariation_1 = campaignIdWithVariation; _i < campaignIdWithVariation_1.length; _i++) {
+        var campaign = campaignIdWithVariation_1[_i];
+        _loop_1(campaign);
     }
     return featureKeys;
 }
-exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 /**
  * Retrieves campaign IDs from a specific feature key.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -255,7 +292,6 @@ function getCampaignIdsFromFeatureKey(settings, featureKey) {
     });
     return campaignIds;
 }
-exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 /**
  * Assigns range values to a campaign based on its weight.
  * @param {any} data - The campaign data containing weight.
@@ -274,7 +310,6 @@ function assignRangeValuesMEG(data, currentAllocation) {
     }
     return stepFactor;
 }
-exports.assignRangeValuesMEG = assignRangeValuesMEG;
 /**
  * Retrieves the rule type using a campaign ID from a specific feature.
  * @param {any} feature - The feature containing rules.
@@ -285,7 +320,6 @@ function getRuleTypeUsingCampaignIdFromFeature(feature, campaignId) {
     var rule = feature.getRules().find(function (rule) { return rule.getCampaignId() === campaignId; });
     return rule ? rule.getType() : ''; // Return the rule type if found
 }
-exports.getRuleTypeUsingCampaignIdFromFeature = getRuleTypeUsingCampaignIdFromFeature;
 /**
  * Calculates the bucket range for a variation based on its weight.
  * @param {number} variationWeight - The weight of the variation.

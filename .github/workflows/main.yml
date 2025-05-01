@@ -21,14 +21,14 @@ jobs:
         node_version: [ 12.x, 13.x, 14.x, 15.x, 16.x, 18.x, 19.x, 20.x, 21.x, 22.x ] # [6.x, 8.x, 10.x, 12.x, 14.x, 15.x, 16.x, 17.x, 18.x, 19.x, 20.x, 21.x, 22.x]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node_version }}
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node_version }}
 
     - name: Restore packages
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           node_modules
@@ -74,3 +74,66 @@ jobs:
         color: "${{job.status == 'success' && '#00FF00' || '#FF0000'}}"
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+
+    - name: Publish to npm
+      if: startsWith(github.ref, 'refs/tags/') # check if the job is triggered by a tag
+      run: |
+        npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+        npm publish --tag latest
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: Get version from tag
+      if: startsWith(github.ref, 'refs/tags/') # check if the job is triggered by a tag
+      id: get_version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+    
+    - name: Extract Changelog Entry
+      if: startsWith(github.ref, 'refs/tags/') # check if the job is triggered by a tag
+      id: changelog
+      run: |
+        VERSION=${{ env.VERSION }}
+        VERSION=${VERSION#refs/tags/}
+        VERSION=${VERSION#v}
+        
+        # Use awk to extract all entries between version header and next version header
+        CHANGELOG_ENTRY=$(awk -v version="$VERSION" '
+            BEGIN { found=0; buffer="" }
+            $0 ~ "^## \\[" version "]" { found=1; next }
+            found && $0 ~ "^## \\[" { exit }
+            found && NF {
+              # Remove leading whitespace and common prefixes
+              gsub(/^[[:space:]]*[-*]?[[:space:]]*/, "")
+              gsub(/^### (Added|Changed|Fixed|Removed|Deprecated)[[:space:]]*/, "")
+              if (buffer == "") buffer = $0
+              else buffer = buffer " " $0
+            }
+            END { print buffer }
+          ' CHANGELOG.md)
+
+          # If no entry is found, use fallback message
+          if [ -z "$CHANGELOG_ENTRY" ]; then
+            CHANGELOG="No changes in this release."
+          else
+            # Clean up the entry
+            CHANGELOG="$CHANGELOG_ENTRY"
+          fi
+          
+          echo "CHANGELOG=$CHANGELOG" >> $GITHUB_ENV
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/') # check if the job is triggered by a tag
+      id: create_release
+      uses: comnoco/create-release-action@v2.0.5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}  # Tag name is used as the version
+        release_name: ${{ github.ref }}  # Release name based on the tag
+        body: |
+          ## What's Changed:
+          ${{ env.CHANGELOG }}
+        draft: false
+        prerelease: false

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import { ContextModel } from './models/user/ContextModel';
 import HooksService from './services/HooksService';
 import { UrlUtil } from './utils/UrlUtil';
 
-import { getType, isBoolean, isNumber, isObject, isString } from './utils/DataTypeUtil';
+import { getType, isObject, isString, isBoolean, isNumber } from './utils/DataTypeUtil';
 
 import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
@@ -37,10 +37,13 @@ import { Deferred } from './utils/PromiseUtil';
 import { IVWOOptions } from './models/VWOOptionsModel';
 import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
 import { VariationModel } from './models/campaign/VariationModel';
+import { setShouldWaitForTrackingCalls } from './utils/NetworkUtil';
+import { SettingsService } from './services/SettingsService';
 
 export interface IVWOClient {
   readonly options?: IVWOOptions;
   settings: SettingsModel;
+  originalSettings: Record<any, any>;
 
   getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
   trackEvent(
@@ -48,16 +51,22 @@ export interface IVWOClient {
     context: Record<string, any>,
     eventProperties: Record<string, dynamic>,
   ): Promise<Record<string, boolean>>;
-
-  setAttribute(attributeKey: string, attributeValue: boolean | string | number, context: Record<string, any>): void;
+  setAttribute(
+    attributeKey: string,
+    attributeValue: boolean | string | number,
+    context: Record<string, any>,
+  ): Promise<void>;
+  setAttribute(attributes: Record<string, boolean | string | number>, context: Record<string, any>): Promise<void>;
+  updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
 }
 
 export class VWOClient implements IVWOClient {
   settings: SettingsModel;
   originalSettings: Record<any, any>;
   storage: Storage;
+  vwoClientInstance: VWOClient;
 
-  constructor(settings: SettingsModel, options: IVWOOptions) {
+  constructor(settings: Record<any, any>, options: IVWOOptions) {
     this.options = options;
 
     setSettingsAndAddCampaignsToRules(settings, this);
@@ -66,7 +75,10 @@ export class VWOClient implements IVWOClient {
       collectionPrefix: this.settings.getCollectionPrefix(),
     });
 
+    setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
+
     LogManager.Instance.info(InfoLogMessagesEnum.CLIENT_INITIALIZED);
+    this.vwoClientInstance = this;
     return this;
   }
 
@@ -237,67 +249,159 @@ export class VWOClient implements IVWOClient {
   }
 
   /**
-   * Sets an attribute for a user in the context provided.
+   * Sets an attribute or multiple attributes for a user in the provided context.
    * This method validates the types of the inputs before proceeding with the API call.
+   * There are two cases handled:
+   * 1. When attributes are passed as a map (key-value pairs).
+   * 2. When a single attribute (key-value) is passed.
    *
-   * @param {string} attributeKey - The key of the attribute to set.
-   * @param {string} attributeValue - The value of the attribute to set.
-   * @param {ContextModel} context - The context in which the attribute should be set, must include a valid user ID.
+   * @param {string | Record<string, boolean | string | number>} attributeOrAttributes - Either a single attribute key (string) and value (boolean | string | number),
+   *                                                                                        or a map of attributes with keys and values (boolean | string | number).
+   * @param {boolean | string | number | Record<string, any>} [attributeValueOrContext] - The value for the attribute in case of a single attribute, or the context when multiple attributes are passed.
+   * @param {Record<string, any>} [context] - The context which must include a valid user ID. This is required if multiple attributes are passed.
    */
-  setAttribute(attributeKey: string, attributeValue: boolean | string | number, context: Record<string, any>): void {
+  async setAttribute(
+    attributeOrAttributes: string | Record<string, boolean | string | number>,
+    attributeValueOrContext?: boolean | string | number | Record<string, any>,
+    context?: Record<string, any>,
+  ): Promise<void> {
     const apiName = 'setAttribute';
 
     try {
-      // Log the API call
-      LogManager.Instance.debug(
-        buildMessage(DebugLogMessagesEnum.API_CALLED, {
-          apiName,
-        }),
-      );
-
-      // Validate attributeKey is a string
-      if (!isString(attributeKey)) {
-        LogManager.Instance.error(
-          buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
+      if (isObject(attributeOrAttributes)) {
+        // Log the API call
+        LogManager.Instance.debug(
+          buildMessage(DebugLogMessagesEnum.API_CALLED, {
             apiName,
-            key: 'attributeKey',
-            type: getType(attributeKey),
-            correctType: 'string',
           }),
         );
 
-        throw new TypeError('TypeError: attributeKey should be a string');
+        if (Object.entries(attributeOrAttributes).length < 1) {
+          LogManager.Instance.error(
+            buildMessage('Attributes map must contain atleast 1 key-value pair', {
+              apiName,
+              key: 'attributes',
+              type: getType(attributeOrAttributes),
+              correctType: 'object',
+            }),
+          );
+          throw new TypeError('TypeError: Attributes should be an object containing atleast 1 key-value pair');
+        }
+
+        // Case where multiple attributes are passed as a map
+        const attributes = attributeOrAttributes as Record<string, boolean | string | number>; // Type assertion
+
+        // Validate attributes is an object
+        if (!isObject(attributes)) {
+          throw new TypeError('TypeError: attributes should be an object containing key-value pairs');
+        }
+
+        // Validate that each attribute value is of a supported type
+        Object.entries(attributes).forEach(([key, value]) => {
+          if (typeof value !== 'boolean' && typeof value !== 'string' && typeof value !== 'number') {
+            LogManager.Instance.error(
+              buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                apiName,
+                key,
+                type: getType(value),
+                correctType: ' boolean, string or number',
+              }),
+            );
+            throw new TypeError(
+              `Invalid attribute type for key "${key}". Expected boolean, string or number, but got ${getType(value)}`,
+            );
+          }
+
+          // Reject arrays and objects explicitly
+          if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+            LogManager.Instance.error(
+              buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                apiName,
+                key,
+                type: getType(value),
+                correctType: ' boolean | string | number | null',
+              }),
+            );
+            throw new TypeError(`Invalid attribute value for key "${key}". Arrays and objects are not supported.`);
+          }
+        });
+
+        // If we have only two arguments (attributeMap and context)
+        if (!context && attributeValueOrContext) {
+          context = attributeValueOrContext as Record<string, any>; // Assign context explicitly
+        }
+
+        // Validate user ID is present in context
+        if (!context || !context.id) {
+          LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+        }
+
+        const contextModel = new ContextModel().modelFromDictionary(context);
+        // Proceed with setting the attributes if validation is successful
+        await new SetAttributeApi().setAttribute(this.settings, attributes, contextModel);
+      } else {
+        // Case where a single attribute (key-value) is passed
+        const attributeKey = attributeOrAttributes;
+        const attributeValue = attributeValueOrContext;
+
+        // Validate attributeKey is a string
+        if (!isString(attributeKey)) {
+          throw new TypeError('attributeKey should be a string');
+        }
+
+        // Validate attributeValue is of valid type
+        if (!isBoolean(attributeValue) && !isString(attributeValue) && !isNumber(attributeValue)) {
+          throw new TypeError('attributeValue should be a boolean, string, or number');
+        }
+
+        // Validate user ID is present in context
+        if (!context || !context.id) {
+          throw new TypeError('Invalid context');
+        }
+
+        const contextModel = new ContextModel().modelFromDictionary(context);
+
+        // Create a map from the single attribute key-value pair
+        const attributeMap = { [attributeKey]: attributeValue };
+
+        // Proceed with setting the attribute map if validation is successful
+        await new SetAttributeApi().setAttribute(this.settings, attributeMap, contextModel);
       }
-      // Validate attributeValue is a string
-      if (!isString(attributeValue) && !isNumber(attributeValue) && !isBoolean(attributeValue)) {
-        LogManager.Instance.error(
-          buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
-            apiName,
-            key: 'attributeValue',
-            type: getType(attributeValue),
-            correctType: 'boolean | string | number',
-          }),
-        );
-
-        throw new TypeError('TypeError: attributeValue should be a string');
-      }
-
-      // Validate user ID is present in context
-      if (!context || !context.id) {
-        LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
-        throw new TypeError('TypeError: Invalid context');
-      }
-
-      const contextModel = new ContextModel().modelFromDictionary(context);
-
-      // Proceed with setting the attribute if validation is successful
-      new SetAttributeApi().setAttribute(this.settings, attributeKey, attributeValue, contextModel);
     } catch (err) {
-      // Log any errors encountered during the operation
-      LogManager.Instance.info(
-        buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
+      LogManager.Instance.info(buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, { apiName, err }));
+    }
+  }
+
+  /**
+   * Updates the settings by fetching the latest settings from the VWO server.
+   * @param settings - The settings to update.
+   * @param isViaWebhook - Whether to fetch the settings from the webhook endpoint.
+   * @returns Promise<void>
+   */
+  async updateSettings(settings?: Record<string, any>, isViaWebhook = true): Promise<void> {
+    const apiName = 'updateSettings';
+    try {
+      LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName }));
+      // fetch settings from the server or use the provided settings file if it's not empty
+      const settingsToUpdate =
+        !settings || Object.keys(settings).length === 0
+          ? await SettingsService.Instance.fetchSettings(isViaWebhook)
+          : settings;
+
+      // validate settings schema
+      if (!new SettingsSchema().isSettingsValid(settingsToUpdate)) {
+        throw new Error('TypeError: Invalid Settings schema');
+      }
+
+      // set the settings on the client instance
+      setSettingsAndAddCampaignsToRules(settingsToUpdate, this.vwoClientInstance);
+      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName, isViaWebhook }));
+    } catch (err) {
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_FAILED, {
           apiName,
-          err,
+          isViaWebhook,
+          err: JSON.stringify(err),
         }),
       );
     }

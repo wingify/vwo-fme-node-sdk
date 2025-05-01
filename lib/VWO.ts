@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 import { VWOBuilder } from './VWOBuilder';
 import { IVWOClient } from './VWOClient';
 import { IVWOOptions } from './models/VWOOptionsModel';
-import { SettingsModel } from './models/settings/SettingsModel';
 import { dynamic } from './types/Common';
 import { isObject, isString } from './utils/DataTypeUtil';
 import { Deferred } from './utils/PromiseUtil';
@@ -59,7 +58,11 @@ export class VWO {
       .initPolling(); // Starts polling mechanism for regular updates.
     // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
 
-    return this.vwoBuilder.getSettings().then((settings: SettingsModel) => {
+    if (options?.settings) {
+      return Promise.resolve(this.vwoBuilder.build(options.settings));
+    }
+
+    return this.vwoBuilder.getSettings().then((settings: Record<any, any>) => {
       return this.vwoBuilder.build(settings); // Builds the VWO instance with the fetched settings.
     });
   }

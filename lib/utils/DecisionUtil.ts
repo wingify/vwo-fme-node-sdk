@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import { SegmentationManager } from '../packages/segmentation-evaluator';
 import { CampaignDecisionService } from '../services/CampaignDecisionService';
 import { IStorageService } from '../services/StorageService';
 import { isObject } from '../utils/DataTypeUtil';
+import { Constants } from '../constants';
 import {
   assignRangeValues,
   getBucketingSeed,
@@ -38,6 +39,7 @@ import { cloneObject } from './FunctionUtil';
 import { buildMessage } from './LogMessageUtil';
 import { evaluateGroups } from './MegUtil';
 import { getUUID } from './UuidUtil';
+import { StorageDecorator } from '../decorators/StorageDecorator';
 
 export const checkWhitelistingAndPreSeg = async (
   settings: SettingsModel,
@@ -45,7 +47,7 @@ export const checkWhitelistingAndPreSeg = async (
   campaign: CampaignModel,
   context: ContextModel,
   evaluatedFeatureMap: Map<string, any>,
-  megGroupWinnerCampaigns: Map<number, number>,
+  megGroupWinnerCampaigns: Map<number, any>,
   storageService: IStorageService,
   decision: any,
 ): Promise<[boolean, any]> => {
@@ -87,16 +89,63 @@ export const checkWhitelistingAndPreSeg = async (
   Object.assign(decision, { customVariables: context.getCustomVariables() }); // for integeration
 
   // Check if RUle being evaluated is part of Mutually Exclusive Group
-  const { groupId } = getGroupDetailsIfCampaignPartOfIt(settings, campaignId);
+  const { groupId } = getGroupDetailsIfCampaignPartOfIt(
+    settings,
+    campaign.getId(),
+    campaign.getType() === CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null,
+  );
   // Check if group is already evaluated and we have eligible winner campaigns
   const groupWinnerCampaignId = megGroupWinnerCampaigns?.get(groupId);
   if (groupWinnerCampaignId) {
-    // check if the campaign is the winner of the group
-    if (groupWinnerCampaignId === campaignId) {
-      return [true, null];
+    if (campaign.getType() === CampaignTypeEnum.AB) {
+      // check if the campaign is the winner of the group
+      if (groupWinnerCampaignId === campaignId) {
+        return [true, null];
+      }
+    } else if (campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
+      // check if the campaign is the winner of the group
+      if (groupWinnerCampaignId === campaignId + '_' + campaign.getVariations()[0].getId()) {
+        return [true, null];
+      }
     }
     // as group is already evaluated, no need to check again, return false directly
     return [false, null];
+  } else {
+    // check in storage if the group is already evaluated for the user
+    const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(
+      `${Constants.VWO_META_MEG_KEY}${groupId}`,
+      context,
+      storageService,
+    );
+    if (storedData && storedData.experimentKey && storedData.experimentId) {
+      LogManager.Instance.info(
+        buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+          campaignKey: storedData.experimentKey,
+          userId: context.getId(),
+        }),
+      );
+      if (storedData.experimentId === campaignId) {
+        // return the campaign if the called campaignId matches
+        if (campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
+          if (storedData.experimentVariationId === campaign.getVariations()[0].getId()) {
+            // if personalise then check if the reqeusted variation is the winner
+            return [true, null];
+          } else {
+            // if requested variation is not the winner then set the winner campaign in the map and return
+            megGroupWinnerCampaigns.set(groupId, storedData.experimentId + '_' + storedData.experimentVariationId);
+            return [false, null];
+          }
+        } else {
+          return [true, null];
+        }
+      }
+      if (storedData.experimentVariationId != -1) {
+        megGroupWinnerCampaigns.set(groupId, storedData.experimentId + '_' + storedData.experimentVariationId);
+      } else {
+        megGroupWinnerCampaigns.set(groupId, storedData.experimentId);
+      }
+      return [false, null];
+    }
   }
 
   // If Whitelisting is skipped/failed and campaign not part of any MEG Groups
@@ -114,9 +163,26 @@ export const checkWhitelistingAndPreSeg = async (
     );
 
     if (winnerCampaign && winnerCampaign.id === campaignId) {
-      return [true, null];
+      if (winnerCampaign.type === CampaignTypeEnum.AB) {
+        return [true, null];
+      } else {
+        // if personalise then check if the reqeusted variation is the winner
+        if (winnerCampaign.variations[0].id === campaign.getVariations()[0].getId()) {
+          return [true, null];
+        } else {
+          megGroupWinnerCampaigns.set(groupId, winnerCampaign.id + '_' + winnerCampaign.variations[0].id);
+          return [false, null];
+        }
+      }
+    } else if (winnerCampaign) {
+      if (winnerCampaign.type === CampaignTypeEnum.AB) {
+        megGroupWinnerCampaigns.set(groupId, winnerCampaign.id);
+      } else {
+        megGroupWinnerCampaigns.set(groupId, winnerCampaign.id + '_' + winnerCampaign.variations[0].id);
+      }
+      return [false, null];
     }
-    megGroupWinnerCampaigns.set(groupId, winnerCampaign?.id || 0);
+    megGroupWinnerCampaigns.set(groupId, -1);
     return [false, null];
   }
 
@@ -132,7 +198,10 @@ export const evaluateTrafficAndGetVariation = (
   if (!variation) {
     LogManager.Instance.info(
       buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-        campaignKey: campaign.getKey(),
+        campaignKey:
+          campaign.getType() === CampaignTypeEnum.AB
+            ? campaign.getKey()
+            : campaign.getName() + '_' + campaign.getRuleKey(),
         userId,
         status: 'did not get any variation',
       }),
@@ -142,7 +211,10 @@ export const evaluateTrafficAndGetVariation = (
   }
   LogManager.Instance.info(
     buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
-      campaignKey: campaign.getKey(),
+      campaignKey:
+        campaign.getType() === CampaignTypeEnum.AB
+          ? campaign.getKey()
+          : campaign.getName() + '_' + campaign.getRuleKey(),
       userId,
       status: `got variation:${variation.getKey()}`,
     }),
@@ -171,7 +243,10 @@ const _checkCampaignWhitelisting = async (campaign: CampaignModel, context: Cont
   LogManager.Instance.info(
     buildMessage(InfoLogMessagesEnum.WHITELISTING_STATUS, {
       userId: context.getId(),
-      campaignKey: campaign.getRuleKey(),
+      campaignKey:
+        campaign.getType() === CampaignTypeEnum.AB
+          ? campaign.getKey()
+          : campaign.getName() + '_' + campaign.getRuleKey(),
       status,
       variationString,
     }),
@@ -190,7 +265,10 @@ const _evaluateWhitelisting = async (campaign: CampaignModel, context: ContextMo
     if (isObject(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
       LogManager.Instance.info(
         buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
-          campaignKey: campaign.getRuleKey(),
+          campaignKey:
+            campaign.getType() === CampaignTypeEnum.AB
+              ? campaign.getKey()
+              : campaign.getName() + '_' + campaign.getRuleKey(),
           userId: context.getId(),
           variation: variation.getKey() ? `for variation: ${variation.getKey()}` : '',
         }),

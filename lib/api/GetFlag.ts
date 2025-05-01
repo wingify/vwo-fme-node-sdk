@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import { createAndSendImpressionForVariationShown } from '../utils/ImpressionUti
 import { buildMessage } from '../utils/LogMessageUtil';
 import { Deferred } from '../utils/PromiseUtil';
 import { evaluateRule } from '../utils/RuleEvaluationUtil';
+import { getShouldWaitForTrackingCalls } from '../utils/NetworkUtil';
 
 export class Flag {
   private readonly enabled: boolean;
@@ -214,7 +215,21 @@ export class FlagApi {
 
           _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
 
-          createAndSendImpressionForVariationShown(settings, passedRolloutCampaign.getId(), variation.getId(), context);
+          if (getShouldWaitForTrackingCalls()) {
+            await createAndSendImpressionForVariationShown(
+              settings,
+              passedRolloutCampaign.getId(),
+              variation.getId(),
+              context,
+            );
+          } else {
+            createAndSendImpressionForVariationShown(
+              settings,
+              passedRolloutCampaign.getId(),
+              variation.getId(),
+              context,
+            );
+          }
         }
       }
     } else if (rollOutRules.length === 0) {
@@ -227,7 +242,7 @@ export class FlagApi {
 
       // if rollout rule is passed, get all ab and Personalize rules
       const experimentRules = getAllExperimentRules(feature);
-      const megGroupWinnerCampaigns: Map<number, number> = new Map();
+      const megGroupWinnerCampaigns: Map<number, any> = new Map();
 
       for (const rule of experimentRules) {
         const { preSegmentationResult, whitelistedObject, updatedDecision } = await evaluateRule(
@@ -271,8 +286,11 @@ export class FlagApi {
           experimentVariationToReturn = variation;
 
           _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
-
-          createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
+          if (getShouldWaitForTrackingCalls()) {
+            await createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
+          } else {
+            createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
+          }
         }
       }
     }
@@ -303,13 +321,21 @@ export class FlagApi {
           status: isEnabled ? 'enabled' : 'disabled',
         }),
       );
-
-      createAndSendImpressionForVariationShown(
-        settings,
-        feature.getImpactCampaign()?.getCampaignId(),
-        isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-        context,
-      );
+      if (getShouldWaitForTrackingCalls()) {
+        await createAndSendImpressionForVariationShown(
+          settings,
+          feature.getImpactCampaign()?.getCampaignId(),
+          isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
+          context,
+        );
+      } else {
+        createAndSendImpressionForVariationShown(
+          settings,
+          feature.getImpactCampaign()?.getCampaignId(),
+          isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
+          context,
+        );
+      }
     }
 
     deferredObject.resolve(

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ export class SettingsSchema {
       variables: optional(array(this.variableObjectSchema)),
       startRangeVariation: optional(number()),
       endRangeVariation: optional(number()),
+      salt: optional(string()),
     });
 
     this.campaignObjectSchema = object({
@@ -68,6 +69,7 @@ export class SettingsSchema {
       isForcedVariationEnabled: optional(boolean()),
       isAlwaysCheckSegment: optional(boolean()),
       name: string(),
+      salt: optional(string()),
     });
 
     this.ruleSchema = object({

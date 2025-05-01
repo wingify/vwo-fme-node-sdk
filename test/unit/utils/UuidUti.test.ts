@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getRandomUUID, generateUUID } from '../../../lib/utils/UuidUtil';
+import { getRandomUUID, generateUUID, getUUID } from '../../../lib/utils/UuidUtil';
 import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
 
 jest.mock('uuid', () => ({
@@ -59,6 +59,13 @@ describe('UuidUtil', () => {
 
       expect(uuidv5).toHaveBeenCalledWith(name, namespace);
       expect(result).toBe(expectedUUID);
+    });
+  });
+
+  describe('generateUUID', () => {
+    it('should return undefined if name or namespace is invalid', () => {
+      const result = generateUUID('', 'valid-namespace');
+      expect(result).toBeUndefined();
     });
   });
 });

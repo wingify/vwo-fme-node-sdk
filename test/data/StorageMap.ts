@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ type StorageData = {
 type StorageMap = {
   storage: Record<string, StorageData>;
   get: (featureKey: string, userId: string) => Promise<StorageData>;
-  set: (data: { featureKey: string; user: string } & StorageData) => Promise<void>;
+  set: (data: { featureKey: string; userId: string } & StorageData) => Promise<void>;
 };
 
 const storageMap: StorageMap = {
@@ -43,9 +43,9 @@ const storageMap: StorageMap = {
   },
 
   // create a set function
-  set: async function (data: { featureKey: string; user: string } & StorageData) {
+  set: async function (data: { featureKey: string; userId: string } & StorageData) {
     // create a key
-    const key = data.featureKey + '_' + data.user;
+    const key = data.featureKey + '_' + data.userId;
 
     // Set the data in the storage
     this.storage[key] = {

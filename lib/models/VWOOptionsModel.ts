@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,8 @@ export interface IVWOOptions {
   integrations?: IIntegrationOptions;
   network?: INetworkOptions;
   platform?: string;
+  shouldWaitForTrackingCalls?: boolean;
+  settings?: Record<any, any>;
 
   vwoBuilder?: IVWOBuilder;
 }
@@ -56,6 +58,8 @@ export class VWOOptionsModel implements IVWOOptions {
   segmentation?: SegmentEvaluator;
   integrations?: IIntegrationOptions;
   network?: INetworkOptions;
+  shouldWaitForTrackingCalls?: boolean;
+  settings?: Record<any, any>;
 
   vwoBuilder?: IVWOBuilder;
 
@@ -63,6 +67,10 @@ export class VWOOptionsModel implements IVWOOptions {
     this.accountId = options.accountId;
     this.sdkKey = options.sdkKey;
     this.vwoBuilder = options.vwoBuilder;
+
+    if (options?.shouldWaitForTrackingCalls) {
+      this.shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
+    }
     if (options?.isDevelopmentMode) {
       this.isDevelopmentMode = options.isDevelopmentMode;
     }
@@ -86,6 +94,10 @@ export class VWOOptionsModel implements IVWOOptions {
     }
     if (options?.network) {
       this.network = options.network;
+    }
+
+    if (options?.settings) {
+      this.settings = options.settings;
     }
 
     return this;
@@ -129,5 +141,9 @@ export class VWOOptionsModel implements IVWOOptions {
 
   getVWOBuilder(): IVWOBuilder {
     return this.vwoBuilder;
+  }
+
+  getSettings(): Record<any, any> {
+    return this.settings;
   }
 }

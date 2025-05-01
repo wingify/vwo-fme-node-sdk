@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NetworkClient = void 0;
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@ var https = require("https");
 var PromiseUtil_1 = require("../../../utils/PromiseUtil");
 var Url_1 = require("../../../constants/Url");
 var ResponseModel_1 = require("../models/ResponseModel");
+var constants_1 = require("../../../constants");
+var logger_1 = require("../../../packages/logger");
+var LogMessageUtil_1 = require("../../../utils/LogMessageUtil");
+var log_messages_1 = require("../../../enums/log-messages");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -33,69 +37,72 @@ var NetworkClient = /** @class */ (function () {
      * @returns {Promise<ResponseModel>} A promise that resolves to a ResponseModel.
      */
     NetworkClient.prototype.GET = function (requestModel) {
-        var deferred = new PromiseUtil_1.Deferred();
-        // Extract network options from the request model.
-        var networkOptions = requestModel.getOptions();
-        var responseModel = new ResponseModel_1.ResponseModel();
-        try {
-            // Choose HTTP or HTTPS client based on the scheme.
-            var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
-            // Perform the HTTP GET request.
-            var req = httpClient.get(networkOptions, function (res) {
-                responseModel.setStatusCode(res.statusCode);
-                var contentType = res.headers['content-type'];
-                var error;
-                var rawData = '';
-                // Check for expected content-type.
-                if (!/^application\/json/.test(contentType)) {
-                    error = "Invalid content-type.\nExpected application/json but received ".concat(contentType);
-                }
-                if (error) {
-                    // Log error and consume response data to free up memory.
-                    res.resume();
-                    responseModel.setError(error);
-                    deferred.reject(responseModel);
-                }
-                res.setEncoding('utf8');
-                // Collect data chunks.
-                res.on('data', function (chunk) {
-                    rawData += chunk;
-                });
-                // Handle the end of the response.
-                res.on('end', function () {
-                    try {
-                        var parsedData = JSON.parse(rawData);
-                        // Check for successful response status.
-                        if (responseModel.getStatusCode() !== 200) {
-                            var error_1 = "Request failed. Got Status Code: ".concat(responseModel.getStatusCode(), " and message: ").concat(rawData);
-                            responseModel.setError(error_1);
-                            deferred.reject(responseModel);
-                            return;
+        var _this = this;
+        var attemptRequest = function (attempt) {
+            var deferred = new PromiseUtil_1.Deferred();
+            // Extract network options from the request model.
+            var networkOptions = requestModel.getOptions();
+            var responseModel = new ResponseModel_1.ResponseModel();
+            try {
+                // Choose HTTP or HTTPS client based on the scheme.
+                var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
+                // Perform the HTTP GET request.
+                var req = httpClient.get(networkOptions, function (res) {
+                    responseModel.setStatusCode(res.statusCode);
+                    var contentType = res.headers['content-type'];
+                    var error;
+                    var rawData = '';
+                    // Check for expected content-type.
+                    if (!/^application\/json/.test(contentType)) {
+                        error = "Invalid content-type.\nExpected application/json but received ".concat(contentType, ". Status Code: ").concat(res === null || res === void 0 ? void 0 : res.statusCode);
+                    }
+                    if (error) {
+                        // Log error and consume response data to free up memory.
+                        res.resume();
+                        return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                    }
+                    res.setEncoding('utf8');
+                    // Collect data chunks.
+                    res.on('data', function (chunk) {
+                        rawData += chunk;
+                    });
+                    // Handle the end of the response.
+                    res.on('end', function () {
+                        try {
+                            var parsedData = JSON.parse(rawData);
+                            // Check for successful response status.
+                            if (responseModel.getStatusCode() < 200 || responseModel.getStatusCode() >= 300) {
+                                var error_1 = "".concat(rawData, ", Status Code: ").concat(responseModel.getStatusCode());
+                                // if status code is 400, reject the promise as it is a bad request
+                                if (responseModel.getStatusCode() === 400) {
+                                    responseModel.setError(error_1);
+                                    deferred.reject(responseModel);
+                                    return;
+                                }
+                                return _this.retryOrReject(error_1, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                            }
+                            responseModel.setData(parsedData);
+                            deferred.resolve(responseModel);
                         }
-                        responseModel.setData(parsedData);
-                        deferred.resolve(responseModel);
-                    }
-                    catch (err) {
-                        responseModel.setError(err);
-                        deferred.reject(responseModel);
-                    }
+                        catch (err) {
+                            return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                        }
+                    });
                 });
-            });
-            // Handle request timeout.
-            req.on('timeout', function () {
-                responseModel.setError(new Error('timeout'));
-                deferred.reject(responseModel);
-            });
-            req.on('error', function (err) {
-                responseModel.setError(err);
-                deferred.reject(responseModel);
-            });
-        }
-        catch (err) {
-            responseModel.setError(err);
-            deferred.reject(responseModel);
-        }
-        return deferred.promise;
+                // Handle request timeout.
+                req.on('timeout', function () {
+                    return _this.retryOrReject(new Error('timeout'), attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                });
+                req.on('error', function (err) {
+                    return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                });
+            }
+            catch (err) {
+                _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+            }
+            return deferred.promise;
+        };
+        return attemptRequest(0);
     };
     /**
      * Performs a POST request using the provided RequestModel.
@@ -103,56 +110,97 @@ var NetworkClient = /** @class */ (function () {
      * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
      */
     NetworkClient.prototype.POST = function (request) {
-        var deferred = new PromiseUtil_1.Deferred();
-        var networkOptions = request.getOptions();
-        var responseModel = new ResponseModel_1.ResponseModel();
-        try {
-            // Choose HTTP or HTTPS client based on the scheme.
-            var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
-            // Perform the HTTP POST request.
-            var req = httpClient.request(networkOptions, function (res) {
-                var rawData = '';
-                res.setEncoding('utf8');
-                // Collect data chunks.
-                res.on('data', function (chunk) {
-                    rawData += chunk;
+        var _this = this;
+        var attemptRequest = function (attempt) {
+            var deferred = new PromiseUtil_1.Deferred();
+            var networkOptions = request.getOptions();
+            var responseModel = new ResponseModel_1.ResponseModel();
+            try {
+                // Choose HTTP or HTTPS client based on the scheme.
+                var httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
+                // Perform the HTTP POST request.
+                var req = httpClient.request(networkOptions, function (res) {
+                    var rawData = '';
+                    res.setEncoding('utf8');
+                    // Collect data chunks.
+                    res.on('data', function (chunk) {
+                        rawData += chunk;
+                    });
+                    // Handle the end of the response.
+                    res.on('end', function () {
+                        try {
+                            if (res.statusCode === 200) {
+                                responseModel.setData(request.getBody());
+                                deferred.resolve(responseModel);
+                            }
+                            else {
+                                var error = "Raw Data: ".concat(rawData, ", Status Code: ").concat(res.statusCode);
+                                // if status code is 400, reject the promise as it is a bad request
+                                if (res.statusCode === 400) {
+                                    responseModel.setError(error);
+                                    deferred.reject(responseModel);
+                                    return;
+                                }
+                                return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                            }
+                        }
+                        catch (err) {
+                            return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                        }
+                    });
                 });
-                // Handle the end of the response.
-                res.on('end', function () {
-                    if (res.statusCode === 200) {
-                        responseModel.setData(request.getBody());
-                        deferred.resolve(responseModel);
-                    }
-                    else if (res.statusCode === 413) {
-                        var parsedData = JSON.parse(rawData);
-                        responseModel.setError(parsedData.error);
-                        responseModel.setData(request.getBody());
-                        deferred.reject(responseModel);
-                    }
-                    else {
-                        var parsedData = JSON.parse(rawData);
-                        responseModel.setError(parsedData.message);
-                        responseModel.setData(request.getBody());
-                        deferred.reject(responseModel);
-                    }
+                // Handle request timeout.
+                req.on('timeout', function () {
+                    var error = "Timeout: ".concat(networkOptions.timeout);
+                    return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
                 });
-            });
-            // Handle request timeout.
-            req.on('timeout', function () {
-                responseModel.setError(new Error('timeout'));
-                responseModel.setData(request.getBody());
-                deferred.reject(responseModel);
-            });
-            // Write data to the request body and end the request.
-            req.write(JSON.stringify(networkOptions.body));
-            req.end();
+                req.on('error', function (err) {
+                    return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                });
+                // Write data to the request body and end the request.
+                req.write(JSON.stringify(networkOptions.body));
+                req.end();
+            }
+            catch (err) {
+                _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+            }
+            return deferred.promise;
+        };
+        return attemptRequest(0);
+    };
+    /**
+     * Helper function to retry or reject
+     * @param {any} error - The error to retry or reject
+     * @param {number} attempt - The attempt number
+     * @param {any} deferred - The deferred object
+     * @param {string} operation - The operation to retry or reject
+     * @param {Function} attemptRequest - The function to attempt the request
+     */
+    NetworkClient.prototype.retryOrReject = function (error, attempt, deferred, endpoint, attemptRequest) {
+        var delay = constants_1.Constants.RETRY_DELAY * Math.pow(2, attempt + 1);
+        if (attempt < constants_1.Constants.MAX_RETRIES) {
+            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
+                endPoint: endpoint,
+                err: error,
+                delay: delay / 1000,
+                attempt: attempt + 1,
+                maxRetries: constants_1.Constants.MAX_RETRIES,
+            }));
+            setTimeout(function () {
+                attemptRequest(attempt + 1)
+                    .then(deferred.resolve)
+                    .catch(deferred.reject);
+            }, delay);
         }
-        catch (err) {
-            responseModel.setError(err);
-            responseModel.setData(request.getBody());
+        else {
+            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+                endPoint: endpoint,
+                err: error,
+            }));
+            var responseModel = new ResponseModel_1.ResponseModel();
+            responseModel.setError(error);
             deferred.reject(responseModel);
         }
-        return deferred.promise;
     };
     return NetworkClient;
 }());

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,11 @@ import { LogLevelEnum } from '../../../../lib/packages/logger/enums/LogLevelEnum
 describe('End-to-End Tests for Logger Module', () => {
   let logManager: LogManager;
 
-  beforeAll(() => {});
+  beforeAll(() => {
+    process.env.TEST_ENV = 'true';
+  });
   afterAll(() => {
+    process.env.TEST_ENV = undefined;
     jest.clearAllMocks();
   });
 

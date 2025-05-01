@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 import { LogManager } from '../packages/logger';
 import { buildMessage } from './LogMessageUtil';
 import { ErrorLogMessagesEnum } from '../enums/log-messages';
+import { Constants } from '../constants';
 
 const noop = () => {};
 
@@ -31,75 +32,94 @@ export function sendPostCall(options) {
 function sendRequest(method, options) {
   const { networkOptions, successCallback = noop, errorCallback = noop } = options;
 
-  let url = `${networkOptions.scheme}://${networkOptions.hostname}${networkOptions.path}`;
-  if (networkOptions.port) {
-    url = `${networkOptions.scheme}://${networkOptions.hostname}:${networkOptions.port}${networkOptions.path}`;
-  }
-  const body = networkOptions.body;
-  const customHeaders = networkOptions.headers || {};
-  const timeout = networkOptions.timeout;
+  let retryCount = 0;
 
-  const xhr = new XMLHttpRequest();
+  function executeRequest() {
+    let url = `${networkOptions.scheme}://${networkOptions.hostname}${networkOptions.path}`;
+    if (networkOptions.port) {
+      url = `${networkOptions.scheme}://${networkOptions.hostname}:${networkOptions.port}${networkOptions.path}`;
+    }
+    const body = networkOptions.body;
+    const customHeaders = networkOptions.headers || {};
+    const timeout = networkOptions.timeout;
 
-  if (timeout) {
-    xhr.timeout = timeout;
-  }
+    const xhr = new XMLHttpRequest();
 
-  xhr.onload = function () {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      const response = xhr.responseText;
+    if (timeout) {
+      xhr.timeout = timeout;
+    }
 
-      if (method === HttpMethodEnum.GET) {
-        const parsedResponse = JSON.parse(response);
-        successCallback(parsedResponse);
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const response = xhr.responseText;
+
+        if (method === HttpMethodEnum.GET) {
+          const parsedResponse = JSON.parse(response);
+          successCallback(parsedResponse);
+        } else {
+          successCallback(response);
+        }
+      } else if (xhr.status === 400) {
+        errorCallback(xhr.statusText);
       } else {
-        successCallback(response);
+        handleError(xhr.statusText);
       }
-    } else {
-      errorCallback(xhr.statusText);
-    }
-  };
-
-  // Set up a callback function that is called if the request fails
-  xhr.onerror = function () {
-    // An error occurred during the transaction
-    LogManager.Instance.error(
-      buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-        method: HttpMethodEnum.POST,
-        err: `${xhr.statusText}, status: ${xhr.status}`,
-      }),
-    );
-    errorCallback(xhr.statusText);
-  };
-
-  // Set up a callback function that is called if the request times out
-  if (timeout) {
-    xhr.ontimeout = function () {
-      // The request timed out
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-          method: HttpMethodEnum.POST,
-          err: `Request timed out`,
-        }),
-      );
     };
-  }
 
-  xhr.open(method, url, true);
+    xhr.onerror = function () {
+      handleError(`${xhr.statusText}, status: ${xhr.status}`);
+    };
 
-  for (const headerName in customHeaders) {
-    if (headerName in customHeaders) {
-      // Skip the Content-Type header
-      // Request header field content-type is not allowed by Access-Control-Allow-Headers
-      if (headerName !== 'Content-Type' && headerName !== 'Content-Length') {
-        xhr.setRequestHeader(headerName, customHeaders[headerName]);
+    if (timeout) {
+      xhr.ontimeout = function () {
+        handleError('Request timed out');
+      };
+    }
+
+    function handleError(error) {
+      if (retryCount < Constants.MAX_RETRIES) {
+        retryCount++;
+        const delay = Constants.RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+        LogManager.Instance.error(
+          buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
+            endPoint: url.split('?')[0],
+            err: error,
+            delay: delay / 1000,
+            attempt: retryCount,
+            maxRetries: Constants.MAX_RETRIES,
+          }),
+        );
+
+        setTimeout(executeRequest, delay);
+      } else {
+        LogManager.Instance.error(
+          buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+            endPoint: url.split('?')[0],
+            err: error,
+          }),
+        );
+        errorCallback(error);
       }
+    }
+
+    xhr.open(method, url, true);
+
+    for (const headerName in customHeaders) {
+      if (headerName in customHeaders) {
+        // Skip the Content-Type header
+        // Request header field content-type is not allowed by Access-Control-Allow-Headers
+        if (headerName !== 'Content-Type' && headerName !== 'Content-Length') {
+          xhr.setRequestHeader(headerName, customHeaders[headerName]);
+        }
+      }
+    }
+
+    if (method === HttpMethodEnum.POST && typeof body !== 'string') {
+      xhr.send(JSON.stringify(body));
+    } else if (method === HttpMethodEnum.GET) {
+      xhr.send();
     }
   }
 
-  if (method === HttpMethodEnum.POST) {
-    xhr.send(JSON.stringify(body));
-  } else if (method === HttpMethodEnum.GET) {
-    xhr.send();
-  }
+  executeRequest();
 }

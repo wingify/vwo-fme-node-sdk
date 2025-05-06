@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.15.0
+ * vwo-fme-node-sdk - v1.17.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -20,7 +20,7 @@
  *  1. murmurhash - ^2.0.1
  *  2. superstruct - ^0.14.x
  *  3. uuid - ^9.0.1
- *  4. vwo-fme-sdk-log-messages - ^1.0.1
+ *  4. vwo-fme-sdk-log-messages - ^1.*.*
  */
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.15.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.0.1"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.17.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
 
 /***/ }),
 
@@ -208,7 +208,8 @@ var VWO = /** @class */function () {
     .setNetworkManager() // Configures network management for API communication.
     .setSegmentation() // Sets up segmentation for targeted functionality.
     // .initBatching()        // Initializes batching for bulk data processing.
-    .initPolling(); // Starts polling mechanism for regular updates.
+    .initPolling() // Starts polling mechanism for regular updates.
+    .initBatching();
     // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
     if (options === null || options === void 0 ? void 0 : options.settings) {
       return Promise.resolve(this.vwoBuilder.build(options.settings));
@@ -363,6 +364,8 @@ var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./dist
 var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var SettingsUtil_1 = __webpack_require__(/*! ./utils/SettingsUtil */ "./dist/server-unpacked/utils/SettingsUtil.js");
 var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./dist/server-unpacked/utils/UuidUtil.js");
+var BatchEventsQueue_1 = __webpack_require__(/*! ./services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
+var BatchEventsDispatcher_1 = __webpack_require__(/*! ./utils/BatchEventsDispatcher */ "./dist/server-unpacked/utils/BatchEventsDispatcher.js");
 var VWOBuilder = /** @class */function () {
   function VWOBuilder(options) {
     this.options = options;
@@ -381,6 +384,32 @@ var VWOBuilder = /** @class */function () {
     }));
     // Set the development mode based on options
     networkInstance.getConfig().setDevelopmentMode((_c = this.options) === null || _c === void 0 ? void 0 : _c.isDevelopmentMode);
+    return this;
+  };
+  VWOBuilder.prototype.initBatching = function () {
+    var _this = this;
+    if (this.settingFileManager.isGatewayServiceProvided) {
+      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
+      return this;
+    }
+    if (this.options.batchEventData) {
+      // Skip batching initialization if neither eventsPerRequest nor requestTimeInterval are valid numbers greater than 0
+      if ((!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.eventsPerRequest) || this.options.batchEventData.eventsPerRequest <= 0) && (!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.requestTimeInterval) || this.options.batchEventData.requestTimeInterval <= 0)) {
+        logger_1.LogManager.Instance.error('Invalid batch events config, should be an object, eventsPerRequest should be a number greater than 0 and requestTimeInterval should be a number greater than 0');
+        return this;
+      }
+      this.batchEventsQueue = new BatchEventsQueue_1.BatchEventsQueue(Object.assign({}, this.options.batchEventData, {
+        dispatcher: function (events, callback) {
+          return BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch({
+            ev: events
+          }, callback, Object.assign({}, {
+            a: _this.options.accountId,
+            env: _this.options.sdkKey
+          }));
+        }
+      }));
+      this.batchEventsQueue.flushAndClearTimer.bind(this.batchEventsQueue);
+    }
     return this;
   };
   /**
@@ -753,7 +782,7 @@ var GetFlag_1 = __webpack_require__(/*! ./api/GetFlag */ "./dist/server-unpacked
 var SetAttribute_1 = __webpack_require__(/*! ./api/SetAttribute */ "./dist/server-unpacked/api/SetAttribute.js");
 var TrackEvent_1 = __webpack_require__(/*! ./api/TrackEvent */ "./dist/server-unpacked/api/TrackEvent.js");
 var log_messages_1 = __webpack_require__(/*! ./enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
-// import { BatchEventsQueue } from './services/batchEventsQueue';
+var BatchEventsQueue_1 = __webpack_require__(/*! ./services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 var SettingsSchemaValidation_1 = __webpack_require__(/*! ./models/schemas/SettingsSchemaValidation */ "./dist/server-unpacked/models/schemas/SettingsSchemaValidation.js");
 var ContextModel_1 = __webpack_require__(/*! ./models/user/ContextModel */ "./dist/server-unpacked/models/user/ContextModel.js");
 var HooksService_1 = __webpack_require__(/*! ./services/HooksService */ "./dist/server-unpacked/services/HooksService.js");
@@ -764,6 +793,7 @@ var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./dist/serve
 var SettingsUtil_1 = __webpack_require__(/*! ./utils/SettingsUtil */ "./dist/server-unpacked/utils/SettingsUtil.js");
 var NetworkUtil_1 = __webpack_require__(/*! ./utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var SettingsService_1 = __webpack_require__(/*! ./services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
+var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var VWOClient = /** @class */function () {
   function VWOClient(settings, options) {
     this.options = options;
@@ -785,7 +815,7 @@ var VWOClient = /** @class */function () {
    * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
    */
   VWOClient.prototype.getFlag = function (featureKey, context) {
-    var apiName = 'getFlag';
+    var apiName = ApiEnum_1.ApiEnum.GET_FLAG;
     var deferredObject = new PromiseUtil_1.Deferred();
     var errorReturnSchema = {
       isEnabled: function () {
@@ -852,7 +882,7 @@ var VWOClient = /** @class */function () {
     if (eventProperties === void 0) {
       eventProperties = {};
     }
-    var apiName = 'trackEvent';
+    var apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
     var deferredObject = new PromiseUtil_1.Deferred();
     try {
       var hooksService = new HooksService_1.default(this.options);
@@ -927,7 +957,7 @@ var VWOClient = /** @class */function () {
       return __generator(this, function (_b) {
         switch (_b.label) {
           case 0:
-            apiName = 'setAttribute';
+            apiName = ApiEnum_1.ApiEnum.SET_ATTRIBUTE;
             _b.label = 1;
           case 1:
             _b.trys.push([1, 6,, 7]);
@@ -1042,7 +1072,7 @@ var VWOClient = /** @class */function () {
       return __generator(this, function (_b) {
         switch (_b.label) {
           case 0:
-            apiName = 'updateSettings';
+            apiName = ApiEnum_1.ApiEnum.UPDATE_SETTINGS;
             _b.label = 1;
           case 1:
             _b.trys.push([1, 5,, 6]);
@@ -1083,6 +1113,38 @@ var VWOClient = /** @class */function () {
         }
       });
     });
+  };
+  /**
+   * Flushes the events manually from the batch events queue
+   */
+  VWOClient.prototype.flushEvents = function () {
+    var apiName = ApiEnum_1.ApiEnum.FLUSH_EVENTS;
+    var deferredObject = new PromiseUtil_1.Deferred();
+    try {
+      logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+        apiName: apiName
+      }));
+      if (BatchEventsQueue_1.BatchEventsQueue.Instance) {
+        // return the promise from the flushAndClearTimer method
+        return BatchEventsQueue_1.BatchEventsQueue.Instance.flushAndClearTimer();
+      } else {
+        logger_1.LogManager.Instance.error('Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API.');
+        deferredObject.resolve({
+          status: 'error',
+          events: []
+        });
+      }
+    } catch (err) {
+      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+        apiName: apiName,
+        err: err
+      }));
+      deferredObject.resolve({
+        status: 'error',
+        events: []
+      });
+    }
+    return deferredObject.promise;
   };
   return VWOClient;
 }();
@@ -1663,6 +1725,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.SetAttributeApi = void 0;
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
+var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 var SetAttributeApi = /** @class */function () {
   function SetAttributeApi() {}
   /**
@@ -1707,11 +1770,17 @@ var createImpressionForAttributes = function (settings, attributes, context) {
         case 0:
           properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
           payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress());
-          // Send the constructed payload via POST request
-          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+          if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+          BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+          return [3 /*break*/, 3];
         case 1:
           // Send the constructed payload via POST request
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+        case 2:
+          // Send the constructed payload via POST request
           _a.sent();
+          _a.label = 3;
+        case 3:
           return [2 /*return*/];
       }
     });
@@ -1863,6 +1932,7 @@ var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/se
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
+var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var TrackApi = /** @class */function () {
   function TrackApi() {}
@@ -1889,7 +1959,7 @@ var TrackApi = /** @class */function () {
             // Set and execute integration callback for the track event
             hooksService.set({
               eventName: eventName,
-              api: ApiEnum_1.ApiEnum.TRACK
+              api: ApiEnum_1.ApiEnum.TRACK_EVENT
             });
             hooksService.execute(hooksService.get());
             return [2 /*return*/, (_a = {}, _a[eventName] = true, _a)];
@@ -1921,11 +1991,17 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
         case 0:
           properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
           payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
-          // Send the prepared payload via POST API request
-          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+          if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+          BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+          return [3 /*break*/, 3];
         case 1:
-          // Send the prepared payload via POST API request
+          // Send the constructed payload via POST request
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+        case 2:
+          // Send the constructed payload via POST request
           _a.sent();
+          _a.label = 3;
+        case 3:
           return [2 /*return*/];
       }
     });
@@ -2327,7 +2403,10 @@ exports.ApiEnum = void 0;
 var ApiEnum;
 (function (ApiEnum) {
   ApiEnum["GET_FLAG"] = "getFlag";
-  ApiEnum["TRACK"] = "track";
+  ApiEnum["TRACK_EVENT"] = "trackEvent";
+  ApiEnum["SET_ATTRIBUTE"] = "setAttribute";
+  ApiEnum["FLUSH_EVENTS"] = "flushEvents";
+  ApiEnum["UPDATE_SETTINGS"] = "updateSettings";
 })(ApiEnum || (exports.ApiEnum = ApiEnum = {}));
 
 /***/ }),
@@ -2619,6 +2698,7 @@ var UrlEnum;
   UrlEnum["EVENTS"] = "/events/t";
   UrlEnum["ATTRIBUTE_CHECK"] = "/check-attribute";
   UrlEnum["GET_USER_DATA"] = "/get-user-details";
+  UrlEnum["BATCH_EVENTS"] = "/server-side/batch-events-v2";
 })(UrlEnum || (exports.UrlEnum = UrlEnum = {}));
 
 /***/ }),
@@ -4517,10 +4597,12 @@ var NetworkClient = /** @class */function () {
           res.on('end', function () {
             try {
               if (res.statusCode === 200) {
+                responseModel.setStatusCode(res.statusCode);
                 responseModel.setData(request.getBody());
                 deferred.resolve(responseModel);
               } else {
                 var error = "Raw Data: ".concat(rawData, ", Status Code: ").concat(res.statusCode);
+                responseModel.setStatusCode(res.statusCode);
                 // if status code is 400, reject the promise as it is a bad request
                 if (res.statusCode === 400) {
                   responseModel.setError(error);
@@ -6986,6 +7068,310 @@ Object.defineProperty(exports, "Storage", ({
 
 /***/ }),
 
+/***/ "./dist/server-unpacked/services/BatchEventsQueue.js":
+/*!***********************************************************!*\
+  !*** ./dist/server-unpacked/services/BatchEventsQueue.js ***!
+  \***********************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+
+/**
+ * Copyright 2024 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function (resolve) {
+      resolve(value);
+    });
+  }
+  return new (P || (P = Promise))(function (resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator = this && this.__generator || function (thisArg, body) {
+  var _ = {
+      label: 0,
+      sent: function () {
+        if (t[0] & 1) throw t[1];
+        return t[1];
+      },
+      trys: [],
+      ops: []
+    },
+    f,
+    y,
+    t,
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    return this;
+  }), g;
+  function verb(n) {
+    return function (v) {
+      return step([n, v]);
+    };
+  }
+  function step(op) {
+    if (f) throw new TypeError("Generator is already executing.");
+    while (g && (g = 0, op[0] && (_ = 0)), _) try {
+      if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+      if (y = 0, t) op = [op[0] & 2, t.value];
+      switch (op[0]) {
+        case 0:
+        case 1:
+          t = op;
+          break;
+        case 4:
+          _.label++;
+          return {
+            value: op[1],
+            done: false
+          };
+        case 5:
+          _.label++;
+          y = op[1];
+          op = [0];
+          continue;
+        case 7:
+          op = _.ops.pop();
+          _.trys.pop();
+          continue;
+        default:
+          if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+            _ = 0;
+            continue;
+          }
+          if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+            _.label = op[1];
+            break;
+          }
+          if (op[0] === 6 && _.label < t[1]) {
+            _.label = t[1];
+            t = op;
+            break;
+          }
+          if (t && _.label < t[2]) {
+            _.label = t[2];
+            _.ops.push(op);
+            break;
+          }
+          if (t[2]) _.ops.pop();
+          _.trys.pop();
+          continue;
+      }
+      op = body.call(thisArg, _);
+    } catch (e) {
+      op = [6, e];
+      y = 0;
+    } finally {
+      f = t = 0;
+    }
+    if (op[0] & 5) throw op[1];
+    return {
+      value: op[0] ? op[1] : void 0,
+      done: true
+    };
+  }
+};
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BatchEventsQueue = void 0;
+var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
+var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
+var BatchEventsQueue = /** @class */function () {
+  /**
+   * Constructor for the BatchEventsQueue
+   * @param config - The configuration for the batch events queue
+   */
+  function BatchEventsQueue(config) {
+    if (config === void 0) {
+      config = {};
+    }
+    this.queue = [];
+    this.timer = null;
+    if ((0, DataTypeUtil_1.isNumber)(config.requestTimeInterval) && config.requestTimeInterval >= 1) {
+      this.requestTimeInterval = config.requestTimeInterval;
+    } else {
+      this.requestTimeInterval = constants_1.Constants.DEFAULT_REQUEST_TIME_INTERVAL;
+      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
+        parameter: 'requestTimeInterval',
+        minLimit: 0,
+        defaultValue: this.requestTimeInterval.toString()
+      }));
+    }
+    if ((0, DataTypeUtil_1.isNumber)(config.eventsPerRequest) && config.eventsPerRequest > 0 && config.eventsPerRequest <= constants_1.Constants.MAX_EVENTS_PER_REQUEST) {
+      this.eventsPerRequest = config.eventsPerRequest;
+    } else if (config.eventsPerRequest > constants_1.Constants.MAX_EVENTS_PER_REQUEST) {
+      this.eventsPerRequest = constants_1.Constants.MAX_EVENTS_PER_REQUEST;
+      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_MAX_LIMIT, {
+        parameter: 'eventsPerRequest',
+        maxLimit: constants_1.Constants.MAX_EVENTS_PER_REQUEST.toString()
+      }));
+    } else {
+      this.eventsPerRequest = constants_1.Constants.DEFAULT_EVENTS_PER_REQUEST;
+      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
+        parameter: 'eventsPerRequest',
+        minLimit: 0,
+        defaultValue: this.eventsPerRequest.toString()
+      }));
+    }
+    this.flushCallback = (0, DataTypeUtil_1.isFunction)(config.flushCallback) ? config.flushCallback : function () {};
+    this.dispatcher = config.dispatcher;
+    this.accountId = SettingsService_1.SettingsService.Instance.accountId;
+    this.createNewBatchTimer();
+    BatchEventsQueue.instance = this;
+    return this;
+  }
+  Object.defineProperty(BatchEventsQueue, "Instance", {
+    /**
+     * Gets the instance of the BatchEventsQueue
+     * @returns The instance of the BatchEventsQueue
+     */
+    get: function () {
+      return BatchEventsQueue.instance;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  /**
+   * Enqueues an event
+   * @param payload - The event to enqueue
+   */
+  BatchEventsQueue.prototype.enqueue = function (payload) {
+    // Enqueue the event in the queue
+    this.queue.push(payload);
+    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_QUEUE, {
+      queueType: 'batch',
+      event: JSON.stringify(payload)
+    }));
+    // If the queue length is equal to or exceeds the events per request, flush the queue
+    if (this.queue.length >= this.eventsPerRequest) {
+      this.flush();
+    }
+  };
+  /**
+   * Flushes the queue
+   * @param manual - Whether the flush is manual or not
+   */
+  BatchEventsQueue.prototype.flush = function (manual) {
+    var _this = this;
+    if (manual === void 0) {
+      manual = false;
+    }
+    // If the queue is not empty, flush the queue
+    if (this.queue.length) {
+      logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
+        manually: manual ? 'manually' : '',
+        length: this.queue.length,
+        accountId: this.accountId,
+        timer: manual ? 'Timer will be cleared and registered again' : ''
+      }));
+      var tempQueue_1 = this.queue;
+      this.queue = [];
+      return this.dispatcher(tempQueue_1, this.flushCallback).then(function (result) {
+        var _a;
+        if (result.status === 'success') {
+          logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_After_FLUSHING, {
+            manually: manual ? 'manually' : '',
+            length: tempQueue_1.length
+          }));
+          return result;
+        } else {
+          (_a = _this.queue).push.apply(_a, tempQueue_1);
+          return result;
+        }
+      }).catch(function (err) {
+        var _a;
+        (_a = _this.queue).push.apply(_a, tempQueue_1);
+        return {
+          status: 'error',
+          events: tempQueue_1
+        };
+      });
+    } else {
+      logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
+      return new Promise(function (resolve, reject) {
+        resolve({
+          status: 'success',
+          events: []
+        });
+      });
+    }
+  };
+  /**
+   * Creates a new batch timer
+   */
+  BatchEventsQueue.prototype.createNewBatchTimer = function () {
+    var _this = this;
+    this.timer = setInterval(function () {
+      return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+          switch (_a.label) {
+            case 0:
+              return [4 /*yield*/, this.flush()];
+            case 1:
+              _a.sent();
+              return [2 /*return*/];
+          }
+        });
+      });
+    }, this.requestTimeInterval * 1000);
+  };
+  /**
+   * Clears the request timer
+   */
+  BatchEventsQueue.prototype.clearRequestTimer = function () {
+    clearTimeout(this.timer);
+    this.timer = null;
+  };
+  /**
+   * Flushes the queue and clears the timer
+   */
+  BatchEventsQueue.prototype.flushAndClearTimer = function () {
+    var flushResult = this.flush(true);
+    return flushResult;
+  };
+  return BatchEventsQueue;
+}();
+exports.BatchEventsQueue = BatchEventsQueue;
+exports["default"] = BatchEventsQueue;
+
+/***/ }),
+
 /***/ "./dist/server-unpacked/services/CampaignDecisionService.js":
 /*!******************************************************************!*\
   !*** ./dist/server-unpacked/services/CampaignDecisionService.js ***!
@@ -7846,6 +8232,277 @@ var StorageService = /** @class */function () {
   return StorageService;
 }();
 exports.StorageService = StorageService;
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/utils/BatchEventsDispatcher.js":
+/*!*************************************************************!*\
+  !*** ./dist/server-unpacked/utils/BatchEventsDispatcher.js ***!
+  \*************************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+
+/**
+ * Copyright 2024 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function (resolve) {
+      resolve(value);
+    });
+  }
+  return new (P || (P = Promise))(function (resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator = this && this.__generator || function (thisArg, body) {
+  var _ = {
+      label: 0,
+      sent: function () {
+        if (t[0] & 1) throw t[1];
+        return t[1];
+      },
+      trys: [],
+      ops: []
+    },
+    f,
+    y,
+    t,
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    return this;
+  }), g;
+  function verb(n) {
+    return function (v) {
+      return step([n, v]);
+    };
+  }
+  function step(op) {
+    if (f) throw new TypeError("Generator is already executing.");
+    while (g && (g = 0, op[0] && (_ = 0)), _) try {
+      if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+      if (y = 0, t) op = [op[0] & 2, t.value];
+      switch (op[0]) {
+        case 0:
+        case 1:
+          t = op;
+          break;
+        case 4:
+          _.label++;
+          return {
+            value: op[1],
+            done: false
+          };
+        case 5:
+          _.label++;
+          y = op[1];
+          op = [0];
+          continue;
+        case 7:
+          op = _.ops.pop();
+          _.trys.pop();
+          continue;
+        default:
+          if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+            _ = 0;
+            continue;
+          }
+          if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+            _.label = op[1];
+            break;
+          }
+          if (op[0] === 6 && _.label < t[1]) {
+            _.label = t[1];
+            t = op;
+            break;
+          }
+          if (t && _.label < t[2]) {
+            _.label = t[2];
+            _.ops.push(op);
+            break;
+          }
+          if (t[2]) _.ops.pop();
+          _.trys.pop();
+          continue;
+      }
+      op = body.call(thisArg, _);
+    } catch (e) {
+      op = [6, e];
+      y = 0;
+    } finally {
+      f = t = 0;
+    }
+    if (op[0] & 5) throw op[1];
+    return {
+      value: op[0] ? op[1] : void 0,
+      done: true
+    };
+  }
+};
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BatchEventsDispatcher = void 0;
+var network_layer_1 = __webpack_require__(/*! ../packages/network-layer */ "./dist/server-unpacked/packages/network-layer/index.js");
+var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./dist/server-unpacked/utils/UrlUtil.js");
+var network_layer_2 = __webpack_require__(/*! ../packages/network-layer */ "./dist/server-unpacked/packages/network-layer/index.js");
+var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
+var UrlEnum_1 = __webpack_require__(/*! ../enums/UrlEnum */ "./dist/server-unpacked/enums/UrlEnum.js");
+var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
+var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
+var BatchEventsDispatcher = /** @class */function () {
+  function BatchEventsDispatcher() {}
+  BatchEventsDispatcher.dispatch = function (payload, flushCallback, queryParams) {
+    return __awaiter(this, void 0, void 0, function () {
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            return [4 /*yield*/, this.sendPostApiRequest(queryParams, payload, flushCallback)];
+          case 1:
+            return [2 /*return*/, _a.sent()];
+        }
+      });
+    });
+  };
+  /**
+   * Sends a POST request to the server.
+   * @param properties - The properties of the request.
+   * @param payload - The payload of the request.
+   * @returns A promise that resolves to a void.
+   */
+  BatchEventsDispatcher.sendPostApiRequest = function (properties, payload, flushCallback) {
+    return __awaiter(this, void 0, void 0, function () {
+      var deferred, headers, request, response, batchApiResult, error_1, batchApiResult;
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            deferred = new PromiseUtil_1.Deferred();
+            network_layer_2.NetworkManager.Instance.attachClient();
+            headers = {};
+            headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
+            request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+            _a.label = 1;
+          case 1:
+            _a.trys.push([1, 3,, 4]);
+            return [4 /*yield*/, network_layer_2.NetworkManager.Instance.post(request)];
+          case 2:
+            response = _a.sent();
+            batchApiResult = this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
+            deferred.resolve(batchApiResult);
+            return [2 /*return*/, deferred.promise];
+          case 3:
+            error_1 = _a.sent();
+            batchApiResult = this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, error_1, null, flushCallback);
+            deferred.resolve(batchApiResult);
+            return [2 /*return*/, deferred.promise];
+          case 4:
+            return [2 /*return*/];
+        }
+      });
+    });
+  };
+  /**
+   * Handles the response from batch events API call
+   * @param properties - Request properties containing events
+   * @param queryParams - Query parameters from the request
+   * @param error - Error object if request failed
+   * @param res - Response object from the API
+   * @param rawData - Raw response data
+   * @param callback - Callback function to handle the result
+   */
+  BatchEventsDispatcher.handleBatchResponse = function (endPoint, payload, queryParams, err, res, callback) {
+    var eventsPerRequest = payload.ev.length;
+    var accountId = queryParams.a;
+    var error = err ? err : res === null || res === void 0 ? void 0 : res.getError();
+    if (error) {
+      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
+      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+        method: HttpMethodEnum_1.HttpMethodEnum.POST,
+        err: (0, DataTypeUtil_1.isString)(error) ? error : JSON.stringify(error)
+      }));
+      callback(error, JSON.stringify(payload));
+      return {
+        status: 'error',
+        events: payload
+      };
+    }
+    var statusCode = res === null || res === void 0 ? void 0 : res.getStatusCode();
+    if (statusCode === 200) {
+      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_SUCCESS, {
+        accountId: accountId,
+        endPoint: endPoint
+      }));
+      callback(null, JSON.stringify(payload));
+      return {
+        status: 'success',
+        events: payload
+      };
+    }
+    if (statusCode === 413) {
+      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.CONFIG_BATCH_EVENT_LIMIT_EXCEEDED, {
+        accountId: accountId,
+        endPoint: endPoint,
+        eventsPerRequest: eventsPerRequest
+      }));
+      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+        method: HttpMethodEnum_1.HttpMethodEnum.POST,
+        err: error
+      }));
+      callback(error, JSON.stringify(payload));
+      return {
+        status: 'error',
+        events: payload
+      };
+    }
+    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.IMPRESSION_BATCH_FAILED));
+    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+      method: HttpMethodEnum_1.HttpMethodEnum.POST,
+      err: error
+    }));
+    callback(error, JSON.stringify(payload));
+    return {
+      status: 'error',
+      events: payload
+    };
+  };
+  return BatchEventsDispatcher;
+}();
+exports.BatchEventsDispatcher = BatchEventsDispatcher;
+exports["default"] = BatchEventsDispatcher;
 
 /***/ }),
 
@@ -9447,6 +10104,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.createAndSendImpressionForVariationShown = void 0;
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
+var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -9467,11 +10125,17 @@ var createAndSendImpressionForVariationShown = function (settings, campaignId, v
           // Encode user agent to ensure URL safety
           context.getIpAddress());
           payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context.getUserAgent(), context.getIpAddress());
-          // Send the constructed properties and payload as a POST request
-          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+          if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+          BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+          return [3 /*break*/, 3];
         case 1:
           // Send the constructed properties and payload as a POST request
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+        case 2:
+          // Send the constructed properties and payload as a POST request
           _a.sent();
+          _a.label = 3;
+        case 3:
           return [2 /*return*/];
       }
     });
@@ -9557,7 +10221,12 @@ function sendLogToVWO(message, messageType) {
   if (process.env.TEST_ENV === 'true') {
     return;
   }
-  var messageToSend = message + '-' + constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION;
+  var messageToSend = message;
+  // if the message contains 'Retrying in', then remove the 'Retrying in' part, to avoid duplicate messages
+  if (message.includes('Retrying in')) {
+    messageToSend = message.split('Retrying')[0].trim();
+  }
+  messageToSend = messageToSend + '-' + constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION;
   if (!storedMessages.has(messageToSend)) {
     // add the message to the set
     storedMessages.add(messageToSend);

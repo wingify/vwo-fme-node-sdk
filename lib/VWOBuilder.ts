@@ -33,6 +33,8 @@ import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
 import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
 import { getRandomUUID } from './utils/UuidUtil';
+import { BatchEventsQueue } from './services/BatchEventsQueue';
+import { BatchEventsDispatcher } from './utils/BatchEventsDispatcher';
 
 export interface IVWOBuilder {
   settings: Record<any, any>; // Holds the configuration settings for the VWO client
@@ -67,6 +69,7 @@ export class VWOBuilder implements IVWOBuilder {
   originalSettings: dynamic;
   isSettingsFetchInProgress: boolean;
   vwoInstance: IVWOClient;
+  batchEventsQueue: BatchEventsQueue;
 
   constructor(options: IVWOOptions) {
     this.options = options;
@@ -88,6 +91,47 @@ export class VWOBuilder implements IVWOBuilder {
     );
     // Set the development mode based on options
     networkInstance.getConfig().setDevelopmentMode(this.options?.isDevelopmentMode);
+    return this;
+  }
+
+  initBatching(): this {
+    if (this.settingFileManager.isGatewayServiceProvided) {
+      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
+      return this;
+    }
+    if (this.options.batchEventData) {
+      // Skip batching initialization if neither eventsPerRequest nor requestTimeInterval are valid numbers greater than 0
+      if (
+        (!isNumber(this.options.batchEventData.eventsPerRequest) ||
+          this.options.batchEventData.eventsPerRequest <= 0) &&
+        (!isNumber(this.options.batchEventData.requestTimeInterval) ||
+          this.options.batchEventData.requestTimeInterval <= 0)
+      ) {
+        LogManager.Instance.error(
+          'Invalid batch events config, should be an object, eventsPerRequest should be a number greater than 0 and requestTimeInterval should be a number greater than 0',
+        );
+        return this;
+      }
+      this.batchEventsQueue = new BatchEventsQueue(
+        Object.assign({}, this.options.batchEventData, {
+          dispatcher: (events: Record<string, any>[], callback: () => void) =>
+            BatchEventsDispatcher.dispatch(
+              {
+                ev: events,
+              },
+              callback,
+              Object.assign(
+                {},
+                {
+                  a: this.options.accountId,
+                  env: this.options.sdkKey,
+                },
+              ),
+            ),
+        }),
+      );
+      this.batchEventsQueue.flushAndClearTimer.bind(this.batchEventsQueue);
+    }
     return this;
   }
 

@@ -19,6 +19,7 @@ import { NetworkClientInterface } from '../packages/network-layer/client/Network
 import { SegmentEvaluator } from '../packages/segmentation-evaluator';
 import { Connector } from '../packages/storage/Connector';
 import { IGatewayService } from './GatewayServiceModel';
+import { BatchConfig } from '../services/BatchEventsQueue';
 interface IIntegrationOptions {
   callback?: (properties: Record<string, any>) => void;
 }
@@ -39,6 +40,7 @@ export interface IVWOOptions {
   platform?: string;
   shouldWaitForTrackingCalls?: boolean;
   settings?: Record<any, any>;
+  batchEventData?: BatchConfig;
   vwoBuilder?: IVWOBuilder;
 }
 export declare class VWOOptionsModel implements IVWOOptions {

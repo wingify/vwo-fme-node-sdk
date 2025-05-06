@@ -14,6 +14,8 @@ var LogMessageUtil_1 = require("./utils/LogMessageUtil");
 var PromiseUtil_1 = require("./utils/PromiseUtil");
 var SettingsUtil_1 = require("./utils/SettingsUtil");
 var UuidUtil_1 = require("./utils/UuidUtil");
+var BatchEventsQueue_1 = require("./services/BatchEventsQueue");
+var BatchEventsDispatcher_1 = require("./utils/BatchEventsDispatcher");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.options = options;
@@ -32,6 +34,35 @@ var VWOBuilder = /** @class */ (function () {
         }));
         // Set the development mode based on options
         networkInstance.getConfig().setDevelopmentMode((_c = this.options) === null || _c === void 0 ? void 0 : _c.isDevelopmentMode);
+        return this;
+    };
+    VWOBuilder.prototype.initBatching = function () {
+        var _this = this;
+        if (this.settingFileManager.isGatewayServiceProvided) {
+            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
+            return this;
+        }
+        if (this.options.batchEventData) {
+            // Skip batching initialization if neither eventsPerRequest nor requestTimeInterval are valid numbers greater than 0
+            if ((!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.eventsPerRequest) ||
+                this.options.batchEventData.eventsPerRequest <= 0) &&
+                (!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.requestTimeInterval) ||
+                    this.options.batchEventData.requestTimeInterval <= 0)) {
+                logger_1.LogManager.Instance.error('Invalid batch events config, should be an object, eventsPerRequest should be a number greater than 0 and requestTimeInterval should be a number greater than 0');
+                return this;
+            }
+            this.batchEventsQueue = new BatchEventsQueue_1.BatchEventsQueue(Object.assign({}, this.options.batchEventData, {
+                dispatcher: function (events, callback) {
+                    return BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch({
+                        ev: events,
+                    }, callback, Object.assign({}, {
+                        a: _this.options.accountId,
+                        env: _this.options.sdkKey,
+                    }));
+                },
+            }));
+            this.batchEventsQueue.flushAndClearTimer.bind(this.batchEventsQueue);
+        }
         return this;
     };
     /**

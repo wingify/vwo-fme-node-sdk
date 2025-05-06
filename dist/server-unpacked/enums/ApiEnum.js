@@ -19,6 +19,9 @@ exports.ApiEnum = void 0;
 var ApiEnum;
 (function (ApiEnum) {
     ApiEnum["GET_FLAG"] = "getFlag";
-    ApiEnum["TRACK"] = "track";
+    ApiEnum["TRACK_EVENT"] = "trackEvent";
+    ApiEnum["SET_ATTRIBUTE"] = "setAttribute";
+    ApiEnum["FLUSH_EVENTS"] = "flushEvents";
+    ApiEnum["UPDATE_SETTINGS"] = "updateSettings";
 })(ApiEnum || (exports.ApiEnum = ApiEnum = {}));
 //# sourceMappingURL=ApiEnum.js.map

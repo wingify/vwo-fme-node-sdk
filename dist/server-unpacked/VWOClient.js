@@ -57,7 +57,7 @@ var GetFlag_1 = require("./api/GetFlag");
 var SetAttribute_1 = require("./api/SetAttribute");
 var TrackEvent_1 = require("./api/TrackEvent");
 var log_messages_1 = require("./enums/log-messages");
-// import { BatchEventsQueue } from './services/batchEventsQueue';
+var BatchEventsQueue_1 = require("./services/BatchEventsQueue");
 var SettingsSchemaValidation_1 = require("./models/schemas/SettingsSchemaValidation");
 var ContextModel_1 = require("./models/user/ContextModel");
 var HooksService_1 = require("./services/HooksService");
@@ -68,6 +68,7 @@ var PromiseUtil_1 = require("./utils/PromiseUtil");
 var SettingsUtil_1 = require("./utils/SettingsUtil");
 var NetworkUtil_1 = require("./utils/NetworkUtil");
 var SettingsService_1 = require("./services/SettingsService");
+var ApiEnum_1 = require("./enums/ApiEnum");
 var VWOClient = /** @class */ (function () {
     function VWOClient(settings, options) {
         this.options = options;
@@ -89,7 +90,7 @@ var VWOClient = /** @class */ (function () {
      * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
      */
     VWOClient.prototype.getFlag = function (featureKey, context) {
-        var apiName = 'getFlag';
+        var apiName = ApiEnum_1.ApiEnum.GET_FLAG;
         var deferredObject = new PromiseUtil_1.Deferred();
         var errorReturnSchema = {
             isEnabled: function () { return false; },
@@ -152,7 +153,7 @@ var VWOClient = /** @class */ (function () {
     VWOClient.prototype.trackEvent = function (eventName, context, eventProperties) {
         var _a;
         if (eventProperties === void 0) { eventProperties = {}; }
-        var apiName = 'trackEvent';
+        var apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
         var deferredObject = new PromiseUtil_1.Deferred();
         try {
             var hooksService = new HooksService_1.default(this.options);
@@ -231,7 +232,7 @@ var VWOClient = /** @class */ (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        apiName = 'setAttribute';
+                        apiName = ApiEnum_1.ApiEnum.SET_ATTRIBUTE;
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 6, , 7]);
@@ -338,7 +339,7 @@ var VWOClient = /** @class */ (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        apiName = 'updateSettings';
+                        apiName = ApiEnum_1.ApiEnum.UPDATE_SETTINGS;
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 5, , 6]);
@@ -373,6 +374,29 @@ var VWOClient = /** @class */ (function () {
                 }
             });
         });
+    };
+    /**
+     * Flushes the events manually from the batch events queue
+     */
+    VWOClient.prototype.flushEvents = function () {
+        var apiName = ApiEnum_1.ApiEnum.FLUSH_EVENTS;
+        var deferredObject = new PromiseUtil_1.Deferred();
+        try {
+            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
+            if (BatchEventsQueue_1.BatchEventsQueue.Instance) {
+                // return the promise from the flushAndClearTimer method
+                return BatchEventsQueue_1.BatchEventsQueue.Instance.flushAndClearTimer();
+            }
+            else {
+                logger_1.LogManager.Instance.error('Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API.');
+                deferredObject.resolve({ status: 'error', events: [] });
+            }
+        }
+        catch (err) {
+            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName: apiName, err: err }));
+            deferredObject.resolve({ status: 'error', events: [] });
+        }
+        return deferredObject.promise;
     };
     return VWOClient;
 }());

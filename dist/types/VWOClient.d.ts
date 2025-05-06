@@ -6,7 +6,7 @@ export interface IVWOClient {
   readonly options?: IVWOOptions;
   settings: SettingsModel;
   originalSettings: Record<any, any>;
-  getFlag(featureKey: string, context: Record<string, any>): Record<any, any>;
+  getFlag(featureKey: string, context: Record<string, any>): Promise<Record<any, any>>;
   trackEvent(
     eventName: string,
     context: Record<string, any>,
@@ -19,6 +19,7 @@ export interface IVWOClient {
   ): Promise<void>;
   setAttribute(attributes: Record<string, boolean | string | number>, context: Record<string, any>): Promise<void>;
   updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
+  flushEvents(): Promise<Record<string, any>>;
 }
 export declare class VWOClient implements IVWOClient {
   settings: SettingsModel;
@@ -35,7 +36,7 @@ export declare class VWOClient implements IVWOClient {
    * @param {ContextModel} context - The context in which the feature flag is being retrieved, must include a valid user ID.
    * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
    */
-  getFlag(featureKey: string, context: Record<string, any>): Record<any, any>;
+  getFlag(featureKey: string, context: Record<string, any>): Promise<Record<any, any>>;
   /**
    * Tracks an event with specified properties and context.
    * This method validates the types of the inputs and ensures the settings and user context are valid before proceeding.
@@ -74,4 +75,8 @@ export declare class VWOClient implements IVWOClient {
    * @returns Promise<void>
    */
   updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
+  /**
+   * Flushes the events manually from the batch events queue
+   */
+  flushEvents(): Promise<Record<string, any>>;
 }

@@ -18,6 +18,7 @@ import { SettingsModel } from '../models/settings/SettingsModel';
 import { getEventsBaseProperties, getTrackUserPayloadData, sendPostApiRequest } from './NetworkUtil';
 import { ContextModel } from '../models/user/ContextModel';
 import { EventEnum } from '../enums/EventEnum';
+import { BatchEventsQueue } from '../services/BatchEventsQueue';
 
 /**
  * Creates and sends an impression for a variation shown event.
@@ -53,6 +54,10 @@ export const createAndSendImpressionForVariationShown = async (
     context.getIpAddress(),
   );
 
-  // Send the constructed properties and payload as a POST request
-  await sendPostApiRequest(properties, payload, context.getId());
+  if (BatchEventsQueue.Instance) {
+    BatchEventsQueue.Instance.enqueue(payload);
+  } else {
+    // Send the constructed properties and payload as a POST request
+    await sendPostApiRequest(properties, payload, context.getId());
+  }
 };

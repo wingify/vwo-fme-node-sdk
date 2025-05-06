@@ -1,6 +1,6 @@
 {
   "name": "vwo-fme-node-sdk",
-  "version": "1.16.0",
+  "version": "1.17.0",
   "description": "VWO Node/JavaScript SDK for Feature Management and Experimentation",
   "main": "dist/server-unpacked/index.js",
   "browser": "dist/client/vwo-fme-javascript-sdk",
@@ -82,7 +82,7 @@
     "murmurhash": "^2.0.1",
     "superstruct": "^0.14.x",
     "uuid": "^9.0.1",
-    "vwo-fme-sdk-log-messages": "^1.0.1"
+    "vwo-fme-sdk-log-messages": "^1.*.*"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",

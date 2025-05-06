@@ -23,6 +23,7 @@ import {
   getShouldWaitForTrackingCalls,
 } from '../utils/NetworkUtil';
 import { SettingsModel } from '../models/settings/SettingsModel';
+import { BatchEventsQueue } from '../services/BatchEventsQueue';
 
 interface ISetAttribute {
   /**
@@ -85,6 +86,10 @@ const createImpressionForAttributes = async (
     context.getIpAddress(),
   );
 
-  // Send the constructed payload via POST request
-  await sendPostApiRequest(properties, payload, context.getId());
+  if (BatchEventsQueue.Instance) {
+    BatchEventsQueue.Instance.enqueue(payload);
+  } else {
+    // Send the constructed payload via POST request
+    await sendPostApiRequest(properties, payload, context.getId());
+  }
 };

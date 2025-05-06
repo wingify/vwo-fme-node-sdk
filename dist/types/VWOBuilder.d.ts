@@ -18,6 +18,7 @@ import { ILogManager } from './packages/logger';
 import { Storage } from './packages/storage';
 import { IVWOClient } from './VWOClient';
 import { IVWOOptions } from './models/VWOOptionsModel';
+import { BatchEventsQueue } from './services/BatchEventsQueue';
 export interface IVWOBuilder {
   settings: Record<any, any>;
   storage: Storage;
@@ -44,12 +45,14 @@ export declare class VWOBuilder implements IVWOBuilder {
   originalSettings: dynamic;
   isSettingsFetchInProgress: boolean;
   vwoInstance: IVWOClient;
+  batchEventsQueue: BatchEventsQueue;
   constructor(options: IVWOOptions);
   /**
    * Sets the network manager with the provided client and development mode options.
    * @returns {this} The instance of this builder.
    */
   setNetworkManager(): this;
+  initBatching(): this;
   /**
    * Sets the segmentation evaluator with the provided segmentation options.
    * @returns {this} The instance of this builder.

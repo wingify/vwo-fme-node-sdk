@@ -95,8 +95,8 @@ var Flag = /** @class */ (function () {
         return (_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables();
     };
     Flag.prototype.getVariable = function (key, defaultValue) {
-        var _a, _b;
-        return (((_b = (_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables().find(function (variable) { return VariableModel_1.VariableModel.modelFromDictionary(variable).getKey() === key; })) === null || _b === void 0 ? void 0 : _b.getValue()) || defaultValue);
+        var _a, _b, _c;
+        return ((_c = (_b = (_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables().find(function (variable) { return VariableModel_1.VariableModel.modelFromDictionary(variable).getKey() === key; })) === null || _b === void 0 ? void 0 : _b.getValue()) !== null && _c !== void 0 ? _c : defaultValue);
     };
     return Flag;
 }());

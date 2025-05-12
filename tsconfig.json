@@ -16,7 +16,7 @@
     "declaration": true,
     "removeComments": false,
     "sourceMap": true,
-    "lib": ["ES5", "DOM", "es2015"],
+    "lib": ["ES5", "DOM"],
     "plugins": [
       {
         "name": "typescript-tslint-plugin"

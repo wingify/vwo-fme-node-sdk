@@ -24,18 +24,7 @@ export declare class Flag {
   constructor(isEnabled: boolean, variation?: VariationModel | null);
   isEnabled(): boolean;
   getVariables(): VariableModel<import('../types/Common').dynamic>[];
-  getVariable<T = unknown>(
-    key: string,
-    defaultValue: T,
-  ):
-    | string
-    | number
-    | true
-    | Date
-    | Record<string, any>
-    | import('../types/Common').dynamicArray[]
-    | Map<string, import('../types/Common').dynamicArray>
-    | T;
+  getVariable<T = unknown>(key: string, defaultValue: T): import('../types/Common').dynamic | T;
 }
 export declare class FlagApi {
   static get(

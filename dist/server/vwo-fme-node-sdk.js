@@ -1323,10 +1323,10 @@ var Flag = /** @class */function () {
     return (_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables();
   };
   Flag.prototype.getVariable = function (key, defaultValue) {
-    var _a, _b;
-    return ((_b = (_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables().find(function (variable) {
+    var _a, _b, _c;
+    return (_c = (_b = (_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables().find(function (variable) {
       return VariableModel_1.VariableModel.modelFromDictionary(variable).getKey() === key;
-    })) === null || _b === void 0 ? void 0 : _b.getValue()) || defaultValue;
+    })) === null || _b === void 0 ? void 0 : _b.getValue()) !== null && _c !== void 0 ? _c : defaultValue;
   };
   return Flag;
 }();
@@ -3129,8 +3129,8 @@ var VariableModel = /** @class */function () {
     this.id = id;
   }
   VariableModel.modelFromDictionary = function (variable) {
-    var _a, _b;
-    return new VariableModel((_a = variable.i) !== null && _a !== void 0 ? _a : variable.id, variable.type, (_b = variable.k) !== null && _b !== void 0 ? _b : variable.key, variable.val || variable.value);
+    var _a, _b, _c;
+    return new VariableModel((_a = variable.i) !== null && _a !== void 0 ? _a : variable.id, variable.type, (_b = variable.k) !== null && _b !== void 0 ? _b : variable.key, (_c = variable.val) !== null && _c !== void 0 ? _c : variable.value);
   };
   VariableModel.prototype.setValue = function (value) {
     this.value = value;

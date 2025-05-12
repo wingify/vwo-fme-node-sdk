@@ -64,7 +64,12 @@ function sendLogToVWO(message, messageType) {
     if (process.env.TEST_ENV === 'true') {
         return;
     }
-    var messageToSend = message + '-' + constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION;
+    var messageToSend = message;
+    // if the message contains 'Retrying in', then remove the 'Retrying in' part, to avoid duplicate messages
+    if (message.includes('Retrying in')) {
+        messageToSend = message.split('Retrying')[0].trim();
+    }
+    messageToSend = messageToSend + '-' + constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION;
     if (!storedMessages.has(messageToSend)) {
         // add the message to the set
         storedMessages.add(messageToSend);

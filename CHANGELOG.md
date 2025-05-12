@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0] - 2025-05-06
+
+### Added
+
+- Added support for `batchEventData` configuration to optimize network requests by batching multiple events together. This allows you to:
+
+  - Configure `requestTimeInterval` to flush events after a specified time interval
+  - Set `eventsPerRequest` to control maximum events per batch
+  - Implement `flushCallback` to handle batch processing results
+  - Manually trigger event flushing via `flushEvents()` method
+
+  ```javascript
+  const vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+    batchEventData: {
+      requestTimeInterval: 60, // Flush events every 60 seconds
+      eventsPerRequest: 100, // Send up to 100 events per request
+      flushCallback: (error, events) => {
+        console.log('Events flushed successfully');
+        // custom implementation here
+      },
+    },
+  });
+  ```
+
+  - You can also manually flush events using the `flushEvents()` method:
+
+  ```javascript
+  vwoClient.flushEvents();
+  ```
+
+## [1.16.0] - 2025-05-01
+
+### Fixed
+
+- Fixed schema validation error that occurred when no feature flags were configured in the VWO application by properly handling empty `features` and `campaigns` from settings response
+
 ## [1.15.0] - 2025-04-18
 
 ### Added

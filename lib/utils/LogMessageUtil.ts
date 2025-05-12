@@ -67,7 +67,12 @@ export function sendLogToVWO(message: string, messageType: string) {
     return;
   }
 
-  const messageToSend = message + '-' + Constants.SDK_NAME + '-' + Constants.SDK_VERSION;
+  let messageToSend = message;
+  // if the message contains 'Retrying in', then remove the 'Retrying in' part, to avoid duplicate messages
+  if (message.includes('Retrying in')) {
+    messageToSend = message.split('Retrying')[0].trim();
+  }
+  messageToSend = messageToSend + '-' + Constants.SDK_NAME + '-' + Constants.SDK_VERSION;
 
   if (!storedMessages.has(messageToSend)) {
     // add the message to the set

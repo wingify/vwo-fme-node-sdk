@@ -24,6 +24,7 @@ import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from 
 import { SettingsModel } from './models/settings/SettingsModel';
 
 import { dynamic } from './types/Common';
+import { BatchEventsQueue } from './services/BatchEventsQueue';
 import { SettingsSchema } from './models/schemas/SettingsSchemaValidation';
 import { ContextModel } from './models/user/ContextModel';
 import HooksService from './services/HooksService';
@@ -39,6 +40,7 @@ import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
 import { VariationModel } from './models/campaign/VariationModel';
 import { setShouldWaitForTrackingCalls } from './utils/NetworkUtil';
 import { SettingsService } from './services/SettingsService';
+import { ApiEnum } from './enums/ApiEnum';
 
 export interface IVWOClient {
   readonly options?: IVWOOptions;
@@ -58,6 +60,7 @@ export interface IVWOClient {
   ): Promise<void>;
   setAttribute(attributes: Record<string, boolean | string | number>, context: Record<string, any>): Promise<void>;
   updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
+  flushEvents(): Promise<Record<string, any>>;
 }
 
 export class VWOClient implements IVWOClient {
@@ -93,7 +96,7 @@ export class VWOClient implements IVWOClient {
    * @returns {Promise<Flag>} - A promise that resolves to the feature flag value.
    */
   getFlag(featureKey: string, context: Record<string, any>): Promise<Flag> {
-    const apiName = 'getFlag';
+    const apiName = ApiEnum.GET_FLAG;
     const deferredObject = new Deferred();
     const errorReturnSchema = new Flag(false, new VariationModel());
 
@@ -169,7 +172,7 @@ export class VWOClient implements IVWOClient {
     context: Record<string, any>,
     eventProperties: Record<string, dynamic> = {},
   ): Promise<Record<string, boolean>> {
-    const apiName = 'trackEvent';
+    const apiName = ApiEnum.TRACK_EVENT;
     const deferredObject = new Deferred();
 
     try {
@@ -265,7 +268,7 @@ export class VWOClient implements IVWOClient {
     attributeValueOrContext?: boolean | string | number | Record<string, any>,
     context?: Record<string, any>,
   ): Promise<void> {
-    const apiName = 'setAttribute';
+    const apiName = ApiEnum.SET_ATTRIBUTE;
 
     try {
       if (isObject(attributeOrAttributes)) {
@@ -379,7 +382,7 @@ export class VWOClient implements IVWOClient {
    * @returns Promise<void>
    */
   async updateSettings(settings?: Record<string, any>, isViaWebhook = true): Promise<void> {
-    const apiName = 'updateSettings';
+    const apiName = ApiEnum.UPDATE_SETTINGS;
     try {
       LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName }));
       // fetch settings from the server or use the provided settings file if it's not empty
@@ -405,5 +408,29 @@ export class VWOClient implements IVWOClient {
         }),
       );
     }
+  }
+
+  /**
+   * Flushes the events manually from the batch events queue
+   */
+  flushEvents(): Promise<Record<string, any>> {
+    const apiName = ApiEnum.FLUSH_EVENTS;
+    const deferredObject = new Deferred();
+    try {
+      LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName }));
+      if (BatchEventsQueue.Instance) {
+        // return the promise from the flushAndClearTimer method
+        return BatchEventsQueue.Instance.flushAndClearTimer();
+      } else {
+        LogManager.Instance.error(
+          'Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API.',
+        );
+        deferredObject.resolve({ status: 'error', events: [] });
+      }
+    } catch (err) {
+      LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, { apiName, err }));
+      deferredObject.resolve({ status: 'error', events: [] });
+    }
+    return deferredObject.promise;
   }
 }

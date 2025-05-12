@@ -57,6 +57,7 @@ var log_messages_1 = require("../enums/log-messages");
 var logger_1 = require("../packages/logger");
 var FunctionUtil_1 = require("../utils/FunctionUtil");
 var LogMessageUtil_1 = require("../utils/LogMessageUtil");
+var BatchEventsQueue_1 = require("../services/BatchEventsQueue");
 var NetworkUtil_1 = require("../utils/NetworkUtil");
 var TrackApi = /** @class */ (function () {
     function TrackApi() {
@@ -82,7 +83,7 @@ var TrackApi = /** @class */ (function () {
                         _c.label = 3;
                     case 3:
                         // Set and execute integration callback for the track event
-                        hooksService.set({ eventName: eventName, api: ApiEnum_1.ApiEnum.TRACK });
+                        hooksService.set({ eventName: eventName, api: ApiEnum_1.ApiEnum.TRACK_EVENT });
                         hooksService.execute(hooksService.get());
                         return [2 /*return*/, (_a = {}, _a[eventName] = true, _a)];
                     case 4:
@@ -112,12 +113,17 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
                 payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
-                // Send the prepared payload via POST API request
-                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
-            case 1:
-                // Send the prepared payload via POST API request
+                if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+                BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                return [3 /*break*/, 3];
+            case 1: 
+            // Send the constructed payload via POST request
+            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+            case 2:
+                // Send the constructed payload via POST request
                 _a.sent();
-                return [2 /*return*/];
+                _a.label = 3;
+            case 3: return [2 /*return*/];
         }
     });
 }); };

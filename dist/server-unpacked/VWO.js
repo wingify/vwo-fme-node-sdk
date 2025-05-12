@@ -87,7 +87,8 @@ var VWO = /** @class */ (function () {
             .setNetworkManager() // Configures network management for API communication.
             .setSegmentation() // Sets up segmentation for targeted functionality.
             // .initBatching()        // Initializes batching for bulk data processing.
-            .initPolling(); // Starts polling mechanism for regular updates.
+            .initPolling() // Starts polling mechanism for regular updates.
+            .initBatching();
         // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
         if (options === null || options === void 0 ? void 0 : options.settings) {
             return Promise.resolve(this.vwoBuilder.build(options.settings));

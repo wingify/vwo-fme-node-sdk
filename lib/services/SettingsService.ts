@@ -110,14 +110,13 @@ export class SettingsService implements ISettingsService {
 
     this.fetchSettings()
       .then(async (res) => {
-        // LogManager.Instance.info('Settings fetched successfully');
-
-        // const method = update ? 'update' : 'set';
-
-        // storageConnector[method](Constants.SETTINGS, res).then(() => {
-        //   LogManager.Instance.info('Settings persisted in cache: memory');
-        //   deferredObject.resolve(res);
-        // });
+        // if the features and campaigns are empty object, then update them as empty array
+        if (Object.keys(res.features).length === 0) {
+          res.features = [];
+        }
+        if (Object.keys(res.campaigns).length === 0) {
+          res.campaigns = [];
+        }
         deferredObject.resolve(res);
       })
       .catch((err) => {

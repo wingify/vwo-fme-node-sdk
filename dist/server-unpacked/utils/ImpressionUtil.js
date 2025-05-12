@@ -54,6 +54,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAndSendImpressionForVariationShown = void 0;
 var NetworkUtil_1 = require("./NetworkUtil");
 var EventEnum_1 = require("../enums/EventEnum");
+var BatchEventsQueue_1 = require("../services/BatchEventsQueue");
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -72,12 +73,17 @@ var createAndSendImpressionForVariationShown = function (settings, campaignId, v
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
                 context.getIpAddress());
                 payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context.getUserAgent(), context.getIpAddress());
-                // Send the constructed properties and payload as a POST request
-                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
-            case 1:
+                if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+                BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                return [3 /*break*/, 3];
+            case 1: 
+            // Send the constructed properties and payload as a POST request
+            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+            case 2:
                 // Send the constructed properties and payload as a POST request
                 _a.sent();
-                return [2 /*return*/];
+                _a.label = 3;
+            case 3: return [2 /*return*/];
         }
     });
 }); };

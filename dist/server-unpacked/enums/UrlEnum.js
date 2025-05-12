@@ -25,5 +25,6 @@ var UrlEnum;
     UrlEnum["EVENTS"] = "/events/t";
     UrlEnum["ATTRIBUTE_CHECK"] = "/check-attribute";
     UrlEnum["GET_USER_DATA"] = "/get-user-details";
+    UrlEnum["BATCH_EVENTS"] = "/server-side/batch-events-v2";
 })(UrlEnum || (exports.UrlEnum = UrlEnum = {}));
 //# sourceMappingURL=UrlEnum.js.map

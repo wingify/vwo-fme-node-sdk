@@ -22,6 +22,7 @@ import IHooksService from '../services/HooksService';
 import { dynamic } from '../types/Common';
 import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
 import { buildMessage } from '../utils/LogMessageUtil';
+import { BatchEventsQueue } from '../services/BatchEventsQueue';
 import {
   getEventsBaseProperties,
   getTrackGoalPayloadData,
@@ -68,7 +69,7 @@ export class TrackApi implements ITrack {
         createImpressionForTrack(settings, eventName, context, eventProperties);
       }
       // Set and execute integration callback for the track event
-      hooksService.set({ eventName: eventName, api: ApiEnum.TRACK });
+      hooksService.set({ eventName: eventName, api: ApiEnum.TRACK_EVENT });
       hooksService.execute(hooksService.get());
 
       return { [eventName]: true };
@@ -113,5 +114,10 @@ const createImpressionForTrack = async (
     context?.getIpAddress(),
   );
   // Send the prepared payload via POST API request
-  await sendPostApiRequest(properties, payload, context.getId());
+  if (BatchEventsQueue.Instance) {
+    BatchEventsQueue.Instance.enqueue(payload);
+  } else {
+    // Send the constructed payload via POST request
+    await sendPostApiRequest(properties, payload, context.getId());
+  }
 };

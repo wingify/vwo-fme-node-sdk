@@ -19,4 +19,5 @@ export declare enum UrlEnum {
   EVENTS = '/events/t',
   ATTRIBUTE_CHECK = '/check-attribute',
   GET_USER_DATA = '/get-user-details',
+  BATCH_EVENTS = '/server-side/batch-events-v2',
 }

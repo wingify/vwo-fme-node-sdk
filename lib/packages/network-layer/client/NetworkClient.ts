@@ -168,10 +168,12 @@ export class NetworkClient implements NetworkClientInterface {
           res.on('end', () => {
             try {
               if (res.statusCode === 200) {
+                responseModel.setStatusCode(res.statusCode);
                 responseModel.setData(request.getBody());
                 deferred.resolve(responseModel);
               } else {
                 const error = `Raw Data: ${rawData}, Status Code: ${res.statusCode}`;
+                responseModel.setStatusCode(res.statusCode);
                 // if status code is 400, reject the promise as it is a bad request
                 if (res.statusCode === 400) {
                   responseModel.setError(error);

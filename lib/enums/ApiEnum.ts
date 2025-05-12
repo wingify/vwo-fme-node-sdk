@@ -15,5 +15,8 @@
  */
 export enum ApiEnum {
   GET_FLAG = 'getFlag',
-  TRACK = 'track',
+  TRACK_EVENT = 'trackEvent',
+  SET_ATTRIBUTE = 'setAttribute',
+  FLUSH_EVENTS = 'flushEvents',
+  UPDATE_SETTINGS = 'updateSettings',
 }

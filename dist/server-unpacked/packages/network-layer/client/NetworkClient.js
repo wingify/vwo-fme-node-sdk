@@ -130,11 +130,13 @@ var NetworkClient = /** @class */ (function () {
                     res.on('end', function () {
                         try {
                             if (res.statusCode === 200) {
+                                responseModel.setStatusCode(res.statusCode);
                                 responseModel.setData(request.getBody());
                                 deferred.resolve(responseModel);
                             }
                             else {
                                 var error = "Raw Data: ".concat(rawData, ", Status Code: ").concat(res.statusCode);
+                                responseModel.setStatusCode(res.statusCode);
                                 // if status code is 400, reject the promise as it is a bad request
                                 if (res.statusCode === 400) {
                                     responseModel.setError(error);

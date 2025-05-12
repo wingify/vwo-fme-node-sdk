@@ -54,6 +54,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SetAttributeApi = void 0;
 var EventEnum_1 = require("../enums/EventEnum");
 var NetworkUtil_1 = require("../utils/NetworkUtil");
+var BatchEventsQueue_1 = require("../services/BatchEventsQueue");
 var SetAttributeApi = /** @class */ (function () {
     function SetAttributeApi() {
     }
@@ -97,12 +98,17 @@ var createImpressionForAttributes = function (settings, attributes, context) { r
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
                 payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress());
-                // Send the constructed payload via POST request
-                return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
-            case 1:
+                if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+                BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                return [3 /*break*/, 3];
+            case 1: 
+            // Send the constructed payload via POST request
+            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+            case 2:
                 // Send the constructed payload via POST request
                 _a.sent();
-                return [2 /*return*/];
+                _a.label = 3;
+            case 3: return [2 /*return*/];
         }
     });
 }); };

@@ -61,16 +61,17 @@ const { init } = require('vwo-fme-node-sdk');
 
 To customize the SDK further, additional parameters can be passed to the `init()` API. Here’s a table describing each option:
 
-| **Parameter**                | **Description**                                                                                                                                             | **Required** | **Type** | **Example**                       |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------- | --------------------------------- |
-| `accountId`                  | VWO Account ID for authentication.                                                                                                                          | Yes          | String   | `'123456'`                        |
-| `sdkKey`                     | SDK key corresponding to the specific environment to initialize the VWO SDK Client. You can get this key from VWO Application.                              | Yes          | String   | `'32-alpha-numeric-sdk-key'`      |
-| `pollInterval`               | Time interval for fetching updates from VWO servers (in milliseconds).                                                                                      | No           | Number   | `60000`                           |
-| `gatewayService`             | An object representing configuration for integrating VWO Gateway Service.                                                                                   | No           | Object   | see [Gateway](#gateway) section   |
-| `storage`                    | Custom storage connector for persisting user decisions and campaign data.                                                                                   | No           | Object   | See [Storage](#storage) section   |
-| `logger`                     | Toggle log levels for more insights or for debugging purposes. You can also customize your own transport in order to have better control over log messages. | No           | Object   | See [Logger](#logger) section     |
-| `shouldWaitForTrackingCalls` | Ensures tracking calls complete before resolving promises, useful for edge computing environments like Cloudflare Workers                                   | No           | Boolean  | `true`                            |
-| `integrations`               | A callback function that receives data which can be pushed to any external tool that you need to integrate with.                                            | No           | Object   | See [Integrations](#integrations) |
+| **Parameter**                | **Description**                                                                                                                                             | **Required** | **Type** | **Example**                               |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------- | ----------------------------------------- |
+| `accountId`                  | VWO Account ID for authentication.                                                                                                                          | Yes          | String   | `'123456'`                                |
+| `sdkKey`                     | SDK key corresponding to the specific environment to initialize the VWO SDK Client. You can get this key from VWO Application.                              | Yes          | String   | `'32-alpha-numeric-sdk-key'`              |
+| `pollInterval`               | Time interval for fetching updates from VWO servers (in milliseconds).                                                                                      | No           | Number   | `60000`                                   |
+| `gatewayService`             | An object representing configuration for integrating VWO Gateway Service.                                                                                   | No           | Object   | see [Gateway](#gateway) section           |
+| `storage`                    | Custom storage connector for persisting user decisions and campaign data.                                                                                   | No           | Object   | See [Storage](#storage) section           |
+| `logger`                     | Toggle log levels for more insights or for debugging purposes. You can also customize your own transport in order to have better control over log messages. | No           | Object   | See [Logger](#logger) section             |
+| `shouldWaitForTrackingCalls` | Ensures tracking calls complete before resolving promises, useful for edge computing environments like Cloudflare Workers                                   | No           | Boolean  | `true`                                    |
+| `integrations`               | A callback function that receives data which can be pushed to any external tool that you need to integrate with.                                            | No           | Object   | See [Integrations](#integrations)         |
+| `batchEventData`             | Configuration for batch event processing to optimize network requests                                                                                       | No           | Object   | See [Batch Events](#batch-events) section |
 
 Refer to the [official VWO documentation](https://developers.vwo.com/v2/docs/fme-node-install) for additional parameter details.
 
@@ -370,6 +371,39 @@ const vwoClient = await init({
   sdkKey: '32-alpha-numeric-sdk-key',
   shouldWaitForTrackingCalls: true,
 });
+```
+
+### Batch Events
+
+The `batchEventData` configuration allows you to optimize network requests by batching multiple events together. This is particularly useful for high-traffic applications where you want to reduce the number of API calls.
+
+| **Parameter**         | **Description**                                                         | **Required** | **Type** | **Default** |
+| --------------------- | ----------------------------------------------------------------------- | ------------ | -------- | ----------- |
+| `requestTimeInterval` | Time interval (in seconds) after which events are flushed to the server | No           | Number   | `600`       |
+| `eventsPerRequest`    | Maximum number of events to batch together before sending to the server | No           | Number   | `100`       |
+| `flushCallback`       | Callback function to be executed after events are flushed               | No           | Function | See example |
+
+Example usage:
+
+```javascript
+const vwoClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  batchEventData: {
+    requestTimeInterval: 60, // Flush events every 60 seconds
+    eventsPerRequest: 100, // Send up to 100 events per request
+    flushCallback: (error, events) => {
+      console.log('Events flushed successfully');
+      // custom implementation here
+    },
+  },
+});
+```
+
+You can also manually flush events using the `flushEvents()` method:
+
+```javascript
+vwoClient.flushEvents();
 ```
 
 ### Version History

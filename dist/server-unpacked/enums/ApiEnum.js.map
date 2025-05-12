@@ -1,1 +1,1 @@
-{"version":3,"file":"ApiEnum.js","sourceRoot":"","sources":["../../../lib/enums/ApiEnum.ts"],"names":[],"mappings":";;;AAAA;;;;;;;;;;;;;;GAcG;AACH,IAAY,OAGX;AAHD,WAAY,OAAO;IACjB,+BAAoB,CAAA;IACpB,0BAAe,CAAA;AACjB,CAAC,EAHW,OAAO,uBAAP,OAAO,QAGlB"}
+{"version":3,"file":"ApiEnum.js","sourceRoot":"","sources":["../../../lib/enums/ApiEnum.ts"],"names":[],"mappings":";;;AAAA;;;;;;;;;;;;;;GAcG;AACH,IAAY,OAMX;AAND,WAAY,OAAO;IACjB,+BAAoB,CAAA;IACpB,qCAA0B,CAAA;IAC1B,yCAA8B,CAAA;IAC9B,uCAA4B,CAAA;IAC5B,6CAAkC,CAAA;AACpC,CAAC,EANW,OAAO,uBAAP,OAAO,QAMlB"}

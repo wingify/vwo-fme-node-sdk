@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import { FeatureModel } from '../models/campaign/FeatureModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
-
 import { StorageDecorator } from '../decorators/StorageDecorator';
 import { ApiEnum } from '../enums/ApiEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
@@ -39,22 +37,40 @@ import { Deferred } from '../utils/PromiseUtil';
 import { evaluateRule } from '../utils/RuleEvaluationUtil';
 import { getShouldWaitForTrackingCalls } from '../utils/NetworkUtil';
 
-interface IGetFlag {
-  get(
-    featureKey: string,
-    settings: SettingsModel,
-    context: ContextModel,
-    hooksService: IHooksService,
-  ): Promise<FeatureModel>;
+export class Flag {
+  private readonly enabled: boolean;
+  private variation: VariationModel | null | undefined;
+
+  constructor(isEnabled: boolean, variation?: VariationModel | null) {
+    this.enabled = isEnabled;
+    this.variation = variation;
+  }
+
+  isEnabled() {
+    return this.enabled;
+  }
+
+  getVariables() {
+    return this.variation?.getVariables();
+  }
+
+  getVariable<T = unknown>(key: string, defaultValue: T) {
+    return (
+      this.variation
+        ?.getVariables()
+        .find((variable) => VariableModel.modelFromDictionary(variable).getKey() === key)
+        ?.getValue() ?? defaultValue
+    );
+  }
 }
 
-export class FlagApi implements IGetFlag {
-  async get(
+export class FlagApi {
+  static async get(
     featureKey: string,
     settings: SettingsModel,
     context: ContextModel,
     hooksService: IHooksService,
-  ): Promise<FeatureModel> {
+  ): Promise<Flag> {
     let isEnabled = false;
     let rolloutVariationToReturn = null;
     let experimentVariationToReturn = null;
@@ -98,19 +114,8 @@ export class FlagApi implements IGetFlag {
               experimentKey: storedData.experimentKey,
             }),
           );
-          deferredObject.resolve({
-            isEnabled: () => true,
-            getVariables: () => variation?.getVariables(),
-            getVariable: (
-              key: string,
-              defaultValue: string, // loop over all variables object and return the value where key is equal to given key else return given default value
-            ) =>
-              variation
-                ?.getVariables()
-                .find((variable) => new VariableModel().modelFromDictionary(variable).getKey() === key)
-                ?.getValue() || defaultValue,
-          });
 
+          deferredObject.resolve(new Flag(true, variation));
           return deferredObject.promise;
         }
       }
@@ -333,21 +338,12 @@ export class FlagApi implements IGetFlag {
       }
     }
 
-    const variablesForEvaluatedFlag =
-      experimentVariationToReturn?.variables ?? rolloutVariationToReturn?.variables ?? [];
-
-    deferredObject.resolve({
-      isEnabled: () => isEnabled,
-      getVariables: () => variablesForEvaluatedFlag,
-      getVariable: (
-        key: string,
-        defaultValue: string, // loop over all variables object and return the value where key is equal to given key else return given default value
-      ) => {
-        const variable = variablesForEvaluatedFlag.find((variable) => variable.key === key);
-
-        return variable?.value ?? defaultValue;
-      },
-    });
+    deferredObject.resolve(
+      new Flag(
+        isEnabled,
+        new VariationModel().modelFromDictionary(experimentVariationToReturn ?? rolloutVariationToReturn),
+      ),
+    );
 
     return deferredObject.promise;
   }

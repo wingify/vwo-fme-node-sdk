@@ -35,6 +35,7 @@ import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
 import { getRandomUUID } from './utils/UuidUtil';
 import { BatchEventsQueue } from './services/BatchEventsQueue';
 import { BatchEventsDispatcher } from './utils/BatchEventsDispatcher';
+import { UsageStatsUtil } from './utils/UsageStatsUtil';
 
 export interface IVWOBuilder {
   settings: Record<any, any>; // Holds the configuration settings for the VWO client
@@ -55,6 +56,7 @@ export interface IVWOBuilder {
   initPolling(): this; // Sets up polling for settings at a specified interval
   setLogger(): this; // Sets up the logger with specified options
   setSegmentation(): this; // Configures the segmentation evaluator with provided options
+  initUsageStats(): this; // Initializes usage statistics for the SDK
 }
 
 export class VWOBuilder implements IVWOBuilder {
@@ -359,6 +361,17 @@ export class VWOBuilder implements IVWOBuilder {
 
     this.checkAndPoll();
 
+    return this;
+  }
+  /**
+   * Initializes usage statistics for the SDK.
+   * @returns {this} The instance of this builder.
+   */
+  initUsageStats(): this {
+    if (this.options.isUsageStatsDisabled) {
+      return this;
+    }
+    UsageStatsUtil.getInstance().setUsageStats(this.options);
     return this;
   }
 

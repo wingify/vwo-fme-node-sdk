@@ -20,7 +20,7 @@ import { LogMessageBuilder } from '../LogMessageBuilder';
 import { Logger } from '../Logger';
 import { isFunction } from '../../../utils/DataTypeUtil';
 
-enum LogLevelNumberEnum {
+export enum LogLevelNumberEnum {
   TRACE = 0,
   DEBUG = 1,
   INFO = 2,

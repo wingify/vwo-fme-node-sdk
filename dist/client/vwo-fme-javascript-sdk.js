@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.17.0
+ * vwo-fme-javascript-sdk - v1.17.1
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -136,7 +136,8 @@ var VWO = /** @class */ (function () {
             .setSegmentation() // Sets up segmentation for targeted functionality.
             // .initBatching()        // Initializes batching for bulk data processing.
             .initPolling() // Starts polling mechanism for regular updates.
-            .initBatching();
+            .initBatching()
+            .initUsageStats(); // Initializes usage statistics for the SDK.
         // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
         if (options === null || options === void 0 ? void 0 : options.settings) {
             return Promise.resolve(this.vwoBuilder.build(options.settings));
@@ -294,6 +295,7 @@ var SettingsUtil_1 = __webpack_require__(/*! ./utils/SettingsUtil */ "./lib/util
 var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./lib/utils/UuidUtil.ts");
 var BatchEventsQueue_1 = __webpack_require__(/*! ./services/BatchEventsQueue */ "./lib/services/BatchEventsQueue.ts");
 var BatchEventsDispatcher_1 = __webpack_require__(/*! ./utils/BatchEventsDispatcher */ "./lib/utils/BatchEventsDispatcher.ts");
+var UsageStatsUtil_1 = __webpack_require__(/*! ./utils/UsageStatsUtil */ "./lib/utils/UsageStatsUtil.ts");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.options = options;
@@ -541,6 +543,17 @@ var VWOBuilder = /** @class */ (function () {
             return this;
         }
         this.checkAndPoll();
+        return this;
+    };
+    /**
+     * Initializes usage statistics for the SDK.
+     * @returns {this} The instance of this builder.
+     */
+    VWOBuilder.prototype.initUsageStats = function () {
+        if (this.options.isUsageStatsDisabled) {
+            return this;
+        }
+        UsageStatsUtil_1.UsageStatsUtil.getInstance().setUsageStats(this.options);
         return this;
     };
     /**
@@ -1678,7 +1691,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.17.0", // will be replaced by webpack for browser build
+        version: "1.17.1", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -3516,7 +3529,7 @@ exports.LogManager = LogManager;
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LogTransportManager = void 0;
+exports.LogTransportManager = exports.LogLevelNumberEnum = void 0;
 var LogLevelEnum_1 = __webpack_require__(/*! ../enums/LogLevelEnum */ "./lib/packages/logger/enums/LogLevelEnum.ts");
 var LogMessageBuilder_1 = __webpack_require__(/*! ../LogMessageBuilder */ "./lib/packages/logger/LogMessageBuilder.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
@@ -3527,7 +3540,7 @@ var LogLevelNumberEnum;
     LogLevelNumberEnum[LogLevelNumberEnum["INFO"] = 2] = "INFO";
     LogLevelNumberEnum[LogLevelNumberEnum["WARN"] = 3] = "WARN";
     LogLevelNumberEnum[LogLevelNumberEnum["ERROR"] = 4] = "ERROR";
-})(LogLevelNumberEnum || (LogLevelNumberEnum = {}));
+})(LogLevelNumberEnum || (exports.LogLevelNumberEnum = LogLevelNumberEnum = {}));
 /**
  * Manages logging transports and delegates logging messages to them based on configuration.
  * Implements the IlogTransport interface.
@@ -9257,6 +9270,7 @@ var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/
 var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./lib/utils/UrlUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 var Url_1 = __webpack_require__(/*! ../constants/Url */ "./lib/constants/Url.ts");
+var UsageStatsUtil_1 = __webpack_require__(/*! ./UsageStatsUtil */ "./lib/utils/UsageStatsUtil.ts");
 /**
  * Constructs base properties for bulk operations.
  * @param {string} accountId - The account identifier.
@@ -9396,6 +9410,10 @@ function getTrackUserPayloadData(settings, userId, eventName, campaignId, variat
     properties.d.event.props.id = campaignId;
     properties.d.event.props.variation = variationId;
     properties.d.event.props.isFirst = 1;
+    // add usageStats as a new meta key to properties.d.events.props.vwoMeta
+    if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
+        properties.d.event.props.vwoMeta = UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats();
+    }
     logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
         accountId: settings.getAccountId(),
         userId: userId,
@@ -9485,6 +9503,10 @@ function sendPostApiRequest(properties, payload, userId) {
                     request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
                     return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request)
                             .then(function () {
+                            // clear usage stats only if network call is successful
+                            if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
+                                UsageStatsUtil_1.UsageStatsUtil.getInstance().clearUsageStats();
+                            }
                             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
                                 event: properties.en,
                                 endPoint: UrlEnum_1.UrlEnum.EVENTS,
@@ -9840,6 +9862,119 @@ exports.UrlUtil = {
         return baseUrl;
     },
 };
+
+
+/***/ }),
+
+/***/ "./lib/utils/UsageStatsUtil.ts":
+/*!*************************************!*\
+  !*** ./lib/utils/UsageStatsUtil.ts ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UsageStatsUtil = void 0;
+var TransportManager_1 = __webpack_require__(/*! ../packages/logger/core/TransportManager */ "./lib/packages/logger/core/TransportManager.ts");
+/**
+ * Manages usage statistics for the SDK.
+ * Tracks various features and configurations being used by the client.
+ * Implements Singleton pattern to ensure a single instance.
+ */
+var UsageStatsUtil = /** @class */ (function () {
+    /** Private constructor to prevent direct instantiation */
+    function UsageStatsUtil() {
+        /** Internal storage for usage statistics data */
+        this.usageStatsData = {};
+    }
+    /**
+     * Provides access to the singleton instance of UsageStatsUtil.
+     *
+     * @returns The single instance of UsageStatsUtil
+     */
+    UsageStatsUtil.getInstance = function () {
+        if (!UsageStatsUtil.instance) {
+            UsageStatsUtil.instance = new UsageStatsUtil();
+        }
+        return UsageStatsUtil.instance;
+    };
+    /**
+     * Sets usage statistics based on provided options.
+     * Maps various SDK features and configurations to boolean flags.
+     *
+     * @param options - Configuration options for the SDK
+     * @param options.storage - Storage service configuration
+     * @param options.logger - Logger configuration
+     * @param options.eventBatching - Event batching configuration
+     * @param options.integrations - Integrations configuration
+     * @param options.pollingInterval - Polling interval configuration
+     * @param options.sdkName - SDK name configuration
+     */
+    UsageStatsUtil.prototype.setUsageStats = function (options) {
+        var _a;
+        var storage = options.storage, logger = options.logger, batchEvents = options.batchEvents, gatewayService = options.gatewayService, integrations = options.integrations, pollingInterval = options.pollingInterval, _vwo_meta = options._vwo_meta, shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
+        var data = {};
+        // Map configuration options to usage stats flags
+        if (integrations)
+            data.ig = 1; // Integration enabled
+        if (batchEvents)
+            data.eb = 1; // Event batching enabled
+        // if logger has transport or transports, then it is custom logger
+        if (logger && (logger.transport || logger.transports))
+            data.cl = 1;
+        if (storage)
+            data.ss = 1; // Storage service configured
+        if (logger === null || logger === void 0 ? void 0 : logger.level) {
+            data.ll = (_a = TransportManager_1.LogLevelNumberEnum[logger.level.toUpperCase()]) !== null && _a !== void 0 ? _a : -1; // Default to -1 if level is not recognized
+        }
+        if (gatewayService)
+            data.gs = 1; // Gateway service configured
+        if (pollingInterval)
+            data.pi = 1; // Polling interval configured
+        if (shouldWaitForTrackingCalls)
+            data.swtc = 1;
+        // if _vwo_meta has ea, then addd data._ea to be 1
+        if (_vwo_meta && _vwo_meta.ea)
+            data._ea = 1;
+        if (typeof process !== 'undefined' && process.version) {
+            // For Node.js environment
+            data.lv = process.version;
+        }
+        this.usageStatsData = data;
+    };
+    /**
+     * Retrieves the current usage statistics.
+     *
+     * @returns Record containing boolean flags for various SDK features in use
+     */
+    UsageStatsUtil.prototype.getUsageStats = function () {
+        return this.usageStatsData;
+    };
+    /**
+     * Clears the usage statistics data.
+     */
+    UsageStatsUtil.prototype.clearUsageStats = function () {
+        this.usageStatsData = {};
+    };
+    return UsageStatsUtil;
+}());
+exports.UsageStatsUtil = UsageStatsUtil;
 
 
 /***/ }),

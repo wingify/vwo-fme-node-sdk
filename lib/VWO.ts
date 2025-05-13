@@ -56,7 +56,8 @@ export class VWO {
       .setSegmentation() // Sets up segmentation for targeted functionality.
       // .initBatching()        // Initializes batching for bulk data processing.
       .initPolling() // Starts polling mechanism for regular updates.
-      .initBatching();
+      .initBatching()
+      .initUsageStats(); // Initializes usage statistics for the SDK.
     // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
 
     if (options?.settings) {

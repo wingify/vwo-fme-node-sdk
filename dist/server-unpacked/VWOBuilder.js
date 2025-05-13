@@ -16,6 +16,7 @@ var SettingsUtil_1 = require("./utils/SettingsUtil");
 var UuidUtil_1 = require("./utils/UuidUtil");
 var BatchEventsQueue_1 = require("./services/BatchEventsQueue");
 var BatchEventsDispatcher_1 = require("./utils/BatchEventsDispatcher");
+var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.options = options;
@@ -263,6 +264,17 @@ var VWOBuilder = /** @class */ (function () {
             return this;
         }
         this.checkAndPoll();
+        return this;
+    };
+    /**
+     * Initializes usage statistics for the SDK.
+     * @returns {this} The instance of this builder.
+     */
+    VWOBuilder.prototype.initUsageStats = function () {
+        if (this.options.isUsageStatsDisabled) {
+            return this;
+        }
+        UsageStatsUtil_1.UsageStatsUtil.getInstance().setUsageStats(this.options);
         return this;
     };
     /**

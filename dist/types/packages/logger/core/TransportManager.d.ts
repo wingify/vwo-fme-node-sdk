@@ -15,6 +15,13 @@
  */
 import { dynamic } from '../../../types/Common';
 import { Logger } from '../Logger';
+export declare enum LogLevelNumberEnum {
+  TRACE = 0,
+  DEBUG = 1,
+  INFO = 2,
+  WARN = 3,
+  ERROR = 4,
+}
 interface IlogTransport extends Logger {
   transports: Array<Record<string, dynamic>>;
   config: Record<string, dynamic>;

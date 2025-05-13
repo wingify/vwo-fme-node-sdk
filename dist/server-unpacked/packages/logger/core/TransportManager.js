@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LogTransportManager = void 0;
+exports.LogTransportManager = exports.LogLevelNumberEnum = void 0;
 var LogLevelEnum_1 = require("../enums/LogLevelEnum");
 var LogMessageBuilder_1 = require("../LogMessageBuilder");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
@@ -26,7 +26,7 @@ var LogLevelNumberEnum;
     LogLevelNumberEnum[LogLevelNumberEnum["INFO"] = 2] = "INFO";
     LogLevelNumberEnum[LogLevelNumberEnum["WARN"] = 3] = "WARN";
     LogLevelNumberEnum[LogLevelNumberEnum["ERROR"] = 4] = "ERROR";
-})(LogLevelNumberEnum || (LogLevelNumberEnum = {}));
+})(LogLevelNumberEnum || (exports.LogLevelNumberEnum = LogLevelNumberEnum = {}));
 /**
  * Manages logging transports and delegates logging messages to them based on configuration.
  * Implements the IlogTransport interface.

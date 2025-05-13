@@ -81,6 +81,7 @@ var LogMessageUtil_1 = require("./LogMessageUtil");
 var UrlUtil_1 = require("./UrlUtil");
 var PromiseUtil_1 = require("./PromiseUtil");
 var Url_1 = require("../constants/Url");
+var UsageStatsUtil_1 = require("./UsageStatsUtil");
 /**
  * Constructs base properties for bulk operations.
  * @param {string} accountId - The account identifier.
@@ -220,6 +221,10 @@ function getTrackUserPayloadData(settings, userId, eventName, campaignId, variat
     properties.d.event.props.id = campaignId;
     properties.d.event.props.variation = variationId;
     properties.d.event.props.isFirst = 1;
+    // add usageStats as a new meta key to properties.d.events.props.vwoMeta
+    if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
+        properties.d.event.props.vwoMeta = UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats();
+    }
     logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
         accountId: settings.getAccountId(),
         userId: userId,
@@ -309,6 +314,10 @@ function sendPostApiRequest(properties, payload, userId) {
                     request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
                     return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request)
                             .then(function () {
+                            // clear usage stats only if network call is successful
+                            if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
+                                UsageStatsUtil_1.UsageStatsUtil.getInstance().clearUsageStats();
+                            }
                             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
                                 event: properties.en,
                                 endPoint: UrlEnum_1.UrlEnum.EVENTS,

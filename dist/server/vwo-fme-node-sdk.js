@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.17.0
+ * vwo-fme-node-sdk - v1.17.1
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.17.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.17.1","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
 
 /***/ }),
 
@@ -209,7 +209,7 @@ var VWO = /** @class */function () {
     .setSegmentation() // Sets up segmentation for targeted functionality.
     // .initBatching()        // Initializes batching for bulk data processing.
     .initPolling() // Starts polling mechanism for regular updates.
-    .initBatching();
+    .initBatching().initUsageStats(); // Initializes usage statistics for the SDK.
     // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
     if (options === null || options === void 0 ? void 0 : options.settings) {
       return Promise.resolve(this.vwoBuilder.build(options.settings));
@@ -366,6 +366,7 @@ var SettingsUtil_1 = __webpack_require__(/*! ./utils/SettingsUtil */ "./dist/ser
 var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./dist/server-unpacked/utils/UuidUtil.js");
 var BatchEventsQueue_1 = __webpack_require__(/*! ./services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 var BatchEventsDispatcher_1 = __webpack_require__(/*! ./utils/BatchEventsDispatcher */ "./dist/server-unpacked/utils/BatchEventsDispatcher.js");
+var UsageStatsUtil_1 = __webpack_require__(/*! ./utils/UsageStatsUtil */ "./dist/server-unpacked/utils/UsageStatsUtil.js");
 var VWOBuilder = /** @class */function () {
   function VWOBuilder(options) {
     this.options = options;
@@ -599,6 +600,17 @@ var VWOBuilder = /** @class */function () {
       return this;
     }
     this.checkAndPoll();
+    return this;
+  };
+  /**
+   * Initializes usage statistics for the SDK.
+   * @returns {this} The instance of this builder.
+   */
+  VWOBuilder.prototype.initUsageStats = function () {
+    if (this.options.isUsageStatsDisabled) {
+      return this;
+    }
+    UsageStatsUtil_1.UsageStatsUtil.getInstance().setUsageStats(this.options);
     return this;
   };
   /**
@@ -4018,7 +4030,7 @@ exports.LogManager = LogManager;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.LogTransportManager = void 0;
+exports.LogTransportManager = exports.LogLevelNumberEnum = void 0;
 var LogLevelEnum_1 = __webpack_require__(/*! ../enums/LogLevelEnum */ "./dist/server-unpacked/packages/logger/enums/LogLevelEnum.js");
 var LogMessageBuilder_1 = __webpack_require__(/*! ../LogMessageBuilder */ "./dist/server-unpacked/packages/logger/LogMessageBuilder.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
@@ -4029,7 +4041,7 @@ var LogLevelNumberEnum;
   LogLevelNumberEnum[LogLevelNumberEnum["INFO"] = 2] = "INFO";
   LogLevelNumberEnum[LogLevelNumberEnum["WARN"] = 3] = "WARN";
   LogLevelNumberEnum[LogLevelNumberEnum["ERROR"] = 4] = "ERROR";
-})(LogLevelNumberEnum || (LogLevelNumberEnum = {}));
+})(LogLevelNumberEnum || (exports.LogLevelNumberEnum = LogLevelNumberEnum = {}));
 /**
  * Manages logging transports and delegates logging messages to them based on configuration.
  * Implements the IlogTransport interface.
@@ -11010,6 +11022,7 @@ var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/serve
 var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./dist/server-unpacked/utils/UrlUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var Url_1 = __webpack_require__(/*! ../constants/Url */ "./dist/server-unpacked/constants/Url.js");
+var UsageStatsUtil_1 = __webpack_require__(/*! ./UsageStatsUtil */ "./dist/server-unpacked/utils/UsageStatsUtil.js");
 /**
  * Constructs base properties for bulk operations.
  * @param {string} accountId - The account identifier.
@@ -11177,6 +11190,10 @@ function getTrackUserPayloadData(settings, userId, eventName, campaignId, variat
   properties.d.event.props.id = campaignId;
   properties.d.event.props.variation = variationId;
   properties.d.event.props.isFirst = 1;
+  // add usageStats as a new meta key to properties.d.events.props.vwoMeta
+  if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
+    properties.d.event.props.vwoMeta = UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats();
+  }
   logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
     accountId: settings.getAccountId(),
     userId: userId,
@@ -11273,6 +11290,10 @@ function sendPostApiRequest(properties, payload, userId) {
           if (ipAddress) headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
           request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
           return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request).then(function () {
+            // clear usage stats only if network call is successful
+            if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
+              UsageStatsUtil_1.UsageStatsUtil.getInstance().clearUsageStats();
+            }
             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
               event: properties.en,
               endPoint: UrlEnum_1.UrlEnum.EVENTS,
@@ -11712,6 +11733,119 @@ exports.UrlUtil = {
     return baseUrl;
   }
 };
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/utils/UsageStatsUtil.js":
+/*!******************************************************!*\
+  !*** ./dist/server-unpacked/utils/UsageStatsUtil.js ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.UsageStatsUtil = void 0;
+var TransportManager_1 = __webpack_require__(/*! ../packages/logger/core/TransportManager */ "./dist/server-unpacked/packages/logger/core/TransportManager.js");
+/**
+ * Manages usage statistics for the SDK.
+ * Tracks various features and configurations being used by the client.
+ * Implements Singleton pattern to ensure a single instance.
+ */
+var UsageStatsUtil = /** @class */function () {
+  /** Private constructor to prevent direct instantiation */
+  function UsageStatsUtil() {
+    /** Internal storage for usage statistics data */
+    this.usageStatsData = {};
+  }
+  /**
+   * Provides access to the singleton instance of UsageStatsUtil.
+   *
+   * @returns The single instance of UsageStatsUtil
+   */
+  UsageStatsUtil.getInstance = function () {
+    if (!UsageStatsUtil.instance) {
+      UsageStatsUtil.instance = new UsageStatsUtil();
+    }
+    return UsageStatsUtil.instance;
+  };
+  /**
+   * Sets usage statistics based on provided options.
+   * Maps various SDK features and configurations to boolean flags.
+   *
+   * @param options - Configuration options for the SDK
+   * @param options.storage - Storage service configuration
+   * @param options.logger - Logger configuration
+   * @param options.eventBatching - Event batching configuration
+   * @param options.integrations - Integrations configuration
+   * @param options.pollingInterval - Polling interval configuration
+   * @param options.sdkName - SDK name configuration
+   */
+  UsageStatsUtil.prototype.setUsageStats = function (options) {
+    var _a;
+    var storage = options.storage,
+      logger = options.logger,
+      batchEvents = options.batchEvents,
+      gatewayService = options.gatewayService,
+      integrations = options.integrations,
+      pollingInterval = options.pollingInterval,
+      _vwo_meta = options._vwo_meta,
+      shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
+    var data = {};
+    // Map configuration options to usage stats flags
+    if (integrations) data.ig = 1; // Integration enabled
+    if (batchEvents) data.eb = 1; // Event batching enabled
+    // if logger has transport or transports, then it is custom logger
+    if (logger && (logger.transport || logger.transports)) data.cl = 1;
+    if (storage) data.ss = 1; // Storage service configured
+    if (logger === null || logger === void 0 ? void 0 : logger.level) {
+      data.ll = (_a = TransportManager_1.LogLevelNumberEnum[logger.level.toUpperCase()]) !== null && _a !== void 0 ? _a : -1; // Default to -1 if level is not recognized
+    }
+    if (gatewayService) data.gs = 1; // Gateway service configured
+    if (pollingInterval) data.pi = 1; // Polling interval configured
+    if (shouldWaitForTrackingCalls) data.swtc = 1;
+    // if _vwo_meta has ea, then addd data._ea to be 1
+    if (_vwo_meta && _vwo_meta.ea) data._ea = 1;
+    if (typeof process !== 'undefined' && process.version) {
+      // For Node.js environment
+      data.lv = process.version;
+    }
+    this.usageStatsData = data;
+  };
+  /**
+   * Retrieves the current usage statistics.
+   *
+   * @returns Record containing boolean flags for various SDK features in use
+   */
+  UsageStatsUtil.prototype.getUsageStats = function () {
+    return this.usageStatsData;
+  };
+  /**
+   * Clears the usage statistics data.
+   */
+  UsageStatsUtil.prototype.clearUsageStats = function () {
+    this.usageStatsData = {};
+  };
+  return UsageStatsUtil;
+}();
+exports.UsageStatsUtil = UsageStatsUtil;
 
 /***/ }),
 

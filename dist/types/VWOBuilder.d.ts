@@ -34,6 +34,7 @@ export interface IVWOBuilder {
   initPolling(): this;
   setLogger(): this;
   setSegmentation(): this;
+  initUsageStats(): this;
 }
 export declare class VWOBuilder implements IVWOBuilder {
   readonly sdkKey: string;
@@ -103,6 +104,11 @@ export declare class VWOBuilder implements IVWOBuilder {
    * @returns {this} The instance of this builder.
    */
   initPolling(): this;
+  /**
+   * Initializes usage statistics for the SDK.
+   * @returns {this} The instance of this builder.
+   */
+  initUsageStats(): this;
   /**
    * Builds a new VWOClient instance with the provided settings.
    * @param {SettingsModel} settings - The settings for the VWOClient.

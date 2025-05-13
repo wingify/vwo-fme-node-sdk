@@ -42,6 +42,8 @@ export interface IVWOOptions {
   settings?: Record<any, any>;
   batchEventData?: BatchConfig;
   vwoBuilder?: IVWOBuilder;
+  isUsageStatsDisabled?: boolean;
+  _vwo_meta?: Record<any, any>;
 }
 export declare class VWOOptionsModel implements IVWOOptions {
   accountId: string;
@@ -57,6 +59,8 @@ export declare class VWOOptionsModel implements IVWOOptions {
   shouldWaitForTrackingCalls?: boolean;
   settings?: Record<any, any>;
   vwoBuilder?: IVWOBuilder;
+  isUsageStatsDisabled?: boolean;
+  _vwo_meta?: Record<any, any>;
   modelFromDictionary(options: VWOOptionsModel): this;
   getAccountId(): string;
   getSdkKey(): string;
@@ -69,5 +73,7 @@ export declare class VWOOptionsModel implements IVWOOptions {
   getNetwork(): INetworkOptions;
   getVWOBuilder(): IVWOBuilder;
   getSettings(): Record<any, any>;
+  getIsUsageStatsDisabled(): boolean;
+  getVWOMeta(): Record<any, any>;
 }
 export {};

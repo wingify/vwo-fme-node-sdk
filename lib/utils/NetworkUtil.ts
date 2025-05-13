@@ -31,6 +31,7 @@ import { buildMessage } from './LogMessageUtil';
 import { UrlUtil } from './UrlUtil';
 import { Deferred } from './PromiseUtil';
 import { HTTPS } from '../constants/Url';
+import { UsageStatsUtil } from './UsageStatsUtil';
 
 /**
  * Constructs base properties for bulk operations.
@@ -208,6 +209,11 @@ export function getTrackUserPayloadData(
   properties.d.event.props.variation = variationId;
   properties.d.event.props.isFirst = 1;
 
+  // add usageStats as a new meta key to properties.d.events.props.vwoMeta
+  if (Object.keys(UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
+    properties.d.event.props.vwoMeta = UsageStatsUtil.getInstance().getUsageStats();
+  }
+
   LogManager.Instance.debug(
     buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
       accountId: settings.getAccountId(),
@@ -330,6 +336,10 @@ export async function sendPostApiRequest(properties: any, payload: any, userId: 
 
   await NetworkManager.Instance.post(request)
     .then(() => {
+      // clear usage stats only if network call is successful
+      if (Object.keys(UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
+        UsageStatsUtil.getInstance().clearUsageStats();
+      }
       LogManager.Instance.info(
         buildMessage(InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
           event: properties.en,

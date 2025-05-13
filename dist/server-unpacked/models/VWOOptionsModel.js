@@ -53,6 +53,12 @@ var VWOOptionsModel = /** @class */ (function () {
         if (options === null || options === void 0 ? void 0 : options.settings) {
             this.settings = options.settings;
         }
+        if (options === null || options === void 0 ? void 0 : options.isUsageStatsDisabled) {
+            this.isUsageStatsDisabled = options.isUsageStatsDisabled;
+        }
+        if (options === null || options === void 0 ? void 0 : options._vwo_meta) {
+            this._vwo_meta = options._vwo_meta;
+        }
         return this;
     };
     VWOOptionsModel.prototype.getAccountId = function () {
@@ -87,6 +93,12 @@ var VWOOptionsModel = /** @class */ (function () {
     };
     VWOOptionsModel.prototype.getSettings = function () {
         return this.settings;
+    };
+    VWOOptionsModel.prototype.getIsUsageStatsDisabled = function () {
+        return this.isUsageStatsDisabled;
+    };
+    VWOOptionsModel.prototype.getVWOMeta = function () {
+        return this._vwo_meta;
     };
     return VWOOptionsModel;
 }());

@@ -45,6 +45,8 @@ export interface IVWOOptions {
   settings?: Record<any, any>;
   batchEventData?: BatchConfig;
   vwoBuilder?: IVWOBuilder;
+  isUsageStatsDisabled?: boolean;
+  _vwo_meta?: Record<any, any>;
 }
 
 export class VWOOptionsModel implements IVWOOptions {
@@ -62,6 +64,8 @@ export class VWOOptionsModel implements IVWOOptions {
   settings?: Record<any, any>;
 
   vwoBuilder?: IVWOBuilder;
+  isUsageStatsDisabled?: boolean;
+  _vwo_meta?: Record<any, any>;
 
   modelFromDictionary(options: VWOOptionsModel): this {
     this.accountId = options.accountId;
@@ -98,6 +102,14 @@ export class VWOOptionsModel implements IVWOOptions {
 
     if (options?.settings) {
       this.settings = options.settings;
+    }
+    
+    if (options?.isUsageStatsDisabled) {
+      this.isUsageStatsDisabled = options.isUsageStatsDisabled;
+    }
+
+    if (options?._vwo_meta) {
+      this._vwo_meta = options._vwo_meta;
     }
 
     return this;
@@ -145,5 +157,13 @@ export class VWOOptionsModel implements IVWOOptions {
 
   getSettings(): Record<any, any> {
     return this.settings;
+  }
+
+  getIsUsageStatsDisabled(): boolean {
+    return this.isUsageStatsDisabled;
+  }
+
+  getVWOMeta(): Record<any, any> {
+    return this._vwo_meta;
   }
 }

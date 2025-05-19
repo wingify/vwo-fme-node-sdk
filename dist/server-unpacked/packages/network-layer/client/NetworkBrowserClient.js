@@ -96,10 +96,12 @@ var NetworkBrowserClient = /** @class */ (function () {
         (0, XMLUtil_1.sendPostCall)({
             networkOptions: networkOptions,
             successCallback: function (data) {
+                responseModel.setStatusCode(200);
                 responseModel.setData(data);
                 deferred.resolve(responseModel);
             },
             errorCallback: function (error) {
+                responseModel.setStatusCode(400);
                 responseModel.setError(error);
                 deferred.reject(responseModel);
             },

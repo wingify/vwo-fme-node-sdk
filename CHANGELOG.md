@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0] - 2025-05-19
+
+### Changed
+
+- Merged [#3](https://github.com/wingify/vwo-fme-node-sdk/pull/3) by [@thomasdbock](https://github.com/thomasdbock)
+- Exported interfaces `IVWOClient`, `IVWOOptions`, `IVWOContextModel`, and `Flag` to provide better TypeScript support and enable type checking for SDK configuration and usage
+
+  ```typescript
+  import { init, IVWOClient, IVWOOptions, Flag } from 'vwo-fme-node-sdk';
+
+  // Example of using IVWOOptions for type-safe configuration
+  const options: IVWOOptions = {
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+  };
+
+  // Example of using IVWOClient for type-safe client usage
+  const vwoClient: IVWOClient = await init(options);
+
+  // Example of using Flag interface for type-safe flag handling
+  const flag: Flag = await vwoClient.getFlag('feature-key', { id: 'user-123' });
+  const isEnabled: boolean = flag.isEnabled();
+
+  const stringVariable: string = flag.getVariable('variable_key', 'default_value');
+  const booleanVariable: boolean = flag.getVariable('variable_key', true);
+  const numberVariable: number = flag.getVariable('variable_key', 10);
+  ```
+
 ## [1.17.1] - 2025-05-13
 
 ### Added

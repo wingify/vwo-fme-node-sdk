@@ -4,14 +4,10 @@ exports.isObject = isObject;
 exports.isArray = isArray;
 exports.isNull = isNull;
 exports.isUndefined = isUndefined;
-exports.isDefined = isDefined;
 exports.isNumber = isNumber;
 exports.isString = isString;
 exports.isBoolean = isBoolean;
-exports.isNaN = isNaN;
-exports.isDate = isDate;
 exports.isFunction = isFunction;
-exports.isRegex = isRegex;
 exports.isPromise = isPromise;
 exports.getType = getType;
 /**
@@ -48,14 +44,6 @@ function isUndefined(val) {
     return Object.prototype.toString.call(val) === '[object Undefined]';
 }
 /**
- * Checks if a value is defined, i.e., not undefined and not null.
- * @param val The value to check.
- * @returns True if the value is defined, false otherwise.
- */
-function isDefined(val) {
-    return !isUndefined(val) && !isNull(val);
-}
-/**
  * Checks if a value is a number, including NaN.
  * @param val The value to check.
  * @returns True if the value is a number, false otherwise.
@@ -81,37 +69,12 @@ function isBoolean(val) {
     return Object.prototype.toString.call(val) === '[object Boolean]';
 }
 /**
- * Checks if a value is NaN.
- * @param val The value to check.
- * @returns True if the value is NaN, false otherwise.
- */
-function isNaN(val) {
-    // NaN is the only JavaScript value that is treated as unequal to itself
-    return val !== val;
-}
-/**
- * Checks if a value is a Date object.
- * @param val The value to check.
- * @returns True if the value is a Date object, false otherwise.
- */
-function isDate(val) {
-    return Object.prototype.toString.call(val) === '[object Date]';
-}
-/**
  * Checks if a value is a function.
  * @param val The value to check.
  * @returns True if the value is a function, false otherwise.
  */
 function isFunction(val) {
     return Object.prototype.toString.call(val) === '[object Function]';
-}
-/**
- * Checks if a value is a regular expression.
- * @param val The value to check.
- * @returns True if the value is a regular expression, false otherwise.
- */
-function isRegex(val) {
-    return Object.prototype.toString.call(val) === '[object RegExp]';
 }
 /**
  * Checks if a value is a Promise.
@@ -140,30 +103,21 @@ function getType(val) {
                             isUndefined(val)
                                 ? 'Undefined'
                                 : // Check if the value is NaN (Not a Number)
-                                    isNaN(val)
-                                        ? 'NaN'
-                                        : // Check if the value is a Number (including NaN)
-                                            isNumber(val)
-                                                ? 'Number'
-                                                : // Check if the value is a String
-                                                    isString(val)
-                                                        ? 'String'
-                                                        : // Check if the value is a Boolean
-                                                            isBoolean(val)
-                                                                ? 'Boolean'
-                                                                : // Check if the value is a Date object
-                                                                    isDate(val)
-                                                                        ? 'Date'
-                                                                        : // Check if the value is a Regular Expression
-                                                                            isRegex(val)
-                                                                                ? 'Regex'
-                                                                                : // Check if the value is a Function
-                                                                                    isFunction(val)
-                                                                                        ? 'Function'
-                                                                                        : // Check if the value is a Promise
-                                                                                            isPromise(val)
-                                                                                                ? 'Promise'
-                                                                                                : // If none of the above, return 'Unknown Type'
-                                                                                                    'Unknown Type';
+                                    isNumber(val)
+                                        ? 'Number'
+                                        : // Check if the value is a String
+                                            isString(val)
+                                                ? 'String'
+                                                : // Check if the value is a Boolean
+                                                    isBoolean(val)
+                                                        ? 'Boolean'
+                                                        : // Check if the value is a Function
+                                                            isFunction(val)
+                                                                ? 'Function'
+                                                                : // Check if the value is a Promise
+                                                                    isPromise(val)
+                                                                        ? 'Promise'
+                                                                        : // If none of the above, return 'Unknown Type'
+                                                                            'Unknown Type';
 }
 //# sourceMappingURL=DataTypeUtil.js.map

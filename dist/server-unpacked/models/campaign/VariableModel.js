@@ -2,14 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VariableModel = void 0;
 var VariableModel = /** @class */ (function () {
-    function VariableModel() {
+    function VariableModel(id, type, key, value) {
+        this.value = value;
+        this.type = type;
+        this.key = key;
+        this.id = id;
     }
-    VariableModel.prototype.modelFromDictionary = function (variable) {
-        this.value = variable.val || variable.value;
-        this.type = variable.type;
-        this.key = variable.k || variable.key;
-        this.id = variable.i || variable.id;
-        return this;
+    VariableModel.modelFromDictionary = function (variable) {
+        var _a, _b, _c;
+        return new VariableModel((_a = variable.i) !== null && _a !== void 0 ? _a : variable.id, variable.type, (_b = variable.k) !== null && _b !== void 0 ? _b : variable.key, (_c = variable.val) !== null && _c !== void 0 ? _c : variable.value);
     };
     VariableModel.prototype.setValue = function (value) {
         this.value = value;

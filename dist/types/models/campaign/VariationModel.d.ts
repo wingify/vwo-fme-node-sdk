@@ -43,8 +43,8 @@ export declare class VariationModel {
   getSegments(): Record<string, dynamic>;
   getStartRangeVariation(): number;
   getEndRangeVariation(): number;
-  getVariables(): Array<VariableModel>;
-  getVariations(): Array<VariationModel>;
+  getVariables(): Array<VariableModel | Record<string, any>>;
+  getVariations(): Array<VariationModel | Record<string, any>>;
   getType(): string;
   getSalt(): string;
 }

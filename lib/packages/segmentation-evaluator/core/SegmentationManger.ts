@@ -80,6 +80,7 @@ export class SegmentationManager {
           const params = getQueryParams(queryParams);
           const _vwo = await getFromGatewayService(params, UrlEnum.GET_USER_DATA);
           context.setVwo(new ContextVWOModel().modelFromDictionary(_vwo));
+          this.evaluator.context = context;
         } catch (err) {
           LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
         }

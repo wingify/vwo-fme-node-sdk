@@ -29,7 +29,7 @@ export declare class TrackApi implements ITrack {
     settings: SettingsModel,
     eventName: string,
     context: ContextModel,
-    eventProperties: any,
+    eventProperties: Record<string, dynamic>,
     hooksService: IHooksService,
   ): Promise<Record<string, boolean>>;
 }

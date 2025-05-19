@@ -39,12 +39,11 @@ var VWOBuilder = /** @class */ (function () {
     };
     VWOBuilder.prototype.initBatching = function () {
         var _this = this;
-        if (this.settingFileManager.isGatewayServiceProvided) {
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
-            return this;
-        }
         if (this.options.batchEventData) {
-            // Skip batching initialization if neither eventsPerRequest nor requestTimeInterval are valid numbers greater than 0
+            if (this.settingFileManager.isGatewayServiceProvided) {
+                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
+                return this;
+            }
             if ((!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.eventsPerRequest) ||
                 this.options.batchEventData.eventsPerRequest <= 0) &&
                 (!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.requestTimeInterval) ||

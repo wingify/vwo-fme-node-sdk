@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 export declare enum ApiEnum {
+  INIT = 'init',
+  ON_INIT = 'onInit',
   GET_FLAG = 'getFlag',
   TRACK_EVENT = 'trackEvent',
   SET_ATTRIBUTE = 'setAttribute',

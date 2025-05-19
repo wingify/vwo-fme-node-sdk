@@ -1,5 +1,4 @@
 import { CampaignModel } from '../models/campaign/CampaignModel';
-import { FeatureModel } from '../models/campaign/FeatureModel';
 import { VariationModel } from '../models/campaign/VariationModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
 /**
@@ -67,13 +66,6 @@ export declare function getGroupDetailsIfCampaignPartOfIt(
       groupName?: undefined;
     };
 /**
- * Finds all groups associated with a feature specified by its key.
- * @param {SettingsModel} settings - The settings model containing all features and groups.
- * @param {string} featureKey - The key of the feature to find groups for.
- * @returns {Array} An array of groups associated with the feature.
- */
-export declare function findGroupsFeaturePartOf(settings: SettingsModel, featureKey: string): any[];
-/**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
  * @param {any} groupId - The ID of the group.
@@ -101,10 +93,3 @@ export declare function getCampaignIdsFromFeatureKey(settings: SettingsModel, fe
  * @returns {number} The step factor calculated from the campaign's weight.
  */
 export declare function assignRangeValuesMEG(data: any, currentAllocation: number): number;
-/**
- * Retrieves the rule type using a campaign ID from a specific feature.
- * @param {any} feature - The feature containing rules.
- * @param {number} campaignId - The campaign ID to find the rule type for.
- * @returns {string} The rule type if found, otherwise an empty string.
- */
-export declare function getRuleTypeUsingCampaignIdFromFeature(feature: FeatureModel, campaignId: number): string;

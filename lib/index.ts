@@ -17,5 +17,11 @@
 import { LogLevelEnum } from './packages/logger/enums/LogLevelEnum';
 import { Connector } from './packages/storage/Connector';
 
-export { LogLevelEnum, Connector as StorageConnector };
+import { IVWOOptions } from './models/VWOOptionsModel';
+import { IVWOClient } from './VWOClient';
+import { IVWOContextModel } from './models/user/ContextModel';
+import { Flag } from './api/GetFlag';
+
 export { init, onInit } from './VWO';
+export { LogLevelEnum, Connector as StorageConnector };
+export { IVWOOptions, IVWOClient, IVWOContextModel, Flag };

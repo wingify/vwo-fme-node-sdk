@@ -61,7 +61,7 @@ function buildMessage(template, data) {
  * @param {string} messageType - The type of message to log.
  */
 function sendLogToVWO(message, messageType) {
-    if (process.env.TEST_ENV === 'true') {
+    if (typeof process.env != 'undefined' && process.env.TEST_ENV === 'true') {
         return;
     }
     var messageToSend = message;

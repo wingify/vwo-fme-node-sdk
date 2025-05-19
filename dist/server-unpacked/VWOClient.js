@@ -66,6 +66,7 @@ var DataTypeUtil_1 = require("./utils/DataTypeUtil");
 var LogMessageUtil_1 = require("./utils/LogMessageUtil");
 var PromiseUtil_1 = require("./utils/PromiseUtil");
 var SettingsUtil_1 = require("./utils/SettingsUtil");
+var VariationModel_1 = require("./models/campaign/VariationModel");
 var NetworkUtil_1 = require("./utils/NetworkUtil");
 var SettingsService_1 = require("./services/SettingsService");
 var ApiEnum_1 = require("./enums/ApiEnum");
@@ -87,16 +88,12 @@ var VWOClient = /** @class */ (function () {
      *
      * @param {string} featureKey - The key of the feature to retrieve.
      * @param {ContextModel} context - The context in which the feature flag is being retrieved, must include a valid user ID.
-     * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
+     * @returns {Promise<Flag>} - A promise that resolves to the feature flag value.
      */
     VWOClient.prototype.getFlag = function (featureKey, context) {
         var apiName = ApiEnum_1.ApiEnum.GET_FLAG;
         var deferredObject = new PromiseUtil_1.Deferred();
-        var errorReturnSchema = {
-            isEnabled: function () { return false; },
-            getVariables: function () { return []; },
-            getVariable: function (_key, defaultValue) { return defaultValue; },
-        };
+        var errorReturnSchema = new GetFlag_1.Flag(false, new VariationModel_1.VariationModel());
         try {
             var hooksService = new HooksService_1.default(this.options);
             logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
@@ -123,8 +120,7 @@ var VWOClient = /** @class */ (function () {
                 throw new TypeError('TypeError: Invalid context');
             }
             var contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
-            new GetFlag_1.FlagApi()
-                .get(featureKey, this.settings, contextModel, hooksService)
+            GetFlag_1.FlagApi.get(featureKey, this.settings, contextModel, hooksService)
                 .then(function (data) {
                 deferredObject.resolve(data);
             })

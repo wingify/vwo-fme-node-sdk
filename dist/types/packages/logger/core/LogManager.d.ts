@@ -17,6 +17,9 @@ import { dynamic } from '../../../types/Common';
 import { Logger } from '../Logger';
 import { LogTransportManager } from './TransportManager';
 import { LogLevelEnum } from '../enums/LogLevelEnum';
+type LogTransport = {
+  log: (level: string, message: string) => void;
+};
 /**
  * Interface defining the structure and methods for LogManager.
  */
@@ -28,10 +31,10 @@ export interface ILogManager {
   level: string;
   prefix?: string;
   dateTimeFormat?: () => string;
-  transport?: Record<string, dynamic>;
-  transports?: Array<Record<string, dynamic>>;
-  addTransport?(transportObject: Record<string, dynamic>): void;
-  addTransports?(transportsList: Array<Record<string, dynamic>>): void;
+  transport?: LogTransport;
+  transports?: Array<LogTransport>;
+  addTransport?(transportObject: LogTransport): void;
+  addTransports?(transportsList: Array<LogTransport>): void;
 }
 /**
  * LogManager class provides logging functionality with support for multiple transports.
@@ -46,8 +49,8 @@ export declare class LogManager extends Logger implements ILogManager {
   level: LogLevelEnum;
   prefix: string;
   dateTimeFormat(): string;
-  transport: Record<string, any>;
-  transports: Array<Record<string, any>>;
+  transport: LogTransport;
+  transports: Array<LogTransport>;
   /**
    * Constructor for LogManager.
    * @param {Record<string, any>} config - Configuration object for LogManager.
@@ -98,3 +101,4 @@ export declare class LogManager extends Logger implements ILogManager {
    */
   error(message: string, shouldSendToVWO?: boolean): void;
 }
+export {};

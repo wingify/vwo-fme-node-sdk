@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import { Deferred } from './PromiseUtil';
 export class BatchEventsDispatcher {
   public static async dispatch(
     payload: Record<string, any>,
-    flushCallback: () => void,
+    flushCallback: (error: Error | null, data: Record<string, any>) => void,
     queryParams: Record<string, dynamic>,
   ): Promise<Record<string, any>> {
     return await this.sendPostApiRequest(queryParams, payload, flushCallback);
@@ -45,7 +45,7 @@ export class BatchEventsDispatcher {
   private static async sendPostApiRequest(
     properties: Record<string, dynamic>,
     payload: Record<string, any>,
-    flushCallback: () => void,
+    flushCallback: (error: Error | null, data: Record<string, any>) => void,
   ): Promise<Record<string, any>> {
     const deferred = new Deferred();
     NetworkManager.Instance.attachClient();
@@ -105,21 +105,29 @@ export class BatchEventsDispatcher {
     queryParams: Record<string, dynamic>,
     err: any,
     res: ResponseModel,
-    callback: (error: dynamic, data: dynamic) => void,
+    callback: (error: Error | null, data: Record<string, any>) => void,
   ): Record<string, any> {
     const eventsPerRequest = payload.ev.length;
     const accountId = queryParams.a;
-    const error = err ? err : res?.getError();
+    let error = err ? err : res?.getError();
+
+    if (error && !(error instanceof Error)) {
+      if (isString(error)) {
+        error = new Error(error);
+      } else if (error instanceof Object) {
+        error = new Error(JSON.stringify(error));
+      }
+    }
 
     if (error) {
       LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
       LogManager.Instance.error(
         buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
           method: HttpMethodEnum.POST,
-          err: isString(error) ? error : JSON.stringify(error),
+          err: error.message,
         }),
       );
-      callback(error, JSON.stringify(payload));
+      callback(error, payload);
       return { status: 'error', events: payload };
     }
     const statusCode = res?.getStatusCode();
@@ -131,7 +139,7 @@ export class BatchEventsDispatcher {
           endPoint,
         }),
       );
-      callback(null, JSON.stringify(payload));
+      callback(null, payload);
       return { status: 'success', events: payload };
     }
 
@@ -146,10 +154,10 @@ export class BatchEventsDispatcher {
       LogManager.Instance.error(
         buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
           method: HttpMethodEnum.POST,
-          err: error,
+          err: error.message,
         }),
       );
-      callback(error, JSON.stringify(payload));
+      callback(error, payload);
       return { status: 'error', events: payload };
     }
 
@@ -157,10 +165,10 @@ export class BatchEventsDispatcher {
     LogManager.Instance.error(
       buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
         method: HttpMethodEnum.POST,
-        err: error,
+        err: error.message,
       }),
     );
-    callback(error, JSON.stringify(payload));
+    callback(error, payload);
     return { status: 'error', events: payload };
   }
 }

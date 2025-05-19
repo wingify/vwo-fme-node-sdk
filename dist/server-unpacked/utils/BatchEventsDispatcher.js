@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,13 +125,21 @@ var BatchEventsDispatcher = /** @class */ (function () {
         var eventsPerRequest = payload.ev.length;
         var accountId = queryParams.a;
         var error = err ? err : res === null || res === void 0 ? void 0 : res.getError();
+        if (error && !(error instanceof Error)) {
+            if ((0, DataTypeUtil_1.isString)(error)) {
+                error = new Error(error);
+            }
+            else if (error instanceof Object) {
+                error = new Error(JSON.stringify(error));
+            }
+        }
         if (error) {
             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
             logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
                 method: HttpMethodEnum_1.HttpMethodEnum.POST,
-                err: (0, DataTypeUtil_1.isString)(error) ? error : JSON.stringify(error),
+                err: error.message,
             }));
-            callback(error, JSON.stringify(payload));
+            callback(error, payload);
             return { status: 'error', events: payload };
         }
         var statusCode = res === null || res === void 0 ? void 0 : res.getStatusCode();
@@ -140,7 +148,7 @@ var BatchEventsDispatcher = /** @class */ (function () {
                 accountId: accountId,
                 endPoint: endPoint,
             }));
-            callback(null, JSON.stringify(payload));
+            callback(null, payload);
             return { status: 'success', events: payload };
         }
         if (statusCode === 413) {
@@ -151,17 +159,17 @@ var BatchEventsDispatcher = /** @class */ (function () {
             }));
             logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
                 method: HttpMethodEnum_1.HttpMethodEnum.POST,
-                err: error,
+                err: error.message,
             }));
-            callback(error, JSON.stringify(payload));
+            callback(error, payload);
             return { status: 'error', events: payload };
         }
         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.IMPRESSION_BATCH_FAILED));
         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
             method: HttpMethodEnum_1.HttpMethodEnum.POST,
-            err: error,
+            err: error.message,
         }));
-        callback(error, JSON.stringify(payload));
+        callback(error, payload);
         return { status: 'error', events: payload };
     };
     return BatchEventsDispatcher;

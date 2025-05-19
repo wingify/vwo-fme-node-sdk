@@ -1,8 +1,8 @@
 /*!
- * vwo-fme-node-sdk - v1.17.1
+ * vwo-fme-node-sdk - v1.18.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.17.1","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server-unpacked/index.js","browser":"dist/client/vwo-fme-javascript-sdk","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server-unpacked/index.js","require":"./dist/server-unpacked/index.js","default":"./dist/server-unpacked/index.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","express":"^4.19.2","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typedoc-plugin-markdown":"^4.0.3","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.18.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
 
 /***/ }),
 
@@ -182,6 +182,7 @@ var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./dist/serve
 var log_messages_1 = __webpack_require__(/*! ./enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var PlatformEnum_1 = __webpack_require__(/*! ./enums/PlatformEnum */ "./dist/server-unpacked/enums/PlatformEnum.js");
+var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var VWO = /** @class */function () {
   /**
    * Constructor for the VWO class.
@@ -246,7 +247,7 @@ function init(options) {
   return __awaiter(this, void 0, void 0, function () {
     var apiName, date, msg, msg, msg, instance, msg;
     return __generator(this, function (_a) {
-      apiName = 'init';
+      apiName = ApiEnum_1.ApiEnum.INIT;
       date = new Date().toISOString();
       try {
         if (!(0, DataTypeUtil_1.isObject)(options)) {
@@ -299,7 +300,7 @@ function onInit() {
   return __awaiter(this, void 0, void 0, function () {
     var apiName, date_1, msg, msg;
     return __generator(this, function (_a) {
-      apiName = 'onInit';
+      apiName = ApiEnum_1.ApiEnum.ON_INIT;
       try {
         _global.vwoInitDeferred = new PromiseUtil_1.Deferred();
         date_1 = new Date().toISOString();
@@ -389,12 +390,11 @@ var VWOBuilder = /** @class */function () {
   };
   VWOBuilder.prototype.initBatching = function () {
     var _this = this;
-    if (this.settingFileManager.isGatewayServiceProvided) {
-      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
-      return this;
-    }
     if (this.options.batchEventData) {
-      // Skip batching initialization if neither eventsPerRequest nor requestTimeInterval are valid numbers greater than 0
+      if (this.settingFileManager.isGatewayServiceProvided) {
+        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
+        return this;
+      }
       if ((!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.eventsPerRequest) || this.options.batchEventData.eventsPerRequest <= 0) && (!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.requestTimeInterval) || this.options.batchEventData.requestTimeInterval <= 0)) {
         logger_1.LogManager.Instance.error('Invalid batch events config, should be an object, eventsPerRequest should be a number greater than 0 and requestTimeInterval should be a number greater than 0');
         return this;
@@ -803,6 +803,7 @@ var DataTypeUtil_1 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./dist/ser
 var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var SettingsUtil_1 = __webpack_require__(/*! ./utils/SettingsUtil */ "./dist/server-unpacked/utils/SettingsUtil.js");
+var VariationModel_1 = __webpack_require__(/*! ./models/campaign/VariationModel */ "./dist/server-unpacked/models/campaign/VariationModel.js");
 var NetworkUtil_1 = __webpack_require__(/*! ./utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var SettingsService_1 = __webpack_require__(/*! ./services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
@@ -824,22 +825,12 @@ var VWOClient = /** @class */function () {
    *
    * @param {string} featureKey - The key of the feature to retrieve.
    * @param {ContextModel} context - The context in which the feature flag is being retrieved, must include a valid user ID.
-   * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
+   * @returns {Promise<Flag>} - A promise that resolves to the feature flag value.
    */
   VWOClient.prototype.getFlag = function (featureKey, context) {
     var apiName = ApiEnum_1.ApiEnum.GET_FLAG;
     var deferredObject = new PromiseUtil_1.Deferred();
-    var errorReturnSchema = {
-      isEnabled: function () {
-        return false;
-      },
-      getVariables: function () {
-        return [];
-      },
-      getVariable: function (_key, defaultValue) {
-        return defaultValue;
-      }
-    };
+    var errorReturnSchema = new GetFlag_1.Flag(false, new VariationModel_1.VariationModel());
     try {
       var hooksService = new HooksService_1.default(this.options);
       logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
@@ -866,7 +857,7 @@ var VWOClient = /** @class */function () {
         throw new TypeError('TypeError: Invalid context');
       }
       var contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
-      new GetFlag_1.FlagApi().get(featureKey, this.settings, contextModel, hooksService).then(function (data) {
+      GetFlag_1.FlagApi.get(featureKey, this.settings, contextModel, hooksService).then(function (data) {
         deferredObject.resolve(data);
       }).catch(function () {
         deferredObject.resolve(errorReturnSchema);
@@ -1311,13 +1302,14 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.FlagApi = void 0;
+exports.FlagApi = exports.Flag = void 0;
 var StorageDecorator_1 = __webpack_require__(/*! ../decorators/StorageDecorator */ "./dist/server-unpacked/decorators/StorageDecorator.js");
 var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var CampaignTypeEnum_1 = __webpack_require__(/*! ../enums/CampaignTypeEnum */ "./dist/server-unpacked/enums/CampaignTypeEnum.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var CampaignModel_1 = __webpack_require__(/*! ../models/campaign/CampaignModel */ "./dist/server-unpacked/models/campaign/CampaignModel.js");
 var VariableModel_1 = __webpack_require__(/*! ../models/campaign/VariableModel */ "./dist/server-unpacked/models/campaign/VariableModel.js");
+var VariationModel_1 = __webpack_require__(/*! ../models/campaign/VariationModel */ "./dist/server-unpacked/models/campaign/VariationModel.js");
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var segmentation_evaluator_1 = __webpack_require__(/*! ../packages/segmentation-evaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/index.js");
 var StorageService_1 = __webpack_require__(/*! ../services/StorageService */ "./dist/server-unpacked/services/StorageService.js");
@@ -1330,14 +1322,36 @@ var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dis
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var RuleEvaluationUtil_1 = __webpack_require__(/*! ../utils/RuleEvaluationUtil */ "./dist/server-unpacked/utils/RuleEvaluationUtil.js");
 var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
+var Flag = /** @class */function () {
+  function Flag(isEnabled, variation) {
+    this.enabled = isEnabled;
+    this.variation = variation;
+  }
+  Flag.prototype.isEnabled = function () {
+    return this.enabled;
+  };
+  Flag.prototype.getVariables = function () {
+    var _a;
+    return ((_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables()) || [];
+  };
+  Flag.prototype.getVariable = function (key, defaultValue) {
+    var _a, _b;
+    var value = (_b = (_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables().find(function (variable) {
+      return VariableModel_1.VariableModel.modelFromDictionary(variable).getKey() === key;
+    })) === null || _b === void 0 ? void 0 : _b.getValue();
+    return value !== undefined ? value : defaultValue;
+  };
+  return Flag;
+}();
+exports.Flag = Flag;
 var FlagApi = /** @class */function () {
   function FlagApi() {}
-  FlagApi.prototype.get = function (featureKey, settings, context, hooksService) {
+  FlagApi.get = function (featureKey, settings, context, hooksService) {
     return __awaiter(this, void 0, void 0, function () {
-      var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, storageService, storedData, variation_1, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation, variablesForEvaluatedFlag;
-      var _d, _e, _f, _g, _h, _j;
-      return __generator(this, function (_k) {
-        switch (_k.label) {
+      var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, storageService, storedData, variation, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation;
+      var _d, _e, _f, _g;
+      return __generator(this, function (_h) {
+        switch (_h.label) {
           case 0:
             isEnabled = false;
             rolloutVariationToReturn = null;
@@ -1357,31 +1371,18 @@ var FlagApi = /** @class */function () {
             storageService = new StorageService_1.StorageService();
             return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService)];
           case 1:
-            storedData = _k.sent();
+            storedData = _h.sent();
             if (storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId) {
               if (storedData.experimentKey) {
-                variation_1 = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.experimentKey, storedData.experimentVariationId);
-                if (variation_1) {
+                variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.experimentKey, storedData.experimentVariationId);
+                if (variation) {
                   logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
-                    variationKey: variation_1.getKey(),
+                    variationKey: variation.getKey(),
                     userId: context.getId(),
                     experimentType: 'experiment',
                     experimentKey: storedData.experimentKey
                   }));
-                  deferredObject.resolve({
-                    isEnabled: function () {
-                      return true;
-                    },
-                    getVariables: function () {
-                      return variation_1 === null || variation_1 === void 0 ? void 0 : variation_1.getVariables();
-                    },
-                    getVariable: function (key, defaultValue) {
-                      var _a;
-                      return ((_a = variation_1 === null || variation_1 === void 0 ? void 0 : variation_1.getVariables().find(function (variable) {
-                        return new VariableModel_1.VariableModel().modelFromDictionary(variable).getKey() === key;
-                      })) === null || _a === void 0 ? void 0 : _a.getValue()) || defaultValue;
-                    }
-                  });
+                  deferredObject.resolve(new Flag(true, variation));
                   return [2 /*return*/, deferredObject.promise];
                 }
               }
@@ -1420,18 +1421,18 @@ var FlagApi = /** @class */function () {
             return [4 /*yield*/, segmentation_evaluator_1.SegmentationManager.Instance.setContextualData(settings, feature, context)];
           case 2:
             // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
-            _k.sent();
+            _h.sent();
             rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
             if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 10];
             rolloutRulesToEvaluate = [];
             _i = 0, rollOutRules_1 = rollOutRules;
-            _k.label = 3;
+            _h.label = 3;
           case 3:
             if (!(_i < rollOutRules_1.length)) return [3 /*break*/, 6];
             rule = rollOutRules_1[_i];
             return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
           case 4:
-            _a = _k.sent(), preSegmentationResult = _a.preSegmentationResult, updatedDecision = _a.updatedDecision;
+            _a = _h.sent(), preSegmentationResult = _a.preSegmentationResult, updatedDecision = _a.updatedDecision;
             Object.assign(decision, updatedDecision);
             if (preSegmentationResult) {
               // if pre segment passed, then break the loop and check the traffic allocation
@@ -1460,11 +1461,11 @@ var FlagApi = /** @class */function () {
             if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 8];
             return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context)];
           case 7:
-            _k.sent();
+            _h.sent();
             return [3 /*break*/, 9];
           case 8:
             (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context);
-            _k.label = 9;
+            _h.label = 9;
           case 9:
             return [3 /*break*/, 11];
           case 10:
@@ -1472,20 +1473,20 @@ var FlagApi = /** @class */function () {
               logger_1.LogManager.Instance.debug(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
               shouldCheckForExperimentsRules = true;
             }
-            _k.label = 11;
+            _h.label = 11;
           case 11:
             if (!shouldCheckForExperimentsRules) return [3 /*break*/, 18];
             experimentRulesToEvaluate = [];
             experimentRules = (0, FunctionUtil_1.getAllExperimentRules)(feature);
             megGroupWinnerCampaigns = new Map();
             _b = 0, experimentRules_1 = experimentRules;
-            _k.label = 12;
+            _h.label = 12;
           case 12:
             if (!(_b < experimentRules_1.length)) return [3 /*break*/, 15];
             rule = experimentRules_1[_b];
             return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
           case 13:
-            _c = _k.sent(), preSegmentationResult = _c.preSegmentationResult, whitelistedObject = _c.whitelistedObject, updatedDecision = _c.updatedDecision;
+            _c = _h.sent(), preSegmentationResult = _c.preSegmentationResult, whitelistedObject = _c.whitelistedObject, updatedDecision = _c.updatedDecision;
             Object.assign(decision, updatedDecision);
             if (preSegmentationResult) {
               if (whitelistedObject === null) {
@@ -1517,11 +1518,11 @@ var FlagApi = /** @class */function () {
             if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 17];
             return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context)];
           case 16:
-            _k.sent();
+            _h.sent();
             return [3 /*break*/, 18];
           case 17:
             (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context);
-            _k.label = 18;
+            _h.label = 18;
           case 18:
             // If flag is enabled, store it in data
             if (isEnabled) {
@@ -1545,30 +1546,15 @@ var FlagApi = /** @class */function () {
             // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
             context)];
           case 19:
-            _k.sent();
+            _h.sent();
             return [3 /*break*/, 21];
           case 20:
             (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_g = feature.getImpactCampaign()) === null || _g === void 0 ? void 0 : _g.getCampaignId(), isEnabled ? 2 : 1,
             // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
             context);
-            _k.label = 21;
+            _h.label = 21;
           case 21:
-            variablesForEvaluatedFlag = (_j = (_h = experimentVariationToReturn === null || experimentVariationToReturn === void 0 ? void 0 : experimentVariationToReturn.variables) !== null && _h !== void 0 ? _h : rolloutVariationToReturn === null || rolloutVariationToReturn === void 0 ? void 0 : rolloutVariationToReturn.variables) !== null && _j !== void 0 ? _j : [];
-            deferredObject.resolve({
-              isEnabled: function () {
-                return isEnabled;
-              },
-              getVariables: function () {
-                return variablesForEvaluatedFlag;
-              },
-              getVariable: function (key, defaultValue) {
-                var _a;
-                var variable = variablesForEvaluatedFlag.find(function (variable) {
-                  return variable.key === key;
-                });
-                return (_a = variable === null || variable === void 0 ? void 0 : variable.value) !== null && _a !== void 0 ? _a : defaultValue;
-              }
-            });
+            deferredObject.resolve(new Flag(isEnabled, new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
             return [2 /*return*/, deferredObject.promise];
         }
       });
@@ -2033,7 +2019,7 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.BASE_URL = exports.HTTPS_PROTOCOL = exports.HTTP_PROTOCOL = exports.SEED_URL = exports.HTTPS = exports.HTTP = void 0;
+exports.HTTPS_PROTOCOL = exports.HTTP_PROTOCOL = exports.SEED_URL = exports.HTTPS = exports.HTTP = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -2054,7 +2040,6 @@ exports.HTTPS = 'https';
 exports.SEED_URL = 'https://vwo.com';
 exports.HTTP_PROTOCOL = "".concat(exports.HTTP, "://");
 exports.HTTPS_PROTOCOL = "".concat(exports.HTTPS, "://");
-exports.BASE_URL = 'dev.visualwebsiteoptimizer.com';
 
 /***/ }),
 
@@ -2414,6 +2399,8 @@ exports.ApiEnum = void 0;
  */
 var ApiEnum;
 (function (ApiEnum) {
+  ApiEnum["INIT"] = "init";
+  ApiEnum["ON_INIT"] = "onInit";
   ApiEnum["GET_FLAG"] = "getFlag";
   ApiEnum["TRACK_EVENT"] = "trackEvent";
   ApiEnum["SET_ATTRIBUTE"] = "setAttribute";
@@ -2703,10 +2690,6 @@ exports.UrlEnum = void 0;
  */
 var UrlEnum;
 (function (UrlEnum) {
-  UrlEnum["BASE_URL"] = "dev.visualwebsiteoptimizer.com";
-  UrlEnum["SETTINGS_URL"] = "/server-side/settings";
-  // WEBHOOK_SETTINGS_URL = '/server-side/pull',
-  // BATCH_EVENTS = '/server-side/batch-events',
   UrlEnum["EVENTS"] = "/events/t";
   UrlEnum["ATTRIBUTE_CHECK"] = "/check-attribute";
   UrlEnum["GET_USER_DATA"] = "/get-user-details";
@@ -2795,7 +2778,7 @@ var CampaignModel = /** @class */function () {
       } else {
         var variableList = campaign.variables; // campaign.var ||
         variableList.forEach(function (variable) {
-          _this.variables.push(new VariableModel_1.VariableModel().modelFromDictionary(variable));
+          _this.variables.push(VariableModel_1.VariableModel.modelFromDictionary(variable));
         });
       }
     }
@@ -3149,13 +3132,15 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VariableModel = void 0;
 var VariableModel = /** @class */function () {
-  function VariableModel() {}
-  VariableModel.prototype.modelFromDictionary = function (variable) {
-    this.value = variable.val || variable.value;
-    this.type = variable.type;
-    this.key = variable.k || variable.key;
-    this.id = variable.i || variable.id;
-    return this;
+  function VariableModel(id, type, key, value) {
+    this.value = value;
+    this.type = type;
+    this.key = key;
+    this.id = id;
+  }
+  VariableModel.modelFromDictionary = function (variable) {
+    var _a, _b, _c;
+    return new VariableModel((_a = variable.i) !== null && _a !== void 0 ? _a : variable.id, variable.type, (_b = variable.k) !== null && _b !== void 0 ? _b : variable.key, (_c = variable.val) !== null && _c !== void 0 ? _c : variable.value);
   };
   VariableModel.prototype.setValue = function (value) {
     this.value = value;
@@ -3221,7 +3206,7 @@ var VariationModel = /** @class */function () {
       } else {
         var variableList = variation.variables;
         variableList.forEach(function (variable) {
-          _this.variables.push(new VariableModel_1.VariableModel().modelFromDictionary(variable));
+          _this.variables.push(VariableModel_1.VariableModel.modelFromDictionary(variable));
         });
       }
     }
@@ -4415,10 +4400,12 @@ var NetworkBrowserClient = /** @class */function () {
     (0, XMLUtil_1.sendPostCall)({
       networkOptions: networkOptions,
       successCallback: function (data) {
+        responseModel.setStatusCode(200);
         responseModel.setData(data);
         deferred.resolve(responseModel);
       },
       errorCallback: function (error) {
+        responseModel.setStatusCode(400);
         responseModel.setError(error);
         deferred.reject(responseModel);
       }
@@ -5688,6 +5675,7 @@ var SegmentationManager = /** @class */function () {
           case 2:
             _vwo = _a.sent();
             context.setVwo(new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(_vwo));
+            this.evaluator.context = context;
             return [3 /*break*/, 4];
           case 3:
             err_1 = _a.sent();
@@ -7089,7 +7077,7 @@ Object.defineProperty(exports, "Storage", ({
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7326,7 +7314,7 @@ var BatchEventsQueue = /** @class */function () {
           (_a = _this.queue).push.apply(_a, tempQueue_1);
           return result;
         }
-      }).catch(function (err) {
+      }).catch(function () {
         var _a;
         (_a = _this.queue).push.apply(_a, tempQueue_1);
         return {
@@ -7336,7 +7324,7 @@ var BatchEventsQueue = /** @class */function () {
       });
     } else {
       logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
-      return new Promise(function (resolve, reject) {
+      return new Promise(function (resolve) {
         resolve({
           status: 'success',
           events: []
@@ -8256,7 +8244,7 @@ exports.StorageService = StorageService;
 
 
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8460,13 +8448,20 @@ var BatchEventsDispatcher = /** @class */function () {
     var eventsPerRequest = payload.ev.length;
     var accountId = queryParams.a;
     var error = err ? err : res === null || res === void 0 ? void 0 : res.getError();
+    if (error && !(error instanceof Error)) {
+      if ((0, DataTypeUtil_1.isString)(error)) {
+        error = new Error(error);
+      } else if (error instanceof Object) {
+        error = new Error(JSON.stringify(error));
+      }
+    }
     if (error) {
       logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
       logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
         method: HttpMethodEnum_1.HttpMethodEnum.POST,
-        err: (0, DataTypeUtil_1.isString)(error) ? error : JSON.stringify(error)
+        err: error.message
       }));
-      callback(error, JSON.stringify(payload));
+      callback(error, payload);
       return {
         status: 'error',
         events: payload
@@ -8478,7 +8473,7 @@ var BatchEventsDispatcher = /** @class */function () {
         accountId: accountId,
         endPoint: endPoint
       }));
-      callback(null, JSON.stringify(payload));
+      callback(null, payload);
       return {
         status: 'success',
         events: payload
@@ -8492,9 +8487,9 @@ var BatchEventsDispatcher = /** @class */function () {
       }));
       logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
         method: HttpMethodEnum_1.HttpMethodEnum.POST,
-        err: error
+        err: error.message
       }));
-      callback(error, JSON.stringify(payload));
+      callback(error, payload);
       return {
         status: 'error',
         events: payload
@@ -8503,9 +8498,9 @@ var BatchEventsDispatcher = /** @class */function () {
     logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.IMPRESSION_BATCH_FAILED));
     logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
       method: HttpMethodEnum_1.HttpMethodEnum.POST,
-      err: error
+      err: error.message
     }));
-    callback(error, JSON.stringify(payload));
+    callback(error, payload);
     return {
       status: 'error',
       events: payload
@@ -8536,12 +8531,10 @@ exports.getBucketingSeed = getBucketingSeed;
 exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
 exports.setCampaignAllocation = setCampaignAllocation;
 exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
-exports.findGroupsFeaturePartOf = findGroupsFeaturePartOf;
 exports.getCampaignsByGroupId = getCampaignsByGroupId;
 exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 exports.assignRangeValuesMEG = assignRangeValuesMEG;
-exports.getRuleTypeUsingCampaignIdFromFeature = getRuleTypeUsingCampaignIdFromFeature;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -8720,41 +8713,6 @@ function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId) {
   return {};
 }
 /**
- * Finds all groups associated with a feature specified by its key.
- * @param {SettingsModel} settings - The settings model containing all features and groups.
- * @param {string} featureKey - The key of the feature to find groups for.
- * @returns {Array} An array of groups associated with the feature.
- */
-function findGroupsFeaturePartOf(settings, featureKey) {
-  // Initialize an array to store all rules for the given feature to fetch campaignId and variationId later
-  var ruleArray = [];
-  // Loop over all rules inside the feature where the feature key matches and collect all rules
-  settings.getFeatures().forEach(function (feature) {
-    if (feature.getKey() === featureKey) {
-      feature.getRules().forEach(function (rule) {
-        if (ruleArray.indexOf(rule) === -1) {
-          ruleArray.push(rule);
-        }
-      });
-    }
-  });
-  // Loop over all campaigns and find the group for each campaign
-  var groups = [];
-  ruleArray.forEach(function (rule) {
-    var group = getGroupDetailsIfCampaignPartOfIt(settings, rule.getCampaignId(), rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? rule.getVariationId() : null);
-    if (group.groupId) {
-      // Check if the group is already added to the groups array to avoid duplicates
-      var groupIndex = groups.findIndex(function (grp) {
-        return grp.groupId === group.groupId;
-      });
-      if (groupIndex === -1) {
-        groups.push(group);
-      }
-    }
-  });
-  return groups;
-}
-/**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
  * @param {any} groupId - The ID of the group.
@@ -8843,18 +8801,6 @@ function assignRangeValuesMEG(data, currentAllocation) {
   return stepFactor;
 }
 /**
- * Retrieves the rule type using a campaign ID from a specific feature.
- * @param {any} feature - The feature containing rules.
- * @param {number} campaignId - The campaign ID to find the rule type for.
- * @returns {string} The rule type if found, otherwise an empty string.
- */
-function getRuleTypeUsingCampaignIdFromFeature(feature, campaignId) {
-  var rule = feature.getRules().find(function (rule) {
-    return rule.getCampaignId() === campaignId;
-  });
-  return rule ? rule.getType() : ''; // Return the rule type if found
-}
-/**
  * Calculates the bucket range for a variation based on its weight.
  * @param {number} variationWeight - The weight of the variation.
  * @returns {number} The calculated bucket range.
@@ -8904,14 +8850,10 @@ exports.isObject = isObject;
 exports.isArray = isArray;
 exports.isNull = isNull;
 exports.isUndefined = isUndefined;
-exports.isDefined = isDefined;
 exports.isNumber = isNumber;
 exports.isString = isString;
 exports.isBoolean = isBoolean;
-exports.isNaN = isNaN;
-exports.isDate = isDate;
 exports.isFunction = isFunction;
-exports.isRegex = isRegex;
 exports.isPromise = isPromise;
 exports.getType = getType;
 /**
@@ -8948,14 +8890,6 @@ function isUndefined(val) {
   return Object.prototype.toString.call(val) === '[object Undefined]';
 }
 /**
- * Checks if a value is defined, i.e., not undefined and not null.
- * @param val The value to check.
- * @returns True if the value is defined, false otherwise.
- */
-function isDefined(val) {
-  return !isUndefined(val) && !isNull(val);
-}
-/**
  * Checks if a value is a number, including NaN.
  * @param val The value to check.
  * @returns True if the value is a number, false otherwise.
@@ -8981,37 +8915,12 @@ function isBoolean(val) {
   return Object.prototype.toString.call(val) === '[object Boolean]';
 }
 /**
- * Checks if a value is NaN.
- * @param val The value to check.
- * @returns True if the value is NaN, false otherwise.
- */
-function isNaN(val) {
-  // NaN is the only JavaScript value that is treated as unequal to itself
-  return val !== val;
-}
-/**
- * Checks if a value is a Date object.
- * @param val The value to check.
- * @returns True if the value is a Date object, false otherwise.
- */
-function isDate(val) {
-  return Object.prototype.toString.call(val) === '[object Date]';
-}
-/**
  * Checks if a value is a function.
  * @param val The value to check.
  * @returns True if the value is a function, false otherwise.
  */
 function isFunction(val) {
   return Object.prototype.toString.call(val) === '[object Function]';
-}
-/**
- * Checks if a value is a regular expression.
- * @param val The value to check.
- * @returns True if the value is a regular expression, false otherwise.
- */
-function isRegex(val) {
-  return Object.prototype.toString.call(val) === '[object RegExp]';
 }
 /**
  * Checks if a value is a Promise.
@@ -9036,17 +8945,11 @@ function getType(val) {
   // Check if the value is undefined
   isUndefined(val) ? 'Undefined' :
   // Check if the value is NaN (Not a Number)
-  isNaN(val) ? 'NaN' :
-  // Check if the value is a Number (including NaN)
   isNumber(val) ? 'Number' :
   // Check if the value is a String
   isString(val) ? 'String' :
   // Check if the value is a Boolean
   isBoolean(val) ? 'Boolean' :
-  // Check if the value is a Date object
-  isDate(val) ? 'Date' :
-  // Check if the value is a Regular Expression
-  isRegex(val) ? 'Regex' :
   // Check if the value is a Function
   isFunction(val) ? 'Function' :
   // Check if the value is a Promise
@@ -10230,7 +10133,7 @@ function buildMessage(template, data) {
  * @param {string} messageType - The type of message to log.
  */
 function sendLogToVWO(message, messageType) {
-  if (process.env.TEST_ENV === 'true') {
+  if (typeof process.env != 'undefined' && process.env.TEST_ENV === 'true') {
     return;
   }
   var messageToSend = message;
@@ -10977,17 +10880,14 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getBasePropertiesForBulk = getBasePropertiesForBulk;
 exports.getSettingsPath = getSettingsPath;
 exports.getTrackEventPath = getTrackEventPath;
-exports.getEventBatchingQueryParams = getEventBatchingQueryParams;
 exports.getEventsBaseProperties = getEventsBaseProperties;
 exports._getEventBasePayload = _getEventBasePayload;
 exports.getTrackUserPayloadData = getTrackUserPayloadData;
 exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 exports.getAttributePayloadData = getAttributePayloadData;
 exports.sendPostApiRequest = sendPostApiRequest;
-exports.sendGetApiRequest = sendGetApiRequest;
 exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
 exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 exports.getMessagingEventPayload = getMessagingEventPayload;
@@ -11023,20 +10923,6 @@ var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./dist/server-unpacked/uti
 var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var Url_1 = __webpack_require__(/*! ../constants/Url */ "./dist/server-unpacked/constants/Url.js");
 var UsageStatsUtil_1 = __webpack_require__(/*! ./UsageStatsUtil */ "./dist/server-unpacked/utils/UsageStatsUtil.js");
-/**
- * Constructs base properties for bulk operations.
- * @param {string} accountId - The account identifier.
- * @param {string} userId - The user identifier.
- * @returns {Record<string, dynamic>} - The base properties including session ID and UUID.
- */
-function getBasePropertiesForBulk(accountId, userId) {
-  var path = {
-    sId: (0, FunctionUtil_1.getCurrentUnixTimestamp)(),
-    // Session ID based on current Unix timestamp
-    u: (0, UuidUtil_1.getUUID)(userId, accountId) // UUID generated based on user and account ID
-  };
-  return path;
-}
 /**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
@@ -11083,21 +10969,6 @@ function getTrackEventPath(event, accountId, userId) {
     ed: JSON.stringify({
       p: 'server'
     }) // Additional encoded data
-  };
-  return path;
-}
-/**
- * Constructs query parameters for event batching.
- * @param {string} accountId - The account identifier.
- * @returns {Record<string, dynamic>} - The query parameters for event batching.
- */
-function getEventBatchingQueryParams(accountId) {
-  var path = {
-    a: accountId,
-    // Account ID
-    sd: constants_1.Constants.SDK_NAME,
-    // SDK name
-    sv: constants_1.Constants.SDK_VERSION // SDK version
   };
   return path;
 }
@@ -11309,41 +11180,6 @@ function sendPostApiRequest(properties, payload, userId) {
           })];
         case 1:
           _a.sent();
-          return [2 /*return*/];
-      }
-    });
-  });
-}
-/**
- * Sends a GET API request to the specified endpoint with the given properties.
- * @param {any} properties - Properties for the request.
- * @param {any} endpoint - Endpoint for the GET request.
- * @returns {Promise<any>} - The response from the GET request.
- */
-function sendGetApiRequest(properties, endpoint) {
-  return __awaiter(this, void 0, void 0, function () {
-    var request, response, err_1;
-    return __generator(this, function (_a) {
-      switch (_a.label) {
-        case 0:
-          network_layer_1.NetworkManager.Instance.attachClient();
-          request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, properties, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
-          _a.label = 1;
-        case 1:
-          _a.trys.push([1, 3,, 4]);
-          return [4 /*yield*/, network_layer_1.NetworkManager.Instance.get(request)];
-        case 2:
-          response = _a.sent();
-          return [2 /*return*/, response];
-        // Return the response model
-        case 3:
-          err_1 = _a.sent();
-          logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-            method: HttpMethodEnum_1.HttpMethodEnum.GET,
-            err: (0, DataTypeUtil_1.isObject)(err_1) ? JSON.stringify(err_1) : err_1
-          }));
-          return [2 /*return*/, null];
-        case 4:
           return [2 /*return*/];
       }
     });
@@ -11823,9 +11659,13 @@ var UsageStatsUtil = /** @class */function () {
     if (shouldWaitForTrackingCalls) data.swtc = 1;
     // if _vwo_meta has ea, then addd data._ea to be 1
     if (_vwo_meta && _vwo_meta.ea) data._ea = 1;
-    if (typeof process !== 'undefined' && process.version) {
-      // For Node.js environment
-      data.lv = process.version;
+    if (typeof process.env === 'undefined') {
+      return;
+    } else {
+      if (typeof process !== 'undefined' && process.version) {
+        // For Node.js environment
+        data.lv = process.version;
+      }
     }
     this.usageStatsData = data;
   };
@@ -12166,7 +12006,7 @@ var exports = __webpack_exports__;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.onInit = exports.init = exports.StorageConnector = exports.LogLevelEnum = void 0;
+exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
 var LogLevelEnum_1 = __webpack_require__(/*! ./packages/logger/enums/LogLevelEnum */ "./dist/server-unpacked/packages/logger/enums/LogLevelEnum.js");
 Object.defineProperty(exports, "LogLevelEnum", ({
   enumerable: true,
@@ -12179,6 +12019,13 @@ Object.defineProperty(exports, "StorageConnector", ({
   enumerable: true,
   get: function () {
     return Connector_1.Connector;
+  }
+}));
+var GetFlag_1 = __webpack_require__(/*! ./api/GetFlag */ "./dist/server-unpacked/api/GetFlag.js");
+Object.defineProperty(exports, "Flag", ({
+  enumerable: true,
+  get: function () {
+    return GetFlag_1.Flag;
   }
 }));
 var VWO_1 = __webpack_require__(/*! ./VWO */ "./dist/server-unpacked/VWO.js");

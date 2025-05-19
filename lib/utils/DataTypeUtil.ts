@@ -57,15 +57,6 @@ export function isUndefined(val: dynamic): val is undefined {
 }
 
 /**
- * Checks if a value is defined, i.e., not undefined and not null.
- * @param val The value to check.
- * @returns True if the value is defined, false otherwise.
- */
-export function isDefined<T>(val: T): val is NonNullable<T> {
-  return !isUndefined(val) && !isNull(val);
-}
-
-/**
  * Checks if a value is a number, including NaN.
  * @param val The value to check.
  * @returns True if the value is a number, false otherwise.
@@ -94,40 +85,12 @@ export function isBoolean(val: dynamic): val is boolean {
 }
 
 /**
- * Checks if a value is NaN.
- * @param val The value to check.
- * @returns True if the value is NaN, false otherwise.
- */
-export function isNaN(val: dynamic): val is number {
-  // NaN is the only JavaScript value that is treated as unequal to itself
-  return val !== val;
-}
-
-/**
- * Checks if a value is a Date object.
- * @param val The value to check.
- * @returns True if the value is a Date object, false otherwise.
- */
-export function isDate(val: dynamic): val is Date {
-  return Object.prototype.toString.call(val) === '[object Date]';
-}
-
-/**
  * Checks if a value is a function.
  * @param val The value to check.
  * @returns True if the value is a function, false otherwise.
  */
 export function isFunction(val: dynamic): val is FunctionType {
   return Object.prototype.toString.call(val) === '[object Function]';
-}
-
-/**
- * Checks if a value is a regular expression.
- * @param val The value to check.
- * @returns True if the value is a regular expression, false otherwise.
- */
-export function isRegex(val: dynamic): val is RegExp {
-  return Object.prototype.toString.call(val) === '[object RegExp]';
 }
 
 /**
@@ -158,29 +121,20 @@ export function getType(val: dynamic): string {
           isUndefined(val)
           ? 'Undefined'
           : // Check if the value is NaN (Not a Number)
-            isNaN(val)
-            ? 'NaN'
-            : // Check if the value is a Number (including NaN)
-              isNumber(val)
-              ? 'Number'
-              : // Check if the value is a String
-                isString(val)
-                ? 'String'
-                : // Check if the value is a Boolean
-                  isBoolean(val)
-                  ? 'Boolean'
-                  : // Check if the value is a Date object
-                    isDate(val)
-                    ? 'Date'
-                    : // Check if the value is a Regular Expression
-                      isRegex(val)
-                      ? 'Regex'
-                      : // Check if the value is a Function
-                        isFunction(val)
-                        ? 'Function'
-                        : // Check if the value is a Promise
-                          isPromise(val)
-                          ? 'Promise'
-                          : // If none of the above, return 'Unknown Type'
-                            'Unknown Type';
+            isNumber(val)
+            ? 'Number'
+            : // Check if the value is a String
+              isString(val)
+              ? 'String'
+              : // Check if the value is a Boolean
+                isBoolean(val)
+                ? 'Boolean'
+                : // Check if the value is a Function
+                  isFunction(val)
+                  ? 'Function'
+                  : // Check if the value is a Promise
+                    isPromise(val)
+                    ? 'Promise'
+                    : // If none of the above, return 'Unknown Type'
+                      'Unknown Type';
 }

@@ -23,7 +23,7 @@ import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 
 const nargs = /\{([0-9a-zA-Z_]+)\}/g;
-let storedMessages = new Set<string>();
+const storedMessages = new Set<string>();
 
 /**
  * Constructs a message by replacing placeholders in a template with corresponding values from a data object.
@@ -63,7 +63,7 @@ export function buildMessage(template: string, data: Record<string, any> = {}): 
  */
 
 export function sendLogToVWO(message: string, messageType: string) {
-  if (process.env.TEST_ENV === 'true') {
+  if (typeof process.env != 'undefined' && process.env.TEST_ENV === 'true') {
     return;
   }
 

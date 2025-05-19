@@ -18,10 +18,6 @@ exports.UrlEnum = void 0;
  */
 var UrlEnum;
 (function (UrlEnum) {
-    UrlEnum["BASE_URL"] = "dev.visualwebsiteoptimizer.com";
-    UrlEnum["SETTINGS_URL"] = "/server-side/settings";
-    // WEBHOOK_SETTINGS_URL = '/server-side/pull',
-    // BATCH_EVENTS = '/server-side/batch-events',
     UrlEnum["EVENTS"] = "/events/t";
     UrlEnum["ATTRIBUTE_CHECK"] = "/check-attribute";
     UrlEnum["GET_USER_DATA"] = "/get-user-details";

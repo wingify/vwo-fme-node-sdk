@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,11 @@ import { SettingsService } from '../services/SettingsService';
 export interface BatchConfig {
   requestTimeInterval?: number;
   eventsPerRequest?: number;
-  flushCallback?: () => void;
-  dispatcher?: (queue: Record<string, any>[], flushCallback: () => void) => Promise<Record<string, any>>;
+  flushCallback?: (error: Error | null, data: Record<string, any>) => void;
+  dispatcher?: (
+    queue: Record<string, any>[],
+    flushCallback: (error: Error | null, data: Record<string, any>) => void,
+  ) => Promise<Record<string, any>>;
 }
 
 export class BatchEventsQueue {
@@ -34,9 +37,12 @@ export class BatchEventsQueue {
   private timer: NodeJS.Timeout | null = null;
   private requestTimeInterval: number;
   private eventsPerRequest: number;
-  private flushCallback: () => void;
+  private flushCallback: (error: Error | null, data: Record<string, any>) => void;
   private accountId: number;
-  private dispatcher: (queue: Record<string, any>[], flushCallback: () => void) => Promise<Record<string, any>>;
+  private dispatcher: (
+    queue: Record<string, any>[],
+    flushCallback: (error: Error | null, data: Record<string, any>) => void,
+  ) => Promise<Record<string, any>>;
 
   /**
    * Constructor for the BatchEventsQueue
@@ -132,7 +138,7 @@ export class BatchEventsQueue {
           timer: manual ? 'Timer will be cleared and registered again' : '',
         }),
       );
-      let tempQueue = this.queue;
+      const tempQueue = this.queue;
       this.queue = [];
       return this.dispatcher(tempQueue, this.flushCallback)
         .then((result) => {
@@ -149,14 +155,14 @@ export class BatchEventsQueue {
             return result;
           }
         })
-        .catch((err) => {
+        .catch(() => {
           this.queue.push(...tempQueue);
           return { status: 'error', events: tempQueue };
         });
     } else {
       LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
 
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         resolve({ status: 'success', events: [] });
       });
     }

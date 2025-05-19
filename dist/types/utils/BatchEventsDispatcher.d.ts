@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ import { dynamic } from '../types/Common';
 export declare class BatchEventsDispatcher {
   static dispatch(
     payload: Record<string, any>,
-    flushCallback: () => void,
+    flushCallback: (error: Error | null, data: Record<string, any>) => void,
     queryParams: Record<string, dynamic>,
   ): Promise<Record<string, any>>;
   /**

@@ -7,12 +7,10 @@ exports.getBucketingSeed = getBucketingSeed;
 exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
 exports.setCampaignAllocation = setCampaignAllocation;
 exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
-exports.findGroupsFeaturePartOf = findGroupsFeaturePartOf;
 exports.getCampaignsByGroupId = getCampaignsByGroupId;
 exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 exports.assignRangeValuesMEG = assignRangeValuesMEG;
-exports.getRuleTypeUsingCampaignIdFromFeature = getRuleTypeUsingCampaignIdFromFeature;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -189,39 +187,6 @@ function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId) {
     return {};
 }
 /**
- * Finds all groups associated with a feature specified by its key.
- * @param {SettingsModel} settings - The settings model containing all features and groups.
- * @param {string} featureKey - The key of the feature to find groups for.
- * @returns {Array} An array of groups associated with the feature.
- */
-function findGroupsFeaturePartOf(settings, featureKey) {
-    // Initialize an array to store all rules for the given feature to fetch campaignId and variationId later
-    var ruleArray = [];
-    // Loop over all rules inside the feature where the feature key matches and collect all rules
-    settings.getFeatures().forEach(function (feature) {
-        if (feature.getKey() === featureKey) {
-            feature.getRules().forEach(function (rule) {
-                if (ruleArray.indexOf(rule) === -1) {
-                    ruleArray.push(rule);
-                }
-            });
-        }
-    });
-    // Loop over all campaigns and find the group for each campaign
-    var groups = [];
-    ruleArray.forEach(function (rule) {
-        var group = getGroupDetailsIfCampaignPartOfIt(settings, rule.getCampaignId(), rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? rule.getVariationId() : null);
-        if (group.groupId) {
-            // Check if the group is already added to the groups array to avoid duplicates
-            var groupIndex = groups.findIndex(function (grp) { return grp.groupId === group.groupId; });
-            if (groupIndex === -1) {
-                groups.push(group);
-            }
-        }
-    });
-    return groups;
-}
-/**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
  * @param {any} groupId - The ID of the group.
@@ -309,16 +274,6 @@ function assignRangeValuesMEG(data, currentAllocation) {
         data.endRangeVariation = -1;
     }
     return stepFactor;
-}
-/**
- * Retrieves the rule type using a campaign ID from a specific feature.
- * @param {any} feature - The feature containing rules.
- * @param {number} campaignId - The campaign ID to find the rule type for.
- * @returns {string} The rule type if found, otherwise an empty string.
- */
-function getRuleTypeUsingCampaignIdFromFeature(feature, campaignId) {
-    var rule = feature.getRules().find(function (rule) { return rule.getCampaignId() === campaignId; });
-    return rule ? rule.getType() : ''; // Return the rule type if found
 }
 /**
  * Calculates the bucket range for a variation based on its weight.

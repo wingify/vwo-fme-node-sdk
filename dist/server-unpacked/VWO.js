@@ -60,6 +60,7 @@ var PromiseUtil_1 = require("./utils/PromiseUtil");
 var log_messages_1 = require("./enums/log-messages");
 var LogMessageUtil_1 = require("./utils/LogMessageUtil");
 var PlatformEnum_1 = require("./enums/PlatformEnum");
+var ApiEnum_1 = require("./enums/ApiEnum");
 var VWO = /** @class */ (function () {
     /**
      * Constructor for the VWO class.
@@ -126,7 +127,7 @@ function init(options) {
     return __awaiter(this, void 0, void 0, function () {
         var apiName, date, msg, msg, msg, instance, msg;
         return __generator(this, function (_a) {
-            apiName = 'init';
+            apiName = ApiEnum_1.ApiEnum.INIT;
             date = new Date().toISOString();
             try {
                 if (!(0, DataTypeUtil_1.isObject)(options)) {
@@ -181,7 +182,7 @@ function onInit() {
     return __awaiter(this, void 0, void 0, function () {
         var apiName, date_1, msg, msg;
         return __generator(this, function (_a) {
-            apiName = 'onInit';
+            apiName = ApiEnum_1.ApiEnum.ON_INIT;
             try {
                 _global.vwoInitDeferred = new PromiseUtil_1.Deferred();
                 date_1 = new Date().toISOString();

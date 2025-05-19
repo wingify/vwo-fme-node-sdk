@@ -116,11 +116,11 @@ export class VariationModel {
     return this.endRangeVariation;
   }
 
-  getVariables(): Array<VariableModel> {
+  getVariables(): Array<VariableModel | Record<string, any>> {
     return this.variables;
   }
 
-  getVariations(): Array<VariationModel> {
+  getVariations(): Array<VariationModel | Record<string, any>> {
     return this.variations;
   }
 

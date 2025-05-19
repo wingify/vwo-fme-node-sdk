@@ -101,10 +101,12 @@ export class NetworkBrowserClient implements NetworkClientInterface {
     sendPostCall({
       networkOptions,
       successCallback: (data: dynamic) => {
+        responseModel.setStatusCode(200);
         responseModel.setData(data);
         deferred.resolve(responseModel);
       },
       errorCallback: (error: dynamic) => {
+        responseModel.setStatusCode(400);
         responseModel.setError(error);
         deferred.reject(responseModel);
       },

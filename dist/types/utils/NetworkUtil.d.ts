@@ -1,13 +1,6 @@
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { dynamic } from '../types/Common';
 /**
- * Constructs base properties for bulk operations.
- * @param {string} accountId - The account identifier.
- * @param {string} userId - The user identifier.
- * @returns {Record<string, dynamic>} - The base properties including session ID and UUID.
- */
-export declare function getBasePropertiesForBulk(accountId: string, userId: string): Record<string, dynamic>;
-/**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
  * @param {any} accountId - The account identifier.
@@ -22,12 +15,6 @@ export declare function getSettingsPath(sdkKey: string, accountId: string | numb
  * @returns {Record<string, dynamic>} - The tracking path for the event.
  */
 export declare function getTrackEventPath(event: string, accountId: string, userId: string): Record<string, dynamic>;
-/**
- * Constructs query parameters for event batching.
- * @param {string} accountId - The account identifier.
- * @returns {Record<string, dynamic>} - The query parameters for event batching.
- */
-export declare function getEventBatchingQueryParams(accountId: string): Record<string, dynamic>;
 /**
  * Builds generic properties for different tracking calls required by VWO servers.
  * @param {Object} configObj
@@ -114,13 +101,6 @@ export declare function getAttributePayloadData(
  * @param {string} userId - User ID.
  */
 export declare function sendPostApiRequest(properties: any, payload: any, userId: string): Promise<void>;
-/**
- * Sends a GET API request to the specified endpoint with the given properties.
- * @param {any} properties - Properties for the request.
- * @param {any} endpoint - Endpoint for the GET request.
- * @returns {Promise<any>} - The response from the GET request.
- */
-export declare function sendGetApiRequest(properties: any, endpoint: any): Promise<any>;
 /**
  * Checks if the SDK should wait for a network response.
  * @returns {boolean} - True if the SDK should wait for a network response, false otherwise.

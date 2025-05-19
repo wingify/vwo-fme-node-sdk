@@ -62,13 +62,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FlagApi = void 0;
+exports.FlagApi = exports.Flag = void 0;
 var StorageDecorator_1 = require("../decorators/StorageDecorator");
 var ApiEnum_1 = require("../enums/ApiEnum");
 var CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
 var log_messages_1 = require("../enums/log-messages");
 var CampaignModel_1 = require("../models/campaign/CampaignModel");
 var VariableModel_1 = require("../models/campaign/VariableModel");
+var VariationModel_1 = require("../models/campaign/VariationModel");
 var logger_1 = require("../packages/logger");
 var segmentation_evaluator_1 = require("../packages/segmentation-evaluator");
 var StorageService_1 = require("../services/StorageService");
@@ -81,15 +82,35 @@ var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 var PromiseUtil_1 = require("../utils/PromiseUtil");
 var RuleEvaluationUtil_1 = require("../utils/RuleEvaluationUtil");
 var NetworkUtil_1 = require("../utils/NetworkUtil");
+var Flag = /** @class */ (function () {
+    function Flag(isEnabled, variation) {
+        this.enabled = isEnabled;
+        this.variation = variation;
+    }
+    Flag.prototype.isEnabled = function () {
+        return this.enabled;
+    };
+    Flag.prototype.getVariables = function () {
+        var _a;
+        return ((_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables()) || [];
+    };
+    Flag.prototype.getVariable = function (key, defaultValue) {
+        var _a, _b;
+        var value = (_b = (_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables().find(function (variable) { return VariableModel_1.VariableModel.modelFromDictionary(variable).getKey() === key; })) === null || _b === void 0 ? void 0 : _b.getValue();
+        return value !== undefined ? value : defaultValue;
+    };
+    return Flag;
+}());
+exports.Flag = Flag;
 var FlagApi = /** @class */ (function () {
     function FlagApi() {
     }
-    FlagApi.prototype.get = function (featureKey, settings, context, hooksService) {
+    FlagApi.get = function (featureKey, settings, context, hooksService) {
         return __awaiter(this, void 0, void 0, function () {
-            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, storageService, storedData, variation_1, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation, variablesForEvaluatedFlag;
-            var _d, _e, _f, _g, _h, _j;
-            return __generator(this, function (_k) {
-                switch (_k.label) {
+            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, storageService, storedData, variation, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation;
+            var _d, _e, _f, _g;
+            return __generator(this, function (_h) {
+                switch (_h.label) {
                     case 0:
                         isEnabled = false;
                         rolloutVariationToReturn = null;
@@ -109,25 +130,18 @@ var FlagApi = /** @class */ (function () {
                         storageService = new StorageService_1.StorageService();
                         return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService)];
                     case 1:
-                        storedData = _k.sent();
+                        storedData = _h.sent();
                         if (storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId) {
                             if (storedData.experimentKey) {
-                                variation_1 = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.experimentKey, storedData.experimentVariationId);
-                                if (variation_1) {
+                                variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.experimentKey, storedData.experimentVariationId);
+                                if (variation) {
                                     logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
-                                        variationKey: variation_1.getKey(),
+                                        variationKey: variation.getKey(),
                                         userId: context.getId(),
                                         experimentType: 'experiment',
                                         experimentKey: storedData.experimentKey,
                                     }));
-                                    deferredObject.resolve({
-                                        isEnabled: function () { return true; },
-                                        getVariables: function () { return variation_1 === null || variation_1 === void 0 ? void 0 : variation_1.getVariables(); },
-                                        getVariable: function (key, defaultValue) {
-                                            var _a;
-                                            return ((_a = variation_1 === null || variation_1 === void 0 ? void 0 : variation_1.getVariables().find(function (variable) { return new VariableModel_1.VariableModel().modelFromDictionary(variable).getKey() === key; })) === null || _a === void 0 ? void 0 : _a.getValue()) || defaultValue;
-                                        },
-                                    });
+                                    deferredObject.resolve(new Flag(true, variation));
                                     return [2 /*return*/, deferredObject.promise];
                                 }
                             }
@@ -167,18 +181,18 @@ var FlagApi = /** @class */ (function () {
                         return [4 /*yield*/, segmentation_evaluator_1.SegmentationManager.Instance.setContextualData(settings, feature, context)];
                     case 2:
                         // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
-                        _k.sent();
+                        _h.sent();
                         rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
                         if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 10];
                         rolloutRulesToEvaluate = [];
                         _i = 0, rollOutRules_1 = rollOutRules;
-                        _k.label = 3;
+                        _h.label = 3;
                     case 3:
                         if (!(_i < rollOutRules_1.length)) return [3 /*break*/, 6];
                         rule = rollOutRules_1[_i];
                         return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
                     case 4:
-                        _a = _k.sent(), preSegmentationResult = _a.preSegmentationResult, updatedDecision = _a.updatedDecision;
+                        _a = _h.sent(), preSegmentationResult = _a.preSegmentationResult, updatedDecision = _a.updatedDecision;
                         Object.assign(decision, updatedDecision);
                         if (preSegmentationResult) {
                             // if pre segment passed, then break the loop and check the traffic allocation
@@ -206,31 +220,31 @@ var FlagApi = /** @class */ (function () {
                         if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 8];
                         return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context)];
                     case 7:
-                        _k.sent();
+                        _h.sent();
                         return [3 /*break*/, 9];
                     case 8:
                         (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context);
-                        _k.label = 9;
+                        _h.label = 9;
                     case 9: return [3 /*break*/, 11];
                     case 10:
                         if (rollOutRules.length === 0) {
                             logger_1.LogManager.Instance.debug(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
                             shouldCheckForExperimentsRules = true;
                         }
-                        _k.label = 11;
+                        _h.label = 11;
                     case 11:
                         if (!shouldCheckForExperimentsRules) return [3 /*break*/, 18];
                         experimentRulesToEvaluate = [];
                         experimentRules = (0, FunctionUtil_1.getAllExperimentRules)(feature);
                         megGroupWinnerCampaigns = new Map();
                         _b = 0, experimentRules_1 = experimentRules;
-                        _k.label = 12;
+                        _h.label = 12;
                     case 12:
                         if (!(_b < experimentRules_1.length)) return [3 /*break*/, 15];
                         rule = experimentRules_1[_b];
                         return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
                     case 13:
-                        _c = _k.sent(), preSegmentationResult = _c.preSegmentationResult, whitelistedObject = _c.whitelistedObject, updatedDecision = _c.updatedDecision;
+                        _c = _h.sent(), preSegmentationResult = _c.preSegmentationResult, whitelistedObject = _c.whitelistedObject, updatedDecision = _c.updatedDecision;
                         Object.assign(decision, updatedDecision);
                         if (preSegmentationResult) {
                             if (whitelistedObject === null) {
@@ -263,11 +277,11 @@ var FlagApi = /** @class */ (function () {
                         if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 17];
                         return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context)];
                     case 16:
-                        _k.sent();
+                        _h.sent();
                         return [3 /*break*/, 18];
                     case 17:
                         (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context);
-                        _k.label = 18;
+                        _h.label = 18;
                     case 18:
                         // If flag is enabled, store it in data
                         if (isEnabled) {
@@ -287,23 +301,14 @@ var FlagApi = /** @class */ (function () {
                         return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_f = feature.getImpactCampaign()) === null || _f === void 0 ? void 0 : _f.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
                             context)];
                     case 19:
-                        _k.sent();
+                        _h.sent();
                         return [3 /*break*/, 21];
                     case 20:
                         (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_g = feature.getImpactCampaign()) === null || _g === void 0 ? void 0 : _g.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
                         context);
-                        _k.label = 21;
+                        _h.label = 21;
                     case 21:
-                        variablesForEvaluatedFlag = (_j = (_h = experimentVariationToReturn === null || experimentVariationToReturn === void 0 ? void 0 : experimentVariationToReturn.variables) !== null && _h !== void 0 ? _h : rolloutVariationToReturn === null || rolloutVariationToReturn === void 0 ? void 0 : rolloutVariationToReturn.variables) !== null && _j !== void 0 ? _j : [];
-                        deferredObject.resolve({
-                            isEnabled: function () { return isEnabled; },
-                            getVariables: function () { return variablesForEvaluatedFlag; },
-                            getVariable: function (key, defaultValue) {
-                                var _a;
-                                var variable = variablesForEvaluatedFlag.find(function (variable) { return variable.key === key; });
-                                return (_a = variable === null || variable === void 0 ? void 0 : variable.value) !== null && _a !== void 0 ? _a : defaultValue;
-                            },
-                        });
+                        deferredObject.resolve(new Flag(isEnabled, new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
                         return [2 /*return*/, deferredObject.promise];
                 }
             });

@@ -119,6 +119,7 @@ var SegmentationManager = /** @class */ (function () {
                     case 2:
                         _vwo = _a.sent();
                         context.setVwo(new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(_vwo));
+                        this.evaluator.context = context;
                         return [3 /*break*/, 4];
                     case 3:
                         err_1 = _a.sent();

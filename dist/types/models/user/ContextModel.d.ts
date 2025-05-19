@@ -15,13 +15,20 @@
  */
 import { dynamic } from '../../types/Common';
 import { ContextVWOModel } from './ContextVWOModel';
-export declare class ContextModel {
-  private id;
-  private userAgent?;
-  private ipAddress?;
-  private customVariables?;
-  private variationTargetingVariables?;
-  private _vwo?;
+export interface IVWOContextModel {
+  id: string | number;
+  userAgent?: string;
+  ipAddress?: string;
+  customVariables?: Record<string, any>;
+  variationTargetingVariables?: Record<string, dynamic>;
+}
+export declare class ContextModel implements IVWOContextModel {
+  id: string | number;
+  userAgent?: string;
+  ipAddress?: string;
+  customVariables?: Record<string, any>;
+  variationTargetingVariables?: Record<string, dynamic>;
+  _vwo?: ContextVWOModel;
   modelFromDictionary(context: Record<string, any>): this;
   getId(): string;
   getUserAgent(): string;

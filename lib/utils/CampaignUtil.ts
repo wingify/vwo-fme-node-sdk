@@ -17,12 +17,10 @@ import { Constants } from '../constants';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { InfoLogMessagesEnum } from '../enums/log-messages';
 import { CampaignModel } from '../models/campaign/CampaignModel';
-import { FeatureModel } from '../models/campaign/FeatureModel';
 import { VariationModel } from '../models/campaign/VariationModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
 import { buildMessage } from './LogMessageUtil';
-import { RuleModel } from '../models/campaign/RuleModel';
 /**
  * Sets the variation allocation for a given campaign based on its type.
  * If the campaign type is ROLLOUT or PERSONALIZE, it handles the campaign using `_handleRolloutCampaign`.
@@ -190,45 +188,6 @@ export function getGroupDetailsIfCampaignPartOfIt(settings: SettingsModel, campa
 }
 
 /**
- * Finds all groups associated with a feature specified by its key.
- * @param {SettingsModel} settings - The settings model containing all features and groups.
- * @param {string} featureKey - The key of the feature to find groups for.
- * @returns {Array} An array of groups associated with the feature.
- */
-export function findGroupsFeaturePartOf(settings: SettingsModel, featureKey: string) {
-  // Initialize an array to store all rules for the given feature to fetch campaignId and variationId later
-  const ruleArray: Array<RuleModel> = [];
-  // Loop over all rules inside the feature where the feature key matches and collect all rules
-  settings.getFeatures().forEach((feature) => {
-    if (feature.getKey() === featureKey) {
-      feature.getRules().forEach((rule) => {
-        if (ruleArray.indexOf(rule) === -1) {
-          ruleArray.push(rule);
-        }
-      });
-    }
-  });
-
-  // Loop over all campaigns and find the group for each campaign
-  const groups: Array<any> = [];
-  ruleArray.forEach((rule) => {
-    const group = getGroupDetailsIfCampaignPartOfIt(
-      settings,
-      rule.getCampaignId(),
-      rule.getType() === CampaignTypeEnum.PERSONALIZE ? rule.getVariationId() : null,
-    );
-    if (group.groupId) {
-      // Check if the group is already added to the groups array to avoid duplicates
-      const groupIndex = groups.findIndex((grp) => grp.groupId === group.groupId);
-      if (groupIndex === -1) {
-        groups.push(group);
-      }
-    }
-  });
-  return groups;
-}
-
-/**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
  * @param {any} groupId - The ID of the group.
@@ -313,17 +272,6 @@ export function assignRangeValuesMEG(data: any, currentAllocation: number) {
     data.endRangeVariation = -1;
   }
   return stepFactor;
-}
-
-/**
- * Retrieves the rule type using a campaign ID from a specific feature.
- * @param {any} feature - The feature containing rules.
- * @param {number} campaignId - The campaign ID to find the rule type for.
- * @returns {string} The rule type if found, otherwise an empty string.
- */
-export function getRuleTypeUsingCampaignIdFromFeature(feature: FeatureModel, campaignId: number) {
-  const rule = feature.getRules().find((rule) => rule.getCampaignId() === campaignId);
-  return rule ? rule.getType() : ''; // Return the rule type if found
 }
 
 /**

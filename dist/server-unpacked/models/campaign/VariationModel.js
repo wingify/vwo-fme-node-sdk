@@ -27,7 +27,7 @@ var VariationModel = /** @class */ (function () {
             else {
                 var variableList = variation.variables;
                 variableList.forEach(function (variable) {
-                    _this.variables.push(new VariableModel_1.VariableModel().modelFromDictionary(variable));
+                    _this.variables.push(VariableModel_1.VariableModel.modelFromDictionary(variable));
                 });
             }
         }

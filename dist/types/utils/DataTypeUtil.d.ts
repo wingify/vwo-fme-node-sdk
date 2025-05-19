@@ -42,12 +42,6 @@ export declare function isNull(val: dynamic): val is null;
  */
 export declare function isUndefined(val: dynamic): val is undefined;
 /**
- * Checks if a value is defined, i.e., not undefined and not null.
- * @param val The value to check.
- * @returns True if the value is defined, false otherwise.
- */
-export declare function isDefined<T>(val: T): val is NonNullable<T>;
-/**
  * Checks if a value is a number, including NaN.
  * @param val The value to check.
  * @returns True if the value is a number, false otherwise.
@@ -66,29 +60,11 @@ export declare function isString(val: dynamic): val is string;
  */
 export declare function isBoolean(val: dynamic): val is boolean;
 /**
- * Checks if a value is NaN.
- * @param val The value to check.
- * @returns True if the value is NaN, false otherwise.
- */
-export declare function isNaN(val: dynamic): val is number;
-/**
- * Checks if a value is a Date object.
- * @param val The value to check.
- * @returns True if the value is a Date object, false otherwise.
- */
-export declare function isDate(val: dynamic): val is Date;
-/**
  * Checks if a value is a function.
  * @param val The value to check.
  * @returns True if the value is a function, false otherwise.
  */
 export declare function isFunction(val: dynamic): val is FunctionType;
-/**
- * Checks if a value is a regular expression.
- * @param val The value to check.
- * @returns True if the value is a regular expression, false otherwise.
- */
-export declare function isRegex(val: dynamic): val is RegExp;
 /**
  * Checks if a value is a Promise.
  * @param val The value to check.

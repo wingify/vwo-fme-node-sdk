@@ -18,4 +18,3 @@ export declare const HTTPS = 'https';
 export declare const SEED_URL = 'https://vwo.com';
 export declare const HTTP_PROTOCOL = 'http://';
 export declare const HTTPS_PROTOCOL = 'https://';
-export declare const BASE_URL = 'dev.visualwebsiteoptimizer.com';

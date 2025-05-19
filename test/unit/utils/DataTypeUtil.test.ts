@@ -18,14 +18,10 @@ import {
   isArray,
   isNull,
   isUndefined,
-  isDefined,
   isNumber,
   isString,
   isBoolean,
-  isNaN,
-  isDate,
   isFunction,
-  isRegex,
   isPromise,
   getType,
 } from '../../../lib/utils/DataTypeUtil';
@@ -77,18 +73,6 @@ describe('DataTypeUtil', () => {
     });
   });
 
-  describe('isDefined', () => {
-    it('should return true for defined values', () => {
-      expect(isDefined(0)).toBeTruthy();
-      expect(isDefined(false)).toBeTruthy();
-    });
-
-    it('should return false for undefined or null', () => {
-      expect(isDefined(undefined)).toBeFalsy();
-      expect(isDefined(null)).toBeFalsy();
-    });
-  });
-
   describe('isNumber', () => {
     it('should return true for numbers', () => {
       expect(isNumber(123)).toBeTruthy();
@@ -126,28 +110,6 @@ describe('DataTypeUtil', () => {
     });
   });
 
-  describe('isNaN', () => {
-    it('should return true for NaN', () => {
-      expect(isNaN(NaN)).toBeTruthy();
-    });
-
-    it('should return false for non-NaN values', () => {
-      expect(isNaN(123)).toBeFalsy();
-      expect(isNaN('NaN')).toBeFalsy();
-    });
-  });
-
-  describe('isDate', () => {
-    it('should return true for Date objects', () => {
-      expect(isDate(new Date())).toBeTruthy();
-    });
-
-    it('should return false for non-Date objects', () => {
-      expect(isDate('2020-01-01')).toBeFalsy();
-      expect(isDate(123456789)).toBeFalsy();
-    });
-  });
-
   describe('isFunction', () => {
     it('should return true for functions', () => {
       expect(isFunction(() => {})).toBeTruthy();
@@ -157,18 +119,6 @@ describe('DataTypeUtil', () => {
     it('should return false for non-functions', () => {
       expect(isFunction({})).toBeFalsy();
       expect(isFunction(123)).toBeFalsy();
-    });
-  });
-
-  describe('isRegex', () => {
-    it('should return true for regular expressions', () => {
-      expect(isRegex(/abc/)).toBeTruthy();
-      expect(isRegex(new RegExp('abc'))).toBeTruthy();
-    });
-
-    it('should return false for non-regular expressions', () => {
-      expect(isRegex('abc')).toBeFalsy();
-      expect(isRegex(123)).toBeFalsy();
     });
   });
 
@@ -190,12 +140,9 @@ describe('DataTypeUtil', () => {
       expect(getType([])).toEqual('Array');
       expect(getType(null)).toEqual('Null');
       expect(getType(undefined)).toEqual('Undefined');
-      expect(getType(NaN)).toEqual('NaN');
       expect(getType(123)).toEqual('Number');
       expect(getType('text')).toEqual('String');
       expect(getType(true)).toEqual('Boolean');
-      expect(getType(new Date())).toEqual('Date');
-      expect(getType(/abc/)).toEqual('Regex');
       expect(getType(() => {})).toEqual('Function');
       expect(getType(Promise.resolve())).toEqual('Promise');
     });

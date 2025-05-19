@@ -34,20 +34,6 @@ import { HTTPS } from '../constants/Url';
 import { UsageStatsUtil } from './UsageStatsUtil';
 
 /**
- * Constructs base properties for bulk operations.
- * @param {string} accountId - The account identifier.
- * @param {string} userId - The user identifier.
- * @returns {Record<string, dynamic>} - The base properties including session ID and UUID.
- */
-export function getBasePropertiesForBulk(accountId: string, userId: string): Record<string, dynamic> {
-  const path: Record<string, dynamic> = {
-    sId: getCurrentUnixTimestamp(), // Session ID based on current Unix timestamp
-    u: getUUID(userId, accountId), // UUID generated based on user and account ID
-  };
-  return path;
-}
-
-/**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
  * @param {any} accountId - The account identifier.
@@ -81,21 +67,6 @@ export function getTrackEventPath(event: string, accountId: string, userId: stri
     ap: Constants.PLATFORM, // Application platform
     sId: getCurrentUnixTimestamp(), // Session ID
     ed: JSON.stringify({ p: 'server' }), // Additional encoded data
-  };
-
-  return path;
-}
-
-/**
- * Constructs query parameters for event batching.
- * @param {string} accountId - The account identifier.
- * @returns {Record<string, dynamic>} - The query parameters for event batching.
- */
-export function getEventBatchingQueryParams(accountId: string): Record<string, dynamic> {
-  const path: Record<string, dynamic> = {
-    a: accountId, // Account ID
-    sd: Constants.SDK_NAME, // SDK name
-    sv: Constants.SDK_VERSION, // SDK version
   };
 
   return path;
@@ -358,38 +329,6 @@ export async function sendPostApiRequest(properties: any, payload: any, userId: 
         }),
       );
     });
-}
-
-/**
- * Sends a GET API request to the specified endpoint with the given properties.
- * @param {any} properties - Properties for the request.
- * @param {any} endpoint - Endpoint for the GET request.
- * @returns {Promise<any>} - The response from the GET request.
- */
-export async function sendGetApiRequest(properties: any, endpoint: any): Promise<any> {
-  NetworkManager.Instance.attachClient();
-  const request: RequestModel = new RequestModel(
-    UrlUtil.getBaseUrl(),
-    HttpMethodEnum.GET,
-    endpoint,
-    properties,
-    null,
-    null,
-    SettingsService.Instance.protocol,
-    SettingsService.Instance.port,
-  );
-  try {
-    const response: ResponseModel = await NetworkManager.Instance.get(request);
-    return response; // Return the response model
-  } catch (err) {
-    LogManager.Instance.error(
-      buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-        method: HttpMethodEnum.GET,
-        err: isObject(err) ? JSON.stringify(err) : err,
-      }),
-    );
-    return null;
-  }
 }
 
 // Flag to determine if the SDK should wait for a network response.

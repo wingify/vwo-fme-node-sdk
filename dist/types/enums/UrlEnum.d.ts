@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 export declare enum UrlEnum {
-  BASE_URL = 'dev.visualwebsiteoptimizer.com',
-  SETTINGS_URL = '/server-side/settings',
   EVENTS = '/events/t',
   ATTRIBUTE_CHECK = '/check-attribute',
   GET_USER_DATA = '/get-user-details',

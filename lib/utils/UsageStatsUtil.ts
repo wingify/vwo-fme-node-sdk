@@ -90,9 +90,13 @@ export class UsageStatsUtil {
     // if _vwo_meta has ea, then addd data._ea to be 1
     if (_vwo_meta && _vwo_meta.ea) data._ea = 1;
 
-    if (typeof process !== 'undefined' && process.version) {
-      // For Node.js environment
-      data.lv = process.version;
+    if (typeof process.env === 'undefined') {
+      return;
+    } else {
+      if (typeof process !== 'undefined' && process.version) {
+        // For Node.js environment
+        data.lv = process.version;
+      }
     }
 
     this.usageStatsData = data;

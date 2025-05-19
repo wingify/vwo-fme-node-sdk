@@ -18,6 +18,8 @@ exports.ApiEnum = void 0;
  */
 var ApiEnum;
 (function (ApiEnum) {
+    ApiEnum["INIT"] = "init";
+    ApiEnum["ON_INIT"] = "onInit";
     ApiEnum["GET_FLAG"] = "getFlag";
     ApiEnum["TRACK_EVENT"] = "trackEvent";
     ApiEnum["SET_ATTRIBUTE"] = "setAttribute";

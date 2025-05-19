@@ -1,4 +1,5 @@
 import { Storage } from './packages/storage';
+import { Flag } from './api/GetFlag';
 import { SettingsModel } from './models/settings/SettingsModel';
 import { dynamic } from './types/Common';
 import { IVWOOptions } from './models/VWOOptionsModel';
@@ -6,11 +7,11 @@ export interface IVWOClient {
   readonly options?: IVWOOptions;
   settings: SettingsModel;
   originalSettings: Record<any, any>;
-  getFlag(featureKey: string, context: Record<string, any>): Promise<Record<any, any>>;
+  getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
   trackEvent(
     eventName: string,
     context: Record<string, any>,
-    eventProperties: Record<string, dynamic>,
+    eventProperties?: Record<string, dynamic>,
   ): Promise<Record<string, boolean>>;
   setAttribute(
     attributeKey: string,
@@ -34,9 +35,9 @@ export declare class VWOClient implements IVWOClient {
    *
    * @param {string} featureKey - The key of the feature to retrieve.
    * @param {ContextModel} context - The context in which the feature flag is being retrieved, must include a valid user ID.
-   * @returns {Promise<Record<any, any>>} - A promise that resolves to the feature flag value.
+   * @returns {Promise<Flag>} - A promise that resolves to the feature flag value.
    */
-  getFlag(featureKey: string, context: Record<string, any>): Promise<Record<any, any>>;
+  getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
   /**
    * Tracks an event with specified properties and context.
    * This method validates the types of the inputs and ensures the settings and user context are valid before proceeding.

@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,7 +164,7 @@ var BatchEventsQueue = /** @class */ (function () {
                     return result;
                 }
             })
-                .catch(function (err) {
+                .catch(function () {
                 var _a;
                 (_a = _this.queue).push.apply(_a, tempQueue_1);
                 return { status: 'error', events: tempQueue_1 };
@@ -172,7 +172,7 @@ var BatchEventsQueue = /** @class */ (function () {
         }
         else {
             logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
-            return new Promise(function (resolve, reject) {
+            return new Promise(function (resolve) {
                 resolve({ status: 'success', events: [] });
             });
         }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 export interface BatchConfig {
   requestTimeInterval?: number;
   eventsPerRequest?: number;
-  flushCallback?: () => void;
-  dispatcher?: (queue: Record<string, any>[], flushCallback: () => void) => Promise<Record<string, any>>;
+  flushCallback?: (error: Error | null, data: Record<string, any>) => void;
+  dispatcher?: (
+    queue: Record<string, any>[],
+    flushCallback: (error: Error | null, data: Record<string, any>) => void,
+  ) => Promise<Record<string, any>>;
 }
 export declare class BatchEventsQueue {
   private static instance;

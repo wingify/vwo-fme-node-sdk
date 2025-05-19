@@ -33,7 +33,7 @@ var CampaignModel = /** @class */ (function () {
             else {
                 var variableList = campaign.variables; // campaign.var ||
                 variableList.forEach(function (variable) {
-                    _this.variables.push(new VariableModel_1.VariableModel().modelFromDictionary(variable));
+                    _this.variables.push(VariableModel_1.VariableModel.modelFromDictionary(variable));
                 });
             }
         }

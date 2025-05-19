@@ -36,17 +36,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBasePropertiesForBulk = getBasePropertiesForBulk;
 exports.getSettingsPath = getSettingsPath;
 exports.getTrackEventPath = getTrackEventPath;
-exports.getEventBatchingQueryParams = getEventBatchingQueryParams;
 exports.getEventsBaseProperties = getEventsBaseProperties;
 exports._getEventBasePayload = _getEventBasePayload;
 exports.getTrackUserPayloadData = getTrackUserPayloadData;
 exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 exports.getAttributePayloadData = getAttributePayloadData;
 exports.sendPostApiRequest = sendPostApiRequest;
-exports.sendGetApiRequest = sendGetApiRequest;
 exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
 exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 exports.getMessagingEventPayload = getMessagingEventPayload;
@@ -83,19 +80,6 @@ var PromiseUtil_1 = require("./PromiseUtil");
 var Url_1 = require("../constants/Url");
 var UsageStatsUtil_1 = require("./UsageStatsUtil");
 /**
- * Constructs base properties for bulk operations.
- * @param {string} accountId - The account identifier.
- * @param {string} userId - The user identifier.
- * @returns {Record<string, dynamic>} - The base properties including session ID and UUID.
- */
-function getBasePropertiesForBulk(accountId, userId) {
-    var path = {
-        sId: (0, FunctionUtil_1.getCurrentUnixTimestamp)(), // Session ID based on current Unix timestamp
-        u: (0, UuidUtil_1.getUUID)(userId, accountId), // UUID generated based on user and account ID
-    };
-    return path;
-}
-/**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
  * @param {any} accountId - The account identifier.
@@ -128,19 +112,6 @@ function getTrackEventPath(event, accountId, userId) {
         ap: constants_1.Constants.PLATFORM, // Application platform
         sId: (0, FunctionUtil_1.getCurrentUnixTimestamp)(), // Session ID
         ed: JSON.stringify({ p: 'server' }), // Additional encoded data
-    };
-    return path;
-}
-/**
- * Constructs query parameters for event batching.
- * @param {string} accountId - The account identifier.
- * @returns {Record<string, dynamic>} - The query parameters for event batching.
- */
-function getEventBatchingQueryParams(accountId) {
-    var path = {
-        a: accountId, // Account ID
-        sd: constants_1.Constants.SDK_NAME, // SDK name
-        sv: constants_1.Constants.SDK_VERSION, // SDK version
     };
     return path;
 }
@@ -335,39 +306,6 @@ function sendPostApiRequest(properties, payload, userId) {
                 case 1:
                     _a.sent();
                     return [2 /*return*/];
-            }
-        });
-    });
-}
-/**
- * Sends a GET API request to the specified endpoint with the given properties.
- * @param {any} properties - Properties for the request.
- * @param {any} endpoint - Endpoint for the GET request.
- * @returns {Promise<any>} - The response from the GET request.
- */
-function sendGetApiRequest(properties, endpoint) {
-    return __awaiter(this, void 0, void 0, function () {
-        var request, response, err_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    network_layer_1.NetworkManager.Instance.attachClient();
-                    request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, properties, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, network_layer_1.NetworkManager.Instance.get(request)];
-                case 2:
-                    response = _a.sent();
-                    return [2 /*return*/, response]; // Return the response model
-                case 3:
-                    err_1 = _a.sent();
-                    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-                        method: HttpMethodEnum_1.HttpMethodEnum.GET,
-                        err: (0, DataTypeUtil_1.isObject)(err_1) ? JSON.stringify(err_1) : err_1,
-                    }));
-                    return [2 /*return*/, null];
-                case 4: return [2 /*return*/];
             }
         });
     });

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BASE_URL = exports.HTTPS_PROTOCOL = exports.HTTP_PROTOCOL = exports.SEED_URL = exports.HTTPS = exports.HTTP = void 0;
+exports.HTTPS_PROTOCOL = exports.HTTP_PROTOCOL = exports.SEED_URL = exports.HTTPS = exports.HTTP = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -21,5 +21,4 @@ exports.HTTPS = 'https';
 exports.SEED_URL = 'https://vwo.com';
 exports.HTTP_PROTOCOL = "".concat(exports.HTTP, "://");
 exports.HTTPS_PROTOCOL = "".concat(exports.HTTPS, "://");
-exports.BASE_URL = 'dev.visualwebsiteoptimizer.com';
 //# sourceMappingURL=Url.js.map

@@ -97,12 +97,11 @@ export class VWOBuilder implements IVWOBuilder {
   }
 
   initBatching(): this {
-    if (this.settingFileManager.isGatewayServiceProvided) {
-      LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
-      return this;
-    }
     if (this.options.batchEventData) {
-      // Skip batching initialization if neither eventsPerRequest nor requestTimeInterval are valid numbers greater than 0
+      if (this.settingFileManager.isGatewayServiceProvided) {
+        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
+        return this;
+      }
       if (
         (!isNumber(this.options.batchEventData.eventsPerRequest) ||
           this.options.batchEventData.eventsPerRequest <= 0) &&
@@ -116,7 +115,10 @@ export class VWOBuilder implements IVWOBuilder {
       }
       this.batchEventsQueue = new BatchEventsQueue(
         Object.assign({}, this.options.batchEventData, {
-          dispatcher: (events: Record<string, any>[], callback: () => void) =>
+          dispatcher: (
+            events: Record<string, any>[],
+            callback: (error: Error | null, data: Record<string, any>) => void,
+          ) =>
             BatchEventsDispatcher.dispatch(
               {
                 ev: events,

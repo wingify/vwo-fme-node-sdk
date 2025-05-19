@@ -21,6 +21,7 @@ import { SegmentEvaluator } from '../packages/segmentation-evaluator';
 import { Connector } from '../packages/storage/Connector';
 import { IGatewayService } from './GatewayServiceModel';
 import { BatchConfig } from '../services/BatchEventsQueue';
+
 interface IIntegrationOptions {
   callback?: (properties: Record<string, any>) => void;
 }
@@ -103,7 +104,7 @@ export class VWOOptionsModel implements IVWOOptions {
     if (options?.settings) {
       this.settings = options.settings;
     }
-    
+
     if (options?.isUsageStatsDisabled) {
       this.isUsageStatsDisabled = options.isUsageStatsDisabled;
     }

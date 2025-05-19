@@ -57,6 +57,28 @@ const { init } = require('vwo-fme-node-sdk');
 })();
 ```
 
+The SDK includes TypeScript type definitions for better type safety and IDE support. Here's how to use the SDK with TypeScript:
+
+```typescript
+import { init, IVWOClient, IVWOOptions, Flag } from 'vwo-fme-node-sdk';
+// Example of using IVWOOptions for type-safe configuration
+const options: IVWOOptions = {
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+};
+
+// Example of using IVWOClient for type-safe client usage
+const vwoClient: IVWOClient = await init(options);
+
+// Example of using Flag interface for type-safe flag handling
+const flag: Flag = await vwoClient.getFlag('feature-key', { id: 'user-123' });
+const isEnabled: boolean = flag.isEnabled();
+
+const stringVariable: string = flag.getVariable('variable_key', 'default_value');
+const booleanVariable: boolean = flag.getVariable('variable_key', true);
+const numberVariable: number = flag.getVariable('variable_key', 10);
+```
+
 ## Advanced Configuration Options
 
 To customize the SDK further, additional parameters can be passed to the `init()` API. Here’s a table describing each option:
@@ -446,4 +468,4 @@ Our [Code of Conduct](https://github.com/wingify/vwo-fme-node-sdk/blob/master/CO
 
 [Apache License, Version 2.0](https://github.com/wingify/vwo-fme-node-sdk/blob/master/LICENSE)
 
-Copyright 2024 Wingify Software Pvt. Ltd.
+Copyright 2024-2025 Wingify Software Pvt. Ltd.

@@ -23,6 +23,7 @@ import { Deferred } from './utils/PromiseUtil';
 import { InfoLogMessagesEnum, ErrorLogMessagesEnum } from './enums/log-messages';
 import { buildMessage } from './utils/LogMessageUtil';
 import { PlatformEnum } from './enums/PlatformEnum';
+import { ApiEnum } from './enums/ApiEnum';
 
 export class VWO {
   private static vwoBuilder: VWOBuilder;
@@ -90,7 +91,7 @@ let _global: Record<string, any> = {};
  */
 
 export async function init(options: IVWOOptions): Promise<IVWOClient> {
-  const apiName = 'init';
+  const apiName = ApiEnum.INIT;
   const date = new Date().toISOString();
 
   try {
@@ -147,7 +148,7 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
 }
 
 export async function onInit() {
-  const apiName = 'onInit';
+  const apiName = ApiEnum.ON_INIT;
 
   try {
     _global.vwoInitDeferred = new Deferred();

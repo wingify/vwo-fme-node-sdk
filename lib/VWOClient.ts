@@ -51,7 +51,7 @@ export interface IVWOClient {
   trackEvent(
     eventName: string,
     context: Record<string, any>,
-    eventProperties: Record<string, dynamic>,
+    eventProperties?: Record<string, dynamic>,
   ): Promise<Record<string, boolean>>;
   setAttribute(
     attributeKey: string,

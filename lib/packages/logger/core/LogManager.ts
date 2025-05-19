@@ -25,6 +25,10 @@ import { isObject } from '../../../utils/DataTypeUtil';
 import { LogLevelEnum } from '../enums/LogLevelEnum';
 import { sendLogToVWO } from '../../../utils/LogMessageUtil';
 
+type LogTransport = {
+  log: (level: string, message: string) => void;
+};
+
 /**
  * Interface defining the structure and methods for LogManager.
  */
@@ -37,11 +41,11 @@ export interface ILogManager {
   prefix?: string;
   dateTimeFormat?: () => string;
 
-  transport?: Record<string, dynamic>;
-  transports?: Array<Record<string, dynamic>>;
+  transport?: LogTransport;
+  transports?: Array<LogTransport>;
 
-  addTransport?(transportObject: Record<string, dynamic>): void;
-  addTransports?(transportsList: Array<Record<string, dynamic>>): void;
+  addTransport?(transportObject: LogTransport): void;
+  addTransports?(transportsList: Array<LogTransport>): void;
 }
 
 /**
@@ -59,8 +63,8 @@ export class LogManager extends Logger implements ILogManager {
   public dateTimeFormat(): string {
     return new Date().toISOString(); // Default date-time format for log messages
   }
-  transport: Record<string, any>;
-  transports: Array<Record<string, any>>;
+  transport: LogTransport;
+  transports: Array<LogTransport>;
 
   /**
    * Constructor for LogManager.

@@ -39,28 +39,32 @@ import { getShouldWaitForTrackingCalls } from '../utils/NetworkUtil';
 
 export class Flag {
   private readonly enabled: boolean;
-  private variation: VariationModel | null | undefined;
+  private variation: VariationModel | Record<string, any> | undefined;
 
-  constructor(isEnabled: boolean, variation?: VariationModel | null) {
+  constructor(isEnabled: boolean, variation?: VariationModel | Record<string, any> | undefined) {
     this.enabled = isEnabled;
     this.variation = variation;
   }
 
-  isEnabled() {
+  isEnabled(): boolean {
     return this.enabled;
   }
 
-  getVariables() {
-    return this.variation?.getVariables();
+  getVariables(): Record<string, unknown>[] {
+    return this.variation?.getVariables() || [];
   }
 
-  getVariable<T = unknown>(key: string, defaultValue: T) {
-    return (
-      this.variation
-        ?.getVariables()
-        .find((variable) => VariableModel.modelFromDictionary(variable).getKey() === key)
-        ?.getValue() ?? defaultValue
-    );
+  // Overloads to give correct return types
+  getVariable<T = unknown>(key: string): T | undefined;
+  getVariable<T = unknown>(key: string, defaultValue: T): T;
+
+  getVariable<T = unknown>(key: string, defaultValue?: T): T | undefined {
+    const value = this.variation
+      ?.getVariables()
+      .find((variable) => VariableModel.modelFromDictionary(variable).getKey() === key)
+      ?.getValue();
+
+    return value !== undefined ? (value as T) : defaultValue;
   }
 }
 

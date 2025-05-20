@@ -2,6 +2,8 @@
 
 [![npm version](https://img.shields.io/npm/v/vwo-fme-node-sdk?style=for-the-badge&color=grey&logo=npm)](https://www.npmjs.com/package/vwo-fme-node-sdk)
 [![License](https://img.shields.io/github/license/wingify/vwo-fme-node-sdk?style=for-the-badge&color=blue)](http://www.apache.org/licenses/LICENSE-2.0)
+[](http://img.badgesize.io/wingify/vwo-fme-node-sdk/master/dist/client/vwo-fme-javascript-sdk.min.js?compression=gzip&color=blue&style=for-the-badge)
+
 [![CI](https://img.shields.io/github/actions/workflow/status/wingify/vwo-fme-node-sdk/main.yml?style=for-the-badge&logo=github)](https://github.com/wingify/vwo-fme-node-sdk/actions?query=workflow%3ACI)
 [![codecov](https://img.shields.io/codecov/c/github/wingify/vwo-fme-node-sdk?token=813UYYMWGM&style=for-the-badge&logo=codecov)](https://codecov.io/gh/wingify/vwo-fme-node-sdk)
 ![](http://img.badgesize.io/wingify/vwo-fme-node-sdk/master/dist/client/vwo-fme-javascript-sdk.min.js?compression=gzip&color=blue)

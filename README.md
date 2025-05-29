@@ -289,7 +289,7 @@ const vwoClient = await init({
   clientStorage: {
     key: 'vwo_data', // defaults to vwo_fme_data
     provider: sessionStorage, // defaults to localStorage
-    disabled: false, // defaults to false, set to true to disable storage
+    isDisabled: false, // defaults to false, set to true to disable storage
   },
 });
 ```
@@ -298,7 +298,7 @@ const vwoClient = await init({
 | ------------- | ------------------------------------------------- | ------------ | -------- | ---------------- |
 | `key`         | Key used to store data in browser storage         | No           | String   | `'vwo_fme_data'` |
 | `provider`    | Storage provider (localStorage or sessionStorage) | No           | Object   | `localStorage`   |
-| `disabled`    | Disable browser storage completely                | No           | Boolean  | `false`          |
+| `isDisabled`    | Disable browser storage completely                | No           | Boolean  | `false`          |
 
 Note: This feature is only applicable in browser environments. In Node.js environments, you should continue using the `storage` option for custom storage implementations.
 

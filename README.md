@@ -83,19 +83,20 @@ const numberVariable: number = flag.getVariable('variable_key', 10);
 
 ## Advanced Configuration Options
 
-To customize the SDK further, additional parameters can be passed to the `init()` API. Here’s a table describing each option:
+To customize the SDK further, additional parameters can be passed to the `init()` API. Here's a table describing each option:
 
-| **Parameter**                | **Description**                                                                                                                                             | **Required** | **Type** | **Example**                               |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------- | ----------------------------------------- |
-| `accountId`                  | VWO Account ID for authentication.                                                                                                                          | Yes          | String   | `'123456'`                                |
-| `sdkKey`                     | SDK key corresponding to the specific environment to initialize the VWO SDK Client. You can get this key from VWO Application.                              | Yes          | String   | `'32-alpha-numeric-sdk-key'`              |
-| `pollInterval`               | Time interval for fetching updates from VWO servers (in milliseconds).                                                                                      | No           | Number   | `60000`                                   |
-| `gatewayService`             | An object representing configuration for integrating VWO Gateway Service.                                                                                   | No           | Object   | see [Gateway](#gateway) section           |
-| `storage`                    | Custom storage connector for persisting user decisions and campaign data.                                                                                   | No           | Object   | See [Storage](#storage) section           |
-| `logger`                     | Toggle log levels for more insights or for debugging purposes. You can also customize your own transport in order to have better control over log messages. | No           | Object   | See [Logger](#logger) section             |
-| `shouldWaitForTrackingCalls` | Ensures tracking calls complete before resolving promises, useful for edge computing environments like Cloudflare Workers                                   | No           | Boolean  | `true`                                    |
-| `integrations`               | A callback function that receives data which can be pushed to any external tool that you need to integrate with.                                            | No           | Object   | See [Integrations](#integrations)         |
-| `batchEventData`             | Configuration for batch event processing to optimize network requests                                                                                       | No           | Object   | See [Batch Events](#batch-events) section |
+| **Parameter**                | **Description**                                                                                                                                             | **Required** | **Type** | **Example**                                   |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------- | --------------------------------------------- |
+| `accountId`                  | VWO Account ID for authentication.                                                                                                                          | Yes          | String   | `'123456'`                                    |
+| `sdkKey`                     | SDK key corresponding to the specific environment to initialize the VWO SDK Client. You can get this key from VWO Application.                              | Yes          | String   | `'32-alpha-numeric-sdk-key'`                  |
+| `pollInterval`               | Time interval for fetching updates from VWO servers (in milliseconds).                                                                                      | No           | Number   | `60000`                                       |
+| `gatewayService`             | An object representing configuration for integrating VWO Gateway Service.                                                                                   | No           | Object   | see [Gateway](#gateway) section               |
+| `storage`                    | Custom storage connector for persisting user decisions and campaign data.                                                                                   | No           | Object   | See [Storage](#storage) section               |
+| `clientStorage`              | Browser storage configuration for persisting user data in browser environments.                                                                             | No           | Object   | See [Client Storage](#client-storage) section |
+| `logger`                     | Toggle log levels for more insights or for debugging purposes. You can also customize your own transport in order to have better control over log messages. | No           | Object   | See [Logger](#logger) section                 |
+| `shouldWaitForTrackingCalls` | Ensures tracking calls complete before resolving promises, useful for edge computing environments like Cloudflare Workers                                   | No           | Boolean  | `true`                                        |
+| `integrations`               | A callback function that receives data which can be pushed to any external tool that you need to integrate with.                                            | No           | Object   | See [Integrations](#integrations)             |
+| `batchEventData`             | Configuration for batch event processing to optimize network requests                                                                                       | No           | Object   | See [Batch Events](#batch-events) section     |
 
 Refer to the [official VWO documentation](https://developers.vwo.com/v2/docs/fme-node-install) for additional parameter details.
 
@@ -276,6 +277,30 @@ const vwoClient = await init({
   storage: StorageConnector,
 });
 ```
+
+### Client Storage
+
+In browser environments, the SDK automatically uses `localStorage` to persist user data. You can customize this behavior using the `clientStorage` option:
+
+```javascript
+const vwoClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  clientStorage: {
+    key: 'vwo_data', // defaults to vwo_fme_data
+    provider: sessionStorage, // defaults to localStorage
+    disabled: false, // defaults to false, set to true to disable storage
+  },
+});
+```
+
+| **Parameter** | **Description**                                   | **Required** | **Type** | **Default**      |
+| ------------- | ------------------------------------------------- | ------------ | -------- | ---------------- |
+| `key`         | Key used to store data in browser storage         | No           | String   | `'vwo_fme_data'` |
+| `provider`    | Storage provider (localStorage or sessionStorage) | No           | Object   | `localStorage`   |
+| `disabled`    | Disable browser storage completely                | No           | Boolean  | `false`          |
+
+Note: This feature is only applicable in browser environments. In Node.js environments, you should continue using the `storage` option for custom storage implementations.
 
 ### Logger
 

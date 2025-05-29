@@ -16,6 +16,7 @@ exports.UrlUtil = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var constants_1 = require("../constants");
 var SettingsService_1 = require("../services/SettingsService");
 var DataTypeUtil_1 = require("./DataTypeUtil");
 exports.UrlUtil = {
@@ -43,11 +44,19 @@ exports.UrlUtil = {
         if (SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
             return baseUrl;
         }
-        // Construct URL with collectionPrefix if it exists
-        if (exports.UrlUtil.collectionPrefix) {
+        // Return the default baseUrl if no specific URL components are set
+        return baseUrl;
+    },
+    /**
+     * Updates the base URL by adding collection prefix if conditions are met.
+     * @param {string} baseUrl - The original base URL to transform.
+     * @returns {string} The transformed base URL.
+     */
+    getUpdatedBaseUrl: function (baseUrl) {
+        // If collection prefix is set and the base URL is the default host name, return the base URL with the collection prefix.
+        if (exports.UrlUtil.collectionPrefix && baseUrl === constants_1.Constants.HOST_NAME) {
             return "".concat(baseUrl, "/").concat(exports.UrlUtil.collectionPrefix);
         }
-        // Return the default baseUrl if no specific URL components are set
         return baseUrl;
     },
 };

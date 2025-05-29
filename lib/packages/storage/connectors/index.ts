@@ -15,3 +15,4 @@
  */
 // export { MemoryConnector } from './memoryConnector';
 // export { RedisConnector } from './redisConnector';
+export { BrowserStorageConnector } from './BrowserStorageConnector';

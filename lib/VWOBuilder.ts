@@ -215,6 +215,16 @@ export class VWOBuilder implements IVWOBuilder {
     if (this.options.storage) {
       // Attach the storage connector from options
       this.storage = Storage.Instance.attachConnector(this.options.storage);
+    } else if (typeof process.env === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { BrowserStorageConnector } = require('./packages/storage/connectors/BrowserStorageConnector');
+      // Pass clientStorage config to BrowserStorageConnector
+      this.storage = Storage.Instance.attachConnector(new BrowserStorageConnector(this.options.clientStorage));
+      LogManager.Instance.debug(
+        buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+          service: this.options?.clientStorage?.provider === sessionStorage ? `Session Storage` : `Local Storage`,
+        }),
+      );
     } else {
       // Set storage to null if no storage options provided
       this.storage = null;

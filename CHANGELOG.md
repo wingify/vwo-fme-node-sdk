@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.0] - 2025-05-29
+
+### Added
+
+- Enhanced browser environment support by enabling direct communication with VWO's DACDN when no `VWO Gateway Service` is configured to reduce network latency and improves performance by eliminating the need for seting up an intermediate service for browser-based environments.
+
+- Added built-in persistent storage functionality for browser environments. The JavaScript SDK automatically stores feature flag decisions in `localStorage` to ensure consistent user experiences across sessions and optimize performance by avoiding re-evaluating users. You can customize or disable this behavior using the `clientStorage` option while initializing the JavaScript SDK:
+
+  ```javascript
+  const vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+    clientStorage: {
+      key: 'vwo_data', // defaults to vwo_fme_data
+      provider: sessionStorage, // defaults to localStorage
+      isDisabled: false, // defaults to false, set to true to disable storage
+    },
+  });
+  ```
+
 ## [1.18.0] - 2025-05-19
 
 ### Changed

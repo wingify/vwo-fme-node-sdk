@@ -73,4 +73,6 @@ export const Constants = {
 
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1 second
+
+  DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
 };

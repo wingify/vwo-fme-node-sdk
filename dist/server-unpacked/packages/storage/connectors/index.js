@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BrowserStorageConnector = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -15,4 +18,6 @@
  */
 // export { MemoryConnector } from './memoryConnector';
 // export { RedisConnector } from './redisConnector';
+var BrowserStorageConnector_1 = require("./BrowserStorageConnector");
+Object.defineProperty(exports, "BrowserStorageConnector", { enumerable: true, get: function () { return BrowserStorageConnector_1.BrowserStorageConnector; } });
 //# sourceMappingURL=index.js.map

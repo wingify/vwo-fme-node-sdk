@@ -62,5 +62,6 @@ exports.Constants = {
     VWO_META_MEG_KEY: '_vwo_meta_meg_',
     MAX_RETRIES: 3,
     RETRY_DELAY: 1000, // 1 second
+    DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
 };
 //# sourceMappingURL=index.js.map

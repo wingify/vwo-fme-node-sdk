@@ -22,3 +22,4 @@ import { Flag } from './api/GetFlag';
 export { init, onInit } from './VWO';
 export { LogLevelEnum, Connector as StorageConnector };
 export { IVWOOptions, IVWOClient, IVWOContextModel, Flag };
+export { ClientStorageOptions } from './packages/storage/connectors/BrowserStorageConnector';

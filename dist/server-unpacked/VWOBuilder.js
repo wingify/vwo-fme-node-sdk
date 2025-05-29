@@ -134,9 +134,19 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setStorage = function () {
+        var _a, _b;
         if (this.options.storage) {
             // Attach the storage connector from options
             this.storage = storage_1.Storage.Instance.attachConnector(this.options.storage);
+        }
+        else if (typeof process.env === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            var BrowserStorageConnector = require('./packages/storage/connectors/BrowserStorageConnector').BrowserStorageConnector;
+            // Pass clientStorage config to BrowserStorageConnector
+            this.storage = storage_1.Storage.Instance.attachConnector(new BrowserStorageConnector(this.options.clientStorage));
+            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+                service: ((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.clientStorage) === null || _b === void 0 ? void 0 : _b.provider) === sessionStorage ? "Session Storage" : "Local Storage",
+            }));
         }
         else {
             // Set storage to null if no storage options provided

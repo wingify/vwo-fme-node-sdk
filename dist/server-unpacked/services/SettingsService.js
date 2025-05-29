@@ -55,6 +55,11 @@ var SettingsService = /** @class */ (function () {
         this.accountId = options.accountId;
         this.expiry = ((_a = options === null || options === void 0 ? void 0 : options.settings) === null || _a === void 0 ? void 0 : _a.expiry) || constants_1.Constants.SETTINGS_EXPIRY;
         this.networkTimeout = ((_b = options === null || options === void 0 ? void 0 : options.settings) === null || _b === void 0 ? void 0 : _b.timeout) || constants_1.Constants.SETTINGS_TIMEOUT;
+        // if sdk is running in browser environment then set isGatewayServiceProvided to true
+        // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
+        if (typeof process.env === 'undefined') {
+            this.isGatewayServiceProvided = true;
+        }
         if ((_c = options === null || options === void 0 ? void 0 : options.gatewayService) === null || _c === void 0 ? void 0 : _c.url) {
             var parsedUrl = void 0;
             this.isGatewayServiceProvided = true;

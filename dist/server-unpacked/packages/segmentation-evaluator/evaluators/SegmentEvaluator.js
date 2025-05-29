@@ -288,7 +288,7 @@ var SegmentEvaluator = /** @class */ (function () {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j;
             return __generator(this, function (_k) {
                 // Ensure user's IP address is available
-                if (((_a = this.context) === null || _a === void 0 ? void 0 : _a.getIpAddress()) === undefined) {
+                if (((_a = this.context) === null || _a === void 0 ? void 0 : _a.getIpAddress()) === undefined && typeof process.env !== 'undefined') {
                     logger_1.LogManager.Instance.error('To evaluate location pre Segment, please pass ipAddress in context object');
                     return [2 /*return*/, false];
                 }

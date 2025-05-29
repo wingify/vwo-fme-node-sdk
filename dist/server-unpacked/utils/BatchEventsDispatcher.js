@@ -84,7 +84,7 @@ var BatchEventsDispatcher = /** @class */ (function () {
      */
     BatchEventsDispatcher.sendPostApiRequest = function (properties, payload, flushCallback) {
         return __awaiter(this, void 0, void 0, function () {
-            var deferred, headers, request, response, batchApiResult, error_1, batchApiResult;
+            var deferred, headers, baseUrl, request, response, batchApiResult, error_1, batchApiResult;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -92,7 +92,9 @@ var BatchEventsDispatcher = /** @class */ (function () {
                         network_layer_2.NetworkManager.Instance.attachClient();
                         headers = {};
                         headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
-                        request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+                        baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
+                        baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
+                        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);

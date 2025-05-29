@@ -25,4 +25,5 @@ export declare const Constants: {
   VWO_META_MEG_KEY: string;
   MAX_RETRIES: number;
   RETRY_DELAY: number;
+  DEFAULT_LOCAL_STORAGE_KEY: string;
 };

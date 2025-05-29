@@ -59,6 +59,9 @@ var VWOOptionsModel = /** @class */ (function () {
         if (options === null || options === void 0 ? void 0 : options._vwo_meta) {
             this._vwo_meta = options._vwo_meta;
         }
+        if (options === null || options === void 0 ? void 0 : options.clientStorage) {
+            this.clientStorage = options.clientStorage;
+        }
         return this;
     };
     VWOOptionsModel.prototype.getAccountId = function () {
@@ -99,6 +102,9 @@ var VWOOptionsModel = /** @class */ (function () {
     };
     VWOOptionsModel.prototype.getVWOMeta = function () {
         return this._vwo_meta;
+    };
+    VWOOptionsModel.prototype.getClientStorage = function () {
+        return this.clientStorage;
     };
     return VWOOptionsModel;
 }());

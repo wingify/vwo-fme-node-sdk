@@ -118,7 +118,9 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
                 }
                 // as group is already evaluated, no need to check again, return false directly
                 return [2 /*return*/, [false, null]];
-            case 4: return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService)];
+            case 4:
+                if (!groupId) return [3 /*break*/, 6];
+                return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService)];
             case 5:
                 storedData = _a.sent();
                 if (storedData && storedData.experimentKey && storedData.experimentId) {

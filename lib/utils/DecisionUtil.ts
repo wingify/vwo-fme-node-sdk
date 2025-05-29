@@ -110,7 +110,7 @@ export const checkWhitelistingAndPreSeg = async (
     }
     // as group is already evaluated, no need to check again, return false directly
     return [false, null];
-  } else {
+  } else if (groupId) {
     // check in storage if the group is already evaluated for the user
     const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(
       `${Constants.VWO_META_MEG_KEY}${groupId}`,

@@ -82,6 +82,9 @@ function getFromGatewayService(queryParams, endpoint) {
                 deferredObject.resolve(false);
                 return [2 /*return*/, deferredObject.promise];
             }
+            // required if sdk is running in browser environment
+            // using dacdn where accountid is required
+            queryParams['accountId'] = SettingsService_1.SettingsService.Instance.accountId;
             try {
                 request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
                 // Perform the network GET request

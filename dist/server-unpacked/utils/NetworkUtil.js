@@ -269,7 +269,7 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  */
 function sendPostApiRequest(properties, payload, userId) {
     return __awaiter(this, void 0, void 0, function () {
-        var headers, userAgent, ipAddress, request;
+        var headers, userAgent, ipAddress, baseUrl, request;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -282,7 +282,9 @@ function sendPostApiRequest(properties, payload, userId) {
                         headers[HeadersEnum_1.HeadersEnum.USER_AGENT] = userAgent;
                     if (ipAddress)
                         headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
-                    request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+                    baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
+                    baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
+                    request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
                     return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request)
                             .then(function () {
                             // clear usage stats only if network call is successful
@@ -356,12 +358,14 @@ function getMessagingEventPayload(messageType, message, eventName) {
  */
 function sendMessagingEvent(properties, payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var deferredObject, networkInstance, request;
+        var deferredObject, networkInstance, baseUrl, request;
         return __generator(this, function (_a) {
             deferredObject = new PromiseUtil_1.Deferred();
             networkInstance = network_layer_1.NetworkManager.Instance;
+            baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
+            baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
             try {
-                request = new network_layer_1.RequestModel(constants_1.Constants.HOST_NAME, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null);
+                request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null);
                 // Perform the network GET request
                 networkInstance
                     .post(request)

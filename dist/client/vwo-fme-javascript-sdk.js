@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.18.0
+ * vwo-fme-javascript-sdk - v1.19.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -414,9 +414,19 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setStorage = function () {
+        var _a, _b;
         if (this.options.storage) {
             // Attach the storage connector from options
             this.storage = storage_1.Storage.Instance.attachConnector(this.options.storage);
+        }
+        else if ( true && typeof window !== 'undefined' && window.localStorage) {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            var BrowserStorageConnector = (__webpack_require__(/*! ./packages/storage/connectors/BrowserStorageConnector */ "./lib/packages/storage/connectors/BrowserStorageConnector.ts").BrowserStorageConnector);
+            // Pass clientStorage config to BrowserStorageConnector
+            this.storage = storage_1.Storage.Instance.attachConnector(new BrowserStorageConnector(this.options.clientStorage));
+            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+                service: ((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.clientStorage) === null || _b === void 0 ? void 0 : _b.provider) === sessionStorage ? "Session Storage" : "Local Storage",
+            }));
         }
         else {
             // Set storage to null if no storage options provided
@@ -1691,7 +1701,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.18.0", // will be replaced by webpack for browser build
+        version: "1.19.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -1723,6 +1733,7 @@ exports.Constants = {
     VWO_META_MEG_KEY: '_vwo_meta_meg_',
     MAX_RETRIES: 3,
     RETRY_DELAY: 1000, // 1 second
+    DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
 };
 
 
@@ -3010,6 +3021,10 @@ var ContextModel = /** @class */ (function () {
         this.id = context.id;
         this.userAgent = context.userAgent;
         this.ipAddress = context.ipAddress;
+        // if sdk is running in js environment and userAgent is not given then we use navigator.userAgent
+        if ( true && !context.userAgent) {
+            this.userAgent = navigator.userAgent;
+        }
         if (context === null || context === void 0 ? void 0 : context.customVariables) {
             this.customVariables = context.customVariables;
         }
@@ -5338,10 +5353,7 @@ var SegmentEvaluator = /** @class */ (function () {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j;
             return __generator(this, function (_k) {
                 // Ensure user's IP address is available
-                if (((_a = this.context) === null || _a === void 0 ? void 0 : _a.getIpAddress()) === undefined) {
-                    logger_1.LogManager.Instance.error('To evaluate location pre Segment, please pass ipAddress in context object');
-                    return [2 /*return*/, false];
-                }
+                if (((_a = this.context) === null || _a === void 0 ? void 0 : _a.getIpAddress()) === undefined && "undefined" !== 'undefined') {}
                 // Check if location data is available and matches the expected values
                 if (!((_c = (_b = this.context) === null || _b === void 0 ? void 0 : _b.getVwo()) === null || _c === void 0 ? void 0 : _c.getLocation()) ||
                     ((_e = (_d = this.context) === null || _d === void 0 ? void 0 : _d.getVwo()) === null || _e === void 0 ? void 0 : _e.getLocation()) === undefined ||
@@ -6052,6 +6064,146 @@ exports.Storage = Storage;
 
 /***/ }),
 
+/***/ "./lib/packages/storage/connectors/BrowserStorageConnector.ts":
+/*!********************************************************************!*\
+  !*** ./lib/packages/storage/connectors/BrowserStorageConnector.ts ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BrowserStorageConnector = void 0;
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var constants_1 = __webpack_require__(/*! ../../../constants */ "./lib/constants/index.ts");
+var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
+var logger_1 = __webpack_require__(/*! ../../logger */ "./lib/packages/logger/index.ts");
+/**
+ * A class that provides browser storage functionality for managing feature flags and experiments data
+ * @class BrowserStorageConnector
+ */
+var BrowserStorageConnector = /** @class */ (function () {
+    /**
+     * Creates an instance of BrowserStorageConnector
+     * @param {ClientStorageOptions} [options] - Configuration options for the storage connector
+     * @param {string} [options.key] - Custom key for storage (defaults to Constants.DEFAULT_LOCAL_STORAGE_KEY)
+     * @param {Storage} [options.provider] - Storage provider (defaults to window.localStorage)
+     * @param {boolean} [options.isDisabled] - Whether storage operations should be disabled
+     */
+    function BrowserStorageConnector(options) {
+        this.storageKey = (options === null || options === void 0 ? void 0 : options.key) || constants_1.Constants.DEFAULT_LOCAL_STORAGE_KEY;
+        this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
+        this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
+    }
+    /**
+     * Retrieves all stored data from the storage
+     * @private
+     * @returns {Record<string, StorageData>} Object containing all stored data
+     */
+    BrowserStorageConnector.prototype.getStoredData = function () {
+        if (this.isDisabled)
+            return {};
+        try {
+            var data = this.storage.getItem(this.storageKey);
+            return data ? JSON.parse(data) : {};
+        }
+        catch (error) {
+            logger_1.LogManager.Instance.error("Error reading from storage: ".concat(error));
+            return {};
+        }
+    };
+    /**
+     * Saves data to the storage
+     * @private
+     * @param {Record<string, StorageData>} data - The data object to be stored
+     */
+    BrowserStorageConnector.prototype.storeData = function (data) {
+        if (this.isDisabled)
+            return;
+        try {
+            var serializedData = JSON.stringify(data);
+            this.storage.setItem(this.storageKey, serializedData);
+        }
+        catch (error) {
+            logger_1.LogManager.Instance.error("Error writing to storage: ".concat(error));
+        }
+    };
+    /**
+     * Stores feature flag or experiment data for a specific user
+     * @public
+     * @param {StorageData} data - The data to be stored, containing feature flag or experiment information
+     * @returns {Promise<void>} A promise that resolves when the data is successfully stored
+     */
+    BrowserStorageConnector.prototype.set = function (data) {
+        var deferredObject = new PromiseUtil_1.Deferred();
+        if (this.isDisabled) {
+            deferredObject.resolve();
+        }
+        else {
+            try {
+                var storedData = this.getStoredData();
+                var key = "".concat(data.featureKey, "_").concat(data.userId);
+                storedData[key] = data;
+                this.storeData(storedData);
+                logger_1.LogManager.Instance.info("Stored data in storage for key: ".concat(key));
+                deferredObject.resolve();
+            }
+            catch (error) {
+                logger_1.LogManager.Instance.error("Error storing data: ".concat(error));
+                deferredObject.reject(error);
+            }
+        }
+        return deferredObject.promise;
+    };
+    /**
+     * Retrieves stored feature flag or experiment data for a specific user
+     * @public
+     * @param {string} featureKey - The key of the feature flag or experiment
+     * @param {string} userId - The ID of the user
+     * @returns {Promise<StorageData | Record<string, any>>} A promise that resolves to the stored data or {} if not found
+     */
+    BrowserStorageConnector.prototype.get = function (featureKey, userId) {
+        var _a;
+        var deferredObject = new PromiseUtil_1.Deferred();
+        if (this.isDisabled) {
+            deferredObject.resolve({});
+        }
+        else {
+            try {
+                var storedData = this.getStoredData();
+                var key = "".concat(featureKey, "_").concat(userId);
+                var dataToReturn = (_a = storedData[key]) !== null && _a !== void 0 ? _a : {};
+                logger_1.LogManager.Instance.info("Retrieved data from storage for key: ".concat(key));
+                deferredObject.resolve(dataToReturn);
+            }
+            catch (error) {
+                logger_1.LogManager.Instance.error("Error retrieving data: ".concat(error));
+                deferredObject.resolve({});
+            }
+        }
+        return deferredObject.promise;
+    };
+    return BrowserStorageConnector;
+}());
+exports.BrowserStorageConnector = BrowserStorageConnector;
+
+
+/***/ }),
+
 /***/ "./lib/packages/storage/index.ts":
 /*!***************************************!*\
   !*** ./lib/packages/storage/index.ts ***!
@@ -6656,6 +6808,11 @@ var SettingsService = /** @class */ (function () {
         this.accountId = options.accountId;
         this.expiry = ((_a = options === null || options === void 0 ? void 0 : options.settings) === null || _a === void 0 ? void 0 : _a.expiry) || constants_1.Constants.SETTINGS_EXPIRY;
         this.networkTimeout = ((_b = options === null || options === void 0 ? void 0 : options.settings) === null || _b === void 0 ? void 0 : _b.timeout) || constants_1.Constants.SETTINGS_TIMEOUT;
+        // if sdk is running in browser environment then set isGatewayServiceProvided to true
+        // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
+        if (true) {
+            this.isGatewayServiceProvided = true;
+        }
         if ((_c = options === null || options === void 0 ? void 0 : options.gatewayService) === null || _c === void 0 ? void 0 : _c.url) {
             var parsedUrl = void 0;
             this.isGatewayServiceProvided = true;
@@ -7061,7 +7218,7 @@ var BatchEventsDispatcher = /** @class */ (function () {
      */
     BatchEventsDispatcher.sendPostApiRequest = function (properties, payload, flushCallback) {
         return __awaiter(this, void 0, void 0, function () {
-            var deferred, headers, request, response, batchApiResult, error_1, batchApiResult;
+            var deferred, headers, baseUrl, request, response, batchApiResult, error_1, batchApiResult;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -7069,7 +7226,9 @@ var BatchEventsDispatcher = /** @class */ (function () {
                         network_layer_2.NetworkManager.Instance.attachClient();
                         headers = {};
                         headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
-                        request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+                        baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
+                        baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
+                        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
@@ -7737,7 +7896,9 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
                 }
                 // as group is already evaluated, no need to check again, return false directly
                 return [2 /*return*/, [false, null]];
-            case 4: return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService)];
+            case 4:
+                if (!groupId) return [3 /*break*/, 6];
+                return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService)];
             case 5:
                 storedData = _a.sent();
                 if (storedData && storedData.experimentKey && storedData.experimentId) {
@@ -8302,6 +8463,9 @@ function getFromGatewayService(queryParams, endpoint) {
                 deferredObject.resolve(false);
                 return [2 /*return*/, deferredObject.promise];
             }
+            // required if sdk is running in browser environment
+            // using dacdn where accountid is required
+            queryParams['accountId'] = SettingsService_1.SettingsService.Instance.accountId;
             try {
                 request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
                 // Perform the network GET request
@@ -9375,7 +9539,7 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  */
 function sendPostApiRequest(properties, payload, userId) {
     return __awaiter(this, void 0, void 0, function () {
-        var headers, userAgent, ipAddress, request;
+        var headers, userAgent, ipAddress, baseUrl, request;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -9388,7 +9552,9 @@ function sendPostApiRequest(properties, payload, userId) {
                         headers[HeadersEnum_1.HeadersEnum.USER_AGENT] = userAgent;
                     if (ipAddress)
                         headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
-                    request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+                    baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
+                    baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
+                    request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
                     return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request)
                             .then(function () {
                             // clear usage stats only if network call is successful
@@ -9462,12 +9628,14 @@ function getMessagingEventPayload(messageType, message, eventName) {
  */
 function sendMessagingEvent(properties, payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var deferredObject, networkInstance, request;
+        var deferredObject, networkInstance, baseUrl, request;
         return __generator(this, function (_a) {
             deferredObject = new PromiseUtil_1.Deferred();
             networkInstance = network_layer_1.NetworkManager.Instance;
+            baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
+            baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
             try {
-                request = new network_layer_1.RequestModel(constants_1.Constants.HOST_NAME, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null);
+                request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null);
                 // Perform the network GET request
                 networkInstance
                     .post(request)
@@ -9682,6 +9850,7 @@ exports.UrlUtil = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
 var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./lib/services/SettingsService.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 exports.UrlUtil = {
@@ -9709,11 +9878,19 @@ exports.UrlUtil = {
         if (SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
             return baseUrl;
         }
-        // Construct URL with collectionPrefix if it exists
-        if (exports.UrlUtil.collectionPrefix) {
+        // Return the default baseUrl if no specific URL components are set
+        return baseUrl;
+    },
+    /**
+     * Updates the base URL by adding collection prefix if conditions are met.
+     * @param {string} baseUrl - The original base URL to transform.
+     * @returns {string} The transformed base URL.
+     */
+    getUpdatedBaseUrl: function (baseUrl) {
+        // If collection prefix is set and the base URL is the default host name, return the base URL with the collection prefix.
+        if (exports.UrlUtil.collectionPrefix && baseUrl === constants_1.Constants.HOST_NAME) {
             return "".concat(baseUrl, "/").concat(exports.UrlUtil.collectionPrefix);
         }
-        // Return the default baseUrl if no specific URL components are set
         return baseUrl;
     },
 };

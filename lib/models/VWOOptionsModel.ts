@@ -21,7 +21,7 @@ import { SegmentEvaluator } from '../packages/segmentation-evaluator';
 import { Connector } from '../packages/storage/Connector';
 import { IGatewayService } from './GatewayServiceModel';
 import { BatchConfig } from '../services/BatchEventsQueue';
-
+import { ClientStorageOptions } from '../packages/storage/connectors/BrowserStorageConnector';
 interface IIntegrationOptions {
   callback?: (properties: Record<string, any>) => void;
 }
@@ -48,6 +48,7 @@ export interface IVWOOptions {
   vwoBuilder?: IVWOBuilder;
   isUsageStatsDisabled?: boolean;
   _vwo_meta?: Record<any, any>;
+  clientStorage?: ClientStorageOptions;
 }
 
 export class VWOOptionsModel implements IVWOOptions {
@@ -67,7 +68,7 @@ export class VWOOptionsModel implements IVWOOptions {
   vwoBuilder?: IVWOBuilder;
   isUsageStatsDisabled?: boolean;
   _vwo_meta?: Record<any, any>;
-
+  clientStorage?: ClientStorageOptions;
   modelFromDictionary(options: VWOOptionsModel): this {
     this.accountId = options.accountId;
     this.sdkKey = options.sdkKey;
@@ -111,6 +112,10 @@ export class VWOOptionsModel implements IVWOOptions {
 
     if (options?._vwo_meta) {
       this._vwo_meta = options._vwo_meta;
+    }
+
+    if (options?.clientStorage) {
+      this.clientStorage = options.clientStorage;
     }
 
     return this;
@@ -166,5 +171,9 @@ export class VWOOptionsModel implements IVWOOptions {
 
   getVWOMeta(): Record<any, any> {
     return this._vwo_meta;
+  }
+
+  getClientStorage(): ClientStorageOptions {
+    return this.clientStorage;
   }
 }

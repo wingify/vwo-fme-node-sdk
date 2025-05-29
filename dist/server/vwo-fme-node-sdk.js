@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.18.0
+ * vwo-fme-node-sdk - v1.19.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.18.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.19.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
 
 /***/ }),
 
@@ -479,9 +479,18 @@ var VWOBuilder = /** @class */function () {
    * @returns {this} The instance of this builder.
    */
   VWOBuilder.prototype.setStorage = function () {
+    var _a, _b;
     if (this.options.storage) {
       // Attach the storage connector from options
       this.storage = storage_1.Storage.Instance.attachConnector(this.options.storage);
+    } else if (typeof process.env === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      var BrowserStorageConnector = (__webpack_require__(/*! ./packages/storage/connectors/BrowserStorageConnector */ "./dist/server-unpacked/packages/storage/connectors/BrowserStorageConnector.js").BrowserStorageConnector);
+      // Pass clientStorage config to BrowserStorageConnector
+      this.storage = storage_1.Storage.Instance.attachConnector(new BrowserStorageConnector(this.options.clientStorage));
+      logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+        service: ((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.clientStorage) === null || _b === void 0 ? void 0 : _b.provider) === sessionStorage ? "Session Storage" : "Local Storage"
+      }));
     } else {
       // Set storage to null if no storage options provided
       this.storage = null;
@@ -2116,7 +2125,9 @@ exports.Constants = {
   API_VERSION: '1',
   VWO_META_MEG_KEY: '_vwo_meta_meg_',
   MAX_RETRIES: 3,
-  RETRY_DELAY: 1000 // 1 second
+  RETRY_DELAY: 1000,
+  // 1 second
+  DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data'
 };
 
 /***/ }),
@@ -3494,6 +3505,10 @@ var ContextModel = /** @class */function () {
     this.id = context.id;
     this.userAgent = context.userAgent;
     this.ipAddress = context.ipAddress;
+    // if sdk is running in js environment and userAgent is not given then we use navigator.userAgent
+    if (typeof process.env === 'undefined' && !context.userAgent) {
+      this.userAgent = navigator.userAgent;
+    }
     if (context === null || context === void 0 ? void 0 : context.customVariables) {
       this.customVariables = context.customVariables;
     }
@@ -6246,7 +6261,7 @@ var SegmentEvaluator = /** @class */function () {
       var _a, _b, _c, _d, _e, _f, _g, _h, _j;
       return __generator(this, function (_k) {
         // Ensure user's IP address is available
-        if (((_a = this.context) === null || _a === void 0 ? void 0 : _a.getIpAddress()) === undefined) {
+        if (((_a = this.context) === null || _a === void 0 ? void 0 : _a.getIpAddress()) === undefined && typeof process.env !== 'undefined') {
           logger_1.LogManager.Instance.error('To evaluate location pre Segment, please pass ipAddress in context object');
           return [2 /*return*/, false];
         }
@@ -7028,6 +7043,139 @@ var Storage = /** @class */function () {
   return Storage;
 }();
 exports.Storage = Storage;
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/packages/storage/connectors/BrowserStorageConnector.js":
+/*!*************************************************************************************!*\
+  !*** ./dist/server-unpacked/packages/storage/connectors/BrowserStorageConnector.js ***!
+  \*************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BrowserStorageConnector = void 0;
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var constants_1 = __webpack_require__(/*! ../../../constants */ "./dist/server-unpacked/constants/index.js");
+var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
+var logger_1 = __webpack_require__(/*! ../../logger */ "./dist/server-unpacked/packages/logger/index.js");
+/**
+ * A class that provides browser storage functionality for managing feature flags and experiments data
+ * @class BrowserStorageConnector
+ */
+var BrowserStorageConnector = /** @class */function () {
+  /**
+   * Creates an instance of BrowserStorageConnector
+   * @param {ClientStorageOptions} [options] - Configuration options for the storage connector
+   * @param {string} [options.key] - Custom key for storage (defaults to Constants.DEFAULT_LOCAL_STORAGE_KEY)
+   * @param {Storage} [options.provider] - Storage provider (defaults to window.localStorage)
+   * @param {boolean} [options.isDisabled] - Whether storage operations should be disabled
+   */
+  function BrowserStorageConnector(options) {
+    this.storageKey = (options === null || options === void 0 ? void 0 : options.key) || constants_1.Constants.DEFAULT_LOCAL_STORAGE_KEY;
+    this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
+    this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
+  }
+  /**
+   * Retrieves all stored data from the storage
+   * @private
+   * @returns {Record<string, StorageData>} Object containing all stored data
+   */
+  BrowserStorageConnector.prototype.getStoredData = function () {
+    if (this.isDisabled) return {};
+    try {
+      var data = this.storage.getItem(this.storageKey);
+      return data ? JSON.parse(data) : {};
+    } catch (error) {
+      logger_1.LogManager.Instance.error("Error reading from storage: ".concat(error));
+      return {};
+    }
+  };
+  /**
+   * Saves data to the storage
+   * @private
+   * @param {Record<string, StorageData>} data - The data object to be stored
+   */
+  BrowserStorageConnector.prototype.storeData = function (data) {
+    if (this.isDisabled) return;
+    try {
+      var serializedData = JSON.stringify(data);
+      this.storage.setItem(this.storageKey, serializedData);
+    } catch (error) {
+      logger_1.LogManager.Instance.error("Error writing to storage: ".concat(error));
+    }
+  };
+  /**
+   * Stores feature flag or experiment data for a specific user
+   * @public
+   * @param {StorageData} data - The data to be stored, containing feature flag or experiment information
+   * @returns {Promise<void>} A promise that resolves when the data is successfully stored
+   */
+  BrowserStorageConnector.prototype.set = function (data) {
+    var deferredObject = new PromiseUtil_1.Deferred();
+    if (this.isDisabled) {
+      deferredObject.resolve();
+    } else {
+      try {
+        var storedData = this.getStoredData();
+        var key = "".concat(data.featureKey, "_").concat(data.userId);
+        storedData[key] = data;
+        this.storeData(storedData);
+        logger_1.LogManager.Instance.info("Stored data in storage for key: ".concat(key));
+        deferredObject.resolve();
+      } catch (error) {
+        logger_1.LogManager.Instance.error("Error storing data: ".concat(error));
+        deferredObject.reject(error);
+      }
+    }
+    return deferredObject.promise;
+  };
+  /**
+   * Retrieves stored feature flag or experiment data for a specific user
+   * @public
+   * @param {string} featureKey - The key of the feature flag or experiment
+   * @param {string} userId - The ID of the user
+   * @returns {Promise<StorageData | Record<string, any>>} A promise that resolves to the stored data or {} if not found
+   */
+  BrowserStorageConnector.prototype.get = function (featureKey, userId) {
+    var _a;
+    var deferredObject = new PromiseUtil_1.Deferred();
+    if (this.isDisabled) {
+      deferredObject.resolve({});
+    } else {
+      try {
+        var storedData = this.getStoredData();
+        var key = "".concat(featureKey, "_").concat(userId);
+        var dataToReturn = (_a = storedData[key]) !== null && _a !== void 0 ? _a : {};
+        logger_1.LogManager.Instance.info("Retrieved data from storage for key: ".concat(key));
+        deferredObject.resolve(dataToReturn);
+      } catch (error) {
+        logger_1.LogManager.Instance.error("Error retrieving data: ".concat(error));
+        deferredObject.resolve({});
+      }
+    }
+    return deferredObject.promise;
+  };
+  return BrowserStorageConnector;
+}();
+exports.BrowserStorageConnector = BrowserStorageConnector;
 
 /***/ }),
 
@@ -7863,6 +8011,11 @@ var SettingsService = /** @class */function () {
     this.accountId = options.accountId;
     this.expiry = ((_a = options === null || options === void 0 ? void 0 : options.settings) === null || _a === void 0 ? void 0 : _a.expiry) || constants_1.Constants.SETTINGS_EXPIRY;
     this.networkTimeout = ((_b = options === null || options === void 0 ? void 0 : options.settings) === null || _b === void 0 ? void 0 : _b.timeout) || constants_1.Constants.SETTINGS_TIMEOUT;
+    // if sdk is running in browser environment then set isGatewayServiceProvided to true
+    // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
+    if (typeof process.env === 'undefined') {
+      this.isGatewayServiceProvided = true;
+    }
     if ((_c = options === null || options === void 0 ? void 0 : options.gatewayService) === null || _c === void 0 ? void 0 : _c.url) {
       var parsedUrl = void 0;
       this.isGatewayServiceProvided = true;
@@ -8406,7 +8559,7 @@ var BatchEventsDispatcher = /** @class */function () {
    */
   BatchEventsDispatcher.sendPostApiRequest = function (properties, payload, flushCallback) {
     return __awaiter(this, void 0, void 0, function () {
-      var deferred, headers, request, response, batchApiResult, error_1, batchApiResult;
+      var deferred, headers, baseUrl, request, response, batchApiResult, error_1, batchApiResult;
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
@@ -8414,7 +8567,9 @@ var BatchEventsDispatcher = /** @class */function () {
             network_layer_2.NetworkManager.Instance.attachClient();
             headers = {};
             headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
-            request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+            baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
+            baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
+            request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
             _a.label = 1;
           case 1:
             _a.trys.push([1, 3,, 4]);
@@ -9169,6 +9324,7 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
           // as group is already evaluated, no need to check again, return false directly
           return [2 /*return*/, [false, null]];
         case 4:
+          if (!groupId) return [3 /*break*/, 6];
           return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService)];
         case 5:
           storedData = _a.sent();
@@ -9808,6 +9964,9 @@ function getFromGatewayService(queryParams, endpoint) {
         deferredObject.resolve(false);
         return [2 /*return*/, deferredObject.promise];
       }
+      // required if sdk is running in browser environment
+      // using dacdn where accountid is required
+      queryParams['accountId'] = SettingsService_1.SettingsService.Instance.accountId;
       try {
         request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
         // Perform the network GET request
@@ -11148,7 +11307,7 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  */
 function sendPostApiRequest(properties, payload, userId) {
   return __awaiter(this, void 0, void 0, function () {
-    var headers, userAgent, ipAddress, request;
+    var headers, userAgent, ipAddress, baseUrl, request;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
@@ -11159,7 +11318,9 @@ function sendPostApiRequest(properties, payload, userId) {
           // Set headers if available
           if (userAgent) headers[HeadersEnum_1.HeadersEnum.USER_AGENT] = userAgent;
           if (ipAddress) headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
-          request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+          baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
+          baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
+          request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
           return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request).then(function () {
             // clear usage stats only if network call is successful
             if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
@@ -11231,12 +11392,14 @@ function getMessagingEventPayload(messageType, message, eventName) {
  */
 function sendMessagingEvent(properties, payload) {
   return __awaiter(this, void 0, void 0, function () {
-    var deferredObject, networkInstance, request;
+    var deferredObject, networkInstance, baseUrl, request;
     return __generator(this, function (_a) {
       deferredObject = new PromiseUtil_1.Deferred();
       networkInstance = network_layer_1.NetworkManager.Instance;
+      baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
+      baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
       try {
-        request = new network_layer_1.RequestModel(constants_1.Constants.HOST_NAME, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null);
+        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null);
         // Perform the network GET request
         networkInstance.post(request).then(function (response) {
           // Resolve the deferred object with the data from the response
@@ -11533,6 +11696,7 @@ exports.UrlUtil = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
 var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 exports.UrlUtil = {
@@ -11561,11 +11725,19 @@ exports.UrlUtil = {
     if (SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
       return baseUrl;
     }
-    // Construct URL with collectionPrefix if it exists
-    if (exports.UrlUtil.collectionPrefix) {
+    // Return the default baseUrl if no specific URL components are set
+    return baseUrl;
+  },
+  /**
+   * Updates the base URL by adding collection prefix if conditions are met.
+   * @param {string} baseUrl - The original base URL to transform.
+   * @returns {string} The transformed base URL.
+   */
+  getUpdatedBaseUrl: function (baseUrl) {
+    // If collection prefix is set and the base URL is the default host name, return the base URL with the collection prefix.
+    if (exports.UrlUtil.collectionPrefix && baseUrl === constants_1.Constants.HOST_NAME) {
       return "".concat(baseUrl, "/").concat(exports.UrlUtil.collectionPrefix);
     }
-    // Return the default baseUrl if no specific URL components are set
     return baseUrl;
   }
 };

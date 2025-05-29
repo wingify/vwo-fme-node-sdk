@@ -44,6 +44,10 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
     return deferredObject.promise;
   }
 
+  // required if sdk is running in browser environment
+  // using dacdn where accountid is required
+  queryParams['accountId'] = SettingsService.Instance.accountId;
+
   try {
     // Create a new request model instance with the provided parameters
     const request: RequestModel = new RequestModel(

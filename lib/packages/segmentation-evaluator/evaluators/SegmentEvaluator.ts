@@ -199,7 +199,7 @@ export class SegmentEvaluator implements Segmentation {
    */
   async checkLocationPreSegmentation(locationMap: Record<string, dynamic>): Promise<boolean> {
     // Ensure user's IP address is available
-    if (this.context?.getIpAddress() === undefined) {
+    if (this.context?.getIpAddress() === undefined && typeof process.env !== 'undefined') {
       LogManager.Instance.error('To evaluate location pre Segment, please pass ipAddress in context object');
       return false;
     }

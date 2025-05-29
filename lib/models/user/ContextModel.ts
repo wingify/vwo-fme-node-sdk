@@ -35,6 +35,11 @@ export class ContextModel implements IVWOContextModel {
     this.id = context.id;
     this.userAgent = context.userAgent;
     this.ipAddress = context.ipAddress;
+    // if sdk is running in js environment and userAgent is not given then we use navigator.userAgent
+    if (typeof process.env === 'undefined' && !context.userAgent) {
+      this.userAgent = navigator.userAgent;
+    }
+
     if (context?.customVariables) {
       this.customVariables = context.customVariables;
     }

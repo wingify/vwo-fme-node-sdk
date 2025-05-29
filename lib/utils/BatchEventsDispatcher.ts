@@ -53,8 +53,11 @@ export class BatchEventsDispatcher {
     const headers: Record<string, string> = {};
     headers['Authorization'] = SettingsService.Instance.sdkKey;
 
+    let baseUrl = UrlUtil.getBaseUrl();
+    baseUrl = UrlUtil.getUpdatedBaseUrl(baseUrl);
+
     const request: RequestModel = new RequestModel(
-      UrlUtil.getBaseUrl(),
+      baseUrl,
       HttpMethodEnum.POST,
       UrlEnum.BATCH_EVENTS,
       properties,

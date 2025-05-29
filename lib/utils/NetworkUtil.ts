@@ -294,8 +294,11 @@ export async function sendPostApiRequest(properties: any, payload: any, userId: 
   if (userAgent) headers[HeadersEnum.USER_AGENT] = userAgent;
   if (ipAddress) headers[HeadersEnum.IP] = ipAddress;
 
+  let baseUrl = UrlUtil.getBaseUrl();
+  baseUrl = UrlUtil.getUpdatedBaseUrl(baseUrl);
+
   const request: RequestModel = new RequestModel(
-    UrlUtil.getBaseUrl(),
+    baseUrl,
     HttpMethodEnum.POST,
     UrlEnum.EVENTS,
     properties,
@@ -386,10 +389,13 @@ export async function sendMessagingEvent(properties: Record<string, any>, payloa
   // Singleton instance of the network manager
   const networkInstance = NetworkManager.Instance;
 
+  let baseUrl = UrlUtil.getBaseUrl();
+  baseUrl = UrlUtil.getUpdatedBaseUrl(baseUrl);
+
   try {
     // Create a new request model instance with the provided parameters
     const request: RequestModel = new RequestModel(
-      Constants.HOST_NAME,
+      baseUrl,
       HttpMethodEnum.POST,
       UrlEnum.EVENTS,
       properties,

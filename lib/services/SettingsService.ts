@@ -53,6 +53,11 @@ export class SettingsService implements ISettingsService {
     this.expiry = options?.settings?.expiry || Constants.SETTINGS_EXPIRY;
     this.networkTimeout = options?.settings?.timeout || Constants.SETTINGS_TIMEOUT;
 
+    // if sdk is running in browser environment then set isGatewayServiceProvided to true
+    // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
+    if (typeof process.env === 'undefined') {
+      this.isGatewayServiceProvided = true;
+    }
     if (options?.gatewayService?.url) {
       let parsedUrl;
       this.isGatewayServiceProvided = true;

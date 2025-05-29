@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Constants } from '../constants';
 import { SettingsService } from '../services/SettingsService';
 import { isString } from './DataTypeUtil';
 
@@ -20,6 +21,7 @@ interface IUrlUtil {
   collectionPrefix?: string;
   init({ collectionPrefix }?: { collectionPrefix?: string }): IUrlUtil;
   getBaseUrl(): string;
+  getUpdatedBaseUrl(baseUrl: string): string;
 }
 
 export const UrlUtil: IUrlUtil = {
@@ -50,12 +52,20 @@ export const UrlUtil: IUrlUtil = {
       return baseUrl;
     }
 
-    // Construct URL with collectionPrefix if it exists
-    if (UrlUtil.collectionPrefix) {
+    // Return the default baseUrl if no specific URL components are set
+    return baseUrl;
+  },
+
+  /**
+   * Updates the base URL by adding collection prefix if conditions are met.
+   * @param {string} baseUrl - The original base URL to transform.
+   * @returns {string} The transformed base URL.
+   */
+  getUpdatedBaseUrl: (baseUrl: string): string => {
+    // If collection prefix is set and the base URL is the default host name, return the base URL with the collection prefix.
+    if (UrlUtil.collectionPrefix && baseUrl === Constants.HOST_NAME) {
       return `${baseUrl}/${UrlUtil.collectionPrefix}`;
     }
-
-    // Return the default baseUrl if no specific URL components are set
     return baseUrl;
   },
 };

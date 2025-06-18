@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { dynamic } from '../types/Common';
-
+import { Storage } from '../packages/storage';
 import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
 
@@ -109,30 +109,78 @@ export class SettingsService implements ISettingsService {
     }, this.expiry);
   }
 
-  private fetchSettingsAndCacheInStorage() {
+  private async normalizeSettings(settings: Record<any, any>): Promise<Record<any, any>> {
+    const normalizedSettings = { ...settings };
+    if (Object.keys(normalizedSettings.features).length === 0) {
+      normalizedSettings.features = [];
+    }
+    if (Object.keys(normalizedSettings.campaigns).length === 0) {
+      normalizedSettings.campaigns = [];
+    }
+    return normalizedSettings;
+  }
+
+  private async handleBrowserEnvironment(
+    storageConnector: any,
+    deferredObject: { resolve: (value: any) => void; reject: (reason?: any) => void },
+  ): Promise<void> {
+    try {
+      const cachedSettings = await storageConnector.getSettingsFromStorage();
+
+      if (cachedSettings) {
+        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
+        deferredObject.resolve(cachedSettings);
+      } else {
+        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
+      }
+
+      const freshSettings = await this.fetchSettings();
+      const normalizedSettings = await this.normalizeSettings(freshSettings);
+      await storageConnector.setSettingsInStorage(normalizedSettings);
+
+      if (cachedSettings) {
+        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_BACKGROUND_UPDATE));
+      } else {
+        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
+        deferredObject.resolve(normalizedSettings);
+      }
+    } catch (error) {
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
+          err: JSON.stringify(error),
+        }),
+      );
+      deferredObject.resolve(null);
+    }
+  }
+
+  private async handleServerEnvironment(deferredObject: {
+    resolve: (value: any) => void;
+    reject: (reason?: any) => void;
+  }): Promise<void> {
+    try {
+      const settings = await this.fetchSettings();
+      const normalizedSettings = await this.normalizeSettings(settings);
+      deferredObject.resolve(normalizedSettings);
+    } catch (error) {
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
+          err: JSON.stringify(error),
+        }),
+      );
+      deferredObject.resolve(null);
+    }
+  }
+
+  private fetchSettingsAndCacheInStorage(): Promise<Record<any, any>> {
     const deferredObject = new Deferred();
-    // const storageConnector = Storage.Instance.getConnector();
+    const storageConnector = Storage.Instance.getConnector();
 
-    this.fetchSettings()
-      .then(async (res) => {
-        // if the features and campaigns are empty object, then update them as empty array
-        if (Object.keys(res.features).length === 0) {
-          res.features = [];
-        }
-        if (Object.keys(res.campaigns).length === 0) {
-          res.campaigns = [];
-        }
-        deferredObject.resolve(res);
-      })
-      .catch((err) => {
-        LogManager.Instance.error(
-          buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-            err: JSON.stringify(err),
-          }),
-        );
-
-        deferredObject.resolve(null);
-      });
+    if (typeof process.env === 'undefined') {
+      this.handleBrowserEnvironment(storageConnector, deferredObject);
+    } else {
+      this.handleServerEnvironment(deferredObject);
+    }
 
     return deferredObject.promise;
   }

@@ -15,6 +15,7 @@ export declare const Constants: {
   SETTINGS: string;
   SETTINGS_EXPIRY: number;
   SETTINGS_TIMEOUT: number;
+  SETTINGS_TTL: number;
   HOST_NAME: string;
   SETTINTS_ENDPOINT: string;
   WEBHOOK_SETTINTS_ENDPOINT: string;
@@ -26,4 +27,5 @@ export declare const Constants: {
   MAX_RETRIES: number;
   RETRY_DELAY: number;
   DEFAULT_LOCAL_STORAGE_KEY: string;
+  DEFAULT_SETTINGS_STORAGE_KEY: string;
 };

@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.19.0
+ * vwo-fme-node-sdk - v1.20.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.19.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.20.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
 
 /***/ }),
 
@@ -344,10 +344,20 @@ function onInit() {
 /*!********************************************!*\
   !*** ./dist/server-unpacked/VWOBuilder.js ***!
   \********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
 
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -479,7 +489,7 @@ var VWOBuilder = /** @class */function () {
    * @returns {this} The instance of this builder.
    */
   VWOBuilder.prototype.setStorage = function () {
-    var _a, _b;
+    var _a, _b, _c, _d;
     if (this.options.storage) {
       // Attach the storage connector from options
       this.storage = storage_1.Storage.Instance.attachConnector(this.options.storage);
@@ -487,9 +497,12 @@ var VWOBuilder = /** @class */function () {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       var BrowserStorageConnector = (__webpack_require__(/*! ./packages/storage/connectors/BrowserStorageConnector */ "./dist/server-unpacked/packages/storage/connectors/BrowserStorageConnector.js").BrowserStorageConnector);
       // Pass clientStorage config to BrowserStorageConnector
-      this.storage = storage_1.Storage.Instance.attachConnector(new BrowserStorageConnector(this.options.clientStorage));
+      this.storage = storage_1.Storage.Instance.attachConnector(new BrowserStorageConnector(__assign(__assign({}, this.options.clientStorage), {
+        alwaysUseCachedSettings: (_a = this.options.clientStorage) === null || _a === void 0 ? void 0 : _a.alwaysUseCachedSettings,
+        ttl: (_b = this.options.clientStorage) === null || _b === void 0 ? void 0 : _b.ttl
+      })));
       logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-        service: ((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.clientStorage) === null || _b === void 0 ? void 0 : _b.provider) === sessionStorage ? "Session Storage" : "Local Storage"
+        service: ((_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.clientStorage) === null || _d === void 0 ? void 0 : _d.provider) === sessionStorage ? "Session Storage" : "Local Storage"
       }));
     } else {
       // Set storage to null if no storage options provided
@@ -2116,6 +2129,8 @@ exports.Constants = {
   SETTINGS: 'settings',
   SETTINGS_EXPIRY: 10000000,
   SETTINGS_TIMEOUT: 50000,
+  SETTINGS_TTL: 7200000,
+  // 2 HOURS
   HOST_NAME: 'dev.visualwebsiteoptimizer.com',
   SETTINTS_ENDPOINT: '/server-side/v2-settings',
   WEBHOOK_SETTINTS_ENDPOINT: '/server-side/v2-pull',
@@ -2127,7 +2142,8 @@ exports.Constants = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000,
   // 1 second
-  DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data'
+  DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
+  DEFAULT_SETTINGS_STORAGE_KEY: 'vwo_fme_settings'
 };
 
 /***/ }),
@@ -7050,10 +7066,121 @@ exports.Storage = Storage;
 /*!*************************************************************************************!*\
   !*** ./dist/server-unpacked/packages/storage/connectors/BrowserStorageConnector.js ***!
   \*************************************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
 
+var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function (resolve) {
+      resolve(value);
+    });
+  }
+  return new (P || (P = Promise))(function (resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator = this && this.__generator || function (thisArg, body) {
+  var _ = {
+      label: 0,
+      sent: function () {
+        if (t[0] & 1) throw t[1];
+        return t[1];
+      },
+      trys: [],
+      ops: []
+    },
+    f,
+    y,
+    t,
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    return this;
+  }), g;
+  function verb(n) {
+    return function (v) {
+      return step([n, v]);
+    };
+  }
+  function step(op) {
+    if (f) throw new TypeError("Generator is already executing.");
+    while (g && (g = 0, op[0] && (_ = 0)), _) try {
+      if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+      if (y = 0, t) op = [op[0] & 2, t.value];
+      switch (op[0]) {
+        case 0:
+        case 1:
+          t = op;
+          break;
+        case 4:
+          _.label++;
+          return {
+            value: op[1],
+            done: false
+          };
+        case 5:
+          _.label++;
+          y = op[1];
+          op = [0];
+          continue;
+        case 7:
+          op = _.ops.pop();
+          _.trys.pop();
+          continue;
+        default:
+          if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+            _ = 0;
+            continue;
+          }
+          if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+            _.label = op[1];
+            break;
+          }
+          if (op[0] === 6 && _.label < t[1]) {
+            _.label = t[1];
+            t = op;
+            break;
+          }
+          if (t && _.label < t[2]) {
+            _.label = t[2];
+            _.ops.push(op);
+            break;
+          }
+          if (t[2]) _.ops.pop();
+          _.trys.pop();
+          continue;
+      }
+      op = body.call(thisArg, _);
+    } catch (e) {
+      op = [6, e];
+      y = 0;
+    } finally {
+      f = t = 0;
+    }
+    if (op[0] & 5) throw op[1];
+    return {
+      value: op[0] ? op[1] : void 0,
+      done: true
+    };
+  }
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -7076,6 +7203,7 @@ exports.BrowserStorageConnector = void 0;
 var constants_1 = __webpack_require__(/*! ../../../constants */ "./dist/server-unpacked/constants/index.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var logger_1 = __webpack_require__(/*! ../../logger */ "./dist/server-unpacked/packages/logger/index.js");
+var SettingsService_1 = __webpack_require__(/*! ../../../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 /**
  * A class that provides browser storage functionality for managing feature flags and experiments data
  * @class BrowserStorageConnector
@@ -7087,11 +7215,24 @@ var BrowserStorageConnector = /** @class */function () {
    * @param {string} [options.key] - Custom key for storage (defaults to Constants.DEFAULT_LOCAL_STORAGE_KEY)
    * @param {Storage} [options.provider] - Storage provider (defaults to window.localStorage)
    * @param {boolean} [options.isDisabled] - Whether storage operations should be disabled
+   * @param {boolean} [options.alwaysUseCachedSettings] - Whether to always use cached settings
+   * @param {number} [options.ttl] - Custom TTL in milliseconds (defaults to Constants.SETTINGS_TTL)
    */
   function BrowserStorageConnector(options) {
+    this.SETTINGS_KEY = constants_1.Constants.DEFAULT_SETTINGS_STORAGE_KEY;
     this.storageKey = (options === null || options === void 0 ? void 0 : options.key) || constants_1.Constants.DEFAULT_LOCAL_STORAGE_KEY;
     this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
     this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
+    this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
+    // if ttl in options is set is negative or 0 log that passed ttl is incorrect and using default value
+    // validate ttl is a number
+    //options.ttl should be greater than 1 minute
+    if ((options === null || options === void 0 ? void 0 : options.ttl) && typeof options.ttl !== 'number' && options.ttl < 60000) {
+      logger_1.LogManager.Instance.debug('Passed ttl is invalid and using default value of 2 hours');
+      this.ttl = constants_1.Constants.SETTINGS_TTL;
+    } else {
+      this.ttl = (options === null || options === void 0 ? void 0 : options.ttl) || constants_1.Constants.SETTINGS_TTL;
+    }
   }
   /**
    * Retrieves all stored data from the storage
@@ -7169,6 +7310,102 @@ var BrowserStorageConnector = /** @class */function () {
       } catch (error) {
         logger_1.LogManager.Instance.error("Error retrieving data: ".concat(error));
         deferredObject.resolve({});
+      }
+    }
+    return deferredObject.promise;
+  };
+  /**
+   * Gets the settings from storage with TTL check
+   * @public
+   * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found
+   */
+  BrowserStorageConnector.prototype.getSettingsFromStorage = function () {
+    var deferredObject = new PromiseUtil_1.Deferred();
+    if (this.isDisabled) {
+      deferredObject.resolve(null);
+    } else {
+      try {
+        var storedData = this.getStoredData();
+        var settingsData = storedData[this.SETTINGS_KEY];
+        if (!settingsData) {
+          deferredObject.resolve(null);
+          return deferredObject.promise;
+        }
+        var data = settingsData.data,
+          timestamp = settingsData.timestamp;
+        var currentTime = Date.now();
+        if (this.alwaysUseCachedSettings) {
+          logger_1.LogManager.Instance.info('Using cached settings as alwaysUseCachedSettings is enabled');
+          deferredObject.resolve(data);
+        }
+        if (currentTime - timestamp > this.ttl) {
+          logger_1.LogManager.Instance.info('Settings have expired, need to fetch new settings');
+          deferredObject.resolve(null);
+        } else {
+          // if settings are valid then return the existing settings and update the settings in storage with new timestamp
+          logger_1.LogManager.Instance.info('Retrieved valid settings from storage');
+          this.setFreshSettingsInStorage();
+          deferredObject.resolve(data);
+        }
+      } catch (error) {
+        logger_1.LogManager.Instance.error("Error retrieving settings: ".concat(error));
+        deferredObject.resolve(null);
+      }
+    }
+    return deferredObject.promise;
+  };
+  /**
+   * Fetches fresh settings and updates the storage with a new timestamp
+   */
+  BrowserStorageConnector.prototype.setFreshSettingsInStorage = function () {
+    var _this = this;
+    // Fetch fresh settings asynchronously and update storage
+    var settingsService = SettingsService_1.SettingsService.Instance;
+    if (settingsService) {
+      settingsService.fetchSettings().then(function (freshSettings) {
+        return __awaiter(_this, void 0, void 0, function () {
+          return __generator(this, function (_a) {
+            switch (_a.label) {
+              case 0:
+                if (!freshSettings) return [3 /*break*/, 2];
+                return [4 /*yield*/, this.setSettingsInStorage(freshSettings)];
+              case 1:
+                _a.sent();
+                logger_1.LogManager.Instance.info('Settings updated with fresh data from server');
+                _a.label = 2;
+              case 2:
+                return [2 /*return*/];
+            }
+          });
+        });
+      }).catch(function (error) {
+        logger_1.LogManager.Instance.error("Error fetching fresh settings: ".concat(error));
+      });
+    }
+  };
+  /**
+   * Sets the settings in storage with current timestamp
+   * @public
+   * @param {Record<string, any>} settings - The settings data to be stored
+   * @returns {Promise<void>} A promise that resolves when the settings are successfully stored
+   */
+  BrowserStorageConnector.prototype.setSettingsInStorage = function (settings) {
+    var deferredObject = new PromiseUtil_1.Deferred();
+    if (this.isDisabled) {
+      deferredObject.resolve();
+    } else {
+      try {
+        var storedData = this.getStoredData();
+        storedData[this.SETTINGS_KEY] = {
+          data: settings,
+          timestamp: Date.now()
+        };
+        this.storeData(storedData);
+        logger_1.LogManager.Instance.info('Settings stored successfully');
+        deferredObject.resolve();
+      } catch (error) {
+        logger_1.LogManager.Instance.error("Error storing settings: ".concat(error));
+        deferredObject.reject(error);
       }
     }
     return deferredObject.promise;
@@ -7878,6 +8115,16 @@ exports["default"] = HooksService;
 
 
 
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function (resolve) {
@@ -7993,6 +8240,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.SettingsService = void 0;
+var storage_1 = __webpack_require__(/*! ../packages/storage */ "./dist/server-unpacked/packages/storage/index.js");
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var network_layer_1 = __webpack_require__(/*! ../packages/network-layer */ "./dist/server-unpacked/packages/network-layer/index.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
@@ -8063,30 +8311,102 @@ var SettingsService = /** @class */function () {
       });
     }, this.expiry);
   };
-  SettingsService.prototype.fetchSettingsAndCacheInStorage = function () {
-    var _this = this;
-    var deferredObject = new PromiseUtil_1.Deferred();
-    // const storageConnector = Storage.Instance.getConnector();
-    this.fetchSettings().then(function (res) {
-      return __awaiter(_this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-          // if the features and campaigns are empty object, then update them as empty array
-          if (Object.keys(res.features).length === 0) {
-            res.features = [];
-          }
-          if (Object.keys(res.campaigns).length === 0) {
-            res.campaigns = [];
-          }
-          deferredObject.resolve(res);
-          return [2 /*return*/];
-        });
+  SettingsService.prototype.normalizeSettings = function (settings) {
+    return __awaiter(this, void 0, void 0, function () {
+      var normalizedSettings;
+      return __generator(this, function (_a) {
+        normalizedSettings = __assign({}, settings);
+        if (Object.keys(normalizedSettings.features).length === 0) {
+          normalizedSettings.features = [];
+        }
+        if (Object.keys(normalizedSettings.campaigns).length === 0) {
+          normalizedSettings.campaigns = [];
+        }
+        return [2 /*return*/, normalizedSettings];
       });
-    }).catch(function (err) {
-      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-        err: JSON.stringify(err)
-      }));
-      deferredObject.resolve(null);
     });
+  };
+  SettingsService.prototype.handleBrowserEnvironment = function (storageConnector, deferredObject) {
+    return __awaiter(this, void 0, void 0, function () {
+      var cachedSettings, freshSettings, normalizedSettings, error_1;
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            _a.trys.push([0, 5,, 6]);
+            return [4 /*yield*/, storageConnector.getSettingsFromStorage()];
+          case 1:
+            cachedSettings = _a.sent();
+            if (cachedSettings) {
+              logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
+              deferredObject.resolve(cachedSettings);
+            } else {
+              logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
+            }
+            return [4 /*yield*/, this.fetchSettings()];
+          case 2:
+            freshSettings = _a.sent();
+            return [4 /*yield*/, this.normalizeSettings(freshSettings)];
+          case 3:
+            normalizedSettings = _a.sent();
+            return [4 /*yield*/, storageConnector.setSettingsInStorage(normalizedSettings)];
+          case 4:
+            _a.sent();
+            if (cachedSettings) {
+              logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_BACKGROUND_UPDATE));
+            } else {
+              logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
+              deferredObject.resolve(normalizedSettings);
+            }
+            return [3 /*break*/, 6];
+          case 5:
+            error_1 = _a.sent();
+            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
+              err: JSON.stringify(error_1)
+            }));
+            deferredObject.resolve(null);
+            return [3 /*break*/, 6];
+          case 6:
+            return [2 /*return*/];
+        }
+      });
+    });
+  };
+  SettingsService.prototype.handleServerEnvironment = function (deferredObject) {
+    return __awaiter(this, void 0, void 0, function () {
+      var settings, normalizedSettings, error_2;
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            _a.trys.push([0, 3,, 4]);
+            return [4 /*yield*/, this.fetchSettings()];
+          case 1:
+            settings = _a.sent();
+            return [4 /*yield*/, this.normalizeSettings(settings)];
+          case 2:
+            normalizedSettings = _a.sent();
+            deferredObject.resolve(normalizedSettings);
+            return [3 /*break*/, 4];
+          case 3:
+            error_2 = _a.sent();
+            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
+              err: JSON.stringify(error_2)
+            }));
+            deferredObject.resolve(null);
+            return [3 /*break*/, 4];
+          case 4:
+            return [2 /*return*/];
+        }
+      });
+    });
+  };
+  SettingsService.prototype.fetchSettingsAndCacheInStorage = function () {
+    var deferredObject = new PromiseUtil_1.Deferred();
+    var storageConnector = storage_1.Storage.Instance.getConnector();
+    if (typeof process.env === 'undefined') {
+      this.handleBrowserEnvironment(storageConnector, deferredObject);
+    } else {
+      this.handleServerEnvironment(deferredObject);
+    }
     return deferredObject.promise;
   };
   SettingsService.prototype.fetchSettings = function (isViaWebhook) {

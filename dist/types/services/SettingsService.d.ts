@@ -16,6 +16,9 @@ export declare class SettingsService implements ISettingsService {
   constructor(options: Record<string, any>);
   static get Instance(): SettingsService;
   private setSettingsExpiry;
+  private normalizeSettings;
+  private handleBrowserEnvironment;
+  private handleServerEnvironment;
   private fetchSettingsAndCacheInStorage;
   fetchSettings(isViaWebhook?: boolean): Promise<Record<any, any>>;
   getSettings(forceFetch?: boolean): Promise<Record<any, any>>;

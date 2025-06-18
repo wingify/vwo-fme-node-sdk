@@ -57,6 +57,7 @@ export const Constants = {
   SETTINGS: 'settings',
   SETTINGS_EXPIRY: 10000000,
   SETTINGS_TIMEOUT: 50000,
+  SETTINGS_TTL: 7200000, // 2 HOURS
 
   HOST_NAME: 'dev.visualwebsiteoptimizer.com',
   SETTINTS_ENDPOINT: '/server-side/v2-settings',
@@ -75,4 +76,5 @@ export const Constants = {
   RETRY_DELAY: 1000, // 1 second
 
   DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
+  DEFAULT_SETTINGS_STORAGE_KEY: 'vwo_fme_settings',
 };

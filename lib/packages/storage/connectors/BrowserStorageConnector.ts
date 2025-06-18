@@ -16,6 +16,8 @@
 import { Constants } from '../../../constants';
 import { Deferred } from '../../../utils/PromiseUtil';
 import { LogManager } from '../../logger';
+import { SettingsService } from '../../../services/SettingsService';
+
 /**
  * Interface representing the structure of data to be stored
  * @interface StorageData
@@ -38,6 +40,8 @@ export interface ClientStorageOptions {
   key?: string;
   provider?: Storage;
   isDisabled?: boolean;
+  alwaysUseCachedSettings?: boolean;
+  ttl?: number; // Custom TTL in milliseconds
 }
 
 /**
@@ -48,6 +52,9 @@ export class BrowserStorageConnector {
   private storage: Storage;
   private readonly storageKey: string;
   private readonly isDisabled: boolean;
+  private readonly alwaysUseCachedSettings: boolean;
+  private readonly ttl: number;
+  private readonly SETTINGS_KEY: string = Constants.DEFAULT_SETTINGS_STORAGE_KEY;
 
   /**
    * Creates an instance of BrowserStorageConnector
@@ -55,11 +62,24 @@ export class BrowserStorageConnector {
    * @param {string} [options.key] - Custom key for storage (defaults to Constants.DEFAULT_LOCAL_STORAGE_KEY)
    * @param {Storage} [options.provider] - Storage provider (defaults to window.localStorage)
    * @param {boolean} [options.isDisabled] - Whether storage operations should be disabled
+   * @param {boolean} [options.alwaysUseCachedSettings] - Whether to always use cached settings
+   * @param {number} [options.ttl] - Custom TTL in milliseconds (defaults to Constants.SETTINGS_TTL)
    */
   constructor(options?: ClientStorageOptions) {
     this.storageKey = options?.key || Constants.DEFAULT_LOCAL_STORAGE_KEY;
     this.storage = options?.provider || window.localStorage;
     this.isDisabled = options?.isDisabled || false;
+    this.alwaysUseCachedSettings = options?.alwaysUseCachedSettings || false;
+
+    // if ttl in options is set is negative or 0 log that passed ttl is incorrect and using default value
+    // validate ttl is a number
+    //options.ttl should be greater than 1 minute
+    if (options?.ttl && typeof options.ttl !== 'number' && options.ttl < 60000) {
+      LogManager.Instance.debug('Passed ttl is invalid and using default value of 2 hours');
+      this.ttl = Constants.SETTINGS_TTL;
+    } else {
+      this.ttl = options?.ttl || Constants.SETTINGS_TTL;
+    }
   }
 
   /**
@@ -141,6 +161,102 @@ export class BrowserStorageConnector {
       } catch (error) {
         LogManager.Instance.error(`Error retrieving data: ${error}`);
         deferredObject.resolve({});
+      }
+    }
+
+    return deferredObject.promise;
+  }
+
+  /**
+   * Gets the settings from storage with TTL check
+   * @public
+   * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found
+   */
+  public getSettingsFromStorage(): Promise<Record<string, any> | null> {
+    const deferredObject = new Deferred();
+    if (this.isDisabled) {
+      deferredObject.resolve(null);
+    } else {
+      try {
+        const storedData = this.getStoredData();
+        const settingsData = storedData[this.SETTINGS_KEY];
+
+        if (!settingsData) {
+          deferredObject.resolve(null);
+          return deferredObject.promise;
+        }
+
+        const { data, timestamp } = settingsData;
+        const currentTime = Date.now();
+
+        if (this.alwaysUseCachedSettings) {
+          LogManager.Instance.info('Using cached settings as alwaysUseCachedSettings is enabled');
+          deferredObject.resolve(data);
+        }
+
+        if (currentTime - timestamp > this.ttl) {
+          LogManager.Instance.info('Settings have expired, need to fetch new settings');
+          deferredObject.resolve(null);
+        } else {
+          // if settings are valid then return the existing settings and update the settings in storage with new timestamp
+          LogManager.Instance.info('Retrieved valid settings from storage');
+
+          this.setFreshSettingsInStorage();
+
+          deferredObject.resolve(data);
+        }
+      } catch (error) {
+        LogManager.Instance.error(`Error retrieving settings: ${error}`);
+        deferredObject.resolve(null);
+      }
+    }
+
+    return deferredObject.promise;
+  }
+
+  /**
+   * Fetches fresh settings and updates the storage with a new timestamp
+   */
+  public setFreshSettingsInStorage(): void {
+    // Fetch fresh settings asynchronously and update storage
+    const settingsService = SettingsService.Instance;
+    if (settingsService) {
+      settingsService
+        .fetchSettings()
+        .then(async (freshSettings) => {
+          if (freshSettings) {
+            await this.setSettingsInStorage(freshSettings);
+            LogManager.Instance.info('Settings updated with fresh data from server');
+          }
+        })
+        .catch((error) => {
+          LogManager.Instance.error(`Error fetching fresh settings: ${error}`);
+        });
+    }
+  }
+  /**
+   * Sets the settings in storage with current timestamp
+   * @public
+   * @param {Record<string, any>} settings - The settings data to be stored
+   * @returns {Promise<void>} A promise that resolves when the settings are successfully stored
+   */
+  public setSettingsInStorage(settings: Record<string, any>): Promise<void> {
+    const deferredObject = new Deferred();
+    if (this.isDisabled) {
+      deferredObject.resolve();
+    } else {
+      try {
+        const storedData = this.getStoredData();
+        storedData[this.SETTINGS_KEY] = {
+          data: settings,
+          timestamp: Date.now(),
+        };
+        this.storeData(storedData);
+        LogManager.Instance.info('Settings stored successfully');
+        deferredObject.resolve();
+      } catch (error) {
+        LogManager.Instance.error(`Error storing settings: ${error}`);
+        deferredObject.reject(error);
       }
     }
 

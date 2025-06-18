@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -37,6 +48,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingsService = void 0;
+var storage_1 = require("../packages/storage");
 var logger_1 = require("../packages/logger");
 var network_layer_1 = require("../packages/network-layer");
 var PromiseUtil_1 = require("../utils/PromiseUtil");
@@ -112,30 +124,103 @@ var SettingsService = /** @class */ (function () {
             });
         }, this.expiry);
     };
-    SettingsService.prototype.fetchSettingsAndCacheInStorage = function () {
-        var _this = this;
-        var deferredObject = new PromiseUtil_1.Deferred();
-        // const storageConnector = Storage.Instance.getConnector();
-        this.fetchSettings()
-            .then(function (res) { return __awaiter(_this, void 0, void 0, function () {
+    SettingsService.prototype.normalizeSettings = function (settings) {
+        return __awaiter(this, void 0, void 0, function () {
+            var normalizedSettings;
             return __generator(this, function (_a) {
-                // if the features and campaigns are empty object, then update them as empty array
-                if (Object.keys(res.features).length === 0) {
-                    res.features = [];
+                normalizedSettings = __assign({}, settings);
+                if (Object.keys(normalizedSettings.features).length === 0) {
+                    normalizedSettings.features = [];
                 }
-                if (Object.keys(res.campaigns).length === 0) {
-                    res.campaigns = [];
+                if (Object.keys(normalizedSettings.campaigns).length === 0) {
+                    normalizedSettings.campaigns = [];
                 }
-                deferredObject.resolve(res);
-                return [2 /*return*/];
+                return [2 /*return*/, normalizedSettings];
             });
-        }); })
-            .catch(function (err) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-                err: JSON.stringify(err),
-            }));
-            deferredObject.resolve(null);
         });
+    };
+    SettingsService.prototype.handleBrowserEnvironment = function (storageConnector, deferredObject) {
+        return __awaiter(this, void 0, void 0, function () {
+            var cachedSettings, freshSettings, normalizedSettings, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 5, , 6]);
+                        return [4 /*yield*/, storageConnector.getSettingsFromStorage()];
+                    case 1:
+                        cachedSettings = _a.sent();
+                        if (cachedSettings) {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
+                            deferredObject.resolve(cachedSettings);
+                        }
+                        else {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
+                        }
+                        return [4 /*yield*/, this.fetchSettings()];
+                    case 2:
+                        freshSettings = _a.sent();
+                        return [4 /*yield*/, this.normalizeSettings(freshSettings)];
+                    case 3:
+                        normalizedSettings = _a.sent();
+                        return [4 /*yield*/, storageConnector.setSettingsInStorage(normalizedSettings)];
+                    case 4:
+                        _a.sent();
+                        if (cachedSettings) {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_BACKGROUND_UPDATE));
+                        }
+                        else {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
+                            deferredObject.resolve(normalizedSettings);
+                        }
+                        return [3 /*break*/, 6];
+                    case 5:
+                        error_1 = _a.sent();
+                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
+                            err: JSON.stringify(error_1),
+                        }));
+                        deferredObject.resolve(null);
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    SettingsService.prototype.handleServerEnvironment = function (deferredObject) {
+        return __awaiter(this, void 0, void 0, function () {
+            var settings, normalizedSettings, error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, this.fetchSettings()];
+                    case 1:
+                        settings = _a.sent();
+                        return [4 /*yield*/, this.normalizeSettings(settings)];
+                    case 2:
+                        normalizedSettings = _a.sent();
+                        deferredObject.resolve(normalizedSettings);
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_2 = _a.sent();
+                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
+                            err: JSON.stringify(error_2),
+                        }));
+                        deferredObject.resolve(null);
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    SettingsService.prototype.fetchSettingsAndCacheInStorage = function () {
+        var deferredObject = new PromiseUtil_1.Deferred();
+        var storageConnector = storage_1.Storage.Instance.getConnector();
+        if (typeof process.env === 'undefined') {
+            this.handleBrowserEnvironment(storageConnector, deferredObject);
+        }
+        else {
+            this.handleServerEnvironment(deferredObject);
+        }
         return deferredObject.promise;
     };
     SettingsService.prototype.fetchSettings = function (isViaWebhook) {

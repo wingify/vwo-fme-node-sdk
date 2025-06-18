@@ -219,7 +219,13 @@ export class VWOBuilder implements IVWOBuilder {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { BrowserStorageConnector } = require('./packages/storage/connectors/BrowserStorageConnector');
       // Pass clientStorage config to BrowserStorageConnector
-      this.storage = Storage.Instance.attachConnector(new BrowserStorageConnector(this.options.clientStorage));
+      this.storage = Storage.Instance.attachConnector(
+        new BrowserStorageConnector({
+          ...this.options.clientStorage,
+          alwaysUseCachedSettings: this.options.clientStorage?.alwaysUseCachedSettings,
+          ttl: this.options.clientStorage?.ttl,
+        }),
+      );
       LogManager.Instance.debug(
         buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
           service: this.options?.clientStorage?.provider === sessionStorage ? `Session Storage` : `Local Storage`,

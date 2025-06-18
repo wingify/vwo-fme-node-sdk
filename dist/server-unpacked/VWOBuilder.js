@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VWOBuilder = void 0;
 var logger_1 = require("./packages/logger");
@@ -134,7 +145,7 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setStorage = function () {
-        var _a, _b;
+        var _a, _b, _c, _d;
         if (this.options.storage) {
             // Attach the storage connector from options
             this.storage = storage_1.Storage.Instance.attachConnector(this.options.storage);
@@ -143,9 +154,9 @@ var VWOBuilder = /** @class */ (function () {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             var BrowserStorageConnector = require('./packages/storage/connectors/BrowserStorageConnector').BrowserStorageConnector;
             // Pass clientStorage config to BrowserStorageConnector
-            this.storage = storage_1.Storage.Instance.attachConnector(new BrowserStorageConnector(this.options.clientStorage));
+            this.storage = storage_1.Storage.Instance.attachConnector(new BrowserStorageConnector(__assign(__assign({}, this.options.clientStorage), { alwaysUseCachedSettings: (_a = this.options.clientStorage) === null || _a === void 0 ? void 0 : _a.alwaysUseCachedSettings, ttl: (_b = this.options.clientStorage) === null || _b === void 0 ? void 0 : _b.ttl })));
             logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-                service: ((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.clientStorage) === null || _b === void 0 ? void 0 : _b.provider) === sessionStorage ? "Session Storage" : "Local Storage",
+                service: ((_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.clientStorage) === null || _d === void 0 ? void 0 : _d.provider) === sessionStorage ? "Session Storage" : "Local Storage",
             }));
         }
         else {

@@ -19,6 +19,8 @@ export interface ClientStorageOptions {
   key?: string;
   provider?: Storage;
   isDisabled?: boolean;
+  alwaysUseCachedSettings?: boolean;
+  ttl?: number;
 }
 /**
  * A class that provides browser storage functionality for managing feature flags and experiments data
@@ -28,12 +30,17 @@ export declare class BrowserStorageConnector {
   private storage;
   private readonly storageKey;
   private readonly isDisabled;
+  private readonly alwaysUseCachedSettings;
+  private readonly ttl;
+  private readonly SETTINGS_KEY;
   /**
    * Creates an instance of BrowserStorageConnector
    * @param {ClientStorageOptions} [options] - Configuration options for the storage connector
    * @param {string} [options.key] - Custom key for storage (defaults to Constants.DEFAULT_LOCAL_STORAGE_KEY)
    * @param {Storage} [options.provider] - Storage provider (defaults to window.localStorage)
    * @param {boolean} [options.isDisabled] - Whether storage operations should be disabled
+   * @param {boolean} [options.alwaysUseCachedSettings] - Whether to always use cached settings
+   * @param {number} [options.ttl] - Custom TTL in milliseconds (defaults to Constants.SETTINGS_TTL)
    */
   constructor(options?: ClientStorageOptions);
   /**
@@ -63,4 +70,21 @@ export declare class BrowserStorageConnector {
    * @returns {Promise<StorageData | Record<string, any>>} A promise that resolves to the stored data or {} if not found
    */
   get(featureKey: string, userId: string): Promise<StorageData | Record<string, any>>;
+  /**
+   * Gets the settings from storage with TTL check
+   * @public
+   * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found
+   */
+  getSettingsFromStorage(): Promise<Record<string, any> | null>;
+  /**
+   * Fetches fresh settings and updates the storage with a new timestamp
+   */
+  setFreshSettingsInStorage(): void;
+  /**
+   * Sets the settings in storage with current timestamp
+   * @public
+   * @param {Record<string, any>} settings - The settings data to be stored
+   * @returns {Promise<void>} A promise that resolves when the settings are successfully stored
+   */
+  setSettingsInStorage(settings: Record<string, any>): Promise<void>;
 }

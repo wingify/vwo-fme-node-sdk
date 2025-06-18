@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.20.0] - 2025-06-18
+
+### Added
+
+- Enhanced storage configuration options for browser environments with new features:
+
+  - Added custom `ttl` (Time To Live) option to control how long settings remain valid in storage
+  - Added `alwaysUseCachedSettings` option to always use cached settings regardless of TTL
+  - Default TTL remains 2 hours if not specified
+
+  ```javascript
+  const vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+    clientStorage: {
+      key: 'vwo_data', // defaults to vwo_fme_settings
+      provider: sessionStorage, // defaults to localStorage
+      isDisabled: false, // defaults to false
+      alwaysUseCachedSettings: true, // defaults to false
+      ttl: 3600000, // 1 hour in milliseconds, defaults to 2 hours
+    },
+  });
+  ```
+
+  These new options provide more control over how settings are cached and refreshed:
+
+  - When `alwaysUseCachedSettings` is true, the SDK will always use cached settings if available, regardless of TTL
+  - Custom `ttl` allows you to control how frequently settings are refreshed from the server
+  - Settings are still updated in the background to keep the cache fresh
+
+  Read more [here](https://developers.vwo.com/v2/docs/fme-javascript-cache-settings)
+
 ## [1.19.0] - 2025-05-29
 
 ### Added

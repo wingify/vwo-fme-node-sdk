@@ -191,6 +191,14 @@ export class BrowserStorageConnector {
 
         if (this.alwaysUseCachedSettings) {
           LogManager.Instance.info('Using cached settings as alwaysUseCachedSettings is enabled');
+          // Decode sdkKey if present
+          if (data && data.sdkKey) {
+            try {
+              data.sdkKey = atob(data.sdkKey);
+            } catch (e) {
+              LogManager.Instance.error('Failed to decode sdkKey from storage');
+            }
+          }
           deferredObject.resolve(data);
         }
 
@@ -200,9 +208,15 @@ export class BrowserStorageConnector {
         } else {
           // if settings are valid then return the existing settings and update the settings in storage with new timestamp
           LogManager.Instance.info('Retrieved valid settings from storage');
-
           this.setFreshSettingsInStorage();
-
+          // Decode sdkKey if present
+          if (data && data.sdkKey) {
+            try {
+              data.sdkKey = atob(data.sdkKey);
+            } catch (e) {
+              LogManager.Instance.error('Failed to decode sdkKey from storage');
+            }
+          }
           deferredObject.resolve(data);
         }
       } catch (error) {
@@ -247,12 +261,17 @@ export class BrowserStorageConnector {
     } else {
       try {
         const storedData = this.getStoredData();
+        // Clone settings to avoid mutating the original object
+        const settingsToStore = { ...settings };
+        if (settingsToStore.sdkKey) {
+          settingsToStore.sdkKey = btoa(settingsToStore.sdkKey);
+        }
         storedData[this.SETTINGS_KEY] = {
-          data: settings,
+          data: settingsToStore,
           timestamp: Date.now(),
         };
         this.storeData(storedData);
-        LogManager.Instance.info('Settings stored successfully');
+        LogManager.Instance.info('Settings stored successfully in storage');
         deferredObject.resolve();
       } catch (error) {
         LogManager.Instance.error(`Error storing settings: ${error}`);

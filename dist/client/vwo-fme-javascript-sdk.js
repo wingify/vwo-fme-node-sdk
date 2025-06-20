@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.20.0
+ * vwo-fme-javascript-sdk - v1.20.1
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -1712,7 +1712,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.20.0", // will be replaced by webpack for browser build
+        version: "1.20.1", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -6085,6 +6085,17 @@ exports.Storage = Storage;
 
 "use strict";
 
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -6283,6 +6294,15 @@ var BrowserStorageConnector = /** @class */ (function () {
                 var currentTime = Date.now();
                 if (this.alwaysUseCachedSettings) {
                     logger_1.LogManager.Instance.info('Using cached settings as alwaysUseCachedSettings is enabled');
+                    // Decode sdkKey if present
+                    if (data && data.sdkKey) {
+                        try {
+                            data.sdkKey = atob(data.sdkKey);
+                        }
+                        catch (e) {
+                            logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
+                        }
+                    }
                     deferredObject.resolve(data);
                 }
                 if (currentTime - timestamp > this.ttl) {
@@ -6293,6 +6313,15 @@ var BrowserStorageConnector = /** @class */ (function () {
                     // if settings are valid then return the existing settings and update the settings in storage with new timestamp
                     logger_1.LogManager.Instance.info('Retrieved valid settings from storage');
                     this.setFreshSettingsInStorage();
+                    // Decode sdkKey if present
+                    if (data && data.sdkKey) {
+                        try {
+                            data.sdkKey = atob(data.sdkKey);
+                        }
+                        catch (e) {
+                            logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
+                        }
+                    }
                     deferredObject.resolve(data);
                 }
             }
@@ -6346,12 +6375,17 @@ var BrowserStorageConnector = /** @class */ (function () {
         else {
             try {
                 var storedData = this.getStoredData();
+                // Clone settings to avoid mutating the original object
+                var settingsToStore = __assign({}, settings);
+                if (settingsToStore.sdkKey) {
+                    settingsToStore.sdkKey = btoa(settingsToStore.sdkKey);
+                }
                 storedData[this.SETTINGS_KEY] = {
-                    data: settings,
+                    data: settingsToStore,
                     timestamp: Date.now(),
                 };
                 this.storeData(storedData);
-                logger_1.LogManager.Instance.info('Settings stored successfully');
+                logger_1.LogManager.Instance.info('Settings stored successfully in storage');
                 deferredObject.resolve();
             }
             catch (error) {

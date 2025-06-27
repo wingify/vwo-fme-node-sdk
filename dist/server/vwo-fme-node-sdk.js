@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.20.1
+ * vwo-fme-node-sdk - v1.20.2
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.20.1","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.20.2","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
 
 /***/ }),
 
@@ -2131,6 +2131,8 @@ exports.Constants = {
   SETTINGS_TIMEOUT: 50000,
   SETTINGS_TTL: 7200000,
   // 2 HOURS
+  MIN_TTL_MS: 60000,
+  // 1 MINUTE
   HOST_NAME: 'dev.visualwebsiteoptimizer.com',
   SETTINTS_ENDPOINT: '/server-side/v2-settings',
   WEBHOOK_SETTINTS_ENDPOINT: '/server-side/v2-pull',
@@ -3522,7 +3524,8 @@ var ContextModel = /** @class */function () {
     this.userAgent = context.userAgent;
     this.ipAddress = context.ipAddress;
     // if sdk is running in js environment and userAgent is not given then we use navigator.userAgent
-    if (typeof process.env === 'undefined' && !context.userAgent) {
+    // Check if sdk running in browser and not in edge/serverless environment
+    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined' && !context.userAgent) {
       this.userAgent = navigator.userAgent;
     }
     if (context === null || context === void 0 ? void 0 : context.customVariables) {
@@ -7214,6 +7217,8 @@ var constants_1 = __webpack_require__(/*! ../../../constants */ "./dist/server-u
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var logger_1 = __webpack_require__(/*! ../../logger */ "./dist/server-unpacked/packages/logger/index.js");
 var SettingsService_1 = __webpack_require__(/*! ../../../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
+var SettingsSchemaValidation_1 = __webpack_require__(/*! ../../../models/schemas/SettingsSchemaValidation */ "./dist/server-unpacked/models/schemas/SettingsSchemaValidation.js");
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 /**
  * A class that provides browser storage functionality for managing feature flags and experiments data
  * @class BrowserStorageConnector
@@ -7234,14 +7239,18 @@ var BrowserStorageConnector = /** @class */function () {
     this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
     this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
     this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
-    // if ttl in options is set is negative or 0 log that passed ttl is incorrect and using default value
-    // validate ttl is a number
     //options.ttl should be greater than 1 minute
-    if ((options === null || options === void 0 ? void 0 : options.ttl) && typeof options.ttl !== 'number' && options.ttl < 60000) {
-      logger_1.LogManager.Instance.debug('Passed ttl is invalid and using default value of 2 hours');
+    if (!(0, DataTypeUtil_1.isNumber)(options === null || options === void 0 ? void 0 : options.ttl) || options.ttl < constants_1.Constants.MIN_TTL_MS) {
+      logger_1.LogManager.Instance.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
       this.ttl = constants_1.Constants.SETTINGS_TTL;
     } else {
       this.ttl = (options === null || options === void 0 ? void 0 : options.ttl) || constants_1.Constants.SETTINGS_TTL;
+    }
+    if (!(0, DataTypeUtil_1.isBoolean)(options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings)) {
+      logger_1.LogManager.Instance.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
+      this.alwaysUseCachedSettings = false;
+    } else {
+      this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
     }
   }
   /**
@@ -7325,11 +7334,14 @@ var BrowserStorageConnector = /** @class */function () {
     return deferredObject.promise;
   };
   /**
-   * Gets the settings from storage with TTL check
+   * Gets the settings from storage with TTL check and validates sdkKey and accountId
    * @public
-   * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found
+   * @param {string} sdkKey - The sdkKey to match
+   * @param {number|string} accountId - The accountId to match
+   * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found/mismatch
    */
-  BrowserStorageConnector.prototype.getSettingsFromStorage = function () {
+  BrowserStorageConnector.prototype.getSettingsFromStorage = function (sdkKey, accountId) {
+    var _a;
     var deferredObject = new PromiseUtil_1.Deferred();
     if (this.isDisabled) {
       deferredObject.resolve(null);
@@ -7344,17 +7356,24 @@ var BrowserStorageConnector = /** @class */function () {
         var data = settingsData.data,
           timestamp = settingsData.timestamp;
         var currentTime = Date.now();
+        // Decode sdkKey if present
+        if (data && data.sdkKey) {
+          try {
+            data.sdkKey = atob(data.sdkKey);
+          } catch (e) {
+            logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
+          }
+        }
+        // Check for sdkKey and accountId match
+        if (!data || data.sdkKey !== sdkKey || String((_a = data.accountId) !== null && _a !== void 0 ? _a : data.a) !== String(accountId)) {
+          logger_1.LogManager.Instance.info('Cached settings do not match sdkKey/accountId, treating as cache miss');
+          deferredObject.resolve(null);
+          return deferredObject.promise;
+        }
         if (this.alwaysUseCachedSettings) {
           logger_1.LogManager.Instance.info('Using cached settings as alwaysUseCachedSettings is enabled');
-          // Decode sdkKey if present
-          if (data && data.sdkKey) {
-            try {
-              data.sdkKey = atob(data.sdkKey);
-            } catch (e) {
-              logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
-            }
-          }
           deferredObject.resolve(data);
+          return deferredObject.promise;
         }
         if (currentTime - timestamp > this.ttl) {
           logger_1.LogManager.Instance.info('Settings have expired, need to fetch new settings');
@@ -7390,10 +7409,13 @@ var BrowserStorageConnector = /** @class */function () {
     if (settingsService) {
       settingsService.fetchSettings().then(function (freshSettings) {
         return __awaiter(_this, void 0, void 0, function () {
+          var isSettingsValid;
           return __generator(this, function (_a) {
             switch (_a.label) {
               case 0:
                 if (!freshSettings) return [3 /*break*/, 2];
+                isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(freshSettings);
+                if (!isSettingsValid) return [3 /*break*/, 2];
                 return [4 /*yield*/, this.setSettingsInStorage(freshSettings)];
               case 1:
                 _a.sent();
@@ -8292,7 +8314,8 @@ var SettingsService = /** @class */function () {
     this.networkTimeout = ((_b = options === null || options === void 0 ? void 0 : options.settings) === null || _b === void 0 ? void 0 : _b.timeout) || constants_1.Constants.SETTINGS_TIMEOUT;
     // if sdk is running in browser environment then set isGatewayServiceProvided to true
     // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
-    if (typeof process.env === 'undefined') {
+    // Check if sdk running in browser and not in edge/serverless environment
+    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.isGatewayServiceProvided = true;
     }
     if ((_c = options === null || options === void 0 ? void 0 : options.gatewayService) === null || _c === void 0 ? void 0 : _c.url) {
@@ -8347,10 +8370,10 @@ var SettingsService = /** @class */function () {
       var normalizedSettings;
       return __generator(this, function (_a) {
         normalizedSettings = __assign({}, settings);
-        if (Object.keys(normalizedSettings.features).length === 0) {
+        if (!normalizedSettings.features || Object.keys(normalizedSettings.features).length === 0) {
           normalizedSettings.features = [];
         }
-        if (Object.keys(normalizedSettings.campaigns).length === 0) {
+        if (!normalizedSettings.campaigns || Object.keys(normalizedSettings.campaigns).length === 0) {
           normalizedSettings.campaigns = [];
         }
         return [2 /*return*/, normalizedSettings];
@@ -8359,12 +8382,12 @@ var SettingsService = /** @class */function () {
   };
   SettingsService.prototype.handleBrowserEnvironment = function (storageConnector, deferredObject) {
     return __awaiter(this, void 0, void 0, function () {
-      var cachedSettings, freshSettings, normalizedSettings, error_1;
+      var cachedSettings, freshSettings, normalizedSettings, isSettingsValid, error_1;
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
-            _a.trys.push([0, 5,, 6]);
-            return [4 /*yield*/, storageConnector.getSettingsFromStorage()];
+            _a.trys.push([0, 6,, 7]);
+            return [4 /*yield*/, storageConnector.getSettingsFromStorage(this.sdkKey, this.accountId)];
           case 1:
             cachedSettings = _a.sent();
             if (cachedSettings) {
@@ -8379,24 +8402,28 @@ var SettingsService = /** @class */function () {
             return [4 /*yield*/, this.normalizeSettings(freshSettings)];
           case 3:
             normalizedSettings = _a.sent();
+            isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
+            if (!isSettingsValid) return [3 /*break*/, 5];
             return [4 /*yield*/, storageConnector.setSettingsInStorage(normalizedSettings)];
           case 4:
             _a.sent();
+            _a.label = 5;
+          case 5:
             if (cachedSettings) {
               logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_BACKGROUND_UPDATE));
             } else {
               logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
               deferredObject.resolve(normalizedSettings);
             }
-            return [3 /*break*/, 6];
-          case 5:
+            return [3 /*break*/, 7];
+          case 6:
             error_1 = _a.sent();
             logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
               err: JSON.stringify(error_1)
             }));
             deferredObject.resolve(null);
-            return [3 /*break*/, 6];
-          case 6:
+            return [3 /*break*/, 7];
+          case 7:
             return [2 /*return*/];
         }
       });
@@ -8433,7 +8460,7 @@ var SettingsService = /** @class */function () {
   SettingsService.prototype.fetchSettingsAndCacheInStorage = function () {
     var deferredObject = new PromiseUtil_1.Deferred();
     var storageConnector = storage_1.Storage.Instance.getConnector();
-    if (typeof process.env === 'undefined') {
+    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.handleBrowserEnvironment(storageConnector, deferredObject);
     } else {
       this.handleServerEnvironment(deferredObject);
@@ -12182,7 +12209,8 @@ var UsageStatsUtil = /** @class */function () {
     if (shouldWaitForTrackingCalls) data.swtc = 1;
     // if _vwo_meta has ea, then addd data._ea to be 1
     if (_vwo_meta && _vwo_meta.ea) data._ea = 1;
-    if (typeof process.env === 'undefined') {
+    // Check if sdk running in browser and not in edge/serverless environment
+    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       return;
     } else {
       if (typeof process !== 'undefined' && process.version) {

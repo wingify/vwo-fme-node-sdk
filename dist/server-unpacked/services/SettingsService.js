@@ -69,7 +69,8 @@ var SettingsService = /** @class */ (function () {
         this.networkTimeout = ((_b = options === null || options === void 0 ? void 0 : options.settings) === null || _b === void 0 ? void 0 : _b.timeout) || constants_1.Constants.SETTINGS_TIMEOUT;
         // if sdk is running in browser environment then set isGatewayServiceProvided to true
         // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
-        if (typeof process.env === 'undefined') {
+        // Check if sdk running in browser and not in edge/serverless environment
+        if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
             this.isGatewayServiceProvided = true;
         }
         if ((_c = options === null || options === void 0 ? void 0 : options.gatewayService) === null || _c === void 0 ? void 0 : _c.url) {
@@ -129,10 +130,10 @@ var SettingsService = /** @class */ (function () {
             var normalizedSettings;
             return __generator(this, function (_a) {
                 normalizedSettings = __assign({}, settings);
-                if (Object.keys(normalizedSettings.features).length === 0) {
+                if (!normalizedSettings.features || Object.keys(normalizedSettings.features).length === 0) {
                     normalizedSettings.features = [];
                 }
-                if (Object.keys(normalizedSettings.campaigns).length === 0) {
+                if (!normalizedSettings.campaigns || Object.keys(normalizedSettings.campaigns).length === 0) {
                     normalizedSettings.campaigns = [];
                 }
                 return [2 /*return*/, normalizedSettings];
@@ -141,12 +142,12 @@ var SettingsService = /** @class */ (function () {
     };
     SettingsService.prototype.handleBrowserEnvironment = function (storageConnector, deferredObject) {
         return __awaiter(this, void 0, void 0, function () {
-            var cachedSettings, freshSettings, normalizedSettings, error_1;
+            var cachedSettings, freshSettings, normalizedSettings, isSettingsValid, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 5, , 6]);
-                        return [4 /*yield*/, storageConnector.getSettingsFromStorage()];
+                        _a.trys.push([0, 6, , 7]);
+                        return [4 /*yield*/, storageConnector.getSettingsFromStorage(this.sdkKey, this.accountId)];
                     case 1:
                         cachedSettings = _a.sent();
                         if (cachedSettings) {
@@ -162,9 +163,13 @@ var SettingsService = /** @class */ (function () {
                         return [4 /*yield*/, this.normalizeSettings(freshSettings)];
                     case 3:
                         normalizedSettings = _a.sent();
+                        isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
+                        if (!isSettingsValid) return [3 /*break*/, 5];
                         return [4 /*yield*/, storageConnector.setSettingsInStorage(normalizedSettings)];
                     case 4:
                         _a.sent();
+                        _a.label = 5;
+                    case 5:
                         if (cachedSettings) {
                             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_BACKGROUND_UPDATE));
                         }
@@ -172,15 +177,15 @@ var SettingsService = /** @class */ (function () {
                             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
                             deferredObject.resolve(normalizedSettings);
                         }
-                        return [3 /*break*/, 6];
-                    case 5:
+                        return [3 /*break*/, 7];
+                    case 6:
                         error_1 = _a.sent();
                         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
                             err: JSON.stringify(error_1),
                         }));
                         deferredObject.resolve(null);
-                        return [3 /*break*/, 6];
-                    case 6: return [2 /*return*/];
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
@@ -215,7 +220,7 @@ var SettingsService = /** @class */ (function () {
     SettingsService.prototype.fetchSettingsAndCacheInStorage = function () {
         var deferredObject = new PromiseUtil_1.Deferred();
         var storageConnector = storage_1.Storage.Instance.getConnector();
-        if (typeof process.env === 'undefined') {
+        if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
             this.handleBrowserEnvironment(storageConnector, deferredObject);
         }
         else {

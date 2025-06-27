@@ -90,7 +90,8 @@ export class UsageStatsUtil {
     // if _vwo_meta has ea, then addd data._ea to be 1
     if (_vwo_meta && _vwo_meta.ea) data._ea = 1;
 
-    if (typeof process.env === 'undefined') {
+    // Check if sdk running in browser and not in edge/serverless environment
+    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       return;
     } else {
       if (typeof process !== 'undefined' && process.version) {

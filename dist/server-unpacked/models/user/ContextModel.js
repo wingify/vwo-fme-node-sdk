@@ -10,7 +10,8 @@ var ContextModel = /** @class */ (function () {
         this.userAgent = context.userAgent;
         this.ipAddress = context.ipAddress;
         // if sdk is running in js environment and userAgent is not given then we use navigator.userAgent
-        if (typeof process.env === 'undefined' && !context.userAgent) {
+        // Check if sdk running in browser and not in edge/serverless environment
+        if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined' && !context.userAgent) {
             this.userAgent = navigator.userAgent;
         }
         if (context === null || context === void 0 ? void 0 : context.customVariables) {

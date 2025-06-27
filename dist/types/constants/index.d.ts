@@ -16,6 +16,7 @@ export declare const Constants: {
   SETTINGS_EXPIRY: number;
   SETTINGS_TIMEOUT: number;
   SETTINGS_TTL: number;
+  MIN_TTL_MS: number;
   HOST_NAME: string;
   SETTINTS_ENDPOINT: string;
   WEBHOOK_SETTINTS_ENDPOINT: string;

@@ -55,7 +55,8 @@ export class SettingsService implements ISettingsService {
 
     // if sdk is running in browser environment then set isGatewayServiceProvided to true
     // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
-    if (typeof process.env === 'undefined') {
+    // Check if sdk running in browser and not in edge/serverless environment
+    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.isGatewayServiceProvided = true;
     }
     if (options?.gatewayService?.url) {
@@ -111,10 +112,10 @@ export class SettingsService implements ISettingsService {
 
   private async normalizeSettings(settings: Record<any, any>): Promise<Record<any, any>> {
     const normalizedSettings = { ...settings };
-    if (Object.keys(normalizedSettings.features).length === 0) {
+    if (!normalizedSettings.features || Object.keys(normalizedSettings.features).length === 0) {
       normalizedSettings.features = [];
     }
-    if (Object.keys(normalizedSettings.campaigns).length === 0) {
+    if (!normalizedSettings.campaigns || Object.keys(normalizedSettings.campaigns).length === 0) {
       normalizedSettings.campaigns = [];
     }
     return normalizedSettings;
@@ -125,7 +126,7 @@ export class SettingsService implements ISettingsService {
     deferredObject: { resolve: (value: any) => void; reject: (reason?: any) => void },
   ): Promise<void> {
     try {
-      const cachedSettings = await storageConnector.getSettingsFromStorage();
+      const cachedSettings = await storageConnector.getSettingsFromStorage(this.sdkKey, this.accountId);
 
       if (cachedSettings) {
         LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
@@ -136,7 +137,11 @@ export class SettingsService implements ISettingsService {
 
       const freshSettings = await this.fetchSettings();
       const normalizedSettings = await this.normalizeSettings(freshSettings);
-      await storageConnector.setSettingsInStorage(normalizedSettings);
+      // set the settings in storage only if settings are valid
+      const isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
+      if (isSettingsValid) {
+        await storageConnector.setSettingsInStorage(normalizedSettings);
+      }
 
       if (cachedSettings) {
         LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_BACKGROUND_UPDATE));
@@ -176,7 +181,7 @@ export class SettingsService implements ISettingsService {
     const deferredObject = new Deferred();
     const storageConnector = Storage.Instance.getConnector();
 
-    if (typeof process.env === 'undefined') {
+    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.handleBrowserEnvironment(storageConnector, deferredObject);
     } else {
       this.handleServerEnvironment(deferredObject);

@@ -71,11 +71,13 @@ export declare class BrowserStorageConnector {
    */
   get(featureKey: string, userId: string): Promise<StorageData | Record<string, any>>;
   /**
-   * Gets the settings from storage with TTL check
+   * Gets the settings from storage with TTL check and validates sdkKey and accountId
    * @public
-   * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found
+   * @param {string} sdkKey - The sdkKey to match
+   * @param {number|string} accountId - The accountId to match
+   * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found/mismatch
    */
-  getSettingsFromStorage(): Promise<Record<string, any> | null>;
+  getSettingsFromStorage(sdkKey: string, accountId: string | number): Promise<Record<string, any> | null>;
   /**
    * Fetches fresh settings and updates the storage with a new timestamp
    */

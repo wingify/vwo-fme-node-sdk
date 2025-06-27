@@ -67,6 +67,8 @@ var constants_1 = require("../../../constants");
 var PromiseUtil_1 = require("../../../utils/PromiseUtil");
 var logger_1 = require("../../logger");
 var SettingsService_1 = require("../../../services/SettingsService");
+var SettingsSchemaValidation_1 = require("../../../models/schemas/SettingsSchemaValidation");
+var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 /**
  * A class that provides browser storage functionality for managing feature flags and experiments data
  * @class BrowserStorageConnector
@@ -87,15 +89,20 @@ var BrowserStorageConnector = /** @class */ (function () {
         this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
         this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
         this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
-        // if ttl in options is set is negative or 0 log that passed ttl is incorrect and using default value
-        // validate ttl is a number
         //options.ttl should be greater than 1 minute
-        if ((options === null || options === void 0 ? void 0 : options.ttl) && typeof options.ttl !== 'number' && options.ttl < 60000) {
-            logger_1.LogManager.Instance.debug('Passed ttl is invalid and using default value of 2 hours');
+        if (!(0, DataTypeUtil_1.isNumber)(options === null || options === void 0 ? void 0 : options.ttl) || options.ttl < constants_1.Constants.MIN_TTL_MS) {
+            logger_1.LogManager.Instance.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
             this.ttl = constants_1.Constants.SETTINGS_TTL;
         }
         else {
             this.ttl = (options === null || options === void 0 ? void 0 : options.ttl) || constants_1.Constants.SETTINGS_TTL;
+        }
+        if (!(0, DataTypeUtil_1.isBoolean)(options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings)) {
+            logger_1.LogManager.Instance.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
+            this.alwaysUseCachedSettings = false;
+        }
+        else {
+            this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
         }
     }
     /**
@@ -187,11 +194,14 @@ var BrowserStorageConnector = /** @class */ (function () {
         return deferredObject.promise;
     };
     /**
-     * Gets the settings from storage with TTL check
+     * Gets the settings from storage with TTL check and validates sdkKey and accountId
      * @public
-     * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found
+     * @param {string} sdkKey - The sdkKey to match
+     * @param {number|string} accountId - The accountId to match
+     * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found/mismatch
      */
-    BrowserStorageConnector.prototype.getSettingsFromStorage = function () {
+    BrowserStorageConnector.prototype.getSettingsFromStorage = function (sdkKey, accountId) {
+        var _a;
         var deferredObject = new PromiseUtil_1.Deferred();
         if (this.isDisabled) {
             deferredObject.resolve(null);
@@ -206,18 +216,25 @@ var BrowserStorageConnector = /** @class */ (function () {
                 }
                 var data = settingsData.data, timestamp = settingsData.timestamp;
                 var currentTime = Date.now();
+                // Decode sdkKey if present
+                if (data && data.sdkKey) {
+                    try {
+                        data.sdkKey = atob(data.sdkKey);
+                    }
+                    catch (e) {
+                        logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
+                    }
+                }
+                // Check for sdkKey and accountId match
+                if (!data || data.sdkKey !== sdkKey || String((_a = data.accountId) !== null && _a !== void 0 ? _a : data.a) !== String(accountId)) {
+                    logger_1.LogManager.Instance.info('Cached settings do not match sdkKey/accountId, treating as cache miss');
+                    deferredObject.resolve(null);
+                    return deferredObject.promise;
+                }
                 if (this.alwaysUseCachedSettings) {
                     logger_1.LogManager.Instance.info('Using cached settings as alwaysUseCachedSettings is enabled');
-                    // Decode sdkKey if present
-                    if (data && data.sdkKey) {
-                        try {
-                            data.sdkKey = atob(data.sdkKey);
-                        }
-                        catch (e) {
-                            logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
-                        }
-                    }
                     deferredObject.resolve(data);
+                    return deferredObject.promise;
                 }
                 if (currentTime - timestamp > this.ttl) {
                     logger_1.LogManager.Instance.info('Settings have expired, need to fetch new settings');
@@ -257,10 +274,13 @@ var BrowserStorageConnector = /** @class */ (function () {
             settingsService
                 .fetchSettings()
                 .then(function (freshSettings) { return __awaiter(_this, void 0, void 0, function () {
+                var isSettingsValid;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             if (!freshSettings) return [3 /*break*/, 2];
+                            isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(freshSettings);
+                            if (!isSettingsValid) return [3 /*break*/, 2];
                             return [4 /*yield*/, this.setSettingsInStorage(freshSettings)];
                         case 1:
                             _a.sent();

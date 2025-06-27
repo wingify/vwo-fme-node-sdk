@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.20.1
+ * vwo-fme-javascript-sdk - v1.20.2
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -1712,7 +1712,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.20.1", // will be replaced by webpack for browser build
+        version: "1.20.2", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -1735,6 +1735,7 @@ exports.Constants = {
     SETTINGS_EXPIRY: 10000000,
     SETTINGS_TIMEOUT: 50000,
     SETTINGS_TTL: 7200000, // 2 HOURS
+    MIN_TTL_MS: 60000, // 1 MINUTE
     HOST_NAME: 'dev.visualwebsiteoptimizer.com',
     SETTINTS_ENDPOINT: '/server-side/v2-settings',
     WEBHOOK_SETTINTS_ENDPOINT: '/server-side/v2-pull',
@@ -3035,7 +3036,8 @@ var ContextModel = /** @class */ (function () {
         this.userAgent = context.userAgent;
         this.ipAddress = context.ipAddress;
         // if sdk is running in js environment and userAgent is not given then we use navigator.userAgent
-        if ( true && !context.userAgent) {
+        // Check if sdk running in browser and not in edge/serverless environment
+        if ( true && typeof XMLHttpRequest !== 'undefined' && !context.userAgent) {
             this.userAgent = navigator.userAgent;
         }
         if (context === null || context === void 0 ? void 0 : context.customVariables) {
@@ -6153,6 +6155,8 @@ var constants_1 = __webpack_require__(/*! ../../../constants */ "./lib/constants
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 var logger_1 = __webpack_require__(/*! ../../logger */ "./lib/packages/logger/index.ts");
 var SettingsService_1 = __webpack_require__(/*! ../../../services/SettingsService */ "./lib/services/SettingsService.ts");
+var SettingsSchemaValidation_1 = __webpack_require__(/*! ../../../models/schemas/SettingsSchemaValidation */ "./lib/models/schemas/SettingsSchemaValidation.ts");
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 /**
  * A class that provides browser storage functionality for managing feature flags and experiments data
  * @class BrowserStorageConnector
@@ -6173,15 +6177,20 @@ var BrowserStorageConnector = /** @class */ (function () {
         this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
         this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
         this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
-        // if ttl in options is set is negative or 0 log that passed ttl is incorrect and using default value
-        // validate ttl is a number
         //options.ttl should be greater than 1 minute
-        if ((options === null || options === void 0 ? void 0 : options.ttl) && typeof options.ttl !== 'number' && options.ttl < 60000) {
-            logger_1.LogManager.Instance.debug('Passed ttl is invalid and using default value of 2 hours');
+        if (!(0, DataTypeUtil_1.isNumber)(options === null || options === void 0 ? void 0 : options.ttl) || options.ttl < constants_1.Constants.MIN_TTL_MS) {
+            logger_1.LogManager.Instance.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
             this.ttl = constants_1.Constants.SETTINGS_TTL;
         }
         else {
             this.ttl = (options === null || options === void 0 ? void 0 : options.ttl) || constants_1.Constants.SETTINGS_TTL;
+        }
+        if (!(0, DataTypeUtil_1.isBoolean)(options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings)) {
+            logger_1.LogManager.Instance.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
+            this.alwaysUseCachedSettings = false;
+        }
+        else {
+            this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
         }
     }
     /**
@@ -6273,11 +6282,14 @@ var BrowserStorageConnector = /** @class */ (function () {
         return deferredObject.promise;
     };
     /**
-     * Gets the settings from storage with TTL check
+     * Gets the settings from storage with TTL check and validates sdkKey and accountId
      * @public
-     * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found
+     * @param {string} sdkKey - The sdkKey to match
+     * @param {number|string} accountId - The accountId to match
+     * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found/mismatch
      */
-    BrowserStorageConnector.prototype.getSettingsFromStorage = function () {
+    BrowserStorageConnector.prototype.getSettingsFromStorage = function (sdkKey, accountId) {
+        var _a;
         var deferredObject = new PromiseUtil_1.Deferred();
         if (this.isDisabled) {
             deferredObject.resolve(null);
@@ -6292,18 +6304,25 @@ var BrowserStorageConnector = /** @class */ (function () {
                 }
                 var data = settingsData.data, timestamp = settingsData.timestamp;
                 var currentTime = Date.now();
+                // Decode sdkKey if present
+                if (data && data.sdkKey) {
+                    try {
+                        data.sdkKey = atob(data.sdkKey);
+                    }
+                    catch (e) {
+                        logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
+                    }
+                }
+                // Check for sdkKey and accountId match
+                if (!data || data.sdkKey !== sdkKey || String((_a = data.accountId) !== null && _a !== void 0 ? _a : data.a) !== String(accountId)) {
+                    logger_1.LogManager.Instance.info('Cached settings do not match sdkKey/accountId, treating as cache miss');
+                    deferredObject.resolve(null);
+                    return deferredObject.promise;
+                }
                 if (this.alwaysUseCachedSettings) {
                     logger_1.LogManager.Instance.info('Using cached settings as alwaysUseCachedSettings is enabled');
-                    // Decode sdkKey if present
-                    if (data && data.sdkKey) {
-                        try {
-                            data.sdkKey = atob(data.sdkKey);
-                        }
-                        catch (e) {
-                            logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
-                        }
-                    }
                     deferredObject.resolve(data);
+                    return deferredObject.promise;
                 }
                 if (currentTime - timestamp > this.ttl) {
                     logger_1.LogManager.Instance.info('Settings have expired, need to fetch new settings');
@@ -6343,10 +6362,13 @@ var BrowserStorageConnector = /** @class */ (function () {
             settingsService
                 .fetchSettings()
                 .then(function (freshSettings) { return __awaiter(_this, void 0, void 0, function () {
+                var isSettingsValid;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             if (!freshSettings) return [3 /*break*/, 2];
+                            isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(freshSettings);
+                            if (!isSettingsValid) return [3 /*break*/, 2];
                             return [4 /*yield*/, this.setSettingsInStorage(freshSettings)];
                         case 1:
                             _a.sent();
@@ -7020,7 +7042,8 @@ var SettingsService = /** @class */ (function () {
         this.networkTimeout = ((_b = options === null || options === void 0 ? void 0 : options.settings) === null || _b === void 0 ? void 0 : _b.timeout) || constants_1.Constants.SETTINGS_TIMEOUT;
         // if sdk is running in browser environment then set isGatewayServiceProvided to true
         // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
-        if (true) {
+        // Check if sdk running in browser and not in edge/serverless environment
+        if ( true && typeof XMLHttpRequest !== 'undefined') {
             this.isGatewayServiceProvided = true;
         }
         if ((_c = options === null || options === void 0 ? void 0 : options.gatewayService) === null || _c === void 0 ? void 0 : _c.url) {
@@ -7080,10 +7103,10 @@ var SettingsService = /** @class */ (function () {
             var normalizedSettings;
             return __generator(this, function (_a) {
                 normalizedSettings = __assign({}, settings);
-                if (Object.keys(normalizedSettings.features).length === 0) {
+                if (!normalizedSettings.features || Object.keys(normalizedSettings.features).length === 0) {
                     normalizedSettings.features = [];
                 }
-                if (Object.keys(normalizedSettings.campaigns).length === 0) {
+                if (!normalizedSettings.campaigns || Object.keys(normalizedSettings.campaigns).length === 0) {
                     normalizedSettings.campaigns = [];
                 }
                 return [2 /*return*/, normalizedSettings];
@@ -7092,12 +7115,12 @@ var SettingsService = /** @class */ (function () {
     };
     SettingsService.prototype.handleBrowserEnvironment = function (storageConnector, deferredObject) {
         return __awaiter(this, void 0, void 0, function () {
-            var cachedSettings, freshSettings, normalizedSettings, error_1;
+            var cachedSettings, freshSettings, normalizedSettings, isSettingsValid, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 5, , 6]);
-                        return [4 /*yield*/, storageConnector.getSettingsFromStorage()];
+                        _a.trys.push([0, 6, , 7]);
+                        return [4 /*yield*/, storageConnector.getSettingsFromStorage(this.sdkKey, this.accountId)];
                     case 1:
                         cachedSettings = _a.sent();
                         if (cachedSettings) {
@@ -7113,9 +7136,13 @@ var SettingsService = /** @class */ (function () {
                         return [4 /*yield*/, this.normalizeSettings(freshSettings)];
                     case 3:
                         normalizedSettings = _a.sent();
+                        isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
+                        if (!isSettingsValid) return [3 /*break*/, 5];
                         return [4 /*yield*/, storageConnector.setSettingsInStorage(normalizedSettings)];
                     case 4:
                         _a.sent();
+                        _a.label = 5;
+                    case 5:
                         if (cachedSettings) {
                             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_BACKGROUND_UPDATE));
                         }
@@ -7123,15 +7150,15 @@ var SettingsService = /** @class */ (function () {
                             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
                             deferredObject.resolve(normalizedSettings);
                         }
-                        return [3 /*break*/, 6];
-                    case 5:
+                        return [3 /*break*/, 7];
+                    case 6:
                         error_1 = _a.sent();
                         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
                             err: JSON.stringify(error_1),
                         }));
                         deferredObject.resolve(null);
-                        return [3 /*break*/, 6];
-                    case 6: return [2 /*return*/];
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
@@ -7166,10 +7193,12 @@ var SettingsService = /** @class */ (function () {
     SettingsService.prototype.fetchSettingsAndCacheInStorage = function () {
         var deferredObject = new PromiseUtil_1.Deferred();
         var storageConnector = storage_1.Storage.Instance.getConnector();
-        if (true) {
+        if ( true && typeof XMLHttpRequest !== 'undefined') {
             this.handleBrowserEnvironment(storageConnector, deferredObject);
         }
-        else {}
+        else {
+            this.handleServerEnvironment(deferredObject);
+        }
         return deferredObject.promise;
     };
     SettingsService.prototype.fetchSettings = function (isViaWebhook) {
@@ -10265,10 +10294,16 @@ var UsageStatsUtil = /** @class */ (function () {
         // if _vwo_meta has ea, then addd data._ea to be 1
         if (_vwo_meta && _vwo_meta.ea)
             data._ea = 1;
-        if (true) {
+        // Check if sdk running in browser and not in edge/serverless environment
+        if ( true && typeof XMLHttpRequest !== 'undefined') {
             return;
         }
-        else {}
+        else {
+            if (typeof process !== 'undefined' && process.version) {
+                // For Node.js environment
+                data.lv = process.version;
+            }
+        }
         this.usageStatsData = data;
     };
     /**
@@ -12847,7 +12882,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} not passed in SDK configuration, setting it default to {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings fetched from cache","SETTINGS_BACKGROUND_UPDATE":"Settings updated in background","SETTINGS_CACHE_MISS":"Settings not found in cache, proceeding to fetch from server","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} not passed in SDK configuration, setting it default to {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details"}');
 
 /***/ }),
 

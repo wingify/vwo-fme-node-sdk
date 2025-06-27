@@ -17,6 +17,8 @@ import { Constants } from '../../../constants';
 import { Deferred } from '../../../utils/PromiseUtil';
 import { LogManager } from '../../logger';
 import { SettingsService } from '../../../services/SettingsService';
+import { SettingsSchema } from '../../../models/schemas/SettingsSchemaValidation';
+import { isNumber, isBoolean } from '../../../utils/DataTypeUtil';
 
 /**
  * Interface representing the structure of data to be stored
@@ -71,14 +73,19 @@ export class BrowserStorageConnector {
     this.isDisabled = options?.isDisabled || false;
     this.alwaysUseCachedSettings = options?.alwaysUseCachedSettings || false;
 
-    // if ttl in options is set is negative or 0 log that passed ttl is incorrect and using default value
-    // validate ttl is a number
     //options.ttl should be greater than 1 minute
-    if (options?.ttl && typeof options.ttl !== 'number' && options.ttl < 60000) {
-      LogManager.Instance.debug('Passed ttl is invalid and using default value of 2 hours');
+    if (!isNumber(options?.ttl) || options.ttl < Constants.MIN_TTL_MS) {
+      LogManager.Instance.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
       this.ttl = Constants.SETTINGS_TTL;
     } else {
       this.ttl = options?.ttl || Constants.SETTINGS_TTL;
+    }
+
+    if (!isBoolean(options?.alwaysUseCachedSettings)) {
+      LogManager.Instance.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
+      this.alwaysUseCachedSettings = false;
+    } else {
+      this.alwaysUseCachedSettings = options?.alwaysUseCachedSettings || false;
     }
   }
 
@@ -168,11 +175,13 @@ export class BrowserStorageConnector {
   }
 
   /**
-   * Gets the settings from storage with TTL check
+   * Gets the settings from storage with TTL check and validates sdkKey and accountId
    * @public
-   * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found
+   * @param {string} sdkKey - The sdkKey to match
+   * @param {number|string} accountId - The accountId to match
+   * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found/mismatch
    */
-  public getSettingsFromStorage(): Promise<Record<string, any> | null> {
+  public getSettingsFromStorage(sdkKey: string, accountId: string | number): Promise<Record<string, any> | null> {
     const deferredObject = new Deferred();
     if (this.isDisabled) {
       deferredObject.resolve(null);
@@ -189,17 +198,26 @@ export class BrowserStorageConnector {
         const { data, timestamp } = settingsData;
         const currentTime = Date.now();
 
+        // Decode sdkKey if present
+        if (data && data.sdkKey) {
+          try {
+            data.sdkKey = atob(data.sdkKey);
+          } catch (e) {
+            LogManager.Instance.error('Failed to decode sdkKey from storage');
+          }
+        }
+
+        // Check for sdkKey and accountId match
+        if (!data || data.sdkKey !== sdkKey || String(data.accountId ?? data.a) !== String(accountId)) {
+          LogManager.Instance.info('Cached settings do not match sdkKey/accountId, treating as cache miss');
+          deferredObject.resolve(null);
+          return deferredObject.promise;
+        }
+
         if (this.alwaysUseCachedSettings) {
           LogManager.Instance.info('Using cached settings as alwaysUseCachedSettings is enabled');
-          // Decode sdkKey if present
-          if (data && data.sdkKey) {
-            try {
-              data.sdkKey = atob(data.sdkKey);
-            } catch (e) {
-              LogManager.Instance.error('Failed to decode sdkKey from storage');
-            }
-          }
           deferredObject.resolve(data);
+          return deferredObject.promise;
         }
 
         if (currentTime - timestamp > this.ttl) {
@@ -239,8 +257,11 @@ export class BrowserStorageConnector {
         .fetchSettings()
         .then(async (freshSettings) => {
           if (freshSettings) {
-            await this.setSettingsInStorage(freshSettings);
-            LogManager.Instance.info('Settings updated with fresh data from server');
+            const isSettingsValid = new SettingsSchema().isSettingsValid(freshSettings);
+            if (isSettingsValid) {
+              await this.setSettingsInStorage(freshSettings);
+              LogManager.Instance.info('Settings updated with fresh data from server');
+            }
           }
         })
         .catch((error) => {

@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.20.2
+ * vwo-fme-node-sdk - v1.21.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.20.2","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.21.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
 
 /***/ }),
 
@@ -387,15 +387,15 @@ var VWOBuilder = /** @class */function () {
    * @returns {this} The instance of this builder.
    */
   VWOBuilder.prototype.setNetworkManager = function () {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     var networkInstance = network_layer_1.NetworkManager.Instance;
     // Attach the network client from options
-    networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client);
+    networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig);
     logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
       service: "Network Layer"
     }));
     // Set the development mode based on options
-    networkInstance.getConfig().setDevelopmentMode((_c = this.options) === null || _c === void 0 ? void 0 : _c.isDevelopmentMode);
+    networkInstance.getConfig().setDevelopmentMode((_d = this.options) === null || _d === void 0 ? void 0 : _d.isDevelopmentMode);
     return this;
   };
   VWOBuilder.prototype.initBatching = function () {
@@ -2141,9 +2141,12 @@ exports.Constants = {
   RANDOM_ALGO: 1,
   API_VERSION: '1',
   VWO_META_MEG_KEY: '_vwo_meta_meg_',
-  MAX_RETRIES: 3,
-  RETRY_DELAY: 1000,
-  // 1 second
+  DEFAULT_RETRY_CONFIG: {
+    shouldRetry: true,
+    initialDelay: 2,
+    maxRetries: 3,
+    backoffMultiplier: 2
+  },
   DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
   DEFAULT_SETTINGS_STORAGE_KEY: 'vwo_fme_settings'
 };
@@ -4524,10 +4527,10 @@ var https = __webpack_require__(/*! https */ "https");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./dist/server-unpacked/constants/Url.js");
 var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
-var constants_1 = __webpack_require__(/*! ../../../constants */ "./dist/server-unpacked/constants/index.js");
 var logger_1 = __webpack_require__(/*! ../../../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var EventEnum_1 = __webpack_require__(/*! ../../../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -4561,7 +4564,7 @@ var NetworkClient = /** @class */function () {
           if (error) {
             // Log error and consume response data to free up memory.
             res.resume();
-            return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+            return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
           }
           res.setEncoding('utf8');
           // Collect data chunks.
@@ -4581,24 +4584,24 @@ var NetworkClient = /** @class */function () {
                   deferred.reject(responseModel);
                   return;
                 }
-                return _this.retryOrReject(error_1, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                return _this.retryOrReject(error_1, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
               }
               responseModel.setData(parsedData);
               deferred.resolve(responseModel);
             } catch (err) {
-              return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+              return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
             }
           });
         });
         // Handle request timeout.
         req.on('timeout', function () {
-          return _this.retryOrReject(new Error('timeout'), attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+          return _this.retryOrReject(new Error('timeout'), attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
         });
         req.on('error', function (err) {
-          return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+          return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
         });
       } catch (err) {
-        _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+        _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
       }
       return deferred.promise;
     };
@@ -4642,26 +4645,26 @@ var NetworkClient = /** @class */function () {
                   deferred.reject(responseModel);
                   return;
                 }
-                return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
               }
             } catch (err) {
-              return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+              return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
             }
           });
         });
         // Handle request timeout.
         req.on('timeout', function () {
           var error = "Timeout: ".concat(networkOptions.timeout);
-          return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+          return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
         });
         req.on('error', function (err) {
-          return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+          return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
         });
         // Write data to the request body and end the request.
         req.write(JSON.stringify(networkOptions.body));
         req.end();
       } catch (err) {
-        _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+        _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
       }
       return deferred.promise;
     };
@@ -4675,24 +4678,28 @@ var NetworkClient = /** @class */function () {
    * @param {string} operation - The operation to retry or reject
    * @param {Function} attemptRequest - The function to attempt the request
    */
-  NetworkClient.prototype.retryOrReject = function (error, attempt, deferred, endpoint, attemptRequest) {
-    var delay = constants_1.Constants.RETRY_DELAY * Math.pow(2, attempt + 1);
-    if (attempt < constants_1.Constants.MAX_RETRIES) {
+  NetworkClient.prototype.retryOrReject = function (error, attempt, deferred, networkOptions, attemptRequest, retryConfig) {
+    var endpoint = String(networkOptions.path).split('?')[0];
+    var delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, attempt) * 1000;
+    if (retryConfig.shouldRetry && attempt < retryConfig.maxRetries) {
       logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
         endPoint: endpoint,
         err: error,
-        delay: delay / 1000,
+        delay: delay,
         attempt: attempt + 1,
-        maxRetries: constants_1.Constants.MAX_RETRIES
+        maxRetries: retryConfig.maxRetries
       }));
       setTimeout(function () {
         attemptRequest(attempt + 1).then(deferred.resolve).catch(deferred.reject);
       }, delay);
     } else {
-      logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
-        endPoint: endpoint,
-        err: error
-      }));
+      if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_LOG_EVENT)) {
+        // only log error if the endpoint is not vwo_log event
+        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+          endPoint: endpoint,
+          err: error
+        }));
+      }
       var responseModel = new ResponseModel_1.ResponseModel();
       responseModel.setError(error);
       deferred.reject(responseModel);
@@ -4911,10 +4918,20 @@ Object.defineProperty(exports, "ResponseModel", ({
 /*!*******************************************************************************!*\
   !*** ./dist/server-unpacked/packages/network-layer/manager/NetworkManager.js ***!
   \*******************************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
 
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -4937,13 +4954,63 @@ exports.NetworkManager = void 0;
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var RequestHandler_1 = __webpack_require__(/*! ../handlers/RequestHandler */ "./dist/server-unpacked/packages/network-layer/handlers/RequestHandler.js");
 var GlobalRequestModel_1 = __webpack_require__(/*! ../models/GlobalRequestModel */ "./dist/server-unpacked/packages/network-layer/models/GlobalRequestModel.js");
+var constants_1 = __webpack_require__(/*! ../../../constants */ "./dist/server-unpacked/constants/index.js");
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var LogManager_1 = __webpack_require__(/*! ../../logger/core/LogManager */ "./dist/server-unpacked/packages/logger/core/LogManager.js");
+var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var NetworkManager = /** @class */function () {
   function NetworkManager() {}
   /**
+   * Validates the retry configuration parameters
+   * @param {IRetryConfig} retryConfig - The retry configuration to validate
+   * @returns {IRetryConfig} The validated retry configuration with corrected values
+   */
+  NetworkManager.prototype.validateRetryConfig = function (retryConfig) {
+    var validatedConfig = __assign({}, retryConfig);
+    var isInvalidConfig = false;
+    // Validate shouldRetry: should be a boolean value
+    if (!(0, DataTypeUtil_1.isBoolean)(validatedConfig.shouldRetry)) {
+      validatedConfig.shouldRetry = constants_1.Constants.DEFAULT_RETRY_CONFIG.shouldRetry;
+      isInvalidConfig = true;
+    }
+    // Validate maxRetries: should be a non-negative integer and should not be less than 1
+    if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.maxRetries) || !Number.isInteger(validatedConfig.maxRetries) || validatedConfig.maxRetries < 1) {
+      validatedConfig.maxRetries = constants_1.Constants.DEFAULT_RETRY_CONFIG.maxRetries;
+      isInvalidConfig = true;
+    }
+    // Validate initialDelay: should be a non-negative integer and should not be less than 1
+    if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.initialDelay) || !Number.isInteger(validatedConfig.initialDelay) || validatedConfig.initialDelay < 1) {
+      validatedConfig.initialDelay = constants_1.Constants.DEFAULT_RETRY_CONFIG.initialDelay;
+      isInvalidConfig = true;
+    }
+    // Validate backoffMultiplier: should be a non-negative integer and should not be less than 2
+    if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.backoffMultiplier) || !Number.isInteger(validatedConfig.backoffMultiplier) || validatedConfig.backoffMultiplier < 2) {
+      validatedConfig.backoffMultiplier = constants_1.Constants.DEFAULT_RETRY_CONFIG.backoffMultiplier;
+      isInvalidConfig = true;
+    }
+    if (isInvalidConfig) {
+      LogManager_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.RETRY_CONFIG_INVALID, {
+        retryConfig: JSON.stringify(validatedConfig)
+      }));
+    }
+    return isInvalidConfig ? constants_1.Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
+  };
+  /**
    * Attaches a network client to the manager, or uses a default if none provided.
    * @param {NetworkClientInterface} client - The client to attach, optional.
+   * @param {IRetryConfig} retryConfig - The retry configuration, optional.
    */
-  NetworkManager.prototype.attachClient = function (client) {
+  NetworkManager.prototype.attachClient = function (client, retryConfig) {
+    // Only set retry configuration if it's not already initialized or if a new config is provided
+    if (!this.retryConfig || retryConfig) {
+      // Define default retry configuration
+      var defaultRetryConfig = constants_1.Constants.DEFAULT_RETRY_CONFIG;
+      // Merge provided retryConfig with defaults, giving priority to provided values
+      var mergedConfig = __assign(__assign({}, defaultRetryConfig), retryConfig || {});
+      // Validate the merged configuration
+      this.retryConfig = this.validateRetryConfig(mergedConfig);
+    }
     // if env is undefined, we are in browser
     if (typeof process.env === 'undefined') {
       // if XMLHttpRequest is undefined, we are in serverless
@@ -4964,6 +5031,13 @@ var NetworkManager = /** @class */function () {
       this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
     }
     this.config = new GlobalRequestModel_1.GlobalRequestModel(null, null, null, null); // Initialize with default config
+  };
+  /**
+   * Retrieves the current retry configuration.
+   * @returns {IRetryConfig} A copy of the current retry configuration.
+   */
+  NetworkManager.prototype.getRetryConfig = function () {
+    return __assign({}, this.retryConfig);
   };
   Object.defineProperty(NetworkManager, "Instance", {
     /**
@@ -5170,10 +5244,20 @@ exports.GlobalRequestModel = GlobalRequestModel;
 /*!****************************************************************************!*\
   !*** ./dist/server-unpacked/packages/network-layer/models/RequestModel.js ***!
   \****************************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
 
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -5195,6 +5279,7 @@ exports.RequestModel = void 0;
  */
 var HttpMethodEnum_1 = __webpack_require__(/*! ../../../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
 var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./dist/server-unpacked/constants/Url.js");
+var constants_1 = __webpack_require__(/*! ../../../constants */ "./dist/server-unpacked/constants/index.js");
 /**
  * Represents a model for HTTP requests.
  * This class encapsulates all necessary details such as URL, method, path, query parameters, body, headers,
@@ -5212,7 +5297,7 @@ var RequestModel = /** @class */function () {
    * @param scheme Protocol scheme, default is 'http'.
    * @param port Port number, default is 80.
    */
-  function RequestModel(url, method, path, query, body, headers, scheme, port) {
+  function RequestModel(url, method, path, query, body, headers, scheme, port, retryConfig) {
     if (method === void 0) {
       method = HttpMethodEnum_1.HttpMethodEnum.GET;
     }
@@ -5227,6 +5312,7 @@ var RequestModel = /** @class */function () {
     this.headers = headers;
     this.scheme = scheme;
     this.port = port;
+    this.retryConfig = retryConfig || constants_1.Constants.DEFAULT_RETRY_CONFIG;
   }
   /**
    * Retrieves the HTTP method.
@@ -5361,6 +5447,21 @@ var RequestModel = /** @class */function () {
     return this;
   };
   /**
+   * Retrieves the retry configuration.
+   * @returns The retry configuration.
+   */
+  RequestModel.prototype.getRetryConfig = function () {
+    return __assign({}, this.retryConfig);
+  };
+  /**
+   * Sets the retry configuration.
+   * @param retryConfig The retry configuration to set.
+   */
+  RequestModel.prototype.setRetryConfig = function (retryConfig) {
+    this.retryConfig = retryConfig;
+    return this;
+  };
+  /**
    * Constructs the options for the HTTP request based on the current state of the model.
    * This method is used to prepare the request options for execution.
    * @returns A record containing all relevant options for the HTTP request.
@@ -5418,6 +5519,7 @@ var RequestModel = /** @class */function () {
     if (options.path.charAt(options.path.length - 1) === '&') {
       options.path = options.path.substring(0, options.path.length - 1);
     }
+    options.retryConfig = this.retryConfig;
     return options;
   };
   return RequestModel;
@@ -8477,6 +8579,7 @@ var SettingsService = /** @class */function () {
     }
     var networkInstance = network_layer_1.NetworkManager.Instance;
     var options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
+    var retryConfig = networkInstance.getRetryConfig();
     options.platform = constants_1.Constants.PLATFORM;
     options['api-version'] = constants_1.Constants.API_VERSION;
     if (!networkInstance.getConfig().getDevelopmentMode()) {
@@ -8487,7 +8590,7 @@ var SettingsService = /** @class */function () {
       path = constants_1.Constants.WEBHOOK_SETTINTS_ENDPOINT;
     }
     try {
-      var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port);
+      var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
       request.setTimeout(this.networkTimeout);
       networkInstance.get(request).then(function (response) {
         deferredObject.resolve(response.getData());
@@ -8937,17 +9040,19 @@ var BatchEventsDispatcher = /** @class */function () {
    */
   BatchEventsDispatcher.sendPostApiRequest = function (properties, payload, flushCallback) {
     return __awaiter(this, void 0, void 0, function () {
-      var deferred, headers, baseUrl, request, response, batchApiResult, error_1, batchApiResult;
+      var deferred, networkManager, retryConfig, headers, baseUrl, request, response, batchApiResult, error_1, batchApiResult;
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
             deferred = new PromiseUtil_1.Deferred();
-            network_layer_2.NetworkManager.Instance.attachClient();
+            networkManager = network_layer_2.NetworkManager.Instance;
+            networkManager.attachClient();
+            retryConfig = networkManager.getRetryConfig();
             headers = {};
             headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
             baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
             baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
-            request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+            request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
             _a.label = 1;
           case 1:
             _a.trys.push([1, 3,, 4]);
@@ -10330,10 +10435,11 @@ var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./dist/server-unpacked/uti
  */
 function getFromGatewayService(queryParams, endpoint) {
   return __awaiter(this, void 0, void 0, function () {
-    var deferredObject, networkInstance, request;
+    var deferredObject, networkInstance, retryConfig, request;
     return __generator(this, function (_a) {
       deferredObject = new PromiseUtil_1.Deferred();
       networkInstance = network_layer_1.NetworkManager.Instance;
+      retryConfig = networkInstance.getRetryConfig();
       // Check if the base URL is not set correctly
       if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
         // Log an informational message about the invalid URL
@@ -10346,7 +10452,7 @@ function getFromGatewayService(queryParams, endpoint) {
       // using dacdn where accountid is required
       queryParams['accountId'] = SettingsService_1.SettingsService.Instance.accountId;
       try {
-        request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+        request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
         // Perform the network GET request
         networkInstance.get(request).then(function (response) {
           // Resolve the deferred object with the data from the response
@@ -10629,9 +10735,6 @@ var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacke
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
-var LogManager_1 = __webpack_require__(/*! ../packages/logger/core/LogManager */ "./dist/server-unpacked/packages/logger/core/LogManager.js");
-var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
-var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
 var nargs = /\{([0-9a-zA-Z_]+)\}/g;
 var storedMessages = new Set();
 /**
@@ -10687,12 +10790,7 @@ function sendLogToVWO(message, messageType) {
     // create the payload
     var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT);
     // Send the constructed payload via POST request
-    (0, NetworkUtil_1.sendMessagingEvent)(properties, payload).catch(function (err) {
-      LogManager_1.LogManager.Instance.error(buildMessage(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-        method: HttpMethodEnum_1.HttpMethodEnum.POST + ' ' + EventEnum_1.EventEnum.VWO_LOG_EVENT,
-        err: err.getError()
-      }), false);
-    });
+    (0, NetworkUtil_1.sendMessagingEvent)(properties, payload).catch(function () {});
   }
 }
 
@@ -11685,11 +11783,13 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  */
 function sendPostApiRequest(properties, payload, userId) {
   return __awaiter(this, void 0, void 0, function () {
-    var headers, userAgent, ipAddress, baseUrl, request;
+    var networkManager, retryConfig, headers, userAgent, ipAddress, baseUrl, request;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          network_layer_1.NetworkManager.Instance.attachClient();
+          networkManager = network_layer_1.NetworkManager.Instance;
+          networkManager.attachClient();
+          retryConfig = networkManager.getRetryConfig();
           headers = {};
           userAgent = payload.d.visitor_ua;
           ipAddress = payload.d.visitor_ip;
@@ -11698,7 +11798,7 @@ function sendPostApiRequest(properties, payload, userId) {
           if (ipAddress) headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
           baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
           baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
-          request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+          request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
           return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request).then(function () {
             // clear usage stats only if network call is successful
             if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
@@ -11770,14 +11870,17 @@ function getMessagingEventPayload(messageType, message, eventName) {
  */
 function sendMessagingEvent(properties, payload) {
   return __awaiter(this, void 0, void 0, function () {
-    var deferredObject, networkInstance, baseUrl, request;
+    var deferredObject, networkInstance, retryConfig, baseUrl, request;
     return __generator(this, function (_a) {
       deferredObject = new PromiseUtil_1.Deferred();
       networkInstance = network_layer_1.NetworkManager.Instance;
+      retryConfig = networkInstance.getRetryConfig();
+      // disable retry for messaging event
+      retryConfig.shouldRetry = false;
       baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
       baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
       try {
-        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null);
+        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null, retryConfig);
         // Perform the network GET request
         networkInstance.post(request).then(function (response) {
           // Resolve the deferred object with the data from the response
@@ -12352,7 +12455,7 @@ var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dis
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
-var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 var noop = function () {};
 function sendGetCall(options) {
   sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options);
@@ -12367,6 +12470,8 @@ function sendRequest(method, options) {
     _b = options.errorCallback,
     errorCallback = _b === void 0 ? noop : _b;
   var retryCount = 0;
+  var shouldRetry = networkOptions.retryConfig.shouldRetry;
+  var maxRetries = networkOptions.retryConfig.maxRetries;
   function executeRequest() {
     var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
     if (networkOptions.port) {
@@ -12403,22 +12508,24 @@ function sendRequest(method, options) {
       };
     }
     function handleError(error) {
-      if (retryCount < constants_1.Constants.MAX_RETRIES) {
+      if (shouldRetry && retryCount < maxRetries) {
         retryCount++;
-        var delay = constants_1.Constants.RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+        var delay = networkOptions.retryConfig.initialDelay * Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) * 1000; // Exponential backoff
         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
           endPoint: url.split('?')[0],
           err: error,
-          delay: delay / 1000,
+          delay: delay,
           attempt: retryCount,
-          maxRetries: constants_1.Constants.MAX_RETRIES
+          maxRetries: maxRetries
         }));
         setTimeout(executeRequest, delay);
       } else {
-        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
-          endPoint: url.split('?')[0],
-          err: error
-        }));
+        if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_LOG_EVENT)) {
+          logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+            endPoint: url.split('?')[0],
+            err: error
+          }));
+        }
         errorCallback(error);
       }
     }

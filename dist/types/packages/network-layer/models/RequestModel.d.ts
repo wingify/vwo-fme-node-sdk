@@ -1,4 +1,5 @@
 import { dynamic } from '../../../types/Common';
+import { IRetryConfig } from '../client/NetworkClient';
 /**
  * Represents a model for HTTP requests.
  * This class encapsulates all necessary details such as URL, method, path, query parameters, body, headers,
@@ -14,6 +15,7 @@ export declare class RequestModel {
   private timeout;
   private body;
   private headers;
+  private retryConfig;
   /**
    * Constructs an instance of the RequestModel.
    * @param url The base URL of the HTTP request.
@@ -34,6 +36,7 @@ export declare class RequestModel {
     headers: Record<string, string>,
     scheme: string,
     port: number,
+    retryConfig?: IRetryConfig,
   );
   /**
    * Retrieves the HTTP method.
@@ -125,6 +128,16 @@ export declare class RequestModel {
    * @param path The path to set.
    */
   setPath(path: string): this;
+  /**
+   * Retrieves the retry configuration.
+   * @returns The retry configuration.
+   */
+  getRetryConfig(): IRetryConfig;
+  /**
+   * Sets the retry configuration.
+   * @param retryConfig The retry configuration to set.
+   */
+  setRetryConfig(retryConfig: IRetryConfig): this;
   /**
    * Constructs the options for the HTTP request based on the current state of the model.
    * This method is used to prepare the request options for execution.

@@ -23,3 +23,4 @@ export { init, onInit } from './VWO';
 export { LogLevelEnum, Connector as StorageConnector };
 export { IVWOOptions, IVWOClient, IVWOContextModel, Flag };
 export { ClientStorageOptions } from './packages/storage/connectors/BrowserStorageConnector';
+export { IRetryConfig } from './packages/network-layer/client/NetworkClient';

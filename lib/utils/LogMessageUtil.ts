@@ -17,10 +17,6 @@ import { Constants } from '../constants';
 import { EventEnum } from '../enums/EventEnum';
 import { isFunction } from '../utils/DataTypeUtil';
 import { getEventsBaseProperties, getMessagingEventPayload, sendMessagingEvent } from './NetworkUtil';
-import { ResponseModel } from '../packages/network-layer/models/ResponseModel';
-import { LogManager } from '../packages/logger/core/LogManager';
-import { ErrorLogMessagesEnum } from '../enums/log-messages';
-import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 
 const nargs = /\{([0-9a-zA-Z_]+)\}/g;
 const storedMessages = new Set<string>();
@@ -85,14 +81,6 @@ export function sendLogToVWO(message: string, messageType: string) {
     const payload = getMessagingEventPayload(messageType, message, EventEnum.VWO_LOG_EVENT);
 
     // Send the constructed payload via POST request
-    sendMessagingEvent(properties, payload).catch((err: ResponseModel) => {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-          method: HttpMethodEnum.POST + ' ' + EventEnum.VWO_LOG_EVENT,
-          err: err.getError(),
-        }),
-        false,
-      );
-    });
+    sendMessagingEvent(properties, payload).catch(() => {});
   }
 }

@@ -62,6 +62,9 @@ var VWOOptionsModel = /** @class */ (function () {
         if (options === null || options === void 0 ? void 0 : options.clientStorage) {
             this.clientStorage = options.clientStorage;
         }
+        if (options === null || options === void 0 ? void 0 : options.retryConfig) {
+            this.retryConfig = options.retryConfig;
+        }
         return this;
     };
     VWOOptionsModel.prototype.getAccountId = function () {
@@ -105,6 +108,9 @@ var VWOOptionsModel = /** @class */ (function () {
     };
     VWOOptionsModel.prototype.getClientStorage = function () {
         return this.clientStorage;
+    };
+    VWOOptionsModel.prototype.getRetryConfig = function () {
+        return this.retryConfig;
     };
     return VWOOptionsModel;
 }());

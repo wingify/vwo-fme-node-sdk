@@ -25,8 +25,12 @@ export declare const Constants: {
   RANDOM_ALGO: number;
   API_VERSION: string;
   VWO_META_MEG_KEY: string;
-  MAX_RETRIES: number;
-  RETRY_DELAY: number;
+  DEFAULT_RETRY_CONFIG: {
+    shouldRetry: boolean;
+    initialDelay: number;
+    maxRetries: number;
+    backoffMultiplier: number;
+  };
   DEFAULT_LOCAL_STORAGE_KEY: string;
   DEFAULT_SETTINGS_STORAGE_KEY: string;
 };

@@ -199,6 +199,7 @@ export class SettingsService implements ISettingsService {
 
     const networkInstance = NetworkManager.Instance;
     const options: Record<string, dynamic> = getSettingsPath(this.sdkKey, this.accountId);
+    const retryConfig = networkInstance.getRetryConfig();
 
     options.platform = Constants.PLATFORM;
     options['api-version'] = Constants.API_VERSION;
@@ -222,6 +223,7 @@ export class SettingsService implements ISettingsService {
         null,
         this.protocol,
         this.port,
+        retryConfig,
       );
       request.setTimeout(this.networkTimeout);
 

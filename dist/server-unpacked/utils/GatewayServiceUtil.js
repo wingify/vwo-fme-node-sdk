@@ -70,10 +70,11 @@ var UrlUtil_1 = require("./UrlUtil");
  */
 function getFromGatewayService(queryParams, endpoint) {
     return __awaiter(this, void 0, void 0, function () {
-        var deferredObject, networkInstance, request;
+        var deferredObject, networkInstance, retryConfig, request;
         return __generator(this, function (_a) {
             deferredObject = new PromiseUtil_1.Deferred();
             networkInstance = network_layer_1.NetworkManager.Instance;
+            retryConfig = networkInstance.getRetryConfig();
             // Check if the base URL is not set correctly
             if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
                 // Log an informational message about the invalid URL
@@ -86,7 +87,7 @@ function getFromGatewayService(queryParams, endpoint) {
             // using dacdn where accountid is required
             queryParams['accountId'] = SettingsService_1.SettingsService.Instance.accountId;
             try {
-                request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+                request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
                 // Perform the network GET request
                 networkInstance
                     .get(request)

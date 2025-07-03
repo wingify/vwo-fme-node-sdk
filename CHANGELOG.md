@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.0] - 2025-07-03
+
+### Added
+
+- Added configurable retry mechanism for network requests with partial override support. You can now customize retry behavior by passing a `retryConfig` in the `network` options:
+
+  ```javascript
+  const vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+    retryConfig: {
+      shouldRetry: true, // Turn retries on/off (default: true)
+      maxRetries: 3, // How many times to retry (default: 3)
+      initialDelay: 2, // First retry after 2 seconds (default: 2)
+      backoffMultiplier: 2, // Double the delay each time (delays: 2s, 4s, 8s)
+    },
+  });
+  ```
+
 ## [1.20.2] - 2025-06-26
 
 ### Fixed

@@ -21,7 +21,7 @@ var HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
 var logger_1 = require("../packages/logger");
 var LogMessageUtil_1 = require("./LogMessageUtil");
 var log_messages_1 = require("../enums/log-messages");
-var constants_1 = require("../constants");
+var EventEnum_1 = require("../enums/EventEnum");
 var noop = function () { };
 function sendGetCall(options) {
     sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options);
@@ -32,6 +32,8 @@ function sendPostCall(options) {
 function sendRequest(method, options) {
     var networkOptions = options.networkOptions, _a = options.successCallback, successCallback = _a === void 0 ? noop : _a, _b = options.errorCallback, errorCallback = _b === void 0 ? noop : _b;
     var retryCount = 0;
+    var shouldRetry = networkOptions.retryConfig.shouldRetry;
+    var maxRetries = networkOptions.retryConfig.maxRetries;
     function executeRequest() {
         var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
         if (networkOptions.port) {
@@ -71,23 +73,27 @@ function sendRequest(method, options) {
             };
         }
         function handleError(error) {
-            if (retryCount < constants_1.Constants.MAX_RETRIES) {
+            if (shouldRetry && retryCount < maxRetries) {
                 retryCount++;
-                var delay = constants_1.Constants.RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+                var delay = networkOptions.retryConfig.initialDelay *
+                    Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) *
+                    1000; // Exponential backoff
                 logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
                     endPoint: url.split('?')[0],
                     err: error,
-                    delay: delay / 1000,
+                    delay: delay,
                     attempt: retryCount,
-                    maxRetries: constants_1.Constants.MAX_RETRIES,
+                    maxRetries: maxRetries,
                 }));
                 setTimeout(executeRequest, delay);
             }
             else {
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
-                    endPoint: url.split('?')[0],
-                    err: error,
-                }));
+                if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_LOG_EVENT)) {
+                    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+                        endPoint: url.split('?')[0],
+                        err: error,
+                    }));
+                }
                 errorCallback(error);
             }
         }

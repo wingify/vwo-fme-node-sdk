@@ -236,6 +236,7 @@ var SettingsService = /** @class */ (function () {
         }
         var networkInstance = network_layer_1.NetworkManager.Instance;
         var options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
+        var retryConfig = networkInstance.getRetryConfig();
         options.platform = constants_1.Constants.PLATFORM;
         options['api-version'] = constants_1.Constants.API_VERSION;
         if (!networkInstance.getConfig().getDevelopmentMode()) {
@@ -246,7 +247,7 @@ var SettingsService = /** @class */ (function () {
             path = constants_1.Constants.WEBHOOK_SETTINTS_ENDPOINT;
         }
         try {
-            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port);
+            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
             request.setTimeout(this.networkTimeout);
             networkInstance
                 .get(request)

@@ -97,6 +97,7 @@ To customize the SDK further, additional parameters can be passed to the `init()
 | `shouldWaitForTrackingCalls` | Ensures tracking calls complete before resolving promises, useful for edge computing environments like Cloudflare Workers                                   | No           | Boolean  | `true`                                        |
 | `integrations`               | A callback function that receives data which can be pushed to any external tool that you need to integrate with.                                            | No           | Object   | See [Integrations](#integrations)             |
 | `batchEventData`             | Configuration for batch event processing to optimize network requests                                                                                       | No           | Object   | See [Batch Events](#batch-events) section     |
+| `retryConfig`                | Configuration for network request retry behavior and exponential backoff strategy                                                                           | No           | Object   | See [Retry Config](#retry-config) section     |
 
 Refer to the [official VWO documentation](https://developers.vwo.com/v2/docs/fme-node-install) for additional parameter details.
 
@@ -298,7 +299,7 @@ const vwoClient = await init({
 | ------------- | ------------------------------------------------- | ------------ | -------- | ---------------- |
 | `key`         | Key used to store data in browser storage         | No           | String   | `'vwo_fme_data'` |
 | `provider`    | Storage provider (localStorage or sessionStorage) | No           | Object   | `localStorage`   |
-| `isDisabled`    | Disable browser storage completely                | No           | Boolean  | `false`          |
+| `isDisabled`  | Disable browser storage completely                | No           | Boolean  | `false`          |
 
 Note: This feature is only applicable in browser environments. In Node.js environments, you should continue using the `storage` option for custom storage implementations.
 
@@ -454,6 +455,49 @@ You can also manually flush events using the `flushEvents()` method:
 ```javascript
 vwoClient.flushEvents();
 ```
+
+### Retry Config
+
+The `retryConfig` parameter allows you to customize the retry behavior for network requests. This is particularly useful for applications that need to handle network failures gracefully with exponential backoff strategies.
+
+| **Parameter**       | **Description**                                           | **Required** | **Type** | **Default** | **Validation**                      |
+| ------------------- | --------------------------------------------------------- | ------------ | -------- | ----------- | ----------------------------------- |
+| `shouldRetry`       | Whether to enable automatic retry on network failures     | No           | Boolean  | `true`      | Must be a boolean value             |
+| `maxRetries`        | Maximum number of retry attempts before giving up         | No           | Number   | `3`         | Must be a non-negative integer >= 1 |
+| `initialDelay`      | Initial delay (in seconds) before the first retry attempt | No           | Number   | `2`         | Must be a non-negative integer >= 1 |
+| `backoffMultiplier` | Multiplier for exponential backoff between retry attempts | No           | Number   | `2`         | Must be a non-negative integer >= 2 |
+
+#### How Retry Logic Works
+
+The SDK implements an exponential backoff strategy for retrying failed network requests:
+
+1. **Initial Request**: The SDK attempts the initial network request
+2. **On Failure**: If the request fails and `shouldRetry` is `true`, the SDK waits for `initialDelay` seconds
+3. **Exponential Backoff**: For subsequent retries, the delay is calculated as: `initialDelay × (backoffMultiplier ^ attempt)`
+4. **Maximum Attempts**: The SDK will retry up to `maxRetries` times before giving up
+
+#### Example Usage
+
+```javascript
+const vwoClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  retryConfig: {
+    shouldRetry: true, // Enable retries
+    maxRetries: 5, // Retry up to 5 times
+    initialDelay: 3, // Wait 3 seconds before first retry
+    backoffMultiplier: 2, // Double the delay for each subsequent retry
+  },
+});
+```
+
+With this configuration, the retry delays would be:
+
+- 1st retry: 3 seconds (3 × 2^0)
+- 2nd retry: 6 seconds (3 × 2^1)
+- 3rd retry: 12 seconds (3 × 2^2)
+- 4th retry: 24 seconds (3 × 2^3)
+- 5th retry: 48 seconds (3 × 2^4)
 
 ### Version History
 

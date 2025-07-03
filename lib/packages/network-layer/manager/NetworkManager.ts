@@ -14,22 +14,100 @@
  * limitations under the License.
  */
 import { Deferred } from '../../../utils/PromiseUtil';
+import { IRetryConfig } from '../client/NetworkClient';
 import { NetworkClientInterface } from '../client/NetworkClientInterface';
 import { RequestHandler } from '../handlers/RequestHandler';
 import { GlobalRequestModel } from '../models/GlobalRequestModel';
 import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
+import { Constants } from '../../../constants';
+import { isBoolean, isNumber } from '../../../utils/DataTypeUtil';
+import { LogManager } from '../../logger/core/LogManager';
+import { ErrorLogMessagesEnum } from '../../../enums/log-messages';
+import { buildMessage } from '../../../utils/LogMessageUtil';
 
 export class NetworkManager {
   private config: GlobalRequestModel; // Holds the global configuration for network requests
   private client: NetworkClientInterface; // Interface for the network client handling the actual HTTP requests
   private static instance: NetworkManager; // Singleton instance of NetworkManager
+  private retryConfig: IRetryConfig;
+
+  /**
+   * Validates the retry configuration parameters
+   * @param {IRetryConfig} retryConfig - The retry configuration to validate
+   * @returns {IRetryConfig} The validated retry configuration with corrected values
+   */
+  private validateRetryConfig(retryConfig: IRetryConfig): IRetryConfig {
+    const validatedConfig: IRetryConfig = { ...retryConfig };
+    let isInvalidConfig = false;
+
+    // Validate shouldRetry: should be a boolean value
+    if (!isBoolean(validatedConfig.shouldRetry)) {
+      validatedConfig.shouldRetry = Constants.DEFAULT_RETRY_CONFIG.shouldRetry;
+      isInvalidConfig = true;
+    }
+
+    // Validate maxRetries: should be a non-negative integer and should not be less than 1
+    if (
+      !isNumber(validatedConfig.maxRetries) ||
+      !Number.isInteger(validatedConfig.maxRetries) ||
+      validatedConfig.maxRetries < 1
+    ) {
+      validatedConfig.maxRetries = Constants.DEFAULT_RETRY_CONFIG.maxRetries;
+      isInvalidConfig = true;
+    }
+
+    // Validate initialDelay: should be a non-negative integer and should not be less than 1
+    if (
+      !isNumber(validatedConfig.initialDelay) ||
+      !Number.isInteger(validatedConfig.initialDelay) ||
+      validatedConfig.initialDelay < 1
+    ) {
+      validatedConfig.initialDelay = Constants.DEFAULT_RETRY_CONFIG.initialDelay;
+      isInvalidConfig = true;
+    }
+
+    // Validate backoffMultiplier: should be a non-negative integer and should not be less than 2
+    if (
+      !isNumber(validatedConfig.backoffMultiplier) ||
+      !Number.isInteger(validatedConfig.backoffMultiplier) ||
+      validatedConfig.backoffMultiplier < 2
+    ) {
+      validatedConfig.backoffMultiplier = Constants.DEFAULT_RETRY_CONFIG.backoffMultiplier;
+      isInvalidConfig = true;
+    }
+
+    if (isInvalidConfig) {
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.RETRY_CONFIG_INVALID, {
+          retryConfig: JSON.stringify(validatedConfig),
+        }),
+      );
+    }
+    return isInvalidConfig ? Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
+  }
 
   /**
    * Attaches a network client to the manager, or uses a default if none provided.
    * @param {NetworkClientInterface} client - The client to attach, optional.
+   * @param {IRetryConfig} retryConfig - The retry configuration, optional.
    */
-  attachClient(client?: NetworkClientInterface): void {
+  attachClient(client?: NetworkClientInterface, retryConfig?: IRetryConfig): void {
+    // Only set retry configuration if it's not already initialized or if a new config is provided
+    if (!this.retryConfig || retryConfig) {
+      // Define default retry configuration
+      const defaultRetryConfig: IRetryConfig = Constants.DEFAULT_RETRY_CONFIG;
+
+      // Merge provided retryConfig with defaults, giving priority to provided values
+      const mergedConfig = {
+        ...defaultRetryConfig,
+        ...(retryConfig || {}),
+      };
+
+      // Validate the merged configuration
+      this.retryConfig = this.validateRetryConfig(mergedConfig);
+    }
+
     // if env is undefined, we are in browser
     if ((typeof process.env as any) === 'undefined') {
       // if XMLHttpRequest is undefined, we are in serverless
@@ -53,6 +131,14 @@ export class NetworkManager {
     }
 
     this.config = new GlobalRequestModel(null, null, null, null); // Initialize with default config
+  }
+
+  /**
+   * Retrieves the current retry configuration.
+   * @returns {IRetryConfig} A copy of the current retry configuration.
+   */
+  getRetryConfig(): IRetryConfig {
+    return { ...this.retryConfig };
   }
 
   /**

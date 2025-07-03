@@ -1,6 +1,12 @@
 import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { NetworkClientInterface } from './NetworkClientInterface';
+export interface IRetryConfig {
+  shouldRetry?: boolean;
+  initialDelay?: number;
+  maxRetries?: number;
+  backoffMultiplier?: number;
+}
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */

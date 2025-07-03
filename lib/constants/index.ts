@@ -74,8 +74,12 @@ export const Constants = {
 
   VWO_META_MEG_KEY: '_vwo_meta_meg_',
 
-  MAX_RETRIES: 3,
-  RETRY_DELAY: 1000, // 1 second
+  DEFAULT_RETRY_CONFIG: {
+    shouldRetry: true,
+    initialDelay: 2,
+    maxRetries: 3,
+    backoffMultiplier: 2,
+  },
 
   DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
   DEFAULT_SETTINGS_STORAGE_KEY: 'vwo_fme_settings',

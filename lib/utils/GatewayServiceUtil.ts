@@ -34,6 +34,7 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
   const deferredObject = new Deferred();
   // Singleton instance of the network manager
   const networkInstance = NetworkManager.Instance;
+  const retryConfig = networkInstance.getRetryConfig();
 
   // Check if the base URL is not set correctly
   if (!SettingsService.Instance.isGatewayServiceProvided) {
@@ -59,6 +60,7 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
       null,
       SettingsService.Instance.protocol,
       SettingsService.Instance.port,
+      retryConfig,
     );
 
     // Perform the network GET request

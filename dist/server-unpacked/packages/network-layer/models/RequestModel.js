@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RequestModel = void 0;
 /**
@@ -18,6 +29,7 @@ exports.RequestModel = void 0;
  */
 var HttpMethodEnum_1 = require("../../../enums/HttpMethodEnum");
 var Url_1 = require("../../../constants/Url");
+var constants_1 = require("../../../constants");
 /**
  * Represents a model for HTTP requests.
  * This class encapsulates all necessary details such as URL, method, path, query parameters, body, headers,
@@ -35,7 +47,7 @@ var RequestModel = /** @class */ (function () {
      * @param scheme Protocol scheme, default is 'http'.
      * @param port Port number, default is 80.
      */
-    function RequestModel(url, method, path, query, body, headers, scheme, port) {
+    function RequestModel(url, method, path, query, body, headers, scheme, port, retryConfig) {
         if (method === void 0) { method = HttpMethodEnum_1.HttpMethodEnum.GET; }
         if (scheme === void 0) { scheme = Url_1.HTTPS; }
         this.url = url;
@@ -46,6 +58,7 @@ var RequestModel = /** @class */ (function () {
         this.headers = headers;
         this.scheme = scheme;
         this.port = port;
+        this.retryConfig = retryConfig || constants_1.Constants.DEFAULT_RETRY_CONFIG;
     }
     /**
      * Retrieves the HTTP method.
@@ -180,6 +193,21 @@ var RequestModel = /** @class */ (function () {
         return this;
     };
     /**
+     * Retrieves the retry configuration.
+     * @returns The retry configuration.
+     */
+    RequestModel.prototype.getRetryConfig = function () {
+        return __assign({}, this.retryConfig);
+    };
+    /**
+     * Sets the retry configuration.
+     * @param retryConfig The retry configuration to set.
+     */
+    RequestModel.prototype.setRetryConfig = function (retryConfig) {
+        this.retryConfig = retryConfig;
+        return this;
+    };
+    /**
      * Constructs the options for the HTTP request based on the current state of the model.
      * This method is used to prepare the request options for execution.
      * @returns A record containing all relevant options for the HTTP request.
@@ -236,6 +264,7 @@ var RequestModel = /** @class */ (function () {
         if (options.path.charAt(options.path.length - 1) === '&') {
             options.path = options.path.substring(0, options.path.length - 1);
         }
+        options.retryConfig = this.retryConfig;
         return options;
     };
     return RequestModel;

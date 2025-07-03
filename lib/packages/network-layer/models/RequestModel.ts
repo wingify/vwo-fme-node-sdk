@@ -16,6 +16,8 @@
 import { HttpMethodEnum } from '../../../enums/HttpMethodEnum';
 import { dynamic } from '../../../types/Common';
 import { HTTPS } from '../../../constants/Url';
+import { IRetryConfig } from '../client/NetworkClient';
+import { Constants } from '../../../constants';
 
 /**
  * Represents a model for HTTP requests.
@@ -32,7 +34,7 @@ export class RequestModel {
   private timeout: number; // Timeout for the HTTP request in milliseconds
   private body: Record<string, dynamic>; // Body of the HTTP request
   private headers: Record<string, string>; // HTTP headers
-
+  private retryConfig: IRetryConfig; // Retry configuration
   /**
    * Constructs an instance of the RequestModel.
    * @param url The base URL of the HTTP request.
@@ -53,6 +55,7 @@ export class RequestModel {
     headers: Record<string, string>,
     scheme: string = HTTPS,
     port: number,
+    retryConfig?: IRetryConfig,
   ) {
     this.url = url;
     this.method = method;
@@ -62,6 +65,7 @@ export class RequestModel {
     this.headers = headers;
     this.scheme = scheme;
     this.port = port;
+    this.retryConfig = retryConfig || Constants.DEFAULT_RETRY_CONFIG;
   }
 
   /**
@@ -215,6 +219,23 @@ export class RequestModel {
   }
 
   /**
+   * Retrieves the retry configuration.
+   * @returns The retry configuration.
+   */
+  getRetryConfig(): IRetryConfig {
+    return { ...this.retryConfig };
+  }
+
+  /**
+   * Sets the retry configuration.
+   * @param retryConfig The retry configuration to set.
+   */
+  setRetryConfig(retryConfig: IRetryConfig): this {
+    this.retryConfig = retryConfig;
+    return this;
+  }
+
+  /**
    * Constructs the options for the HTTP request based on the current state of the model.
    * This method is used to prepare the request options for execution.
    * @returns A record containing all relevant options for the HTTP request.
@@ -277,6 +298,7 @@ export class RequestModel {
       options.path = options.path.substring(0, options.path.length - 1);
     }
 
+    options.retryConfig = this.retryConfig;
     return options;
   }
 }

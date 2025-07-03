@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.20.2
+ * vwo-fme-javascript-sdk - v1.21.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -317,15 +317,15 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         var networkInstance = network_layer_1.NetworkManager.Instance;
         // Attach the network client from options
-        networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client);
+        networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig);
         logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: "Network Layer",
         }));
         // Set the development mode based on options
-        networkInstance.getConfig().setDevelopmentMode((_c = this.options) === null || _c === void 0 ? void 0 : _c.isDevelopmentMode);
+        networkInstance.getConfig().setDevelopmentMode((_d = this.options) === null || _d === void 0 ? void 0 : _d.isDevelopmentMode);
         return this;
     };
     VWOBuilder.prototype.initBatching = function () {
@@ -1712,7 +1712,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.20.2", // will be replaced by webpack for browser build
+        version: "1.21.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -1744,8 +1744,12 @@ exports.Constants = {
     RANDOM_ALGO: 1,
     API_VERSION: '1',
     VWO_META_MEG_KEY: '_vwo_meta_meg_',
-    MAX_RETRIES: 3,
-    RETRY_DELAY: 1000, // 1 second
+    DEFAULT_RETRY_CONFIG: {
+        shouldRetry: true,
+        initialDelay: 2,
+        maxRetries: 3,
+        backoffMultiplier: 2,
+    },
     DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
     DEFAULT_SETTINGS_STORAGE_KEY: 'vwo_fme_settings',
 };
@@ -4182,10 +4186,21 @@ Object.defineProperty(exports, "ResponseModel", ({ enumerable: true, get: functi
 /*!**************************************************************!*\
   !*** ./lib/packages/network-layer/manager/NetworkManager.ts ***!
   \**************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NetworkManager = void 0;
 /**
@@ -4206,14 +4221,70 @@ exports.NetworkManager = void 0;
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 var RequestHandler_1 = __webpack_require__(/*! ../handlers/RequestHandler */ "./lib/packages/network-layer/handlers/RequestHandler.ts");
 var GlobalRequestModel_1 = __webpack_require__(/*! ../models/GlobalRequestModel */ "./lib/packages/network-layer/models/GlobalRequestModel.ts");
+var constants_1 = __webpack_require__(/*! ../../../constants */ "./lib/constants/index.ts");
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+var LogManager_1 = __webpack_require__(/*! ../../logger/core/LogManager */ "./lib/packages/logger/core/LogManager.ts");
+var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var NetworkManager = /** @class */ (function () {
     function NetworkManager() {
     }
     /**
+     * Validates the retry configuration parameters
+     * @param {IRetryConfig} retryConfig - The retry configuration to validate
+     * @returns {IRetryConfig} The validated retry configuration with corrected values
+     */
+    NetworkManager.prototype.validateRetryConfig = function (retryConfig) {
+        var validatedConfig = __assign({}, retryConfig);
+        var isInvalidConfig = false;
+        // Validate shouldRetry: should be a boolean value
+        if (!(0, DataTypeUtil_1.isBoolean)(validatedConfig.shouldRetry)) {
+            validatedConfig.shouldRetry = constants_1.Constants.DEFAULT_RETRY_CONFIG.shouldRetry;
+            isInvalidConfig = true;
+        }
+        // Validate maxRetries: should be a non-negative integer and should not be less than 1
+        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.maxRetries) ||
+            !Number.isInteger(validatedConfig.maxRetries) ||
+            validatedConfig.maxRetries < 1) {
+            validatedConfig.maxRetries = constants_1.Constants.DEFAULT_RETRY_CONFIG.maxRetries;
+            isInvalidConfig = true;
+        }
+        // Validate initialDelay: should be a non-negative integer and should not be less than 1
+        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.initialDelay) ||
+            !Number.isInteger(validatedConfig.initialDelay) ||
+            validatedConfig.initialDelay < 1) {
+            validatedConfig.initialDelay = constants_1.Constants.DEFAULT_RETRY_CONFIG.initialDelay;
+            isInvalidConfig = true;
+        }
+        // Validate backoffMultiplier: should be a non-negative integer and should not be less than 2
+        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.backoffMultiplier) ||
+            !Number.isInteger(validatedConfig.backoffMultiplier) ||
+            validatedConfig.backoffMultiplier < 2) {
+            validatedConfig.backoffMultiplier = constants_1.Constants.DEFAULT_RETRY_CONFIG.backoffMultiplier;
+            isInvalidConfig = true;
+        }
+        if (isInvalidConfig) {
+            LogManager_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.RETRY_CONFIG_INVALID, {
+                retryConfig: JSON.stringify(validatedConfig),
+            }));
+        }
+        return isInvalidConfig ? constants_1.Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
+    };
+    /**
      * Attaches a network client to the manager, or uses a default if none provided.
      * @param {NetworkClientInterface} client - The client to attach, optional.
+     * @param {IRetryConfig} retryConfig - The retry configuration, optional.
      */
-    NetworkManager.prototype.attachClient = function (client) {
+    NetworkManager.prototype.attachClient = function (client, retryConfig) {
+        // Only set retry configuration if it's not already initialized or if a new config is provided
+        if (!this.retryConfig || retryConfig) {
+            // Define default retry configuration
+            var defaultRetryConfig = constants_1.Constants.DEFAULT_RETRY_CONFIG;
+            // Merge provided retryConfig with defaults, giving priority to provided values
+            var mergedConfig = __assign(__assign({}, defaultRetryConfig), (retryConfig || {}));
+            // Validate the merged configuration
+            this.retryConfig = this.validateRetryConfig(mergedConfig);
+        }
         // if env is undefined, we are in browser
         if (true) {
             // if XMLHttpRequest is undefined, we are in serverless
@@ -4231,6 +4302,13 @@ var NetworkManager = /** @class */ (function () {
         }
         else { var NetworkClient; }
         this.config = new GlobalRequestModel_1.GlobalRequestModel(null, null, null, null); // Initialize with default config
+    };
+    /**
+     * Retrieves the current retry configuration.
+     * @returns {IRetryConfig} A copy of the current retry configuration.
+     */
+    NetworkManager.prototype.getRetryConfig = function () {
+        return __assign({}, this.retryConfig);
     };
     Object.defineProperty(NetworkManager, "Instance", {
         /**
@@ -4445,10 +4523,21 @@ exports.GlobalRequestModel = GlobalRequestModel;
 /*!***********************************************************!*\
   !*** ./lib/packages/network-layer/models/RequestModel.ts ***!
   \***********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RequestModel = void 0;
 /**
@@ -4468,6 +4557,7 @@ exports.RequestModel = void 0;
  */
 var HttpMethodEnum_1 = __webpack_require__(/*! ../../../enums/HttpMethodEnum */ "./lib/enums/HttpMethodEnum.ts");
 var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./lib/constants/Url.ts");
+var constants_1 = __webpack_require__(/*! ../../../constants */ "./lib/constants/index.ts");
 /**
  * Represents a model for HTTP requests.
  * This class encapsulates all necessary details such as URL, method, path, query parameters, body, headers,
@@ -4485,7 +4575,7 @@ var RequestModel = /** @class */ (function () {
      * @param scheme Protocol scheme, default is 'http'.
      * @param port Port number, default is 80.
      */
-    function RequestModel(url, method, path, query, body, headers, scheme, port) {
+    function RequestModel(url, method, path, query, body, headers, scheme, port, retryConfig) {
         if (method === void 0) { method = HttpMethodEnum_1.HttpMethodEnum.GET; }
         if (scheme === void 0) { scheme = Url_1.HTTPS; }
         this.url = url;
@@ -4496,6 +4586,7 @@ var RequestModel = /** @class */ (function () {
         this.headers = headers;
         this.scheme = scheme;
         this.port = port;
+        this.retryConfig = retryConfig || constants_1.Constants.DEFAULT_RETRY_CONFIG;
     }
     /**
      * Retrieves the HTTP method.
@@ -4630,6 +4721,21 @@ var RequestModel = /** @class */ (function () {
         return this;
     };
     /**
+     * Retrieves the retry configuration.
+     * @returns The retry configuration.
+     */
+    RequestModel.prototype.getRetryConfig = function () {
+        return __assign({}, this.retryConfig);
+    };
+    /**
+     * Sets the retry configuration.
+     * @param retryConfig The retry configuration to set.
+     */
+    RequestModel.prototype.setRetryConfig = function (retryConfig) {
+        this.retryConfig = retryConfig;
+        return this;
+    };
+    /**
      * Constructs the options for the HTTP request based on the current state of the model.
      * This method is used to prepare the request options for execution.
      * @returns A record containing all relevant options for the HTTP request.
@@ -4686,6 +4792,7 @@ var RequestModel = /** @class */ (function () {
         if (options.path.charAt(options.path.length - 1) === '&') {
             options.path = options.path.substring(0, options.path.length - 1);
         }
+        options.retryConfig = this.retryConfig;
         return options;
     };
     return RequestModel;
@@ -7209,6 +7316,7 @@ var SettingsService = /** @class */ (function () {
         }
         var networkInstance = network_layer_1.NetworkManager.Instance;
         var options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
+        var retryConfig = networkInstance.getRetryConfig();
         options.platform = constants_1.Constants.PLATFORM;
         options['api-version'] = constants_1.Constants.API_VERSION;
         if (!networkInstance.getConfig().getDevelopmentMode()) {
@@ -7219,7 +7327,7 @@ var SettingsService = /** @class */ (function () {
             path = constants_1.Constants.WEBHOOK_SETTINTS_ENDPOINT;
         }
         try {
-            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port);
+            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
             request.setTimeout(this.networkTimeout);
             networkInstance
                 .get(request)
@@ -7528,17 +7636,19 @@ var BatchEventsDispatcher = /** @class */ (function () {
      */
     BatchEventsDispatcher.sendPostApiRequest = function (properties, payload, flushCallback) {
         return __awaiter(this, void 0, void 0, function () {
-            var deferred, headers, baseUrl, request, response, batchApiResult, error_1, batchApiResult;
+            var deferred, networkManager, retryConfig, headers, baseUrl, request, response, batchApiResult, error_1, batchApiResult;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         deferred = new PromiseUtil_1.Deferred();
-                        network_layer_2.NetworkManager.Instance.attachClient();
+                        networkManager = network_layer_2.NetworkManager.Instance;
+                        networkManager.attachClient();
+                        retryConfig = networkManager.getRetryConfig();
                         headers = {};
                         headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
                         baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
                         baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
-                        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+                        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
@@ -8761,10 +8871,11 @@ var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./lib/utils/UrlUtil.ts");
  */
 function getFromGatewayService(queryParams, endpoint) {
     return __awaiter(this, void 0, void 0, function () {
-        var deferredObject, networkInstance, request;
+        var deferredObject, networkInstance, retryConfig, request;
         return __generator(this, function (_a) {
             deferredObject = new PromiseUtil_1.Deferred();
             networkInstance = network_layer_1.NetworkManager.Instance;
+            retryConfig = networkInstance.getRetryConfig();
             // Check if the base URL is not set correctly
             if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
                 // Log an informational message about the invalid URL
@@ -8777,7 +8888,7 @@ function getFromGatewayService(queryParams, endpoint) {
             // using dacdn where accountid is required
             queryParams['accountId'] = SettingsService_1.SettingsService.Instance.accountId;
             try {
-                request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+                request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
                 // Perform the network GET request
                 networkInstance
                     .get(request)
@@ -8982,9 +9093,6 @@ var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
-var LogManager_1 = __webpack_require__(/*! ../packages/logger/core/LogManager */ "./lib/packages/logger/core/LogManager.ts");
-var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
-var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./lib/enums/HttpMethodEnum.ts");
 var nargs = /\{([0-9a-zA-Z_]+)\}/g;
 var storedMessages = new Set();
 /**
@@ -9037,12 +9145,7 @@ function sendLogToVWO(message, messageType) {
         // create the payload
         var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT);
         // Send the constructed payload via POST request
-        (0, NetworkUtil_1.sendMessagingEvent)(properties, payload).catch(function (err) {
-            LogManager_1.LogManager.Instance.error(buildMessage(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
-                method: HttpMethodEnum_1.HttpMethodEnum.POST + ' ' + EventEnum_1.EventEnum.VWO_LOG_EVENT,
-                err: err.getError(),
-            }), false);
-        });
+        (0, NetworkUtil_1.sendMessagingEvent)(properties, payload).catch(function () { });
     }
 }
 
@@ -9849,11 +9952,13 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  */
 function sendPostApiRequest(properties, payload, userId) {
     return __awaiter(this, void 0, void 0, function () {
-        var headers, userAgent, ipAddress, baseUrl, request;
+        var networkManager, retryConfig, headers, userAgent, ipAddress, baseUrl, request;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    network_layer_1.NetworkManager.Instance.attachClient();
+                    networkManager = network_layer_1.NetworkManager.Instance;
+                    networkManager.attachClient();
+                    retryConfig = networkManager.getRetryConfig();
                     headers = {};
                     userAgent = payload.d.visitor_ua;
                     ipAddress = payload.d.visitor_ip;
@@ -9864,7 +9969,7 @@ function sendPostApiRequest(properties, payload, userId) {
                         headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
                     baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
                     baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
-                    request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+                    request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
                     return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request)
                             .then(function () {
                             // clear usage stats only if network call is successful
@@ -9938,14 +10043,17 @@ function getMessagingEventPayload(messageType, message, eventName) {
  */
 function sendMessagingEvent(properties, payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var deferredObject, networkInstance, baseUrl, request;
+        var deferredObject, networkInstance, retryConfig, baseUrl, request;
         return __generator(this, function (_a) {
             deferredObject = new PromiseUtil_1.Deferred();
             networkInstance = network_layer_1.NetworkManager.Instance;
+            retryConfig = networkInstance.getRetryConfig();
+            // disable retry for messaging event
+            retryConfig.shouldRetry = false;
             baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
             baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
             try {
-                request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null);
+                request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null, retryConfig);
                 // Perform the network GET request
                 networkInstance
                     .post(request)
@@ -10436,7 +10544,7 @@ var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./lib
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./lib/packages/logger/index.ts");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
-var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
 var noop = function () { };
 function sendGetCall(options) {
     sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options);
@@ -10447,6 +10555,8 @@ function sendPostCall(options) {
 function sendRequest(method, options) {
     var networkOptions = options.networkOptions, _a = options.successCallback, successCallback = _a === void 0 ? noop : _a, _b = options.errorCallback, errorCallback = _b === void 0 ? noop : _b;
     var retryCount = 0;
+    var shouldRetry = networkOptions.retryConfig.shouldRetry;
+    var maxRetries = networkOptions.retryConfig.maxRetries;
     function executeRequest() {
         var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
         if (networkOptions.port) {
@@ -10486,23 +10596,27 @@ function sendRequest(method, options) {
             };
         }
         function handleError(error) {
-            if (retryCount < constants_1.Constants.MAX_RETRIES) {
+            if (shouldRetry && retryCount < maxRetries) {
                 retryCount++;
-                var delay = constants_1.Constants.RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+                var delay = networkOptions.retryConfig.initialDelay *
+                    Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) *
+                    1000; // Exponential backoff
                 logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
                     endPoint: url.split('?')[0],
                     err: error,
-                    delay: delay / 1000,
+                    delay: delay,
                     attempt: retryCount,
-                    maxRetries: constants_1.Constants.MAX_RETRIES,
+                    maxRetries: maxRetries,
                 }));
                 setTimeout(executeRequest, delay);
             }
             else {
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
-                    endPoint: url.split('?')[0],
-                    err: error,
-                }));
+                if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_LOG_EVENT)) {
+                    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+                        endPoint: url.split('?')[0],
+                        err: error,
+                    }));
+                }
                 errorCallback(error);
             }
         }
@@ -12871,7 +12985,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}","CONFIG_PARAMETER_INVALID":"{parameter} paased in {api} API is not correct. It should be of type:{type}}","BATCH_QUEUE_EMPTY":"No batch queue present for account:{accountId} when calling flushEvents API. Check batchEvents config in launch API"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}","CONFIG_PARAMETER_INVALID":"{parameter} paased in {api} API is not correct. It should be of type:{type}}","BATCH_QUEUE_EMPTY":"No batch queue present for account:{accountId} when calling flushEvents API. Check batchEvents config in launch API","RETRY_CONFIG_INVALID":"Retry config is invalid. Please check the vwo documentation for more details. Using retry config: {retryConfig}"}');
 
 /***/ }),
 
@@ -12882,7 +12996,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings fetched from cache","SETTINGS_BACKGROUND_UPDATE":"Settings updated in background","SETTINGS_CACHE_MISS":"Settings not found in cache, proceeding to fetch from server","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} not passed in SDK configuration, setting it default to {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} not passed in SDK configuration, setting it default to {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details"}');
 
 /***/ }),
 

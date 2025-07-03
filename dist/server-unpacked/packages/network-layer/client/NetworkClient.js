@@ -21,10 +21,10 @@ var https = require("https");
 var PromiseUtil_1 = require("../../../utils/PromiseUtil");
 var Url_1 = require("../../../constants/Url");
 var ResponseModel_1 = require("../models/ResponseModel");
-var constants_1 = require("../../../constants");
 var logger_1 = require("../../../packages/logger");
 var LogMessageUtil_1 = require("../../../utils/LogMessageUtil");
 var log_messages_1 = require("../../../enums/log-messages");
+var EventEnum_1 = require("../../../enums/EventEnum");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -59,7 +59,7 @@ var NetworkClient = /** @class */ (function () {
                     if (error) {
                         // Log error and consume response data to free up memory.
                         res.resume();
-                        return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                        return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
                     }
                     res.setEncoding('utf8');
                     // Collect data chunks.
@@ -79,26 +79,26 @@ var NetworkClient = /** @class */ (function () {
                                     deferred.reject(responseModel);
                                     return;
                                 }
-                                return _this.retryOrReject(error_1, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                                return _this.retryOrReject(error_1, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
                             }
                             responseModel.setData(parsedData);
                             deferred.resolve(responseModel);
                         }
                         catch (err) {
-                            return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                            return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
                         }
                     });
                 });
                 // Handle request timeout.
                 req.on('timeout', function () {
-                    return _this.retryOrReject(new Error('timeout'), attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                    return _this.retryOrReject(new Error('timeout'), attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
                 });
                 req.on('error', function (err) {
-                    return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                    return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
                 });
             }
             catch (err) {
-                _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
             }
             return deferred.promise;
         };
@@ -143,28 +143,28 @@ var NetworkClient = /** @class */ (function () {
                                     deferred.reject(responseModel);
                                     return;
                                 }
-                                return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                                return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
                             }
                         }
                         catch (err) {
-                            return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                            return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
                         }
                     });
                 });
                 // Handle request timeout.
                 req.on('timeout', function () {
                     var error = "Timeout: ".concat(networkOptions.timeout);
-                    return _this.retryOrReject(error, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                    return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
                 });
                 req.on('error', function (err) {
-                    return _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                    return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
                 });
                 // Write data to the request body and end the request.
                 req.write(JSON.stringify(networkOptions.body));
                 req.end();
             }
             catch (err) {
-                _this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+                _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
             }
             return deferred.promise;
         };
@@ -178,15 +178,16 @@ var NetworkClient = /** @class */ (function () {
      * @param {string} operation - The operation to retry or reject
      * @param {Function} attemptRequest - The function to attempt the request
      */
-    NetworkClient.prototype.retryOrReject = function (error, attempt, deferred, endpoint, attemptRequest) {
-        var delay = constants_1.Constants.RETRY_DELAY * Math.pow(2, attempt + 1);
-        if (attempt < constants_1.Constants.MAX_RETRIES) {
+    NetworkClient.prototype.retryOrReject = function (error, attempt, deferred, networkOptions, attemptRequest, retryConfig) {
+        var endpoint = String(networkOptions.path).split('?')[0];
+        var delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, attempt) * 1000;
+        if (retryConfig.shouldRetry && attempt < retryConfig.maxRetries) {
             logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
                 endPoint: endpoint,
                 err: error,
-                delay: delay / 1000,
+                delay: delay,
                 attempt: attempt + 1,
-                maxRetries: constants_1.Constants.MAX_RETRIES,
+                maxRetries: retryConfig.maxRetries,
             }));
             setTimeout(function () {
                 attemptRequest(attempt + 1)
@@ -195,10 +196,13 @@ var NetworkClient = /** @class */ (function () {
             }, delay);
         }
         else {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
-                endPoint: endpoint,
-                err: error,
-            }));
+            if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_LOG_EVENT)) {
+                // only log error if the endpoint is not vwo_log event
+                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+                    endPoint: endpoint,
+                    err: error,
+                }));
+            }
             var responseModel = new ResponseModel_1.ResponseModel();
             responseModel.setError(error);
             deferred.reject(responseModel);

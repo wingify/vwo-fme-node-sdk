@@ -48,7 +48,9 @@ export class BatchEventsDispatcher {
     flushCallback: (error: Error | null, data: Record<string, any>) => void,
   ): Promise<Record<string, any>> {
     const deferred = new Deferred();
-    NetworkManager.Instance.attachClient();
+    const networkManager = NetworkManager.Instance;
+    networkManager.attachClient();
+    const retryConfig = networkManager.getRetryConfig();
 
     const headers: Record<string, string> = {};
     headers['Authorization'] = SettingsService.Instance.sdkKey;
@@ -65,6 +67,7 @@ export class BatchEventsDispatcher {
       headers,
       SettingsService.Instance.protocol,
       SettingsService.Instance.port,
+      retryConfig,
     );
 
     try {

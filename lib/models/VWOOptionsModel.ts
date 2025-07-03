@@ -22,6 +22,7 @@ import { Connector } from '../packages/storage/Connector';
 import { IGatewayService } from './GatewayServiceModel';
 import { BatchConfig } from '../services/BatchEventsQueue';
 import { ClientStorageOptions } from '../packages/storage/connectors/BrowserStorageConnector';
+import { IRetryConfig } from '../packages/network-layer/client/NetworkClient';
 interface IIntegrationOptions {
   callback?: (properties: Record<string, any>) => void;
 }
@@ -49,6 +50,7 @@ export interface IVWOOptions {
   isUsageStatsDisabled?: boolean;
   _vwo_meta?: Record<any, any>;
   clientStorage?: ClientStorageOptions;
+  retryConfig?: IRetryConfig;
 }
 
 export class VWOOptionsModel implements IVWOOptions {
@@ -69,6 +71,7 @@ export class VWOOptionsModel implements IVWOOptions {
   isUsageStatsDisabled?: boolean;
   _vwo_meta?: Record<any, any>;
   clientStorage?: ClientStorageOptions;
+  retryConfig?: IRetryConfig;
   modelFromDictionary(options: VWOOptionsModel): this {
     this.accountId = options.accountId;
     this.sdkKey = options.sdkKey;
@@ -116,6 +119,10 @@ export class VWOOptionsModel implements IVWOOptions {
 
     if (options?.clientStorage) {
       this.clientStorage = options.clientStorage;
+    }
+
+    if (options?.retryConfig) {
+      this.retryConfig = options.retryConfig;
     }
 
     return this;
@@ -175,5 +182,9 @@ export class VWOOptionsModel implements IVWOOptions {
 
   getClientStorage(): ClientStorageOptions {
     return this.clientStorage;
+  }
+
+  getRetryConfig(): IRetryConfig {
+    return this.retryConfig;
   }
 }

@@ -17,7 +17,7 @@ import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 import { LogManager } from '../packages/logger';
 import { buildMessage } from './LogMessageUtil';
 import { ErrorLogMessagesEnum } from '../enums/log-messages';
-import { Constants } from '../constants';
+import { EventEnum } from '../enums/EventEnum';
 
 const noop = () => {};
 
@@ -33,6 +33,8 @@ function sendRequest(method, options) {
   const { networkOptions, successCallback = noop, errorCallback = noop } = options;
 
   let retryCount = 0;
+  const shouldRetry = networkOptions.retryConfig.shouldRetry;
+  const maxRetries = networkOptions.retryConfig.maxRetries;
 
   function executeRequest() {
     let url = `${networkOptions.scheme}://${networkOptions.hostname}${networkOptions.path}`;
@@ -77,27 +79,32 @@ function sendRequest(method, options) {
     }
 
     function handleError(error) {
-      if (retryCount < Constants.MAX_RETRIES) {
+      if (shouldRetry && retryCount < maxRetries) {
         retryCount++;
-        const delay = Constants.RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+        const delay =
+          networkOptions.retryConfig.initialDelay *
+          Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) *
+          1000; // Exponential backoff
         LogManager.Instance.error(
           buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
             endPoint: url.split('?')[0],
             err: error,
-            delay: delay / 1000,
+            delay: delay,
             attempt: retryCount,
-            maxRetries: Constants.MAX_RETRIES,
+            maxRetries: maxRetries,
           }),
         );
 
         setTimeout(executeRequest, delay);
       } else {
-        LogManager.Instance.error(
-          buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
-            endPoint: url.split('?')[0],
-            err: error,
-          }),
-        );
+        if (!String(networkOptions.path).includes(EventEnum.VWO_LOG_EVENT)) {
+          LogManager.Instance.error(
+            buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+              endPoint: url.split('?')[0],
+              err: error,
+            }),
+          );
+        }
         errorCallback(error);
       }
     }

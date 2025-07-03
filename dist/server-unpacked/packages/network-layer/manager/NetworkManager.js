@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NetworkManager = void 0;
 /**
@@ -19,14 +30,70 @@ exports.NetworkManager = void 0;
 var PromiseUtil_1 = require("../../../utils/PromiseUtil");
 var RequestHandler_1 = require("../handlers/RequestHandler");
 var GlobalRequestModel_1 = require("../models/GlobalRequestModel");
+var constants_1 = require("../../../constants");
+var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
+var LogManager_1 = require("../../logger/core/LogManager");
+var log_messages_1 = require("../../../enums/log-messages");
+var LogMessageUtil_1 = require("../../../utils/LogMessageUtil");
 var NetworkManager = /** @class */ (function () {
     function NetworkManager() {
     }
     /**
+     * Validates the retry configuration parameters
+     * @param {IRetryConfig} retryConfig - The retry configuration to validate
+     * @returns {IRetryConfig} The validated retry configuration with corrected values
+     */
+    NetworkManager.prototype.validateRetryConfig = function (retryConfig) {
+        var validatedConfig = __assign({}, retryConfig);
+        var isInvalidConfig = false;
+        // Validate shouldRetry: should be a boolean value
+        if (!(0, DataTypeUtil_1.isBoolean)(validatedConfig.shouldRetry)) {
+            validatedConfig.shouldRetry = constants_1.Constants.DEFAULT_RETRY_CONFIG.shouldRetry;
+            isInvalidConfig = true;
+        }
+        // Validate maxRetries: should be a non-negative integer and should not be less than 1
+        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.maxRetries) ||
+            !Number.isInteger(validatedConfig.maxRetries) ||
+            validatedConfig.maxRetries < 1) {
+            validatedConfig.maxRetries = constants_1.Constants.DEFAULT_RETRY_CONFIG.maxRetries;
+            isInvalidConfig = true;
+        }
+        // Validate initialDelay: should be a non-negative integer and should not be less than 1
+        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.initialDelay) ||
+            !Number.isInteger(validatedConfig.initialDelay) ||
+            validatedConfig.initialDelay < 1) {
+            validatedConfig.initialDelay = constants_1.Constants.DEFAULT_RETRY_CONFIG.initialDelay;
+            isInvalidConfig = true;
+        }
+        // Validate backoffMultiplier: should be a non-negative integer and should not be less than 2
+        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.backoffMultiplier) ||
+            !Number.isInteger(validatedConfig.backoffMultiplier) ||
+            validatedConfig.backoffMultiplier < 2) {
+            validatedConfig.backoffMultiplier = constants_1.Constants.DEFAULT_RETRY_CONFIG.backoffMultiplier;
+            isInvalidConfig = true;
+        }
+        if (isInvalidConfig) {
+            LogManager_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.RETRY_CONFIG_INVALID, {
+                retryConfig: JSON.stringify(validatedConfig),
+            }));
+        }
+        return isInvalidConfig ? constants_1.Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
+    };
+    /**
      * Attaches a network client to the manager, or uses a default if none provided.
      * @param {NetworkClientInterface} client - The client to attach, optional.
+     * @param {IRetryConfig} retryConfig - The retry configuration, optional.
      */
-    NetworkManager.prototype.attachClient = function (client) {
+    NetworkManager.prototype.attachClient = function (client, retryConfig) {
+        // Only set retry configuration if it's not already initialized or if a new config is provided
+        if (!this.retryConfig || retryConfig) {
+            // Define default retry configuration
+            var defaultRetryConfig = constants_1.Constants.DEFAULT_RETRY_CONFIG;
+            // Merge provided retryConfig with defaults, giving priority to provided values
+            var mergedConfig = __assign(__assign({}, defaultRetryConfig), (retryConfig || {}));
+            // Validate the merged configuration
+            this.retryConfig = this.validateRetryConfig(mergedConfig);
+        }
         // if env is undefined, we are in browser
         if (typeof process.env === 'undefined') {
             // if XMLHttpRequest is undefined, we are in serverless
@@ -49,6 +116,13 @@ var NetworkManager = /** @class */ (function () {
             this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
         }
         this.config = new GlobalRequestModel_1.GlobalRequestModel(null, null, null, null); // Initialize with default config
+    };
+    /**
+     * Retrieves the current retry configuration.
+     * @returns {IRetryConfig} A copy of the current retry configuration.
+     */
+    NetworkManager.prototype.getRetryConfig = function () {
+        return __assign({}, this.retryConfig);
     };
     Object.defineProperty(NetworkManager, "Instance", {
         /**

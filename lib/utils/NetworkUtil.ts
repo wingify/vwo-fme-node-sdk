@@ -32,6 +32,7 @@ import { UrlUtil } from './UrlUtil';
 import { Deferred } from './PromiseUtil';
 import { HTTPS } from '../constants/Url';
 import { UsageStatsUtil } from './UsageStatsUtil';
+import { IRetryConfig } from '../packages/network-layer/client/NetworkClient';
 
 /**
  * Constructs the settings path with API key and account ID.
@@ -283,7 +284,9 @@ export function getAttributePayloadData(
  * @param {string} userId - User ID.
  */
 export async function sendPostApiRequest(properties: any, payload: any, userId: string): Promise<void> {
-  NetworkManager.Instance.attachClient();
+  const networkManager = NetworkManager.Instance;
+  networkManager.attachClient();
+  const retryConfig: IRetryConfig = networkManager.getRetryConfig();
 
   const headers: Record<string, string> = {};
 
@@ -306,6 +309,7 @@ export async function sendPostApiRequest(properties: any, payload: any, userId: 
     headers,
     SettingsService.Instance.protocol,
     SettingsService.Instance.port,
+    retryConfig,
   );
 
   await NetworkManager.Instance.post(request)
@@ -388,6 +392,9 @@ export async function sendMessagingEvent(properties: Record<string, any>, payloa
   const deferredObject = new Deferred();
   // Singleton instance of the network manager
   const networkInstance = NetworkManager.Instance;
+  const retryConfig: IRetryConfig = networkInstance.getRetryConfig();
+  // disable retry for messaging event
+  retryConfig.shouldRetry = false;
 
   let baseUrl = UrlUtil.getBaseUrl();
   baseUrl = UrlUtil.getUpdatedBaseUrl(baseUrl);
@@ -403,6 +410,7 @@ export async function sendMessagingEvent(properties: Record<string, any>, payloa
       null,
       HTTPS,
       null,
+      retryConfig,
     );
 
     // Perform the network GET request

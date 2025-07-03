@@ -22,10 +22,17 @@ import { HTTPS } from '../../../constants/Url';
 import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { NetworkClientInterface } from './NetworkClientInterface';
-import { Constants } from '../../../constants';
 import { LogManager } from '../../../packages/logger';
 import { buildMessage } from '../../../utils/LogMessageUtil';
 import { ErrorLogMessagesEnum } from '../../../enums/log-messages';
+import { EventEnum } from '../../../enums/EventEnum';
+
+export interface IRetryConfig {
+  shouldRetry?: boolean;
+  initialDelay?: number;
+  maxRetries?: number;
+  backoffMultiplier?: number;
+}
 
 /**
  * Implements the NetworkClientInterface to handle network requests.
@@ -68,8 +75,9 @@ export class NetworkClient implements NetworkClientInterface {
               error,
               attempt,
               deferred,
-              String(networkOptions.path).split('?')[0],
+              networkOptions,
               attemptRequest,
+              requestModel.getRetryConfig(),
             );
           }
           res.setEncoding('utf8');
@@ -97,8 +105,9 @@ export class NetworkClient implements NetworkClientInterface {
                   error,
                   attempt,
                   deferred,
-                  String(networkOptions.path).split('?')[0],
+                  networkOptions,
                   attemptRequest,
+                  requestModel.getRetryConfig(),
                 );
               }
               responseModel.setData(parsedData);
@@ -108,8 +117,9 @@ export class NetworkClient implements NetworkClientInterface {
                 err,
                 attempt,
                 deferred,
-                String(networkOptions.path).split('?')[0],
+                networkOptions,
                 attemptRequest,
+                requestModel.getRetryConfig(),
               );
             }
           });
@@ -121,16 +131,24 @@ export class NetworkClient implements NetworkClientInterface {
             new Error('timeout'),
             attempt,
             deferred,
-            String(networkOptions.path).split('?')[0],
+            networkOptions,
             attemptRequest,
+            requestModel.getRetryConfig(),
           );
         });
 
         req.on('error', (err) => {
-          return this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+          return this.retryOrReject(
+            err,
+            attempt,
+            deferred,
+            networkOptions,
+            attemptRequest,
+            requestModel.getRetryConfig(),
+          );
         });
       } catch (err) {
-        this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+        this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
       }
 
       return deferred.promise;
@@ -184,8 +202,9 @@ export class NetworkClient implements NetworkClientInterface {
                   error,
                   attempt,
                   deferred,
-                  String(networkOptions.path).split('?')[0],
+                  networkOptions,
                   attemptRequest,
+                  request.getRetryConfig(),
                 );
               }
             } catch (err) {
@@ -193,8 +212,9 @@ export class NetworkClient implements NetworkClientInterface {
                 err,
                 attempt,
                 deferred,
-                String(networkOptions.path).split('?')[0],
+                networkOptions,
                 attemptRequest,
+                request.getRetryConfig(),
               );
             }
           });
@@ -203,24 +223,18 @@ export class NetworkClient implements NetworkClientInterface {
         // Handle request timeout.
         req.on('timeout', () => {
           const error = `Timeout: ${networkOptions.timeout}`;
-          return this.retryOrReject(
-            error,
-            attempt,
-            deferred,
-            String(networkOptions.path).split('?')[0],
-            attemptRequest,
-          );
+          return this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
         });
 
         req.on('error', (err) => {
-          return this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+          return this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
         });
 
         // Write data to the request body and end the request.
         req.write(JSON.stringify(networkOptions.body));
         req.end();
       } catch (err) {
-        this.retryOrReject(err, attempt, deferred, String(networkOptions.path).split('?')[0], attemptRequest);
+        this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
       }
 
       return deferred.promise;
@@ -241,18 +255,20 @@ export class NetworkClient implements NetworkClientInterface {
     error: any,
     attempt: number,
     deferred: any,
-    endpoint: string,
+    networkOptions: Record<string, dynamic>,
     attemptRequest: (attempt: number) => Promise<ResponseModel>,
+    retryConfig: IRetryConfig,
   ) {
-    const delay = Constants.RETRY_DELAY * Math.pow(2, attempt + 1);
-    if (attempt < Constants.MAX_RETRIES) {
+    const endpoint = String(networkOptions.path).split('?')[0];
+    const delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, attempt) * 1000;
+    if (retryConfig.shouldRetry && attempt < retryConfig.maxRetries) {
       LogManager.Instance.error(
         buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
           endPoint: endpoint,
           err: error,
-          delay: delay / 1000,
+          delay: delay,
           attempt: attempt + 1,
-          maxRetries: Constants.MAX_RETRIES,
+          maxRetries: retryConfig.maxRetries,
         }),
       );
       setTimeout(() => {
@@ -261,12 +277,15 @@ export class NetworkClient implements NetworkClientInterface {
           .catch(deferred.reject);
       }, delay);
     } else {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
-          endPoint: endpoint,
-          err: error,
-        }),
-      );
+      if (!String(networkOptions.path).includes(EventEnum.VWO_LOG_EVENT)) {
+        // only log error if the endpoint is not vwo_log event
+        LogManager.Instance.error(
+          buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
+            endPoint: endpoint,
+            err: error,
+          }),
+        );
+      }
       const responseModel = new ResponseModel();
       responseModel.setError(error);
       deferred.reject(responseModel);

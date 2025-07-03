@@ -84,17 +84,19 @@ var BatchEventsDispatcher = /** @class */ (function () {
      */
     BatchEventsDispatcher.sendPostApiRequest = function (properties, payload, flushCallback) {
         return __awaiter(this, void 0, void 0, function () {
-            var deferred, headers, baseUrl, request, response, batchApiResult, error_1, batchApiResult;
+            var deferred, networkManager, retryConfig, headers, baseUrl, request, response, batchApiResult, error_1, batchApiResult;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         deferred = new PromiseUtil_1.Deferred();
-                        network_layer_2.NetworkManager.Instance.attachClient();
+                        networkManager = network_layer_2.NetworkManager.Instance;
+                        networkManager.attachClient();
+                        retryConfig = networkManager.getRetryConfig();
                         headers = {};
                         headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
                         baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
                         baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
-                        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port);
+                        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);

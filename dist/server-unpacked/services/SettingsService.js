@@ -61,8 +61,14 @@ var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 var NetworkUtil_1 = require("../utils/NetworkUtil");
 var SettingsService = /** @class */ (function () {
     function SettingsService(options) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         this.isGatewayServiceProvided = false;
+        this.proxyProvided = false;
+        this.gatewayServiceConfig = {
+            hostname: null,
+            protocol: null,
+            port: null,
+        };
         this.sdkKey = options.sdkKey;
         this.accountId = options.accountId;
         this.expiry = ((_a = options === null || options === void 0 ? void 0 : options.settings) === null || _a === void 0 ? void 0 : _a.expiry) || constants_1.Constants.SETTINGS_EXPIRY;
@@ -72,7 +78,24 @@ var SettingsService = /** @class */ (function () {
         // Check if sdk running in browser and not in edge/serverless environment
         if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
             this.isGatewayServiceProvided = true;
+            // Handle proxyUrl for browser environment
+            if (options === null || options === void 0 ? void 0 : options.proxyUrl) {
+                this.proxyProvided = true;
+                var parsedUrl = void 0;
+                if (options.proxyUrl.startsWith(Url_1.HTTP_PROTOCOL) || options.proxyUrl.startsWith(Url_1.HTTPS_PROTOCOL)) {
+                    parsedUrl = new URL("".concat(options.proxyUrl));
+                }
+                else {
+                    parsedUrl = new URL("".concat(Url_1.HTTPS_PROTOCOL).concat(options.proxyUrl));
+                }
+                this.hostname = parsedUrl.hostname;
+                this.protocol = parsedUrl.protocol.replace(':', '');
+                if (parsedUrl.port) {
+                    this.port = parseInt(parsedUrl.port);
+                }
+            }
         }
+        //if gateway is provided and proxy is not provided then only we will replace the hostname, protocol and port
         if ((_c = options === null || options === void 0 ? void 0 : options.gatewayService) === null || _c === void 0 ? void 0 : _c.url) {
             var parsedUrl = void 0;
             this.isGatewayServiceProvided = true;
@@ -86,17 +109,32 @@ var SettingsService = /** @class */ (function () {
             else {
                 parsedUrl = new URL("".concat(Url_1.HTTPS_PROTOCOL).concat(options.gatewayService.url));
             }
-            this.hostname = parsedUrl.hostname;
-            this.protocol = parsedUrl.protocol.replace(':', '');
-            if (parsedUrl.port) {
-                this.port = parseInt(parsedUrl.port);
+            // dont replace the hostname, protocol and port if proxy is provided
+            if (!this.proxyProvided) {
+                this.hostname = parsedUrl.hostname;
+                this.protocol = parsedUrl.protocol.replace(':', '');
+                if (parsedUrl.port) {
+                    this.port = parseInt(parsedUrl.port);
+                }
+                else if ((_e = options.gatewayService) === null || _e === void 0 ? void 0 : _e.port) {
+                    this.port = options.gatewayService.port;
+                }
             }
-            else if ((_e = options.gatewayService) === null || _e === void 0 ? void 0 : _e.port) {
-                this.port = options.gatewayService.port;
+            else {
+                this.gatewayServiceConfig.hostname = parsedUrl.hostname;
+                this.gatewayServiceConfig.protocol = parsedUrl.protocol.replace(':', '');
+                if (parsedUrl.port) {
+                    this.gatewayServiceConfig.port = parseInt(parsedUrl.port);
+                }
+                else if ((_f = options.gatewayService) === null || _f === void 0 ? void 0 : _f.port) {
+                    this.gatewayServiceConfig.port = options.gatewayService.port;
+                }
             }
         }
         else {
-            this.hostname = constants_1.Constants.HOST_NAME;
+            if (!this.proxyProvided) {
+                this.hostname = constants_1.Constants.HOST_NAME;
+            }
         }
         // if (this.expiry > 0) {
         //   this.setSettingsExpiry();

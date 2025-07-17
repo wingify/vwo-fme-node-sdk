@@ -93,6 +93,14 @@ export class VWOBuilder implements IVWOBuilder {
     );
     // Set the development mode based on options
     networkInstance.getConfig().setDevelopmentMode(this.options?.isDevelopmentMode);
+
+    // Set proxy URL for browser environments only
+    if (typeof process.env === 'undefined' && this.options?.proxyUrl) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { setProxyUrl } = require('./packages/network-layer/client/NetworkBrowserClient');
+      setProxyUrl(this.options.proxyUrl);
+    }
+
     return this;
   }
 

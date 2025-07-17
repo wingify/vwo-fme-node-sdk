@@ -21,7 +21,6 @@ import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
 import { SettingsService } from '../services/SettingsService';
 import { Deferred } from './PromiseUtil';
-import { UrlUtil } from './UrlUtil';
 
 /**
  * Asynchronously retrieves data from a web service using the specified query parameters and endpoint.
@@ -48,18 +47,31 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
   // required if sdk is running in browser environment
   // using dacdn where accountid is required
   queryParams['accountId'] = SettingsService.Instance.accountId;
+  let gatewayServiceUrl = null;
+  let gatewayServicePort = null;
+  let gatewayServiceProtocol = null;
+
+  if (SettingsService.Instance.gatewayServiceConfig.hostname != null) {
+    gatewayServiceUrl = SettingsService.Instance.gatewayServiceConfig.hostname;
+    gatewayServicePort = SettingsService.Instance.gatewayServiceConfig.port;
+    gatewayServiceProtocol = SettingsService.Instance.gatewayServiceConfig.protocol;
+  } else {
+    gatewayServiceUrl = SettingsService.Instance.hostname;
+    gatewayServicePort = SettingsService.Instance.port;
+    gatewayServiceProtocol = SettingsService.Instance.protocol;
+  }
 
   try {
     // Create a new request model instance with the provided parameters
     const request: RequestModel = new RequestModel(
-      UrlUtil.getBaseUrl(),
+      gatewayServiceUrl,
       HttpMethodEnum.GET,
       endpoint,
       queryParams,
       null,
       null,
-      SettingsService.Instance.protocol,
-      SettingsService.Instance.port,
+      gatewayServiceProtocol,
+      gatewayServicePort,
       retryConfig,
     );
 

@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.21.0
+ * vwo-fme-node-sdk - v1.22.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.21.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.22.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","exports":{".":{"node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"default":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"./node":{"types":"./dist/types/index.d.ts","import":"./dist/server/vwo-fme-node-sdk.min.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./browser":{"types":"./dist/types/index.d.ts","import":"./dist/client/vwo-fme-javascript-sdk.js","require":"./dist/client/vwo-fme-javascript-sdk.min.js","default":"./dist/client/vwo-fme-javascript-sdk.min.js"}},"types":"dist/types/index.d.ts","scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
 
 /***/ }),
 
@@ -240,6 +240,7 @@ var _global = {};
  * @property {string} sdkKey - The SDK key for the VWO account.
  * @property {string} accountId - The account ID for the VWO account.
  * @property {GatewayServiceModel} gatewayService - The gateway service configuration.
+ * @property {string} proxyUrl - (Browser only) Custom proxy URL to redirect all API calls. If provided, all GET and POST calls will be made to this URL instead of the default HOST_NAME.
  * @property {StorageService} storage - The storage configuration.
  * @returns
  */
@@ -387,7 +388,7 @@ var VWOBuilder = /** @class */function () {
    * @returns {this} The instance of this builder.
    */
   VWOBuilder.prototype.setNetworkManager = function () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     var networkInstance = network_layer_1.NetworkManager.Instance;
     // Attach the network client from options
     networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig);
@@ -396,6 +397,12 @@ var VWOBuilder = /** @class */function () {
     }));
     // Set the development mode based on options
     networkInstance.getConfig().setDevelopmentMode((_d = this.options) === null || _d === void 0 ? void 0 : _d.isDevelopmentMode);
+    // Set proxy URL for browser environments only
+    if (typeof process.env === 'undefined' && ((_e = this.options) === null || _e === void 0 ? void 0 : _e.proxyUrl)) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      var setProxyUrl = (__webpack_require__(/*! ./packages/network-layer/client/NetworkBrowserClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkBrowserClient.js").setProxyUrl);
+      setProxyUrl(this.options.proxyUrl);
+    }
     return this;
   };
   VWOBuilder.prototype.initBatching = function () {
@@ -4345,6 +4352,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.NetworkBrowserClient = void 0;
+exports.setProxyUrl = setProxyUrl;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -4363,6 +4371,49 @@ exports.NetworkBrowserClient = void 0;
 var XMLUtil_1 = __webpack_require__(/*! ../../../utils/XMLUtil */ "./dist/server-unpacked/utils/XMLUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
+var logger_1 = __webpack_require__(/*! ../../logger */ "./dist/server-unpacked/packages/logger/index.js");
+var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
+/**
+ * Proxy URL for browser network calls.
+ * This allows all network requests to be redirected through a proxy server.
+ */
+var proxyUrl = undefined;
+/**
+ * Sets the proxy URL for all browser network calls.
+ * This function is called from VWOBuilder when proxyUrl is provided in options.
+ *
+ * @param {string} proxyUrl - The proxy URL to use for all network requests
+ */
+function setProxyUrl(proxyUrlPassedInInit) {
+  if (proxyUrlPassedInInit) {
+    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.PROXY_URL_SET));
+  }
+  proxyUrl = proxyUrlPassedInInit;
+}
+/**
+ * Rewrites the original URL to use the proxy server while preserving the path and query parameters.
+ *
+ * Example:
+ * - Original URL: https://api.vwo.com/settings/123?param=value
+ * - Proxy URL: https://my-proxy.com
+ * - Result: https://my-proxy.com/settings/123?param=value
+ *
+ * @param {string} originalUrl - The original URL to be rewritten
+ * @returns {string} The rewritten URL using the proxy, or the original URL if no proxy is set
+ */
+function rewriteUrlWithProxy(originalUrl) {
+  if (!proxyUrl) return originalUrl;
+  try {
+    var original = new URL(originalUrl);
+    var proxy = new URL(proxyUrl);
+    proxy.pathname = original.pathname;
+    proxy.search = original.search;
+    return proxy.toString();
+  } catch (_a) {
+    return originalUrl;
+  }
+}
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -4378,6 +4429,15 @@ var NetworkBrowserClient = /** @class */function () {
     // Extract network options from the request model.
     var networkOptions = requestModel.getOptions();
     var responseModel = new ResponseModel_1.ResponseModel();
+    // PROXY URL REWRITING: If proxy is set, rewrite the URL to route through the proxy
+    // This affects ALL network calls in browser environment (settings, tracking, etc.)
+    if (networkOptions.scheme && networkOptions.hostname && networkOptions.path) {
+      var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+      if (networkOptions.port) {
+        url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
+      }
+      networkOptions.url = rewriteUrlWithProxy(url);
+    }
     (0, XMLUtil_1.sendGetCall)({
       networkOptions: networkOptions,
       successCallback: function (data) {
@@ -4434,6 +4494,15 @@ var NetworkBrowserClient = /** @class */function () {
     var deferred = new PromiseUtil_1.Deferred();
     var networkOptions = request.getOptions();
     var responseModel = new ResponseModel_1.ResponseModel();
+    // PROXY URL REWRITING: If proxy is set, rewrite the URL to route through the proxy
+    // This affects ALL network calls in browser environment (settings, tracking, etc.)
+    if (networkOptions.scheme && networkOptions.hostname && networkOptions.path) {
+      var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+      if (networkOptions.port) {
+        url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
+      }
+      networkOptions.url = rewriteUrlWithProxy(url);
+    }
     (0, XMLUtil_1.sendPostCall)({
       networkOptions: networkOptions,
       successCallback: function (data) {
@@ -8408,8 +8477,14 @@ var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dis
 var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var SettingsService = /** @class */function () {
   function SettingsService(options) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     this.isGatewayServiceProvided = false;
+    this.proxyProvided = false;
+    this.gatewayServiceConfig = {
+      hostname: null,
+      protocol: null,
+      port: null
+    };
     this.sdkKey = options.sdkKey;
     this.accountId = options.accountId;
     this.expiry = ((_a = options === null || options === void 0 ? void 0 : options.settings) === null || _a === void 0 ? void 0 : _a.expiry) || constants_1.Constants.SETTINGS_EXPIRY;
@@ -8419,7 +8494,23 @@ var SettingsService = /** @class */function () {
     // Check if sdk running in browser and not in edge/serverless environment
     if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.isGatewayServiceProvided = true;
+      // Handle proxyUrl for browser environment
+      if (options === null || options === void 0 ? void 0 : options.proxyUrl) {
+        this.proxyProvided = true;
+        var parsedUrl = void 0;
+        if (options.proxyUrl.startsWith(Url_1.HTTP_PROTOCOL) || options.proxyUrl.startsWith(Url_1.HTTPS_PROTOCOL)) {
+          parsedUrl = new URL("".concat(options.proxyUrl));
+        } else {
+          parsedUrl = new URL("".concat(Url_1.HTTPS_PROTOCOL).concat(options.proxyUrl));
+        }
+        this.hostname = parsedUrl.hostname;
+        this.protocol = parsedUrl.protocol.replace(':', '');
+        if (parsedUrl.port) {
+          this.port = parseInt(parsedUrl.port);
+        }
+      }
     }
+    //if gateway is provided and proxy is not provided then only we will replace the hostname, protocol and port
     if ((_c = options === null || options === void 0 ? void 0 : options.gatewayService) === null || _c === void 0 ? void 0 : _c.url) {
       var parsedUrl = void 0;
       this.isGatewayServiceProvided = true;
@@ -8430,15 +8521,28 @@ var SettingsService = /** @class */function () {
       } else {
         parsedUrl = new URL("".concat(Url_1.HTTPS_PROTOCOL).concat(options.gatewayService.url));
       }
-      this.hostname = parsedUrl.hostname;
-      this.protocol = parsedUrl.protocol.replace(':', '');
-      if (parsedUrl.port) {
-        this.port = parseInt(parsedUrl.port);
-      } else if ((_e = options.gatewayService) === null || _e === void 0 ? void 0 : _e.port) {
-        this.port = options.gatewayService.port;
+      // dont replace the hostname, protocol and port if proxy is provided
+      if (!this.proxyProvided) {
+        this.hostname = parsedUrl.hostname;
+        this.protocol = parsedUrl.protocol.replace(':', '');
+        if (parsedUrl.port) {
+          this.port = parseInt(parsedUrl.port);
+        } else if ((_e = options.gatewayService) === null || _e === void 0 ? void 0 : _e.port) {
+          this.port = options.gatewayService.port;
+        }
+      } else {
+        this.gatewayServiceConfig.hostname = parsedUrl.hostname;
+        this.gatewayServiceConfig.protocol = parsedUrl.protocol.replace(':', '');
+        if (parsedUrl.port) {
+          this.gatewayServiceConfig.port = parseInt(parsedUrl.port);
+        } else if ((_f = options.gatewayService) === null || _f === void 0 ? void 0 : _f.port) {
+          this.gatewayServiceConfig.port = options.gatewayService.port;
+        }
       }
     } else {
-      this.hostname = constants_1.Constants.HOST_NAME;
+      if (!this.proxyProvided) {
+        this.hostname = constants_1.Constants.HOST_NAME;
+      }
     }
     // if (this.expiry > 0) {
     //   this.setSettingsExpiry();
@@ -10426,7 +10530,6 @@ var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpa
 var network_layer_1 = __webpack_require__(/*! ../packages/network-layer */ "./dist/server-unpacked/packages/network-layer/index.js");
 var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
-var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./dist/server-unpacked/utils/UrlUtil.js");
 /**
  * Asynchronously retrieves data from a web service using the specified query parameters and endpoint.
  * @param queryParams - The parameters to be used in the query string of the request.
@@ -10435,7 +10538,7 @@ var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./dist/server-unpacked/uti
  */
 function getFromGatewayService(queryParams, endpoint) {
   return __awaiter(this, void 0, void 0, function () {
-    var deferredObject, networkInstance, retryConfig, request;
+    var deferredObject, networkInstance, retryConfig, gatewayServiceUrl, gatewayServicePort, gatewayServiceProtocol, request;
     return __generator(this, function (_a) {
       deferredObject = new PromiseUtil_1.Deferred();
       networkInstance = network_layer_1.NetworkManager.Instance;
@@ -10451,8 +10554,20 @@ function getFromGatewayService(queryParams, endpoint) {
       // required if sdk is running in browser environment
       // using dacdn where accountid is required
       queryParams['accountId'] = SettingsService_1.SettingsService.Instance.accountId;
+      gatewayServiceUrl = null;
+      gatewayServicePort = null;
+      gatewayServiceProtocol = null;
+      if (SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname != null) {
+        gatewayServiceUrl = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname;
+        gatewayServicePort = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.port;
+        gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.protocol;
+      } else {
+        gatewayServiceUrl = SettingsService_1.SettingsService.Instance.hostname;
+        gatewayServicePort = SettingsService_1.SettingsService.Instance.port;
+        gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.protocol;
+      }
       try {
-        request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
+        request = new network_layer_1.RequestModel(gatewayServiceUrl, HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, gatewayServiceProtocol, gatewayServicePort, retryConfig);
         // Perform the network GET request
         networkInstance.get(request).then(function (response) {
           // Resolve the deferred object with the data from the response
@@ -12203,9 +12318,6 @@ exports.UrlUtil = {
    */
   getBaseUrl: function () {
     var baseUrl = SettingsService_1.SettingsService.Instance.hostname;
-    if (SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
-      return baseUrl;
-    }
     // Return the default baseUrl if no specific URL components are set
     return baseUrl;
   },

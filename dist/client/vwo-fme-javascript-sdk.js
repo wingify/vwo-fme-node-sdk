@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.21.0
+ * vwo-fme-javascript-sdk - v1.22.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -168,6 +168,7 @@ var _global = {};
  * @property {string} sdkKey - The SDK key for the VWO account.
  * @property {string} accountId - The account ID for the VWO account.
  * @property {GatewayServiceModel} gatewayService - The gateway service configuration.
+ * @property {string} proxyUrl - (Browser only) Custom proxy URL to redirect all API calls. If provided, all GET and POST calls will be made to this URL instead of the default HOST_NAME.
  * @property {StorageService} storage - The storage configuration.
  * @returns
  */
@@ -317,7 +318,7 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         var networkInstance = network_layer_1.NetworkManager.Instance;
         // Attach the network client from options
         networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig);
@@ -326,6 +327,12 @@ var VWOBuilder = /** @class */ (function () {
         }));
         // Set the development mode based on options
         networkInstance.getConfig().setDevelopmentMode((_d = this.options) === null || _d === void 0 ? void 0 : _d.isDevelopmentMode);
+        // Set proxy URL for browser environments only
+        if ( true && ((_e = this.options) === null || _e === void 0 ? void 0 : _e.proxyUrl)) {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            var setProxyUrl = (__webpack_require__(/*! ./packages/network-layer/client/NetworkBrowserClient */ "./lib/packages/network-layer/client/NetworkBrowserClient.ts").setProxyUrl);
+            setProxyUrl(this.options.proxyUrl);
+        }
         return this;
     };
     VWOBuilder.prototype.initBatching = function () {
@@ -1712,7 +1719,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.21.0", // will be replaced by webpack for browser build
+        version: "1.22.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -3840,6 +3847,7 @@ exports.ConsoleTransport = ConsoleTransport;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NetworkBrowserClient = void 0;
+exports.setProxyUrl = setProxyUrl;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -3858,6 +3866,51 @@ exports.NetworkBrowserClient = void 0;
 var XMLUtil_1 = __webpack_require__(/*! ../../../utils/XMLUtil */ "./lib/utils/XMLUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./lib/packages/network-layer/models/ResponseModel.ts");
+var logger_1 = __webpack_require__(/*! ../../logger */ "./lib/packages/logger/index.ts");
+var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
+/**
+ * Proxy URL for browser network calls.
+ * This allows all network requests to be redirected through a proxy server.
+ */
+var proxyUrl = undefined;
+/**
+ * Sets the proxy URL for all browser network calls.
+ * This function is called from VWOBuilder when proxyUrl is provided in options.
+ *
+ * @param {string} proxyUrl - The proxy URL to use for all network requests
+ */
+function setProxyUrl(proxyUrlPassedInInit) {
+    if (proxyUrlPassedInInit) {
+        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.PROXY_URL_SET));
+    }
+    proxyUrl = proxyUrlPassedInInit;
+}
+/**
+ * Rewrites the original URL to use the proxy server while preserving the path and query parameters.
+ *
+ * Example:
+ * - Original URL: https://api.vwo.com/settings/123?param=value
+ * - Proxy URL: https://my-proxy.com
+ * - Result: https://my-proxy.com/settings/123?param=value
+ *
+ * @param {string} originalUrl - The original URL to be rewritten
+ * @returns {string} The rewritten URL using the proxy, or the original URL if no proxy is set
+ */
+function rewriteUrlWithProxy(originalUrl) {
+    if (!proxyUrl)
+        return originalUrl;
+    try {
+        var original = new URL(originalUrl);
+        var proxy = new URL(proxyUrl);
+        proxy.pathname = original.pathname;
+        proxy.search = original.search;
+        return proxy.toString();
+    }
+    catch (_a) {
+        return originalUrl;
+    }
+}
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -3874,6 +3927,15 @@ var NetworkBrowserClient = /** @class */ (function () {
         // Extract network options from the request model.
         var networkOptions = requestModel.getOptions();
         var responseModel = new ResponseModel_1.ResponseModel();
+        // PROXY URL REWRITING: If proxy is set, rewrite the URL to route through the proxy
+        // This affects ALL network calls in browser environment (settings, tracking, etc.)
+        if (networkOptions.scheme && networkOptions.hostname && networkOptions.path) {
+            var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+            if (networkOptions.port) {
+                url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
+            }
+            networkOptions.url = rewriteUrlWithProxy(url);
+        }
         (0, XMLUtil_1.sendGetCall)({
             networkOptions: networkOptions,
             successCallback: function (data) {
@@ -3932,6 +3994,15 @@ var NetworkBrowserClient = /** @class */ (function () {
         var deferred = new PromiseUtil_1.Deferred();
         var networkOptions = request.getOptions();
         var responseModel = new ResponseModel_1.ResponseModel();
+        // PROXY URL REWRITING: If proxy is set, rewrite the URL to route through the proxy
+        // This affects ALL network calls in browser environment (settings, tracking, etc.)
+        if (networkOptions.scheme && networkOptions.hostname && networkOptions.path) {
+            var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+            if (networkOptions.port) {
+                url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
+            }
+            networkOptions.url = rewriteUrlWithProxy(url);
+        }
         (0, XMLUtil_1.sendPostCall)({
             networkOptions: networkOptions,
             successCallback: function (data) {
@@ -7141,8 +7212,14 @@ var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./lib
 var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./lib/utils/NetworkUtil.ts");
 var SettingsService = /** @class */ (function () {
     function SettingsService(options) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         this.isGatewayServiceProvided = false;
+        this.proxyProvided = false;
+        this.gatewayServiceConfig = {
+            hostname: null,
+            protocol: null,
+            port: null,
+        };
         this.sdkKey = options.sdkKey;
         this.accountId = options.accountId;
         this.expiry = ((_a = options === null || options === void 0 ? void 0 : options.settings) === null || _a === void 0 ? void 0 : _a.expiry) || constants_1.Constants.SETTINGS_EXPIRY;
@@ -7152,7 +7229,24 @@ var SettingsService = /** @class */ (function () {
         // Check if sdk running in browser and not in edge/serverless environment
         if ( true && typeof XMLHttpRequest !== 'undefined') {
             this.isGatewayServiceProvided = true;
+            // Handle proxyUrl for browser environment
+            if (options === null || options === void 0 ? void 0 : options.proxyUrl) {
+                this.proxyProvided = true;
+                var parsedUrl = void 0;
+                if (options.proxyUrl.startsWith(Url_1.HTTP_PROTOCOL) || options.proxyUrl.startsWith(Url_1.HTTPS_PROTOCOL)) {
+                    parsedUrl = new URL("".concat(options.proxyUrl));
+                }
+                else {
+                    parsedUrl = new URL("".concat(Url_1.HTTPS_PROTOCOL).concat(options.proxyUrl));
+                }
+                this.hostname = parsedUrl.hostname;
+                this.protocol = parsedUrl.protocol.replace(':', '');
+                if (parsedUrl.port) {
+                    this.port = parseInt(parsedUrl.port);
+                }
+            }
         }
+        //if gateway is provided and proxy is not provided then only we will replace the hostname, protocol and port
         if ((_c = options === null || options === void 0 ? void 0 : options.gatewayService) === null || _c === void 0 ? void 0 : _c.url) {
             var parsedUrl = void 0;
             this.isGatewayServiceProvided = true;
@@ -7166,17 +7260,32 @@ var SettingsService = /** @class */ (function () {
             else {
                 parsedUrl = new URL("".concat(Url_1.HTTPS_PROTOCOL).concat(options.gatewayService.url));
             }
-            this.hostname = parsedUrl.hostname;
-            this.protocol = parsedUrl.protocol.replace(':', '');
-            if (parsedUrl.port) {
-                this.port = parseInt(parsedUrl.port);
+            // dont replace the hostname, protocol and port if proxy is provided
+            if (!this.proxyProvided) {
+                this.hostname = parsedUrl.hostname;
+                this.protocol = parsedUrl.protocol.replace(':', '');
+                if (parsedUrl.port) {
+                    this.port = parseInt(parsedUrl.port);
+                }
+                else if ((_e = options.gatewayService) === null || _e === void 0 ? void 0 : _e.port) {
+                    this.port = options.gatewayService.port;
+                }
             }
-            else if ((_e = options.gatewayService) === null || _e === void 0 ? void 0 : _e.port) {
-                this.port = options.gatewayService.port;
+            else {
+                this.gatewayServiceConfig.hostname = parsedUrl.hostname;
+                this.gatewayServiceConfig.protocol = parsedUrl.protocol.replace(':', '');
+                if (parsedUrl.port) {
+                    this.gatewayServiceConfig.port = parseInt(parsedUrl.port);
+                }
+                else if ((_f = options.gatewayService) === null || _f === void 0 ? void 0 : _f.port) {
+                    this.gatewayServiceConfig.port = options.gatewayService.port;
+                }
             }
         }
         else {
-            this.hostname = constants_1.Constants.HOST_NAME;
+            if (!this.proxyProvided) {
+                this.hostname = constants_1.Constants.HOST_NAME;
+            }
         }
         // if (this.expiry > 0) {
         //   this.setSettingsExpiry();
@@ -8862,7 +8971,6 @@ var logger_1 = __webpack_require__(/*! ../packages/logger */ "./lib/packages/log
 var network_layer_1 = __webpack_require__(/*! ../packages/network-layer */ "./lib/packages/network-layer/index.ts");
 var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./lib/services/SettingsService.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./lib/utils/PromiseUtil.ts");
-var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./lib/utils/UrlUtil.ts");
 /**
  * Asynchronously retrieves data from a web service using the specified query parameters and endpoint.
  * @param queryParams - The parameters to be used in the query string of the request.
@@ -8871,7 +8979,7 @@ var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./lib/utils/UrlUtil.ts");
  */
 function getFromGatewayService(queryParams, endpoint) {
     return __awaiter(this, void 0, void 0, function () {
-        var deferredObject, networkInstance, retryConfig, request;
+        var deferredObject, networkInstance, retryConfig, gatewayServiceUrl, gatewayServicePort, gatewayServiceProtocol, request;
         return __generator(this, function (_a) {
             deferredObject = new PromiseUtil_1.Deferred();
             networkInstance = network_layer_1.NetworkManager.Instance;
@@ -8887,8 +8995,21 @@ function getFromGatewayService(queryParams, endpoint) {
             // required if sdk is running in browser environment
             // using dacdn where accountid is required
             queryParams['accountId'] = SettingsService_1.SettingsService.Instance.accountId;
+            gatewayServiceUrl = null;
+            gatewayServicePort = null;
+            gatewayServiceProtocol = null;
+            if (SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname != null) {
+                gatewayServiceUrl = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname;
+                gatewayServicePort = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.port;
+                gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.protocol;
+            }
+            else {
+                gatewayServiceUrl = SettingsService_1.SettingsService.Instance.hostname;
+                gatewayServicePort = SettingsService_1.SettingsService.Instance.port;
+                gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.protocol;
+            }
             try {
-                request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
+                request = new network_layer_1.RequestModel(gatewayServiceUrl, HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, gatewayServiceProtocol, gatewayServicePort, retryConfig);
                 // Perform the network GET request
                 networkInstance
                     .get(request)
@@ -10293,9 +10414,6 @@ exports.UrlUtil = {
      */
     getBaseUrl: function () {
         var baseUrl = SettingsService_1.SettingsService.Instance.hostname;
-        if (SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
-            return baseUrl;
-        }
         // Return the default baseUrl if no specific URL components are set
         return baseUrl;
     },
@@ -12985,7 +13103,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}","CONFIG_PARAMETER_INVALID":"{parameter} paased in {api} API is not correct. It should be of type:{type}}","BATCH_QUEUE_EMPTY":"No batch queue present for account:{accountId} when calling flushEvents API. Check batchEvents config in launch API","RETRY_CONFIG_INVALID":"Retry config is invalid. Please check the vwo documentation for more details. Using retry config: {retryConfig}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}","CONFIG_PARAMETER_INVALID":"{parameter} paased in {api} API is not correct. It should be of type:{type}}","BATCH_QUEUE_EMPTY":"No batch queue present for account:{accountId} when calling flushEvents API. Check batchEvents config in launch API"}');
 
 /***/ }),
 

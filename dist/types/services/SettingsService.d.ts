@@ -13,6 +13,12 @@ export declare class SettingsService implements ISettingsService {
   protocol: string;
   isGatewayServiceProvided: boolean;
   private static instance;
+  proxyProvided: boolean;
+  gatewayServiceConfig: {
+    hostname: string | null;
+    protocol: string | null;
+    port: number | null;
+  };
   constructor(options: Record<string, any>);
   static get Instance(): SettingsService;
   private setSettingsExpiry;

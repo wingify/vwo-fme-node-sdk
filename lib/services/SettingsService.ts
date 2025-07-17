@@ -46,6 +46,16 @@ export class SettingsService implements ISettingsService {
   protocol: string;
   isGatewayServiceProvided: boolean = false;
   private static instance: SettingsService;
+  proxyProvided: boolean = false;
+  gatewayServiceConfig: {
+    hostname: string | null;
+    protocol: string | null;
+    port: number | null;
+  } = {
+    hostname: null,
+    protocol: null,
+    port: null,
+  };
 
   constructor(options: Record<string, any>) {
     this.sdkKey = options.sdkKey;
@@ -58,7 +68,23 @@ export class SettingsService implements ISettingsService {
     // Check if sdk running in browser and not in edge/serverless environment
     if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.isGatewayServiceProvided = true;
+      // Handle proxyUrl for browser environment
+      if (options?.proxyUrl) {
+        this.proxyProvided = true;
+        let parsedUrl;
+        if (options.proxyUrl.startsWith(HTTP_PROTOCOL) || options.proxyUrl.startsWith(HTTPS_PROTOCOL)) {
+          parsedUrl = new URL(`${options.proxyUrl}`);
+        } else {
+          parsedUrl = new URL(`${HTTPS_PROTOCOL}${options.proxyUrl}`);
+        }
+        this.hostname = parsedUrl.hostname;
+        this.protocol = parsedUrl.protocol.replace(':', '');
+        if (parsedUrl.port) {
+          this.port = parseInt(parsedUrl.port);
+        }
+      }
     }
+    //if gateway is provided and proxy is not provided then only we will replace the hostname, protocol and port
     if (options?.gatewayService?.url) {
       let parsedUrl;
       this.isGatewayServiceProvided = true;
@@ -72,15 +98,29 @@ export class SettingsService implements ISettingsService {
       } else {
         parsedUrl = new URL(`${HTTPS_PROTOCOL}${options.gatewayService.url}`);
       }
-      this.hostname = parsedUrl.hostname;
-      this.protocol = parsedUrl.protocol.replace(':', '');
-      if (parsedUrl.port) {
-        this.port = parseInt(parsedUrl.port);
-      } else if (options.gatewayService?.port) {
-        this.port = options.gatewayService.port;
+
+      // dont replace the hostname, protocol and port if proxy is provided
+      if (!this.proxyProvided) {
+        this.hostname = parsedUrl.hostname;
+        this.protocol = parsedUrl.protocol.replace(':', '');
+        if (parsedUrl.port) {
+          this.port = parseInt(parsedUrl.port);
+        } else if (options.gatewayService?.port) {
+          this.port = options.gatewayService.port;
+        }
+      } else {
+        this.gatewayServiceConfig.hostname = parsedUrl.hostname;
+        this.gatewayServiceConfig.protocol = parsedUrl.protocol.replace(':', '');
+        if (parsedUrl.port) {
+          this.gatewayServiceConfig.port = parseInt(parsedUrl.port);
+        } else if (options.gatewayService?.port) {
+          this.gatewayServiceConfig.port = options.gatewayService.port;
+        }
       }
     } else {
-      this.hostname = Constants.HOST_NAME;
+      if (!this.proxyProvided) {
+        this.hostname = Constants.HOST_NAME;
+      }
     }
 
     // if (this.expiry > 0) {

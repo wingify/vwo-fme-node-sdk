@@ -48,6 +48,7 @@ export interface IVWOOptions {
   _vwo_meta?: Record<any, any>;
   clientStorage?: ClientStorageOptions;
   retryConfig?: IRetryConfig;
+  proxyUrl?: string;
 }
 export declare class VWOOptionsModel implements IVWOOptions {
   accountId: string;
@@ -67,6 +68,7 @@ export declare class VWOOptionsModel implements IVWOOptions {
   _vwo_meta?: Record<any, any>;
   clientStorage?: ClientStorageOptions;
   retryConfig?: IRetryConfig;
+  proxyUrl?: string;
   modelFromDictionary(options: VWOOptionsModel): this;
   getAccountId(): string;
   getSdkKey(): string;
@@ -83,5 +85,6 @@ export declare class VWOOptionsModel implements IVWOOptions {
   getVWOMeta(): Record<any, any>;
   getClientStorage(): ClientStorageOptions;
   getRetryConfig(): IRetryConfig;
+  getProxyUrl(): string;
 }
 export {};

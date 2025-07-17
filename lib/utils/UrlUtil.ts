@@ -48,10 +48,6 @@ export const UrlUtil: IUrlUtil = {
   getBaseUrl: () => {
     const baseUrl: string = SettingsService.Instance.hostname;
 
-    if (SettingsService.Instance.isGatewayServiceProvided) {
-      return baseUrl;
-    }
-
     // Return the default baseUrl if no specific URL components are set
     return baseUrl;
   },

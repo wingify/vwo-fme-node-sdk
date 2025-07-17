@@ -86,6 +86,7 @@ let _global: Record<string, any> = {};
  * @property {string} sdkKey - The SDK key for the VWO account.
  * @property {string} accountId - The account ID for the VWO account.
  * @property {GatewayServiceModel} gatewayService - The gateway service configuration.
+ * @property {string} proxyUrl - (Browser only) Custom proxy URL to redirect all API calls. If provided, all GET and POST calls will be made to this URL instead of the default HOST_NAME.
  * @property {StorageService} storage - The storage configuration.
  * @returns
  */

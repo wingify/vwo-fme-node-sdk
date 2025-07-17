@@ -41,9 +41,6 @@ exports.UrlUtil = {
      */
     getBaseUrl: function () {
         var baseUrl = SettingsService_1.SettingsService.Instance.hostname;
-        if (SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
-            return baseUrl;
-        }
         // Return the default baseUrl if no specific URL components are set
         return baseUrl;
     },

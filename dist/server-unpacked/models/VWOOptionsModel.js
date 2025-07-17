@@ -65,6 +65,9 @@ var VWOOptionsModel = /** @class */ (function () {
         if (options === null || options === void 0 ? void 0 : options.retryConfig) {
             this.retryConfig = options.retryConfig;
         }
+        if (options === null || options === void 0 ? void 0 : options.proxyUrl) {
+            this.proxyUrl = options.proxyUrl;
+        }
         return this;
     };
     VWOOptionsModel.prototype.getAccountId = function () {
@@ -111,6 +114,9 @@ var VWOOptionsModel = /** @class */ (function () {
     };
     VWOOptionsModel.prototype.getRetryConfig = function () {
         return this.retryConfig;
+    };
+    VWOOptionsModel.prototype.getProxyUrl = function () {
+        return this.proxyUrl;
     };
     return VWOOptionsModel;
 }());

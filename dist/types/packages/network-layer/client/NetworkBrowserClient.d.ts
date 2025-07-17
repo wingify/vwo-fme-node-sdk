@@ -2,6 +2,13 @@ import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { NetworkClientInterface } from './NetworkClientInterface';
 /**
+ * Sets the proxy URL for all browser network calls.
+ * This function is called from VWOBuilder when proxyUrl is provided in options.
+ *
+ * @param {string} proxyUrl - The proxy URL to use for all network requests
+ */
+export declare function setProxyUrl(proxyUrlPassedInInit: string): void;
+/**
  * Implements the NetworkClientInterface to handle network requests.
  */
 export declare class NetworkBrowserClient implements NetworkClientInterface {

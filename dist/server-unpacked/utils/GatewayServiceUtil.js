@@ -61,7 +61,6 @@ var logger_1 = require("../packages/logger");
 var network_layer_1 = require("../packages/network-layer");
 var SettingsService_1 = require("../services/SettingsService");
 var PromiseUtil_1 = require("./PromiseUtil");
-var UrlUtil_1 = require("./UrlUtil");
 /**
  * Asynchronously retrieves data from a web service using the specified query parameters and endpoint.
  * @param queryParams - The parameters to be used in the query string of the request.
@@ -70,7 +69,7 @@ var UrlUtil_1 = require("./UrlUtil");
  */
 function getFromGatewayService(queryParams, endpoint) {
     return __awaiter(this, void 0, void 0, function () {
-        var deferredObject, networkInstance, retryConfig, request;
+        var deferredObject, networkInstance, retryConfig, gatewayServiceUrl, gatewayServicePort, gatewayServiceProtocol, request;
         return __generator(this, function (_a) {
             deferredObject = new PromiseUtil_1.Deferred();
             networkInstance = network_layer_1.NetworkManager.Instance;
@@ -86,8 +85,21 @@ function getFromGatewayService(queryParams, endpoint) {
             // required if sdk is running in browser environment
             // using dacdn where accountid is required
             queryParams['accountId'] = SettingsService_1.SettingsService.Instance.accountId;
+            gatewayServiceUrl = null;
+            gatewayServicePort = null;
+            gatewayServiceProtocol = null;
+            if (SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname != null) {
+                gatewayServiceUrl = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname;
+                gatewayServicePort = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.port;
+                gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.protocol;
+            }
+            else {
+                gatewayServiceUrl = SettingsService_1.SettingsService.Instance.hostname;
+                gatewayServicePort = SettingsService_1.SettingsService.Instance.port;
+                gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.protocol;
+            }
             try {
-                request = new network_layer_1.RequestModel(UrlUtil_1.UrlUtil.getBaseUrl(), HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
+                request = new network_layer_1.RequestModel(gatewayServiceUrl, HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, gatewayServiceProtocol, gatewayServicePort, retryConfig);
                 // Perform the network GET request
                 networkInstance
                     .get(request)

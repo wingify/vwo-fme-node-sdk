@@ -37,7 +37,7 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         var networkInstance = network_layer_1.NetworkManager.Instance;
         // Attach the network client from options
         networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig);
@@ -46,6 +46,12 @@ var VWOBuilder = /** @class */ (function () {
         }));
         // Set the development mode based on options
         networkInstance.getConfig().setDevelopmentMode((_d = this.options) === null || _d === void 0 ? void 0 : _d.isDevelopmentMode);
+        // Set proxy URL for browser environments only
+        if (typeof process.env === 'undefined' && ((_e = this.options) === null || _e === void 0 ? void 0 : _e.proxyUrl)) {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            var setProxyUrl = require('./packages/network-layer/client/NetworkBrowserClient').setProxyUrl;
+            setProxyUrl(this.options.proxyUrl);
+        }
         return this;
     };
     VWOBuilder.prototype.initBatching = function () {

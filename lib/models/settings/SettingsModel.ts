@@ -38,6 +38,7 @@ export class SettingsModel {
   private v?: number;
   private version: number;
   private collectionPrefix?: string;
+  private pollInterval?: number;
 
   constructor(settings: SettingsModel) {
     this.sdkKey = settings.sK || settings.sdkKey;
@@ -73,6 +74,10 @@ export class SettingsModel {
       this.groups = settings.g || settings.groups;
     }
 
+    if (settings.pollInterval) {
+      this.pollInterval = settings.pollInterval;
+    }
+
     return this;
   }
   getFeatures(): Array<FeatureModel> {
@@ -105,5 +110,13 @@ export class SettingsModel {
 
   getGroups(): Record<string, any> {
     return this.groups;
+  }
+
+  setPollInterval(value: number): void {
+    this.pollInterval = value;
+  }
+
+  getPollInterval(): number {
+    return this.pollInterval;
   }
 }

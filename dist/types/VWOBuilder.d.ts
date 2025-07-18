@@ -47,6 +47,7 @@ export declare class VWOBuilder implements IVWOBuilder {
   isSettingsFetchInProgress: boolean;
   vwoInstance: IVWOClient;
   batchEventsQueue: BatchEventsQueue;
+  private isValidPollIntervalPassedFromInit;
   constructor(options: IVWOOptions);
   /**
    * Sets the network manager with the provided client and development mode options.
@@ -119,4 +120,5 @@ export declare class VWOBuilder implements IVWOBuilder {
    * Checks and polls for settings updates at the provided interval.
    */
   checkAndPoll(): void;
+  private updatePollIntervalAndCheckAndPoll;
 }

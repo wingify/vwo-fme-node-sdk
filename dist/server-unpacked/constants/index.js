@@ -70,5 +70,6 @@ exports.Constants = {
     },
     DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
     DEFAULT_SETTINGS_STORAGE_KEY: 'vwo_fme_settings',
+    POLLING_INTERVAL: 600000,
 };
 //# sourceMappingURL=index.js.map

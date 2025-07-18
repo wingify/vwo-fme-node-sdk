@@ -10,6 +10,42 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VWOBuilder = void 0;
 var logger_1 = require("./packages/logger");
@@ -28,8 +64,10 @@ var UuidUtil_1 = require("./utils/UuidUtil");
 var BatchEventsQueue_1 = require("./services/BatchEventsQueue");
 var BatchEventsDispatcher_1 = require("./utils/BatchEventsDispatcher");
 var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
+var constants_1 = require("./constants");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
+        this.isValidPollIntervalPassedFromInit = false;
         this.options = options;
     }
     /**
@@ -272,24 +310,17 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.initPolling = function () {
-        if (!this.options.pollInterval) {
-            return this;
+        var pollInterval = this.options.pollInterval;
+        if (pollInterval != null && (0, DataTypeUtil_1.isNumber)(pollInterval) && pollInterval >= 1000) {
+            this.isValidPollIntervalPassedFromInit = true;
+            this.checkAndPoll();
         }
-        if (this.options.pollInterval && !(0, DataTypeUtil_1.isNumber)(this.options.pollInterval)) {
+        else if (pollInterval != null) {
             logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INIT_OPTIONS_INVALID, {
                 key: 'pollInterval',
-                correctType: 'number',
+                correctType: 'number >= 1000',
             }));
-            return this;
         }
-        if (this.options.pollInterval && this.options.pollInterval < 1000) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INIT_OPTIONS_INVALID, {
-                key: 'pollInterval',
-                correctType: 'number',
-            }));
-            return this;
-        }
-        this.checkAndPoll();
         return this;
     };
     /**
@@ -310,6 +341,7 @@ var VWOBuilder = /** @class */ (function () {
      */
     VWOBuilder.prototype.build = function (settings) {
         this.vwoInstance = new VWOClient_1.VWOClient(settings, this.options);
+        this.updatePollIntervalAndCheckAndPoll(settings, true);
         return this.vwoInstance;
     };
     /**
@@ -317,26 +349,58 @@ var VWOBuilder = /** @class */ (function () {
      */
     VWOBuilder.prototype.checkAndPoll = function () {
         var _this = this;
-        var pollingInterval = this.options.pollInterval;
-        setInterval(function () {
-            _this.getSettings(true)
-                .then(function (latestSettings) {
-                var lastSettings = JSON.stringify(_this.originalSettings);
-                var stringifiedLatestSettings = JSON.stringify(latestSettings);
-                if (stringifiedLatestSettings !== lastSettings) {
-                    _this.originalSettings = latestSettings;
-                    var clonedSettings = (0, FunctionUtil_1.cloneObject)(latestSettings);
-                    logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS);
-                    (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(clonedSettings, _this.vwoInstance);
+        var _a;
+        var poll = function () { return __awaiter(_this, void 0, void 0, function () {
+            var latestSettings, clonedSettings, ex_1, interval_1;
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _b.trys.push([0, 2, 3, 4]);
+                        return [4 /*yield*/, this.getSettings(true)];
+                    case 1:
+                        latestSettings = _b.sent();
+                        if (latestSettings && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
+                            this.originalSettings = latestSettings;
+                            clonedSettings = (0, FunctionUtil_1.cloneObject)(latestSettings);
+                            logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS);
+                            (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(clonedSettings, this.vwoInstance);
+                            // Reinitialize the poll_interval value if there is a change in settings
+                            this.updatePollIntervalAndCheckAndPoll(latestSettings, false);
+                        }
+                        else if (latestSettings) {
+                            logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
+                        }
+                        return [3 /*break*/, 4];
+                    case 2:
+                        ex_1 = _b.sent();
+                        logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.POLLING_FETCH_SETTINGS_FAILED + ': ' + ex_1);
+                        return [3 /*break*/, 4];
+                    case 3:
+                        interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
+                        setTimeout(poll, interval_1);
+                        return [7 /*endfinally*/];
+                    case 4: return [2 /*return*/];
                 }
-                else {
-                    logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
-                }
-            })
-                .catch(function () {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.POLLING_FETCH_SETTINGS_FAILED);
             });
-        }, pollingInterval);
+        }); };
+        // Start the polling after the given interval
+        var interval = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
+        setTimeout(poll, interval);
+    };
+    VWOBuilder.prototype.updatePollIntervalAndCheckAndPoll = function (settings, shouldCheckAndPoll) {
+        var _a;
+        if (!this.isValidPollIntervalPassedFromInit) {
+            var pollInterval = (_a = settings === null || settings === void 0 ? void 0 : settings.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
+            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_POLL_INTERVAL_FROM_SETTINGS, {
+                source: (settings === null || settings === void 0 ? void 0 : settings.pollInterval) ? 'settings' : 'default',
+                pollInterval: pollInterval.toString(),
+            }));
+            this.options.pollInterval = pollInterval;
+        }
+        if (shouldCheckAndPoll && !this.isValidPollIntervalPassedFromInit) {
+            this.checkAndPoll();
+        }
     };
     return VWOBuilder;
 }());

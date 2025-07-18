@@ -36,6 +36,7 @@ import { getRandomUUID } from './utils/UuidUtil';
 import { BatchEventsQueue } from './services/BatchEventsQueue';
 import { BatchEventsDispatcher } from './utils/BatchEventsDispatcher';
 import { UsageStatsUtil } from './utils/UsageStatsUtil';
+import { Constants } from './constants';
 
 export interface IVWOBuilder {
   settings: Record<any, any>; // Holds the configuration settings for the VWO client
@@ -72,6 +73,7 @@ export class VWOBuilder implements IVWOBuilder {
   isSettingsFetchInProgress: boolean;
   vwoInstance: IVWOClient;
   batchEventsQueue: BatchEventsQueue;
+  private isValidPollIntervalPassedFromInit: boolean = false;
 
   constructor(options: IVWOOptions) {
     this.options = options;
@@ -361,32 +363,19 @@ export class VWOBuilder implements IVWOBuilder {
    * @returns {this} The instance of this builder.
    */
   initPolling(): this {
-    if (!this.options.pollInterval) {
-      return this;
-    }
+    const pollInterval = this.options.pollInterval;
 
-    if (this.options.pollInterval && !isNumber(this.options.pollInterval)) {
+    if (pollInterval != null && isNumber(pollInterval) && pollInterval >= 1000) {
+      this.isValidPollIntervalPassedFromInit = true;
+      this.checkAndPoll();
+    } else if (pollInterval != null) {
       LogManager.Instance.error(
         buildMessage(ErrorLogMessagesEnum.INIT_OPTIONS_INVALID, {
           key: 'pollInterval',
-          correctType: 'number',
+          correctType: 'number >= 1000',
         }),
       );
-      return this;
     }
-
-    if (this.options.pollInterval && this.options.pollInterval < 1000) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.INIT_OPTIONS_INVALID, {
-          key: 'pollInterval',
-          correctType: 'number',
-        }),
-      );
-      return this;
-    }
-
-    this.checkAndPoll();
-
     return this;
   }
   /**
@@ -408,7 +397,7 @@ export class VWOBuilder implements IVWOBuilder {
    */
   build(settings: Record<any, any>): IVWOClient {
     this.vwoInstance = new VWOClient(settings, this.options);
-
+    this.updatePollIntervalAndCheckAndPoll(settings, true);
     return this.vwoInstance;
   }
 
@@ -416,26 +405,48 @@ export class VWOBuilder implements IVWOBuilder {
    * Checks and polls for settings updates at the provided interval.
    */
   checkAndPoll(): void {
-    const pollingInterval = this.options.pollInterval;
+    const poll = async () => {
+      try {
+        const latestSettings = await this.getSettings(true);
+        if (latestSettings && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
+          this.originalSettings = latestSettings;
+          const clonedSettings = cloneObject(latestSettings);
 
-    setInterval(() => {
-      this.getSettings(true)
-        .then((latestSettings: SettingsModel) => {
-          const lastSettings = JSON.stringify(this.originalSettings);
-          const stringifiedLatestSettings = JSON.stringify(latestSettings);
-          if (stringifiedLatestSettings !== lastSettings) {
-            this.originalSettings = latestSettings;
-            const clonedSettings = cloneObject(latestSettings);
+          LogManager.Instance.info(InfoLogMessagesEnum.POLLING_SET_SETTINGS);
+          setSettingsAndAddCampaignsToRules(clonedSettings, this.vwoInstance);
 
-            LogManager.Instance.info(InfoLogMessagesEnum.POLLING_SET_SETTINGS);
-            setSettingsAndAddCampaignsToRules(clonedSettings, this.vwoInstance);
-          } else {
-            LogManager.Instance.info(InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
-          }
-        })
-        .catch(() => {
-          LogManager.Instance.error(ErrorLogMessagesEnum.POLLING_FETCH_SETTINGS_FAILED);
-        });
-    }, pollingInterval);
+          // Reinitialize the poll_interval value if there is a change in settings
+          this.updatePollIntervalAndCheckAndPoll(latestSettings, false);
+        } else if (latestSettings) {
+          LogManager.Instance.info(InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
+        }
+      } catch (ex) {
+        LogManager.Instance.error(ErrorLogMessagesEnum.POLLING_FETCH_SETTINGS_FAILED + ': ' + ex);
+      } finally {
+        // Schedule next poll
+        const interval = this.options.pollInterval ?? Constants.POLLING_INTERVAL;
+        setTimeout(poll, interval);
+      }
+    };
+
+    // Start the polling after the given interval
+    const interval = this.options.pollInterval ?? Constants.POLLING_INTERVAL;
+    setTimeout(poll, interval);
+  }
+
+  private updatePollIntervalAndCheckAndPoll(settings: Record<any, any>, shouldCheckAndPoll: boolean) {
+    if (!this.isValidPollIntervalPassedFromInit) {
+      const pollInterval = settings?.pollInterval ?? Constants.POLLING_INTERVAL;
+      LogManager.Instance.debug(
+        buildMessage(DebugLogMessagesEnum.USING_POLL_INTERVAL_FROM_SETTINGS, {
+          source: settings?.pollInterval ? 'settings' : 'default',
+          pollInterval: pollInterval.toString(),
+        }),
+      );
+      this.options.pollInterval = pollInterval;
+    }
+    if (shouldCheckAndPoll && !this.isValidPollIntervalPassedFromInit) {
+      this.checkAndPoll();
+    }
   }
 }

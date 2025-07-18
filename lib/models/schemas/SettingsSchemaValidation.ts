@@ -100,6 +100,7 @@ export class SettingsSchema {
       groups: optional(object()),
       campaignGroups: optional(object()),
       collectionPrefix: optional(string()),
+      pollInterval: optional(number()),
     });
   }
 

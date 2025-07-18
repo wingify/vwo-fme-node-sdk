@@ -85,6 +85,7 @@ var SettingsSchema = /** @class */ (function () {
             groups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
             campaignGroups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
             collectionPrefix: (0, superstruct_1.optional)((0, superstruct_1.string)()),
+            pollInterval: (0, superstruct_1.optional)((0, superstruct_1.number)()),
         });
     };
     SettingsSchema.prototype.isSettingsValid = function (settings) {

@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.0] - 2025-07-18
+
+### Added
+
+- Added support for polling intervals to periodically fetch and update settings:
+
+  - If `pollInterval` is set in options (must be >= 1000 milliseconds), that interval will be used
+  - If `pollInterval` is configured in VWO application settings, that will be used
+  - If neither is set, defaults to 10 minute polling interval
+
+  Example usage:
+
+  ```javascript
+    vwoClient = await init({
+      accountId: '123456',
+      sdkKey: '32-alpha-numeric-sdk-key',
+      pollInterval: 60000; // Set the poll interval to 60 seconds,
+    });
+
+  ```
+
 ## [1.22.0] - 2025-07-17
 
 ### Added

@@ -53,6 +53,9 @@ var SettingsModel = /** @class */ (function () {
         if (settings.g || settings.groups) {
             this.groups = settings.g || settings.groups;
         }
+        if (settings.pollInterval) {
+            this.pollInterval = settings.pollInterval;
+        }
         return this;
     }
     SettingsModel.prototype.getFeatures = function () {
@@ -78,6 +81,12 @@ var SettingsModel = /** @class */ (function () {
     };
     SettingsModel.prototype.getGroups = function () {
         return this.groups;
+    };
+    SettingsModel.prototype.setPollInterval = function (value) {
+        this.pollInterval = value;
+    };
+    SettingsModel.prototype.getPollInterval = function () {
+        return this.pollInterval;
     };
     return SettingsModel;
 }());

@@ -118,10 +118,8 @@ export function getQueryParams(queryParams: Record<string, string | number>): Re
  * @param {any} settings - The settings file to modify.
  */
 export function addIsGatewayServiceRequiredFlag(settings: SettingsModel): void {
-  // \b(?<!\"custom_variable\"[^\}]*)(country|region|city|os|device_type|browser_string|ua)\b: This part matches the usual patterns (like country, region, etc.) that are not under custom_variable
-  // |(?<="custom_variable"\s*:\s*{\s*"[^)]*"\s*:\s*")inlist\([^)]*\)(?="): This part matches inlist(*) only when it appears under "custom_variable" : { ".*" : "
-  const pattern =
-    /\b(?<!"custom_variable"[^}]*)(country|region|city|os|device_type|browser_string|ua)\b|(?<="custom_variable"\s*:\s*{\s*"name"\s*:\s*")inlist\([^)]*\)(?=")/g;
+  const keywordPattern = /\b(country|region|city|os|device_type|browser_string|ua)\b/g;
+  const inlistPattern = /"custom_variable"\s*:\s*{[^}]*inlist\([^)]*\)/g;
 
   for (const feature of settings.getFeatures()) {
     const rules = feature.getRulesLinkedCampaign();
@@ -134,8 +132,9 @@ export function addIsGatewayServiceRequiredFlag(settings: SettingsModel): void {
       }
       if (segments) {
         const jsonSegments = JSON.stringify(segments);
-        const matches = jsonSegments.match(pattern);
-        if (matches && matches.length > 0) {
+        const keywordMatches = jsonSegments.match(keywordPattern);
+        const inlistMatches = jsonSegments.match(inlistPattern);
+        if ((keywordMatches && keywordMatches.length > 0) || (inlistMatches && inlistMatches.length > 0)) {
           feature.setIsGatewayServiceRequired(true);
           break;
         }

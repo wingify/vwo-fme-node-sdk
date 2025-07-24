@@ -22,7 +22,6 @@ import { SegmentationManager } from './packages/segmentation-evaluator';
 import { Storage } from './packages/storage';
 
 import { IVWOClient, VWOClient } from './VWOClient';
-import { SettingsModel } from './models/settings/SettingsModel';
 import { SettingsService } from './services/SettingsService';
 
 import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';

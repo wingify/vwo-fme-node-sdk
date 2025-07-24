@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.1] - 2025-07-24
+
+### Fixed
+
+- Updated regex in `addIsGatewayServiceRequiredFlag` method to remove unsupported lookbehind and named capture groups, ensuring compatibility with older browsers like Safari 16.3 (`SyntaxError: Invalid regular expression: invalid group specifier name`).
+
 ## [1.23.0] - 2025-07-18
 
 ### Added
@@ -18,12 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Example usage:
 
   ```javascript
-    vwoClient = await init({
-      accountId: '123456',
-      sdkKey: '32-alpha-numeric-sdk-key',
-      pollInterval: 60000; // Set the poll interval to 60 seconds,
-    });
-
+  vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+    pollInterval: 60000, // Set the poll interval to 60 seconds,
+  });
   ```
 
 ## [1.22.0] - 2025-07-17
@@ -33,10 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for redirecting all network calls through a custom proxy URL for browser environments. This feature allows users to route all SDK network requests (settings, tracking, etc.) through their own proxy server. This is particularly useful for bypassing ad-blockers that may interfere with VWO's default network requests.
 
 ```javascript
-const vwo = await init({
+const vwoClient = await init({
   sdkKey: 'VWO_SDK_KEY',
   accountId: 'VWO_ACCOUNT_ID',
-  proxyUrl: 'https://your-proxy-server.com', // All network calls will be routed through this URL
+
+  // All network calls will be routed through this URL
+  proxyUrl: 'https://your-proxy-server.com',
 });
 ```
 
@@ -50,6 +57,7 @@ const vwo = await init({
   const vwoClient = await init({
     accountId: '123456',
     sdkKey: '32-alpha-numeric-sdk-key',
+
     retryConfig: {
       shouldRetry: true, // Turn retries on/off (default: true)
       maxRetries: 3, // How many times to retry (default: 3)

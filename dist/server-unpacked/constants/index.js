@@ -55,8 +55,8 @@ exports.Constants = {
     SETTINGS_TTL: 7200000, // 2 HOURS
     MIN_TTL_MS: 60000, // 1 MINUTE
     HOST_NAME: 'dev.visualwebsiteoptimizer.com',
-    SETTINTS_ENDPOINT: '/server-side/v2-settings',
-    WEBHOOK_SETTINTS_ENDPOINT: '/server-side/v2-pull',
+    SETTINGS_ENDPOINT: '/server-side/v2-settings',
+    WEBHOOK_SETTINGS_ENDPOINT: '/server-side/v2-pull',
     LOCATION_ENDPOINT: '/getLocation',
     VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
     RANDOM_ALGO: 1,

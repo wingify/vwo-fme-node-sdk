@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.23.1
+ * vwo-fme-javascript-sdk - v1.23.2
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -1783,7 +1783,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.23.1", // will be replaced by webpack for browser build
+        version: "1.23.2", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -1808,8 +1808,8 @@ exports.Constants = {
     SETTINGS_TTL: 7200000, // 2 HOURS
     MIN_TTL_MS: 60000, // 1 MINUTE
     HOST_NAME: 'dev.visualwebsiteoptimizer.com',
-    SETTINTS_ENDPOINT: '/server-side/v2-settings',
-    WEBHOOK_SETTINTS_ENDPOINT: '/server-side/v2-pull',
+    SETTINGS_ENDPOINT: '/server-side/v2-settings',
+    WEBHOOK_SETTINGS_ENDPOINT: '/server-side/v2-pull',
     LOCATION_ENDPOINT: '/getLocation',
     VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
     RANDOM_ALGO: 1,
@@ -7502,13 +7502,15 @@ var SettingsService = /** @class */ (function () {
         var options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
         var retryConfig = networkInstance.getRetryConfig();
         options.platform = constants_1.Constants.PLATFORM;
+        options.sn = constants_1.Constants.SDK_NAME;
+        options.sv = constants_1.Constants.SDK_VERSION;
         options['api-version'] = constants_1.Constants.API_VERSION;
         if (!networkInstance.getConfig().getDevelopmentMode()) {
             options.s = 'prod';
         }
-        var path = constants_1.Constants.SETTINTS_ENDPOINT;
+        var path = constants_1.Constants.SETTINGS_ENDPOINT;
         if (isViaWebhook) {
-            path = constants_1.Constants.WEBHOOK_SETTINTS_ENDPOINT;
+            path = constants_1.Constants.WEBHOOK_SETTINGS_ENDPOINT;
         }
         try {
             var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);

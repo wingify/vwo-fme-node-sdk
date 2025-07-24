@@ -242,15 +242,17 @@ export class SettingsService implements ISettingsService {
     const retryConfig = networkInstance.getRetryConfig();
 
     options.platform = Constants.PLATFORM;
+    options.sn = Constants.SDK_NAME;
+    options.sv = Constants.SDK_VERSION;
     options['api-version'] = Constants.API_VERSION;
 
     if (!networkInstance.getConfig().getDevelopmentMode()) {
       options.s = 'prod';
     }
 
-    let path = Constants.SETTINTS_ENDPOINT;
+    let path = Constants.SETTINGS_ENDPOINT;
     if (isViaWebhook) {
-      path = Constants.WEBHOOK_SETTINTS_ENDPOINT;
+      path = Constants.WEBHOOK_SETTINGS_ENDPOINT;
     }
 
     try {

@@ -18,8 +18,8 @@ export declare const Constants: {
   SETTINGS_TTL: number;
   MIN_TTL_MS: number;
   HOST_NAME: string;
-  SETTINTS_ENDPOINT: string;
-  WEBHOOK_SETTINTS_ENDPOINT: string;
+  SETTINGS_ENDPOINT: string;
+  WEBHOOK_SETTINGS_ENDPOINT: string;
   LOCATION_ENDPOINT: string;
   VWO_FS_ENVIRONMENT: string;
   RANDOM_ALGO: number;

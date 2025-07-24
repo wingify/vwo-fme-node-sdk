@@ -276,13 +276,15 @@ var SettingsService = /** @class */ (function () {
         var options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
         var retryConfig = networkInstance.getRetryConfig();
         options.platform = constants_1.Constants.PLATFORM;
+        options.sn = constants_1.Constants.SDK_NAME;
+        options.sv = constants_1.Constants.SDK_VERSION;
         options['api-version'] = constants_1.Constants.API_VERSION;
         if (!networkInstance.getConfig().getDevelopmentMode()) {
             options.s = 'prod';
         }
-        var path = constants_1.Constants.SETTINTS_ENDPOINT;
+        var path = constants_1.Constants.SETTINGS_ENDPOINT;
         if (isViaWebhook) {
-            path = constants_1.Constants.WEBHOOK_SETTINTS_ENDPOINT;
+            path = constants_1.Constants.WEBHOOK_SETTINGS_ENDPOINT;
         }
         try {
             var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);

@@ -113,6 +113,8 @@ var VWOBuilder = /** @class */ (function () {
                     }, callback, Object.assign({}, {
                         a: _this.options.accountId,
                         env: _this.options.sdkKey,
+                        sn: constants_1.Constants.SDK_NAME,
+                        sv: constants_1.Constants.SDK_VERSION,
                     }));
                 },
             }));

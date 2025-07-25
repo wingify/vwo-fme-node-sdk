@@ -138,6 +138,8 @@ export class VWOBuilder implements IVWOBuilder {
                 {
                   a: this.options.accountId,
                   env: this.options.sdkKey,
+                  sn: Constants.SDK_NAME,
+                  sv: Constants.SDK_VERSION,
                 },
               ),
             ),

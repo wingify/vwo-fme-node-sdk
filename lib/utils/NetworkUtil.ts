@@ -95,6 +95,8 @@ export function getEventsBaseProperties(
     p: 'FS',
     visitor_ua: visitorUserAgent,
     visitor_ip: ipAddress,
+    sn: Constants.SDK_NAME,
+    sv: Constants.SDK_VERSION,
   });
 
   properties.url = Constants.HTTPS_PROTOCOL + UrlUtil.getBaseUrl() + UrlEnum.EVENTS;

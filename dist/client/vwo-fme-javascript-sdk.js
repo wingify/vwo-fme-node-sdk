@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.23.3
+ * vwo-fme-javascript-sdk - v1.23.4
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -1785,7 +1785,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.23.3", // will be replaced by webpack for browser build
+        version: "1.23.4", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -10018,7 +10018,7 @@ function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress) {
         visitor_ua: visitorUserAgent,
         visitor_ip: ipAddress,
         sn: constants_1.Constants.SDK_NAME,
-        sv: constants_1.Constants.SDK_VERSION
+        sv: constants_1.Constants.SDK_VERSION,
     });
     properties.url = constants_1.Constants.HTTPS_PROTOCOL + UrlUtil_1.UrlUtil.getBaseUrl() + UrlEnum_1.UrlEnum.EVENTS;
     return properties;
@@ -10172,7 +10172,6 @@ function sendPostApiRequest(properties, payload, userId) {
                     baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
                     baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
                     request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
-                    logger_1.LogManager.Instance.error("request is: ".concat(JSON.stringify(request)));
                     return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request)
                             .then(function () {
                             // clear usage stats only if network call is successful

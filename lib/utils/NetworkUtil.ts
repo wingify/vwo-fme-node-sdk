@@ -30,9 +30,9 @@ import { isObject } from './DataTypeUtil';
 import { buildMessage } from './LogMessageUtil';
 import { UrlUtil } from './UrlUtil';
 import { Deferred } from './PromiseUtil';
-import { HTTPS } from '../constants/Url';
 import { UsageStatsUtil } from './UsageStatsUtil';
 import { IRetryConfig } from '../packages/network-layer/client/NetworkClient';
+import { EventEnum } from '../enums/EventEnum';
 
 /**
  * Constructs the settings path with API key and account ID.
@@ -384,22 +384,64 @@ export function getMessagingEventPayload(messageType: string, message: string, e
 }
 
 /**
- * Sends a messaging event to DACDN
+ * Constructs the payload for init called event.
+ * @param eventName - The name of the event.
+ * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
+ * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ * @returns The constructed payload with required fields.
+ */
+export function getSDKInitEventPayload(
+  eventName: string,
+  settingsFetchTime?: number,
+  sdkInitTime?: number,
+): Record<string, any> {
+  const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
+  const properties = _getEventBasePayload(null, userId, eventName, null, null);
+
+  // Set the required fields as specified
+  properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = SettingsService.Instance.sdkKey;
+  properties.d.event.props.product = 'fme';
+  const data = {
+    isSDKInitialized: true,
+    settingsFetchTime: settingsFetchTime,
+    sdkInitTime: sdkInitTime,
+  };
+  properties.d.event.props.data = data;
+
+  return properties;
+}
+
+/**
+ * Sends an event to VWO (generic event sender).
  * @param properties - Query parameters for the request.
  * @param payload - The payload for the request.
- * @returns A promise that resolves to the response from DACDN.
+ * @param eventName - The name of the event to send.
+ * @returns A promise that resolves to the response from the server.
  */
-export async function sendMessagingEvent(properties: Record<string, any>, payload: Record<string, any>): Promise<any> {
+export async function sendEvent(
+  properties: Record<string, any>,
+  payload: Record<string, any>,
+  eventName: string,
+): Promise<any> {
   // Create a new deferred object to manage promise resolution
   const deferredObject = new Deferred();
   // Singleton instance of the network manager
   const networkInstance = NetworkManager.Instance;
   const retryConfig: IRetryConfig = networkInstance.getRetryConfig();
-  // disable retry for messaging event
-  retryConfig.shouldRetry = false;
+  // disable retry for event (no retry for generic events)
+  if (eventName === EventEnum.VWO_LOG_EVENT) retryConfig.shouldRetry = false;
 
   let baseUrl = UrlUtil.getBaseUrl();
   baseUrl = UrlUtil.getUpdatedBaseUrl(baseUrl);
+
+  let protocol = SettingsService.Instance.protocol;
+  let port = SettingsService.Instance.port;
+
+  if (eventName === EventEnum.VWO_LOG_EVENT) {
+    baseUrl = Constants.HOST_NAME;
+    protocol = Constants.HTTPS_PROTOCOL;
+    port = 443;
+  }
 
   try {
     // Create a new request model instance with the provided parameters
@@ -410,12 +452,12 @@ export async function sendMessagingEvent(properties: Record<string, any>, payloa
       properties,
       payload,
       null,
-      HTTPS,
-      null,
+      protocol,
+      port,
       retryConfig,
     );
 
-    // Perform the network GET request
+    // Perform the network POST request
     networkInstance
       .post(request)
       .then((response: ResponseModel) => {

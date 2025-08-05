@@ -57,10 +57,13 @@ exports.onInit = onInit;
 var VWOBuilder_1 = require("./VWOBuilder");
 var DataTypeUtil_1 = require("./utils/DataTypeUtil");
 var PromiseUtil_1 = require("./utils/PromiseUtil");
+var EventUtil_1 = require("./utils/EventUtil");
 var log_messages_1 = require("./enums/log-messages");
 var LogMessageUtil_1 = require("./utils/LogMessageUtil");
 var PlatformEnum_1 = require("./enums/PlatformEnum");
 var ApiEnum_1 = require("./enums/ApiEnum");
+var logger_1 = require("./packages/logger");
+var SettingsSchemaValidation_1 = require("./models/schemas/SettingsSchemaValidation");
 var VWO = /** @class */ (function () {
     /**
      * Constructor for the VWO class.
@@ -93,10 +96,29 @@ var VWO = /** @class */ (function () {
             .initUsageStats(); // Initializes usage statistics for the SDK.
         // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
         if (options === null || options === void 0 ? void 0 : options.settings) {
-            return Promise.resolve(this.vwoBuilder.build(options.settings));
+            var isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(options.settings);
+            if (isSettingsValid) {
+                logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+                var vwoClient = this.vwoBuilder.build(options.settings);
+                vwoClient.isSettingsValid = true;
+                vwoClient.settingsFetchTime = 0;
+                return Promise.resolve(vwoClient);
+            }
+            else {
+                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.SETTINGS_SCHEMA_INVALID);
+                var vwoClient = this.vwoBuilder.build({});
+                vwoClient.isSettingsValid = false;
+                vwoClient.settingsFetchTime = 0;
+                return Promise.resolve(vwoClient);
+            }
         }
         return this.vwoBuilder.getSettings().then(function (settings) {
-            return _this.vwoBuilder.build(settings); // Builds the VWO instance with the fetched settings.
+            var vwoClient = _this.vwoBuilder.build(settings);
+            // Attach to instance for logging
+            vwoClient.isSettingsValid = _this.vwoBuilder.isSettingsValid;
+            vwoClient.settingsFetchTime = _this.vwoBuilder.settingsFetchTime;
+            _this.settings = settings;
+            return vwoClient;
         });
     };
     Object.defineProperty(VWO, "Instance", {
@@ -126,7 +148,8 @@ var _global = {};
  */
 function init(options) {
     return __awaiter(this, void 0, void 0, function () {
-        var apiName, date, msg, msg, msg, instance, msg;
+        var apiName, date, msg, msg, msg, startTimeForInit_1, instance, msg;
+        var _this = this;
         return __generator(this, function (_a) {
             apiName = ApiEnum_1.ApiEnum.INIT;
             date = new Date().toISOString();
@@ -155,18 +178,38 @@ function init(options) {
                 else {
                     options.platform = PlatformEnum_1.PlatformEnum.SERVER;
                 }
+                startTimeForInit_1 = undefined;
+                startTimeForInit_1 = Date.now();
                 instance = new VWO(options);
                 _global = {
                     vwoInitDeferred: new PromiseUtil_1.Deferred(),
                     isSettingsFetched: false,
                     instance: null,
                 };
-                return [2 /*return*/, instance.then(function (_vwoInstance) {
-                        _global.isSettingsFetched = true;
-                        _global.instance = _vwoInstance;
-                        _global.vwoInitDeferred.resolve(_vwoInstance);
-                        return _vwoInstance;
-                    })];
+                return [2 /*return*/, instance.then(function (_vwoInstance) { return __awaiter(_this, void 0, void 0, function () {
+                        var sdkInitTime;
+                        var _a, _b, _c;
+                        return __generator(this, function (_d) {
+                            switch (_d.label) {
+                                case 0:
+                                    sdkInitTime = Date.now() - startTimeForInit_1;
+                                    if (!(_vwoInstance.isSettingsValid && !((_b = (_a = _vwoInstance.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier))) return [3 /*break*/, 3];
+                                    if (!((_c = _vwoInstance.options) === null || _c === void 0 ? void 0 : _c.shouldWaitForTrackingCalls)) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, (0, EventUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime)];
+                                case 1:
+                                    _d.sent();
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    (0, EventUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                                    _d.label = 3;
+                                case 3:
+                                    _global.isSettingsFetched = true;
+                                    _global.instance = _vwoInstance;
+                                    _global.vwoInitDeferred.resolve(_vwoInstance);
+                                    return [2 /*return*/, _vwoInstance];
+                            }
+                        });
+                    }); })];
             }
             catch (err) {
                 msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {

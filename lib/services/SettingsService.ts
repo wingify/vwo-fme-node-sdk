@@ -45,7 +45,9 @@ export class SettingsService implements ISettingsService {
   port: number;
   protocol: string;
   isGatewayServiceProvided: boolean = false;
+  settingsFetchTime: number | undefined = undefined; //time taken to fetch the settings
   private static instance: SettingsService;
+  isSettingsValid: boolean = false;
   proxyProvided: boolean = false;
   gatewayServiceConfig: {
     hostname: string | null;
@@ -178,8 +180,8 @@ export class SettingsService implements ISettingsService {
       const freshSettings = await this.fetchSettings();
       const normalizedSettings = await this.normalizeSettings(freshSettings);
       // set the settings in storage only if settings are valid
-      const isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
-      if (isSettingsValid) {
+      this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
+      if (this.isSettingsValid) {
         await storageConnector.setSettingsInStorage(normalizedSettings);
       }
 
@@ -256,6 +258,8 @@ export class SettingsService implements ISettingsService {
     }
 
     try {
+      //record the current timestamp
+      const startTime = Date.now();
       const request: RequestModel = new RequestModel(
         this.hostname,
         HttpMethodEnum.GET,
@@ -272,6 +276,8 @@ export class SettingsService implements ISettingsService {
       networkInstance
         .get(request)
         .then((response: ResponseModel) => {
+          //record the timestamp when the response is received
+          this.settingsFetchTime = Date.now() - startTime;
           deferredObject.resolve(response.getData());
         })
         .catch((err: ResponseModel) => {
@@ -326,9 +332,9 @@ export class SettingsService implements ISettingsService {
       // } else {
       this.fetchSettingsAndCacheInStorage().then((fetchedSettings: Record<any, any>) => {
         const isSettingsValid = new SettingsSchema().isSettingsValid(fetchedSettings);
-        if (isSettingsValid) {
+        this.isSettingsValid = isSettingsValid;
+        if (this.isSettingsValid) {
           LogManager.Instance.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
-
           deferredObject.resolve(fetchedSettings);
         } else {
           LogManager.Instance.error(ErrorLogMessagesEnum.SETTINGS_SCHEMA_INVALID);
@@ -336,7 +342,6 @@ export class SettingsService implements ISettingsService {
           deferredObject.resolve({});
         }
       });
-      // }
     }
 
     return deferredObject.promise;

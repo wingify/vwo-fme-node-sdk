@@ -4,6 +4,7 @@ import { dynamic } from './types/Common';
 export declare class VWO {
   private static vwoBuilder;
   private static instance;
+  private static settings;
   /**
    * Constructor for the VWO class.
    * Initializes a new instance of VWO with the provided options.

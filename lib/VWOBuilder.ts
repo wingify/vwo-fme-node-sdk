@@ -73,6 +73,8 @@ export class VWOBuilder implements IVWOBuilder {
   vwoInstance: IVWOClient;
   batchEventsQueue: BatchEventsQueue;
   private isValidPollIntervalPassedFromInit: boolean = false;
+  isSettingsValid: boolean = false;
+  settingsFetchTime: number | undefined = undefined;
 
   constructor(options: IVWOOptions) {
     this.options = options;
@@ -176,6 +178,8 @@ export class VWOBuilder implements IVWOBuilder {
     if (!this.isSettingsFetchInProgress) {
       this.isSettingsFetchInProgress = true;
       this.settingFileManager.getSettings(force).then((settings: Record<any, any>) => {
+        this.isSettingsValid = this.settingFileManager.isSettingsValid;
+        this.settingsFetchTime = this.settingFileManager.settingsFetchTime;
         // if force is false, update original settings, if true the request is from polling and no need to update original settings
         if (!force) {
           this.originalSettings = settings;

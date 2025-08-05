@@ -47,7 +47,8 @@ exports.sendPostApiRequest = sendPostApiRequest;
 exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
 exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 exports.getMessagingEventPayload = getMessagingEventPayload;
-exports.sendMessagingEvent = sendMessagingEvent;
+exports.getSDKInitEventPayload = getSDKInitEventPayload;
+exports.sendEvent = sendEvent;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -77,8 +78,8 @@ var DataTypeUtil_1 = require("./DataTypeUtil");
 var LogMessageUtil_1 = require("./LogMessageUtil");
 var UrlUtil_1 = require("./UrlUtil");
 var PromiseUtil_1 = require("./PromiseUtil");
-var Url_1 = require("../constants/Url");
 var UsageStatsUtil_1 = require("./UsageStatsUtil");
+var EventEnum_1 = require("../enums/EventEnum");
 /**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
@@ -355,25 +356,55 @@ function getMessagingEventPayload(messageType, message, eventName) {
     return properties;
 }
 /**
- * Sends a messaging event to DACDN
+ * Constructs the payload for init called event.
+ * @param eventName - The name of the event.
+ * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
+ * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ * @returns The constructed payload with required fields.
+ */
+function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
+    var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
+    var properties = _getEventBasePayload(null, userId, eventName, null, null);
+    // Set the required fields as specified
+    properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey;
+    properties.d.event.props.product = 'fme';
+    var data = {
+        isSDKInitialized: true,
+        settingsFetchTime: settingsFetchTime,
+        sdkInitTime: sdkInitTime,
+    };
+    properties.d.event.props.data = data;
+    return properties;
+}
+/**
+ * Sends an event to VWO (generic event sender).
  * @param properties - Query parameters for the request.
  * @param payload - The payload for the request.
- * @returns A promise that resolves to the response from DACDN.
+ * @param eventName - The name of the event to send.
+ * @returns A promise that resolves to the response from the server.
  */
-function sendMessagingEvent(properties, payload) {
+function sendEvent(properties, payload, eventName) {
     return __awaiter(this, void 0, void 0, function () {
-        var deferredObject, networkInstance, retryConfig, baseUrl, request;
+        var deferredObject, networkInstance, retryConfig, baseUrl, protocol, port, request;
         return __generator(this, function (_a) {
             deferredObject = new PromiseUtil_1.Deferred();
             networkInstance = network_layer_1.NetworkManager.Instance;
             retryConfig = networkInstance.getRetryConfig();
-            // disable retry for messaging event
-            retryConfig.shouldRetry = false;
+            // disable retry for event (no retry for generic events)
+            if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT)
+                retryConfig.shouldRetry = false;
             baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
             baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
+            protocol = SettingsService_1.SettingsService.Instance.protocol;
+            port = SettingsService_1.SettingsService.Instance.port;
+            if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT) {
+                baseUrl = constants_1.Constants.HOST_NAME;
+                protocol = constants_1.Constants.HTTPS_PROTOCOL;
+                port = 443;
+            }
             try {
-                request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null, retryConfig);
-                // Perform the network GET request
+                request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, protocol, port, retryConfig);
+                // Perform the network POST request
                 networkInstance
                     .post(request)
                     .then(function (response) {

@@ -100,6 +100,7 @@ export class SettingsSchema {
       groups: optional(object()),
       campaignGroups: optional(object()),
       collectionPrefix: optional(string()),
+      sdkMetaInfo: optional(object({ wasInitializedEarlier: optional(boolean()) })),
       pollInterval: optional(number()),
     });
   }

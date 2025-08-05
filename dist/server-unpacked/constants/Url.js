@@ -20,5 +20,5 @@ exports.HTTP = 'http';
 exports.HTTPS = 'https';
 exports.SEED_URL = 'https://vwo.com';
 exports.HTTP_PROTOCOL = "".concat(exports.HTTP, "://");
-exports.HTTPS_PROTOCOL = "".concat(exports.HTTPS, "://");
+exports.HTTPS_PROTOCOL = "".concat(exports.HTTPS);
 //# sourceMappingURL=Url.js.map

@@ -63,6 +63,8 @@ var SettingsService = /** @class */ (function () {
     function SettingsService(options) {
         var _a, _b, _c, _d, _e, _f;
         this.isGatewayServiceProvided = false;
+        this.settingsFetchTime = undefined; //time taken to fetch the settings
+        this.isSettingsValid = false;
         this.proxyProvided = false;
         this.gatewayServiceConfig = {
             hostname: null,
@@ -180,7 +182,7 @@ var SettingsService = /** @class */ (function () {
     };
     SettingsService.prototype.handleBrowserEnvironment = function (storageConnector, deferredObject) {
         return __awaiter(this, void 0, void 0, function () {
-            var cachedSettings, freshSettings, normalizedSettings, isSettingsValid, error_1;
+            var cachedSettings, freshSettings, normalizedSettings, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -201,8 +203,9 @@ var SettingsService = /** @class */ (function () {
                         return [4 /*yield*/, this.normalizeSettings(freshSettings)];
                     case 3:
                         normalizedSettings = _a.sent();
-                        isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
-                        if (!isSettingsValid) return [3 /*break*/, 5];
+                        // set the settings in storage only if settings are valid
+                        this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
+                        if (!this.isSettingsValid) return [3 /*break*/, 5];
                         return [4 /*yield*/, storageConnector.setSettingsInStorage(normalizedSettings)];
                     case 4:
                         _a.sent();
@@ -267,6 +270,7 @@ var SettingsService = /** @class */ (function () {
         return deferredObject.promise;
     };
     SettingsService.prototype.fetchSettings = function (isViaWebhook) {
+        var _this = this;
         if (isViaWebhook === void 0) { isViaWebhook = false; }
         var deferredObject = new PromiseUtil_1.Deferred();
         if (!this.sdkKey || !this.accountId) {
@@ -287,11 +291,15 @@ var SettingsService = /** @class */ (function () {
             path = constants_1.Constants.WEBHOOK_SETTINGS_ENDPOINT;
         }
         try {
+            //record the current timestamp
+            var startTime_1 = Date.now();
             var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
             request.setTimeout(this.networkTimeout);
             networkInstance
                 .get(request)
                 .then(function (response) {
+                //record the timestamp when the response is received
+                _this.settingsFetchTime = Date.now() - startTime_1;
                 deferredObject.resolve(response.getData());
             })
                 .catch(function (err) {
@@ -308,6 +316,7 @@ var SettingsService = /** @class */ (function () {
         }
     };
     SettingsService.prototype.getSettings = function (forceFetch) {
+        var _this = this;
         if (forceFetch === void 0) { forceFetch = false; }
         var deferredObject = new PromiseUtil_1.Deferred();
         if (forceFetch) {
@@ -342,7 +351,8 @@ var SettingsService = /** @class */ (function () {
             // } else {
             this.fetchSettingsAndCacheInStorage().then(function (fetchedSettings) {
                 var isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(fetchedSettings);
-                if (isSettingsValid) {
+                _this.isSettingsValid = isSettingsValid;
+                if (_this.isSettingsValid) {
                     logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
                     deferredObject.resolve(fetchedSettings);
                 }
@@ -351,7 +361,6 @@ var SettingsService = /** @class */ (function () {
                     deferredObject.resolve({});
                 }
             });
-            // }
         }
         return deferredObject.promise;
     };

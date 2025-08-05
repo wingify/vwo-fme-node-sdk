@@ -48,6 +48,8 @@ export declare class VWOBuilder implements IVWOBuilder {
   vwoInstance: IVWOClient;
   batchEventsQueue: BatchEventsQueue;
   private isValidPollIntervalPassedFromInit;
+  isSettingsValid: boolean;
+  settingsFetchTime: number | undefined;
   constructor(options: IVWOOptions);
   /**
    * Sets the network manager with the provided client and development mode options.

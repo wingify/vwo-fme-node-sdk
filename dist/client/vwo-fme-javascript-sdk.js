@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.23.4
+ * vwo-fme-javascript-sdk - v1.24.0
  * URL - https://github.com/wingify/vwo-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -105,10 +105,13 @@ exports.onInit = onInit;
 var VWOBuilder_1 = __webpack_require__(/*! ./VWOBuilder */ "./lib/VWOBuilder.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
+var EventUtil_1 = __webpack_require__(/*! ./utils/EventUtil */ "./lib/utils/EventUtil.ts");
 var log_messages_1 = __webpack_require__(/*! ./enums/log-messages */ "./lib/enums/log-messages/index.ts");
 var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var PlatformEnum_1 = __webpack_require__(/*! ./enums/PlatformEnum */ "./lib/enums/PlatformEnum.ts");
 var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
+var logger_1 = __webpack_require__(/*! ./packages/logger */ "./lib/packages/logger/index.ts");
+var SettingsSchemaValidation_1 = __webpack_require__(/*! ./models/schemas/SettingsSchemaValidation */ "./lib/models/schemas/SettingsSchemaValidation.ts");
 var VWO = /** @class */ (function () {
     /**
      * Constructor for the VWO class.
@@ -141,10 +144,29 @@ var VWO = /** @class */ (function () {
             .initUsageStats(); // Initializes usage statistics for the SDK.
         // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
         if (options === null || options === void 0 ? void 0 : options.settings) {
-            return Promise.resolve(this.vwoBuilder.build(options.settings));
+            var isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(options.settings);
+            if (isSettingsValid) {
+                logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+                var vwoClient = this.vwoBuilder.build(options.settings);
+                vwoClient.isSettingsValid = true;
+                vwoClient.settingsFetchTime = 0;
+                return Promise.resolve(vwoClient);
+            }
+            else {
+                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.SETTINGS_SCHEMA_INVALID);
+                var vwoClient = this.vwoBuilder.build({});
+                vwoClient.isSettingsValid = false;
+                vwoClient.settingsFetchTime = 0;
+                return Promise.resolve(vwoClient);
+            }
         }
         return this.vwoBuilder.getSettings().then(function (settings) {
-            return _this.vwoBuilder.build(settings); // Builds the VWO instance with the fetched settings.
+            var vwoClient = _this.vwoBuilder.build(settings);
+            // Attach to instance for logging
+            vwoClient.isSettingsValid = _this.vwoBuilder.isSettingsValid;
+            vwoClient.settingsFetchTime = _this.vwoBuilder.settingsFetchTime;
+            _this.settings = settings;
+            return vwoClient;
         });
     };
     Object.defineProperty(VWO, "Instance", {
@@ -174,7 +196,8 @@ var _global = {};
  */
 function init(options) {
     return __awaiter(this, void 0, void 0, function () {
-        var apiName, date, msg, msg, msg, instance, msg;
+        var apiName, date, msg, msg, msg, startTimeForInit_1, instance, msg;
+        var _this = this;
         return __generator(this, function (_a) {
             apiName = ApiEnum_1.ApiEnum.INIT;
             date = new Date().toISOString();
@@ -201,18 +224,38 @@ function init(options) {
                     options.platform = PlatformEnum_1.PlatformEnum.CLIENT;
                 }
                 else {}
+                startTimeForInit_1 = undefined;
+                startTimeForInit_1 = Date.now();
                 instance = new VWO(options);
                 _global = {
                     vwoInitDeferred: new PromiseUtil_1.Deferred(),
                     isSettingsFetched: false,
                     instance: null,
                 };
-                return [2 /*return*/, instance.then(function (_vwoInstance) {
-                        _global.isSettingsFetched = true;
-                        _global.instance = _vwoInstance;
-                        _global.vwoInitDeferred.resolve(_vwoInstance);
-                        return _vwoInstance;
-                    })];
+                return [2 /*return*/, instance.then(function (_vwoInstance) { return __awaiter(_this, void 0, void 0, function () {
+                        var sdkInitTime;
+                        var _a, _b, _c;
+                        return __generator(this, function (_d) {
+                            switch (_d.label) {
+                                case 0:
+                                    sdkInitTime = Date.now() - startTimeForInit_1;
+                                    if (!(_vwoInstance.isSettingsValid && !((_b = (_a = _vwoInstance.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier))) return [3 /*break*/, 3];
+                                    if (!((_c = _vwoInstance.options) === null || _c === void 0 ? void 0 : _c.shouldWaitForTrackingCalls)) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, (0, EventUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime)];
+                                case 1:
+                                    _d.sent();
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    (0, EventUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                                    _d.label = 3;
+                                case 3:
+                                    _global.isSettingsFetched = true;
+                                    _global.instance = _vwoInstance;
+                                    _global.vwoInitDeferred.resolve(_vwoInstance);
+                                    return [2 /*return*/, _vwoInstance];
+                            }
+                        });
+                    }); })];
             }
             catch (err) {
                 msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
@@ -349,6 +392,8 @@ var constants_1 = __webpack_require__(/*! ./constants */ "./lib/constants/index.
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.isValidPollIntervalPassedFromInit = false;
+        this.isSettingsValid = false;
+        this.settingsFetchTime = undefined;
         this.options = options;
     }
     /**
@@ -427,6 +472,8 @@ var VWOBuilder = /** @class */ (function () {
         if (!this.isSettingsFetchInProgress) {
             this.isSettingsFetchInProgress = true;
             this.settingFileManager.getSettings(force).then(function (settings) {
+                _this.isSettingsValid = _this.settingFileManager.isSettingsValid;
+                _this.settingsFetchTime = _this.settingFileManager.settingsFetchTime;
                 // if force is false, update original settings, if true the request is from polling and no need to update original settings
                 if (!force) {
                     _this.originalSettings = settings;
@@ -1744,7 +1791,7 @@ exports.HTTP = 'http';
 exports.HTTPS = 'https';
 exports.SEED_URL = 'https://vwo.com';
 exports.HTTP_PROTOCOL = "".concat(exports.HTTP, "://");
-exports.HTTPS_PROTOCOL = "".concat(exports.HTTPS, "://");
+exports.HTTPS_PROTOCOL = "".concat(exports.HTTPS);
 
 
 /***/ }),
@@ -1785,7 +1832,7 @@ if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
         // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: "1.23.4", // will be replaced by webpack for browser build
+        version: "1.24.0", // will be replaced by webpack for browser build
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -2101,6 +2148,7 @@ var EventEnum;
     EventEnum["VWO_VARIATION_SHOWN"] = "vwo_variationShown";
     EventEnum["VWO_SYNC_VISITOR_PROP"] = "vwo_syncVisitorProp";
     EventEnum["VWO_LOG_EVENT"] = "vwo_log";
+    EventEnum["VWO_INIT_CALLED"] = "vwo_fmeSdkInit";
 })(EventEnum || (exports.EventEnum = EventEnum = {}));
 
 
@@ -2984,6 +3032,7 @@ var SettingsSchema = /** @class */ (function () {
             groups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
             campaignGroups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
             collectionPrefix: (0, superstruct_1.optional)((0, superstruct_1.string)()),
+            sdkMetaInfo: (0, superstruct_1.optional)((0, superstruct_1.object)({ wasInitializedEarlier: (0, superstruct_1.optional)((0, superstruct_1.boolean)()) })),
             pollInterval: (0, superstruct_1.optional)((0, superstruct_1.number)()),
         });
     };
@@ -7291,6 +7340,8 @@ var SettingsService = /** @class */ (function () {
     function SettingsService(options) {
         var _a, _b, _c, _d, _e, _f;
         this.isGatewayServiceProvided = false;
+        this.settingsFetchTime = undefined; //time taken to fetch the settings
+        this.isSettingsValid = false;
         this.proxyProvided = false;
         this.gatewayServiceConfig = {
             hostname: null,
@@ -7408,7 +7459,7 @@ var SettingsService = /** @class */ (function () {
     };
     SettingsService.prototype.handleBrowserEnvironment = function (storageConnector, deferredObject) {
         return __awaiter(this, void 0, void 0, function () {
-            var cachedSettings, freshSettings, normalizedSettings, isSettingsValid, error_1;
+            var cachedSettings, freshSettings, normalizedSettings, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -7429,8 +7480,9 @@ var SettingsService = /** @class */ (function () {
                         return [4 /*yield*/, this.normalizeSettings(freshSettings)];
                     case 3:
                         normalizedSettings = _a.sent();
-                        isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
-                        if (!isSettingsValid) return [3 /*break*/, 5];
+                        // set the settings in storage only if settings are valid
+                        this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
+                        if (!this.isSettingsValid) return [3 /*break*/, 5];
                         return [4 /*yield*/, storageConnector.setSettingsInStorage(normalizedSettings)];
                     case 4:
                         _a.sent();
@@ -7495,6 +7547,7 @@ var SettingsService = /** @class */ (function () {
         return deferredObject.promise;
     };
     SettingsService.prototype.fetchSettings = function (isViaWebhook) {
+        var _this = this;
         if (isViaWebhook === void 0) { isViaWebhook = false; }
         var deferredObject = new PromiseUtil_1.Deferred();
         if (!this.sdkKey || !this.accountId) {
@@ -7515,11 +7568,15 @@ var SettingsService = /** @class */ (function () {
             path = constants_1.Constants.WEBHOOK_SETTINGS_ENDPOINT;
         }
         try {
+            //record the current timestamp
+            var startTime_1 = Date.now();
             var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
             request.setTimeout(this.networkTimeout);
             networkInstance
                 .get(request)
                 .then(function (response) {
+                //record the timestamp when the response is received
+                _this.settingsFetchTime = Date.now() - startTime_1;
                 deferredObject.resolve(response.getData());
             })
                 .catch(function (err) {
@@ -7536,6 +7593,7 @@ var SettingsService = /** @class */ (function () {
         }
     };
     SettingsService.prototype.getSettings = function (forceFetch) {
+        var _this = this;
         if (forceFetch === void 0) { forceFetch = false; }
         var deferredObject = new PromiseUtil_1.Deferred();
         if (forceFetch) {
@@ -7570,7 +7628,8 @@ var SettingsService = /** @class */ (function () {
             // } else {
             this.fetchSettingsAndCacheInStorage().then(function (fetchedSettings) {
                 var isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(fetchedSettings);
-                if (isSettingsValid) {
+                _this.isSettingsValid = isSettingsValid;
+                if (_this.isSettingsValid) {
                     logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
                     deferredObject.resolve(fetchedSettings);
                 }
@@ -7579,7 +7638,6 @@ var SettingsService = /** @class */ (function () {
                     deferredObject.resolve({});
                 }
             });
-            // }
         }
         return deferredObject.promise;
     };
@@ -8694,6 +8752,105 @@ var _evaluateWhitelisting = function (campaign, context) { return __awaiter(void
 
 /***/ }),
 
+/***/ "./lib/utils/EventUtil.ts":
+/*!********************************!*\
+  !*** ./lib/utils/EventUtil.ts ***!
+  \********************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.sendSdkInitEvent = sendSdkInitEvent;
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
+var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./lib/services/BatchEventsQueue.ts");
+/**
+ * Sends an init called event to VWO.
+ * This event is triggered when the init function is called.
+ * @param {number} settingsFetchTime - Time taken to fetch settings in milliseconds.
+ * @param {number} sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ */
+function sendSdkInitEvent(settingsFetchTime, sdkInitTime) {
+    return __awaiter(this, void 0, void 0, function () {
+        var properties, payload;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_INIT_CALLED);
+                    payload = (0, NetworkUtil_1.getSDKInitEventPayload)(EventEnum_1.EventEnum.VWO_INIT_CALLED, settingsFetchTime, sdkInitTime);
+                    if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+                    BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                    return [3 /*break*/, 3];
+                case 1: 
+                // Send the constructed properties and payload as a POST request
+                //send eventName in parameters so that we can enable retry for this event
+                return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_INIT_CALLED).catch(function () { })];
+                case 2:
+                    // Send the constructed properties and payload as a POST request
+                    //send eventName in parameters so that we can enable retry for this event
+                    _a.sent();
+                    _a.label = 3;
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+
+
+/***/ }),
+
 /***/ "./lib/utils/FetchUtil.ts":
 /*!********************************!*\
   !*** ./lib/utils/FetchUtil.ts ***!
@@ -9328,6 +9485,7 @@ function buildMessage(template, data) {
  * Sends a log message to VWO.
  * @param {string} message - The message to log.
  * @param {string} messageType - The type of message to log.
+ * @param {string} eventName - The name of the event to log.
  */
 function sendLogToVWO(message, messageType) {
     if (false) {}
@@ -9345,7 +9503,8 @@ function sendLogToVWO(message, messageType) {
         // create the payload
         var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT);
         // Send the constructed payload via POST request
-        (0, NetworkUtil_1.sendMessagingEvent)(properties, payload).catch(function () { });
+        // send eventName in parameters so that we can disable retry for this event
+        (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_LOG_EVENT).catch(function () { });
     }
 }
 
@@ -9930,7 +10089,8 @@ exports.sendPostApiRequest = sendPostApiRequest;
 exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
 exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 exports.getMessagingEventPayload = getMessagingEventPayload;
-exports.sendMessagingEvent = sendMessagingEvent;
+exports.getSDKInitEventPayload = getSDKInitEventPayload;
+exports.sendEvent = sendEvent;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -9960,8 +10120,8 @@ var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./lib/utils/Data
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./lib/utils/UrlUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./lib/utils/PromiseUtil.ts");
-var Url_1 = __webpack_require__(/*! ../constants/Url */ "./lib/constants/Url.ts");
 var UsageStatsUtil_1 = __webpack_require__(/*! ./UsageStatsUtil */ "./lib/utils/UsageStatsUtil.ts");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
 /**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
@@ -10238,25 +10398,55 @@ function getMessagingEventPayload(messageType, message, eventName) {
     return properties;
 }
 /**
- * Sends a messaging event to DACDN
+ * Constructs the payload for init called event.
+ * @param eventName - The name of the event.
+ * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
+ * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ * @returns The constructed payload with required fields.
+ */
+function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
+    var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
+    var properties = _getEventBasePayload(null, userId, eventName, null, null);
+    // Set the required fields as specified
+    properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey;
+    properties.d.event.props.product = 'fme';
+    var data = {
+        isSDKInitialized: true,
+        settingsFetchTime: settingsFetchTime,
+        sdkInitTime: sdkInitTime,
+    };
+    properties.d.event.props.data = data;
+    return properties;
+}
+/**
+ * Sends an event to VWO (generic event sender).
  * @param properties - Query parameters for the request.
  * @param payload - The payload for the request.
- * @returns A promise that resolves to the response from DACDN.
+ * @param eventName - The name of the event to send.
+ * @returns A promise that resolves to the response from the server.
  */
-function sendMessagingEvent(properties, payload) {
+function sendEvent(properties, payload, eventName) {
     return __awaiter(this, void 0, void 0, function () {
-        var deferredObject, networkInstance, retryConfig, baseUrl, request;
+        var deferredObject, networkInstance, retryConfig, baseUrl, protocol, port, request;
         return __generator(this, function (_a) {
             deferredObject = new PromiseUtil_1.Deferred();
             networkInstance = network_layer_1.NetworkManager.Instance;
             retryConfig = networkInstance.getRetryConfig();
-            // disable retry for messaging event
-            retryConfig.shouldRetry = false;
+            // disable retry for event (no retry for generic events)
+            if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT)
+                retryConfig.shouldRetry = false;
             baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
             baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
+            protocol = SettingsService_1.SettingsService.Instance.protocol;
+            port = SettingsService_1.SettingsService.Instance.port;
+            if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT) {
+                baseUrl = constants_1.Constants.HOST_NAME;
+                protocol = constants_1.Constants.HTTPS_PROTOCOL;
+                port = 443;
+            }
             try {
-                request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, Url_1.HTTPS, null, retryConfig);
-                // Perform the network GET request
+                request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, protocol, port, retryConfig);
+                // Perform the network POST request
                 networkInstance
                     .post(request)
                     .then(function (response) {
@@ -13173,7 +13363,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty. Nothing to flush."}');
+module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty. Nothing to flush.","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}."}');
 
 /***/ }),
 
@@ -13195,7 +13385,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} not passed in SDK configuration, setting it default to {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details"}');
 
 /***/ }),
 

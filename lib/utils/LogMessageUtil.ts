@@ -16,7 +16,7 @@
 import { Constants } from '../constants';
 import { EventEnum } from '../enums/EventEnum';
 import { isFunction } from '../utils/DataTypeUtil';
-import { getEventsBaseProperties, getMessagingEventPayload, sendMessagingEvent } from './NetworkUtil';
+import { getEventsBaseProperties, getMessagingEventPayload, sendEvent } from './NetworkUtil';
 
 const nargs = /\{([0-9a-zA-Z_]+)\}/g;
 const storedMessages = new Set<string>();
@@ -56,6 +56,7 @@ export function buildMessage(template: string, data: Record<string, any> = {}): 
  * Sends a log message to VWO.
  * @param {string} message - The message to log.
  * @param {string} messageType - The type of message to log.
+ * @param {string} eventName - The name of the event to log.
  */
 
 export function sendLogToVWO(message: string, messageType: string) {
@@ -81,6 +82,7 @@ export function sendLogToVWO(message: string, messageType: string) {
     const payload = getMessagingEventPayload(messageType, message, EventEnum.VWO_LOG_EVENT);
 
     // Send the constructed payload via POST request
-    sendMessagingEvent(properties, payload).catch(() => {});
+    // send eventName in parameters so that we can disable retry for this event
+    sendEvent(properties, payload, EventEnum.VWO_LOG_EVENT).catch(() => {});
   }
 }

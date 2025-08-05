@@ -19,15 +19,18 @@ import { IVWOOptions } from './models/VWOOptionsModel';
 import { dynamic } from './types/Common';
 import { isObject, isString } from './utils/DataTypeUtil';
 import { Deferred } from './utils/PromiseUtil';
-
+import { sendSdkInitEvent } from './utils/EventUtil';
 import { InfoLogMessagesEnum, ErrorLogMessagesEnum } from './enums/log-messages';
 import { buildMessage } from './utils/LogMessageUtil';
 import { PlatformEnum } from './enums/PlatformEnum';
 import { ApiEnum } from './enums/ApiEnum';
+import { LogManager } from './packages/logger';
+import { SettingsSchema } from './models/schemas/SettingsSchemaValidation';
 
 export class VWO {
   private static vwoBuilder: VWOBuilder;
   private static instance: dynamic;
+  private static settings: Record<any, any>;
 
   /**
    * Constructor for the VWO class.
@@ -62,11 +65,30 @@ export class VWO {
     // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
 
     if (options?.settings) {
-      return Promise.resolve(this.vwoBuilder.build(options.settings));
+      const isSettingsValid = new SettingsSchema().isSettingsValid(options.settings);
+
+      if (isSettingsValid) {
+        LogManager.Instance.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+        const vwoClient = this.vwoBuilder.build(options.settings);
+        vwoClient.isSettingsValid = true;
+        vwoClient.settingsFetchTime = 0;
+        return Promise.resolve(vwoClient);
+      } else {
+        LogManager.Instance.error(ErrorLogMessagesEnum.SETTINGS_SCHEMA_INVALID);
+        const vwoClient = this.vwoBuilder.build({});
+        vwoClient.isSettingsValid = false;
+        vwoClient.settingsFetchTime = 0;
+        return Promise.resolve(vwoClient);
+      }
     }
 
     return this.vwoBuilder.getSettings().then((settings: Record<any, any>) => {
-      return this.vwoBuilder.build(settings); // Builds the VWO instance with the fetched settings.
+      const vwoClient = this.vwoBuilder.build(settings);
+      // Attach to instance for logging
+      vwoClient.isSettingsValid = this.vwoBuilder.isSettingsValid;
+      vwoClient.settingsFetchTime = this.vwoBuilder.settingsFetchTime;
+      this.settings = settings;
+      return vwoClient;
     });
   }
 
@@ -123,6 +145,8 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
       options.platform = PlatformEnum.SERVER;
     }
 
+    let startTimeForInit: number | undefined = undefined;
+    startTimeForInit = Date.now();
     const instance: any = new VWO(options); // Creates a new VWO instance with the validated options.
 
     _global = {
@@ -131,7 +155,16 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
       instance: null,
     };
 
-    return instance.then((_vwoInstance) => {
+    return instance.then(async (_vwoInstance) => {
+      const sdkInitTime = Date.now() - startTimeForInit;
+      if (_vwoInstance.isSettingsValid && !_vwoInstance.originalSettings?.sdkMetaInfo?.wasInitializedEarlier) {
+        //if shouldwaitForTrackingCalls is true, then wait for sendSdkInitEvent to complete
+        if (_vwoInstance.options?.shouldWaitForTrackingCalls) {
+          await sendSdkInitEvent(_vwoInstance.settingsFetchTime, sdkInitTime);
+        } else {
+          sendSdkInitEvent(_vwoInstance.settingsFetchTime, sdkInitTime);
+        }
+      }
       _global.isSettingsFetched = true;
       _global.instance = _vwoInstance;
       _global.vwoInitDeferred.resolve(_vwoInstance);

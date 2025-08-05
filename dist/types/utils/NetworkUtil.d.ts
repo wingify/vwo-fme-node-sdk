@@ -124,9 +124,26 @@ export declare function getMessagingEventPayload(
   eventName: string,
 ): Record<string, any>;
 /**
- * Sends a messaging event to DACDN
+ * Constructs the payload for init called event.
+ * @param eventName - The name of the event.
+ * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
+ * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ * @returns The constructed payload with required fields.
+ */
+export declare function getSDKInitEventPayload(
+  eventName: string,
+  settingsFetchTime?: number,
+  sdkInitTime?: number,
+): Record<string, any>;
+/**
+ * Sends an event to VWO (generic event sender).
  * @param properties - Query parameters for the request.
  * @param payload - The payload for the request.
- * @returns A promise that resolves to the response from DACDN.
+ * @param eventName - The name of the event to send.
+ * @returns A promise that resolves to the response from the server.
  */
-export declare function sendMessagingEvent(properties: Record<string, any>, payload: Record<string, any>): Promise<any>;
+export declare function sendEvent(
+  properties: Record<string, any>,
+  payload: Record<string, any>,
+  eventName: string,
+): Promise<any>;

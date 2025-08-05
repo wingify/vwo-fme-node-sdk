@@ -12,7 +12,9 @@ export declare class SettingsService implements ISettingsService {
   port: number;
   protocol: string;
   isGatewayServiceProvided: boolean;
+  settingsFetchTime: number | undefined;
   private static instance;
+  isSettingsValid: boolean;
   proxyProvided: boolean;
   gatewayServiceConfig: {
     hostname: string | null;

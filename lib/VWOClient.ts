@@ -46,6 +46,8 @@ export interface IVWOClient {
   readonly options?: IVWOOptions;
   settings: SettingsModel;
   originalSettings: Record<any, any>;
+  isSettingsValid: boolean;
+  settingsFetchTime: number | undefined;
 
   getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
   trackEvent(
@@ -68,6 +70,8 @@ export class VWOClient implements IVWOClient {
   originalSettings: Record<any, any>;
   storage: Storage;
   vwoClientInstance: VWOClient;
+  isSettingsValid: boolean;
+  settingsFetchTime: number | undefined;
 
   constructor(settings: Record<any, any>, options: IVWOOptions) {
     this.options = options;

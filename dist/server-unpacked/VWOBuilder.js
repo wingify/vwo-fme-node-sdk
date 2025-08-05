@@ -68,6 +68,8 @@ var constants_1 = require("./constants");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.isValidPollIntervalPassedFromInit = false;
+        this.isSettingsValid = false;
+        this.settingsFetchTime = undefined;
         this.options = options;
     }
     /**
@@ -146,6 +148,8 @@ var VWOBuilder = /** @class */ (function () {
         if (!this.isSettingsFetchInProgress) {
             this.isSettingsFetchInProgress = true;
             this.settingFileManager.getSettings(force).then(function (settings) {
+                _this.isSettingsValid = _this.settingFileManager.isSettingsValid;
+                _this.settingsFetchTime = _this.settingFileManager.settingsFetchTime;
                 // if force is false, update original settings, if true the request is from polling and no need to update original settings
                 if (!force) {
                     _this.originalSettings = settings;

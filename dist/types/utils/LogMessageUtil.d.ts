@@ -10,5 +10,6 @@ export declare function buildMessage(template: string, data?: Record<string, any
  * Sends a log message to VWO.
  * @param {string} message - The message to log.
  * @param {string} messageType - The type of message to log.
+ * @param {string} eventName - The name of the event to log.
  */
 export declare function sendLogToVWO(message: string, messageType: string): void;

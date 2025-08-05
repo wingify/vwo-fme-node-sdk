@@ -85,6 +85,7 @@ var SettingsSchema = /** @class */ (function () {
             groups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
             campaignGroups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
             collectionPrefix: (0, superstruct_1.optional)((0, superstruct_1.string)()),
+            sdkMetaInfo: (0, superstruct_1.optional)((0, superstruct_1.object)({ wasInitializedEarlier: (0, superstruct_1.optional)((0, superstruct_1.boolean)()) })),
             pollInterval: (0, superstruct_1.optional)((0, superstruct_1.number)()),
         });
     };

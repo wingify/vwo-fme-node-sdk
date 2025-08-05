@@ -56,6 +56,7 @@ function buildMessage(template, data) {
  * Sends a log message to VWO.
  * @param {string} message - The message to log.
  * @param {string} messageType - The type of message to log.
+ * @param {string} eventName - The name of the event to log.
  */
 function sendLogToVWO(message, messageType) {
     if (typeof process.env != 'undefined' && process.env.TEST_ENV === 'true') {
@@ -75,7 +76,8 @@ function sendLogToVWO(message, messageType) {
         // create the payload
         var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT);
         // Send the constructed payload via POST request
-        (0, NetworkUtil_1.sendMessagingEvent)(properties, payload).catch(function () { });
+        // send eventName in parameters so that we can disable retry for this event
+        (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_LOG_EVENT).catch(function () { });
     }
 }
 //# sourceMappingURL=LogMessageUtil.js.map

@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./lib",
+    "paths": {
+      "*": ["node_modules", "lib"]
+    },
+    "declarationDir": "./dist/types",
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "removeComments": false,
+    "sourceMap": true,
+
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+
+    "allowSyntheticDefaultImports": true,
+
+    "outDir": "dist/esm",
+    "target": "ES2020",
+    "esModuleInterop": true,
+    "declaration": true
+  },
+  "include": ["./lib/**/*"],
+  "exclude": ["node_modules", "**/*.(spec|test).ts", "*.js"],
+  "typeRoots": ["types", "./node_modules/@types"]
+}

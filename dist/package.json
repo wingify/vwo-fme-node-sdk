@@ -1,48 +1,39 @@
 {
   "name": "vwo-fme-node-sdk",
-  "version": "1.24.0",
+  "version": "1.25.0",
   "description": "VWO Node/JavaScript SDK for Feature Management and Experimentation",
   "main": "dist/server/vwo-fme-node-sdk.min.js",
   "browser": "dist/client/vwo-fme-javascript-sdk.min.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
-      "node": {
-        "types": "./dist/types/index.d.ts",
-        "import": "./dist/server/vwo-fme-node-sdk.min.js",
-        "require": "./dist/server/vwo-fme-node-sdk.min.js",
-        "default": "./dist/server/vwo-fme-node-sdk.min.js"
-      },
-      "default": {
-        "types": "./dist/types/index.d.ts",
-        "import": "./dist/client/vwo-fme-javascript-sdk.js",
-        "require": "./dist/client/vwo-fme-javascript-sdk.min.js",
-        "default": "./dist/client/vwo-fme-javascript-sdk.min.js"
-      }
-    },
-    "./node": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/server/vwo-fme-node-sdk.min.js",
+      "import": "./dist/esm/index.js",
       "require": "./dist/server/vwo-fme-node-sdk.min.js",
       "default": "./dist/server/vwo-fme-node-sdk.min.js"
     },
-    "./browser": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/client/vwo-fme-javascript-sdk.js",
-      "require": "./dist/client/vwo-fme-javascript-sdk.min.js",
-      "default": "./dist/client/vwo-fme-javascript-sdk.min.js"
+    "./esm": {
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./node": {
+      "import": "./dist/server/vwo-fme-node-sdk.min.js",
+      "default": "./dist/server/vwo-fme-node-sdk.min.js"
     }
   },
-  "types": "dist/types/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && prettier -w dist/types/",
+    "build": "rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && yarn build:esm && prettier -w dist/types/",
     "build:browser": "yarn build:dev-browser && yarn build:prod-browser",
     "build:node": "yarn build:dev-node && yarn build:prod-node",
+    "build:esm": "tsc --project tsconfig.esm.json",
     "build:dev-browser": "webpack --config ./webpack.browser.config.js --mode=development",
     "build:dev-node": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development",
     "build:dev-browser-watch": "webpack --config ./webpack.browser.config.js --mode=development --watch",
     "build:dev-node-watch": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch",
+    "build:dev-esm-watch": "yarn tsc:prod && webpack --config ./webpack.esm.config.js --mode=development --watch",
     "build:dev-browser-analyze": "webpack --config ./webpack.browser.config.js --mode=development --env analyze=1",
     "build:dev-node-analyze": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1",
+    "build:dev-esm-analyze": "yarn tsc:prod && webpack --config ./webpack.esm.config.js --mode=production --env analyze=1",
     "build:prod-browser": "webpack --config ./webpack.browser.config.js --mode=production",
     "build:prod-node": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production",
     "check:license": "yarn check:versions && node -e 'require(\"./scripts/check-license\")'",

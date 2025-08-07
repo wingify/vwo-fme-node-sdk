@@ -1,0 +1,69 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getRandomUUID = getRandomUUID;
+exports.getUUID = getUUID;
+exports.generateUUID = generateUUID;
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const Url_1 = require("../constants/Url");
+const uuid_1 = require("uuid");
+const uuid_2 = require("uuid");
+/**
+ * Generates a random UUID based on an API key.
+ * @param sdkKey The API key used to generate a namespace for the UUID.
+ * @returns A random UUID string.
+ */
+function getRandomUUID(sdkKey) {
+    // Generate a namespace based on the API key using DNS namespace
+    const namespace = (0, uuid_2.v5)(sdkKey, uuid_2.v5.DNS);
+    // Generate a random UUID using the namespace derived from the API key
+    const randomUUID = (0, uuid_2.v5)((0, uuid_1.v4)(), namespace);
+    return randomUUID;
+}
+/**
+ * Generates a UUID for a user based on their userId and accountId.
+ * @param userId The user's ID.
+ * @param accountId The account ID associated with the user.
+ * @returns A UUID string formatted without dashes and in uppercase.
+ */
+function getUUID(userId, accountId) {
+    const VWO_NAMESPACE = (0, uuid_2.v5)(Url_1.SEED_URL, uuid_2.v5.URL);
+    // Convert userId and accountId to string to ensure proper type
+    userId = String(userId);
+    accountId = String(accountId);
+    // Generate a namespace UUID based on the accountId
+    const userIdNamespace = generateUUID(accountId, VWO_NAMESPACE);
+    // Generate a UUID based on the userId and the previously generated namespace
+    const uuidForUserIdAccountId = generateUUID(userId, userIdNamespace);
+    // Remove all dashes from the UUID and convert it to uppercase
+    const desiredUuid = uuidForUserIdAccountId?.replace(/-/gi, '').toUpperCase();
+    return desiredUuid;
+}
+/**
+ * Helper function to generate a UUID v5 based on a name and a namespace.
+ * @param name The name from which to generate the UUID.
+ * @param namespace The namespace used to generate the UUID.
+ * @returns A UUID string or undefined if inputs are invalid.
+ */
+function generateUUID(name, namespace) {
+    // Check for valid input to prevent errors
+    if (!name || !namespace) {
+        return;
+    }
+    // Generate and return the UUID v5
+    return (0, uuid_2.v5)(name, namespace);
+}
+//# sourceMappingURL=UuidUtil.js.map

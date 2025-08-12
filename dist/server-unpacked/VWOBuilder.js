@@ -87,7 +87,7 @@ var VWOBuilder = /** @class */ (function () {
         // Set the development mode based on options
         networkInstance.getConfig().setDevelopmentMode((_d = this.options) === null || _d === void 0 ? void 0 : _d.isDevelopmentMode);
         // Set proxy URL for browser environments only
-        if (typeof process.env === 'undefined' && ((_e = this.options) === null || _e === void 0 ? void 0 : _e.proxyUrl)) {
+        if (typeof process === 'undefined' && ((_e = this.options) === null || _e === void 0 ? void 0 : _e.proxyUrl)) {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             var setProxyUrl = require('./packages/network-layer/client/NetworkBrowserClient').setProxyUrl;
             setProxyUrl(this.options.proxyUrl);
@@ -200,7 +200,7 @@ var VWOBuilder = /** @class */ (function () {
             // Attach the storage connector from options
             this.storage = storage_1.Storage.Instance.attachConnector(this.options.storage);
         }
-        else if (typeof process.env === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
+        else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             var BrowserStorageConnector = require('./packages/storage/connectors/BrowserStorageConnector').BrowserStorageConnector;
             // Pass clientStorage config to BrowserStorageConnector

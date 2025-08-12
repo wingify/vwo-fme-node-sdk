@@ -139,7 +139,7 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
       console.error(msg); // Validates accountId presence and type.
     }
 
-    if (typeof process.env === 'undefined') {
+    if (typeof process === 'undefined') {
       options.platform = PlatformEnum.CLIENT;
     } else {
       options.platform = PlatformEnum.SERVER;

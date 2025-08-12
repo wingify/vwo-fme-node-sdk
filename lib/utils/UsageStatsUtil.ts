@@ -91,7 +91,7 @@ export class UsageStatsUtil {
     if (_vwo_meta && _vwo_meta.ea) data._ea = 1;
 
     // Check if sdk running in browser and not in edge/serverless environment
-    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
+    if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       return;
     } else {
       if (typeof process !== 'undefined' && process.version) {

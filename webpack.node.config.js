@@ -22,7 +22,7 @@ function addPlugins(argv) {
   const version = semver.inc(libVersion, argv.type) || libVersion;
 
   libraryHeaderComment = `${libraryName} - v${version}
-URL - https://github.com/wingify/vwo-node-sdk
+URL - https://github.com/wingify/vwo-fme-node-sdk
 
 Copyright 2024-2025 Wingify Software Pvt. Ltd.
 

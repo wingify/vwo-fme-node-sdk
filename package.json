@@ -1,6 +1,6 @@
 {
   "name": "vwo-fme-node-sdk",
-  "version": "1.25.0",
+  "version": "1.25.1",
   "description": "VWO Node/JavaScript SDK for Feature Management and Experimentation",
   "main": "dist/server/vwo-fme-node-sdk.min.js",
   "browser": "dist/client/vwo-fme-javascript-sdk.min.js",
@@ -8,6 +8,11 @@
   "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
+      "browser": {
+        "import": "./dist/esm/index.js",
+        "require": "./dist/client/vwo-fme-javascript-sdk.min.js",
+        "default": "./dist/client/vwo-fme-javascript-sdk.min.js"
+      },
       "import": "./dist/esm/index.js",
       "require": "./dist/server/vwo-fme-node-sdk.min.js",
       "default": "./dist/server/vwo-fme-node-sdk.min.js"
@@ -22,7 +27,7 @@
     }
   },
   "scripts": {
-    "build": "rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && yarn build:esm && prettier -w dist/types/",
+    "build": "rm -rf dist/ && yarn gen:sdk-version && yarn tsc:prod && yarn build:node && yarn build:browser && yarn build:esm && prettier -w dist/types/",
     "build:browser": "yarn build:dev-browser && yarn build:prod-browser",
     "build:node": "yarn build:dev-node && yarn build:prod-node",
     "build:esm": "tsc --project tsconfig.esm.json",
@@ -39,6 +44,7 @@
     "check:versions": "node -e 'require(\"./scripts/check-versions\")'",
     "demo": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js",
     "demo:server": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js",
+    "gen:sdk-version": "node scripts/generate-sdk-version.js",
     "lint": "node -e 'require(\"./scripts/check-versions\")([\"nodeLint\"])' && eslint lib/ --fix",
     "lint:errors-only": "node -e 'require(\"./scripts/check-versions\")([\"nodeLint\"])' && eslint **/*.ts' --fix --quiet",
     "prepare": "husky",
@@ -47,7 +53,7 @@
     "test:prod": "jest --runInBand --colors --errorOnDeprecated",
     "test:coverage": "jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info",
     "tsc": "yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w",
-    "tsc:prod": "yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/",
+    "tsc:prod": "yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/ && cp VERSION.json dist/",
     "typedoc": "typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ",
     "typedoc:html": "typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"
   },

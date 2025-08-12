@@ -16,23 +16,23 @@ exports.Constants = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global SDK_VERSION */
 const PlatformEnum_1 = require("../enums/PlatformEnum");
 const Url_1 = require("./Url");
 let packageFile;
 let platform;
-// For client-side SDK, to keep the build size low
-// avoid adding the whole package file in the bundle
-if (typeof process.env === 'undefined') {
+// Reading package.json will bundle the whole file that's why preventing it by reading VERSION
+if (typeof process === 'undefined') {
     packageFile = {
-        name: 'vwo-fme-javascript-sdk', // will be replaced by webpack for browser build
-        // @ts-expect-error This will be relaved by webpack at the time of build for browser
-        version: SDK_VERSION, // will be replaced by webpack for browser build
+        name: 'vwo-fme-javascript-sdk',
+        version: require('../../VERSION.json').version,
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
 else {
-    packageFile = require('../../package.json');
+    packageFile = {
+        name: 'vwo-fme-node-sdk',
+        version: require('../../VERSION.json').version,
+    };
     platform = PlatformEnum_1.PlatformEnum.SERVER;
 }
 exports.Constants = {

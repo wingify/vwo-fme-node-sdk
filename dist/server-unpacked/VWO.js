@@ -172,7 +172,7 @@ function init(options) {
                     });
                     console.error(msg); // Validates accountId presence and type.
                 }
-                if (typeof process.env === 'undefined') {
+                if (typeof process === 'undefined') {
                     options.platform = PlatformEnum_1.PlatformEnum.CLIENT;
                 }
                 else {

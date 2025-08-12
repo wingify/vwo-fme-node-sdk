@@ -214,7 +214,7 @@ class NetworkClient {
             logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
                 endPoint: endpoint,
                 err: error,
-                delay: delay,
+                delay: delay / 1000,
                 attempt: attempt + 1,
                 maxRetries: retryConfig.maxRetries,
             }));

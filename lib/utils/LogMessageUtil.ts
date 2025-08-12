@@ -60,7 +60,7 @@ export function buildMessage(template: string, data: Record<string, any> = {}): 
  */
 
 export function sendLogToVWO(message: string, messageType: string) {
-  if (typeof process.env != 'undefined' && process.env.TEST_ENV === 'true') {
+  if (typeof process != 'undefined' && process.env.TEST_ENV === 'true') {
     return;
   }
 

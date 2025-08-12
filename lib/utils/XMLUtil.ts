@@ -89,7 +89,7 @@ function sendRequest(method, options) {
           buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
             endPoint: url.split('?')[0],
             err: error,
-            delay: delay,
+            delay: delay / 1000,
             attempt: retryCount,
             maxRetries: maxRetries,
           }),

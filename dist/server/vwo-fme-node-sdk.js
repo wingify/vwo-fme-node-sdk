@@ -1,6 +1,6 @@
 /*!
- * vwo-fme-node-sdk - v1.25.0
- * URL - https://github.com/wingify/vwo-node-sdk
+ * vwo-fme-node-sdk - v1.25.1
+ * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -26,13 +26,13 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./dist/package.json":
+/***/ "./dist/VERSION.json":
 /*!***************************!*\
-  !*** ./dist/package.json ***!
+  !*** ./dist/VERSION.json ***!
   \***************************/
 /***/ ((module) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"name":"vwo-fme-node-sdk","version":"1.25.0","description":"VWO Node/JavaScript SDK for Feature Management and Experimentation","main":"dist/server/vwo-fme-node-sdk.min.js","browser":"dist/client/vwo-fme-javascript-sdk.min.js","module":"dist/esm/index.js","types":"dist/types/index.d.ts","exports":{".":{"import":"./dist/esm/index.js","require":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"},"./esm":{"import":"./dist/esm/index.js","default":"./dist/esm/index.js"},"./node":{"import":"./dist/server/vwo-fme-node-sdk.min.js","default":"./dist/server/vwo-fme-node-sdk.min.js"}},"scripts":{"build":"rm -rf dist/ yarn tsc:prod && yarn build:node && yarn build:browser && yarn build:esm && prettier -w dist/types/","build:browser":"yarn build:dev-browser && yarn build:prod-browser","build:node":"yarn build:dev-node && yarn build:prod-node","build:esm":"tsc --project tsconfig.esm.json","build:dev-browser":"webpack --config ./webpack.browser.config.js --mode=development","build:dev-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development","build:dev-browser-watch":"webpack --config ./webpack.browser.config.js --mode=development --watch","build:dev-node-watch":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch","build:dev-esm-watch":"yarn tsc:prod && webpack --config ./webpack.esm.config.js --mode=development --watch","build:dev-browser-analyze":"webpack --config ./webpack.browser.config.js --mode=development --env analyze=1","build:dev-node-analyze":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1","build:dev-esm-analyze":"yarn tsc:prod && webpack --config ./webpack.esm.config.js --mode=production --env analyze=1","build:prod-browser":"webpack --config ./webpack.browser.config.js --mode=production","build:prod-node":"yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production","check:license":"yarn check:versions && node -e \'require(\\"./scripts/check-license\\")\'","check:versions":"node -e \'require(\\"./scripts/check-versions\\")\'","demo":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js","demo:server":"nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/server.js","lint":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint lib/ --fix","lint:errors-only":"node -e \'require(\\"./scripts/check-versions\\")([\\"nodeLint\\"])\' && eslint **/*.ts\' --fix --quiet","prepare":"husky","prettier":"prettier -w lib/**/*.ts *.md","test:dev":"node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated","test:prod":"jest --runInBand --colors --errorOnDeprecated","test:coverage":"jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info","tsc":"yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w","tsc:prod":"yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/","typedoc":"typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ","typedoc:html":"typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"},"repository":{"type":"git","url":"https://github.com/wingify/vwo-fme-node-sdk"},"author":"VWO developers","license":"Apache-2.0","files":["dist/","package.json","yarn.lock","lib/**/*","LICENSE","README.md","CONTRIBUTING.md","CHANGELOG.md","NOTICE"],"dependencies":{"murmurhash":"^2.0.1","superstruct":"^0.14.x","uuid":"^9.0.1","vwo-fme-sdk-log-messages":"^1.*.*"},"devDependencies":{"@babel/core":"^7.24.5","@babel/preset-env":"^7.24.5","@babel/preset-typescript":"^7.24.1","@commitlint/cli":"^19.3.0","@commitlint/config-conventional":"^19.2.2","@eslint/js":"^9.2.0","@types/jest":"^29.5.12","@types/node":"^20.12.7","babel-jest":"^29.7.0","babel-loader":"^9.1.3","eslint":"^9.2.0","globals":"^15.1.0","husky":"^9.0.11","jest":"^29.7.0","lint-staged":"^15.2.2","nodemon":"^2.0.6","prettier":"^3.2.5","semver":"^7.6.0","shelljs":"^0.8.5","ts-loader":"^9.5.1","typedoc":"^0.25.13","typescript":"^5.4.5","typescript-eslint":"^7.8.0","vwo-fme-sdk-e2e-test-settings-n-cases":"^1.4.0","webpack":"^5.91.0","webpack-bundle-analyzer":"^4.10.2","webpack-cli":"^5.1.4","webpack-node-externals":"^3.0.0"},"lint-staged":{"**/*.{ts,json,md}":["prettier --write"]},"engineStrict":true,"engines":{"node":">= 8.9.0","yarn":">= 1.22.17"},"customEngines":{"nodeLint":">= 18.18.0"}}');
+module.exports = {"version":"1.25.1"};
 
 /***/ }),
 
@@ -291,7 +291,7 @@ function init(options) {
           });
           console.error(msg); // Validates accountId presence and type.
         }
-        if (typeof process.env === 'undefined') {
+        if (typeof process === 'undefined') {
           options.platform = PlatformEnum_1.PlatformEnum.CLIENT;
         } else {
           options.platform = PlatformEnum_1.PlatformEnum.SERVER;
@@ -557,7 +557,7 @@ var VWOBuilder = /** @class */function () {
     // Set the development mode based on options
     networkInstance.getConfig().setDevelopmentMode((_d = this.options) === null || _d === void 0 ? void 0 : _d.isDevelopmentMode);
     // Set proxy URL for browser environments only
-    if (typeof process.env === 'undefined' && ((_e = this.options) === null || _e === void 0 ? void 0 : _e.proxyUrl)) {
+    if (typeof process === 'undefined' && ((_e = this.options) === null || _e === void 0 ? void 0 : _e.proxyUrl)) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       var setProxyUrl = (__webpack_require__(/*! ./packages/network-layer/client/NetworkBrowserClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkBrowserClient.js").setProxyUrl);
       setProxyUrl(this.options.proxyUrl);
@@ -663,7 +663,7 @@ var VWOBuilder = /** @class */function () {
     if (this.options.storage) {
       // Attach the storage connector from options
       this.storage = storage_1.Storage.Instance.attachConnector(this.options.storage);
-    } else if (typeof process.env === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
+    } else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       var BrowserStorageConnector = (__webpack_require__(/*! ./packages/storage/connectors/BrowserStorageConnector */ "./dist/server-unpacked/packages/storage/connectors/BrowserStorageConnector.js").BrowserStorageConnector);
       // Pass clientStorage config to BrowserStorageConnector
@@ -2292,23 +2292,22 @@ exports.Constants = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global SDK_VERSION */
 var PlatformEnum_1 = __webpack_require__(/*! ../enums/PlatformEnum */ "./dist/server-unpacked/enums/PlatformEnum.js");
 var Url_1 = __webpack_require__(/*! ./Url */ "./dist/server-unpacked/constants/Url.js");
 var packageFile;
 var platform;
-// For client-side SDK, to keep the build size low
-// avoid adding the whole package file in the bundle
-if (typeof process.env === 'undefined') {
+// Reading package.json will bundle the whole file that's why preventing it by reading VERSION
+if (typeof process === 'undefined') {
   packageFile = {
     name: 'vwo-fme-javascript-sdk',
-    // will be replaced by webpack for browser build
-    // @ts-expect-error This will be relaved by webpack at the time of build for browser
-    version: SDK_VERSION // will be replaced by webpack for browser build
+    version: (__webpack_require__(/*! ../../VERSION.json */ "./dist/VERSION.json").version)
   };
   platform = PlatformEnum_1.PlatformEnum.CLIENT;
 } else {
-  packageFile = __webpack_require__(/*! ../../package.json */ "./dist/package.json");
+  packageFile = {
+    name: 'vwo-fme-node-sdk',
+    version: (__webpack_require__(/*! ../../VERSION.json */ "./dist/VERSION.json").version)
+  };
   platform = PlatformEnum_1.PlatformEnum.SERVER;
 }
 exports.Constants = {
@@ -3743,7 +3742,7 @@ var ContextModel = /** @class */function () {
     this.ipAddress = context.ipAddress;
     // if sdk is running in js environment and userAgent is not given then we use navigator.userAgent
     // Check if sdk running in browser and not in edge/serverless environment
-    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined' && !context.userAgent) {
+    if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined' && !context.userAgent) {
       this.userAgent = navigator.userAgent;
     }
     if (context === null || context === void 0 ? void 0 : context.customVariables) {
@@ -4962,7 +4961,7 @@ var NetworkClient = /** @class */function () {
       logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
         endPoint: endpoint,
         err: error,
-        delay: delay,
+        delay: delay / 1000,
         attempt: attempt + 1,
         maxRetries: retryConfig.maxRetries
       }));
@@ -5153,7 +5152,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ResponseModel = exports.RequestModel = exports.GlobalRequestModel = exports.NetworkManager = exports.NetworkClient = void 0;
 var NetworkClient;
-if (typeof process.env === 'undefined') {
+if (typeof process === 'undefined') {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   exports.NetworkClient = NetworkClient = (__webpack_require__(/*! ./client/NetworkBrowserClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkBrowserClient.js").NetworkBrowserClient);
 } else {
@@ -5289,7 +5288,7 @@ var NetworkManager = /** @class */function () {
       this.retryConfig = this.validateRetryConfig(mergedConfig);
     }
     // if env is undefined, we are in browser
-    if (typeof process.env === 'undefined') {
+    if (typeof process === 'undefined') {
       // if XMLHttpRequest is undefined, we are in serverless
       if (typeof XMLHttpRequest === 'undefined') {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -6659,7 +6658,7 @@ var SegmentEvaluator = /** @class */function () {
       var _a, _b, _c, _d, _e, _f, _g, _h, _j;
       return __generator(this, function (_k) {
         // Ensure user's IP address is available
-        if (((_a = this.context) === null || _a === void 0 ? void 0 : _a.getIpAddress()) === undefined && typeof process.env !== 'undefined') {
+        if (((_a = this.context) === null || _a === void 0 ? void 0 : _a.getIpAddress()) === undefined && typeof process !== 'undefined') {
           logger_1.LogManager.Instance.error('To evaluate location pre Segment, please pass ipAddress in context object');
           return [2 /*return*/, false];
         }
@@ -8702,7 +8701,7 @@ var SettingsService = /** @class */function () {
     // if sdk is running in browser environment then set isGatewayServiceProvided to true
     // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
     // Check if sdk running in browser and not in edge/serverless environment
-    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
+    if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.isGatewayServiceProvided = true;
       // Handle proxyUrl for browser environment
       if (options === null || options === void 0 ? void 0 : options.proxyUrl) {
@@ -8877,7 +8876,7 @@ var SettingsService = /** @class */function () {
   SettingsService.prototype.fetchSettingsAndCacheInStorage = function () {
     var deferredObject = new PromiseUtil_1.Deferred();
     var storageConnector = storage_1.Storage.Instance.getConnector();
-    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
+    if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.handleBrowserEnvironment(storageConnector, deferredObject);
     } else {
       this.handleServerEnvironment(deferredObject);
@@ -11284,7 +11283,7 @@ function buildMessage(template, data) {
  * @param {string} eventName - The name of the event to log.
  */
 function sendLogToVWO(message, messageType) {
-  if (typeof process.env != 'undefined' && process.env.TEST_ENV === 'true') {
+  if (typeof process != 'undefined' && process.env.TEST_ENV === 'true') {
     return;
   }
   var messageToSend = message;
@@ -12854,7 +12853,7 @@ var UsageStatsUtil = /** @class */function () {
     // if _vwo_meta has ea, then addd data._ea to be 1
     if (_vwo_meta && _vwo_meta.ea) data._ea = 1;
     // Check if sdk running in browser and not in edge/serverless environment
-    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
+    if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       return;
     } else {
       if (typeof process !== 'undefined' && process.version) {
@@ -13055,7 +13054,7 @@ function sendRequest(method, options) {
         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
           endPoint: url.split('?')[0],
           err: error,
-          delay: delay,
+          delay: delay / 1000,
           attempt: retryCount,
           maxRetries: maxRetries
         }));

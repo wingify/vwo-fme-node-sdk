@@ -85,7 +85,7 @@ class NetworkManager {
             this.retryConfig = this.validateRetryConfig(mergedConfig);
         }
         // if env is undefined, we are in browser
-        if (typeof process.env === 'undefined') {
+        if (typeof process === 'undefined') {
             // if XMLHttpRequest is undefined, we are in serverless
             if (typeof XMLHttpRequest === 'undefined') {
                 // eslint-disable-next-line @typescript-eslint/no-var-requires

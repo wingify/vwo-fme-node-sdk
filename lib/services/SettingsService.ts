@@ -68,7 +68,7 @@ export class SettingsService implements ISettingsService {
     // if sdk is running in browser environment then set isGatewayServiceProvided to true
     // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
     // Check if sdk running in browser and not in edge/serverless environment
-    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
+    if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.isGatewayServiceProvided = true;
       // Handle proxyUrl for browser environment
       if (options?.proxyUrl) {
@@ -223,7 +223,7 @@ export class SettingsService implements ISettingsService {
     const deferredObject = new Deferred();
     const storageConnector = Storage.Instance.getConnector();
 
-    if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
+    if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.handleBrowserEnvironment(storageConnector, deferredObject);
     } else {
       this.handleServerEnvironment(deferredObject);

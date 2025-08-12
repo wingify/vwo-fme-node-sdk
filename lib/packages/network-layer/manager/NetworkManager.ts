@@ -109,7 +109,7 @@ export class NetworkManager {
     }
 
     // if env is undefined, we are in browser
-    if ((typeof process.env as any) === 'undefined') {
+    if ((typeof process as any) === 'undefined') {
       // if XMLHttpRequest is undefined, we are in serverless
       if (typeof XMLHttpRequest === 'undefined') {
         // eslint-disable-next-line @typescript-eslint/no-var-requires

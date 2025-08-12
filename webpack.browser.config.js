@@ -21,7 +21,7 @@ function addPlugins(argv) {
   const version = semver.inc(libVersion, argv.type) || libVersion;
 
   libraryHeaderComment = `${libraryName} - v${version}
-URL - https://github.com/wingify/vwo-node-sdk
+URL - https://github.com/wingify/vwo-fme-javascript-sdk
 
 Copyright 2024-2025 Wingify Software Pvt. Ltd.
 
@@ -46,7 +46,7 @@ Dependencies used - ${deps}`;
       stage: webpack.Compilation.PROCESS_ASSETS_STAGE_REPORT
     }),
     new webpack.DefinePlugin({
-      'typeof process.env': JSON.stringify('undefined'),
+      'typeof process': JSON.stringify('undefined'),
       SDK_NAME: JSON.stringify(libraryName),
       SDK_VERSION: JSON.stringify(libVersion)
     })

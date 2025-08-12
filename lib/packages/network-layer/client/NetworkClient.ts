@@ -266,7 +266,7 @@ export class NetworkClient implements NetworkClientInterface {
         buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
           endPoint: endpoint,
           err: error,
-          delay: delay,
+          delay: delay / 1000,
           attempt: attempt + 1,
           maxRetries: retryConfig.maxRetries,
         }),

@@ -30,7 +30,7 @@ class SettingsService {
         // if sdk is running in browser environment then set isGatewayServiceProvided to true
         // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
         // Check if sdk running in browser and not in edge/serverless environment
-        if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
+        if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
             this.isGatewayServiceProvided = true;
             // Handle proxyUrl for browser environment
             if (options?.proxyUrl) {
@@ -170,7 +170,7 @@ class SettingsService {
     fetchSettingsAndCacheInStorage() {
         const deferredObject = new PromiseUtil_1.Deferred();
         const storageConnector = storage_1.Storage.Instance.getConnector();
-        if (typeof process.env === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
+        if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
             this.handleBrowserEnvironment(storageConnector, deferredObject);
         }
         else {

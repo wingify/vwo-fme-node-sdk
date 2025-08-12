@@ -59,7 +59,7 @@ function buildMessage(template, data) {
  * @param {string} eventName - The name of the event to log.
  */
 function sendLogToVWO(message, messageType) {
-    if (typeof process.env != 'undefined' && process.env.TEST_ENV === 'true') {
+    if (typeof process != 'undefined' && process.env.TEST_ENV === 'true') {
         return;
     }
     var messageToSend = message;

@@ -16,7 +16,7 @@
 
 let NetworkClient;
 
-if ((typeof process.env as any) === 'undefined') {
+if ((typeof process as any) === 'undefined') {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   NetworkClient = require('./client/NetworkBrowserClient').NetworkBrowserClient;
 } else {

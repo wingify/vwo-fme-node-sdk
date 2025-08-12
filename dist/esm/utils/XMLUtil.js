@@ -81,7 +81,7 @@ function sendRequest(method, options) {
                 logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
                     endPoint: url.split('?')[0],
                     err: error,
-                    delay: delay,
+                    delay: delay / 1000,
                     attempt: retryCount,
                     maxRetries: maxRetries,
                 }));

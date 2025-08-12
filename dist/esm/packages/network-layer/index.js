@@ -17,7 +17,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ResponseModel = exports.RequestModel = exports.GlobalRequestModel = exports.NetworkManager = exports.NetworkClient = void 0;
 let NetworkClient;
-if (typeof process.env === 'undefined') {
+if (typeof process === 'undefined') {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     exports.NetworkClient = NetworkClient = require('./client/NetworkBrowserClient').NetworkBrowserClient;
 }

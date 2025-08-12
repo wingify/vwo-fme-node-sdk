@@ -98,7 +98,7 @@ export class VWOBuilder implements IVWOBuilder {
     networkInstance.getConfig().setDevelopmentMode(this.options?.isDevelopmentMode);
 
     // Set proxy URL for browser environments only
-    if (typeof process.env === 'undefined' && this.options?.proxyUrl) {
+    if (typeof process === 'undefined' && this.options?.proxyUrl) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { setProxyUrl } = require('./packages/network-layer/client/NetworkBrowserClient');
       setProxyUrl(this.options.proxyUrl);
@@ -230,7 +230,7 @@ export class VWOBuilder implements IVWOBuilder {
     if (this.options.storage) {
       // Attach the storage connector from options
       this.storage = Storage.Instance.attachConnector(this.options.storage);
-    } else if (typeof process.env === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
+    } else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { BrowserStorageConnector } = require('./packages/storage/connectors/BrowserStorageConnector');
       // Pass clientStorage config to BrowserStorageConnector

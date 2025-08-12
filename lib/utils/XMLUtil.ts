@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
-import { LogManager } from '../packages/logger';
-import { buildMessage } from './LogMessageUtil';
+import { LogLevelEnum, LogManager } from '../packages/logger';
+import { buildMessage, sendLogToVWO } from './LogMessageUtil';
 import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { EventEnum } from '../enums/EventEnum';
 
@@ -30,8 +30,9 @@ export function sendPostCall(options) {
 }
 
 function sendRequest(method, options) {
-  const { networkOptions, successCallback = noop, errorCallback = noop } = options;
+  const { requestModel, successCallback = noop, errorCallback = noop } = options;
 
+  const networkOptions = requestModel.getOptions();
   let retryCount = 0;
   const shouldRetry = networkOptions.retryConfig.shouldRetry;
   const maxRetries = networkOptions.retryConfig.maxRetries;
@@ -54,6 +55,14 @@ function sendRequest(method, options) {
     xhr.onload = function () {
       if (xhr.status >= 200 && xhr.status < 300) {
         const response = xhr.responseText;
+        // send log to vwo, if request is successful and attempt is greater than 0
+        if (retryCount > 0) {
+          sendLogToVWO(
+            'Request successfully sent for event: ' + url.split('?')[0],
+            LogLevelEnum.INFO,
+            requestModel.getExtraInfo(),
+          );
+        }
 
         if (method === HttpMethodEnum.GET) {
           const parsedResponse = JSON.parse(response);
@@ -93,6 +102,7 @@ function sendRequest(method, options) {
             attempt: retryCount,
             maxRetries: maxRetries,
           }),
+          requestModel.getExtraInfo(),
         );
 
         setTimeout(executeRequest, delay);
@@ -103,6 +113,7 @@ function sendRequest(method, options) {
               endPoint: url.split('?')[0],
               err: error,
             }),
+            requestModel.getExtraInfo(),
           );
         }
         errorCallback(error);

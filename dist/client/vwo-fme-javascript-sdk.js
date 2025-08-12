@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.25.1
+ * vwo-fme-javascript-sdk - v1.25.2
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 "use strict";
-module.exports = {"version":"1.25.1"};
+module.exports = {"version":"1.25.2"};
 
 /***/ }),
 
@@ -412,7 +412,7 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d;
         var networkInstance = network_layer_1.NetworkManager.Instance;
         // Attach the network client from options
         networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig);
@@ -421,12 +421,6 @@ var VWOBuilder = /** @class */ (function () {
         }));
         // Set the development mode based on options
         networkInstance.getConfig().setDevelopmentMode((_d = this.options) === null || _d === void 0 ? void 0 : _d.isDevelopmentMode);
-        // Set proxy URL for browser environments only
-        if ( true && ((_e = this.options) === null || _e === void 0 ? void 0 : _e.proxyUrl)) {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            var setProxyUrl = (__webpack_require__(/*! ./packages/network-layer/client/NetworkBrowserClient */ "./lib/packages/network-layer/client/NetworkBrowserClient.ts").setProxyUrl);
-            setProxyUrl(this.options.proxyUrl);
-        }
         return this;
     };
     VWOBuilder.prototype.initBatching = function () {
@@ -1760,7 +1754,7 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
                 return [3 /*break*/, 3];
             case 1: 
             // Send the constructed payload via POST request
-            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId(), eventProperties)];
             case 2:
                 // Send the constructed payload via POST request
                 _a.sent();
@@ -1862,6 +1856,7 @@ exports.Constants = {
     SETTINGS: 'settings',
     SETTINGS_EXPIRY: 10000000,
     SETTINGS_TIMEOUT: 50000,
+    EVENTS_CALL_TIMEOUT: 10000, // 10 seconds
     SETTINGS_TTL: 7200000, // 2 HOURS
     MIN_TTL_MS: 60000, // 1 MINUTE
     HOST_NAME: 'dev.visualwebsiteoptimizer.com',
@@ -3665,12 +3660,10 @@ var LogManager = /** @class */ (function (_super) {
      * Logs an error message.
      * @param {string} message - The message to log at error level.
      */
-    LogManager.prototype.error = function (message, shouldSendToVWO) {
-        if (shouldSendToVWO === void 0) { shouldSendToVWO = true; }
+    LogManager.prototype.error = function (message, extraData) {
+        if (extraData === void 0) { extraData = {}; }
         this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
-        if (shouldSendToVWO) {
-            (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
-        }
+        (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR, extraData);
     };
     return LogManager;
 }(Logger_1.Logger));
@@ -3981,7 +3974,6 @@ exports.ConsoleTransport = ConsoleTransport;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NetworkBrowserClient = void 0;
-exports.setProxyUrl = setProxyUrl;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -4000,51 +3992,6 @@ exports.setProxyUrl = setProxyUrl;
 var XMLUtil_1 = __webpack_require__(/*! ../../../utils/XMLUtil */ "./lib/utils/XMLUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./lib/packages/network-layer/models/ResponseModel.ts");
-var logger_1 = __webpack_require__(/*! ../../logger */ "./lib/packages/logger/index.ts");
-var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./lib/enums/log-messages/index.ts");
-var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
-/**
- * Proxy URL for browser network calls.
- * This allows all network requests to be redirected through a proxy server.
- */
-var proxyUrl = undefined;
-/**
- * Sets the proxy URL for all browser network calls.
- * This function is called from VWOBuilder when proxyUrl is provided in options.
- *
- * @param {string} proxyUrl - The proxy URL to use for all network requests
- */
-function setProxyUrl(proxyUrlPassedInInit) {
-    if (proxyUrlPassedInInit) {
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.PROXY_URL_SET));
-    }
-    proxyUrl = proxyUrlPassedInInit;
-}
-/**
- * Rewrites the original URL to use the proxy server while preserving the path and query parameters.
- *
- * Example:
- * - Original URL: https://api.vwo.com/settings/123?param=value
- * - Proxy URL: https://my-proxy.com
- * - Result: https://my-proxy.com/settings/123?param=value
- *
- * @param {string} originalUrl - The original URL to be rewritten
- * @returns {string} The rewritten URL using the proxy, or the original URL if no proxy is set
- */
-function rewriteUrlWithProxy(originalUrl) {
-    if (!proxyUrl)
-        return originalUrl;
-    try {
-        var original = new URL(originalUrl);
-        var proxy = new URL(proxyUrl);
-        proxy.pathname = original.pathname;
-        proxy.search = original.search;
-        return proxy.toString();
-    }
-    catch (_a) {
-        return originalUrl;
-    }
-}
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -4059,19 +4006,9 @@ var NetworkBrowserClient = /** @class */ (function () {
     NetworkBrowserClient.prototype.GET = function (requestModel) {
         var deferred = new PromiseUtil_1.Deferred();
         // Extract network options from the request model.
-        var networkOptions = requestModel.getOptions();
         var responseModel = new ResponseModel_1.ResponseModel();
-        // PROXY URL REWRITING: If proxy is set, rewrite the URL to route through the proxy
-        // This affects ALL network calls in browser environment (settings, tracking, etc.)
-        if (networkOptions.scheme && networkOptions.hostname && networkOptions.path) {
-            var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
-            if (networkOptions.port) {
-                url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
-            }
-            networkOptions.url = rewriteUrlWithProxy(url);
-        }
         (0, XMLUtil_1.sendGetCall)({
-            networkOptions: networkOptions,
+            requestModel: requestModel,
             successCallback: function (data) {
                 responseModel.setData(data);
                 deferred.resolve(responseModel);
@@ -4124,21 +4061,11 @@ var NetworkBrowserClient = /** @class */ (function () {
      * @param {RequestModel} request - The model containing request options.
      * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
      */
-    NetworkBrowserClient.prototype.POST = function (request) {
+    NetworkBrowserClient.prototype.POST = function (requestModel) {
         var deferred = new PromiseUtil_1.Deferred();
-        var networkOptions = request.getOptions();
         var responseModel = new ResponseModel_1.ResponseModel();
-        // PROXY URL REWRITING: If proxy is set, rewrite the URL to route through the proxy
-        // This affects ALL network calls in browser environment (settings, tracking, etc.)
-        if (networkOptions.scheme && networkOptions.hostname && networkOptions.path) {
-            var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
-            if (networkOptions.port) {
-                url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
-            }
-            networkOptions.url = rewriteUrlWithProxy(url);
-        }
         (0, XMLUtil_1.sendPostCall)({
-            networkOptions: networkOptions,
+            requestModel: requestModel,
             successCallback: function (data) {
                 responseModel.setStatusCode(200);
                 responseModel.setData(data);
@@ -4607,12 +4534,13 @@ exports.NetworkManager = NetworkManager;
 /*!*****************************************************************!*\
   !*** ./lib/packages/network-layer/models/GlobalRequestModel.ts ***!
   \*****************************************************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GlobalRequestModel = void 0;
+var constants_1 = __webpack_require__(/*! ../../../constants */ "./lib/constants/index.ts");
 /**
  * Represents a model for global HTTP requests configuration.
  * This class encapsulates all necessary details such as URL, query parameters, body, headers,
@@ -4627,7 +4555,7 @@ var GlobalRequestModel = /** @class */ (function () {
      * @param headers HTTP headers as a record of key-value pairs.
      */
     function GlobalRequestModel(url, query, body, headers) {
-        this.timeout = 3000; // Default timeout for the HTTP request in milliseconds
+        this.timeout = constants_1.Constants.EVENTS_CALL_TIMEOUT; // Default timeout for the HTTP request in milliseconds
         this.url = url;
         this.query = query;
         this.body = body;
@@ -4763,6 +4691,7 @@ exports.RequestModel = void 0;
 var HttpMethodEnum_1 = __webpack_require__(/*! ../../../enums/HttpMethodEnum */ "./lib/enums/HttpMethodEnum.ts");
 var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./lib/constants/Url.ts");
 var constants_1 = __webpack_require__(/*! ../../../constants */ "./lib/constants/index.ts");
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 /**
  * Represents a model for HTTP requests.
  * This class encapsulates all necessary details such as URL, method, path, query parameters, body, headers,
@@ -4783,6 +4712,7 @@ var RequestModel = /** @class */ (function () {
     function RequestModel(url, method, path, query, body, headers, scheme, port, retryConfig) {
         if (method === void 0) { method = HttpMethodEnum_1.HttpMethodEnum.GET; }
         if (scheme === void 0) { scheme = Url_1.HTTPS; }
+        this.whiteListedKeys = ['eventName', 'uuid', 'campaignId', 'eventProperties'];
         this.url = url;
         this.method = method;
         this.path = path;
@@ -4941,6 +4871,68 @@ var RequestModel = /** @class */ (function () {
         return this;
     };
     /**
+     * Sets the event name.
+     * @param eventName The event name to set.
+     */
+    RequestModel.prototype.setEventName = function (eventName) {
+        this.eventName = eventName;
+        return this;
+    };
+    /**
+     * Retrieves the event name.
+     * @returns The event name as a string.
+     */
+    RequestModel.prototype.getEventName = function () {
+        return this.eventName;
+    };
+    /**
+     * Sets the UUID.
+     * @param uuid The UUID to set.
+     */
+    RequestModel.prototype.setUuid = function (uuid) {
+        this.uuid = uuid;
+        return this;
+    };
+    /**
+     * Retrieves the UUID.
+     * @returns The UUID as a string.
+     */
+    RequestModel.prototype.getUuid = function () {
+        return this.uuid;
+    };
+    /**
+     * Sets the campaign ID.
+     * @param campaignId The campaign ID to set.
+     */
+    RequestModel.prototype.setCampaignId = function (campaignId) {
+        this.campaignId = campaignId;
+        return this;
+    };
+    /**
+     * Retrieves the campaign ID.
+     * @returns The campaign ID as a string.
+     */
+    RequestModel.prototype.getCampaignId = function () {
+        return this.campaignId;
+    };
+    /**
+     * Sets the event properties.
+     * @param eventProperties The event properties to set.
+     */
+    RequestModel.prototype.setEventProperties = function (eventProperties) {
+        this.eventProperties = eventProperties;
+        return this;
+    };
+    /**
+     * Retrieves the event properties.
+    /**
+     * Retrieves the event properties.
+     * @returns The event properties.
+     */
+    RequestModel.prototype.getEventProperties = function () {
+        return this.eventProperties;
+    };
+    /**
      * Constructs the options for the HTTP request based on the current state of the model.
      * This method is used to prepare the request options for execution.
      * @returns A record containing all relevant options for the HTTP request.
@@ -4999,6 +4991,18 @@ var RequestModel = /** @class */ (function () {
         }
         options.retryConfig = this.retryConfig;
         return options;
+    };
+    /**
+     * Retrieves the extra information of the HTTP request.
+     * @returns A record of key-value pairs representing the extra information.
+     */
+    RequestModel.prototype.getExtraInfo = function () {
+        var _this = this;
+        // return eventName, uuid, campaignId if they are not null and not undefined
+        return Object.fromEntries(Object.entries(this).filter(function (_a) {
+            var key = _a[0], value = _a[1];
+            return !(0, DataTypeUtil_1.isNull)(value) && !(0, DataTypeUtil_1.isUndefined)(value) && _this.whiteListedKeys.includes(key);
+        }));
     };
     return RequestModel;
 }());
@@ -9495,21 +9499,21 @@ function buildMessage(template, data) {
  * @param {string} messageType - The type of message to log.
  * @param {string} eventName - The name of the event to log.
  */
-function sendLogToVWO(message, messageType) {
+function sendLogToVWO(message, messageType, extraData) {
+    if (extraData === void 0) { extraData = {}; }
     if (false) {}
     var messageToSend = message;
-    // if the message contains 'Retrying in', then remove the 'Retrying in' part, to avoid duplicate messages
-    if (message.includes('Retrying in')) {
-        messageToSend = message.split('Retrying')[0].trim();
-    }
     messageToSend = messageToSend + '-' + constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION;
+    if (Object.keys(extraData).length > 0) {
+        messageToSend = messageToSend + ' ' + JSON.stringify(extraData);
+    }
     if (!storedMessages.has(messageToSend)) {
         // add the message to the set
         storedMessages.add(messageToSend);
         // create the query parameters
         var properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_LOG_EVENT);
         // create the payload
-        var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT);
+        var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT, extraData);
         // Send the constructed payload via POST request
         // send eventName in parameters so that we can disable retry for this event
         (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_LOG_EVENT).catch(function () { });
@@ -10049,6 +10053,17 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
 
 "use strict";
 
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -10320,9 +10335,10 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  * @param {any} payload - Payload for the request.
  * @param {string} userId - User ID.
  */
-function sendPostApiRequest(properties, payload, userId) {
-    return __awaiter(this, void 0, void 0, function () {
+function sendPostApiRequest(properties_1, payload_1, userId_1) {
+    return __awaiter(this, arguments, void 0, function (properties, payload, userId, eventProperties) {
         var networkManager, retryConfig, headers, userAgent, ipAddress, baseUrl, request;
+        if (eventProperties === void 0) { eventProperties = {}; }
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -10340,6 +10356,14 @@ function sendPostApiRequest(properties, payload, userId) {
                     baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
                     baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
                     request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
+                    request.setEventName(properties.en);
+                    request.setUuid(payload.d.visId);
+                    if (properties.en === EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
+                        request.setCampaignId(payload.d.event.props.id);
+                    }
+                    else if (properties.en != EventEnum_1.EventEnum.VWO_VARIATION_SHOWN && Object.keys(eventProperties).length > 0) {
+                        request.setEventProperties(eventProperties);
+                    }
                     return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request)
                             .then(function () {
                             // clear usage stats only if network call is successful
@@ -10390,7 +10414,8 @@ function setShouldWaitForTrackingCalls(value) {
  * @param eventName - The name of the event.
  * @returns The constructed payload.
  */
-function getMessagingEventPayload(messageType, message, eventName) {
+function getMessagingEventPayload(messageType, message, eventName, extraData) {
+    if (extraData === void 0) { extraData = {}; }
     var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
     var properties = _getEventBasePayload(null, userId, eventName, null, null);
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey; // Set environment key
@@ -10401,6 +10426,7 @@ function getMessagingEventPayload(messageType, message, eventName) {
             title: message,
             dateTime: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)(),
         },
+        metaInfo: __assign({}, extraData),
     };
     properties.d.event.props.data = data;
     return properties;
@@ -10454,6 +10480,7 @@ function sendEvent(properties, payload, eventName) {
             }
             try {
                 request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, protocol, port, retryConfig);
+                request.setEventName(properties.en);
                 // Perform the network POST request
                 networkInstance
                     .post(request)
@@ -10947,7 +10974,8 @@ function sendPostCall(options) {
     sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options);
 }
 function sendRequest(method, options) {
-    var networkOptions = options.networkOptions, _a = options.successCallback, successCallback = _a === void 0 ? noop : _a, _b = options.errorCallback, errorCallback = _b === void 0 ? noop : _b;
+    var requestModel = options.requestModel, _a = options.successCallback, successCallback = _a === void 0 ? noop : _a, _b = options.errorCallback, errorCallback = _b === void 0 ? noop : _b;
+    var networkOptions = requestModel.getOptions();
     var retryCount = 0;
     var shouldRetry = networkOptions.retryConfig.shouldRetry;
     var maxRetries = networkOptions.retryConfig.maxRetries;
@@ -10966,6 +10994,10 @@ function sendRequest(method, options) {
         xhr.onload = function () {
             if (xhr.status >= 200 && xhr.status < 300) {
                 var response = xhr.responseText;
+                // send log to vwo, if request is successful and attempt is greater than 0
+                if (retryCount > 0) {
+                    (0, LogMessageUtil_1.sendLogToVWO)('Request successfully sent for event: ' + url.split('?')[0], logger_1.LogLevelEnum.INFO, requestModel.getExtraInfo());
+                }
                 if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
                     var parsedResponse = JSON.parse(response);
                     successCallback(parsedResponse);
@@ -11001,7 +11033,7 @@ function sendRequest(method, options) {
                     delay: delay / 1000,
                     attempt: retryCount,
                     maxRetries: maxRetries,
-                }));
+                }), requestModel.getExtraInfo());
                 setTimeout(executeRequest, delay);
             }
             else {
@@ -11009,7 +11041,7 @@ function sendRequest(method, options) {
                     logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
                         endPoint: url.split('?')[0],
                         err: error,
-                    }));
+                    }), requestModel.getExtraInfo());
                 }
                 errorCallback(error);
             }

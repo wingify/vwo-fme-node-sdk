@@ -30,7 +30,8 @@ function sendPostCall(options) {
     sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options);
 }
 function sendRequest(method, options) {
-    var networkOptions = options.networkOptions, _a = options.successCallback, successCallback = _a === void 0 ? noop : _a, _b = options.errorCallback, errorCallback = _b === void 0 ? noop : _b;
+    var requestModel = options.requestModel, _a = options.successCallback, successCallback = _a === void 0 ? noop : _a, _b = options.errorCallback, errorCallback = _b === void 0 ? noop : _b;
+    var networkOptions = requestModel.getOptions();
     var retryCount = 0;
     var shouldRetry = networkOptions.retryConfig.shouldRetry;
     var maxRetries = networkOptions.retryConfig.maxRetries;
@@ -49,6 +50,10 @@ function sendRequest(method, options) {
         xhr.onload = function () {
             if (xhr.status >= 200 && xhr.status < 300) {
                 var response = xhr.responseText;
+                // send log to vwo, if request is successful and attempt is greater than 0
+                if (retryCount > 0) {
+                    (0, LogMessageUtil_1.sendLogToVWO)('Request successfully sent for event: ' + url.split('?')[0], logger_1.LogLevelEnum.INFO, requestModel.getExtraInfo());
+                }
                 if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
                     var parsedResponse = JSON.parse(response);
                     successCallback(parsedResponse);
@@ -84,7 +89,7 @@ function sendRequest(method, options) {
                     delay: delay / 1000,
                     attempt: retryCount,
                     maxRetries: maxRetries,
-                }));
+                }), requestModel.getExtraInfo());
                 setTimeout(executeRequest, delay);
             }
             else {
@@ -92,7 +97,7 @@ function sendRequest(method, options) {
                     logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
                         endPoint: url.split('?')[0],
                         err: error,
-                    }));
+                    }), requestModel.getExtraInfo());
                 }
                 errorCallback(error);
             }

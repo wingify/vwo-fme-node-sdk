@@ -30,6 +30,7 @@ exports.RequestModel = void 0;
 var HttpMethodEnum_1 = require("../../../enums/HttpMethodEnum");
 var Url_1 = require("../../../constants/Url");
 var constants_1 = require("../../../constants");
+var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 /**
  * Represents a model for HTTP requests.
  * This class encapsulates all necessary details such as URL, method, path, query parameters, body, headers,
@@ -50,6 +51,7 @@ var RequestModel = /** @class */ (function () {
     function RequestModel(url, method, path, query, body, headers, scheme, port, retryConfig) {
         if (method === void 0) { method = HttpMethodEnum_1.HttpMethodEnum.GET; }
         if (scheme === void 0) { scheme = Url_1.HTTPS; }
+        this.whiteListedKeys = ['eventName', 'uuid', 'campaignId', 'eventProperties'];
         this.url = url;
         this.method = method;
         this.path = path;
@@ -208,6 +210,68 @@ var RequestModel = /** @class */ (function () {
         return this;
     };
     /**
+     * Sets the event name.
+     * @param eventName The event name to set.
+     */
+    RequestModel.prototype.setEventName = function (eventName) {
+        this.eventName = eventName;
+        return this;
+    };
+    /**
+     * Retrieves the event name.
+     * @returns The event name as a string.
+     */
+    RequestModel.prototype.getEventName = function () {
+        return this.eventName;
+    };
+    /**
+     * Sets the UUID.
+     * @param uuid The UUID to set.
+     */
+    RequestModel.prototype.setUuid = function (uuid) {
+        this.uuid = uuid;
+        return this;
+    };
+    /**
+     * Retrieves the UUID.
+     * @returns The UUID as a string.
+     */
+    RequestModel.prototype.getUuid = function () {
+        return this.uuid;
+    };
+    /**
+     * Sets the campaign ID.
+     * @param campaignId The campaign ID to set.
+     */
+    RequestModel.prototype.setCampaignId = function (campaignId) {
+        this.campaignId = campaignId;
+        return this;
+    };
+    /**
+     * Retrieves the campaign ID.
+     * @returns The campaign ID as a string.
+     */
+    RequestModel.prototype.getCampaignId = function () {
+        return this.campaignId;
+    };
+    /**
+     * Sets the event properties.
+     * @param eventProperties The event properties to set.
+     */
+    RequestModel.prototype.setEventProperties = function (eventProperties) {
+        this.eventProperties = eventProperties;
+        return this;
+    };
+    /**
+     * Retrieves the event properties.
+    /**
+     * Retrieves the event properties.
+     * @returns The event properties.
+     */
+    RequestModel.prototype.getEventProperties = function () {
+        return this.eventProperties;
+    };
+    /**
      * Constructs the options for the HTTP request based on the current state of the model.
      * This method is used to prepare the request options for execution.
      * @returns A record containing all relevant options for the HTTP request.
@@ -266,6 +330,18 @@ var RequestModel = /** @class */ (function () {
         }
         options.retryConfig = this.retryConfig;
         return options;
+    };
+    /**
+     * Retrieves the extra information of the HTTP request.
+     * @returns A record of key-value pairs representing the extra information.
+     */
+    RequestModel.prototype.getExtraInfo = function () {
+        var _this = this;
+        // return eventName, uuid, campaignId if they are not null and not undefined
+        return Object.fromEntries(Object.entries(this).filter(function (_a) {
+            var key = _a[0], value = _a[1];
+            return !(0, DataTypeUtil_1.isNull)(value) && !(0, DataTypeUtil_1.isUndefined)(value) && _this.whiteListedKeys.includes(key);
+        }));
     };
     return RequestModel;
 }());

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { dynamic } from '../../../types/Common';
+import { Constants } from '../../../constants';
 
 /**
  * Represents a model for global HTTP requests configuration.
@@ -22,7 +23,7 @@ import { dynamic } from '../../../types/Common';
  */
 export class GlobalRequestModel {
   private url: string; // Base URL of the HTTP request
-  private timeout = 3000; // Default timeout for the HTTP request in milliseconds
+  private timeout = Constants.EVENTS_CALL_TIMEOUT; // Default timeout for the HTTP request in milliseconds
   private query: Record<string, dynamic>; // Query parameters for the HTTP request
   private body: Record<string, dynamic>; // Body of the HTTP request
   private headers: Record<string, string>; // HTTP headers

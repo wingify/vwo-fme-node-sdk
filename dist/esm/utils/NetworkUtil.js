@@ -223,7 +223,7 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  * @param {any} payload - Payload for the request.
  * @param {string} userId - User ID.
  */
-async function sendPostApiRequest(properties, payload, userId) {
+async function sendPostApiRequest(properties, payload, userId, eventProperties = {}) {
     const networkManager = network_layer_1.NetworkManager.Instance;
     networkManager.attachClient();
     const retryConfig = networkManager.getRetryConfig();
@@ -238,6 +238,14 @@ async function sendPostApiRequest(properties, payload, userId) {
     let baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
     baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
     const request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
+    request.setEventName(properties.en);
+    request.setUuid(payload.d.visId);
+    if (properties.en === EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
+        request.setCampaignId(payload.d.event.props.id);
+    }
+    else if (properties.en != EventEnum_1.EventEnum.VWO_VARIATION_SHOWN && Object.keys(eventProperties).length > 0) {
+        request.setEventProperties(eventProperties);
+    }
     await network_layer_1.NetworkManager.Instance.post(request)
         .then(() => {
         // clear usage stats only if network call is successful
@@ -282,7 +290,7 @@ function setShouldWaitForTrackingCalls(value) {
  * @param eventName - The name of the event.
  * @returns The constructed payload.
  */
-function getMessagingEventPayload(messageType, message, eventName) {
+function getMessagingEventPayload(messageType, message, eventName, extraData = {}) {
     const userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
     const properties = _getEventBasePayload(null, userId, eventName, null, null);
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey; // Set environment key
@@ -293,6 +301,7 @@ function getMessagingEventPayload(messageType, message, eventName) {
             title: message,
             dateTime: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)(),
         },
+        metaInfo: { ...extraData },
     };
     properties.d.event.props.data = data;
     return properties;
@@ -346,6 +355,7 @@ async function sendEvent(properties, payload, eventName) {
     try {
         // Create a new request model instance with the provided parameters
         const request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, protocol, port, retryConfig);
+        request.setEventName(properties.en);
         // Perform the network POST request
         networkInstance
             .post(request)

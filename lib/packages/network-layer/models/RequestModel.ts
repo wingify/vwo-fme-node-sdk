@@ -18,6 +18,7 @@ import { dynamic } from '../../../types/Common';
 import { HTTPS } from '../../../constants/Url';
 import { IRetryConfig } from '../client/NetworkClient';
 import { Constants } from '../../../constants';
+import { isNull, isUndefined } from '../../../utils/DataTypeUtil';
 
 /**
  * Represents a model for HTTP requests.
@@ -35,6 +36,12 @@ export class RequestModel {
   private body: Record<string, dynamic>; // Body of the HTTP request
   private headers: Record<string, string>; // HTTP headers
   private retryConfig: IRetryConfig; // Retry configuration
+  private eventName: string; // Event name
+  private uuid: string; // UUID
+  private campaignId: string; // Campaign ID
+  private eventProperties: any; // Event properties
+  private whiteListedKeys: string[] = ['eventName', 'uuid', 'campaignId', 'eventProperties'];
+
   /**
    * Constructs an instance of the RequestModel.
    * @param url The base URL of the HTTP request.
@@ -236,6 +243,76 @@ export class RequestModel {
   }
 
   /**
+   * Sets the event name.
+   * @param eventName The event name to set.
+   */
+  setEventName(eventName: string): this {
+    this.eventName = eventName;
+    return this;
+  }
+
+  /**
+   * Retrieves the event name.
+   * @returns The event name as a string.
+   */
+  getEventName(): string {
+    return this.eventName;
+  }
+
+  /**
+   * Sets the UUID.
+   * @param uuid The UUID to set.
+   */
+  setUuid(uuid: string): this {
+    this.uuid = uuid;
+    return this;
+  }
+
+  /**
+   * Retrieves the UUID.
+   * @returns The UUID as a string.
+   */
+  getUuid(): string {
+    return this.uuid;
+  }
+
+  /**
+   * Sets the campaign ID.
+   * @param campaignId The campaign ID to set.
+   */
+  setCampaignId(campaignId: string): this {
+    this.campaignId = campaignId;
+    return this;
+  }
+
+  /**
+   * Retrieves the campaign ID.
+   * @returns The campaign ID as a string.
+   */
+  getCampaignId(): string {
+    return this.campaignId;
+  }
+
+  /**
+   * Sets the event properties.
+   * @param eventProperties The event properties to set.
+   */
+  setEventProperties(eventProperties: any): this {
+    this.eventProperties = eventProperties;
+    return this;
+  }
+
+  /**
+   * Retrieves the event properties.
+  /**
+   * Retrieves the event properties.
+   * @returns The event properties.
+   */
+  getEventProperties(): any {
+    return this.eventProperties;
+  }
+
+  /**
    * Constructs the options for the HTTP request based on the current state of the model.
    * This method is used to prepare the request options for execution.
    * @returns A record containing all relevant options for the HTTP request.
@@ -300,5 +377,18 @@ export class RequestModel {
 
     options.retryConfig = this.retryConfig;
     return options;
+  }
+
+  /**
+   * Retrieves the extra information of the HTTP request.
+   * @returns A record of key-value pairs representing the extra information.
+   */
+  getExtraInfo(): Record<string, any> {
+    // return eventName, uuid, campaignId if they are not null and not undefined
+    return Object.fromEntries(
+      Object.entries(this).filter(
+        ([key, value]) => !isNull(value) && !isUndefined(value) && this.whiteListedKeys.includes(key),
+      ),
+    );
   }
 }

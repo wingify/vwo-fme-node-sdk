@@ -30,7 +30,8 @@ function sendPostCall(options) {
     sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options);
 }
 function sendRequest(method, options) {
-    const { networkOptions, successCallback = noop, errorCallback = noop } = options;
+    const { requestModel, successCallback = noop, errorCallback = noop } = options;
+    const networkOptions = requestModel.getOptions();
     let retryCount = 0;
     const shouldRetry = networkOptions.retryConfig.shouldRetry;
     const maxRetries = networkOptions.retryConfig.maxRetries;
@@ -49,6 +50,10 @@ function sendRequest(method, options) {
         xhr.onload = function () {
             if (xhr.status >= 200 && xhr.status < 300) {
                 const response = xhr.responseText;
+                // send log to vwo, if request is successful and attempt is greater than 0
+                if (retryCount > 0) {
+                    (0, LogMessageUtil_1.sendLogToVWO)('Request successfully sent for event: ' + url.split('?')[0], logger_1.LogLevelEnum.INFO, requestModel.getExtraInfo());
+                }
                 if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
                     const parsedResponse = JSON.parse(response);
                     successCallback(parsedResponse);
@@ -84,7 +89,7 @@ function sendRequest(method, options) {
                     delay: delay / 1000,
                     attempt: retryCount,
                     maxRetries: maxRetries,
-                }));
+                }), requestModel.getExtraInfo());
                 setTimeout(executeRequest, delay);
             }
             else {
@@ -92,7 +97,7 @@ function sendRequest(method, options) {
                     logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
                         endPoint: url.split('?')[0],
                         err: error,
-                    }));
+                    }), requestModel.getExtraInfo());
                 }
                 errorCallback(error);
             }

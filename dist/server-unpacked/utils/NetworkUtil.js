@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -270,9 +281,10 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  * @param {any} payload - Payload for the request.
  * @param {string} userId - User ID.
  */
-function sendPostApiRequest(properties, payload, userId) {
-    return __awaiter(this, void 0, void 0, function () {
+function sendPostApiRequest(properties_1, payload_1, userId_1) {
+    return __awaiter(this, arguments, void 0, function (properties, payload, userId, eventProperties) {
         var networkManager, retryConfig, headers, userAgent, ipAddress, baseUrl, request;
+        if (eventProperties === void 0) { eventProperties = {}; }
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -290,6 +302,14 @@ function sendPostApiRequest(properties, payload, userId) {
                     baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
                     baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
                     request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
+                    request.setEventName(properties.en);
+                    request.setUuid(payload.d.visId);
+                    if (properties.en === EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
+                        request.setCampaignId(payload.d.event.props.id);
+                    }
+                    else if (properties.en != EventEnum_1.EventEnum.VWO_VARIATION_SHOWN && Object.keys(eventProperties).length > 0) {
+                        request.setEventProperties(eventProperties);
+                    }
                     return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request)
                             .then(function () {
                             // clear usage stats only if network call is successful
@@ -340,7 +360,8 @@ function setShouldWaitForTrackingCalls(value) {
  * @param eventName - The name of the event.
  * @returns The constructed payload.
  */
-function getMessagingEventPayload(messageType, message, eventName) {
+function getMessagingEventPayload(messageType, message, eventName, extraData) {
+    if (extraData === void 0) { extraData = {}; }
     var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
     var properties = _getEventBasePayload(null, userId, eventName, null, null);
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey; // Set environment key
@@ -351,6 +372,7 @@ function getMessagingEventPayload(messageType, message, eventName) {
             title: message,
             dateTime: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)(),
         },
+        metaInfo: __assign({}, extraData),
     };
     properties.d.event.props.data = data;
     return properties;
@@ -404,6 +426,7 @@ function sendEvent(properties, payload, eventName) {
             }
             try {
                 request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, protocol, port, retryConfig);
+                request.setEventName(properties.en);
                 // Perform the network POST request
                 networkInstance
                     .post(request)

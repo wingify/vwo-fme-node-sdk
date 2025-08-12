@@ -68,7 +68,7 @@ const createImpressionForTrack = async (settings, eventName, context, eventPrope
     }
     else {
         // Send the constructed payload via POST request
-        await (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId());
+        await (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId(), eventProperties);
     }
 };
 //# sourceMappingURL=TrackEvent.js.map

@@ -59,17 +59,16 @@ export function buildMessage(template: string, data: Record<string, any> = {}): 
  * @param {string} eventName - The name of the event to log.
  */
 
-export function sendLogToVWO(message: string, messageType: string) {
+export function sendLogToVWO(message: string, messageType: string, extraData: any = {}) {
   if (typeof process != 'undefined' && process.env.TEST_ENV === 'true') {
     return;
   }
 
   let messageToSend = message;
-  // if the message contains 'Retrying in', then remove the 'Retrying in' part, to avoid duplicate messages
-  if (message.includes('Retrying in')) {
-    messageToSend = message.split('Retrying')[0].trim();
-  }
   messageToSend = messageToSend + '-' + Constants.SDK_NAME + '-' + Constants.SDK_VERSION;
+  if (Object.keys(extraData).length > 0) {
+    messageToSend = messageToSend + ' ' + JSON.stringify(extraData);
+  }
 
   if (!storedMessages.has(messageToSend)) {
     // add the message to the set
@@ -79,7 +78,7 @@ export function sendLogToVWO(message: string, messageType: string) {
     const properties = getEventsBaseProperties(EventEnum.VWO_LOG_EVENT);
 
     // create the payload
-    const payload = getMessagingEventPayload(messageType, message, EventEnum.VWO_LOG_EVENT);
+    const payload = getMessagingEventPayload(messageType, message, EventEnum.VWO_LOG_EVENT, extraData);
 
     // Send the constructed payload via POST request
     // send eventName in parameters so that we can disable retry for this event

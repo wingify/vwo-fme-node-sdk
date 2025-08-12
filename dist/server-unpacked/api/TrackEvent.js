@@ -118,7 +118,7 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
                 return [3 /*break*/, 3];
             case 1: 
             // Send the constructed payload via POST request
-            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId(), eventProperties)];
             case 2:
                 // Send the constructed payload via POST request
                 _a.sent();

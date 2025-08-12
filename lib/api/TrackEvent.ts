@@ -118,6 +118,6 @@ const createImpressionForTrack = async (
     BatchEventsQueue.Instance.enqueue(payload);
   } else {
     // Send the constructed payload via POST request
-    await sendPostApiRequest(properties, payload, context.getId());
+    await sendPostApiRequest(properties, payload, context.getId(), eventProperties);
   }
 };

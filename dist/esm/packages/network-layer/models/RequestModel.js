@@ -19,6 +19,7 @@ exports.RequestModel = void 0;
 const HttpMethodEnum_1 = require("../../../enums/HttpMethodEnum");
 const Url_1 = require("../../../constants/Url");
 const constants_1 = require("../../../constants");
+const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 /**
  * Represents a model for HTTP requests.
  * This class encapsulates all necessary details such as URL, method, path, query parameters, body, headers,
@@ -37,6 +38,7 @@ class RequestModel {
      * @param port Port number, default is 80.
      */
     constructor(url, method = HttpMethodEnum_1.HttpMethodEnum.GET, path, query, body, headers, scheme = Url_1.HTTPS, port, retryConfig) {
+        this.whiteListedKeys = ['eventName', 'uuid', 'campaignId', 'eventProperties'];
         this.url = url;
         this.method = method;
         this.path = path;
@@ -195,6 +197,68 @@ class RequestModel {
         return this;
     }
     /**
+     * Sets the event name.
+     * @param eventName The event name to set.
+     */
+    setEventName(eventName) {
+        this.eventName = eventName;
+        return this;
+    }
+    /**
+     * Retrieves the event name.
+     * @returns The event name as a string.
+     */
+    getEventName() {
+        return this.eventName;
+    }
+    /**
+     * Sets the UUID.
+     * @param uuid The UUID to set.
+     */
+    setUuid(uuid) {
+        this.uuid = uuid;
+        return this;
+    }
+    /**
+     * Retrieves the UUID.
+     * @returns The UUID as a string.
+     */
+    getUuid() {
+        return this.uuid;
+    }
+    /**
+     * Sets the campaign ID.
+     * @param campaignId The campaign ID to set.
+     */
+    setCampaignId(campaignId) {
+        this.campaignId = campaignId;
+        return this;
+    }
+    /**
+     * Retrieves the campaign ID.
+     * @returns The campaign ID as a string.
+     */
+    getCampaignId() {
+        return this.campaignId;
+    }
+    /**
+     * Sets the event properties.
+     * @param eventProperties The event properties to set.
+     */
+    setEventProperties(eventProperties) {
+        this.eventProperties = eventProperties;
+        return this;
+    }
+    /**
+     * Retrieves the event properties.
+    /**
+     * Retrieves the event properties.
+     * @returns The event properties.
+     */
+    getEventProperties() {
+        return this.eventProperties;
+    }
+    /**
      * Constructs the options for the HTTP request based on the current state of the model.
      * This method is used to prepare the request options for execution.
      * @returns A record containing all relevant options for the HTTP request.
@@ -253,6 +317,14 @@ class RequestModel {
         }
         options.retryConfig = this.retryConfig;
         return options;
+    }
+    /**
+     * Retrieves the extra information of the HTTP request.
+     * @returns A record of key-value pairs representing the extra information.
+     */
+    getExtraInfo() {
+        // return eventName, uuid, campaignId if they are not null and not undefined
+        return Object.fromEntries(Object.entries(this).filter(([key, value]) => !(0, DataTypeUtil_1.isNull)(value) && !(0, DataTypeUtil_1.isUndefined)(value) && this.whiteListedKeys.includes(key)));
     }
 }
 exports.RequestModel = RequestModel;

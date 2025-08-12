@@ -149,12 +149,10 @@ var LogManager = /** @class */ (function (_super) {
      * Logs an error message.
      * @param {string} message - The message to log at error level.
      */
-    LogManager.prototype.error = function (message, shouldSendToVWO) {
-        if (shouldSendToVWO === void 0) { shouldSendToVWO = true; }
+    LogManager.prototype.error = function (message, extraData) {
+        if (extraData === void 0) { extraData = {}; }
         this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
-        if (shouldSendToVWO) {
-            (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
-        }
+        (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR, extraData);
     };
     return LogManager;
 }(Logger_1.Logger));

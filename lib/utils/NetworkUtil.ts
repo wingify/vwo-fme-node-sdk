@@ -285,7 +285,12 @@ export function getAttributePayloadData(
  * @param {any} payload - Payload for the request.
  * @param {string} userId - User ID.
  */
-export async function sendPostApiRequest(properties: any, payload: any, userId: string): Promise<void> {
+export async function sendPostApiRequest(
+  properties: any,
+  payload: any,
+  userId: string,
+  eventProperties: any = {},
+): Promise<void> {
   const networkManager = NetworkManager.Instance;
   networkManager.attachClient();
   const retryConfig: IRetryConfig = networkManager.getRetryConfig();
@@ -313,6 +318,14 @@ export async function sendPostApiRequest(properties: any, payload: any, userId: 
     SettingsService.Instance.port,
     retryConfig,
   );
+
+  request.setEventName(properties.en);
+  request.setUuid(payload.d.visId);
+  if (properties.en === EventEnum.VWO_VARIATION_SHOWN) {
+    request.setCampaignId(payload.d.event.props.id);
+  } else if (properties.en != EventEnum.VWO_VARIATION_SHOWN && Object.keys(eventProperties).length > 0) {
+    request.setEventProperties(eventProperties);
+  }
 
   await NetworkManager.Instance.post(request)
     .then(() => {
@@ -366,7 +379,12 @@ export function setShouldWaitForTrackingCalls(value: boolean): void {
  * @param eventName - The name of the event.
  * @returns The constructed payload.
  */
-export function getMessagingEventPayload(messageType: string, message: string, eventName: string): Record<string, any> {
+export function getMessagingEventPayload(
+  messageType: string,
+  message: string,
+  eventName: string,
+  extraData: any = {},
+): Record<string, any> {
   const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
   const properties = _getEventBasePayload(null, userId, eventName, null, null);
 
@@ -378,6 +396,7 @@ export function getMessagingEventPayload(messageType: string, message: string, e
       title: message,
       dateTime: getCurrentUnixTimestampInMillis(),
     },
+    metaInfo: { ...extraData },
   };
   properties.d.event.props.data = data;
   return properties;
@@ -456,6 +475,7 @@ export async function sendEvent(
       port,
       retryConfig,
     );
+    request.setEventName(properties.en);
 
     // Perform the network POST request
     networkInstance

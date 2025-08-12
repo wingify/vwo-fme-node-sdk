@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GlobalRequestModel = void 0;
+const constants_1 = require("../../../constants");
 /**
  * Represents a model for global HTTP requests configuration.
  * This class encapsulates all necessary details such as URL, query parameters, body, headers,
@@ -15,7 +16,7 @@ class GlobalRequestModel {
      * @param headers HTTP headers as a record of key-value pairs.
      */
     constructor(url, query, body, headers) {
-        this.timeout = 3000; // Default timeout for the HTTP request in milliseconds
+        this.timeout = constants_1.Constants.EVENTS_CALL_TIMEOUT; // Default timeout for the HTTP request in milliseconds
         this.url = url;
         this.query = query;
         this.body = body;

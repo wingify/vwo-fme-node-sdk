@@ -57,23 +57,22 @@ function buildMessage(template, data = {}) {
  * @param {string} messageType - The type of message to log.
  * @param {string} eventName - The name of the event to log.
  */
-function sendLogToVWO(message, messageType) {
+function sendLogToVWO(message, messageType, extraData = {}) {
     if (typeof process != 'undefined' && process.env.TEST_ENV === 'true') {
         return;
     }
     let messageToSend = message;
-    // if the message contains 'Retrying in', then remove the 'Retrying in' part, to avoid duplicate messages
-    if (message.includes('Retrying in')) {
-        messageToSend = message.split('Retrying')[0].trim();
-    }
     messageToSend = messageToSend + '-' + constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION;
+    if (Object.keys(extraData).length > 0) {
+        messageToSend = messageToSend + ' ' + JSON.stringify(extraData);
+    }
     if (!storedMessages.has(messageToSend)) {
         // add the message to the set
         storedMessages.add(messageToSend);
         // create the query parameters
         const properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_LOG_EVENT);
         // create the payload
-        const payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT);
+        const payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT, extraData);
         // Send the constructed payload via POST request
         // send eventName in parameters so that we can disable retry for this event
         (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_LOG_EVENT).catch(() => { });

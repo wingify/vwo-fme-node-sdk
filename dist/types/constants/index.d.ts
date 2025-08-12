@@ -15,6 +15,7 @@ export declare const Constants: {
   SETTINGS: string;
   SETTINGS_EXPIRY: number;
   SETTINGS_TIMEOUT: number;
+  EVENTS_CALL_TIMEOUT: number;
   SETTINGS_TTL: number;
   MIN_TTL_MS: number;
   HOST_NAME: string;

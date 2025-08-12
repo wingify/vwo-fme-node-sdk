@@ -100,7 +100,12 @@ export declare function getAttributePayloadData(
  * @param {any} payload - Payload for the request.
  * @param {string} userId - User ID.
  */
-export declare function sendPostApiRequest(properties: any, payload: any, userId: string): Promise<void>;
+export declare function sendPostApiRequest(
+  properties: any,
+  payload: any,
+  userId: string,
+  eventProperties?: any,
+): Promise<void>;
 /**
  * Checks if the SDK should wait for a network response.
  * @returns {boolean} - True if the SDK should wait for a network response, false otherwise.
@@ -122,6 +127,7 @@ export declare function getMessagingEventPayload(
   messageType: string,
   message: string,
   eventName: string,
+  extraData?: any,
 ): Record<string, any>;
 /**
  * Constructs the payload for init called event.

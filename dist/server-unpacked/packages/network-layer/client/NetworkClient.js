@@ -25,6 +25,7 @@ var logger_1 = require("../../../packages/logger");
 var LogMessageUtil_1 = require("../../../utils/LogMessageUtil");
 var log_messages_1 = require("../../../enums/log-messages");
 var EventEnum_1 = require("../../../enums/EventEnum");
+var LogMessageUtil_2 = require("../../../utils/LogMessageUtil");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -59,7 +60,7 @@ var NetworkClient = /** @class */ (function () {
                     if (error) {
                         // Log error and consume response data to free up memory.
                         res.resume();
-                        return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
+                        return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, requestModel);
                     }
                     res.setEncoding('utf8');
                     // Collect data chunks.
@@ -79,26 +80,30 @@ var NetworkClient = /** @class */ (function () {
                                     deferred.reject(responseModel);
                                     return;
                                 }
-                                return _this.retryOrReject(error_1, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
+                                return _this.retryOrReject(error_1, attempt, deferred, networkOptions, attemptRequest, requestModel);
+                            }
+                            // send log to vwo, if request is successful and attempt is greater than 0
+                            if (attempt > 0) {
+                                (0, LogMessageUtil_2.sendLogToVWO)('Request successfully sent for event: ' + String(networkOptions.path).split('?')[0], logger_1.LogLevelEnum.INFO, requestModel.getExtraInfo());
                             }
                             responseModel.setData(parsedData);
                             deferred.resolve(responseModel);
                         }
                         catch (err) {
-                            return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
+                            return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel);
                         }
                     });
                 });
                 // Handle request timeout.
                 req.on('timeout', function () {
-                    return _this.retryOrReject(new Error('timeout'), attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
+                    return _this.retryOrReject(new Error('timeout'), attempt, deferred, networkOptions, attemptRequest, requestModel);
                 });
                 req.on('error', function (err) {
-                    return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
+                    return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel);
                 });
             }
             catch (err) {
-                _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel.getRetryConfig());
+                _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel);
             }
             return deferred.promise;
         };
@@ -130,6 +135,10 @@ var NetworkClient = /** @class */ (function () {
                     res.on('end', function () {
                         try {
                             if (res.statusCode === 200) {
+                                // if attempt is greater than 0, log the response
+                                if (attempt > 0) {
+                                    (0, LogMessageUtil_2.sendLogToVWO)('Request successfully sent for event: ' + String(networkOptions.path).split('?')[0], logger_1.LogLevelEnum.INFO, request.getExtraInfo());
+                                }
                                 responseModel.setStatusCode(res.statusCode);
                                 responseModel.setData(request.getBody());
                                 deferred.resolve(responseModel);
@@ -143,28 +152,28 @@ var NetworkClient = /** @class */ (function () {
                                     deferred.reject(responseModel);
                                     return;
                                 }
-                                return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
+                                return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request);
                             }
                         }
                         catch (err) {
-                            return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
+                            return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request);
                         }
                     });
                 });
                 // Handle request timeout.
                 req.on('timeout', function () {
                     var error = "Timeout: ".concat(networkOptions.timeout);
-                    return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
+                    return _this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request);
                 });
                 req.on('error', function (err) {
-                    return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
+                    return _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request);
                 });
                 // Write data to the request body and end the request.
                 req.write(JSON.stringify(networkOptions.body));
                 req.end();
             }
             catch (err) {
-                _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request.getRetryConfig());
+                _this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request);
             }
             return deferred.promise;
         };
@@ -178,7 +187,9 @@ var NetworkClient = /** @class */ (function () {
      * @param {string} operation - The operation to retry or reject
      * @param {Function} attemptRequest - The function to attempt the request
      */
-    NetworkClient.prototype.retryOrReject = function (error, attempt, deferred, networkOptions, attemptRequest, retryConfig) {
+    NetworkClient.prototype.retryOrReject = function (error, attempt, deferred, networkOptions, attemptRequest, request) {
+        var retryConfig = request.getRetryConfig();
+        var extraData = request.getExtraInfo();
         var endpoint = String(networkOptions.path).split('?')[0];
         var delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, attempt) * 1000;
         if (retryConfig.shouldRetry && attempt < retryConfig.maxRetries) {
@@ -188,7 +199,7 @@ var NetworkClient = /** @class */ (function () {
                 delay: delay / 1000,
                 attempt: attempt + 1,
                 maxRetries: retryConfig.maxRetries,
-            }));
+            }), extraData);
             setTimeout(function () {
                 attemptRequest(attempt + 1)
                     .then(deferred.resolve)
@@ -201,7 +212,7 @@ var NetworkClient = /** @class */ (function () {
                 logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
                     endPoint: endpoint,
                     err: error,
-                }));
+                }), extraData);
             }
             var responseModel = new ResponseModel_1.ResponseModel();
             responseModel.setError(error);

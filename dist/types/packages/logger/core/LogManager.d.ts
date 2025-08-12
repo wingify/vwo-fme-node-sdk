@@ -99,6 +99,6 @@ export declare class LogManager extends Logger implements ILogManager {
    * Logs an error message.
    * @param {string} message - The message to log at error level.
    */
-  error(message: string, shouldSendToVWO?: boolean): void;
+  error(message: string, extraData?: any): void;
 }
 export {};

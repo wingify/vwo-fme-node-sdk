@@ -16,6 +16,11 @@ export declare class RequestModel {
   private body;
   private headers;
   private retryConfig;
+  private eventName;
+  private uuid;
+  private campaignId;
+  private eventProperties;
+  private whiteListedKeys;
   /**
    * Constructs an instance of the RequestModel.
    * @param url The base URL of the HTTP request.
@@ -139,9 +144,56 @@ export declare class RequestModel {
    */
   setRetryConfig(retryConfig: IRetryConfig): this;
   /**
+   * Sets the event name.
+   * @param eventName The event name to set.
+   */
+  setEventName(eventName: string): this;
+  /**
+   * Retrieves the event name.
+   * @returns The event name as a string.
+   */
+  getEventName(): string;
+  /**
+   * Sets the UUID.
+   * @param uuid The UUID to set.
+   */
+  setUuid(uuid: string): this;
+  /**
+   * Retrieves the UUID.
+   * @returns The UUID as a string.
+   */
+  getUuid(): string;
+  /**
+   * Sets the campaign ID.
+   * @param campaignId The campaign ID to set.
+   */
+  setCampaignId(campaignId: string): this;
+  /**
+   * Retrieves the campaign ID.
+   * @returns The campaign ID as a string.
+   */
+  getCampaignId(): string;
+  /**
+   * Sets the event properties.
+   * @param eventProperties The event properties to set.
+   */
+  setEventProperties(eventProperties: any): this;
+  /**
+     * Retrieves the event properties.
+    /**
+     * Retrieves the event properties.
+     * @returns The event properties.
+     */
+  getEventProperties(): any;
+  /**
    * Constructs the options for the HTTP request based on the current state of the model.
    * This method is used to prepare the request options for execution.
    * @returns A record containing all relevant options for the HTTP request.
    */
   getOptions(): Record<string, any>;
+  /**
+   * Retrieves the extra information of the HTTP request.
+   * @returns A record of key-value pairs representing the extra information.
+   */
+  getExtraInfo(): Record<string, any>;
 }

@@ -129,11 +129,9 @@ class LogManager extends Logger_1.Logger {
      * Logs an error message.
      * @param {string} message - The message to log at error level.
      */
-    error(message, shouldSendToVWO = true) {
+    error(message, extraData = {}) {
         this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
-        if (shouldSendToVWO) {
-            (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR);
-        }
+        (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR, extraData);
     }
 }
 exports.LogManager = LogManager;

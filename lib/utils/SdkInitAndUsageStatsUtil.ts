@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getEventsBaseProperties, getSDKInitEventPayload, sendEvent } from './NetworkUtil';
+import {
+  getEventsBaseProperties,
+  getSDKInitEventPayload,
+  getSDKUsageStatsEventPayload,
+  sendEvent,
+} from './NetworkUtil';
 import { EventEnum } from '../enums/EventEnum';
 import { BatchEventsQueue } from '../services/BatchEventsQueue';
 
@@ -37,4 +42,22 @@ export async function sendSdkInitEvent(settingsFetchTime?: number, sdkInitTime?:
     //send eventName in parameters so that we can enable retry for this event
     await sendEvent(properties, payload, EventEnum.VWO_INIT_CALLED).catch(() => {});
   }
+}
+
+/**
+ * Sends a usage stats event to VWO.
+ * This event is triggered when the SDK is initialized.
+ * @returns A promise that resolves to the response from the server.
+ */
+export async function sendSDKUsageStatsEvent(usageStatsAccountId: number) {
+  // create the query parameters
+
+  const properties = getEventsBaseProperties(EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
+
+  // create the payload with required fields
+  const payload = getSDKUsageStatsEventPayload(EventEnum.VWO_USAGE_STATS, usageStatsAccountId);
+
+  // Send the constructed properties and payload as a POST request
+  //send eventName in parameters so that we can enable retry for this event
+  await sendEvent(properties, payload, EventEnum.VWO_USAGE_STATS).catch(() => {});
 }

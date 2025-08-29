@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendSdkInitEvent = sendSdkInitEvent;
+exports.sendSDKUsageStatsEvent = sendSDKUsageStatsEvent;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -39,4 +40,18 @@ async function sendSdkInitEvent(settingsFetchTime, sdkInitTime) {
         await (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_INIT_CALLED).catch(() => { });
     }
 }
-//# sourceMappingURL=EventUtil.js.map
+/**
+ * Sends a usage stats event to VWO.
+ * This event is triggered when the SDK is initialized.
+ * @returns A promise that resolves to the response from the server.
+ */
+async function sendSDKUsageStatsEvent(usageStatsAccountId) {
+    // create the query parameters
+    const properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
+    // create the payload with required fields
+    const payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(EventEnum_1.EventEnum.VWO_USAGE_STATS, usageStatsAccountId);
+    // Send the constructed properties and payload as a POST request
+    //send eventName in parameters so that we can enable retry for this event
+    await (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_USAGE_STATS).catch(() => { });
+}
+//# sourceMappingURL=SdkInitAndUsageStatsUtil.js.map

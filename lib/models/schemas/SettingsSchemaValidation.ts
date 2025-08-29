@@ -95,6 +95,7 @@ export class SettingsSchema {
       sdkKey: optional(string()),
       version: union([number(), string()]),
       accountId: union([number(), string()]),
+      usageStatsAccountId: optional(number()),
       features: optional(array(this.featureSchema)),
       campaigns: array(this.campaignObjectSchema),
       groups: optional(object()),

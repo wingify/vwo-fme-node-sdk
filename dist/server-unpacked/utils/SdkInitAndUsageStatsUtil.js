@@ -37,6 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendSdkInitEvent = sendSdkInitEvent;
+exports.sendSDKUsageStatsEvent = sendSDKUsageStatsEvent;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -86,4 +87,29 @@ function sendSdkInitEvent(settingsFetchTime, sdkInitTime) {
         });
     });
 }
-//# sourceMappingURL=EventUtil.js.map
+/**
+ * Sends a usage stats event to VWO.
+ * This event is triggered when the SDK is initialized.
+ * @returns A promise that resolves to the response from the server.
+ */
+function sendSDKUsageStatsEvent(usageStatsAccountId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var properties, payload;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
+                    payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(EventEnum_1.EventEnum.VWO_USAGE_STATS, usageStatsAccountId);
+                    // Send the constructed properties and payload as a POST request
+                    //send eventName in parameters so that we can enable retry for this event
+                    return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_USAGE_STATS).catch(function () { })];
+                case 1:
+                    // Send the constructed properties and payload as a POST request
+                    //send eventName in parameters so that we can enable retry for this event
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+//# sourceMappingURL=SdkInitAndUsageStatsUtil.js.map

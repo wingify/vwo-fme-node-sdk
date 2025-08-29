@@ -15,6 +15,7 @@
  */
 
 import { LogLevelNumberEnum } from '../packages/logger/core/TransportManager';
+import { SettingsService } from '../services/SettingsService';
 
 /**
  * Manages usage statistics for the SDK.
@@ -59,19 +60,21 @@ export class UsageStatsUtil {
     const {
       storage,
       logger,
-      batchEvents,
+      batchEventData,
       gatewayService,
       integrations,
-      pollingInterval,
+      pollInterval,
       _vwo_meta,
       shouldWaitForTrackingCalls,
     } = options;
 
     const data: Record<string, string | number> = {};
+    data.a = SettingsService.Instance.accountId;
+    data.env = SettingsService.Instance.sdkKey;
 
     // Map configuration options to usage stats flags
     if (integrations) data.ig = 1; // Integration enabled
-    if (batchEvents) data.eb = 1; // Event batching enabled
+    if (batchEventData) data.eb = 1; // Event batching enabled
 
     // if logger has transport or transports, then it is custom logger
     if (logger && (logger.transport || logger.transports)) data.cl = 1;
@@ -83,7 +86,7 @@ export class UsageStatsUtil {
 
     if (gatewayService) data.gs = 1; // Gateway service configured
 
-    if (pollingInterval) data.pi = 1; // Polling interval configured
+    if (pollInterval) data.pi = pollInterval; // Polling interval configured
 
     if (shouldWaitForTrackingCalls) data.swtc = 1;
 

@@ -21,7 +21,7 @@ exports.onInit = onInit;
 const VWOBuilder_1 = require("./VWOBuilder");
 const DataTypeUtil_1 = require("./utils/DataTypeUtil");
 const PromiseUtil_1 = require("./utils/PromiseUtil");
-const EventUtil_1 = require("./utils/EventUtil");
+const SdkInitAndUsageStatsUtil_1 = require("./utils/SdkInitAndUsageStatsUtil");
 const log_messages_1 = require("./enums/log-messages");
 const LogMessageUtil_1 = require("./utils/LogMessageUtil");
 const PlatformEnum_1 = require("./enums/PlatformEnum");
@@ -142,13 +142,25 @@ async function init(options) {
         };
         return instance.then(async (_vwoInstance) => {
             const sdkInitTime = Date.now() - startTimeForInit;
+            // send sdk init event
             if (_vwoInstance.isSettingsValid && !_vwoInstance.originalSettings?.sdkMetaInfo?.wasInitializedEarlier) {
                 //if shouldwaitForTrackingCalls is true, then wait for sendSdkInitEvent to complete
                 if (_vwoInstance.options?.shouldWaitForTrackingCalls) {
-                    await (0, EventUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                    await (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
                 }
                 else {
-                    (0, EventUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                    (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                }
+            }
+            // send sdk usage stats event
+            // get usage stats account id from settings
+            const usageStatsAccountId = _vwoInstance.originalSettings?.usageStatsAccountId;
+            if (usageStatsAccountId) {
+                if (_vwoInstance.options?.shouldWaitForTrackingCalls) {
+                    await (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
+                }
+                else {
+                    (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
                 }
             }
             _global.isSettingsFetched = true;

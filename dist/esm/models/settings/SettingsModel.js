@@ -32,6 +32,7 @@ class SettingsModel {
         this.accountId = settings.a || settings.accountId;
         this.version = settings.v || settings.version;
         this.collectionPrefix = settings.collectionPrefix;
+        this.usageStatsAccountId = settings.usageStatsAccountId;
         if ((settings.f && settings.f.constructor !== {}.constructor) ||
             (settings.features && settings.features.constructor !== {}.constructor)) {
             const featureList = settings.f || settings.features;
@@ -86,6 +87,9 @@ class SettingsModel {
     }
     getPollInterval() {
         return this.pollInterval;
+    }
+    getUsageStatsAccountId() {
+        return this.usageStatsAccountId;
     }
 }
 exports.SettingsModel = SettingsModel;

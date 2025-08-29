@@ -33,6 +33,7 @@ var SettingsModel = /** @class */ (function () {
         this.accountId = settings.a || settings.accountId;
         this.version = settings.v || settings.version;
         this.collectionPrefix = settings.collectionPrefix;
+        this.usageStatsAccountId = settings.usageStatsAccountId;
         if ((settings.f && settings.f.constructor !== {}.constructor) ||
             (settings.features && settings.features.constructor !== {}.constructor)) {
             var featureList = settings.f || settings.features;
@@ -87,6 +88,9 @@ var SettingsModel = /** @class */ (function () {
     };
     SettingsModel.prototype.getPollInterval = function () {
         return this.pollInterval;
+    };
+    SettingsModel.prototype.getUsageStatsAccountId = function () {
+        return this.usageStatsAccountId;
     };
     return SettingsModel;
 }());

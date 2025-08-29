@@ -80,6 +80,7 @@ class SettingsSchema {
             sdkKey: (0, superstruct_1.optional)((0, superstruct_1.string)()),
             version: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             accountId: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
+            usageStatsAccountId: (0, superstruct_1.optional)((0, superstruct_1.number)()),
             features: (0, superstruct_1.optional)((0, superstruct_1.array)(this.featureSchema)),
             campaigns: (0, superstruct_1.array)(this.campaignObjectSchema),
             groups: (0, superstruct_1.optional)((0, superstruct_1.object)()),

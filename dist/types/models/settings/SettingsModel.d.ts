@@ -32,6 +32,7 @@ export declare class SettingsModel {
   private version;
   private collectionPrefix?;
   private pollInterval?;
+  private usageStatsAccountId?;
   constructor(settings: SettingsModel);
   getFeatures(): Array<FeatureModel>;
   getCampaigns(): Array<CampaignModel>;
@@ -43,4 +44,5 @@ export declare class SettingsModel {
   getGroups(): Record<string, any>;
   setPollInterval(value: number): void;
   getPollInterval(): number;
+  getUsageStatsAccountId(): number;
 }

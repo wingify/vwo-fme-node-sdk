@@ -59,6 +59,7 @@ exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
 exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 exports.getMessagingEventPayload = getMessagingEventPayload;
 exports.getSDKInitEventPayload = getSDKInitEventPayload;
+exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
 exports.sendEvent = sendEvent;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -133,14 +134,14 @@ function getTrackEventPath(event, accountId, userId) {
  * @param {String} eventName
  * @returns properties
  */
-function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress) {
+function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress, isUsageStatsEvent, usageStatsAccountId) {
     if (visitorUserAgent === void 0) { visitorUserAgent = ''; }
     if (ipAddress === void 0) { ipAddress = ''; }
-    var sdkKey = SettingsService_1.SettingsService.Instance.sdkKey;
+    if (isUsageStatsEvent === void 0) { isUsageStatsEvent = false; }
+    if (usageStatsAccountId === void 0) { usageStatsAccountId = null; }
     var properties = Object.assign({
         en: eventName,
         a: SettingsService_1.SettingsService.Instance.accountId,
-        env: sdkKey,
         eTime: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)(),
         random: (0, FunctionUtil_1.getRandomNumber)(),
         p: 'FS',
@@ -149,6 +150,14 @@ function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress) {
         sn: constants_1.Constants.SDK_NAME,
         sv: constants_1.Constants.SDK_VERSION,
     });
+    if (!isUsageStatsEvent) {
+        // set env key for standard sdk events
+        properties.env = SettingsService_1.SettingsService.Instance.sdkKey;
+    }
+    else {
+        // set account id for internal usage stats event
+        properties.a = usageStatsAccountId;
+    }
     properties.url = constants_1.Constants.HTTPS_PROTOCOL + UrlUtil_1.UrlUtil.getBaseUrl() + UrlEnum_1.UrlEnum.EVENTS;
     return properties;
 }
@@ -159,16 +168,25 @@ function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress) {
  * @param {String} eventName  event name
  * @returns properties
  */
-function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress) {
+function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress, isUsageStatsEvent, usageStatsAccountId) {
     if (visitorUserAgent === void 0) { visitorUserAgent = ''; }
     if (ipAddress === void 0) { ipAddress = ''; }
-    var uuid = (0, UuidUtil_1.getUUID)(userId.toString(), SettingsService_1.SettingsService.Instance.accountId.toString());
-    var sdkKey = SettingsService_1.SettingsService.Instance.sdkKey;
+    if (isUsageStatsEvent === void 0) { isUsageStatsEvent = false; }
+    if (usageStatsAccountId === void 0) { usageStatsAccountId = null; }
+    var accountId = SettingsService_1.SettingsService.Instance.accountId;
+    if (isUsageStatsEvent) {
+        // set account id for internal usage stats event
+        accountId = usageStatsAccountId;
+    }
+    var uuid = (0, UuidUtil_1.getUUID)(userId.toString(), accountId.toString());
     var props = {
         vwo_sdkName: constants_1.Constants.SDK_NAME,
         vwo_sdkVersion: constants_1.Constants.SDK_VERSION,
-        vwo_envKey: sdkKey,
     };
+    if (!isUsageStatsEvent) {
+        // set env key for standard sdk events
+        props.vwo_envKey = SettingsService_1.SettingsService.Instance.sdkKey;
+    }
     var properties = {
         d: {
             msgId: "".concat(uuid, "-").concat((0, FunctionUtil_1.getCurrentUnixTimestampInMillis)()),
@@ -181,13 +199,16 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipA
                 name: eventName,
                 time: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)(),
             },
-            visitor: {
-                props: {
-                    vwo_fs_environment: sdkKey,
-                },
-            },
         },
     };
+    if (!isUsageStatsEvent) {
+        // set visitor props for standard sdk events
+        properties.d.visitor = {
+            props: {
+                vwo_fs_environment: SettingsService_1.SettingsService.Instance.sdkKey,
+            },
+        };
+    }
     return properties;
 }
 /**
@@ -206,10 +227,6 @@ function getTrackUserPayloadData(settings, userId, eventName, campaignId, variat
     properties.d.event.props.id = campaignId;
     properties.d.event.props.variation = variationId;
     properties.d.event.props.isFirst = 1;
-    // add usageStats as a new meta key to properties.d.events.props.vwoMeta
-    if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
-        properties.d.event.props.vwoMeta = UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats();
-    }
     logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
         accountId: settings.getAccountId(),
         userId: userId,
@@ -365,7 +382,7 @@ function getMessagingEventPayload(messageType, message, eventName, extraData) {
     var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
     var properties = _getEventBasePayload(null, userId, eventName, null, null);
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey; // Set environment key
-    properties.d.event.props.product = 'fme';
+    properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     var data = {
         type: messageType,
         content: {
@@ -389,13 +406,28 @@ function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
     var properties = _getEventBasePayload(null, userId, eventName, null, null);
     // Set the required fields as specified
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey;
-    properties.d.event.props.product = 'fme';
+    properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     var data = {
         isSDKInitialized: true,
         settingsFetchTime: settingsFetchTime,
         sdkInitTime: sdkInitTime,
     };
     properties.d.event.props.data = data;
+    return properties;
+}
+/**
+ * Constructs the payload for sdk usage stats event.
+ * @param eventName - The name of the event.
+ * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
+ * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ * @returns The constructed payload with required fields.
+ */
+function getSDKUsageStatsEventPayload(eventName, usageStatsAccountId) {
+    var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
+    var properties = _getEventBasePayload(null, userId, eventName, null, null, true, usageStatsAccountId);
+    // Set the required fields as specified
+    properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
+    properties.d.event.props.vwoMeta = UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats();
     return properties;
 }
 /**
@@ -416,14 +448,14 @@ function sendEvent(properties, payload, eventName) {
             if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT)
                 retryConfig.shouldRetry = false;
             baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
-            baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
             protocol = SettingsService_1.SettingsService.Instance.protocol;
             port = SettingsService_1.SettingsService.Instance.port;
-            if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT) {
+            if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT || eventName === EventEnum_1.EventEnum.VWO_USAGE_STATS) {
                 baseUrl = constants_1.Constants.HOST_NAME;
                 protocol = constants_1.Constants.HTTPS_PROTOCOL;
                 port = 443;
             }
+            baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
             try {
                 request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, protocol, port, retryConfig);
                 request.setEventName(properties.en);

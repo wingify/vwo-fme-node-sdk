@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.25.2
+ * vwo-fme-javascript-sdk - v1.26.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 "use strict";
-module.exports = {"version":"1.25.2"};
+module.exports = {"version":"1.26.0"};
 
 /***/ }),
 
@@ -116,7 +116,7 @@ exports.onInit = onInit;
 var VWOBuilder_1 = __webpack_require__(/*! ./VWOBuilder */ "./lib/VWOBuilder.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
-var EventUtil_1 = __webpack_require__(/*! ./utils/EventUtil */ "./lib/utils/EventUtil.ts");
+var SdkInitAndUsageStatsUtil_1 = __webpack_require__(/*! ./utils/SdkInitAndUsageStatsUtil */ "./lib/utils/SdkInitAndUsageStatsUtil.ts");
 var log_messages_1 = __webpack_require__(/*! ./enums/log-messages */ "./lib/enums/log-messages/index.ts");
 var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var PlatformEnum_1 = __webpack_require__(/*! ./enums/PlatformEnum */ "./lib/enums/PlatformEnum.ts");
@@ -244,22 +244,33 @@ function init(options) {
                     instance: null,
                 };
                 return [2 /*return*/, instance.then(function (_vwoInstance) { return __awaiter(_this, void 0, void 0, function () {
-                        var sdkInitTime;
-                        var _a, _b, _c;
-                        return __generator(this, function (_d) {
-                            switch (_d.label) {
+                        var sdkInitTime, usageStatsAccountId;
+                        var _a, _b, _c, _d, _e;
+                        return __generator(this, function (_f) {
+                            switch (_f.label) {
                                 case 0:
                                     sdkInitTime = Date.now() - startTimeForInit_1;
                                     if (!(_vwoInstance.isSettingsValid && !((_b = (_a = _vwoInstance.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier))) return [3 /*break*/, 3];
                                     if (!((_c = _vwoInstance.options) === null || _c === void 0 ? void 0 : _c.shouldWaitForTrackingCalls)) return [3 /*break*/, 2];
-                                    return [4 /*yield*/, (0, EventUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime)];
+                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime)];
                                 case 1:
-                                    _d.sent();
+                                    _f.sent();
                                     return [3 /*break*/, 3];
                                 case 2:
-                                    (0, EventUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
-                                    _d.label = 3;
+                                    (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                                    _f.label = 3;
                                 case 3:
+                                    usageStatsAccountId = (_d = _vwoInstance.originalSettings) === null || _d === void 0 ? void 0 : _d.usageStatsAccountId;
+                                    if (!usageStatsAccountId) return [3 /*break*/, 6];
+                                    if (!((_e = _vwoInstance.options) === null || _e === void 0 ? void 0 : _e.shouldWaitForTrackingCalls)) return [3 /*break*/, 5];
+                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId)];
+                                case 4:
+                                    _f.sent();
+                                    return [3 /*break*/, 6];
+                                case 5:
+                                    (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
+                                    _f.label = 6;
+                                case 6:
                                     _global.isSettingsFetched = true;
                                     _global.instance = _vwoInstance;
                                     _global.vwoInitDeferred.resolve(_vwoInstance);
@@ -1876,6 +1887,7 @@ exports.Constants = {
     DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
     DEFAULT_SETTINGS_STORAGE_KEY: 'vwo_fme_settings',
     POLLING_INTERVAL: 600000,
+    PRODUCT_NAME: 'fme',
 };
 
 
@@ -2152,6 +2164,7 @@ var EventEnum;
     EventEnum["VWO_SYNC_VISITOR_PROP"] = "vwo_syncVisitorProp";
     EventEnum["VWO_LOG_EVENT"] = "vwo_log";
     EventEnum["VWO_INIT_CALLED"] = "vwo_fmeSdkInit";
+    EventEnum["VWO_USAGE_STATS"] = "vwo_sdkUsageStats";
 })(EventEnum || (exports.EventEnum = EventEnum = {}));
 
 
@@ -3030,6 +3043,7 @@ var SettingsSchema = /** @class */ (function () {
             sdkKey: (0, superstruct_1.optional)((0, superstruct_1.string)()),
             version: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             accountId: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
+            usageStatsAccountId: (0, superstruct_1.optional)((0, superstruct_1.number)()),
             features: (0, superstruct_1.optional)((0, superstruct_1.array)(this.featureSchema)),
             campaigns: (0, superstruct_1.array)(this.campaignObjectSchema),
             groups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
@@ -3095,6 +3109,7 @@ var SettingsModel = /** @class */ (function () {
         this.accountId = settings.a || settings.accountId;
         this.version = settings.v || settings.version;
         this.collectionPrefix = settings.collectionPrefix;
+        this.usageStatsAccountId = settings.usageStatsAccountId;
         if ((settings.f && settings.f.constructor !== {}.constructor) ||
             (settings.features && settings.features.constructor !== {}.constructor)) {
             var featureList = settings.f || settings.features;
@@ -3149,6 +3164,9 @@ var SettingsModel = /** @class */ (function () {
     };
     SettingsModel.prototype.getPollInterval = function () {
         return this.pollInterval;
+    };
+    SettingsModel.prototype.getUsageStatsAccountId = function () {
+        return this.usageStatsAccountId;
     };
     return SettingsModel;
 }());
@@ -8764,105 +8782,6 @@ var _evaluateWhitelisting = function (campaign, context) { return __awaiter(void
 
 /***/ }),
 
-/***/ "./lib/utils/EventUtil.ts":
-/*!********************************!*\
-  !*** ./lib/utils/EventUtil.ts ***!
-  \********************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sendSdkInitEvent = sendSdkInitEvent;
-/**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
-var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
-var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./lib/services/BatchEventsQueue.ts");
-/**
- * Sends an init called event to VWO.
- * This event is triggered when the init function is called.
- * @param {number} settingsFetchTime - Time taken to fetch settings in milliseconds.
- * @param {number} sdkInitTime - Time taken to initialize the SDK in milliseconds.
- */
-function sendSdkInitEvent(settingsFetchTime, sdkInitTime) {
-    return __awaiter(this, void 0, void 0, function () {
-        var properties, payload;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_INIT_CALLED);
-                    payload = (0, NetworkUtil_1.getSDKInitEventPayload)(EventEnum_1.EventEnum.VWO_INIT_CALLED, settingsFetchTime, sdkInitTime);
-                    if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
-                    BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
-                    return [3 /*break*/, 3];
-                case 1: 
-                // Send the constructed properties and payload as a POST request
-                //send eventName in parameters so that we can enable retry for this event
-                return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_INIT_CALLED).catch(function () { })];
-                case 2:
-                    // Send the constructed properties and payload as a POST request
-                    //send eventName in parameters so that we can enable retry for this event
-                    _a.sent();
-                    _a.label = 3;
-                case 3: return [2 /*return*/];
-            }
-        });
-    });
-}
-
-
-/***/ }),
-
 /***/ "./lib/utils/FetchUtil.ts":
 /*!********************************!*\
   !*** ./lib/utils/FetchUtil.ts ***!
@@ -10113,6 +10032,7 @@ exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
 exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 exports.getMessagingEventPayload = getMessagingEventPayload;
 exports.getSDKInitEventPayload = getSDKInitEventPayload;
+exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
 exports.sendEvent = sendEvent;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -10187,14 +10107,14 @@ function getTrackEventPath(event, accountId, userId) {
  * @param {String} eventName
  * @returns properties
  */
-function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress) {
+function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress, isUsageStatsEvent, usageStatsAccountId) {
     if (visitorUserAgent === void 0) { visitorUserAgent = ''; }
     if (ipAddress === void 0) { ipAddress = ''; }
-    var sdkKey = SettingsService_1.SettingsService.Instance.sdkKey;
+    if (isUsageStatsEvent === void 0) { isUsageStatsEvent = false; }
+    if (usageStatsAccountId === void 0) { usageStatsAccountId = null; }
     var properties = Object.assign({
         en: eventName,
         a: SettingsService_1.SettingsService.Instance.accountId,
-        env: sdkKey,
         eTime: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)(),
         random: (0, FunctionUtil_1.getRandomNumber)(),
         p: 'FS',
@@ -10203,6 +10123,14 @@ function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress) {
         sn: constants_1.Constants.SDK_NAME,
         sv: constants_1.Constants.SDK_VERSION,
     });
+    if (!isUsageStatsEvent) {
+        // set env key for standard sdk events
+        properties.env = SettingsService_1.SettingsService.Instance.sdkKey;
+    }
+    else {
+        // set account id for internal usage stats event
+        properties.a = usageStatsAccountId;
+    }
     properties.url = constants_1.Constants.HTTPS_PROTOCOL + UrlUtil_1.UrlUtil.getBaseUrl() + UrlEnum_1.UrlEnum.EVENTS;
     return properties;
 }
@@ -10213,16 +10141,25 @@ function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress) {
  * @param {String} eventName  event name
  * @returns properties
  */
-function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress) {
+function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress, isUsageStatsEvent, usageStatsAccountId) {
     if (visitorUserAgent === void 0) { visitorUserAgent = ''; }
     if (ipAddress === void 0) { ipAddress = ''; }
-    var uuid = (0, UuidUtil_1.getUUID)(userId.toString(), SettingsService_1.SettingsService.Instance.accountId.toString());
-    var sdkKey = SettingsService_1.SettingsService.Instance.sdkKey;
+    if (isUsageStatsEvent === void 0) { isUsageStatsEvent = false; }
+    if (usageStatsAccountId === void 0) { usageStatsAccountId = null; }
+    var accountId = SettingsService_1.SettingsService.Instance.accountId;
+    if (isUsageStatsEvent) {
+        // set account id for internal usage stats event
+        accountId = usageStatsAccountId;
+    }
+    var uuid = (0, UuidUtil_1.getUUID)(userId.toString(), accountId.toString());
     var props = {
         vwo_sdkName: constants_1.Constants.SDK_NAME,
         vwo_sdkVersion: constants_1.Constants.SDK_VERSION,
-        vwo_envKey: sdkKey,
     };
+    if (!isUsageStatsEvent) {
+        // set env key for standard sdk events
+        props.vwo_envKey = SettingsService_1.SettingsService.Instance.sdkKey;
+    }
     var properties = {
         d: {
             msgId: "".concat(uuid, "-").concat((0, FunctionUtil_1.getCurrentUnixTimestampInMillis)()),
@@ -10235,13 +10172,16 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipA
                 name: eventName,
                 time: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)(),
             },
-            visitor: {
-                props: {
-                    vwo_fs_environment: sdkKey,
-                },
-            },
         },
     };
+    if (!isUsageStatsEvent) {
+        // set visitor props for standard sdk events
+        properties.d.visitor = {
+            props: {
+                vwo_fs_environment: SettingsService_1.SettingsService.Instance.sdkKey,
+            },
+        };
+    }
     return properties;
 }
 /**
@@ -10260,10 +10200,6 @@ function getTrackUserPayloadData(settings, userId, eventName, campaignId, variat
     properties.d.event.props.id = campaignId;
     properties.d.event.props.variation = variationId;
     properties.d.event.props.isFirst = 1;
-    // add usageStats as a new meta key to properties.d.events.props.vwoMeta
-    if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
-        properties.d.event.props.vwoMeta = UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats();
-    }
     logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
         accountId: settings.getAccountId(),
         userId: userId,
@@ -10419,7 +10355,7 @@ function getMessagingEventPayload(messageType, message, eventName, extraData) {
     var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
     var properties = _getEventBasePayload(null, userId, eventName, null, null);
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey; // Set environment key
-    properties.d.event.props.product = 'fme';
+    properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     var data = {
         type: messageType,
         content: {
@@ -10443,13 +10379,28 @@ function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
     var properties = _getEventBasePayload(null, userId, eventName, null, null);
     // Set the required fields as specified
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey;
-    properties.d.event.props.product = 'fme';
+    properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     var data = {
         isSDKInitialized: true,
         settingsFetchTime: settingsFetchTime,
         sdkInitTime: sdkInitTime,
     };
     properties.d.event.props.data = data;
+    return properties;
+}
+/**
+ * Constructs the payload for sdk usage stats event.
+ * @param eventName - The name of the event.
+ * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
+ * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ * @returns The constructed payload with required fields.
+ */
+function getSDKUsageStatsEventPayload(eventName, usageStatsAccountId) {
+    var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
+    var properties = _getEventBasePayload(null, userId, eventName, null, null, true, usageStatsAccountId);
+    // Set the required fields as specified
+    properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
+    properties.d.event.props.vwoMeta = UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats();
     return properties;
 }
 /**
@@ -10470,14 +10421,14 @@ function sendEvent(properties, payload, eventName) {
             if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT)
                 retryConfig.shouldRetry = false;
             baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
-            baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
             protocol = SettingsService_1.SettingsService.Instance.protocol;
             port = SettingsService_1.SettingsService.Instance.port;
-            if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT) {
+            if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT || eventName === EventEnum_1.EventEnum.VWO_USAGE_STATS) {
                 baseUrl = constants_1.Constants.HOST_NAME;
                 protocol = constants_1.Constants.HTTPS_PROTOCOL;
                 port = 443;
             }
+            baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
             try {
                 request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, protocol, port, retryConfig);
                 request.setEventName(properties.en);
@@ -10634,6 +10585,131 @@ exports.evaluateRule = evaluateRule;
 
 /***/ }),
 
+/***/ "./lib/utils/SdkInitAndUsageStatsUtil.ts":
+/*!***********************************************!*\
+  !*** ./lib/utils/SdkInitAndUsageStatsUtil.ts ***!
+  \***********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.sendSdkInitEvent = sendSdkInitEvent;
+exports.sendSDKUsageStatsEvent = sendSDKUsageStatsEvent;
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
+var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./lib/services/BatchEventsQueue.ts");
+/**
+ * Sends an init called event to VWO.
+ * This event is triggered when the init function is called.
+ * @param {number} settingsFetchTime - Time taken to fetch settings in milliseconds.
+ * @param {number} sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ */
+function sendSdkInitEvent(settingsFetchTime, sdkInitTime) {
+    return __awaiter(this, void 0, void 0, function () {
+        var properties, payload;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_INIT_CALLED);
+                    payload = (0, NetworkUtil_1.getSDKInitEventPayload)(EventEnum_1.EventEnum.VWO_INIT_CALLED, settingsFetchTime, sdkInitTime);
+                    if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+                    BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                    return [3 /*break*/, 3];
+                case 1: 
+                // Send the constructed properties and payload as a POST request
+                //send eventName in parameters so that we can enable retry for this event
+                return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_INIT_CALLED).catch(function () { })];
+                case 2:
+                    // Send the constructed properties and payload as a POST request
+                    //send eventName in parameters so that we can enable retry for this event
+                    _a.sent();
+                    _a.label = 3;
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+/**
+ * Sends a usage stats event to VWO.
+ * This event is triggered when the SDK is initialized.
+ * @returns A promise that resolves to the response from the server.
+ */
+function sendSDKUsageStatsEvent(usageStatsAccountId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var properties, payload;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
+                    payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(EventEnum_1.EventEnum.VWO_USAGE_STATS, usageStatsAccountId);
+                    // Send the constructed properties and payload as a POST request
+                    //send eventName in parameters so that we can enable retry for this event
+                    return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_USAGE_STATS).catch(function () { })];
+                case 1:
+                    // Send the constructed properties and payload as a POST request
+                    //send eventName in parameters so that we can enable retry for this event
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+
+
+/***/ }),
+
 /***/ "./lib/utils/SettingsUtil.ts":
 /*!***********************************!*\
   !*** ./lib/utils/SettingsUtil.ts ***!
@@ -10766,6 +10842,7 @@ exports.UrlUtil = {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UsageStatsUtil = void 0;
 var TransportManager_1 = __webpack_require__(/*! ../packages/logger/core/TransportManager */ "./lib/packages/logger/core/TransportManager.ts");
+var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./lib/services/SettingsService.ts");
 /**
  * Manages usage statistics for the SDK.
  * Tracks various features and configurations being used by the client.
@@ -10802,12 +10879,14 @@ var UsageStatsUtil = /** @class */ (function () {
      */
     UsageStatsUtil.prototype.setUsageStats = function (options) {
         var _a;
-        var storage = options.storage, logger = options.logger, batchEvents = options.batchEvents, gatewayService = options.gatewayService, integrations = options.integrations, pollingInterval = options.pollingInterval, _vwo_meta = options._vwo_meta, shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
+        var storage = options.storage, logger = options.logger, batchEventData = options.batchEventData, gatewayService = options.gatewayService, integrations = options.integrations, pollInterval = options.pollInterval, _vwo_meta = options._vwo_meta, shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
         var data = {};
+        data.a = SettingsService_1.SettingsService.Instance.accountId;
+        data.env = SettingsService_1.SettingsService.Instance.sdkKey;
         // Map configuration options to usage stats flags
         if (integrations)
             data.ig = 1; // Integration enabled
-        if (batchEvents)
+        if (batchEventData)
             data.eb = 1; // Event batching enabled
         // if logger has transport or transports, then it is custom logger
         if (logger && (logger.transport || logger.transports))
@@ -10819,8 +10898,8 @@ var UsageStatsUtil = /** @class */ (function () {
         }
         if (gatewayService)
             data.gs = 1; // Gateway service configured
-        if (pollingInterval)
-            data.pi = 1; // Polling interval configured
+        if (pollInterval)
+            data.pi = pollInterval; // Polling interval configured
         if (shouldWaitForTrackingCalls)
             data.swtc = 1;
         // if _vwo_meta has ea, then addd data._ea to be 1

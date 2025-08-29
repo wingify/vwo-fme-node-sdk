@@ -18,4 +18,5 @@ export enum EventEnum {
   VWO_SYNC_VISITOR_PROP = 'vwo_syncVisitorProp',
   VWO_LOG_EVENT = 'vwo_log',
   VWO_INIT_CALLED = 'vwo_fmeSdkInit',
+  VWO_USAGE_STATS = 'vwo_sdkUsageStats',
 }

@@ -57,7 +57,7 @@ exports.onInit = onInit;
 var VWOBuilder_1 = require("./VWOBuilder");
 var DataTypeUtil_1 = require("./utils/DataTypeUtil");
 var PromiseUtil_1 = require("./utils/PromiseUtil");
-var EventUtil_1 = require("./utils/EventUtil");
+var SdkInitAndUsageStatsUtil_1 = require("./utils/SdkInitAndUsageStatsUtil");
 var log_messages_1 = require("./enums/log-messages");
 var LogMessageUtil_1 = require("./utils/LogMessageUtil");
 var PlatformEnum_1 = require("./enums/PlatformEnum");
@@ -187,22 +187,33 @@ function init(options) {
                     instance: null,
                 };
                 return [2 /*return*/, instance.then(function (_vwoInstance) { return __awaiter(_this, void 0, void 0, function () {
-                        var sdkInitTime;
-                        var _a, _b, _c;
-                        return __generator(this, function (_d) {
-                            switch (_d.label) {
+                        var sdkInitTime, usageStatsAccountId;
+                        var _a, _b, _c, _d, _e;
+                        return __generator(this, function (_f) {
+                            switch (_f.label) {
                                 case 0:
                                     sdkInitTime = Date.now() - startTimeForInit_1;
                                     if (!(_vwoInstance.isSettingsValid && !((_b = (_a = _vwoInstance.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier))) return [3 /*break*/, 3];
                                     if (!((_c = _vwoInstance.options) === null || _c === void 0 ? void 0 : _c.shouldWaitForTrackingCalls)) return [3 /*break*/, 2];
-                                    return [4 /*yield*/, (0, EventUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime)];
+                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime)];
                                 case 1:
-                                    _d.sent();
+                                    _f.sent();
                                     return [3 /*break*/, 3];
                                 case 2:
-                                    (0, EventUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
-                                    _d.label = 3;
+                                    (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                                    _f.label = 3;
                                 case 3:
+                                    usageStatsAccountId = (_d = _vwoInstance.originalSettings) === null || _d === void 0 ? void 0 : _d.usageStatsAccountId;
+                                    if (!usageStatsAccountId) return [3 /*break*/, 6];
+                                    if (!((_e = _vwoInstance.options) === null || _e === void 0 ? void 0 : _e.shouldWaitForTrackingCalls)) return [3 /*break*/, 5];
+                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId)];
+                                case 4:
+                                    _f.sent();
+                                    return [3 /*break*/, 6];
+                                case 5:
+                                    (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
+                                    _f.label = 6;
+                                case 6:
                                     _global.isSettingsFetched = true;
                                     _global.instance = _vwoInstance;
                                     _global.vwoInitDeferred.resolve(_vwoInstance);

@@ -17,6 +17,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsageStatsUtil = void 0;
 const TransportManager_1 = require("../packages/logger/core/TransportManager");
+const SettingsService_1 = require("../services/SettingsService");
 /**
  * Manages usage statistics for the SDK.
  * Tracks various features and configurations being used by the client.
@@ -52,12 +53,14 @@ class UsageStatsUtil {
      * @param options.sdkName - SDK name configuration
      */
     setUsageStats(options) {
-        const { storage, logger, batchEvents, gatewayService, integrations, pollingInterval, _vwo_meta, shouldWaitForTrackingCalls, } = options;
+        const { storage, logger, batchEventData, gatewayService, integrations, pollInterval, _vwo_meta, shouldWaitForTrackingCalls, } = options;
         const data = {};
+        data.a = SettingsService_1.SettingsService.Instance.accountId;
+        data.env = SettingsService_1.SettingsService.Instance.sdkKey;
         // Map configuration options to usage stats flags
         if (integrations)
             data.ig = 1; // Integration enabled
-        if (batchEvents)
+        if (batchEventData)
             data.eb = 1; // Event batching enabled
         // if logger has transport or transports, then it is custom logger
         if (logger && (logger.transport || logger.transports))
@@ -69,8 +72,8 @@ class UsageStatsUtil {
         }
         if (gatewayService)
             data.gs = 1; // Gateway service configured
-        if (pollingInterval)
-            data.pi = 1; // Polling interval configured
+        if (pollInterval)
+            data.pi = pollInterval; // Polling interval configured
         if (shouldWaitForTrackingCalls)
             data.swtc = 1;
         // if _vwo_meta has ea, then addd data._ea to be 1

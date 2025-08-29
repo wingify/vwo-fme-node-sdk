@@ -19,7 +19,7 @@ import { IVWOOptions } from './models/VWOOptionsModel';
 import { dynamic } from './types/Common';
 import { isObject, isString } from './utils/DataTypeUtil';
 import { Deferred } from './utils/PromiseUtil';
-import { sendSdkInitEvent } from './utils/EventUtil';
+import { sendSdkInitEvent, sendSDKUsageStatsEvent } from './utils/SdkInitAndUsageStatsUtil';
 import { InfoLogMessagesEnum, ErrorLogMessagesEnum } from './enums/log-messages';
 import { buildMessage } from './utils/LogMessageUtil';
 import { PlatformEnum } from './enums/PlatformEnum';
@@ -157,6 +157,8 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
 
     return instance.then(async (_vwoInstance) => {
       const sdkInitTime = Date.now() - startTimeForInit;
+
+      // send sdk init event
       if (_vwoInstance.isSettingsValid && !_vwoInstance.originalSettings?.sdkMetaInfo?.wasInitializedEarlier) {
         //if shouldwaitForTrackingCalls is true, then wait for sendSdkInitEvent to complete
         if (_vwoInstance.options?.shouldWaitForTrackingCalls) {
@@ -165,6 +167,18 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
           sendSdkInitEvent(_vwoInstance.settingsFetchTime, sdkInitTime);
         }
       }
+
+      // send sdk usage stats event
+      // get usage stats account id from settings
+      const usageStatsAccountId = _vwoInstance.originalSettings?.usageStatsAccountId;
+      if (usageStatsAccountId) {
+        if (_vwoInstance.options?.shouldWaitForTrackingCalls) {
+          await sendSDKUsageStatsEvent(usageStatsAccountId);
+        } else {
+          sendSDKUsageStatsEvent(usageStatsAccountId);
+        }
+      }
+
       _global.isSettingsFetched = true;
       _global.instance = _vwoInstance;
       _global.vwoInitDeferred.resolve(_vwoInstance);

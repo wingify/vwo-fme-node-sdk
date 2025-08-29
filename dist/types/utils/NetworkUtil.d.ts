@@ -25,6 +25,8 @@ export declare function getEventsBaseProperties(
   eventName: string,
   visitorUserAgent?: string,
   ipAddress?: string,
+  isUsageStatsEvent?: boolean,
+  usageStatsAccountId?: number,
 ): Record<string, any>;
 /**
  * Builds generic payload required by all the different tracking calls.
@@ -39,6 +41,8 @@ export declare function _getEventBasePayload(
   eventName: string,
   visitorUserAgent?: string,
   ipAddress?: string,
+  isUsageStatsEvent?: boolean,
+  usageStatsAccountId?: number,
 ): Record<string, any>;
 /**
  * Builds payload to track the visitor.
@@ -140,6 +144,17 @@ export declare function getSDKInitEventPayload(
   eventName: string,
   settingsFetchTime?: number,
   sdkInitTime?: number,
+): Record<string, any>;
+/**
+ * Constructs the payload for sdk usage stats event.
+ * @param eventName - The name of the event.
+ * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
+ * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ * @returns The constructed payload with required fields.
+ */
+export declare function getSDKUsageStatsEventPayload(
+  eventName: string,
+  usageStatsAccountId: number,
 ): Record<string, any>;
 /**
  * Sends an event to VWO (generic event sender).

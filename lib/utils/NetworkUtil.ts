@@ -83,13 +83,12 @@ export function getEventsBaseProperties(
   eventName: string,
   visitorUserAgent: string = '',
   ipAddress: string = '',
+  isUsageStatsEvent: boolean = false,
+  usageStatsAccountId: number = null,
 ): Record<string, any> {
-  const sdkKey = SettingsService.Instance.sdkKey;
-
   const properties = Object.assign({
     en: eventName,
     a: SettingsService.Instance.accountId,
-    env: sdkKey,
     eTime: getCurrentUnixTimestampInMillis(),
     random: getRandomNumber(),
     p: 'FS',
@@ -98,6 +97,14 @@ export function getEventsBaseProperties(
     sn: Constants.SDK_NAME,
     sv: Constants.SDK_VERSION,
   });
+
+  if (!isUsageStatsEvent) {
+    // set env key for standard sdk events
+    properties.env = SettingsService.Instance.sdkKey;
+  } else {
+    // set account id for internal usage stats event
+    properties.a = usageStatsAccountId;
+  }
 
   properties.url = Constants.HTTPS_PROTOCOL + UrlUtil.getBaseUrl() + UrlEnum.EVENTS;
   return properties;
@@ -116,14 +123,21 @@ export function _getEventBasePayload(
   eventName: string,
   visitorUserAgent = '',
   ipAddress = '',
+  isUsageStatsEvent = false,
+  usageStatsAccountId: number = null,
 ): Record<string, any> {
-  const uuid = getUUID(userId.toString(), SettingsService.Instance.accountId.toString());
-  const sdkKey = SettingsService.Instance.sdkKey;
+  let accountId = SettingsService.Instance.accountId;
+  if (isUsageStatsEvent) {
+    // set account id for internal usage stats event
+    accountId = usageStatsAccountId;
+  }
+
+  const uuid = getUUID(userId.toString(), accountId.toString());
 
   const props: {
     vwo_sdkName: string;
     vwo_sdkVersion: string;
-    vwo_envKey: string;
+    vwo_envKey?: string;
     id?: string | number;
     variation?: string | number;
     isFirst?: number;
@@ -133,10 +147,14 @@ export function _getEventBasePayload(
   } = {
     vwo_sdkName: Constants.SDK_NAME,
     vwo_sdkVersion: Constants.SDK_VERSION,
-    vwo_envKey: sdkKey,
   };
 
-  const properties = {
+  if (!isUsageStatsEvent) {
+    // set env key for standard sdk events
+    props.vwo_envKey = SettingsService.Instance.sdkKey;
+  }
+
+  const properties: Record<string, any> = {
     d: {
       msgId: `${uuid}-${getCurrentUnixTimestampInMillis()}`,
       visId: uuid,
@@ -148,13 +166,17 @@ export function _getEventBasePayload(
         name: eventName,
         time: getCurrentUnixTimestampInMillis(),
       },
-      visitor: {
-        props: {
-          vwo_fs_environment: sdkKey,
-        },
-      },
     },
   };
+
+  if (!isUsageStatsEvent) {
+    // set visitor props for standard sdk events
+    properties.d.visitor = {
+      props: {
+        vwo_fs_environment: SettingsService.Instance.sdkKey,
+      },
+    };
+  }
 
   return properties;
 }
@@ -182,11 +204,6 @@ export function getTrackUserPayloadData(
   properties.d.event.props.id = campaignId;
   properties.d.event.props.variation = variationId;
   properties.d.event.props.isFirst = 1;
-
-  // add usageStats as a new meta key to properties.d.events.props.vwoMeta
-  if (Object.keys(UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
-    properties.d.event.props.vwoMeta = UsageStatsUtil.getInstance().getUsageStats();
-  }
 
   LogManager.Instance.debug(
     buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
@@ -389,7 +406,7 @@ export function getMessagingEventPayload(
   const properties = _getEventBasePayload(null, userId, eventName, null, null);
 
   properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = SettingsService.Instance.sdkKey; // Set environment key
-  properties.d.event.props.product = 'fme';
+  properties.d.event.props.product = Constants.PRODUCT_NAME;
   const data = {
     type: messageType,
     content: {
@@ -419,13 +436,31 @@ export function getSDKInitEventPayload(
 
   // Set the required fields as specified
   properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = SettingsService.Instance.sdkKey;
-  properties.d.event.props.product = 'fme';
+  properties.d.event.props.product = Constants.PRODUCT_NAME;
   const data = {
     isSDKInitialized: true,
     settingsFetchTime: settingsFetchTime,
     sdkInitTime: sdkInitTime,
   };
   properties.d.event.props.data = data;
+
+  return properties;
+}
+
+/**
+ * Constructs the payload for sdk usage stats event.
+ * @param eventName - The name of the event.
+ * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
+ * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ * @returns The constructed payload with required fields.
+ */
+export function getSDKUsageStatsEventPayload(eventName: string, usageStatsAccountId: number): Record<string, any> {
+  const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
+  const properties = _getEventBasePayload(null, userId, eventName, null, null, true, usageStatsAccountId);
+
+  // Set the required fields as specified
+  properties.d.event.props.product = Constants.PRODUCT_NAME;
+  properties.d.event.props.vwoMeta = UsageStatsUtil.getInstance().getUsageStats();
 
   return properties;
 }
@@ -451,16 +486,16 @@ export async function sendEvent(
   if (eventName === EventEnum.VWO_LOG_EVENT) retryConfig.shouldRetry = false;
 
   let baseUrl = UrlUtil.getBaseUrl();
-  baseUrl = UrlUtil.getUpdatedBaseUrl(baseUrl);
 
   let protocol = SettingsService.Instance.protocol;
   let port = SettingsService.Instance.port;
 
-  if (eventName === EventEnum.VWO_LOG_EVENT) {
+  if (eventName === EventEnum.VWO_LOG_EVENT || eventName === EventEnum.VWO_USAGE_STATS) {
     baseUrl = Constants.HOST_NAME;
     protocol = Constants.HTTPS_PROTOCOL;
     port = 443;
   }
+  baseUrl = UrlUtil.getUpdatedBaseUrl(baseUrl);
 
   try {
     // Create a new request model instance with the provided parameters

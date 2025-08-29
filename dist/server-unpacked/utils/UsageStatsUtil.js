@@ -17,6 +17,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsageStatsUtil = void 0;
 var TransportManager_1 = require("../packages/logger/core/TransportManager");
+var SettingsService_1 = require("../services/SettingsService");
 /**
  * Manages usage statistics for the SDK.
  * Tracks various features and configurations being used by the client.
@@ -53,12 +54,14 @@ var UsageStatsUtil = /** @class */ (function () {
      */
     UsageStatsUtil.prototype.setUsageStats = function (options) {
         var _a;
-        var storage = options.storage, logger = options.logger, batchEvents = options.batchEvents, gatewayService = options.gatewayService, integrations = options.integrations, pollingInterval = options.pollingInterval, _vwo_meta = options._vwo_meta, shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
+        var storage = options.storage, logger = options.logger, batchEventData = options.batchEventData, gatewayService = options.gatewayService, integrations = options.integrations, pollInterval = options.pollInterval, _vwo_meta = options._vwo_meta, shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
         var data = {};
+        data.a = SettingsService_1.SettingsService.Instance.accountId;
+        data.env = SettingsService_1.SettingsService.Instance.sdkKey;
         // Map configuration options to usage stats flags
         if (integrations)
             data.ig = 1; // Integration enabled
-        if (batchEvents)
+        if (batchEventData)
             data.eb = 1; // Event batching enabled
         // if logger has transport or transports, then it is custom logger
         if (logger && (logger.transport || logger.transports))
@@ -70,8 +73,8 @@ var UsageStatsUtil = /** @class */ (function () {
         }
         if (gatewayService)
             data.gs = 1; // Gateway service configured
-        if (pollingInterval)
-            data.pi = 1; // Polling interval configured
+        if (pollInterval)
+            data.pi = pollInterval; // Polling interval configured
         if (shouldWaitForTrackingCalls)
             data.swtc = 1;
         // if _vwo_meta has ea, then addd data._ea to be 1

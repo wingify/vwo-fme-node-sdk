@@ -35,4 +35,5 @@ export declare const Constants: {
   DEFAULT_LOCAL_STORAGE_KEY: string;
   DEFAULT_SETTINGS_STORAGE_KEY: string;
   POLLING_INTERVAL: number;
+  PRODUCT_NAME: string;
 };

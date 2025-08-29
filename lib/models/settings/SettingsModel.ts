@@ -39,13 +39,14 @@ export class SettingsModel {
   private version: number;
   private collectionPrefix?: string;
   private pollInterval?: number;
+  private usageStatsAccountId?: number;
 
   constructor(settings: SettingsModel) {
     this.sdkKey = settings.sK || settings.sdkKey;
     this.accountId = settings.a || settings.accountId;
     this.version = settings.v || settings.version;
     this.collectionPrefix = settings.collectionPrefix;
-
+    this.usageStatsAccountId = settings.usageStatsAccountId;
     if (
       (settings.f && settings.f.constructor !== {}.constructor) ||
       (settings.features && settings.features.constructor !== {}.constructor)
@@ -118,5 +119,9 @@ export class SettingsModel {
 
   getPollInterval(): number {
     return this.pollInterval;
+  }
+
+  getUsageStatsAccountId(): number {
+    return this.usageStatsAccountId;
   }
 }

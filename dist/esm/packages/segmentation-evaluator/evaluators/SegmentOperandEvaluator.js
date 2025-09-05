@@ -214,6 +214,12 @@ class SegmentOperandEvaluator {
      */
     processValues(operandValue, tagValue) {
         // Convert operand and tag values to floats
+        if (SegmentOperandEvaluator.NON_NUMERIC_PATTERN.test(tagValue)) {
+            return {
+                operandValue: operandValue,
+                tagValue: tagValue,
+            };
+        }
         const processedOperandValue = parseFloat(operandValue);
         const processedTagValue = parseFloat(tagValue);
         // Return original values if conversion fails
@@ -330,4 +336,6 @@ class SegmentOperandEvaluator {
     }
 }
 exports.SegmentOperandEvaluator = SegmentOperandEvaluator;
+// Regex pattern to check if a string contains non-numeric characters (except decimal point)
+SegmentOperandEvaluator.NON_NUMERIC_PATTERN = /[^0-9.]/;
 //# sourceMappingURL=SegmentOperandEvaluator.js.map

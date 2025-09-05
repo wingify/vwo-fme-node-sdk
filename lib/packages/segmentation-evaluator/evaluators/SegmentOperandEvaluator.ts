@@ -28,6 +28,8 @@ import { ContextModel } from '../../../models/user/ContextModel';
  * expressions based on the segment conditions defined for custom variables, user IDs, and user agents.
  */
 export class SegmentOperandEvaluator {
+  // Regex pattern to check if a string contains non-numeric characters (except decimal point)
+  private static readonly NON_NUMERIC_PATTERN = /[^0-9.]/;
   /**
    * Evaluates a custom variable DSL expression.
    * @param {Record<string, dynamic>} dslOperandValue - The DSL expression for the custom variable.
@@ -216,6 +218,13 @@ export class SegmentOperandEvaluator {
    */
   processValues(operandValue: any, tagValue: any): Record<string, dynamic> {
     // Convert operand and tag values to floats
+
+    if (SegmentOperandEvaluator.NON_NUMERIC_PATTERN.test(tagValue)) {
+      return {
+        operandValue: operandValue,
+        tagValue: tagValue,
+      };
+    }
     const processedOperandValue = parseFloat(operandValue);
     const processedTagValue = parseFloat(tagValue);
     // Return original values if conversion fails

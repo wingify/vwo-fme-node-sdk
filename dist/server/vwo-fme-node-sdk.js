@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.26.0
+ * vwo-fme-node-sdk - v1.27.0
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = {"version":"1.26.0"};
+module.exports = {"version":"1.27.0"};
 
 /***/ }),
 
@@ -7188,6 +7188,12 @@ var SegmentOperandEvaluator = /** @class */function () {
    */
   SegmentOperandEvaluator.prototype.processValues = function (operandValue, tagValue) {
     // Convert operand and tag values to floats
+    if (SegmentOperandEvaluator.NON_NUMERIC_PATTERN.test(tagValue)) {
+      return {
+        operandValue: operandValue,
+        tagValue: tagValue
+      };
+    }
     var processedOperandValue = parseFloat(operandValue);
     var processedTagValue = parseFloat(tagValue);
     // Return original values if conversion fails
@@ -7297,6 +7303,8 @@ var SegmentOperandEvaluator = /** @class */function () {
     }
     return result;
   };
+  // Regex pattern to check if a string contains non-numeric characters (except decimal point)
+  SegmentOperandEvaluator.NON_NUMERIC_PATTERN = /[^0-9.]/;
   return SegmentOperandEvaluator;
 }();
 exports.SegmentOperandEvaluator = SegmentOperandEvaluator;

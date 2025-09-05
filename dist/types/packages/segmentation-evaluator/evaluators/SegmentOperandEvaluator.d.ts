@@ -6,6 +6,7 @@ import { ContextModel } from '../../../models/user/ContextModel';
  * expressions based on the segment conditions defined for custom variables, user IDs, and user agents.
  */
 export declare class SegmentOperandEvaluator {
+  private static readonly NON_NUMERIC_PATTERN;
   /**
    * Evaluates a custom variable DSL expression.
    * @param {Record<string, dynamic>} dslOperandValue - The DSL expression for the custom variable.

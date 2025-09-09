@@ -1,4 +1,5 @@
 import { SegmentOperandValueEnum } from '../enums/SegmentOperandValueEnum';
+import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum';
 import { dynamic } from '../../../types/Common';
 import { ContextModel } from '../../../models/user/ContextModel';
 /**
@@ -56,7 +57,7 @@ export declare class SegmentOperandEvaluator {
    * @param {any} tagValue - The tag value to process.
    * @returns {Record<string, dynamic>} - An object containing the processed operand and tag values as strings.
    */
-  processValues(operandValue: any, tagValue: any): Record<string, dynamic>;
+  processValues(operandValue: any, tagValue: any, operandType?: SegmentOperatorValueEnum): Record<string, dynamic>;
   /**
    * Extracts the result of the evaluation based on the operand type and values.
    * @param {SegmentOperandValueEnum} operandType - The type of the operand.
@@ -65,4 +66,50 @@ export declare class SegmentOperandEvaluator {
    * @returns {boolean} - The result of the evaluation.
    */
   extractResult(operandType: SegmentOperandValueEnum, operandValue: any, tagValue: any): boolean;
+  /**
+   * Evaluates a given string tag value against a DSL operand value.
+   * @param {any} dslOperandValue - The DSL operand string (e.g., "contains(\"value\")").
+   * @param {ContextModel} context - The context object containing the value to evaluate.
+   * @param {SegmentOperatorValueEnum} operandType - The type of operand being evaluated (ip_address, browser_version, os_version).
+   * @returns {boolean} - True if tag value matches DSL operand criteria, false otherwise.
+   */
+  evaluateStringOperandDSL(dslOperandValue: any, context: ContextModel, operandType: SegmentOperatorValueEnum): boolean;
+  /**
+   * Gets the appropriate tag value based on the operand type.
+   * @param {ContextModel} context - The context object.
+   * @param {SegmentOperatorValueEnum} operandType - The type of operand.
+   * @returns {string | null} - The tag value or null if not available.
+   */
+  getTagValueForOperandType(context: ContextModel, operandType: SegmentOperatorValueEnum): string | null;
+  /**
+   * Gets browser version from context.
+   * @param {ContextModel} context - The context object.
+   * @returns {string | null} - The browser version or null if not available.
+   */
+  getBrowserVersionFromContext(context: ContextModel): string | null;
+  /**
+   * Gets OS version from context.
+   * @param {ContextModel} context - The context object.
+   * @returns {string | null} - The OS version or null if not available.
+   */
+  getOsVersionFromContext(context: ContextModel): string | null;
+  /**
+   * Logs appropriate error message for missing context.
+   * @param {SegmentOperatorValueEnum} operandType - The type of operand.
+   */
+  logMissingContextError(operandType: SegmentOperatorValueEnum): void;
+  /**
+   * Checks if a string appears to be a version string (contains only digits and dots).
+   * @param {string} str - The string to check.
+   * @returns {boolean} - True if the string appears to be a version string.
+   */
+  isVersionString(str: string): boolean;
+  /**
+   * Compares two version strings using semantic versioning rules.
+   * Supports formats like "1.2.3", "1.0", "2.1.4.5", etc.
+   * @param {string} version1 - First version string.
+   * @param {string} version2 - Second version string.
+   * @returns {number} - -1 if version1 < version2, 0 if equal, 1 if version1 > version2.
+   */
+  compareVersions(version1: string, version2: string): number;
 }

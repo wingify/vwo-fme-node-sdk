@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.27.0
+ * vwo-fme-node-sdk - v1.28.0
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = {"version":"1.27.0"};
+module.exports = {"version":"1.28.0"};
 
 /***/ }),
 
@@ -3768,6 +3768,9 @@ var ContextModel = /** @class */function () {
     if (context === null || context === void 0 ? void 0 : context._vwo) {
       this._vwo = new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(context._vwo);
     }
+    if (context === null || context === void 0 ? void 0 : context.postSegmentationVariables) {
+      this.postSegmentationVariables = context.postSegmentationVariables;
+    }
     return this;
   };
   ContextModel.prototype.getId = function () {
@@ -3797,6 +3800,12 @@ var ContextModel = /** @class */function () {
   };
   ContextModel.prototype.setVwo = function (_vwo) {
     this._vwo = _vwo;
+  };
+  ContextModel.prototype.getPostSegmentationVariables = function () {
+    return this.postSegmentationVariables;
+  };
+  ContextModel.prototype.setPostSegmentationVariables = function (postSegmentationVariables) {
+    this.postSegmentationVariables = postSegmentationVariables;
   };
   return ContextModel;
 }();
@@ -6200,10 +6209,10 @@ var SegmentOperandRegexEnum;
   SegmentOperandRegexEnum["REGEX_MATCH"] = "^regex\\((.*)\\)";
   SegmentOperandRegexEnum["STARTING_STAR"] = "^\\*";
   SegmentOperandRegexEnum["ENDING_STAR"] = "\\*$";
-  SegmentOperandRegexEnum["GREATER_THAN_MATCH"] = "^gt\\((\\d+\\.?\\d*|\\.\\d+)\\)";
-  SegmentOperandRegexEnum["GREATER_THAN_EQUAL_TO_MATCH"] = "^gte\\((\\d+\\.?\\d*|\\.\\d+)\\)";
-  SegmentOperandRegexEnum["LESS_THAN_MATCH"] = "^lt\\((\\d+\\.?\\d*|\\.\\d+)\\)";
-  SegmentOperandRegexEnum["LESS_THAN_EQUAL_TO_MATCH"] = "^lte\\((\\d+\\.?\\d*|\\.\\d+)\\)";
+  SegmentOperandRegexEnum["GREATER_THAN_MATCH"] = "^gt\\((\\d+(?:\\.\\d+)*|\\.\\d+)\\)";
+  SegmentOperandRegexEnum["GREATER_THAN_EQUAL_TO_MATCH"] = "^gte\\((\\d+(?:\\.\\d+)*|\\.\\d+)\\)";
+  SegmentOperandRegexEnum["LESS_THAN_MATCH"] = "^lt\\((\\d+(?:\\.\\d+)*|\\.\\d+)\\)";
+  SegmentOperandRegexEnum["LESS_THAN_EQUAL_TO_MATCH"] = "^lte\\((\\d+(?:\\.\\d+)*|\\.\\d+)\\)";
 })(SegmentOperandRegexEnum || (exports.SegmentOperandRegexEnum = SegmentOperandRegexEnum = {}));
 
 /***/ }),
@@ -6294,6 +6303,9 @@ var SegmentOperatorValueEnum;
   SegmentOperatorValueEnum["BROWSER_AGENT"] = "browser_string";
   SegmentOperatorValueEnum["UA"] = "ua";
   SegmentOperatorValueEnum["FEATURE_ID"] = "featureId";
+  SegmentOperatorValueEnum["IP"] = "ip_address";
+  SegmentOperatorValueEnum["BROWSER_VERSION"] = "browser_version";
+  SegmentOperatorValueEnum["OS_VERSION"] = "os_version";
 })(SegmentOperatorValueEnum || (exports.SegmentOperatorValueEnum = SegmentOperatorValueEnum = {}));
 
 /***/ }),
@@ -6474,8 +6486,14 @@ var SegmentEvaluator = /** @class */function () {
                 return [3 /*break*/, 9];
               case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.UA:
                 return [3 /*break*/, 10];
+              case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP:
+                return [3 /*break*/, 11];
+              case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION:
+                return [3 /*break*/, 12];
+              case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION:
+                return [3 /*break*/, 13];
             }
-            return [3 /*break*/, 11];
+            return [3 /*break*/, 14];
           case 1:
             return [4 /*yield*/, this.isSegmentationValid(subDsl, properties)];
           case 2:
@@ -6497,6 +6515,12 @@ var SegmentEvaluator = /** @class */function () {
           case 10:
             return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context)];
           case 11:
+            return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP)];
+          case 12:
+            return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION)];
+          case 13:
+            return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION)];
+          case 14:
             return [2 /*return*/, false];
         }
       });
@@ -6993,6 +7017,7 @@ exports.SegmentOperandEvaluator = void 0;
 var SegmentUtil_1 = __webpack_require__(/*! ../utils/SegmentUtil */ "./dist/server-unpacked/packages/segmentation-evaluator/utils/SegmentUtil.js");
 var SegmentOperandValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperandValueEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SegmentOperandValueEnum.js");
 var SegmentOperandRegexEnum_1 = __webpack_require__(/*! ../enums/SegmentOperandRegexEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SegmentOperandRegexEnum.js");
+var SegmentOperatorValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperatorValueEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SegmentOperatorValueEnum.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var GatewayServiceUtil_1 = __webpack_require__(/*! ../../../utils/GatewayServiceUtil */ "./dist/server-unpacked/utils/GatewayServiceUtil.js");
 var UrlEnum_1 = __webpack_require__(/*! ../../../enums/UrlEnum */ "./dist/server-unpacked/enums/UrlEnum.js");
@@ -7186,7 +7211,16 @@ var SegmentOperandEvaluator = /** @class */function () {
    * @param {any} tagValue - The tag value to process.
    * @returns {Record<string, dynamic>} - An object containing the processed operand and tag values as strings.
    */
-  SegmentOperandEvaluator.prototype.processValues = function (operandValue, tagValue) {
+  SegmentOperandEvaluator.prototype.processValues = function (operandValue, tagValue, operandType) {
+    if (operandType === void 0) {
+      operandType = undefined;
+    }
+    if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP || operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION || operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION) {
+      return {
+        operandValue: operandValue,
+        tagValue: tagValue
+      };
+    }
     // Convert operand and tag values to floats
     if (SegmentOperandEvaluator.NON_NUMERIC_PATTERN.test(tagValue)) {
       return {
@@ -7226,82 +7260,175 @@ var SegmentOperandEvaluator = /** @class */function () {
    * @returns {boolean} - The result of the evaluation.
    */
   SegmentOperandEvaluator.prototype.extractResult = function (operandType, operandValue, tagValue) {
-    var result;
+    var result = false;
+    if (tagValue === null) {
+      return false;
+    }
+    // Ensure operand_value and tag_value are strings
+    var operandValueStr = String(operandValue);
+    var tagValueStr = String(tagValue);
     switch (operandType) {
       case SegmentOperandValueEnum_1.SegmentOperandValueEnum.LOWER_VALUE:
-        // Check if both values are equal, ignoring case
-        if (tagValue !== null) {
-          result = operandValue.toLowerCase() === tagValue.toLowerCase();
-        }
+        result = operandValueStr.toLowerCase() === tagValueStr.toLowerCase();
         break;
       case SegmentOperandValueEnum_1.SegmentOperandValueEnum.STARTING_ENDING_STAR_VALUE:
-        // Check if the tagValue contains the operandValue
-        if (tagValue !== null) {
-          result = tagValue.indexOf(operandValue) > -1;
-        }
+        result = tagValueStr.indexOf(operandValueStr) !== -1;
         break;
       case SegmentOperandValueEnum_1.SegmentOperandValueEnum.STARTING_STAR_VALUE:
-        // Check if the tagValue ends with the operandValue
-        if (tagValue !== null) {
-          result = tagValue.endsWith(operandValue);
-        }
+        result = tagValueStr.endsWith(operandValueStr);
         break;
       case SegmentOperandValueEnum_1.SegmentOperandValueEnum.ENDING_STAR_VALUE:
-        // Check if the tagValue starts with the operandValue
-        if (tagValue !== null) {
-          result = tagValue.startsWith(operandValue);
-        }
+        result = tagValueStr.startsWith(operandValueStr);
         break;
       case SegmentOperandValueEnum_1.SegmentOperandValueEnum.REGEX_VALUE:
-        // Evaluate the tagValue against the regex pattern of operandValue
         try {
-          var pattern = new RegExp(operandValue, 'g');
-          result = !!pattern.test(tagValue);
+          var pattern = new RegExp(operandValueStr);
+          var matcher = pattern.exec(tagValueStr);
+          result = matcher !== null;
         } catch (err) {
           result = false;
         }
         break;
       case SegmentOperandValueEnum_1.SegmentOperandValueEnum.GREATER_THAN_VALUE:
-        if (tagValue !== null) {
-          try {
-            result = parseFloat(operandValue) < parseFloat(tagValue);
-          } catch (err) {
-            result = false;
-          }
-        }
+        result = this.compareVersions(tagValueStr, operandValueStr) > 0;
         break;
       case SegmentOperandValueEnum_1.SegmentOperandValueEnum.GREATER_THAN_EQUAL_TO_VALUE:
-        if (tagValue !== null) {
-          try {
-            result = parseFloat(operandValue) <= parseFloat(tagValue);
-          } catch (err) {
-            result = false;
-          }
-        }
+        result = this.compareVersions(tagValueStr, operandValueStr) >= 0;
         break;
       case SegmentOperandValueEnum_1.SegmentOperandValueEnum.LESS_THAN_VALUE:
-        if (tagValue !== null) {
-          try {
-            result = parseFloat(operandValue) > parseFloat(tagValue);
-          } catch (err) {
-            result = false;
-          }
-        }
+        result = this.compareVersions(tagValueStr, operandValueStr) < 0;
         break;
       case SegmentOperandValueEnum_1.SegmentOperandValueEnum.LESS_THAN_EQUAL_TO_VALUE:
-        if (tagValue !== null) {
-          try {
-            result = parseFloat(operandValue) >= parseFloat(tagValue);
-          } catch (err) {
-            result = false;
-          }
-        }
+        result = this.compareVersions(tagValueStr, operandValueStr) <= 0;
         break;
       default:
-        // Check if the tagValue is exactly equal to the operandValue
-        result = tagValue === operandValue;
+        // For version-like strings, use version comparison; otherwise use string comparison
+        if (this.isVersionString(tagValueStr) && this.isVersionString(operandValueStr)) {
+          result = this.compareVersions(tagValueStr, operandValueStr) === 0;
+        } else {
+          result = tagValueStr === operandValueStr;
+        }
     }
     return result;
+  };
+  /**
+   * Evaluates a given string tag value against a DSL operand value.
+   * @param {any} dslOperandValue - The DSL operand string (e.g., "contains(\"value\")").
+   * @param {ContextModel} context - The context object containing the value to evaluate.
+   * @param {SegmentOperatorValueEnum} operandType - The type of operand being evaluated (ip_address, browser_version, os_version).
+   * @returns {boolean} - True if tag value matches DSL operand criteria, false otherwise.
+   */
+  SegmentOperandEvaluator.prototype.evaluateStringOperandDSL = function (dslOperandValue, context, operandType) {
+    var operand = String(dslOperandValue);
+    // Determine the tag value based on operand type
+    var tagValue = this.getTagValueForOperandType(context, operandType);
+    if (tagValue === null) {
+      this.logMissingContextError(operandType);
+      return false;
+    }
+    var operandTypeAndValue = this.preProcessOperandValue(operand);
+    var processedValues = this.processValues(operandTypeAndValue.operandValue, tagValue, operandType);
+    var processedTagValue = processedValues.tagValue;
+    return this.extractResult(operandTypeAndValue.operandType, String(processedValues.operandValue).trim().replace(/"/g, ''), processedTagValue);
+  };
+  /**
+   * Gets the appropriate tag value based on the operand type.
+   * @param {ContextModel} context - The context object.
+   * @param {SegmentOperatorValueEnum} operandType - The type of operand.
+   * @returns {string | null} - The tag value or null if not available.
+   */
+  SegmentOperandEvaluator.prototype.getTagValueForOperandType = function (context, operandType) {
+    if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP) {
+      return context.getIpAddress() || null;
+    } else if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION) {
+      return this.getBrowserVersionFromContext(context);
+    } else {
+      // Default works for OS version
+      return this.getOsVersionFromContext(context);
+    }
+  };
+  /**
+   * Gets browser version from context.
+   * @param {ContextModel} context - The context object.
+   * @returns {string | null} - The browser version or null if not available.
+   */
+  SegmentOperandEvaluator.prototype.getBrowserVersionFromContext = function (context) {
+    var _a;
+    var userAgent = (_a = context.getVwo()) === null || _a === void 0 ? void 0 : _a.getUaInfo();
+    if (!userAgent || typeof userAgent !== 'object' || Object.keys(userAgent).length === 0) {
+      return null;
+    }
+    // Assuming UserAgent dictionary contains browser_version
+    if ('browser_version' in userAgent) {
+      return userAgent.browser_version !== null ? String(userAgent.browser_version) : null;
+    }
+    return null;
+  };
+  /**
+   * Gets OS version from context.
+   * @param {ContextModel} context - The context object.
+   * @returns {string | null} - The OS version or null if not available.
+   */
+  SegmentOperandEvaluator.prototype.getOsVersionFromContext = function (context) {
+    var _a;
+    var userAgent = (_a = context.getVwo()) === null || _a === void 0 ? void 0 : _a.getUaInfo();
+    if (!userAgent || typeof userAgent !== 'object' || Object.keys(userAgent).length === 0) {
+      return null;
+    }
+    // Assuming UserAgent dictionary contains os_version
+    if ('os_version' in userAgent) {
+      return userAgent.os_version !== null ? String(userAgent.os_version) : null;
+    }
+    return null;
+  };
+  /**
+   * Logs appropriate error message for missing context.
+   * @param {SegmentOperatorValueEnum} operandType - The type of operand.
+   */
+  SegmentOperandEvaluator.prototype.logMissingContextError = function (operandType) {
+    if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP) {
+      logger_1.LogManager.Instance.info('To evaluate IP segmentation, please provide ipAddress in context');
+    } else if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION) {
+      logger_1.LogManager.Instance.info('To evaluate browser version segmentation, please provide userAgent in context');
+    } else {
+      logger_1.LogManager.Instance.info('To evaluate OS version segmentation, please provide userAgent in context');
+    }
+  };
+  /**
+   * Checks if a string appears to be a version string (contains only digits and dots).
+   * @param {string} str - The string to check.
+   * @returns {boolean} - True if the string appears to be a version string.
+   */
+  SegmentOperandEvaluator.prototype.isVersionString = function (str) {
+    return /^(\d+\.)*\d+$/.test(str);
+  };
+  /**
+   * Compares two version strings using semantic versioning rules.
+   * Supports formats like "1.2.3", "1.0", "2.1.4.5", etc.
+   * @param {string} version1 - First version string.
+   * @param {string} version2 - Second version string.
+   * @returns {number} - -1 if version1 < version2, 0 if equal, 1 if version1 > version2.
+   */
+  SegmentOperandEvaluator.prototype.compareVersions = function (version1, version2) {
+    // Split versions by dots and convert to integers
+    var parts1 = version1.split('.').map(function (part) {
+      return part.match(/^\d+$/) ? parseInt(part, 10) : 0;
+    });
+    var parts2 = version2.split('.').map(function (part) {
+      return part.match(/^\d+$/) ? parseInt(part, 10) : 0;
+    });
+    // Find the maximum length to handle different version formats
+    var maxLength = Math.max(parts1.length, parts2.length);
+    for (var i = 0; i < maxLength; i++) {
+      var part1 = i < parts1.length ? parts1[i] : 0;
+      var part2 = i < parts2.length ? parts2[i] : 0;
+      if (part1 < part2) {
+        return -1;
+      } else if (part1 > part2) {
+        return 1;
+      }
+    }
+    return 0; // Versions are equal
   };
   // Regex pattern to check if a string contains non-numeric characters (except decimal point)
   SegmentOperandEvaluator.NON_NUMERIC_PATTERN = /[^0-9.]/;
@@ -10872,7 +10999,7 @@ function getQueryParams(queryParams) {
  * @param {any} settings - The settings file to modify.
  */
 function addIsGatewayServiceRequiredFlag(settings) {
-  var keywordPattern = /\b(country|region|city|os|device_type|browser_string|ua)\b/g;
+  var keywordPattern = /\b(country|region|city|os|device_type|browser_string|ua|browser_version|os_version)\b/g;
   var inlistPattern = /"custom_variable"\s*:\s*{[^}]*inlist\([^)]*\)/g;
   for (var _i = 0, _a = settings.getFeatures(); _i < _a.length; _i++) {
     var feature = _a[_i];
@@ -11060,7 +11187,7 @@ var createAndSendImpressionForVariationShown = function (settings, campaignId, v
           properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()),
           // Encode user agent to ensure URL safety
           context.getIpAddress());
-          payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context.getUserAgent(), context.getIpAddress());
+          payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
           if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
           BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
           return [3 /*break*/, 3];
@@ -12108,17 +12235,29 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipA
  * @param {Number} variationId
  * @returns track-user payload
  */
-function getTrackUserPayloadData(settings, userId, eventName, campaignId, variationId, visitorUserAgent, ipAddress) {
-  if (visitorUserAgent === void 0) {
-    visitorUserAgent = '';
-  }
-  if (ipAddress === void 0) {
-    ipAddress = '';
-  }
+function getTrackUserPayloadData(settings, eventName, campaignId, variationId, context) {
+  var userId = context.getId();
+  var visitorUserAgent = context.getUserAgent();
+  var ipAddress = context.getIpAddress();
+  var customVariables = context.getCustomVariables();
+  var postSegmentationVariables = context.getPostSegmentationVariables();
   var properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
   properties.d.event.props.id = campaignId;
   properties.d.event.props.variation = variationId;
   properties.d.event.props.isFirst = 1;
+  // Add post-segmentation variables if they exist in custom variables
+  if (postSegmentationVariables && postSegmentationVariables.length > 0 && customVariables && Object.keys(customVariables).length > 0) {
+    for (var _i = 0, postSegmentationVariables_1 = postSegmentationVariables; _i < postSegmentationVariables_1.length; _i++) {
+      var key = postSegmentationVariables_1[_i];
+      if (customVariables[key]) {
+        properties.d.visitor.props[key] = customVariables[key];
+      }
+    }
+  }
+  // Add IP address as a standard attribute if available
+  if (ipAddress) {
+    properties.d.visitor.props.ip = ipAddress;
+  }
   logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
     accountId: settings.getAccountId(),
     userId: userId,

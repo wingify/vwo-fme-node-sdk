@@ -165,11 +165,31 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent = ''
  * @param {Number} variationId
  * @returns track-user payload
  */
-function getTrackUserPayloadData(settings, userId, eventName, campaignId, variationId, visitorUserAgent = '', ipAddress = '') {
+function getTrackUserPayloadData(settings, eventName, campaignId, variationId, context) {
+    const userId = context.getId();
+    const visitorUserAgent = context.getUserAgent();
+    const ipAddress = context.getIpAddress();
+    const customVariables = context.getCustomVariables();
+    const postSegmentationVariables = context.getPostSegmentationVariables();
     const properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
     properties.d.event.props.id = campaignId;
     properties.d.event.props.variation = variationId;
     properties.d.event.props.isFirst = 1;
+    // Add post-segmentation variables if they exist in custom variables
+    if (postSegmentationVariables &&
+        postSegmentationVariables.length > 0 &&
+        customVariables &&
+        Object.keys(customVariables).length > 0) {
+        for (const key of postSegmentationVariables) {
+            if (customVariables[key]) {
+                properties.d.visitor.props[key] = customVariables[key];
+            }
+        }
+    }
+    // Add IP address as a standard attribute if available
+    if (ipAddress) {
+        properties.d.visitor.props.ip = ipAddress;
+    }
     logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
         accountId: settings.getAccountId(),
         userId,

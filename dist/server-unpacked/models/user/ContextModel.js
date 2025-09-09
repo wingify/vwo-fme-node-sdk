@@ -23,6 +23,9 @@ var ContextModel = /** @class */ (function () {
         if (context === null || context === void 0 ? void 0 : context._vwo) {
             this._vwo = new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(context._vwo);
         }
+        if (context === null || context === void 0 ? void 0 : context.postSegmentationVariables) {
+            this.postSegmentationVariables = context.postSegmentationVariables;
+        }
         return this;
     };
     ContextModel.prototype.getId = function () {
@@ -52,6 +55,12 @@ var ContextModel = /** @class */ (function () {
     };
     ContextModel.prototype.setVwo = function (_vwo) {
         this._vwo = _vwo;
+    };
+    ContextModel.prototype.getPostSegmentationVariables = function () {
+        return this.postSegmentationVariables;
+    };
+    ContextModel.prototype.setPostSegmentationVariables = function (postSegmentationVariables) {
+        this.postSegmentationVariables = postSegmentationVariables;
     };
     return ContextModel;
 }());

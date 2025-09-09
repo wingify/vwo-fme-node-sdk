@@ -1,5 +1,6 @@
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { dynamic } from '../types/Common';
+import { ContextModel } from '../models/user/ContextModel';
 /**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
@@ -55,12 +56,10 @@ export declare function _getEventBasePayload(
  */
 export declare function getTrackUserPayloadData(
   settings: SettingsModel,
-  userId: string | number,
   eventName: string,
   campaignId: number,
   variationId: number,
-  visitorUserAgent?: string,
-  ipAddress?: string,
+  context: ContextModel,
 ): Record<string, any>;
 /**
  * Constructs the payload data for tracking goals with custom event properties.

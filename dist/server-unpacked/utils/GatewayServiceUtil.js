@@ -143,7 +143,7 @@ function getQueryParams(queryParams) {
  * @param {any} settings - The settings file to modify.
  */
 function addIsGatewayServiceRequiredFlag(settings) {
-    var keywordPattern = /\b(country|region|city|os|device_type|browser_string|ua)\b/g;
+    var keywordPattern = /\b(country|region|city|os|device_type|browser_string|ua|browser_version|os_version)\b/g;
     var inlistPattern = /"custom_variable"\s*:\s*{[^}]*inlist\([^)]*\)/g;
     for (var _i = 0, _a = settings.getFeatures(); _i < _a.length; _i++) {
         var feature = _a[_i];

@@ -48,6 +48,12 @@ class SegmentEvaluator {
                 return new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties);
             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.UA:
                 return new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context);
+            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP:
+                return new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP);
+            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION:
+                return new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION);
+            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION:
+                return new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION);
             default:
                 return false;
         }

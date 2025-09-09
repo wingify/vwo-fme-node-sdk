@@ -118,7 +118,7 @@ export function getQueryParams(queryParams: Record<string, string | number>): Re
  * @param {any} settings - The settings file to modify.
  */
 export function addIsGatewayServiceRequiredFlag(settings: SettingsModel): void {
-  const keywordPattern = /\b(country|region|city|os|device_type|browser_string|ua)\b/g;
+  const keywordPattern = /\b(country|region|city|os|device_type|browser_string|ua|browser_version|os_version)\b/g;
   const inlistPattern = /"custom_variable"\s*:\s*{[^}]*inlist\([^)]*\)/g;
 
   for (const feature of settings.getFeatures()) {

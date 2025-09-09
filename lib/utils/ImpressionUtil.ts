@@ -44,15 +44,7 @@ export const createAndSendImpressionForVariationShown = async (
   );
 
   // Construct payload data for tracking the user
-  const payload = getTrackUserPayloadData(
-    settings,
-    context.getId(),
-    EventEnum.VWO_VARIATION_SHOWN,
-    campaignId,
-    variationId,
-    context.getUserAgent(),
-    context.getIpAddress(),
-  );
+  const payload = getTrackUserPayloadData(settings, EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
 
   if (BatchEventsQueue.Instance) {
     BatchEventsQueue.Instance.enqueue(payload);

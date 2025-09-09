@@ -34,7 +34,7 @@ const createAndSendImpressionForVariationShown = async (settings, campaignId, va
     const properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
     context.getIpAddress());
     // Construct payload data for tracking the user
-    const payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context.getUserAgent(), context.getIpAddress());
+    const payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
     if (BatchEventsQueue_1.BatchEventsQueue.Instance) {
         BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
     }

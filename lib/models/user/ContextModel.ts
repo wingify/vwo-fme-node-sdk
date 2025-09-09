@@ -29,6 +29,7 @@ export class ContextModel implements IVWOContextModel {
   ipAddress?: string;
   customVariables?: Record<string, any>;
   variationTargetingVariables?: Record<string, dynamic>;
+  postSegmentationVariables?: string[];
   _vwo?: ContextVWOModel;
 
   modelFromDictionary(context: Record<string, any>): this {
@@ -49,6 +50,9 @@ export class ContextModel implements IVWOContextModel {
     }
     if (context?._vwo) {
       this._vwo = new ContextVWOModel().modelFromDictionary(context._vwo);
+    }
+    if (context?.postSegmentationVariables) {
+      this.postSegmentationVariables = context.postSegmentationVariables;
     }
     return this;
   }
@@ -87,5 +91,13 @@ export class ContextModel implements IVWOContextModel {
 
   setVwo(_vwo: ContextVWOModel): void {
     this._vwo = _vwo;
+  }
+
+  getPostSegmentationVariables(): string[] {
+    return this.postSegmentationVariables;
+  }
+
+  setPostSegmentationVariables(postSegmentationVariables: string[]): void {
+    this.postSegmentationVariables = postSegmentationVariables;
   }
 }

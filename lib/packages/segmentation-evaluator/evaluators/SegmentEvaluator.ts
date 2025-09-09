@@ -56,6 +56,24 @@ export class SegmentEvaluator implements Segmentation {
         return new SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties);
       case SegmentOperatorValueEnum.UA:
         return new SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context);
+      case SegmentOperatorValueEnum.IP:
+        return new SegmentOperandEvaluator().evaluateStringOperandDSL(
+          subDsl,
+          this.context,
+          SegmentOperatorValueEnum.IP,
+        );
+      case SegmentOperatorValueEnum.BROWSER_VERSION:
+        return new SegmentOperandEvaluator().evaluateStringOperandDSL(
+          subDsl,
+          this.context,
+          SegmentOperatorValueEnum.BROWSER_VERSION,
+        );
+      case SegmentOperatorValueEnum.OS_VERSION:
+        return new SegmentOperandEvaluator().evaluateStringOperandDSL(
+          subDsl,
+          this.context,
+          SegmentOperatorValueEnum.OS_VERSION,
+        );
       default:
         return false;
     }

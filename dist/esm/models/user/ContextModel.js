@@ -21,6 +21,9 @@ class ContextModel {
         if (context?._vwo) {
             this._vwo = new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(context._vwo);
         }
+        if (context?.postSegmentationVariables) {
+            this.postSegmentationVariables = context.postSegmentationVariables;
+        }
         return this;
     }
     getId() {
@@ -49,6 +52,12 @@ class ContextModel {
     }
     setVwo(_vwo) {
         this._vwo = _vwo;
+    }
+    getPostSegmentationVariables() {
+        return this.postSegmentationVariables;
+    }
+    setPostSegmentationVariables(postSegmentationVariables) {
+        this.postSegmentationVariables = postSegmentationVariables;
     }
 }
 exports.ContextModel = ContextModel;

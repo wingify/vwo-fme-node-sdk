@@ -19,6 +19,7 @@ exports.SegmentOperandEvaluator = void 0;
 const SegmentUtil_1 = require("../utils/SegmentUtil");
 const SegmentOperandValueEnum_1 = require("../enums/SegmentOperandValueEnum");
 const SegmentOperandRegexEnum_1 = require("../enums/SegmentOperandRegexEnum");
+const SegmentOperatorValueEnum_1 = require("../enums/SegmentOperatorValueEnum");
 const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 const GatewayServiceUtil_1 = require("../../../utils/GatewayServiceUtil");
 const UrlEnum_1 = require("../../../enums/UrlEnum");
@@ -212,7 +213,15 @@ class SegmentOperandEvaluator {
      * @param {any} tagValue - The tag value to process.
      * @returns {Record<string, dynamic>} - An object containing the processed operand and tag values as strings.
      */
-    processValues(operandValue, tagValue) {
+    processValues(operandValue, tagValue, operandType = undefined) {
+        if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP ||
+            operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION ||
+            operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION) {
+            return {
+                operandValue: operandValue,
+                tagValue: tagValue,
+            };
+        }
         // Convert operand and tag values to floats
         if (SegmentOperandEvaluator.NON_NUMERIC_PATTERN.test(tagValue)) {
             return {
@@ -252,87 +261,176 @@ class SegmentOperandEvaluator {
      * @returns {boolean} - The result of the evaluation.
      */
     extractResult(operandType, operandValue, tagValue) {
-        let result;
+        let result = false;
+        if (tagValue === null) {
+            return false;
+        }
+        // Ensure operand_value and tag_value are strings
+        const operandValueStr = String(operandValue);
+        const tagValueStr = String(tagValue);
         switch (operandType) {
             case SegmentOperandValueEnum_1.SegmentOperandValueEnum.LOWER_VALUE:
-                // Check if both values are equal, ignoring case
-                if (tagValue !== null) {
-                    result = operandValue.toLowerCase() === tagValue.toLowerCase();
-                }
+                result = operandValueStr.toLowerCase() === tagValueStr.toLowerCase();
                 break;
             case SegmentOperandValueEnum_1.SegmentOperandValueEnum.STARTING_ENDING_STAR_VALUE:
-                // Check if the tagValue contains the operandValue
-                if (tagValue !== null) {
-                    result = tagValue.indexOf(operandValue) > -1;
-                }
+                result = tagValueStr.indexOf(operandValueStr) !== -1;
                 break;
             case SegmentOperandValueEnum_1.SegmentOperandValueEnum.STARTING_STAR_VALUE:
-                // Check if the tagValue ends with the operandValue
-                if (tagValue !== null) {
-                    result = tagValue.endsWith(operandValue);
-                }
+                result = tagValueStr.endsWith(operandValueStr);
                 break;
             case SegmentOperandValueEnum_1.SegmentOperandValueEnum.ENDING_STAR_VALUE:
-                // Check if the tagValue starts with the operandValue
-                if (tagValue !== null) {
-                    result = tagValue.startsWith(operandValue);
-                }
+                result = tagValueStr.startsWith(operandValueStr);
                 break;
             case SegmentOperandValueEnum_1.SegmentOperandValueEnum.REGEX_VALUE:
-                // Evaluate the tagValue against the regex pattern of operandValue
                 try {
-                    const pattern = new RegExp(operandValue, 'g');
-                    result = !!pattern.test(tagValue);
+                    const pattern = new RegExp(operandValueStr);
+                    const matcher = pattern.exec(tagValueStr);
+                    result = matcher !== null;
                 }
                 catch (err) {
                     result = false;
                 }
                 break;
             case SegmentOperandValueEnum_1.SegmentOperandValueEnum.GREATER_THAN_VALUE:
-                if (tagValue !== null) {
-                    try {
-                        result = parseFloat(operandValue) < parseFloat(tagValue);
-                    }
-                    catch (err) {
-                        result = false;
-                    }
-                }
+                result = this.compareVersions(tagValueStr, operandValueStr) > 0;
                 break;
             case SegmentOperandValueEnum_1.SegmentOperandValueEnum.GREATER_THAN_EQUAL_TO_VALUE:
-                if (tagValue !== null) {
-                    try {
-                        result = parseFloat(operandValue) <= parseFloat(tagValue);
-                    }
-                    catch (err) {
-                        result = false;
-                    }
-                }
+                result = this.compareVersions(tagValueStr, operandValueStr) >= 0;
                 break;
             case SegmentOperandValueEnum_1.SegmentOperandValueEnum.LESS_THAN_VALUE:
-                if (tagValue !== null) {
-                    try {
-                        result = parseFloat(operandValue) > parseFloat(tagValue);
-                    }
-                    catch (err) {
-                        result = false;
-                    }
-                }
+                result = this.compareVersions(tagValueStr, operandValueStr) < 0;
                 break;
             case SegmentOperandValueEnum_1.SegmentOperandValueEnum.LESS_THAN_EQUAL_TO_VALUE:
-                if (tagValue !== null) {
-                    try {
-                        result = parseFloat(operandValue) >= parseFloat(tagValue);
-                    }
-                    catch (err) {
-                        result = false;
-                    }
-                }
+                result = this.compareVersions(tagValueStr, operandValueStr) <= 0;
                 break;
             default:
-                // Check if the tagValue is exactly equal to the operandValue
-                result = tagValue === operandValue;
+                // For version-like strings, use version comparison; otherwise use string comparison
+                if (this.isVersionString(tagValueStr) && this.isVersionString(operandValueStr)) {
+                    result = this.compareVersions(tagValueStr, operandValueStr) === 0;
+                }
+                else {
+                    result = tagValueStr === operandValueStr;
+                }
         }
         return result;
+    }
+    /**
+     * Evaluates a given string tag value against a DSL operand value.
+     * @param {any} dslOperandValue - The DSL operand string (e.g., "contains(\"value\")").
+     * @param {ContextModel} context - The context object containing the value to evaluate.
+     * @param {SegmentOperatorValueEnum} operandType - The type of operand being evaluated (ip_address, browser_version, os_version).
+     * @returns {boolean} - True if tag value matches DSL operand criteria, false otherwise.
+     */
+    evaluateStringOperandDSL(dslOperandValue, context, operandType) {
+        const operand = String(dslOperandValue);
+        // Determine the tag value based on operand type
+        const tagValue = this.getTagValueForOperandType(context, operandType);
+        if (tagValue === null) {
+            this.logMissingContextError(operandType);
+            return false;
+        }
+        const operandTypeAndValue = this.preProcessOperandValue(operand);
+        const processedValues = this.processValues(operandTypeAndValue.operandValue, tagValue, operandType);
+        const processedTagValue = processedValues.tagValue;
+        return this.extractResult(operandTypeAndValue.operandType, String(processedValues.operandValue).trim().replace(/"/g, ''), processedTagValue);
+    }
+    /**
+     * Gets the appropriate tag value based on the operand type.
+     * @param {ContextModel} context - The context object.
+     * @param {SegmentOperatorValueEnum} operandType - The type of operand.
+     * @returns {string | null} - The tag value or null if not available.
+     */
+    getTagValueForOperandType(context, operandType) {
+        if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP) {
+            return context.getIpAddress() || null;
+        }
+        else if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION) {
+            return this.getBrowserVersionFromContext(context);
+        }
+        else {
+            // Default works for OS version
+            return this.getOsVersionFromContext(context);
+        }
+    }
+    /**
+     * Gets browser version from context.
+     * @param {ContextModel} context - The context object.
+     * @returns {string | null} - The browser version or null if not available.
+     */
+    getBrowserVersionFromContext(context) {
+        const userAgent = context.getVwo()?.getUaInfo();
+        if (!userAgent || typeof userAgent !== 'object' || Object.keys(userAgent).length === 0) {
+            return null;
+        }
+        // Assuming UserAgent dictionary contains browser_version
+        if ('browser_version' in userAgent) {
+            return userAgent.browser_version !== null ? String(userAgent.browser_version) : null;
+        }
+        return null;
+    }
+    /**
+     * Gets OS version from context.
+     * @param {ContextModel} context - The context object.
+     * @returns {string | null} - The OS version or null if not available.
+     */
+    getOsVersionFromContext(context) {
+        const userAgent = context.getVwo()?.getUaInfo();
+        if (!userAgent || typeof userAgent !== 'object' || Object.keys(userAgent).length === 0) {
+            return null;
+        }
+        // Assuming UserAgent dictionary contains os_version
+        if ('os_version' in userAgent) {
+            return userAgent.os_version !== null ? String(userAgent.os_version) : null;
+        }
+        return null;
+    }
+    /**
+     * Logs appropriate error message for missing context.
+     * @param {SegmentOperatorValueEnum} operandType - The type of operand.
+     */
+    logMissingContextError(operandType) {
+        if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP) {
+            logger_1.LogManager.Instance.info('To evaluate IP segmentation, please provide ipAddress in context');
+        }
+        else if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION) {
+            logger_1.LogManager.Instance.info('To evaluate browser version segmentation, please provide userAgent in context');
+        }
+        else {
+            logger_1.LogManager.Instance.info('To evaluate OS version segmentation, please provide userAgent in context');
+        }
+    }
+    /**
+     * Checks if a string appears to be a version string (contains only digits and dots).
+     * @param {string} str - The string to check.
+     * @returns {boolean} - True if the string appears to be a version string.
+     */
+    isVersionString(str) {
+        return /^(\d+\.)*\d+$/.test(str);
+    }
+    /**
+     * Compares two version strings using semantic versioning rules.
+     * Supports formats like "1.2.3", "1.0", "2.1.4.5", etc.
+     * @param {string} version1 - First version string.
+     * @param {string} version2 - Second version string.
+     * @returns {number} - -1 if version1 < version2, 0 if equal, 1 if version1 > version2.
+     */
+    compareVersions(version1, version2) {
+        // Split versions by dots and convert to integers
+        const parts1 = version1.split('.').map((part) => (part.match(/^\d+$/) ? parseInt(part, 10) : 0));
+        const parts2 = version2.split('.').map((part) => (part.match(/^\d+$/) ? parseInt(part, 10) : 0));
+        // Find the maximum length to handle different version formats
+        const maxLength = Math.max(parts1.length, parts2.length);
+        for (let i = 0; i < maxLength; i++) {
+            const part1 = i < parts1.length ? parts1[i] : 0;
+            const part2 = i < parts2.length ? parts2[i] : 0;
+            if (part1 < part2) {
+                return -1;
+            }
+            else if (part1 > part2) {
+                return 1;
+            }
+        }
+        return 0; // Versions are equal
     }
 }
 exports.SegmentOperandEvaluator = SegmentOperandEvaluator;

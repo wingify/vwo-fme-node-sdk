@@ -32,5 +32,8 @@ var SegmentOperatorValueEnum;
     SegmentOperatorValueEnum["BROWSER_AGENT"] = "browser_string";
     SegmentOperatorValueEnum["UA"] = "ua";
     SegmentOperatorValueEnum["FEATURE_ID"] = "featureId";
+    SegmentOperatorValueEnum["IP"] = "ip_address";
+    SegmentOperatorValueEnum["BROWSER_VERSION"] = "browser_version";
+    SegmentOperatorValueEnum["OS_VERSION"] = "os_version";
 })(SegmentOperatorValueEnum || (exports.SegmentOperatorValueEnum = SegmentOperatorValueEnum = {}));
 //# sourceMappingURL=SegmentOperatorValueEnum.js.map

@@ -33,6 +33,7 @@ import { Deferred } from './PromiseUtil';
 import { UsageStatsUtil } from './UsageStatsUtil';
 import { IRetryConfig } from '../packages/network-layer/client/NetworkClient';
 import { EventEnum } from '../enums/EventEnum';
+import { ContextModel } from '../models/user/ContextModel';
 
 /**
  * Constructs the settings path with API key and account ID.
@@ -192,18 +193,40 @@ export function _getEventBasePayload(
  */
 export function getTrackUserPayloadData(
   settings: SettingsModel,
-  userId: string | number,
   eventName: string,
   campaignId: number,
   variationId: number,
-  visitorUserAgent: string = '',
-  ipAddress: string = '',
+  context: ContextModel,
 ): Record<string, any> {
+  const userId = context.getId();
+  const visitorUserAgent = context.getUserAgent();
+  const ipAddress = context.getIpAddress();
+  const customVariables = context.getCustomVariables();
+  const postSegmentationVariables = context.getPostSegmentationVariables();
   const properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
 
   properties.d.event.props.id = campaignId;
   properties.d.event.props.variation = variationId;
   properties.d.event.props.isFirst = 1;
+
+  // Add post-segmentation variables if they exist in custom variables
+  if (
+    postSegmentationVariables &&
+    postSegmentationVariables.length > 0 &&
+    customVariables &&
+    Object.keys(customVariables).length > 0
+  ) {
+    for (const key of postSegmentationVariables) {
+      if (customVariables[key]) {
+        properties.d.visitor.props[key] = customVariables[key];
+      }
+    }
+  }
+
+  // Add IP address as a standard attribute if available
+  if (ipAddress) {
+    properties.d.visitor.props.ip = ipAddress;
+  }
 
   LogManager.Instance.debug(
     buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {

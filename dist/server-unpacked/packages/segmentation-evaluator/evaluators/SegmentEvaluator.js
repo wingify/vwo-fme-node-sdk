@@ -85,8 +85,11 @@ var SegmentEvaluator = /** @class */ (function () {
                             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.CUSTOM_VARIABLE: return [3 /*break*/, 7];
                             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.USER: return [3 /*break*/, 9];
                             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.UA: return [3 /*break*/, 10];
+                            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP: return [3 /*break*/, 11];
+                            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION: return [3 /*break*/, 12];
+                            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION: return [3 /*break*/, 13];
                         }
-                        return [3 /*break*/, 11];
+                        return [3 /*break*/, 14];
                     case 1: return [4 /*yield*/, this.isSegmentationValid(subDsl, properties)];
                     case 2: return [2 /*return*/, !(_c.sent())];
                     case 3: return [4 /*yield*/, this.every(subDsl, properties)];
@@ -97,7 +100,10 @@ var SegmentEvaluator = /** @class */ (function () {
                     case 8: return [2 /*return*/, _c.sent()];
                     case 9: return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties)];
                     case 10: return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context)];
-                    case 11: return [2 /*return*/, false];
+                    case 11: return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP)];
+                    case 12: return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION)];
+                    case 13: return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION)];
+                    case 14: return [2 /*return*/, false];
                 }
             });
         });

@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Struct, array, boolean, number, object, optional, string, union, validate } from 'superstruct';
+import { Struct, array, boolean, number, object, optional, string, type, union, validate } from 'superstruct';
+
 import { dynamic } from '../../types/Common';
 import { SettingsModel } from '../settings/SettingsModel';
 
@@ -31,7 +32,7 @@ export class SettingsSchema {
   }
 
   private initializeSchemas(): void {
-    this.campaignMetricSchema = object({
+    this.campaignMetricSchema = type({
       id: union([number(), string()]),
       type: string(),
       identifier: string(),
@@ -40,14 +41,14 @@ export class SettingsSchema {
       revenueProp: optional(string()),
     });
 
-    this.variableObjectSchema = object({
+    this.variableObjectSchema = type({
       id: union([number(), string()]),
       type: string(),
       key: string(),
       value: union([number(), string(), boolean(), object()]),
     });
 
-    this.campaignVariationSchema = object({
+    this.campaignVariationSchema = type({
       id: union([number(), string()]),
       name: string(),
       weight: union([number(), string()]),
@@ -58,7 +59,7 @@ export class SettingsSchema {
       salt: optional(string()),
     });
 
-    this.campaignObjectSchema = object({
+    this.campaignObjectSchema = type({
       id: union([number(), string()]),
       type: string(),
       key: string(),
@@ -72,14 +73,14 @@ export class SettingsSchema {
       salt: optional(string()),
     });
 
-    this.ruleSchema = object({
+    this.ruleSchema = type({
       type: string(),
       ruleKey: string(),
       campaignId: number(),
       variationId: optional(number()),
     });
 
-    this.featureSchema = object({
+    this.featureSchema = type({
       id: union([number(), string()]),
       key: string(),
       status: string(),
@@ -91,7 +92,7 @@ export class SettingsSchema {
       variables: optional(array(this.variableObjectSchema)),
     });
 
-    this.settingsSchema = object({
+    this.settingsSchema = type({
       sdkKey: optional(string()),
       version: union([number(), string()]),
       accountId: union([number(), string()]),

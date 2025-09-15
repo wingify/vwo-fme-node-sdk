@@ -24,14 +24,14 @@ var platform;
 if (typeof process === 'undefined') {
     packageFile = {
         name: 'vwo-fme-javascript-sdk',
-        version: require('../../VERSION.json').version,
+        version: require('../../VERSION.json').version, // eslint-disable-line @typescript-eslint/no-var-requires
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
 else {
     packageFile = {
         name: 'vwo-fme-node-sdk',
-        version: require('../../VERSION.json').version,
+        version: require('../../VERSION.json').version, // eslint-disable-line @typescript-eslint/no-var-requires
     };
     platform = PlatformEnum_1.PlatformEnum.SERVER;
 }

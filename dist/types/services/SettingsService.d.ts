@@ -24,7 +24,7 @@ export declare class SettingsService implements ISettingsService {
   constructor(options: Record<string, any>);
   static get Instance(): SettingsService;
   private setSettingsExpiry;
-  private normalizeSettings;
+  normalizeSettings(settings: Record<any, any>): Promise<Record<any, any>>;
   private handleBrowserEnvironment;
   private handleServerEnvironment;
   private fetchSettingsAndCacheInStorage;

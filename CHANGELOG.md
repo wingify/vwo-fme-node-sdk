@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.28.1] - 2025-09-15
+
+### Changed
+
+- Update schema validation to enforce required fields while allowing additional dynamic properties without validation failures
+- Fix Usage Stats bug and retry minor bug
+
 ## [1.28.0] - 2025-09-09
 
 ### Added

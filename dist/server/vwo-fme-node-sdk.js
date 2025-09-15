@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.28.0
+ * vwo-fme-node-sdk - v1.28.1
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = {"version":"1.28.0"};
+module.exports = {"version":"1.28.1"};
 
 /***/ }),
 
@@ -2305,13 +2305,13 @@ var platform;
 if (typeof process === 'undefined') {
   packageFile = {
     name: 'vwo-fme-javascript-sdk',
-    version: (__webpack_require__(/*! ../../VERSION.json */ "./dist/VERSION.json").version)
+    version: (__webpack_require__(/*! ../../VERSION.json */ "./dist/VERSION.json").version) // eslint-disable-line @typescript-eslint/no-var-requires
   };
   platform = PlatformEnum_1.PlatformEnum.CLIENT;
 } else {
   packageFile = {
     name: 'vwo-fme-node-sdk',
-    version: (__webpack_require__(/*! ../../VERSION.json */ "./dist/VERSION.json").version)
+    version: (__webpack_require__(/*! ../../VERSION.json */ "./dist/VERSION.json").version) // eslint-disable-line @typescript-eslint/no-var-requires
   };
   platform = PlatformEnum_1.PlatformEnum.SERVER;
 }
@@ -3545,7 +3545,7 @@ var SettingsSchema = /** @class */function () {
     this.initializeSchemas();
   }
   SettingsSchema.prototype.initializeSchemas = function () {
-    this.campaignMetricSchema = (0, superstruct_1.object)({
+    this.campaignMetricSchema = (0, superstruct_1.type)({
       id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
       type: (0, superstruct_1.string)(),
       identifier: (0, superstruct_1.string)(),
@@ -3553,13 +3553,13 @@ var SettingsSchema = /** @class */function () {
       hasProps: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
       revenueProp: (0, superstruct_1.optional)((0, superstruct_1.string)())
     });
-    this.variableObjectSchema = (0, superstruct_1.object)({
+    this.variableObjectSchema = (0, superstruct_1.type)({
       id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
       type: (0, superstruct_1.string)(),
       key: (0, superstruct_1.string)(),
       value: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)(), (0, superstruct_1.boolean)(), (0, superstruct_1.object)()])
     });
-    this.campaignVariationSchema = (0, superstruct_1.object)({
+    this.campaignVariationSchema = (0, superstruct_1.type)({
       id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
       name: (0, superstruct_1.string)(),
       weight: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
@@ -3569,7 +3569,7 @@ var SettingsSchema = /** @class */function () {
       endRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
       salt: (0, superstruct_1.optional)((0, superstruct_1.string)())
     });
-    this.campaignObjectSchema = (0, superstruct_1.object)({
+    this.campaignObjectSchema = (0, superstruct_1.type)({
       id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
       type: (0, superstruct_1.string)(),
       key: (0, superstruct_1.string)(),
@@ -3582,13 +3582,13 @@ var SettingsSchema = /** @class */function () {
       name: (0, superstruct_1.string)(),
       salt: (0, superstruct_1.optional)((0, superstruct_1.string)())
     });
-    this.ruleSchema = (0, superstruct_1.object)({
+    this.ruleSchema = (0, superstruct_1.type)({
       type: (0, superstruct_1.string)(),
       ruleKey: (0, superstruct_1.string)(),
       campaignId: (0, superstruct_1.number)(),
       variationId: (0, superstruct_1.optional)((0, superstruct_1.number)())
     });
-    this.featureSchema = (0, superstruct_1.object)({
+    this.featureSchema = (0, superstruct_1.type)({
       id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
       key: (0, superstruct_1.string)(),
       status: (0, superstruct_1.string)(),
@@ -3599,7 +3599,7 @@ var SettingsSchema = /** @class */function () {
       rules: (0, superstruct_1.optional)((0, superstruct_1.array)(this.ruleSchema)),
       variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema))
     });
-    this.settingsSchema = (0, superstruct_1.object)({
+    this.settingsSchema = (0, superstruct_1.type)({
       sdkKey: (0, superstruct_1.optional)((0, superstruct_1.string)()),
       version: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
       accountId: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
@@ -13131,14 +13131,9 @@ var UsageStatsUtil = /** @class */function () {
     if (shouldWaitForTrackingCalls) data.swtc = 1;
     // if _vwo_meta has ea, then addd data._ea to be 1
     if (_vwo_meta && _vwo_meta.ea) data._ea = 1;
-    // Check if sdk running in browser and not in edge/serverless environment
-    if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
-      return;
-    } else {
-      if (typeof process !== 'undefined' && process.version) {
-        // For Node.js environment
-        data.lv = process.version;
-      }
+    if (typeof process !== 'undefined' && process.version) {
+      // For Node.js environment
+      data.lv = process.version;
     }
     this.usageStatsData = data;
   };
@@ -13333,8 +13328,8 @@ function sendRequest(method, options) {
     }
     function handleError(error) {
       if (shouldRetry && retryCount < maxRetries) {
-        retryCount++;
         var delay = networkOptions.retryConfig.initialDelay * Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) * 1000; // Exponential backoff
+        retryCount++;
         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
           endPoint: url.split('?')[0],
           err: error,

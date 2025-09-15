@@ -79,10 +79,10 @@ function sendRequest(method, options) {
         }
         function handleError(error) {
             if (shouldRetry && retryCount < maxRetries) {
-                retryCount++;
                 const delay = networkOptions.retryConfig.initialDelay *
                     Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) *
                     1000; // Exponential backoff
+                retryCount++;
                 logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
                     endPoint: url.split('?')[0],
                     err: error,

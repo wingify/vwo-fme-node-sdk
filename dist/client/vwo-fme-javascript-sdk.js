@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.28.0
+ * vwo-fme-javascript-sdk - v1.28.1
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 "use strict";
-module.exports = {"version":"1.28.0"};
+module.exports = {"version":"1.28.1"};
 
 /***/ }),
 
@@ -1845,7 +1845,7 @@ var platform;
 if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk',
-        version: (__webpack_require__(/*! ../../VERSION.json */ "./VERSION.json").version),
+        version: (__webpack_require__(/*! ../../VERSION.json */ "./VERSION.json").version), // eslint-disable-line @typescript-eslint/no-var-requires
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -2985,7 +2985,7 @@ var SettingsSchema = /** @class */ (function () {
         this.initializeSchemas();
     }
     SettingsSchema.prototype.initializeSchemas = function () {
-        this.campaignMetricSchema = (0, superstruct_1.object)({
+        this.campaignMetricSchema = (0, superstruct_1.type)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             type: (0, superstruct_1.string)(),
             identifier: (0, superstruct_1.string)(),
@@ -2993,13 +2993,13 @@ var SettingsSchema = /** @class */ (function () {
             hasProps: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
             revenueProp: (0, superstruct_1.optional)((0, superstruct_1.string)()),
         });
-        this.variableObjectSchema = (0, superstruct_1.object)({
+        this.variableObjectSchema = (0, superstruct_1.type)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             type: (0, superstruct_1.string)(),
             key: (0, superstruct_1.string)(),
             value: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)(), (0, superstruct_1.boolean)(), (0, superstruct_1.object)()]),
         });
-        this.campaignVariationSchema = (0, superstruct_1.object)({
+        this.campaignVariationSchema = (0, superstruct_1.type)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             name: (0, superstruct_1.string)(),
             weight: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
@@ -3009,7 +3009,7 @@ var SettingsSchema = /** @class */ (function () {
             endRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
             salt: (0, superstruct_1.optional)((0, superstruct_1.string)()),
         });
-        this.campaignObjectSchema = (0, superstruct_1.object)({
+        this.campaignObjectSchema = (0, superstruct_1.type)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             type: (0, superstruct_1.string)(),
             key: (0, superstruct_1.string)(),
@@ -3022,13 +3022,13 @@ var SettingsSchema = /** @class */ (function () {
             name: (0, superstruct_1.string)(),
             salt: (0, superstruct_1.optional)((0, superstruct_1.string)()),
         });
-        this.ruleSchema = (0, superstruct_1.object)({
+        this.ruleSchema = (0, superstruct_1.type)({
             type: (0, superstruct_1.string)(),
             ruleKey: (0, superstruct_1.string)(),
             campaignId: (0, superstruct_1.number)(),
             variationId: (0, superstruct_1.optional)((0, superstruct_1.number)()),
         });
-        this.featureSchema = (0, superstruct_1.object)({
+        this.featureSchema = (0, superstruct_1.type)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             key: (0, superstruct_1.string)(),
             status: (0, superstruct_1.string)(),
@@ -3039,7 +3039,7 @@ var SettingsSchema = /** @class */ (function () {
             rules: (0, superstruct_1.optional)((0, superstruct_1.array)(this.ruleSchema)),
             variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema)),
         });
-        this.settingsSchema = (0, superstruct_1.object)({
+        this.settingsSchema = (0, superstruct_1.type)({
             sdkKey: (0, superstruct_1.optional)((0, superstruct_1.string)()),
             version: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             accountId: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
@@ -11051,13 +11051,7 @@ var UsageStatsUtil = /** @class */ (function () {
         // if _vwo_meta has ea, then addd data._ea to be 1
         if (_vwo_meta && _vwo_meta.ea)
             data._ea = 1;
-        // Check if sdk running in browser and not in edge/serverless environment
-        if ( true && typeof XMLHttpRequest !== 'undefined') {
-            return;
-        }
-        else {
-            if (false) {}
-        }
+        if (false) {}
         this.usageStatsData = data;
     };
     /**
@@ -11248,10 +11242,10 @@ function sendRequest(method, options) {
         }
         function handleError(error) {
             if (shouldRetry && retryCount < maxRetries) {
-                retryCount++;
                 var delay = networkOptions.retryConfig.initialDelay *
                     Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) *
                     1000; // Exponential backoff
+                retryCount++;
                 logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
                     endPoint: url.split('?')[0],
                     err: error,
@@ -13636,7 +13630,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation for settings:{settings}","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}","CONFIG_PARAMETER_INVALID":"{parameter} paased in {api} API is not correct. It should be of type:{type}}","BATCH_QUEUE_EMPTY":"No batch queue present for account:{accountId} when calling flushEvents API. Check batchEvents config in launch API","RETRY_CONFIG_INVALID":"Retry config is invalid. Please check the VWO developer documentation. Current retry config: {retryConfig}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}","CONFIG_PARAMETER_INVALID":"{parameter} paased in {api} API is not correct. It should be of type:{type}}","BATCH_QUEUE_EMPTY":"No batch queue present for account:{accountId} when calling flushEvents API. Check batchEvents config in launch API","RETRY_CONFIG_INVALID":"Retry config is invalid. Please check the VWO developer documentation. Current retry config: {retryConfig}"}');
 
 /***/ }),
 

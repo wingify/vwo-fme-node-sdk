@@ -79,15 +79,9 @@ class UsageStatsUtil {
         // if _vwo_meta has ea, then addd data._ea to be 1
         if (_vwo_meta && _vwo_meta.ea)
             data._ea = 1;
-        // Check if sdk running in browser and not in edge/serverless environment
-        if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
-            return;
-        }
-        else {
-            if (typeof process !== 'undefined' && process.version) {
-                // For Node.js environment
-                data.lv = process.version;
-            }
+        if (typeof process !== 'undefined' && process.version) {
+            // For Node.js environment
+            data.lv = process.version;
         }
         this.usageStatsData = data;
     }

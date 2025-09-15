@@ -152,7 +152,7 @@ export class SettingsService implements ISettingsService {
     }, this.expiry);
   }
 
-  private async normalizeSettings(settings: Record<any, any>): Promise<Record<any, any>> {
+  async normalizeSettings(settings: Record<any, any>): Promise<Record<any, any>> {
     const normalizedSettings = { ...settings };
     if (!normalizedSettings.features || Object.keys(normalizedSettings.features).length === 0) {
       normalizedSettings.features = [];

@@ -22,7 +22,7 @@ var SettingsSchema = /** @class */ (function () {
         this.initializeSchemas();
     }
     SettingsSchema.prototype.initializeSchemas = function () {
-        this.campaignMetricSchema = (0, superstruct_1.object)({
+        this.campaignMetricSchema = (0, superstruct_1.type)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             type: (0, superstruct_1.string)(),
             identifier: (0, superstruct_1.string)(),
@@ -30,13 +30,13 @@ var SettingsSchema = /** @class */ (function () {
             hasProps: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
             revenueProp: (0, superstruct_1.optional)((0, superstruct_1.string)()),
         });
-        this.variableObjectSchema = (0, superstruct_1.object)({
+        this.variableObjectSchema = (0, superstruct_1.type)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             type: (0, superstruct_1.string)(),
             key: (0, superstruct_1.string)(),
             value: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)(), (0, superstruct_1.boolean)(), (0, superstruct_1.object)()]),
         });
-        this.campaignVariationSchema = (0, superstruct_1.object)({
+        this.campaignVariationSchema = (0, superstruct_1.type)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             name: (0, superstruct_1.string)(),
             weight: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
@@ -46,7 +46,7 @@ var SettingsSchema = /** @class */ (function () {
             endRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
             salt: (0, superstruct_1.optional)((0, superstruct_1.string)()),
         });
-        this.campaignObjectSchema = (0, superstruct_1.object)({
+        this.campaignObjectSchema = (0, superstruct_1.type)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             type: (0, superstruct_1.string)(),
             key: (0, superstruct_1.string)(),
@@ -59,13 +59,13 @@ var SettingsSchema = /** @class */ (function () {
             name: (0, superstruct_1.string)(),
             salt: (0, superstruct_1.optional)((0, superstruct_1.string)()),
         });
-        this.ruleSchema = (0, superstruct_1.object)({
+        this.ruleSchema = (0, superstruct_1.type)({
             type: (0, superstruct_1.string)(),
             ruleKey: (0, superstruct_1.string)(),
             campaignId: (0, superstruct_1.number)(),
             variationId: (0, superstruct_1.optional)((0, superstruct_1.number)()),
         });
-        this.featureSchema = (0, superstruct_1.object)({
+        this.featureSchema = (0, superstruct_1.type)({
             id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             key: (0, superstruct_1.string)(),
             status: (0, superstruct_1.string)(),
@@ -76,7 +76,7 @@ var SettingsSchema = /** @class */ (function () {
             rules: (0, superstruct_1.optional)((0, superstruct_1.array)(this.ruleSchema)),
             variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema)),
         });
-        this.settingsSchema = (0, superstruct_1.object)({
+        this.settingsSchema = (0, superstruct_1.type)({
             sdkKey: (0, superstruct_1.optional)((0, superstruct_1.string)()),
             version: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             accountId: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),

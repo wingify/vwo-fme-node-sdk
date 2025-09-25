@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add support for user aliasing (will work after gateway has been setup)
+- Add support for user aliasing (will work with [Gateway Service](https://developers.vwo.com/v2/docs/gateway-service) only)
 
 ```javascript
 vwoClient = await init({

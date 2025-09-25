@@ -68,6 +68,9 @@ var VWOOptionsModel = /** @class */ (function () {
         if (options === null || options === void 0 ? void 0 : options.proxyUrl) {
             this.proxyUrl = options.proxyUrl;
         }
+        if (options === null || options === void 0 ? void 0 : options.isAliasingEnabled) {
+            this.isAliasingEnabled = options.isAliasingEnabled;
+        }
         return this;
     };
     VWOOptionsModel.prototype.getAccountId = function () {
@@ -117,6 +120,9 @@ var VWOOptionsModel = /** @class */ (function () {
     };
     VWOOptionsModel.prototype.getProxyUrl = function () {
         return this.proxyUrl;
+    };
+    VWOOptionsModel.prototype.getIsAliasingEnabled = function () {
+        return this.isAliasingEnabled;
     };
     return VWOOptionsModel;
 }());

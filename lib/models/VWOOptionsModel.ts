@@ -52,6 +52,7 @@ export interface IVWOOptions {
   clientStorage?: ClientStorageOptions;
   retryConfig?: IRetryConfig;
   proxyUrl?: string;
+  isAliasingEnabled?: boolean;
 }
 
 export class VWOOptionsModel implements IVWOOptions {
@@ -67,7 +68,7 @@ export class VWOOptionsModel implements IVWOOptions {
   network?: INetworkOptions;
   shouldWaitForTrackingCalls?: boolean;
   settings?: Record<any, any>;
-
+  isAliasingEnabled?: boolean;
   vwoBuilder?: IVWOBuilder;
   isUsageStatsDisabled?: boolean;
   _vwo_meta?: Record<any, any>;
@@ -129,6 +130,10 @@ export class VWOOptionsModel implements IVWOOptions {
 
     if (options?.proxyUrl) {
       this.proxyUrl = options.proxyUrl;
+    }
+
+    if (options?.isAliasingEnabled) {
+      this.isAliasingEnabled = options.isAliasingEnabled;
     }
 
     return this;
@@ -196,5 +201,9 @@ export class VWOOptionsModel implements IVWOOptions {
 
   getProxyUrl(): string {
     return this.proxyUrl;
+  }
+
+  getIsAliasingEnabled(): boolean {
+    return this.isAliasingEnabled;
   }
 }

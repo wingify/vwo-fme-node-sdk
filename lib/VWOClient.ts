@@ -41,6 +41,9 @@ import { VariationModel } from './models/campaign/VariationModel';
 import { setShouldWaitForTrackingCalls } from './utils/NetworkUtil';
 import { SettingsService } from './services/SettingsService';
 import { ApiEnum } from './enums/ApiEnum';
+import { AliasingUtil } from './utils/AliasingUtil';
+import { getUserId } from './utils/UserIdUtil';
+import { isArray } from './utils/DataTypeUtil';
 
 export interface IVWOClient {
   readonly options?: IVWOOptions;
@@ -48,6 +51,7 @@ export interface IVWOClient {
   originalSettings: Record<any, any>;
   isSettingsValid: boolean;
   settingsFetchTime: number | undefined;
+  isAliasingEnabled: boolean;
 
   getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
   trackEvent(
@@ -63,6 +67,7 @@ export interface IVWOClient {
   setAttribute(attributes: Record<string, boolean | string | number>, context: Record<string, any>): Promise<void>;
   updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
   flushEvents(): Promise<Record<string, any>>;
+  setAlias(context: Record<string, any>, aliasId: string): Promise<boolean>;
 }
 
 export class VWOClient implements IVWOClient {
@@ -72,6 +77,7 @@ export class VWOClient implements IVWOClient {
   vwoClientInstance: VWOClient;
   isSettingsValid: boolean;
   settingsFetchTime: number | undefined;
+  isAliasingEnabled: boolean;
 
   constructor(settings: Record<any, any>, options: IVWOOptions) {
     this.options = options;
@@ -86,6 +92,7 @@ export class VWOClient implements IVWOClient {
 
     LogManager.Instance.info(InfoLogMessagesEnum.CLIENT_INITIALIZED);
     this.vwoClientInstance = this;
+    this.isAliasingEnabled = options.isAliasingEnabled || false;
     return this;
   }
 
@@ -99,7 +106,7 @@ export class VWOClient implements IVWOClient {
    * @param {ContextModel} context - The context in which the feature flag is being retrieved, must include a valid user ID.
    * @returns {Promise<Flag>} - A promise that resolves to the feature flag value.
    */
-  getFlag(featureKey: string, context: Record<string, any>): Promise<Flag> {
+  async getFlag(featureKey: string, context: Record<string, any>): Promise<Flag> {
     const apiName = ApiEnum.GET_FLAG;
     const deferredObject = new Deferred();
     const errorReturnSchema = new Flag(false, new VariationModel());
@@ -139,6 +146,10 @@ export class VWOClient implements IVWOClient {
         throw new TypeError('TypeError: Invalid context');
       }
 
+      //getUserId from gateway service
+      const userId = await getUserId(context.id, this.isAliasingEnabled);
+      context.id = userId;
+
       const contextModel = new ContextModel().modelFromDictionary(context);
 
       FlagApi.get(featureKey, this.settings, contextModel, hooksService)
@@ -171,7 +182,7 @@ export class VWOClient implements IVWOClient {
    * @param {Record<string, dynamic>} eventProperties - The properties associated with the event.
    * @returns {Promise<Record<string, boolean>>} - A promise that resolves to the result of the tracking operation.
    */
-  trackEvent(
+  async trackEvent(
     eventName: string,
     context: Record<string, any>,
     eventProperties: Record<string, dynamic> = {},
@@ -228,6 +239,10 @@ export class VWOClient implements IVWOClient {
         LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
         throw new TypeError('TypeError: Invalid context');
       }
+
+      //getUserId from gateway service
+      const userId = await getUserId(context.id, this.isAliasingEnabled);
+      context.id = userId;
 
       const contextModel = new ContextModel().modelFromDictionary(context);
 
@@ -343,6 +358,10 @@ export class VWOClient implements IVWOClient {
           LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
         }
 
+        //getUserId from gateway service
+        const userId = await getUserId(context.id, this.isAliasingEnabled);
+        context.id = userId;
+
         const contextModel = new ContextModel().modelFromDictionary(context);
         // Proceed with setting the attributes if validation is successful
         await new SetAttributeApi().setAttribute(this.settings, attributes, contextModel);
@@ -365,6 +384,10 @@ export class VWOClient implements IVWOClient {
         if (!context || !context.id) {
           throw new TypeError('Invalid context');
         }
+
+        //getUserId from gateway service
+        const userId = await getUserId(context.id, this.isAliasingEnabled);
+        context.id = userId;
 
         const contextModel = new ContextModel().modelFromDictionary(context);
 
@@ -436,5 +459,96 @@ export class VWOClient implements IVWOClient {
       deferredObject.resolve({ status: 'error', events: [] });
     }
     return deferredObject.promise;
+  }
+
+  /**
+   * Sets alias for a given user ID
+   * @param contextOrUserId - The context containing user ID or the user ID directly
+   * @param aliasId - The alias identifier to set
+   * @returns Promise<boolean> - Returns true if successful, false otherwise
+   */
+  async setAlias(contextOrUserId: Record<string, any> | string, aliasId: string): Promise<boolean> {
+    const apiName = ApiEnum.SET_ALIAS;
+    try {
+      LogManager.Instance.debug(
+        buildMessage(DebugLogMessagesEnum.API_CALLED, {
+          apiName,
+        }),
+      );
+
+      if (!this.isAliasingEnabled) {
+        LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.ALIAS_NOT_ENABLED));
+        return false;
+      }
+
+      if (!SettingsService.Instance.isGatewayServiceProvided) {
+        LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.GATEWAY_URL_ERROR));
+        return false;
+      }
+
+      if (!aliasId) {
+        LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+        throw new TypeError('TypeError: Invalid aliasId');
+      }
+
+      if (isArray(aliasId)) {
+        LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+        throw new TypeError('TypeError: aliasId cannot be an array');
+      }
+
+      // trim aliasId before going forward
+      aliasId = aliasId.trim();
+
+      let userId: string;
+
+      if (typeof contextOrUserId === 'string') {
+        // trim contextOrUserId before going forward
+        contextOrUserId = contextOrUserId.trim();
+
+        // Direct userId provided
+        if (contextOrUserId === aliasId) {
+          LogManager.Instance.error('UserId and aliasId cannot be the same.');
+          return false;
+        }
+
+        if (!contextOrUserId) {
+          LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+          throw new TypeError('TypeError: Invalid userId');
+        }
+
+        if (isArray(contextOrUserId)) {
+          LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+          throw new TypeError('TypeError: userId cannot be an array');
+        }
+
+        userId = contextOrUserId;
+      } else {
+        // Context object provided
+        if (!contextOrUserId || !contextOrUserId.id) {
+          LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+          throw new TypeError('TypeError: Invalid context');
+        }
+
+        if (isArray(contextOrUserId.id)) {
+          LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+          throw new TypeError('TypeError: context.id cannot be an array');
+        }
+
+        // trim contextOrUserId.id before going forward
+        contextOrUserId.id = contextOrUserId.id.trim();
+
+        if (contextOrUserId.id === aliasId) {
+          LogManager.Instance.error('UserId and aliasId cannot be the same.');
+          return false;
+        }
+        userId = contextOrUserId.id;
+      }
+
+      await AliasingUtil.setAlias(userId, aliasId);
+      return true;
+    } catch (error) {
+      LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, { apiName, err: error }));
+      return false;
+    }
   }
 }

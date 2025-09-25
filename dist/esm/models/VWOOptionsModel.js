@@ -66,6 +66,9 @@ class VWOOptionsModel {
         if (options?.proxyUrl) {
             this.proxyUrl = options.proxyUrl;
         }
+        if (options?.isAliasingEnabled) {
+            this.isAliasingEnabled = options.isAliasingEnabled;
+        }
         return this;
     }
     getAccountId() {
@@ -115,6 +118,9 @@ class VWOOptionsModel {
     }
     getProxyUrl() {
         return this.proxyUrl;
+    }
+    getIsAliasingEnabled() {
+        return this.isAliasingEnabled;
     }
 }
 exports.VWOOptionsModel = VWOOptionsModel;

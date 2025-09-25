@@ -70,6 +70,9 @@ var VariationModel_1 = require("./models/campaign/VariationModel");
 var NetworkUtil_1 = require("./utils/NetworkUtil");
 var SettingsService_1 = require("./services/SettingsService");
 var ApiEnum_1 = require("./enums/ApiEnum");
+var AliasingUtil_1 = require("./utils/AliasingUtil");
+var UserIdUtil_1 = require("./utils/UserIdUtil");
+var DataTypeUtil_2 = require("./utils/DataTypeUtil");
 var VWOClient = /** @class */ (function () {
     function VWOClient(settings, options) {
         this.options = options;
@@ -80,6 +83,7 @@ var VWOClient = /** @class */ (function () {
         (0, NetworkUtil_1.setShouldWaitForTrackingCalls)(this.options.shouldWaitForTrackingCalls || false);
         logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.CLIENT_INITIALIZED);
         this.vwoClientInstance = this;
+        this.isAliasingEnabled = options.isAliasingEnabled || false;
         return this;
     }
     /**
@@ -91,51 +95,66 @@ var VWOClient = /** @class */ (function () {
      * @returns {Promise<Flag>} - A promise that resolves to the feature flag value.
      */
     VWOClient.prototype.getFlag = function (featureKey, context) {
-        var apiName = ApiEnum_1.ApiEnum.GET_FLAG;
-        var deferredObject = new PromiseUtil_1.Deferred();
-        var errorReturnSchema = new GetFlag_1.Flag(false, new VariationModel_1.VariationModel());
-        try {
-            var hooksService = new HooksService_1.default(this.options);
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
-                apiName: apiName,
-            }));
-            // Validate featureKey is a string
-            if (!(0, DataTypeUtil_1.isString)(featureKey)) {
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
-                    apiName: apiName,
-                    key: 'featureKey',
-                    type: (0, DataTypeUtil_1.getType)(featureKey),
-                    correctType: 'string',
-                }));
-                throw new TypeError('TypeError: featureKey should be a string');
-            }
-            // Validate settings are loaded and valid
-            if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(this.originalSettings)) {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_SETTING_INVALID);
-                throw new Error('TypeError: Invalid Settings');
-            }
-            // Validate user ID is present in context
-            if (!context || !context.id) {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
-                throw new TypeError('TypeError: Invalid context');
-            }
-            var contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
-            GetFlag_1.FlagApi.get(featureKey, this.settings, contextModel, hooksService)
-                .then(function (data) {
-                deferredObject.resolve(data);
-            })
-                .catch(function () {
-                deferredObject.resolve(errorReturnSchema);
+        return __awaiter(this, void 0, void 0, function () {
+            var apiName, deferredObject, errorReturnSchema, hooksService, userId, contextModel, err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        apiName = ApiEnum_1.ApiEnum.GET_FLAG;
+                        deferredObject = new PromiseUtil_1.Deferred();
+                        errorReturnSchema = new GetFlag_1.Flag(false, new VariationModel_1.VariationModel());
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        hooksService = new HooksService_1.default(this.options);
+                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+                            apiName: apiName,
+                        }));
+                        // Validate featureKey is a string
+                        if (!(0, DataTypeUtil_1.isString)(featureKey)) {
+                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                                apiName: apiName,
+                                key: 'featureKey',
+                                type: (0, DataTypeUtil_1.getType)(featureKey),
+                                correctType: 'string',
+                            }));
+                            throw new TypeError('TypeError: featureKey should be a string');
+                        }
+                        // Validate settings are loaded and valid
+                        if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(this.originalSettings)) {
+                            logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_SETTING_INVALID);
+                            throw new Error('TypeError: Invalid Settings');
+                        }
+                        // Validate user ID is present in context
+                        if (!context || !context.id) {
+                            logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+                            throw new TypeError('TypeError: Invalid context');
+                        }
+                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+                    case 2:
+                        userId = _a.sent();
+                        context.id = userId;
+                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+                        GetFlag_1.FlagApi.get(featureKey, this.settings, contextModel, hooksService)
+                            .then(function (data) {
+                            deferredObject.resolve(data);
+                        })
+                            .catch(function () {
+                            deferredObject.resolve(errorReturnSchema);
+                        });
+                        return [3 /*break*/, 4];
+                    case 3:
+                        err_1 = _a.sent();
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+                            apiName: apiName,
+                            err: err_1,
+                        }));
+                        deferredObject.resolve(errorReturnSchema);
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/, deferredObject.promise];
+                }
             });
-        }
-        catch (err) {
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
-                apiName: apiName,
-                err: err,
-            }));
-            deferredObject.resolve(errorReturnSchema);
-        }
-        return deferredObject.promise;
+        });
     };
     /**
      * Tracks an event with specified properties and context.
@@ -146,68 +165,83 @@ var VWOClient = /** @class */ (function () {
      * @param {Record<string, dynamic>} eventProperties - The properties associated with the event.
      * @returns {Promise<Record<string, boolean>>} - A promise that resolves to the result of the tracking operation.
      */
-    VWOClient.prototype.trackEvent = function (eventName, context, eventProperties) {
-        var _a;
-        if (eventProperties === void 0) { eventProperties = {}; }
-        var apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
-        var deferredObject = new PromiseUtil_1.Deferred();
-        try {
-            var hooksService = new HooksService_1.default(this.options);
-            // Log the API call
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
-                apiName: apiName,
-            }));
-            // Validate eventName is a string
-            if (!(0, DataTypeUtil_1.isString)(eventName)) {
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
-                    apiName: apiName,
-                    key: 'eventName',
-                    type: (0, DataTypeUtil_1.getType)(eventName),
-                    correctType: 'string',
-                }));
-                throw new TypeError('TypeError: Event-name should be a string');
-            }
-            // Validate eventProperties is an object
-            if (!(0, DataTypeUtil_1.isObject)(eventProperties)) {
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
-                    apiName: apiName,
-                    key: 'eventProperties',
-                    type: (0, DataTypeUtil_1.getType)(eventProperties),
-                    correctType: 'object',
-                }));
-                throw new TypeError('TypeError: eventProperties should be an object');
-            }
-            // Validate settings are loaded and valid
-            if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(this.originalSettings)) {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_SETTING_INVALID);
-                throw new Error('TypeError: Invalid Settings');
-            }
-            // Validate user ID is present in context
-            if (!context || !context.id) {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
-                throw new TypeError('TypeError: Invalid context');
-            }
-            var contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
-            // Proceed with tracking the event
-            new TrackEvent_1.TrackApi()
-                .track(this.settings, eventName, contextModel, eventProperties, hooksService)
-                .then(function (data) {
-                deferredObject.resolve(data);
-            })
-                .catch(function () {
-                var _a;
-                deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
+    VWOClient.prototype.trackEvent = function (eventName_1, context_1) {
+        return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
+            var apiName, deferredObject, hooksService, userId, contextModel, err_2;
+            var _a;
+            if (eventProperties === void 0) { eventProperties = {}; }
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
+                        deferredObject = new PromiseUtil_1.Deferred();
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 3, , 4]);
+                        hooksService = new HooksService_1.default(this.options);
+                        // Log the API call
+                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+                            apiName: apiName,
+                        }));
+                        // Validate eventName is a string
+                        if (!(0, DataTypeUtil_1.isString)(eventName)) {
+                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                                apiName: apiName,
+                                key: 'eventName',
+                                type: (0, DataTypeUtil_1.getType)(eventName),
+                                correctType: 'string',
+                            }));
+                            throw new TypeError('TypeError: Event-name should be a string');
+                        }
+                        // Validate eventProperties is an object
+                        if (!(0, DataTypeUtil_1.isObject)(eventProperties)) {
+                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                                apiName: apiName,
+                                key: 'eventProperties',
+                                type: (0, DataTypeUtil_1.getType)(eventProperties),
+                                correctType: 'object',
+                            }));
+                            throw new TypeError('TypeError: eventProperties should be an object');
+                        }
+                        // Validate settings are loaded and valid
+                        if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(this.originalSettings)) {
+                            logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_SETTING_INVALID);
+                            throw new Error('TypeError: Invalid Settings');
+                        }
+                        // Validate user ID is present in context
+                        if (!context || !context.id) {
+                            logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+                            throw new TypeError('TypeError: Invalid context');
+                        }
+                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+                    case 2:
+                        userId = _b.sent();
+                        context.id = userId;
+                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+                        // Proceed with tracking the event
+                        new TrackEvent_1.TrackApi()
+                            .track(this.settings, eventName, contextModel, eventProperties, hooksService)
+                            .then(function (data) {
+                            deferredObject.resolve(data);
+                        })
+                            .catch(function () {
+                            var _a;
+                            deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
+                        });
+                        return [3 /*break*/, 4];
+                    case 3:
+                        err_2 = _b.sent();
+                        // Log any errors encountered during the operation
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+                            apiName: apiName,
+                            err: err_2,
+                        }));
+                        deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/, deferredObject.promise];
+                }
             });
-        }
-        catch (err) {
-            // Log any errors encountered during the operation
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
-                apiName: apiName,
-                err: err,
-            }));
-            deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
-        }
-        return deferredObject.promise;
+        });
     };
     /**
      * Sets an attribute or multiple attributes for a user in the provided context.
@@ -223,7 +257,7 @@ var VWOClient = /** @class */ (function () {
      */
     VWOClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, attributes, contextModel, attributeKey, attributeValue, contextModel, attributeMap, err_1;
+            var apiName, attributes, userId, contextModel, attributeKey, attributeValue, userId, contextModel, attributeMap, err_3;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -231,8 +265,8 @@ var VWOClient = /** @class */ (function () {
                         apiName = ApiEnum_1.ApiEnum.SET_ATTRIBUTE;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 6, , 7]);
-                        if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 3];
+                        _b.trys.push([1, 8, , 9]);
+                        if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 4];
                         // Log the API call
                         logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
@@ -282,14 +316,18 @@ var VWOClient = /** @class */ (function () {
                         if (!context || !context.id) {
                             logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
                         }
+                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+                    case 2:
+                        userId = _b.sent();
+                        context.id = userId;
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
                         // Proceed with setting the attributes if validation is successful
                         return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributes, contextModel)];
-                    case 2:
+                    case 3:
                         // Proceed with setting the attributes if validation is successful
                         _b.sent();
-                        return [3 /*break*/, 5];
-                    case 3:
+                        return [3 /*break*/, 7];
+                    case 4:
                         attributeKey = attributeOrAttributes;
                         attributeValue = attributeValueOrContext;
                         // Validate attributeKey is a string
@@ -304,20 +342,24 @@ var VWOClient = /** @class */ (function () {
                         if (!context || !context.id) {
                             throw new TypeError('Invalid context');
                         }
+                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+                    case 5:
+                        userId = _b.sent();
+                        context.id = userId;
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
                         attributeMap = (_a = {}, _a[attributeKey] = attributeValue, _a);
                         // Proceed with setting the attribute map if validation is successful
                         return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributeMap, contextModel)];
-                    case 4:
+                    case 6:
                         // Proceed with setting the attribute map if validation is successful
                         _b.sent();
-                        _b.label = 5;
-                    case 5: return [3 /*break*/, 7];
-                    case 6:
-                        err_1 = _b.sent();
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName: apiName, err: err_1 }));
-                        return [3 /*break*/, 7];
-                    case 7: return [2 /*return*/];
+                        _b.label = 7;
+                    case 7: return [3 /*break*/, 9];
+                    case 8:
+                        err_3 = _b.sent();
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName: apiName, err: err_3 }));
+                        return [3 /*break*/, 9];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -330,7 +372,7 @@ var VWOClient = /** @class */ (function () {
      */
     VWOClient.prototype.updateSettings = function (settings_1) {
         return __awaiter(this, arguments, void 0, function (settings, isViaWebhook) {
-            var apiName, settingsToUpdate, _a, err_2;
+            var apiName, settingsToUpdate, _a, err_4;
             if (isViaWebhook === void 0) { isViaWebhook = true; }
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -359,11 +401,11 @@ var VWOClient = /** @class */ (function () {
                         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName: apiName, isViaWebhook: isViaWebhook }));
                         return [3 /*break*/, 6];
                     case 5:
-                        err_2 = _b.sent();
+                        err_4 = _b.sent();
                         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_FAILED, {
                             apiName: apiName,
                             isViaWebhook: isViaWebhook,
-                            err: JSON.stringify(err_2),
+                            err: JSON.stringify(err_4),
                         }));
                         return [3 /*break*/, 6];
                     case 6: return [2 /*return*/];
@@ -393,6 +435,93 @@ var VWOClient = /** @class */ (function () {
             deferredObject.resolve({ status: 'error', events: [] });
         }
         return deferredObject.promise;
+    };
+    /**
+     * Sets alias for a given user ID
+     * @param contextOrUserId - The context containing user ID or the user ID directly
+     * @param aliasId - The alias identifier to set
+     * @returns Promise<boolean> - Returns true if successful, false otherwise
+     */
+    VWOClient.prototype.setAlias = function (contextOrUserId, aliasId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var apiName, userId, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        apiName = ApiEnum_1.ApiEnum.SET_ALIAS;
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+                            apiName: apiName,
+                        }));
+                        if (!this.isAliasingEnabled) {
+                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.ALIAS_NOT_ENABLED));
+                            return [2 /*return*/, false];
+                        }
+                        if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
+                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.GATEWAY_URL_ERROR));
+                            return [2 /*return*/, false];
+                        }
+                        if (!aliasId) {
+                            logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+                            throw new TypeError('TypeError: Invalid aliasId');
+                        }
+                        if ((0, DataTypeUtil_2.isArray)(aliasId)) {
+                            logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+                            throw new TypeError('TypeError: aliasId cannot be an array');
+                        }
+                        // trim aliasId before going forward
+                        aliasId = aliasId.trim();
+                        userId = void 0;
+                        if (typeof contextOrUserId === 'string') {
+                            // trim contextOrUserId before going forward
+                            contextOrUserId = contextOrUserId.trim();
+                            // Direct userId provided
+                            if (contextOrUserId === aliasId) {
+                                logger_1.LogManager.Instance.error('UserId and aliasId cannot be the same.');
+                                return [2 /*return*/, false];
+                            }
+                            if (!contextOrUserId) {
+                                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+                                throw new TypeError('TypeError: Invalid userId');
+                            }
+                            if ((0, DataTypeUtil_2.isArray)(contextOrUserId)) {
+                                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+                                throw new TypeError('TypeError: userId cannot be an array');
+                            }
+                            userId = contextOrUserId;
+                        }
+                        else {
+                            // Context object provided
+                            if (!contextOrUserId || !contextOrUserId.id) {
+                                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+                                throw new TypeError('TypeError: Invalid context');
+                            }
+                            if ((0, DataTypeUtil_2.isArray)(contextOrUserId.id)) {
+                                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+                                throw new TypeError('TypeError: context.id cannot be an array');
+                            }
+                            // trim contextOrUserId.id before going forward
+                            contextOrUserId.id = contextOrUserId.id.trim();
+                            if (contextOrUserId.id === aliasId) {
+                                logger_1.LogManager.Instance.error('UserId and aliasId cannot be the same.');
+                                return [2 /*return*/, false];
+                            }
+                            userId = contextOrUserId.id;
+                        }
+                        return [4 /*yield*/, AliasingUtil_1.AliasingUtil.setAlias(userId, aliasId)];
+                    case 2:
+                        _a.sent();
+                        return [2 /*return*/, true];
+                    case 3:
+                        error_1 = _a.sent();
+                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName: apiName, err: error_1 }));
+                        return [2 /*return*/, false];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
     };
     return VWOClient;
 }());

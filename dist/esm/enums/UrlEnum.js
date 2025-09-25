@@ -22,5 +22,7 @@ var UrlEnum;
     UrlEnum["ATTRIBUTE_CHECK"] = "/check-attribute";
     UrlEnum["GET_USER_DATA"] = "/get-user-details";
     UrlEnum["BATCH_EVENTS"] = "/server-side/batch-events-v2";
+    UrlEnum["SET_ALIAS"] = "/user-alias/setUserAlias";
+    UrlEnum["GET_ALIAS"] = "/user-alias/getAliasUserId";
 })(UrlEnum || (exports.UrlEnum = UrlEnum = {}));
 //# sourceMappingURL=UrlEnum.js.map

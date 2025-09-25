@@ -9,6 +9,7 @@ export interface IVWOClient {
   originalSettings: Record<any, any>;
   isSettingsValid: boolean;
   settingsFetchTime: number | undefined;
+  isAliasingEnabled: boolean;
   getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
   trackEvent(
     eventName: string,
@@ -23,6 +24,7 @@ export interface IVWOClient {
   setAttribute(attributes: Record<string, boolean | string | number>, context: Record<string, any>): Promise<void>;
   updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
   flushEvents(): Promise<Record<string, any>>;
+  setAlias(context: Record<string, any>, aliasId: string): Promise<boolean>;
 }
 export declare class VWOClient implements IVWOClient {
   settings: SettingsModel;
@@ -31,6 +33,7 @@ export declare class VWOClient implements IVWOClient {
   vwoClientInstance: VWOClient;
   isSettingsValid: boolean;
   settingsFetchTime: number | undefined;
+  isAliasingEnabled: boolean;
   constructor(settings: Record<any, any>, options: IVWOOptions);
   options?: IVWOOptions;
   /**
@@ -84,4 +87,11 @@ export declare class VWOClient implements IVWOClient {
    * Flushes the events manually from the batch events queue
    */
   flushEvents(): Promise<Record<string, any>>;
+  /**
+   * Sets alias for a given user ID
+   * @param contextOrUserId - The context containing user ID or the user ID directly
+   * @param aliasId - The alias identifier to set
+   * @returns Promise<boolean> - Returns true if successful, false otherwise
+   */
+  setAlias(contextOrUserId: Record<string, any> | string, aliasId: string): Promise<boolean>;
 }

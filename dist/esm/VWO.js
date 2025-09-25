@@ -126,6 +126,13 @@ async function init(options) {
             });
             console.error(msg); // Validates accountId presence and type.
         }
+        if (options.isAliasingEnabled && !options.gatewayService) {
+            const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.GATEWAY_URL_ERROR, {
+                date,
+            });
+            console.error('[ERROR]: VWO-SDK ' + new Date().toISOString() + ' ' + msg); // Validates gatewayService presence and type.
+            throw new Error('TypeError: Invalid gatewayService when aliasing is enabled');
+        }
         if (typeof process === 'undefined') {
             options.platform = PlatformEnum_1.PlatformEnum.CLIENT;
         }

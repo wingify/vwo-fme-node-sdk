@@ -49,6 +49,7 @@ export interface IVWOOptions {
   clientStorage?: ClientStorageOptions;
   retryConfig?: IRetryConfig;
   proxyUrl?: string;
+  isAliasingEnabled?: boolean;
 }
 export declare class VWOOptionsModel implements IVWOOptions {
   accountId: string;
@@ -63,6 +64,7 @@ export declare class VWOOptionsModel implements IVWOOptions {
   network?: INetworkOptions;
   shouldWaitForTrackingCalls?: boolean;
   settings?: Record<any, any>;
+  isAliasingEnabled?: boolean;
   vwoBuilder?: IVWOBuilder;
   isUsageStatsDisabled?: boolean;
   _vwo_meta?: Record<any, any>;
@@ -86,5 +88,6 @@ export declare class VWOOptionsModel implements IVWOOptions {
   getClientStorage(): ClientStorageOptions;
   getRetryConfig(): IRetryConfig;
   getProxyUrl(): string;
+  getIsAliasingEnabled(): boolean;
 }
 export {};

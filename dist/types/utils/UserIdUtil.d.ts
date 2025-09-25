@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ApiEnum = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,15 +13,4 @@ exports.ApiEnum = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var ApiEnum;
-(function (ApiEnum) {
-    ApiEnum["INIT"] = "init";
-    ApiEnum["ON_INIT"] = "onInit";
-    ApiEnum["GET_FLAG"] = "getFlag";
-    ApiEnum["TRACK_EVENT"] = "trackEvent";
-    ApiEnum["SET_ATTRIBUTE"] = "setAttribute";
-    ApiEnum["FLUSH_EVENTS"] = "flushEvents";
-    ApiEnum["UPDATE_SETTINGS"] = "updateSettings";
-    ApiEnum["SET_ALIAS"] = "setAlias";
-})(ApiEnum || (exports.ApiEnum = ApiEnum = {}));
-//# sourceMappingURL=ApiEnum.js.map
+export declare function getUserId(userId: string, isAliasingEnabled: boolean): Promise<string>;

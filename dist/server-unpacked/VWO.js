@@ -148,7 +148,7 @@ var _global = {};
  */
 function init(options) {
     return __awaiter(this, void 0, void 0, function () {
-        var apiName, date, msg, msg, msg, startTimeForInit_1, instance, msg;
+        var apiName, date, msg, msg, msg, msg, startTimeForInit_1, instance, msg;
         var _this = this;
         return __generator(this, function (_a) {
             apiName = ApiEnum_1.ApiEnum.INIT;
@@ -171,6 +171,13 @@ function init(options) {
                         date: date,
                     });
                     console.error(msg); // Validates accountId presence and type.
+                }
+                if (options.isAliasingEnabled && !options.gatewayService) {
+                    msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.GATEWAY_URL_ERROR, {
+                        date: date,
+                    });
+                    console.error('[ERROR]: VWO-SDK ' + new Date().toISOString() + ' ' + msg); // Validates gatewayService presence and type.
+                    throw new Error('TypeError: Invalid gatewayService when aliasing is enabled');
                 }
                 if (typeof process === 'undefined') {
                     options.platform = PlatformEnum_1.PlatformEnum.CLIENT;

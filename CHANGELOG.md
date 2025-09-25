@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.29.0] - 2025-09-25
+
+### Added
+
+- Add support for user aliasing (will work after gateway has been setup)
+
+```javascript
+vwoClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+
+  gatewayService: {
+    url: 'http://your-custom-gateway-url',
+  },
+  // Required to use Aliasing
+  isAliasingEnabled: true,
+});
+
+vwoClient.setAlias(userContext, 'aliasId');
+```
+
 ## [1.28.1] - 2025-09-15
 
 ### Changed

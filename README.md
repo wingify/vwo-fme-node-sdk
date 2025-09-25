@@ -238,6 +238,44 @@ const vwoClient = await init({
 
 Refer to the [Gateway Documentation](https://developers.vwo.com/v2/docs/gateway-service) for further details.
 
+### User Aliasing
+
+User aliasing lets you associate an existing user ID with an alternate ID (alias) so future evaluations and tracking use a unified identity across systems.
+
+Requirements:
+
+- Gateway must be configured.
+- Aliasing must be enabled during initialization: `isAliasingEnabled: true`
+
+Initialization example:
+
+```javascript
+const vwoClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  isAliasingEnabled: true,
+  gatewayService: { url: 'https://custom.gateway.com' },
+});
+```
+
+Usage examples:
+
+```javascript
+// Using context object
+const success1 = await vwoClient.setAlias({ id: 'user-123' }, 'alias-abc');
+
+// Using direct userId
+const success2 = await vwoClient.setAlias('user-123', 'alias-abc');
+```
+
+Behavior and validations:
+
+- Returns `true` on success, `false` otherwise
+- Requires aliasing to be enabled and gateway configured
+- `aliasId` must be a non-empty string (not an array); it is trimmed before use
+- For context usage, `context.id` must be a non-empty string (not an array); it is trimmed before use
+- `userId` and `aliasId` cannot be the same
+
 ### Storage
 
 The SDK operates in a stateless mode by default, meaning each `getFlag` call triggers a fresh evaluation of the flag against the current user context.

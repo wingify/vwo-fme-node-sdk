@@ -21,4 +21,5 @@ export declare enum ApiEnum {
   SET_ATTRIBUTE = 'setAttribute',
   FLUSH_EVENTS = 'flushEvents',
   UPDATE_SETTINGS = 'updateSettings',
+  SET_ALIAS = 'setAlias',
 }

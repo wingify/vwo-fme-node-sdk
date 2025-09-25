@@ -139,6 +139,14 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
       console.error(msg); // Validates accountId presence and type.
     }
 
+    if (options.isAliasingEnabled && !options.gatewayService) {
+      const msg = buildMessage(ErrorLogMessagesEnum.GATEWAY_URL_ERROR, {
+        date,
+      });
+      console.error('[ERROR]: VWO-SDK ' + new Date().toISOString() + ' ' + msg); // Validates gatewayService presence and type.
+      throw new Error('TypeError: Invalid gatewayService when aliasing is enabled');
+    }
+
     if (typeof process === 'undefined') {
       options.platform = PlatformEnum.CLIENT;
     } else {

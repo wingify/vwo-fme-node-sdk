@@ -18,87 +18,87 @@ import { Logger } from '../Logger';
 import { LogTransportManager } from './TransportManager';
 import { LogLevelEnum } from '../enums/LogLevelEnum';
 type LogTransport = {
-  log: (level: string, message: string) => void;
+    log: (level: string, message: string) => void;
 };
 /**
  * Interface defining the structure and methods for LogManager.
  */
 export interface ILogManager {
-  transportManager?: LogTransportManager;
-  config?: Record<string, dynamic>;
-  name?: string;
-  requestId?: string;
-  level: string;
-  prefix?: string;
-  dateTimeFormat?: () => string;
-  transport?: LogTransport;
-  transports?: Array<LogTransport>;
-  addTransport?(transportObject: LogTransport): void;
-  addTransports?(transportsList: Array<LogTransport>): void;
+    transportManager?: LogTransportManager;
+    config?: Record<string, dynamic>;
+    name?: string;
+    requestId?: string;
+    level: string;
+    prefix?: string;
+    dateTimeFormat?: () => string;
+    transport?: LogTransport;
+    transports?: Array<LogTransport>;
+    addTransport?(transportObject: LogTransport): void;
+    addTransports?(transportsList: Array<LogTransport>): void;
 }
 /**
  * LogManager class provides logging functionality with support for multiple transports.
  * It is designed as a singleton to ensure a single instance throughout the application.
  */
 export declare class LogManager extends Logger implements ILogManager {
-  private static instance;
-  transportManager: LogTransportManager;
-  config: Record<string, any>;
-  name: string;
-  requestId: any;
-  level: LogLevelEnum;
-  prefix: string;
-  dateTimeFormat(): string;
-  transport: LogTransport;
-  transports: Array<LogTransport>;
-  /**
-   * Constructor for LogManager.
-   * @param {Record<string, any>} config - Configuration object for LogManager.
-   */
-  constructor(config?: Record<string, any>);
-  /**
-   * Provides access to the singleton instance of LogManager.
-   * @returns {LogManager} The singleton instance.
-   */
-  static get Instance(): LogManager;
-  /**
-   * Handles the initialization and setup of transports based on configuration.
-   */
-  handleTransports(): void;
-  /**
-   * Adds a single transport to the LogManager.
-   * @param {Record<any, any>} transport - The transport object to add.
-   */
-  addTransport(transport: Record<any, any>): void;
-  /**
-   * Adds multiple transports to the LogManager.
-   * @param {Array<Record<any, any>>} transports - The list of transport objects to add.
-   */
-  addTransports(transports: Record<any, any>): void;
-  /**
-   * Logs a trace message.
-   * @param {string} message - The message to log at trace level.
-   */
-  trace(message: string): void;
-  /**
-   * Logs a debug message.
-   * @param {string} message - The message to log at debug level.
-   */
-  debug(message: string): void;
-  /**
-   * Logs an informational message.
-   * @param {string} message - The message to log at info level.
-   */
-  info(message: string): void;
-  /**
-   * Logs a warning message.
-   * @param {string} message - The message to log at warn level.
-   */
-  warn(message: string): void;
-  /**
-   * Logs an error message.
-   * @param {string} message - The message to log at error level.
-   */
-  error(message: string, extraData?: any): void;
+    private static instance;
+    transportManager: LogTransportManager;
+    config: Record<string, any>;
+    name: string;
+    requestId: any;
+    level: LogLevelEnum;
+    prefix: string;
+    dateTimeFormat(): string;
+    transport: LogTransport;
+    transports: Array<LogTransport>;
+    /**
+     * Constructor for LogManager.
+     * @param {Record<string, any>} config - Configuration object for LogManager.
+     */
+    constructor(config?: Record<string, any>);
+    /**
+     * Provides access to the singleton instance of LogManager.
+     * @returns {LogManager} The singleton instance.
+     */
+    static get Instance(): LogManager;
+    /**
+     * Handles the initialization and setup of transports based on configuration.
+     */
+    handleTransports(): void;
+    /**
+     * Adds a single transport to the LogManager.
+     * @param {Record<any, any>} transport - The transport object to add.
+     */
+    addTransport(transport: Record<any, any>): void;
+    /**
+     * Adds multiple transports to the LogManager.
+     * @param {Array<Record<any, any>>} transports - The list of transport objects to add.
+     */
+    addTransports(transports: Record<any, any>): void;
+    /**
+     * Logs a trace message.
+     * @param {string} message - The message to log at trace level.
+     */
+    trace(message: string): void;
+    /**
+     * Logs a debug message.
+     * @param {string} message - The message to log at debug level.
+     */
+    debug(message: string): void;
+    /**
+     * Logs an informational message.
+     * @param {string} message - The message to log at info level.
+     */
+    info(message: string): void;
+    /**
+     * Logs a warning message.
+     * @param {string} message - The message to log at warn level.
+     */
+    warn(message: string): void;
+    /**
+     * Logs an error message.
+     * @param {string} message - The message to log at error level.
+     */
+    error(message: string, extraData?: any): void;
 }
 export {};

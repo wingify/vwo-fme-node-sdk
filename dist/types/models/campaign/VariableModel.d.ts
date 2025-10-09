@@ -15,20 +15,20 @@
  */
 import { dynamic } from '../../types/Common';
 export declare class VariableModel<T = dynamic> {
-  private val;
-  private value;
-  private type;
-  private k;
-  private key;
-  private i;
-  private id;
-  constructor(id: number, type: string, key: string, value: T);
-  static modelFromDictionary<T = unknown>(variable: VariableModel<T>): VariableModel<T>;
-  setValue(value: T): void;
-  setKey(key: string): void;
-  setType(type: string): void;
-  getId(): number;
-  getValue(): dynamic;
-  getType(): string;
-  getKey(): string;
+    private val;
+    private value;
+    private type;
+    private k;
+    private key;
+    private i;
+    private id;
+    constructor(id: number, type: string, key: string, value: T);
+    static modelFromDictionary<T = unknown>(variable: VariableModel<T>): VariableModel<T>;
+    setValue(value: T): void;
+    setKey(key: string): void;
+    setType(type: string): void;
+    getId(): number;
+    getValue(): dynamic;
+    getType(): string;
+    getKey(): string;
 }

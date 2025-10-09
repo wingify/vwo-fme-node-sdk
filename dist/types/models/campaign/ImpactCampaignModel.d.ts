@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 export declare class ImpactCapmaignModel {
-  private campaignId;
-  private type;
-  modelFromDictionary(impactCampaign: ImpactCapmaignModel): this;
-  getCampaignId(): number;
-  getType(): string;
+    private campaignId;
+    private type;
+    modelFromDictionary(impactCampaign: ImpactCapmaignModel): this;
+    getCampaignId(): number;
+    getType(): string;
 }

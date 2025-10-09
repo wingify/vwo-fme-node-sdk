@@ -18,17 +18,7 @@
  * This type is flexible and can handle multiple types including primitive types,
  * complex objects, and collections.
  */
-export type dynamic =
-  | boolean
-  | number
-  | string
-  | Date
-  | void
-  | undefined
-  | null
-  | Record<string, any>
-  | Array<dynamicArray>
-  | Map<string, dynamicArray>;
+export type dynamic = boolean | number | string | Date | void | undefined | null | Record<string, any> | Array<dynamicArray> | Map<string, dynamicArray>;
 /**
  * Defines a type `dynamicArray` which is used within the `dynamic` type.
  * This type is intended for use in arrays and supports several basic data types and objects.

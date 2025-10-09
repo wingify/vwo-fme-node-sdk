@@ -13,14 +13,7 @@ import { IStorageService } from '../services/StorageService';
  * @param storageService - The storage service.
  * @returns A promise that resolves to the evaluation result.
  */
-export declare const evaluateGroups: (
-  settings: SettingsModel,
-  feature: FeatureModel,
-  groupId: number,
-  evaluatedFeatureMap: Map<string, any>,
-  context: ContextModel,
-  storageService: IStorageService,
-) => Promise<any>;
+export declare const evaluateGroups: (settings: SettingsModel, feature: FeatureModel, groupId: number, evaluatedFeatureMap: Map<string, any>, context: ContextModel, storageService: IStorageService) => Promise<any>;
 /**
  * Retrieves feature keys associated with a group based on the group ID.
  *
@@ -28,10 +21,7 @@ export declare const evaluateGroups: (
  * @param groupId - The ID of the group.
  * @returns An object containing feature keys and group campaign IDs.
  */
-export declare function getFeatureKeysFromGroup(
-  settings: SettingsModel,
-  groupId: number,
-): {
-  featureKeys: any[];
-  groupCampaignIds: any;
+export declare function getFeatureKeysFromGroup(settings: SettingsModel, groupId: number): {
+    featureKeys: any[];
+    groupCampaignIds: any;
 };

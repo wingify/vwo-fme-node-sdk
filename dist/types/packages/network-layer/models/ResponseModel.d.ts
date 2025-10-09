@@ -19,48 +19,48 @@ import { dynamic } from '../../../types/Common';
  * This class encapsulates details about the HTTP response including status code, headers, data, and errors.
  */
 export declare class ResponseModel {
-  private statusCode;
-  private error;
-  private headers;
-  private data;
-  /**
-   * Sets the status code of the response.
-   * @param {number} statusCode - The HTTP status code
-   */
-  setStatusCode(statusCode: number): void;
-  /**
-   * Sets the headers of the response.
-   * @param {Record<string, string>} headers - The headers of the response
-   */
-  setHeaders(headers: Record<string, string>): void;
-  /**
-   * Sets the data of the response.
-   * @param {dynamic} data - The data payload of the response
-   */
-  setData(data: dynamic): void;
-  /**
-   * Sets the error object of the response.
-   * @param {dynamic} error - The error object if the request failed
-   */
-  setError(error: dynamic): void;
-  /**
-   * Retrieves the headers of the response.
-   * @returns {Record<string, string>} The headers of the response
-   */
-  getHeaders(): Record<string, string>;
-  /**
-   * Retrieves the data payload of the response.
-   * @returns {dynamic} The data payload of the response
-   */
-  getData(): dynamic;
-  /**
-   * Retrieves the status code of the response.
-   * @returns {number} The HTTP status code
-   */
-  getStatusCode(): number;
-  /**
-   * Retrieves the error object of the response.
-   * @returns {dynamic} The error object if the request failed
-   */
-  getError(): dynamic;
+    private statusCode;
+    private error;
+    private headers;
+    private data;
+    /**
+     * Sets the status code of the response.
+     * @param {number} statusCode - The HTTP status code
+     */
+    setStatusCode(statusCode: number): void;
+    /**
+     * Sets the headers of the response.
+     * @param {Record<string, string>} headers - The headers of the response
+     */
+    setHeaders(headers: Record<string, string>): void;
+    /**
+     * Sets the data of the response.
+     * @param {dynamic} data - The data payload of the response
+     */
+    setData(data: dynamic): void;
+    /**
+     * Sets the error object of the response.
+     * @param {dynamic} error - The error object if the request failed
+     */
+    setError(error: dynamic): void;
+    /**
+     * Retrieves the headers of the response.
+     * @returns {Record<string, string>} The headers of the response
+     */
+    getHeaders(): Record<string, string>;
+    /**
+     * Retrieves the data payload of the response.
+     * @returns {dynamic} The data payload of the response
+     */
+    getData(): dynamic;
+    /**
+     * Retrieves the status code of the response.
+     * @returns {number} The HTTP status code
+     */
+    getStatusCode(): number;
+    /**
+     * Retrieves the error object of the response.
+     * @returns {dynamic} The error object if the request failed
+     */
+    getError(): dynamic;
 }

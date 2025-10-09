@@ -14,54 +14,51 @@
  * limitations under the License.
  */
 export interface BatchConfig {
-  requestTimeInterval?: number;
-  eventsPerRequest?: number;
-  flushCallback?: (error: Error | null, data: Record<string, any>) => void;
-  dispatcher?: (
-    queue: Record<string, any>[],
-    flushCallback: (error: Error | null, data: Record<string, any>) => void,
-  ) => Promise<Record<string, any>>;
+    requestTimeInterval?: number;
+    eventsPerRequest?: number;
+    flushCallback?: (error: Error | null, data: Record<string, any>) => void;
+    dispatcher?: (queue: Record<string, any>[], flushCallback: (error: Error | null, data: Record<string, any>) => void) => Promise<Record<string, any>>;
 }
 export declare class BatchEventsQueue {
-  private static instance;
-  private queue;
-  private timer;
-  private requestTimeInterval;
-  private eventsPerRequest;
-  private flushCallback;
-  private accountId;
-  private dispatcher;
-  /**
-   * Constructor for the BatchEventsQueue
-   * @param config - The configuration for the batch events queue
-   */
-  constructor(config?: BatchConfig);
-  /**
-   * Gets the instance of the BatchEventsQueue
-   * @returns The instance of the BatchEventsQueue
-   */
-  static get Instance(): BatchEventsQueue;
-  /**
-   * Enqueues an event
-   * @param payload - The event to enqueue
-   */
-  enqueue(payload: Record<string, any>): void;
-  /**
-   * Flushes the queue
-   * @param manual - Whether the flush is manual or not
-   */
-  flush(manual?: boolean): Promise<Record<string, any>>;
-  /**
-   * Creates a new batch timer
-   */
-  private createNewBatchTimer;
-  /**
-   * Clears the request timer
-   */
-  private clearRequestTimer;
-  /**
-   * Flushes the queue and clears the timer
-   */
-  flushAndClearTimer(): Promise<Record<string, any>>;
+    private static instance;
+    private queue;
+    private timer;
+    private requestTimeInterval;
+    private eventsPerRequest;
+    private flushCallback;
+    private accountId;
+    private dispatcher;
+    /**
+     * Constructor for the BatchEventsQueue
+     * @param config - The configuration for the batch events queue
+     */
+    constructor(config?: BatchConfig);
+    /**
+     * Gets the instance of the BatchEventsQueue
+     * @returns The instance of the BatchEventsQueue
+     */
+    static get Instance(): BatchEventsQueue;
+    /**
+     * Enqueues an event
+     * @param payload - The event to enqueue
+     */
+    enqueue(payload: Record<string, any>): void;
+    /**
+     * Flushes the queue
+     * @param manual - Whether the flush is manual or not
+     */
+    flush(manual?: boolean): Promise<Record<string, any>>;
+    /**
+     * Creates a new batch timer
+     */
+    private createNewBatchTimer;
+    /**
+     * Clears the request timer
+     */
+    private clearRequestTimer;
+    /**
+     * Flushes the queue and clears the timer
+     */
+    flushAndClearTimer(): Promise<Record<string, any>>;
 }
 export default BatchEventsQueue;

@@ -16,29 +16,21 @@
 import { ContextModel } from '../models/user/ContextModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
 interface ISetAttribute {
-  /**
-   * Sets multiple attributes for a user in a single network call.
-   * @param settings Configuration settings.
-   * @param attributes Key-value map of attributes.
-   * @param context Context containing user information.
-   */
-  setAttribute(
-    settings: SettingsModel,
-    attributes: Record<string, boolean | string | number>,
-    context: ContextModel,
-  ): Promise<void>;
+    /**
+     * Sets multiple attributes for a user in a single network call.
+     * @param settings Configuration settings.
+     * @param attributes Key-value map of attributes.
+     * @param context Context containing user information.
+     */
+    setAttribute(settings: SettingsModel, attributes: Record<string, boolean | string | number>, context: ContextModel): Promise<void>;
 }
 export declare class SetAttributeApi implements ISetAttribute {
-  /**
-   * Implementation of setAttributes to create an impression for multiple user attributes.
-   * @param settings Configuration settings.
-   * @param attributes Key-value map of attributes.
-   * @param context Context containing user information.
-   */
-  setAttribute(
-    settings: SettingsModel,
-    attributes: Record<string, boolean | string | number>,
-    context: ContextModel,
-  ): Promise<void>;
+    /**
+     * Implementation of setAttributes to create an impression for multiple user attributes.
+     * @param settings Configuration settings.
+     * @param attributes Key-value map of attributes.
+     * @param context Context containing user information.
+     */
+    setAttribute(settings: SettingsModel, attributes: Record<string, boolean | string | number>, context: ContextModel): Promise<void>;
 }
 export {};

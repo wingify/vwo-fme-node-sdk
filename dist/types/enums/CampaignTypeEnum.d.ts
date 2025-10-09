@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 export declare enum CampaignTypeEnum {
-  ROLLOUT = 'FLAG_ROLLOUT',
-  AB = 'FLAG_TESTING',
-  PERSONALIZE = 'FLAG_PERSONALIZE',
+    ROLLOUT = "FLAG_ROLLOUT",
+    AB = "FLAG_TESTING",
+    PERSONALIZE = "FLAG_PERSONALIZE"
 }

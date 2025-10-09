@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 export declare enum ApiEnum {
-  INIT = 'init',
-  ON_INIT = 'onInit',
-  GET_FLAG = 'getFlag',
-  TRACK_EVENT = 'trackEvent',
-  SET_ATTRIBUTE = 'setAttribute',
-  FLUSH_EVENTS = 'flushEvents',
-  UPDATE_SETTINGS = 'updateSettings',
-  SET_ALIAS = 'setAlias',
+    INIT = "init",
+    ON_INIT = "onInit",
+    GET_FLAG = "getFlag",
+    TRACK_EVENT = "trackEvent",
+    SET_ATTRIBUTE = "setAttribute",
+    FLUSH_EVENTS = "flushEvents",
+    UPDATE_SETTINGS = "updateSettings",
+    SET_ALIAS = "setAlias"
 }

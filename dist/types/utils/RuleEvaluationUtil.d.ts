@@ -34,13 +34,4 @@ import { IStorageService } from '../services/StorageService';
  * @returns {Promise<[boolean, any]>} A promise that resolves to a tuple containing the result of the pre-segmentation
  * and the whitelisted object, if any.
  */
-export declare const evaluateRule: (
-  settings: SettingsModel,
-  feature: FeatureModel,
-  campaign: CampaignModel,
-  context: ContextModel,
-  evaluatedFeatureMap: Map<string, unknown>,
-  megGroupWinnerCampaigns: Map<number, any>,
-  storageService: IStorageService,
-  decision: any,
-) => Promise<Record<string, any>>;
+export declare const evaluateRule: (settings: SettingsModel, feature: FeatureModel, campaign: CampaignModel, context: ContextModel, evaluatedFeatureMap: Map<string, unknown>, megGroupWinnerCampaigns: Map<number, any>, storageService: IStorageService, decision: any) => Promise<Record<string, any>>;

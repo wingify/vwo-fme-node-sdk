@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getKeyValue = getKeyValue;
-exports.matchWithRegex = matchWithRegex;
+exports.matchWithRegex = exports.getKeyValue = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -38,6 +37,7 @@ function getKeyValue(obj) {
         value: value,
     };
 }
+exports.getKeyValue = getKeyValue;
 /**
  * Matches a string against a regular expression and returns the match result.
  * @param {string} string - The string to match against the regex.
@@ -54,4 +54,5 @@ function matchWithRegex(string, regex) {
         return null;
     }
 }
+exports.matchWithRegex = matchWithRegex;
 //# sourceMappingURL=SegmentUtil.js.map

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setSettingsAndAddCampaignsToRules = setSettingsAndAddCampaignsToRules;
+exports.setSettingsAndAddCampaignsToRules = void 0;
 var SettingsModel_1 = require("../models/settings/SettingsModel");
 var CampaignUtil_1 = require("./CampaignUtil");
 var FunctionUtil_1 = require("./FunctionUtil");
@@ -23,4 +23,5 @@ function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance) {
     (0, FunctionUtil_1.addLinkedCampaignsToSettings)(vwoClientInstance.settings);
     (0, GatewayServiceUtil_1.addIsGatewayServiceRequiredFlag)(vwoClientInstance.settings);
 }
+exports.setSettingsAndAddCampaignsToRules = setSettingsAndAddCampaignsToRules;
 //# sourceMappingURL=SettingsUtil.js.map

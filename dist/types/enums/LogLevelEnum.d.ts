@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 export declare enum LogLevelEnum {
-  TRACE = 'trace',
-  DEBUG = 'debug',
-  INFO = 'info',
-  WARN = 'warn',
-  ERROR = 'error',
+    TRACE = "trace",
+    DEBUG = "debug",
+    INFO = "info",
+    WARN = "warn",
+    ERROR = "error"
 }

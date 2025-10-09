@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 export declare enum StorageEnum {
-  STORAGE_UNDEFINED = 0,
-  INCORRECT_DATA = 1,
-  NO_DATA_FOUND = 2,
-  CAMPAIGN_PAUSED = 3,
-  VARIATION_NOT_FOUND = 4,
-  WHITELISTED_VARIATION = 5,
+    STORAGE_UNDEFINED = 0,
+    INCORRECT_DATA = 1,
+    NO_DATA_FOUND = 2,
+    CAMPAIGN_PAUSED = 3,
+    VARIATION_NOT_FOUND = 4,
+    WHITELISTED_VARIATION = 5
 }

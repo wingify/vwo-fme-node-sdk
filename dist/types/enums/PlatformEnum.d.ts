@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 export declare enum PlatformEnum {
-  CLIENT = 'client',
-  SERVER = 'server',
+    CLIENT = "client",
+    SERVER = "server"
 }

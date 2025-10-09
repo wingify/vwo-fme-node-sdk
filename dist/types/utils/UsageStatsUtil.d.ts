@@ -19,39 +19,39 @@
  * Implements Singleton pattern to ensure a single instance.
  */
 export declare class UsageStatsUtil {
-  /** Singleton instance */
-  private static instance;
-  /** Internal storage for usage statistics data */
-  private usageStatsData;
-  /** Private constructor to prevent direct instantiation */
-  private constructor();
-  /**
-   * Provides access to the singleton instance of UsageStatsUtil.
-   *
-   * @returns The single instance of UsageStatsUtil
-   */
-  static getInstance(): UsageStatsUtil;
-  /**
-   * Sets usage statistics based on provided options.
-   * Maps various SDK features and configurations to boolean flags.
-   *
-   * @param options - Configuration options for the SDK
-   * @param options.storage - Storage service configuration
-   * @param options.logger - Logger configuration
-   * @param options.eventBatching - Event batching configuration
-   * @param options.integrations - Integrations configuration
-   * @param options.pollingInterval - Polling interval configuration
-   * @param options.sdkName - SDK name configuration
-   */
-  setUsageStats(options: any): void;
-  /**
-   * Retrieves the current usage statistics.
-   *
-   * @returns Record containing boolean flags for various SDK features in use
-   */
-  getUsageStats(): Record<string, boolean | string | number>;
-  /**
-   * Clears the usage statistics data.
-   */
-  clearUsageStats(): void;
+    /** Singleton instance */
+    private static instance;
+    /** Internal storage for usage statistics data */
+    private usageStatsData;
+    /** Private constructor to prevent direct instantiation */
+    private constructor();
+    /**
+     * Provides access to the singleton instance of UsageStatsUtil.
+     *
+     * @returns The single instance of UsageStatsUtil
+     */
+    static getInstance(): UsageStatsUtil;
+    /**
+     * Sets usage statistics based on provided options.
+     * Maps various SDK features and configurations to boolean flags.
+     *
+     * @param options - Configuration options for the SDK
+     * @param options.storage - Storage service configuration
+     * @param options.logger - Logger configuration
+     * @param options.eventBatching - Event batching configuration
+     * @param options.integrations - Integrations configuration
+     * @param options.pollingInterval - Polling interval configuration
+     * @param options.sdkName - SDK name configuration
+     */
+    setUsageStats(options: any): void;
+    /**
+     * Retrieves the current usage statistics.
+     *
+     * @returns Record containing boolean flags for various SDK features in use
+     */
+    getUsageStats(): Record<string, boolean | string | number>;
+    /**
+     * Clears the usage statistics data.
+     */
+    clearUsageStats(): void;
 }

@@ -19,32 +19,32 @@ import { SettingsModel } from '../../../models/settings/SettingsModel';
 import { ContextModel } from '../../../models/user/ContextModel';
 import { FeatureModel } from '../../../models/campaign/FeatureModel';
 export declare class SegmentationManager {
-  private static instance;
-  evaluator: SegmentEvaluator;
-  /**
-   * Singleton pattern implementation for getting the instance of SegmentationManager.
-   * @returns {SegmentationManager} The singleton instance.
-   */
-  static get Instance(): SegmentationManager;
-  /**
-   * Attaches an evaluator to the manager, or creates a new one if none is provided.
-   * @param {SegmentEvaluator} evaluator - Optional evaluator to attach.
-   */
-  attachEvaluator(evaluator?: SegmentEvaluator): void;
-  /**
-   * Sets the contextual data for the segmentation process.
-   * @param {any} settings - The settings data.
-   * @param {any} feature - The feature data including segmentation needs.
-   * @param {any} context - The context data for the evaluation.
-   */
-  setContextualData(settings: SettingsModel, feature: FeatureModel, context: ContextModel): Promise<void>;
-  /**
-   * Validates the segmentation against provided DSL and properties.
-   * @param {Record<string, dynamic>} dsl - The segmentation DSL.
-   * @param {Record<any, dynamic>} properties - The properties to validate against.
-   * @param {SettingsModel} settings - The settings model.
-   * @param {any} context - Optional context.
-   * @returns {Promise<boolean>} True if segmentation is valid, otherwise false.
-   */
-  validateSegmentation(dsl: Record<string, dynamic>, properties: Record<any, dynamic>): Promise<boolean>;
+    private static instance;
+    evaluator: SegmentEvaluator;
+    /**
+     * Singleton pattern implementation for getting the instance of SegmentationManager.
+     * @returns {SegmentationManager} The singleton instance.
+     */
+    static get Instance(): SegmentationManager;
+    /**
+     * Attaches an evaluator to the manager, or creates a new one if none is provided.
+     * @param {SegmentEvaluator} evaluator - Optional evaluator to attach.
+     */
+    attachEvaluator(evaluator?: SegmentEvaluator): void;
+    /**
+     * Sets the contextual data for the segmentation process.
+     * @param {any} settings - The settings data.
+     * @param {any} feature - The feature data including segmentation needs.
+     * @param {any} context - The context data for the evaluation.
+     */
+    setContextualData(settings: SettingsModel, feature: FeatureModel, context: ContextModel): Promise<void>;
+    /**
+     * Validates the segmentation against provided DSL and properties.
+     * @param {Record<string, dynamic>} dsl - The segmentation DSL.
+     * @param {Record<any, dynamic>} properties - The properties to validate against.
+     * @param {SettingsModel} settings - The settings model.
+     * @param {any} context - Optional context.
+     * @returns {Promise<boolean>} True if segmentation is valid, otherwise false.
+     */
+    validateSegmentation(dsl: Record<string, dynamic>, properties: Record<any, dynamic>): Promise<boolean>;
 }

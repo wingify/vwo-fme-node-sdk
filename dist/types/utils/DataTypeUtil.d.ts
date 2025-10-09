@@ -20,9 +20,7 @@ type FunctionType = (val: dynamic) => void;
  * @param val The value to check.
  * @returns True if the value is an object, false otherwise.
  */
-export declare function isObject<T>(
-  val: T,
-): val is Record<any, dynamic> & Exclude<T, Array<dynamic> | FunctionType | RegExp | Promise<dynamic> | Date>;
+export declare function isObject<T>(val: T): val is Record<any, dynamic> & Exclude<T, Array<dynamic> | FunctionType | RegExp | Promise<dynamic> | Date>;
 /**
  * Checks if a value is an array.
  * @param val The value to check.

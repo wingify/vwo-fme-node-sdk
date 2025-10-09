@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 export declare enum StatusEnum {
-  PASSED = 'passed',
-  FAILED = 'failed',
+    PASSED = "passed",
+    FAILED = "failed"
 }

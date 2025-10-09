@@ -1,16 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setVariationAllocation = setVariationAllocation;
-exports.assignRangeValues = assignRangeValues;
-exports.scaleVariationWeights = scaleVariationWeights;
-exports.getBucketingSeed = getBucketingSeed;
-exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
-exports.setCampaignAllocation = setCampaignAllocation;
-exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
-exports.getCampaignsByGroupId = getCampaignsByGroupId;
-exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
-exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
-exports.assignRangeValuesMEG = assignRangeValuesMEG;
+exports.assignRangeValuesMEG = exports.getCampaignIdsFromFeatureKey = exports.getFeatureKeysFromCampaignIds = exports.getCampaignsByGroupId = exports.getGroupDetailsIfCampaignPartOfIt = exports.setCampaignAllocation = exports.getVariationFromCampaignKey = exports.getBucketingSeed = exports.scaleVariationWeights = exports.assignRangeValues = exports.setVariationAllocation = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -61,6 +51,7 @@ function setVariationAllocation(campaign) {
         });
     }
 }
+exports.setVariationAllocation = setVariationAllocation;
 /**
  * Assigns start and end range values to a variation based on its weight.
  * @param {VariationModel} data - The variation model to assign range values.
@@ -81,6 +72,7 @@ function assignRangeValues(data, currentAllocation) {
     }
     return stepFactor;
 }
+exports.assignRangeValues = assignRangeValues;
 /**
  * Scales the weights of variations to sum up to 100%.
  * @param {any[]} variations - The list of variations to scale.
@@ -100,6 +92,7 @@ function scaleVariationWeights(variations) {
         variations.forEach(function (variation) { return (variation.weight = (variation.weight / totalWeight) * 100); });
     }
 }
+exports.scaleVariationWeights = scaleVariationWeights;
 /**
  * Generates a bucketing seed based on user ID, campaign, and optional group ID.
  * @param {string} userId - The user ID.
@@ -120,6 +113,7 @@ function getBucketingSeed(userId, campaign, groupId) {
     // Return a seed combining campaign ID and user ID otherwise
     return bucketKey;
 }
+exports.getBucketingSeed = getBucketingSeed;
 /**
  * Retrieves a variation by its ID within a specific campaign identified by its key.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -144,6 +138,7 @@ function getVariationFromCampaignKey(settings, campaignKey, variationId) {
     }
     return null;
 }
+exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
 /**
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.
@@ -157,6 +152,7 @@ function setCampaignAllocation(campaigns) {
         currentAllocation += stepFactor;
     }
 }
+exports.setCampaignAllocation = setCampaignAllocation;
 /**
  * Determines if a campaign is part of a group.
  * @param {SettingsModel} settings - The settings model containing group associations.
@@ -186,6 +182,7 @@ function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId) {
     }
     return {};
 }
+exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
 /**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
@@ -201,6 +198,7 @@ function getCampaignsByGroupId(settings, groupId) {
         return []; // Return an empty array if the group ID is not found
     }
 }
+exports.getCampaignsByGroupId = getCampaignsByGroupId;
 /**
  * Retrieves feature keys from a list of campaign IDs.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -240,6 +238,7 @@ function getFeatureKeysFromCampaignIds(settings, campaignIdWithVariation) {
     }
     return featureKeys;
 }
+exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 /**
  * Retrieves campaign IDs from a specific feature key.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -257,6 +256,7 @@ function getCampaignIdsFromFeatureKey(settings, featureKey) {
     });
     return campaignIds;
 }
+exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 /**
  * Assigns range values to a campaign based on its weight.
  * @param {any} data - The campaign data containing weight.
@@ -275,6 +275,7 @@ function assignRangeValuesMEG(data, currentAllocation) {
     }
     return stepFactor;
 }
+exports.assignRangeValuesMEG = assignRangeValuesMEG;
 /**
  * Calculates the bucket range for a variation based on its weight.
  * @param {number} variationWeight - The weight of the variation.

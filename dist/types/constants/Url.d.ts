@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export declare const HTTP = 'http';
-export declare const HTTPS = 'https';
-export declare const SEED_URL = 'https://vwo.com';
-export declare const HTTP_PROTOCOL = 'http://';
-export declare const HTTPS_PROTOCOL = 'https';
+export declare const HTTP = "http";
+export declare const HTTPS = "https";
+export declare const SEED_URL = "https://vwo.com";
+export declare const HTTP_PROTOCOL = "http://";
+export declare const HTTPS_PROTOCOL = "https";

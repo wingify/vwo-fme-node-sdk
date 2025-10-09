@@ -35,11 +35,7 @@ export declare function getBucketingSeed(userId: string, campaign: CampaignModel
  * @param {string} variationId - The ID of the variation to retrieve.
  * @returns {VariationModel | null} The found variation model or null if not found.
  */
-export declare function getVariationFromCampaignKey(
-  settings: SettingsModel,
-  campaignKey: string,
-  variationId: number,
-): VariationModel;
+export declare function getVariationFromCampaignKey(settings: SettingsModel, campaignKey: string, variationId: number): VariationModel;
 /**
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.
@@ -52,19 +48,13 @@ export declare function setCampaignAllocation(campaigns: any[]): void;
  * @param {any} [variationId=null] - The optional variation ID.
  * @returns {Object} An object containing the group ID and name if the campaign is part of a group, otherwise an empty object.
  */
-export declare function getGroupDetailsIfCampaignPartOfIt(
-  settings: SettingsModel,
-  campaignId: any,
-  variationId?: any,
-):
-  | {
-      groupId: number;
-      groupName: any;
-    }
-  | {
-      groupId?: undefined;
-      groupName?: undefined;
-    };
+export declare function getGroupDetailsIfCampaignPartOfIt(settings: SettingsModel, campaignId: any, variationId?: any): {
+    groupId: number;
+    groupName: any;
+} | {
+    groupId?: undefined;
+    groupName?: undefined;
+};
 /**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.

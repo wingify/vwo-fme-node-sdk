@@ -20,8 +20,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -47,20 +47,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSettingsPath = getSettingsPath;
-exports.getTrackEventPath = getTrackEventPath;
-exports.getEventsBaseProperties = getEventsBaseProperties;
-exports._getEventBasePayload = _getEventBasePayload;
-exports.getTrackUserPayloadData = getTrackUserPayloadData;
-exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
-exports.getAttributePayloadData = getAttributePayloadData;
-exports.sendPostApiRequest = sendPostApiRequest;
-exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
-exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
-exports.getMessagingEventPayload = getMessagingEventPayload;
-exports.getSDKInitEventPayload = getSDKInitEventPayload;
-exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
-exports.sendEvent = sendEvent;
+exports.sendEvent = exports.getSDKUsageStatsEventPayload = exports.getSDKInitEventPayload = exports.getMessagingEventPayload = exports.setShouldWaitForTrackingCalls = exports.getShouldWaitForTrackingCalls = exports.sendPostApiRequest = exports.getAttributePayloadData = exports.getTrackGoalPayloadData = exports.getTrackUserPayloadData = exports._getEventBasePayload = exports.getEventsBaseProperties = exports.getTrackEventPath = exports.getSettingsPath = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -106,6 +93,7 @@ function getSettingsPath(sdkKey, accountId) {
     };
     return path;
 }
+exports.getSettingsPath = getSettingsPath;
 /**
  * Constructs the tracking path for an event.
  * @param {string} event - The event type.
@@ -128,6 +116,7 @@ function getTrackEventPath(event, accountId, userId) {
     };
     return path;
 }
+exports.getTrackEventPath = getTrackEventPath;
 /**
  * Builds generic properties for different tracking calls required by VWO servers.
  * @param {Object} configObj
@@ -161,6 +150,7 @@ function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress, isUsage
     properties.url = constants_1.Constants.HTTPS_PROTOCOL + UrlUtil_1.UrlUtil.getBaseUrl() + UrlEnum_1.UrlEnum.EVENTS;
     return properties;
 }
+exports.getEventsBaseProperties = getEventsBaseProperties;
 /**
  * Builds generic payload required by all the different tracking calls.
  * @param {Object} settings   settings file
@@ -211,6 +201,7 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipA
     }
     return properties;
 }
+exports._getEventBasePayload = _getEventBasePayload;
 /**
  * Builds payload to track the visitor.
  * @param {Object} configObj
@@ -253,6 +244,7 @@ function getTrackUserPayloadData(settings, eventName, campaignId, variationId, c
     }));
     return properties;
 }
+exports.getTrackUserPayloadData = getTrackUserPayloadData;
 /**
  * Constructs the payload data for tracking goals with custom event properties.
  * @param {any} settings - Configuration settings.
@@ -283,6 +275,7 @@ function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, v
     }));
     return properties;
 }
+exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
  * @param {SettingsModel} settings - Configuration settings.
@@ -311,6 +304,7 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
     }));
     return properties;
 }
+exports.getAttributePayloadData = getAttributePayloadData;
 /**
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
@@ -373,6 +367,7 @@ function sendPostApiRequest(properties_1, payload_1, userId_1) {
         });
     });
 }
+exports.sendPostApiRequest = sendPostApiRequest;
 // Flag to determine if the SDK should wait for a network response.
 var shouldWaitForTrackingCalls = false;
 /**
@@ -382,6 +377,7 @@ var shouldWaitForTrackingCalls = false;
 function getShouldWaitForTrackingCalls() {
     return shouldWaitForTrackingCalls;
 }
+exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
 /**
  * Sets the value to determine if the SDK should wait for a network response.
  * @param value - The value to set.
@@ -389,6 +385,7 @@ function getShouldWaitForTrackingCalls() {
 function setShouldWaitForTrackingCalls(value) {
     shouldWaitForTrackingCalls = value;
 }
+exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 /**
  * Constructs the payload for a messaging event.
  * @param messageType - The type of the message.
@@ -413,6 +410,7 @@ function getMessagingEventPayload(messageType, message, eventName, extraData) {
     properties.d.event.props.data = data;
     return properties;
 }
+exports.getMessagingEventPayload = getMessagingEventPayload;
 /**
  * Constructs the payload for init called event.
  * @param eventName - The name of the event.
@@ -434,6 +432,7 @@ function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
     properties.d.event.props.data = data;
     return properties;
 }
+exports.getSDKInitEventPayload = getSDKInitEventPayload;
 /**
  * Constructs the payload for sdk usage stats event.
  * @param eventName - The name of the event.
@@ -449,6 +448,7 @@ function getSDKUsageStatsEventPayload(eventName, usageStatsAccountId) {
     properties.d.event.props.vwoMeta = UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats();
     return properties;
 }
+exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
 /**
  * Sends an event to VWO (generic event sender).
  * @param properties - Query parameters for the request.
@@ -500,4 +500,5 @@ function sendEvent(properties, payload, eventName) {
         });
     });
 }
+exports.sendEvent = sendEvent;
 //# sourceMappingURL=NetworkUtil.js.map

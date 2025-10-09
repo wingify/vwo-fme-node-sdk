@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 export declare class ContextVWOModel {
-  private location;
-  private userAgent;
-  modelFromDictionary(context: Record<string, any>): this;
-  getLocation(): Record<string, string>;
-  getUaInfo(): Record<string, string>;
+    private location;
+    private userAgent;
+    modelFromDictionary(context: Record<string, any>): this;
+    getLocation(): Record<string, string>;
+    getUaInfo(): Record<string, string>;
 }

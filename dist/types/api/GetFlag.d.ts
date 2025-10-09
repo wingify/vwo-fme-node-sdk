@@ -18,19 +18,14 @@ import { VariationModel } from '../models/campaign/VariationModel';
 import { ContextModel } from '../models/user/ContextModel';
 import IHooksService from '../services/HooksService';
 export declare class Flag {
-  private readonly enabled;
-  private variation;
-  constructor(isEnabled: boolean, variation?: VariationModel | Record<string, any> | undefined);
-  isEnabled(): boolean;
-  getVariables(): Record<string, unknown>[];
-  getVariable<T = unknown>(key: string): T | undefined;
-  getVariable<T = unknown>(key: string, defaultValue: T): T;
+    private readonly enabled;
+    private variation;
+    constructor(isEnabled: boolean, variation?: VariationModel | Record<string, any> | undefined);
+    isEnabled(): boolean;
+    getVariables(): Record<string, unknown>[];
+    getVariable<T = unknown>(key: string): T | undefined;
+    getVariable<T = unknown>(key: string, defaultValue: T): T;
 }
 export declare class FlagApi {
-  static get(
-    featureKey: string,
-    settings: SettingsModel,
-    context: ContextModel,
-    hooksService: IHooksService,
-  ): Promise<Flag>;
+    static get(featureKey: string, settings: SettingsModel, context: ContextModel, hooksService: IHooksService): Promise<Flag>;
 }

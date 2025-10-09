@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 export interface IGatewayService {
-  url: string;
-  port?: number;
-  modelFromDictionary?(gatewayServiceModel: GatewayServiceModel): this;
-  getUrl?(): string;
-  getPort?(): number;
+    url: string;
+    port?: number;
+    modelFromDictionary?(gatewayServiceModel: GatewayServiceModel): this;
+    getUrl?(): string;
+    getPort?(): number;
 }
 export declare class GatewayServiceModel implements IGatewayService {
-  url: string;
-  port: number;
-  modelFromDictionary(gatewayServiceModel: GatewayServiceModel): this;
-  getUrl(): string;
-  getPort(): number;
+    url: string;
+    port: number;
+    modelFromDictionary(gatewayServiceModel: GatewayServiceModel): this;
+    getUrl(): string;
+    getPort(): number;
 }

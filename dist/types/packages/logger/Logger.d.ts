@@ -18,29 +18,29 @@
  * This class provides the structure for logging mechanisms and should be extended by specific logger implementations.
  */
 export declare abstract class Logger {
-  /**
-   * Logs a message at the trace level.
-   * @param {string} message - The message to log.
-   */
-  abstract trace(message: string): void;
-  /**
-   * Logs a message at the debug level.
-   * @param {string} message - The message to log.
-   */
-  abstract debug(message: string): void;
-  /**
-   * Logs a message at the info level.
-   * @param {string} message - The message to log.
-   */
-  abstract info(message: string): void;
-  /**
-   * Logs a message at the warn level.
-   * @param {string} message - The message to log.
-   */
-  abstract warn(message: string): void;
-  /**
-   * Logs a message at the error level.
-   * @param {string} message - The message to log.
-   */
-  abstract error(message: string): void;
+    /**
+     * Logs a message at the trace level.
+     * @param {string} message - The message to log.
+     */
+    abstract trace(message: string): void;
+    /**
+     * Logs a message at the debug level.
+     * @param {string} message - The message to log.
+     */
+    abstract debug(message: string): void;
+    /**
+     * Logs a message at the info level.
+     * @param {string} message - The message to log.
+     */
+    abstract info(message: string): void;
+    /**
+     * Logs a message at the warn level.
+     * @param {string} message - The message to log.
+     */
+    abstract warn(message: string): void;
+    /**
+     * Logs a message at the error level.
+     * @param {string} message - The message to log.
+     */
+    abstract error(message: string): void;
 }

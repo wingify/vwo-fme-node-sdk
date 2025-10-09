@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 export declare enum HeadersEnum {
-  USER_AGENT = 'X-Device-User-Agent',
-  IP = 'VWO-X-Forwarded-For',
+    USER_AGENT = "X-Device-User-Agent",
+    IP = "VWO-X-Forwarded-For"
 }

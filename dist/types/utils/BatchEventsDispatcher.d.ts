@@ -15,27 +15,23 @@
  */
 import { dynamic } from '../types/Common';
 export declare class BatchEventsDispatcher {
-  static dispatch(
-    payload: Record<string, any>,
-    flushCallback: (error: Error | null, data: Record<string, any>) => void,
-    queryParams: Record<string, dynamic>,
-  ): Promise<Record<string, any>>;
-  /**
-   * Sends a POST request to the server.
-   * @param properties - The properties of the request.
-   * @param payload - The payload of the request.
-   * @returns A promise that resolves to a void.
-   */
-  private static sendPostApiRequest;
-  /**
-   * Handles the response from batch events API call
-   * @param properties - Request properties containing events
-   * @param queryParams - Query parameters from the request
-   * @param error - Error object if request failed
-   * @param res - Response object from the API
-   * @param rawData - Raw response data
-   * @param callback - Callback function to handle the result
-   */
-  private static handleBatchResponse;
+    static dispatch(payload: Record<string, any>, flushCallback: (error: Error | null, data: Record<string, any>) => void, queryParams: Record<string, dynamic>): Promise<Record<string, any>>;
+    /**
+     * Sends a POST request to the server.
+     * @param properties - The properties of the request.
+     * @param payload - The payload of the request.
+     * @returns A promise that resolves to a void.
+     */
+    private static sendPostApiRequest;
+    /**
+     * Handles the response from batch events API call
+     * @param properties - Request properties containing events
+     * @param queryParams - Query parameters from the request
+     * @param error - Error object if request failed
+     * @param res - Response object from the API
+     * @param rawData - Raw response data
+     * @param callback - Callback function to handle the result
+     */
+    private static handleBatchResponse;
 }
 export default BatchEventsDispatcher;

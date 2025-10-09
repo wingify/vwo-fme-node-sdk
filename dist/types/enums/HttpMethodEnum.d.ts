@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 export declare enum HttpMethodEnum {
-  GET = 'GET',
-  POST = 'POST',
+    GET = "GET",
+    POST = "POST"
 }

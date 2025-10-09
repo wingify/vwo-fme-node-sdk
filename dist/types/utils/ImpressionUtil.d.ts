@@ -25,9 +25,4 @@ import { ContextModel } from '../models/user/ContextModel';
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-export declare const createAndSendImpressionForVariationShown: (
-  settings: SettingsModel,
-  campaignId: number,
-  variationId: number,
-  context: ContextModel,
-) => Promise<void>;
+export declare const createAndSendImpressionForVariationShown: (settings: SettingsModel, campaignId: number, variationId: number, context: ContextModel) => Promise<void>;

@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.buildMessage = buildMessage;
-exports.sendLogToVWO = sendLogToVWO;
+exports.sendLogToVWO = exports.buildMessage = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -52,6 +51,7 @@ function buildMessage(template, data) {
         return template; // Return the original template in case of an error
     }
 }
+exports.buildMessage = buildMessage;
 /**
  * Sends a log message to VWO.
  * @param {string} message - The message to log.
@@ -80,4 +80,5 @@ function sendLogToVWO(message, messageType, extraData) {
         (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_LOG_EVENT).catch(function () { });
     }
 }
+exports.sendLogToVWO = sendLogToVWO;
 //# sourceMappingURL=LogMessageUtil.js.map

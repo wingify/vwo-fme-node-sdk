@@ -15,16 +15,17 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendGetCall = sendGetCall;
-exports.sendPostCall = sendPostCall;
+exports.sendPostCall = exports.sendGetCall = void 0;
 var HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
 var FunctionUtil_1 = require("./FunctionUtil");
 function sendGetCall(networkOptions) {
     return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, networkOptions);
 }
+exports.sendGetCall = sendGetCall;
 function sendPostCall(networkOptions) {
     return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, networkOptions);
 }
+exports.sendPostCall = sendPostCall;
 /**
  * Sends a request to the server using the Fetch API.
  * @param method - The HTTP method to use for the request.

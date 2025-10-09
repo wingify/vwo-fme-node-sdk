@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 export declare class MetricModel {
-  private key;
-  private identifier;
-  private i;
-  private id;
-  private t;
-  private type;
-  modelFromDictionary(metric: MetricModel): this;
-  getId(): number;
-  getIdentifier(): string;
-  getType(): string;
+    private key;
+    private identifier;
+    private i;
+    private id;
+    private t;
+    private type;
+    modelFromDictionary(metric: MetricModel): this;
+    getId(): number;
+    getIdentifier(): string;
+    getType(): string;
 }

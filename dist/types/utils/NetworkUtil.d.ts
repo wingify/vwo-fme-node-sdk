@@ -22,13 +22,7 @@ export declare function getTrackEventPath(event: string, accountId: string, user
  * @param {String} eventName
  * @returns properties
  */
-export declare function getEventsBaseProperties(
-  eventName: string,
-  visitorUserAgent?: string,
-  ipAddress?: string,
-  isUsageStatsEvent?: boolean,
-  usageStatsAccountId?: number,
-): Record<string, any>;
+export declare function getEventsBaseProperties(eventName: string, visitorUserAgent?: string, ipAddress?: string, isUsageStatsEvent?: boolean, usageStatsAccountId?: number): Record<string, any>;
 /**
  * Builds generic payload required by all the different tracking calls.
  * @param {Object} settings   settings file
@@ -36,15 +30,7 @@ export declare function getEventsBaseProperties(
  * @param {String} eventName  event name
  * @returns properties
  */
-export declare function _getEventBasePayload(
-  settings: SettingsModel,
-  userId: string | number,
-  eventName: string,
-  visitorUserAgent?: string,
-  ipAddress?: string,
-  isUsageStatsEvent?: boolean,
-  usageStatsAccountId?: number,
-): Record<string, any>;
+export declare function _getEventBasePayload(settings: SettingsModel, userId: string | number, eventName: string, visitorUserAgent?: string, ipAddress?: string, isUsageStatsEvent?: boolean, usageStatsAccountId?: number): Record<string, any>;
 /**
  * Builds payload to track the visitor.
  * @param {Object} configObj
@@ -54,13 +40,7 @@ export declare function _getEventBasePayload(
  * @param {Number} variationId
  * @returns track-user payload
  */
-export declare function getTrackUserPayloadData(
-  settings: SettingsModel,
-  eventName: string,
-  campaignId: number,
-  variationId: number,
-  context: ContextModel,
-): Record<string, any>;
+export declare function getTrackUserPayloadData(settings: SettingsModel, eventName: string, campaignId: number, variationId: number, context: ContextModel): Record<string, any>;
 /**
  * Constructs the payload data for tracking goals with custom event properties.
  * @param {any} settings - Configuration settings.
@@ -71,14 +51,7 @@ export declare function getTrackUserPayloadData(
  * @param {string} [ipAddress=''] - Visitor's IP address.
  * @returns {any} - The constructed payload data.
  */
-export declare function getTrackGoalPayloadData(
-  settings: SettingsModel,
-  userId: string | number,
-  eventName: string,
-  eventProperties: Record<string, any>,
-  visitorUserAgent?: string,
-  ipAddress?: string,
-): Record<string, any>;
+export declare function getTrackGoalPayloadData(settings: SettingsModel, userId: string | number, eventName: string, eventProperties: Record<string, any>, visitorUserAgent?: string, ipAddress?: string): Record<string, any>;
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
  * @param {SettingsModel} settings - Configuration settings.
@@ -89,26 +62,14 @@ export declare function getTrackGoalPayloadData(
  * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
  * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
-export declare function getAttributePayloadData(
-  settings: SettingsModel,
-  userId: string | number,
-  eventName: string,
-  attributes: Record<string, any>,
-  visitorUserAgent?: string,
-  ipAddress?: string,
-): Record<string, any>;
+export declare function getAttributePayloadData(settings: SettingsModel, userId: string | number, eventName: string, attributes: Record<string, any>, visitorUserAgent?: string, ipAddress?: string): Record<string, any>;
 /**
  * Sends a POST API request with the specified properties and payload.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
  * @param {string} userId - User ID.
  */
-export declare function sendPostApiRequest(
-  properties: any,
-  payload: any,
-  userId: string,
-  eventProperties?: any,
-): Promise<void>;
+export declare function sendPostApiRequest(properties: any, payload: any, userId: string, eventProperties?: any): Promise<void>;
 /**
  * Checks if the SDK should wait for a network response.
  * @returns {boolean} - True if the SDK should wait for a network response, false otherwise.
@@ -126,12 +87,7 @@ export declare function setShouldWaitForTrackingCalls(value: boolean): void;
  * @param eventName - The name of the event.
  * @returns The constructed payload.
  */
-export declare function getMessagingEventPayload(
-  messageType: string,
-  message: string,
-  eventName: string,
-  extraData?: any,
-): Record<string, any>;
+export declare function getMessagingEventPayload(messageType: string, message: string, eventName: string, extraData?: any): Record<string, any>;
 /**
  * Constructs the payload for init called event.
  * @param eventName - The name of the event.
@@ -139,11 +95,7 @@ export declare function getMessagingEventPayload(
  * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
-export declare function getSDKInitEventPayload(
-  eventName: string,
-  settingsFetchTime?: number,
-  sdkInitTime?: number,
-): Record<string, any>;
+export declare function getSDKInitEventPayload(eventName: string, settingsFetchTime?: number, sdkInitTime?: number): Record<string, any>;
 /**
  * Constructs the payload for sdk usage stats event.
  * @param eventName - The name of the event.
@@ -151,10 +103,7 @@ export declare function getSDKInitEventPayload(
  * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
-export declare function getSDKUsageStatsEventPayload(
-  eventName: string,
-  usageStatsAccountId: number,
-): Record<string, any>;
+export declare function getSDKUsageStatsEventPayload(eventName: string, usageStatsAccountId: number): Record<string, any>;
 /**
  * Sends an event to VWO (generic event sender).
  * @param properties - Query parameters for the request.
@@ -162,8 +111,4 @@ export declare function getSDKUsageStatsEventPayload(
  * @param eventName - The name of the event to send.
  * @returns A promise that resolves to the response from the server.
  */
-export declare function sendEvent(
-  properties: Record<string, any>,
-  payload: Record<string, any>,
-  eventName: string,
-): Promise<any>;
+export declare function sendEvent(properties: Record<string, any>, payload: Record<string, any>, eventName: string): Promise<any>;

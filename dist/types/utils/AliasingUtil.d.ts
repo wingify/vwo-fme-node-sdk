@@ -17,21 +17,21 @@
  * Utility class for handling alias operations through network calls to gateway
  */
 export declare class AliasingUtil {
-  private static readonly KEY_USER_ID;
-  private static readonly KEY_ALIAS_ID;
-  private static readonly GET_ALIAS_URL;
-  private static readonly SET_ALIAS_URL;
-  /**
-   * Retrieves alias for a given user ID
-   * @param userId - The user identifier
-   * @returns Promise<any | null> - The response from the gateway
-   */
-  static getAlias(userId: string): Promise<any | null>;
-  /**
-   * Sets alias for a given user ID
-   * @param userId - The user identifier
-   * @param aliasId - The alias identifier to set
-   * @returns Promise<ResponseModel | null> - The response from the gateway
-   */
-  static setAlias(userId: string, aliasId: string): Promise<any | null>;
+    private static readonly KEY_USER_ID;
+    private static readonly KEY_ALIAS_ID;
+    private static readonly GET_ALIAS_URL;
+    private static readonly SET_ALIAS_URL;
+    /**
+     * Retrieves alias for a given user ID
+     * @param userId - The user identifier
+     * @returns Promise<any | null> - The response from the gateway
+     */
+    static getAlias(userId: string): Promise<any | null>;
+    /**
+     * Sets alias for a given user ID
+     * @param userId - The user identifier
+     * @param aliasId - The alias identifier to set
+     * @returns Promise<ResponseModel | null> - The response from the gateway
+     */
+    static setAlias(userId: string, aliasId: string): Promise<any | null>;
 }

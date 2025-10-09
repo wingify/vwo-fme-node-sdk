@@ -16,30 +16,30 @@
 import { dynamic } from '../../types/Common';
 import { ContextVWOModel } from './ContextVWOModel';
 export interface IVWOContextModel {
-  id: string | number;
-  userAgent?: string;
-  ipAddress?: string;
-  customVariables?: Record<string, any>;
-  variationTargetingVariables?: Record<string, dynamic>;
+    id: string | number;
+    userAgent?: string;
+    ipAddress?: string;
+    customVariables?: Record<string, any>;
+    variationTargetingVariables?: Record<string, dynamic>;
 }
 export declare class ContextModel implements IVWOContextModel {
-  id: string | number;
-  userAgent?: string;
-  ipAddress?: string;
-  customVariables?: Record<string, any>;
-  variationTargetingVariables?: Record<string, dynamic>;
-  postSegmentationVariables?: string[];
-  _vwo?: ContextVWOModel;
-  modelFromDictionary(context: Record<string, any>): this;
-  getId(): string;
-  getUserAgent(): string;
-  getIpAddress(): string;
-  getCustomVariables(): Record<string, any>;
-  setCustomVariables(customVariables: Record<string, any>): void;
-  getVariationTargetingVariables(): Record<string, dynamic>;
-  setVariationTargetingVariables(variationTargetingVariables: Record<string, dynamic>): void;
-  getVwo(): ContextVWOModel;
-  setVwo(_vwo: ContextVWOModel): void;
-  getPostSegmentationVariables(): string[];
-  setPostSegmentationVariables(postSegmentationVariables: string[]): void;
+    id: string | number;
+    userAgent?: string;
+    ipAddress?: string;
+    customVariables?: Record<string, any>;
+    variationTargetingVariables?: Record<string, dynamic>;
+    postSegmentationVariables?: string[];
+    _vwo?: ContextVWOModel;
+    modelFromDictionary(context: Record<string, any>): this;
+    getId(): string;
+    getUserAgent(): string;
+    getIpAddress(): string;
+    getCustomVariables(): Record<string, any>;
+    setCustomVariables(customVariables: Record<string, any>): void;
+    getVariationTargetingVariables(): Record<string, dynamic>;
+    setVariationTargetingVariables(variationTargetingVariables: Record<string, dynamic>): void;
+    getVwo(): ContextVWOModel;
+    setVwo(_vwo: ContextVWOModel): void;
+    getPostSegmentationVariables(): string[];
+    setPostSegmentationVariables(postSegmentationVariables: string[]): void;
 }

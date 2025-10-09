@@ -15,9 +15,9 @@
  */
 import { Connector } from './Connector';
 export declare class Storage {
-  static instance: Storage;
-  connector: Connector | Record<any, any>;
-  attachConnector(connector: any): any;
-  static get Instance(): Storage;
-  getConnector(): any;
+    static instance: Storage;
+    connector: Connector | Record<any, any>;
+    attachConnector(connector: any): any;
+    static get Instance(): Storage;
+    getConnector(): any;
 }

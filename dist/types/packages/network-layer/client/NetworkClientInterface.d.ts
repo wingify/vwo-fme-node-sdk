@@ -16,16 +16,16 @@
 import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 export interface NetworkClientInterface {
-  /**
-   * Sends a GET request to the server.
-   * @param request - The RequestModel containing the URL and parameters for the GET request.
-   * @returns A Promise that resolves to a ResponseModel containing the response data.
-   */
-  GET(request: RequestModel): Promise<ResponseModel>;
-  /**
-   * Sends a POST request to the server.
-   * @param request - The RequestModel containing the URL, headers, and body of the POST request.
-   * @returns A Promise that resolves to a ResponseModel containing the response data.
-   */
-  POST(request: RequestModel): Promise<ResponseModel>;
+    /**
+     * Sends a GET request to the server.
+     * @param request - The RequestModel containing the URL and parameters for the GET request.
+     * @returns A Promise that resolves to a ResponseModel containing the response data.
+     */
+    GET(request: RequestModel): Promise<ResponseModel>;
+    /**
+     * Sends a POST request to the server.
+     * @param request - The RequestModel containing the URL, headers, and body of the POST request.
+     * @returns A Promise that resolves to a ResponseModel containing the response data.
+     */
+    POST(request: RequestModel): Promise<ResponseModel>;
 }

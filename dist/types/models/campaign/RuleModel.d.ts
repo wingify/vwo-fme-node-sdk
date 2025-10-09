@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 export declare class RuleModel {
-  private status;
-  private variationId;
-  private campaignId;
-  private type;
-  private ruleKey;
-  modelFromDictionary(rule: RuleModel): this;
-  getCampaignId(): number;
-  getVariationId(): number;
-  getStatus(): boolean;
-  getType(): string;
-  getRuleKey(): string;
+    private status;
+    private variationId;
+    private campaignId;
+    private type;
+    private ruleKey;
+    modelFromDictionary(rule: RuleModel): this;
+    getCampaignId(): number;
+    getVariationId(): number;
+    getStatus(): boolean;
+    getType(): string;
+    getRuleKey(): string;
 }

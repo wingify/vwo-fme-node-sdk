@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.29.0
+ * vwo-fme-javascript-sdk - v1.30.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 "use strict";
-module.exports = {"version":"1.29.0"};
+module.exports = {"version":"1.30.0"};
 
 /***/ }),
 
@@ -14148,13 +14148,15 @@ var exports = __webpack_exports__;
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
+exports.getUUID = exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
 var LogLevelEnum_1 = __webpack_require__(/*! ./packages/logger/enums/LogLevelEnum */ "./lib/packages/logger/enums/LogLevelEnum.ts");
 Object.defineProperty(exports, "LogLevelEnum", ({ enumerable: true, get: function () { return LogLevelEnum_1.LogLevelEnum; } }));
 var Connector_1 = __webpack_require__(/*! ./packages/storage/Connector */ "./lib/packages/storage/Connector.ts");
 Object.defineProperty(exports, "StorageConnector", ({ enumerable: true, get: function () { return Connector_1.Connector; } }));
 var GetFlag_1 = __webpack_require__(/*! ./api/GetFlag */ "./lib/api/GetFlag.ts");
 Object.defineProperty(exports, "Flag", ({ enumerable: true, get: function () { return GetFlag_1.Flag; } }));
+var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./lib/utils/UuidUtil.ts");
+Object.defineProperty(exports, "getUUID", ({ enumerable: true, get: function () { return UuidUtil_1.getUUID; } }));
 var VWO_1 = __webpack_require__(/*! ./VWO */ "./lib/VWO.ts");
 Object.defineProperty(exports, "init", ({ enumerable: true, get: function () { return VWO_1.init; } }));
 Object.defineProperty(exports, "onInit", ({ enumerable: true, get: function () { return VWO_1.onInit; } }));

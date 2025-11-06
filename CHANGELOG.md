@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.30.0] - 2025-11-06
+
+### Added
+
+- Exposed `getUUID` method that deterministically generates a UUID for a given `userId` and VWO `accountId` combination. The generated UUID is used in VWO and remains consistent for the same user-account pair.
+
+```javascript
+const { getUUID } = require('vwo-fme-node-sdk');
+
+// Generate UUID for a user
+const userId = 'user-123';
+const accountId = '123456';
+const uuid = getUUID(userId, accountId);
+
+console.log('Generated UUID:', uuid);
+// Output: Generated UUID: CC25A368ADA0542699EAD62489811105
+```
+
 ## [1.29.0] - 2025-09-25
 
 ### Added

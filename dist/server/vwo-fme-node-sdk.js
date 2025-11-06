@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.29.0
+ * vwo-fme-node-sdk - v1.30.0
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = {"version":"1.29.0"};
+module.exports = {"version":"1.30.0"};
 
 /***/ }),
 
@@ -14066,7 +14066,7 @@ var exports = __webpack_exports__;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
+exports.getUUID = exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
 var LogLevelEnum_1 = __webpack_require__(/*! ./packages/logger/enums/LogLevelEnum */ "./dist/server-unpacked/packages/logger/enums/LogLevelEnum.js");
 Object.defineProperty(exports, "LogLevelEnum", ({
   enumerable: true,
@@ -14086,6 +14086,13 @@ Object.defineProperty(exports, "Flag", ({
   enumerable: true,
   get: function () {
     return GetFlag_1.Flag;
+  }
+}));
+var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./dist/server-unpacked/utils/UuidUtil.js");
+Object.defineProperty(exports, "getUUID", ({
+  enumerable: true,
+  get: function () {
+    return UuidUtil_1.getUUID;
   }
 }));
 var VWO_1 = __webpack_require__(/*! ./VWO */ "./dist/server-unpacked/VWO.js");

@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.30.0
+ * vwo-fme-node-sdk - v1.30.1
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = {"version":"1.30.0"};
+module.exports = {"version":"1.30.1"};
 
 /***/ }),
 
@@ -555,6 +555,7 @@ var UsageStatsUtil_1 = __webpack_require__(/*! ./utils/UsageStatsUtil */ "./dist
 var constants_1 = __webpack_require__(/*! ./constants */ "./dist/server-unpacked/constants/index.js");
 var VWOBuilder = /** @class */function () {
   function VWOBuilder(options) {
+    this.originalSettings = {};
     this.isValidPollIntervalPassedFromInit = false;
     this.isSettingsValid = false;
     this.settingsFetchTime = undefined;
@@ -638,8 +639,8 @@ var VWOBuilder = /** @class */function () {
       });
       return deferredObject.promise;
     } else {
-      // Avoid parallel fetches by recursively calling fetchSettings
-      return this.fetchSettings(force);
+      deferredObject.resolve(this.originalSettings);
+      return deferredObject.promise;
     }
   };
   /**
@@ -836,7 +837,7 @@ var VWOBuilder = /** @class */function () {
               return [4 /*yield*/, this.getSettings(true)];
             case 1:
               latestSettings = _b.sent();
-              if (latestSettings && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
+              if (latestSettings && Object.keys(latestSettings).length > 0 && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
                 this.originalSettings = latestSettings;
                 clonedSettings = (0, FunctionUtil_1.cloneObject)(latestSettings);
                 logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS);

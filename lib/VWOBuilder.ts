@@ -68,7 +68,7 @@ export class VWOBuilder implements IVWOBuilder {
   settings: Record<any, any>;
   storage: Storage;
   logManager: ILogManager;
-  originalSettings: dynamic;
+  originalSettings: dynamic = {};
   isSettingsFetchInProgress: boolean;
   vwoInstance: IVWOClient;
   batchEventsQueue: BatchEventsQueue;
@@ -184,8 +184,8 @@ export class VWOBuilder implements IVWOBuilder {
 
       return deferredObject.promise;
     } else {
-      // Avoid parallel fetches by recursively calling fetchSettings
-      return this.fetchSettings(force);
+      deferredObject.resolve(this.originalSettings);
+      return deferredObject.promise;
     }
   }
 
@@ -406,7 +406,11 @@ export class VWOBuilder implements IVWOBuilder {
     const poll = async () => {
       try {
         const latestSettings = await this.getSettings(true);
-        if (latestSettings && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
+        if (
+          latestSettings &&
+          Object.keys(latestSettings).length > 0 &&
+          JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)
+        ) {
           this.originalSettings = latestSettings;
           const clonedSettings = cloneObject(latestSettings);
 

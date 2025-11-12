@@ -67,6 +67,7 @@ var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
 var constants_1 = require("./constants");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
+        this.originalSettings = {};
         this.isValidPollIntervalPassedFromInit = false;
         this.isSettingsValid = false;
         this.settingsFetchTime = undefined;
@@ -154,8 +155,8 @@ var VWOBuilder = /** @class */ (function () {
             return deferredObject.promise;
         }
         else {
-            // Avoid parallel fetches by recursively calling fetchSettings
-            return this.fetchSettings(force);
+            deferredObject.resolve(this.originalSettings);
+            return deferredObject.promise;
         }
     };
     /**
@@ -360,7 +361,7 @@ var VWOBuilder = /** @class */ (function () {
                         return [4 /*yield*/, this.getSettings(true)];
                     case 1:
                         latestSettings = _b.sent();
-                        if (latestSettings && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
+                        if (latestSettings && Object.keys(latestSettings).length > 0 && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
                             this.originalSettings = latestSettings;
                             clonedSettings = (0, FunctionUtil_1.cloneObject)(latestSettings);
                             logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS);

@@ -20,6 +20,7 @@ const UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
 const constants_1 = require("./constants");
 class VWOBuilder {
     constructor(options) {
+        this.originalSettings = {};
         this.isValidPollIntervalPassedFromInit = false;
         this.isSettingsValid = false;
         this.settingsFetchTime = undefined;
@@ -101,8 +102,8 @@ class VWOBuilder {
             return deferredObject.promise;
         }
         else {
-            // Avoid parallel fetches by recursively calling fetchSettings
-            return this.fetchSettings(force);
+            deferredObject.resolve(this.originalSettings);
+            return deferredObject.promise;
         }
     }
     /**
@@ -301,7 +302,7 @@ class VWOBuilder {
         const poll = async () => {
             try {
                 const latestSettings = await this.getSettings(true);
-                if (latestSettings && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
+                if (latestSettings && Object.keys(latestSettings).length > 0 && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
                     this.originalSettings = latestSettings;
                     const clonedSettings = (0, FunctionUtil_1.cloneObject)(latestSettings);
                     logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS);

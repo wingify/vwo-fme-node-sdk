@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.30.1
+ * vwo-fme-javascript-sdk - v1.30.2
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 "use strict";
-module.exports = {"version":"1.30.1"};
+module.exports = {"version":"1.30.2"};
 
 /***/ }),
 
@@ -714,7 +714,9 @@ var VWOBuilder = /** @class */ (function () {
                         return [4 /*yield*/, this.getSettings(true)];
                     case 1:
                         latestSettings = _b.sent();
-                        if (latestSettings && Object.keys(latestSettings).length > 0 && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
+                        if (latestSettings &&
+                            Object.keys(latestSettings).length > 0 &&
+                            JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
                             this.originalSettings = latestSettings;
                             clonedSettings = (0, FunctionUtil_1.cloneObject)(latestSettings);
                             logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS);

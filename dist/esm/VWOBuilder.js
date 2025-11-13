@@ -302,7 +302,9 @@ class VWOBuilder {
         const poll = async () => {
             try {
                 const latestSettings = await this.getSettings(true);
-                if (latestSettings && Object.keys(latestSettings).length > 0 && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
+                if (latestSettings &&
+                    Object.keys(latestSettings).length > 0 &&
+                    JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
                     this.originalSettings = latestSettings;
                     const clonedSettings = (0, FunctionUtil_1.cloneObject)(latestSettings);
                     logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS);

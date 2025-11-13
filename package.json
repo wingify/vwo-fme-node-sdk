@@ -1,6 +1,6 @@
 {
   "name": "vwo-fme-node-sdk",
-  "version": "1.30.1",
+  "version": "1.30.2",
   "description": "VWO Node/JavaScript SDK for Feature Management and Experimentation",
   "main": "dist/server/vwo-fme-node-sdk.min.js",
   "browser": "dist/client/vwo-fme-javascript-sdk.min.js",
@@ -8,6 +8,7 @@
   "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "browser": {
         "import": "./dist/esm/index.js",
         "require": "./dist/client/vwo-fme-javascript-sdk.min.js",
@@ -18,10 +19,12 @@
       "default": "./dist/server/vwo-fme-node-sdk.min.js"
     },
     "./esm": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
       "default": "./dist/esm/index.js"
     },
     "./node": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/server/vwo-fme-node-sdk.min.js",
       "default": "./dist/server/vwo-fme-node-sdk.min.js"
     }

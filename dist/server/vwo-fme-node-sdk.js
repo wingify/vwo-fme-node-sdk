@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.30.1
+ * vwo-fme-node-sdk - v1.30.2
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
   \***************************/
 /***/ ((module) => {
 
-module.exports = {"version":"1.30.1"};
+module.exports = {"version":"1.30.2"};
 
 /***/ }),
 

@@ -75,6 +75,8 @@ var UserIdUtil_1 = require("./utils/UserIdUtil");
 var DataTypeUtil_2 = require("./utils/DataTypeUtil");
 var VWOClient = /** @class */ (function () {
     function VWOClient(settings, options) {
+        this.vwoBuilder = null; // Reference to VWOBuilder for cleanup
+        this.isDestroyed = false; // Flag to track if client is already destroyed
         this.options = options;
         (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settings, this);
         UrlUtil_1.UrlUtil.init({
@@ -519,6 +521,73 @@ var VWOClient = /** @class */ (function () {
                         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName: apiName, err: error_1 }));
                         return [2 /*return*/, false];
                     case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Sets the VWOBuilder reference for cleanup purposes
+     * This is called internally by VWOBuilder after client creation
+     * @internal
+     */
+    VWOClient.prototype.setVWOBuilder = function (builder) {
+        this.vwoBuilder = builder;
+    };
+    /**
+     * Destroys the VWO client instance and cleans up all resources
+     * This includes flushing pending events and stopping polling
+     */
+    VWOClient.prototype.destroy = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var apiName, error_2, error_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        apiName = 'destroy';
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 6, , 7]);
+                        // Check if already destroyed (idempotent)
+                        if (this.isDestroyed) {
+                            logger_1.LogManager.Instance.warn('VWO client already destroyed');
+                            return [2 /*return*/];
+                        }
+                        logger_1.LogManager.Instance.info('Destroying VWO client instance');
+                        this.isDestroyed = true;
+                        // Stop polling if VWOBuilder reference is available
+                        if (this.vwoBuilder && typeof this.vwoBuilder.stopPolling === 'function') {
+                            try {
+                                this.vwoBuilder.stopPolling();
+                            }
+                            catch (error) {
+                                logger_1.LogManager.Instance.error('Error stopping polling: ' + error);
+                            }
+                        }
+                        if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 5];
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, BatchEventsQueue_1.BatchEventsQueue.Instance.destroy()];
+                    case 3:
+                        _a.sent();
+                        return [3 /*break*/, 5];
+                    case 4:
+                        error_2 = _a.sent();
+                        logger_1.LogManager.Instance.error('Error destroying BatchEventsQueue: ' + error_2);
+                        return [3 /*break*/, 5];
+                    case 5:
+                        // Clear settings
+                        this.settings = null;
+                        this.originalSettings = {};
+                        this.isSettingsValid = false;
+                        this.vwoBuilder = null;
+                        logger_1.LogManager.Instance.info('VWO client destroyed successfully');
+                        return [3 /*break*/, 7];
+                    case 6:
+                        error_3 = _a.sent();
+                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName: apiName, err: error_3 }));
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         });

@@ -24,6 +24,8 @@ class VWOBuilder {
         this.isValidPollIntervalPassedFromInit = false;
         this.isSettingsValid = false;
         this.settingsFetchTime = undefined;
+        this.pollingTimeout = null;
+        this.isPollingActive = false;
         this.options = options;
     }
     /**
@@ -292,6 +294,10 @@ class VWOBuilder {
      */
     build(settings) {
         this.vwoInstance = new VWOClient_1.VWOClient(settings, this.options);
+        // Set reference to builder for cleanup purposes
+        if (typeof this.vwoInstance.setVWOBuilder === 'function') {
+            this.vwoInstance.setVWOBuilder(this);
+        }
         this.updatePollIntervalAndCheckAndPoll(settings, true);
         return this.vwoInstance;
     }
@@ -299,7 +305,17 @@ class VWOBuilder {
      * Checks and polls for settings updates at the provided interval.
      */
     checkAndPoll() {
+        // Don't start polling if already active
+        if (this.isPollingActive) {
+            logger_1.LogManager.Instance.warn('Polling already active, skipping duplicate poll initiation');
+            return;
+        }
+        this.isPollingActive = true;
         const poll = async () => {
+            // Stop polling if it has been deactivated
+            if (!this.isPollingActive) {
+                return;
+            }
             try {
                 const latestSettings = await this.getSettings(true);
                 if (latestSettings &&
@@ -320,14 +336,30 @@ class VWOBuilder {
                 logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.POLLING_FETCH_SETTINGS_FAILED + ': ' + ex);
             }
             finally {
-                // Schedule next poll
-                const interval = this.options.pollInterval ?? constants_1.Constants.POLLING_INTERVAL;
-                setTimeout(poll, interval);
+                // Schedule next poll only if polling is still active
+                if (this.isPollingActive) {
+                    const interval = this.options.pollInterval ?? constants_1.Constants.POLLING_INTERVAL;
+                    this.pollingTimeout = setTimeout(poll, interval);
+                }
             }
         };
         // Start the polling after the given interval
         const interval = this.options.pollInterval ?? constants_1.Constants.POLLING_INTERVAL;
-        setTimeout(poll, interval);
+        this.pollingTimeout = setTimeout(poll, interval);
+    }
+    /**
+     * Stops the polling mechanism and clears any pending timeouts
+     */
+    stopPolling() {
+        if (!this.isPollingActive) {
+            return;
+        }
+        logger_1.LogManager.Instance.info('Stopping settings polling');
+        this.isPollingActive = false;
+        if (this.pollingTimeout) {
+            clearTimeout(this.pollingTimeout);
+            this.pollingTimeout = null;
+        }
     }
     updatePollIntervalAndCheckAndPoll(settings, shouldCheckAndPoll) {
         if (!this.isValidPollIntervalPassedFromInit) {

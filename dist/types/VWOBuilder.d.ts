@@ -50,6 +50,8 @@ export declare class VWOBuilder implements IVWOBuilder {
   private isValidPollIntervalPassedFromInit;
   isSettingsValid: boolean;
   settingsFetchTime: number | undefined;
+  private pollingTimeout;
+  private isPollingActive;
   constructor(options: IVWOOptions);
   /**
    * Sets the network manager with the provided client and development mode options.
@@ -122,5 +124,9 @@ export declare class VWOBuilder implements IVWOBuilder {
    * Checks and polls for settings updates at the provided interval.
    */
   checkAndPoll(): void;
+  /**
+   * Stops the polling mechanism and clears any pending timeouts
+   */
+  stopPolling(): void;
   private updatePollIntervalAndCheckAndPoll;
 }

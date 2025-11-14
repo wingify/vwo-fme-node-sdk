@@ -42,6 +42,8 @@ const UserIdUtil_1 = require("./utils/UserIdUtil");
 const DataTypeUtil_2 = require("./utils/DataTypeUtil");
 class VWOClient {
     constructor(settings, options) {
+        this.vwoBuilder = null; // Reference to VWOBuilder for cleanup
+        this.isDestroyed = false; // Flag to track if client is already destroyed
         this.options = options;
         (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settings, this);
         UrlUtil_1.UrlUtil.init({
@@ -411,6 +413,57 @@ class VWOClient {
         catch (error) {
             logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName, err: error }));
             return false;
+        }
+    }
+    /**
+     * Sets the VWOBuilder reference for cleanup purposes
+     * This is called internally by VWOBuilder after client creation
+     * @internal
+     */
+    setVWOBuilder(builder) {
+        this.vwoBuilder = builder;
+    }
+    /**
+     * Destroys the VWO client instance and cleans up all resources
+     * This includes flushing pending events and stopping polling
+     */
+    async destroy() {
+        const apiName = 'destroy';
+        try {
+            // Check if already destroyed (idempotent)
+            if (this.isDestroyed) {
+                logger_1.LogManager.Instance.warn('VWO client already destroyed');
+                return;
+            }
+            logger_1.LogManager.Instance.info('Destroying VWO client instance');
+            this.isDestroyed = true;
+            // Stop polling if VWOBuilder reference is available
+            if (this.vwoBuilder && typeof this.vwoBuilder.stopPolling === 'function') {
+                try {
+                    this.vwoBuilder.stopPolling();
+                }
+                catch (error) {
+                    logger_1.LogManager.Instance.error('Error stopping polling: ' + error);
+                }
+            }
+            // Flush any pending events in the batch queue
+            if (BatchEventsQueue_1.BatchEventsQueue.Instance) {
+                try {
+                    await BatchEventsQueue_1.BatchEventsQueue.Instance.destroy();
+                }
+                catch (error) {
+                    logger_1.LogManager.Instance.error('Error destroying BatchEventsQueue: ' + error);
+                }
+            }
+            // Clear settings
+            this.settings = null;
+            this.originalSettings = {};
+            this.isSettingsValid = false;
+            this.vwoBuilder = null;
+            logger_1.LogManager.Instance.info('VWO client destroyed successfully');
+        }
+        catch (error) {
+            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName, err: error }));
         }
     }
 }

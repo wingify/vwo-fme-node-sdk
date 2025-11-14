@@ -71,6 +71,8 @@ var VWOBuilder = /** @class */ (function () {
         this.isValidPollIntervalPassedFromInit = false;
         this.isSettingsValid = false;
         this.settingsFetchTime = undefined;
+        this.pollingTimeout = null;
+        this.isPollingActive = false;
         this.options = options;
     }
     /**
@@ -342,6 +344,10 @@ var VWOBuilder = /** @class */ (function () {
      */
     VWOBuilder.prototype.build = function (settings) {
         this.vwoInstance = new VWOClient_1.VWOClient(settings, this.options);
+        // Set reference to builder for cleanup purposes
+        if (typeof this.vwoInstance.setVWOBuilder === 'function') {
+            this.vwoInstance.setVWOBuilder(this);
+        }
         this.updatePollIntervalAndCheckAndPoll(settings, true);
         return this.vwoInstance;
     };
@@ -351,15 +357,27 @@ var VWOBuilder = /** @class */ (function () {
     VWOBuilder.prototype.checkAndPoll = function () {
         var _this = this;
         var _a;
+        // Don't start polling if already active
+        if (this.isPollingActive) {
+            logger_1.LogManager.Instance.warn('Polling already active, skipping duplicate poll initiation');
+            return;
+        }
+        this.isPollingActive = true;
         var poll = function () { return __awaiter(_this, void 0, void 0, function () {
             var latestSettings, clonedSettings, ex_1, interval_1;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _b.trys.push([0, 2, 3, 4]);
-                        return [4 /*yield*/, this.getSettings(true)];
+                        // Stop polling if it has been deactivated
+                        if (!this.isPollingActive) {
+                            return [2 /*return*/];
+                        }
+                        _b.label = 1;
                     case 1:
+                        _b.trys.push([1, 3, 4, 5]);
+                        return [4 /*yield*/, this.getSettings(true)];
+                    case 2:
                         latestSettings = _b.sent();
                         if (latestSettings &&
                             Object.keys(latestSettings).length > 0 &&
@@ -374,22 +392,39 @@ var VWOBuilder = /** @class */ (function () {
                         else if (latestSettings) {
                             logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
                         }
-                        return [3 /*break*/, 4];
-                    case 2:
+                        return [3 /*break*/, 5];
+                    case 3:
                         ex_1 = _b.sent();
                         logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.POLLING_FETCH_SETTINGS_FAILED + ': ' + ex_1);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
-                        setTimeout(poll, interval_1);
+                        return [3 /*break*/, 5];
+                    case 4:
+                        // Schedule next poll only if polling is still active
+                        if (this.isPollingActive) {
+                            interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
+                            this.pollingTimeout = setTimeout(poll, interval_1);
+                        }
                         return [7 /*endfinally*/];
-                    case 4: return [2 /*return*/];
+                    case 5: return [2 /*return*/];
                 }
             });
         }); };
         // Start the polling after the given interval
         var interval = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
-        setTimeout(poll, interval);
+        this.pollingTimeout = setTimeout(poll, interval);
+    };
+    /**
+     * Stops the polling mechanism and clears any pending timeouts
+     */
+    VWOBuilder.prototype.stopPolling = function () {
+        if (!this.isPollingActive) {
+            return;
+        }
+        logger_1.LogManager.Instance.info('Stopping settings polling');
+        this.isPollingActive = false;
+        if (this.pollingTimeout) {
+            clearTimeout(this.pollingTimeout);
+            this.pollingTimeout = null;
+        }
     };
     VWOBuilder.prototype.updatePollIntervalAndCheckAndPoll = function (settings, shouldCheckAndPoll) {
         var _a;

@@ -424,6 +424,8 @@ var VWOBuilder = /** @class */ (function () {
         this.isValidPollIntervalPassedFromInit = false;
         this.isSettingsValid = false;
         this.settingsFetchTime = undefined;
+        this.pollingTimeout = null;
+        this.isPollingActive = false;
         this.options = options;
     }
     /**
@@ -695,6 +697,10 @@ var VWOBuilder = /** @class */ (function () {
      */
     VWOBuilder.prototype.build = function (settings) {
         this.vwoInstance = new VWOClient_1.VWOClient(settings, this.options);
+        // Set reference to builder for cleanup purposes
+        if (typeof this.vwoInstance.setVWOBuilder === 'function') {
+            this.vwoInstance.setVWOBuilder(this);
+        }
         this.updatePollIntervalAndCheckAndPoll(settings, true);
         return this.vwoInstance;
     };
@@ -704,15 +710,27 @@ var VWOBuilder = /** @class */ (function () {
     VWOBuilder.prototype.checkAndPoll = function () {
         var _this = this;
         var _a;
+        // Don't start polling if already active
+        if (this.isPollingActive) {
+            logger_1.LogManager.Instance.warn('Polling already active, skipping duplicate poll initiation');
+            return;
+        }
+        this.isPollingActive = true;
         var poll = function () { return __awaiter(_this, void 0, void 0, function () {
             var latestSettings, clonedSettings, ex_1, interval_1;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _b.trys.push([0, 2, 3, 4]);
-                        return [4 /*yield*/, this.getSettings(true)];
+                        // Stop polling if it has been deactivated
+                        if (!this.isPollingActive) {
+                            return [2 /*return*/];
+                        }
+                        _b.label = 1;
                     case 1:
+                        _b.trys.push([1, 3, 4, 5]);
+                        return [4 /*yield*/, this.getSettings(true)];
+                    case 2:
                         latestSettings = _b.sent();
                         if (latestSettings &&
                             Object.keys(latestSettings).length > 0 &&
@@ -727,22 +745,39 @@ var VWOBuilder = /** @class */ (function () {
                         else if (latestSettings) {
                             logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
                         }
-                        return [3 /*break*/, 4];
-                    case 2:
+                        return [3 /*break*/, 5];
+                    case 3:
                         ex_1 = _b.sent();
                         logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.POLLING_FETCH_SETTINGS_FAILED + ': ' + ex_1);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
-                        setTimeout(poll, interval_1);
+                        return [3 /*break*/, 5];
+                    case 4:
+                        // Schedule next poll only if polling is still active
+                        if (this.isPollingActive) {
+                            interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
+                            this.pollingTimeout = setTimeout(poll, interval_1);
+                        }
                         return [7 /*endfinally*/];
-                    case 4: return [2 /*return*/];
+                    case 5: return [2 /*return*/];
                 }
             });
         }); };
         // Start the polling after the given interval
         var interval = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
-        setTimeout(poll, interval);
+        this.pollingTimeout = setTimeout(poll, interval);
+    };
+    /**
+     * Stops the polling mechanism and clears any pending timeouts
+     */
+    VWOBuilder.prototype.stopPolling = function () {
+        if (!this.isPollingActive) {
+            return;
+        }
+        logger_1.LogManager.Instance.info('Stopping settings polling');
+        this.isPollingActive = false;
+        if (this.pollingTimeout) {
+            clearTimeout(this.pollingTimeout);
+            this.pollingTimeout = null;
+        }
     };
     VWOBuilder.prototype.updatePollIntervalAndCheckAndPoll = function (settings, shouldCheckAndPoll) {
         var _a;
@@ -849,6 +884,8 @@ var UserIdUtil_1 = __webpack_require__(/*! ./utils/UserIdUtil */ "./lib/utils/Us
 var DataTypeUtil_2 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var VWOClient = /** @class */ (function () {
     function VWOClient(settings, options) {
+        this.vwoBuilder = null; // Reference to VWOBuilder for cleanup
+        this.isDestroyed = false; // Flag to track if client is already destroyed
         this.options = options;
         (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settings, this);
         UrlUtil_1.UrlUtil.init({
@@ -1293,6 +1330,73 @@ var VWOClient = /** @class */ (function () {
                         logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName: apiName, err: error_1 }));
                         return [2 /*return*/, false];
                     case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Sets the VWOBuilder reference for cleanup purposes
+     * This is called internally by VWOBuilder after client creation
+     * @internal
+     */
+    VWOClient.prototype.setVWOBuilder = function (builder) {
+        this.vwoBuilder = builder;
+    };
+    /**
+     * Destroys the VWO client instance and cleans up all resources
+     * This includes flushing pending events and stopping polling
+     */
+    VWOClient.prototype.destroy = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var apiName, error_2, error_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        apiName = 'destroy';
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 6, , 7]);
+                        // Check if already destroyed (idempotent)
+                        if (this.isDestroyed) {
+                            logger_1.LogManager.Instance.warn('VWO client already destroyed');
+                            return [2 /*return*/];
+                        }
+                        logger_1.LogManager.Instance.info('Destroying VWO client instance');
+                        this.isDestroyed = true;
+                        // Stop polling if VWOBuilder reference is available
+                        if (this.vwoBuilder && typeof this.vwoBuilder.stopPolling === 'function') {
+                            try {
+                                this.vwoBuilder.stopPolling();
+                            }
+                            catch (error) {
+                                logger_1.LogManager.Instance.error('Error stopping polling: ' + error);
+                            }
+                        }
+                        if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 5];
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, BatchEventsQueue_1.BatchEventsQueue.Instance.destroy()];
+                    case 3:
+                        _a.sent();
+                        return [3 /*break*/, 5];
+                    case 4:
+                        error_2 = _a.sent();
+                        logger_1.LogManager.Instance.error('Error destroying BatchEventsQueue: ' + error_2);
+                        return [3 /*break*/, 5];
+                    case 5:
+                        // Clear settings
+                        this.settings = null;
+                        this.originalSettings = {};
+                        this.isSettingsValid = false;
+                        this.vwoBuilder = null;
+                        logger_1.LogManager.Instance.info('VWO client destroyed successfully');
+                        return [3 /*break*/, 7];
+                    case 6:
+                        error_3 = _a.sent();
+                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName: apiName, err: error_3 }));
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
@@ -7134,6 +7238,7 @@ var BatchEventsQueue = /** @class */ (function () {
         if (config === void 0) { config = {}; }
         this.queue = [];
         this.timer = null;
+        this.isDestroyed = false;
         if ((0, DataTypeUtil_1.isNumber)(config.requestTimeInterval) && config.requestTimeInterval >= 1) {
             this.requestTimeInterval = config.requestTimeInterval;
         }
@@ -7165,6 +7270,13 @@ var BatchEventsQueue = /** @class */ (function () {
                 defaultValue: this.eventsPerRequest.toString(),
             }));
         }
+        // Set max queue size with a reasonable default
+        if ((0, DataTypeUtil_1.isNumber)(config.maxQueueSize) && config.maxQueueSize > 0) {
+            this.maxQueueSize = config.maxQueueSize;
+        }
+        else {
+            this.maxQueueSize = 1000; // Default max queue size to prevent unbounded growth
+        }
         this.flushCallback = (0, DataTypeUtil_1.isFunction)(config.flushCallback) ? config.flushCallback : function () { };
         this.dispatcher = config.dispatcher;
         this.accountId = SettingsService_1.SettingsService.Instance.accountId;
@@ -7188,6 +7300,20 @@ var BatchEventsQueue = /** @class */ (function () {
      * @param payload - The event to enqueue
      */
     BatchEventsQueue.prototype.enqueue = function (payload) {
+        // Don't enqueue if the instance is destroyed
+        if (this.isDestroyed) {
+            logger_1.LogManager.Instance.warn('BatchEventsQueue is destroyed, cannot enqueue events');
+            return;
+        }
+        // Check if queue has reached max size
+        if (this.queue.length >= this.maxQueueSize) {
+            logger_1.LogManager.Instance.warn((0, LogMessageUtil_1.buildMessage)('Event queue has reached maximum size, dropping oldest events', {
+                maxQueueSize: this.maxQueueSize,
+                currentSize: this.queue.length,
+            }));
+            // Remove oldest events to make room (FIFO)
+            this.queue.splice(0, Math.floor(this.maxQueueSize * 0.1)); // Remove oldest 10%
+        }
         // Enqueue the event in the queue
         this.queue.push(payload);
         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_QUEUE, {
@@ -7264,15 +7390,68 @@ var BatchEventsQueue = /** @class */ (function () {
      * Clears the request timer
      */
     BatchEventsQueue.prototype.clearRequestTimer = function () {
-        clearTimeout(this.timer);
-        this.timer = null;
+        if (this.timer) {
+            clearInterval(this.timer); // FIX: Use clearInterval instead of clearTimeout
+            this.timer = null;
+        }
     };
     /**
      * Flushes the queue and clears the timer
      */
     BatchEventsQueue.prototype.flushAndClearTimer = function () {
-        var flushResult = this.flush(true);
-        return flushResult;
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.clearRequestTimer(); // Actually clear the timer
+                        return [4 /*yield*/, this.flush(true)];
+                    case 1: // Actually clear the timer
+                    return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
+    /**
+     * Destroys the BatchEventsQueue instance, clearing timer and flushing remaining events
+     * This method should be called when the VWO client is no longer needed
+     */
+    BatchEventsQueue.prototype.destroy = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (this.isDestroyed) {
+                            logger_1.LogManager.Instance.warn('BatchEventsQueue already destroyed');
+                            return [2 /*return*/];
+                        }
+                        logger_1.LogManager.Instance.info('Destroying BatchEventsQueue instance');
+                        this.isDestroyed = true;
+                        // Clear the timer first to stop new flushes
+                        this.clearRequestTimer();
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.flush(true)];
+                    case 2:
+                        _a.sent();
+                        logger_1.LogManager.Instance.info('BatchEventsQueue destroyed successfully');
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_1 = _a.sent();
+                        logger_1.LogManager.Instance.error('Error flushing events during destroy: ' + error_1);
+                        return [3 /*break*/, 4];
+                    case 4:
+                        // Clear the queue
+                        this.queue = [];
+                        // Clear singleton instance
+                        if (BatchEventsQueue.instance === this) {
+                            BatchEventsQueue.instance = null;
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     return BatchEventsQueue;
 }());
@@ -14038,9 +14217,9 @@ module.exports = {
   infoMessages: __webpack_require__(/*! ./src/info-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/info-messages.json"),
   warnMessages: __webpack_require__(/*! ./src/warn-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/warn-messages.json"),
   errorMessages: __webpack_require__(/*! ./src/error-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/error-messages.json"),
-  traceMessages: __webpack_require__(/*! ./src/trace-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/trace-messages.json"),
-  errorMessagesV2: __webpack_require__(/*! ./src/error-messages-v2.json */ "./node_modules/vwo-fme-sdk-log-messages/src/error-messages-v2.json")
-};
+  traceMessages: __webpack_require__(/*! ./src/trace-messages.json */ "./node_modules/vwo-fme-sdk-log-messages/src/trace-messages.json")
+}
+
 
 /***/ }),
 
@@ -14055,17 +14234,6 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 
 /***/ }),
 
-/***/ "./node_modules/vwo-fme-sdk-log-messages/src/error-messages-v2.json":
-/*!**************************************************************************!*\
-  !*** ./node_modules/vwo-fme-sdk-log-messages/src/error-messages-v2.json ***!
-  \**************************************************************************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Error while fetching data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API."}');
-
-/***/ }),
-
 /***/ "./node_modules/vwo-fme-sdk-log-messages/src/error-messages.json":
 /*!***********************************************************************!*\
   !*** ./node_modules/vwo-fme-sdk-log-messages/src/error-messages.json ***!
@@ -14073,7 +14241,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be 
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}","CONFIG_PARAMETER_INVALID":"{parameter} paased in {api} API is not correct. It should be of type:{type}}","BATCH_QUEUE_EMPTY":"No batch queue present for account:{accountId} when calling flushEvents API. Check batchEvents config in launch API","RETRY_CONFIG_INVALID":"Retry config is invalid. Please check the VWO developer documentation. Current retry config: {retryConfig}","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_NOT_ENABLED":"Aliasing is not enabled. Set isAliasingEnabled in init to enable aliasing"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SDK {date} Options should be of type object","INIT_OPTIONS_SDK_KEY_ERROR":"[ERROR]: VWO-SDK {date} Please provide the sdkKey in the options and should be a of type string","INIT_OPTIONS_ACCOUNT_ID_ERROR":"[ERROR]: VWO-SDK {date} Please provide VWO account ID in the options and should be a of type string|number","INIT_OPTIONS_INVALID":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","SETTINGS_FETCH_ERROR":"Settings could not be fetched. Error:{err}","SETTINGS_SCHEMA_INVALID":"Settings are not valid. Failed schema validation","POLLING_FETCH_SETTINGS_FAILED":"Error while fetching VWO settings with polling","API_THROW_ERROR":"API - {apiName} failed to execute. Trace:{err}","API_INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","API_SETTING_INVALID":"Settings are not valid. Contact VWO Support","API_CONTEXT_INVALID":"Context should be an object and must contain a mandatory key - id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","STORED_DATA_ERROR":"Error in getting data from storage. Error:{err}","STORING_DATA_ERROR":"Key:{featureKey} is not valid. Not able to store data into storage","GATEWAY_URL_ERROR":"Please provide a valid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","SETTINGS_FETCH_FAILED":"Failed to fetch settings and hence VWO client instance couldn\'t be updated when API: {apiName} got called having isViaWebhook param as {isViaWebhook}. Error: {err}","NETWORK_CALL_RETRY_ATTEMPT":"Request failed for {endPoint}, Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_RETRY_FAILED":"Max retries reached. Request failed for {endPoint}, Error: {err}","CONFIG_PARAMETER_INVALID":"{parameter} paased in {api} API is not correct. It should be of type:{type}}","BATCH_QUEUE_EMPTY":"No batch queue present for account:{accountId} when calling flushEvents API. Check batchEvents config in launch API","RETRY_CONFIG_INVALID":"Retry config is invalid. Please check the VWO developer documentation. Current retry config: {retryConfig}"}');
 
 /***/ }),
 
@@ -14084,7 +14252,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","BATCH_EVENTS_WITH_BROWSER":"Batch Events configuration in the SDK will be ignored because a browser environment has been detected.","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests"}');
 
 /***/ }),
 

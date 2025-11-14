@@ -559,6 +559,8 @@ var VWOBuilder = /** @class */function () {
     this.isValidPollIntervalPassedFromInit = false;
     this.isSettingsValid = false;
     this.settingsFetchTime = undefined;
+    this.pollingTimeout = null;
+    this.isPollingActive = false;
     this.options = options;
   }
   /**
@@ -817,6 +819,10 @@ var VWOBuilder = /** @class */function () {
    */
   VWOBuilder.prototype.build = function (settings) {
     this.vwoInstance = new VWOClient_1.VWOClient(settings, this.options);
+    // Set reference to builder for cleanup purposes
+    if (typeof this.vwoInstance.setVWOBuilder === 'function') {
+      this.vwoInstance.setVWOBuilder(this);
+    }
     this.updatePollIntervalAndCheckAndPoll(settings, true);
     return this.vwoInstance;
   };
@@ -826,6 +832,12 @@ var VWOBuilder = /** @class */function () {
   VWOBuilder.prototype.checkAndPoll = function () {
     var _this = this;
     var _a;
+    // Don't start polling if already active
+    if (this.isPollingActive) {
+      logger_1.LogManager.Instance.warn('Polling already active, skipping duplicate poll initiation');
+      return;
+    }
+    this.isPollingActive = true;
     var poll = function () {
       return __awaiter(_this, void 0, void 0, function () {
         var latestSettings, clonedSettings, ex_1, interval_1;
@@ -833,9 +845,15 @@ var VWOBuilder = /** @class */function () {
         return __generator(this, function (_b) {
           switch (_b.label) {
             case 0:
-              _b.trys.push([0, 2, 3, 4]);
-              return [4 /*yield*/, this.getSettings(true)];
+              // Stop polling if it has been deactivated
+              if (!this.isPollingActive) {
+                return [2 /*return*/];
+              }
+              _b.label = 1;
             case 1:
+              _b.trys.push([1, 3, 4, 5]);
+              return [4 /*yield*/, this.getSettings(true)];
+            case 2:
               latestSettings = _b.sent();
               if (latestSettings && Object.keys(latestSettings).length > 0 && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
                 this.originalSettings = latestSettings;
@@ -847,16 +865,19 @@ var VWOBuilder = /** @class */function () {
               } else if (latestSettings) {
                 logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
               }
-              return [3 /*break*/, 4];
-            case 2:
+              return [3 /*break*/, 5];
+            case 3:
               ex_1 = _b.sent();
               logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.POLLING_FETCH_SETTINGS_FAILED + ': ' + ex_1);
-              return [3 /*break*/, 4];
-            case 3:
-              interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
-              setTimeout(poll, interval_1);
-              return [7 /*endfinally*/];
+              return [3 /*break*/, 5];
             case 4:
+              // Schedule next poll only if polling is still active
+              if (this.isPollingActive) {
+                interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
+                this.pollingTimeout = setTimeout(poll, interval_1);
+              }
+              return [7 /*endfinally*/];
+            case 5:
               return [2 /*return*/];
           }
         });
@@ -864,7 +885,21 @@ var VWOBuilder = /** @class */function () {
     };
     // Start the polling after the given interval
     var interval = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
-    setTimeout(poll, interval);
+    this.pollingTimeout = setTimeout(poll, interval);
+  };
+  /**
+   * Stops the polling mechanism and clears any pending timeouts
+   */
+  VWOBuilder.prototype.stopPolling = function () {
+    if (!this.isPollingActive) {
+      return;
+    }
+    logger_1.LogManager.Instance.info('Stopping settings polling');
+    this.isPollingActive = false;
+    if (this.pollingTimeout) {
+      clearTimeout(this.pollingTimeout);
+      this.pollingTimeout = null;
+    }
   };
   VWOBuilder.prototype.updatePollIntervalAndCheckAndPoll = function (settings, shouldCheckAndPoll) {
     var _a;
@@ -1047,6 +1082,8 @@ var UserIdUtil_1 = __webpack_require__(/*! ./utils/UserIdUtil */ "./dist/server-
 var DataTypeUtil_2 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var VWOClient = /** @class */function () {
   function VWOClient(settings, options) {
+    this.vwoBuilder = null; // Reference to VWOBuilder for cleanup
+    this.isDestroyed = false; // Flag to track if client is already destroyed
     this.options = options;
     (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settings, this);
     UrlUtil_1.UrlUtil.init({
@@ -1515,6 +1552,76 @@ var VWOClient = /** @class */function () {
             }));
             return [2 /*return*/, false];
           case 4:
+            return [2 /*return*/];
+        }
+      });
+    });
+  };
+  /**
+   * Sets the VWOBuilder reference for cleanup purposes
+   * This is called internally by VWOBuilder after client creation
+   * @internal
+   */
+  VWOClient.prototype.setVWOBuilder = function (builder) {
+    this.vwoBuilder = builder;
+  };
+  /**
+   * Destroys the VWO client instance and cleans up all resources
+   * This includes flushing pending events and stopping polling
+   */
+  VWOClient.prototype.destroy = function () {
+    return __awaiter(this, void 0, void 0, function () {
+      var apiName, error_2, error_3;
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            apiName = 'destroy';
+            _a.label = 1;
+          case 1:
+            _a.trys.push([1, 6,, 7]);
+            // Check if already destroyed (idempotent)
+            if (this.isDestroyed) {
+              logger_1.LogManager.Instance.warn('VWO client already destroyed');
+              return [2 /*return*/];
+            }
+            logger_1.LogManager.Instance.info('Destroying VWO client instance');
+            this.isDestroyed = true;
+            // Stop polling if VWOBuilder reference is available
+            if (this.vwoBuilder && typeof this.vwoBuilder.stopPolling === 'function') {
+              try {
+                this.vwoBuilder.stopPolling();
+              } catch (error) {
+                logger_1.LogManager.Instance.error('Error stopping polling: ' + error);
+              }
+            }
+            if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 5];
+            _a.label = 2;
+          case 2:
+            _a.trys.push([2, 4,, 5]);
+            return [4 /*yield*/, BatchEventsQueue_1.BatchEventsQueue.Instance.destroy()];
+          case 3:
+            _a.sent();
+            return [3 /*break*/, 5];
+          case 4:
+            error_2 = _a.sent();
+            logger_1.LogManager.Instance.error('Error destroying BatchEventsQueue: ' + error_2);
+            return [3 /*break*/, 5];
+          case 5:
+            // Clear settings
+            this.settings = null;
+            this.originalSettings = {};
+            this.isSettingsValid = false;
+            this.vwoBuilder = null;
+            logger_1.LogManager.Instance.info('VWO client destroyed successfully');
+            return [3 /*break*/, 7];
+          case 6:
+            error_3 = _a.sent();
+            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+              apiName: apiName,
+              err: error_3
+            }));
+            return [3 /*break*/, 7];
+          case 7:
             return [2 /*return*/];
         }
       });
@@ -8358,6 +8465,7 @@ var BatchEventsQueue = /** @class */function () {
     }
     this.queue = [];
     this.timer = null;
+    this.isDestroyed = false;
     if ((0, DataTypeUtil_1.isNumber)(config.requestTimeInterval) && config.requestTimeInterval >= 1) {
       this.requestTimeInterval = config.requestTimeInterval;
     } else {
@@ -8384,6 +8492,12 @@ var BatchEventsQueue = /** @class */function () {
         defaultValue: this.eventsPerRequest.toString()
       }));
     }
+    // Set max queue size with a reasonable default
+    if ((0, DataTypeUtil_1.isNumber)(config.maxQueueSize) && config.maxQueueSize > 0) {
+      this.maxQueueSize = config.maxQueueSize;
+    } else {
+      this.maxQueueSize = 1000; // Default max queue size to prevent unbounded growth
+    }
     this.flushCallback = (0, DataTypeUtil_1.isFunction)(config.flushCallback) ? config.flushCallback : function () {};
     this.dispatcher = config.dispatcher;
     this.accountId = SettingsService_1.SettingsService.Instance.accountId;
@@ -8407,6 +8521,20 @@ var BatchEventsQueue = /** @class */function () {
    * @param payload - The event to enqueue
    */
   BatchEventsQueue.prototype.enqueue = function (payload) {
+    // Don't enqueue if the instance is destroyed
+    if (this.isDestroyed) {
+      logger_1.LogManager.Instance.warn('BatchEventsQueue is destroyed, cannot enqueue events');
+      return;
+    }
+    // Check if queue has reached max size
+    if (this.queue.length >= this.maxQueueSize) {
+      logger_1.LogManager.Instance.warn((0, LogMessageUtil_1.buildMessage)('Event queue has reached maximum size, dropping oldest events', {
+        maxQueueSize: this.maxQueueSize,
+        currentSize: this.queue.length
+      }));
+      // Remove oldest events to make room (FIFO)
+      this.queue.splice(0, Math.floor(this.maxQueueSize * 0.1)); // Remove oldest 10%
+    }
     // Enqueue the event in the queue
     this.queue.push(payload);
     logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_QUEUE, {
@@ -8490,15 +8618,69 @@ var BatchEventsQueue = /** @class */function () {
    * Clears the request timer
    */
   BatchEventsQueue.prototype.clearRequestTimer = function () {
-    clearTimeout(this.timer);
-    this.timer = null;
+    if (this.timer) {
+      clearInterval(this.timer); // FIX: Use clearInterval instead of clearTimeout
+      this.timer = null;
+    }
   };
   /**
    * Flushes the queue and clears the timer
    */
   BatchEventsQueue.prototype.flushAndClearTimer = function () {
-    var flushResult = this.flush(true);
-    return flushResult;
+    return __awaiter(this, void 0, void 0, function () {
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            this.clearRequestTimer(); // Actually clear the timer
+            return [4 /*yield*/, this.flush(true)];
+          case 1:
+            // Actually clear the timer
+            return [2 /*return*/, _a.sent()];
+        }
+      });
+    });
+  };
+  /**
+   * Destroys the BatchEventsQueue instance, clearing timer and flushing remaining events
+   * This method should be called when the VWO client is no longer needed
+   */
+  BatchEventsQueue.prototype.destroy = function () {
+    return __awaiter(this, void 0, void 0, function () {
+      var error_1;
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            if (this.isDestroyed) {
+              logger_1.LogManager.Instance.warn('BatchEventsQueue already destroyed');
+              return [2 /*return*/];
+            }
+            logger_1.LogManager.Instance.info('Destroying BatchEventsQueue instance');
+            this.isDestroyed = true;
+            // Clear the timer first to stop new flushes
+            this.clearRequestTimer();
+            _a.label = 1;
+          case 1:
+            _a.trys.push([1, 3,, 4]);
+            return [4 /*yield*/, this.flush(true)];
+          case 2:
+            _a.sent();
+            logger_1.LogManager.Instance.info('BatchEventsQueue destroyed successfully');
+            return [3 /*break*/, 4];
+          case 3:
+            error_1 = _a.sent();
+            logger_1.LogManager.Instance.error('Error flushing events during destroy: ' + error_1);
+            return [3 /*break*/, 4];
+          case 4:
+            // Clear the queue
+            this.queue = [];
+            // Clear singleton instance
+            if (BatchEventsQueue.instance === this) {
+              BatchEventsQueue.instance = null;
+            }
+            return [2 /*return*/];
+        }
+      });
+    });
   };
   return BatchEventsQueue;
 }();

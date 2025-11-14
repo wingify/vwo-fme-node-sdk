@@ -30,6 +30,7 @@ class BatchEventsQueue {
     constructor(config = {}) {
         this.queue = [];
         this.timer = null;
+        this.isDestroyed = false;
         if ((0, DataTypeUtil_1.isNumber)(config.requestTimeInterval) && config.requestTimeInterval >= 1) {
             this.requestTimeInterval = config.requestTimeInterval;
         }
@@ -61,6 +62,13 @@ class BatchEventsQueue {
                 defaultValue: this.eventsPerRequest.toString(),
             }));
         }
+        // Set max queue size with a reasonable default
+        if ((0, DataTypeUtil_1.isNumber)(config.maxQueueSize) && config.maxQueueSize > 0) {
+            this.maxQueueSize = config.maxQueueSize;
+        }
+        else {
+            this.maxQueueSize = 1000; // Default max queue size to prevent unbounded growth
+        }
         this.flushCallback = (0, DataTypeUtil_1.isFunction)(config.flushCallback) ? config.flushCallback : () => { };
         this.dispatcher = config.dispatcher;
         this.accountId = SettingsService_1.SettingsService.Instance.accountId;
@@ -80,6 +88,20 @@ class BatchEventsQueue {
      * @param payload - The event to enqueue
      */
     enqueue(payload) {
+        // Don't enqueue if the instance is destroyed
+        if (this.isDestroyed) {
+            logger_1.LogManager.Instance.warn('BatchEventsQueue is destroyed, cannot enqueue events');
+            return;
+        }
+        // Check if queue has reached max size
+        if (this.queue.length >= this.maxQueueSize) {
+            logger_1.LogManager.Instance.warn((0, LogMessageUtil_1.buildMessage)('Event queue has reached maximum size, dropping oldest events', {
+                maxQueueSize: this.maxQueueSize,
+                currentSize: this.queue.length,
+            }));
+            // Remove oldest events to make room (FIFO)
+            this.queue.splice(0, Math.floor(this.maxQueueSize * 0.1)); // Remove oldest 10%
+        }
         // Enqueue the event in the queue
         this.queue.push(payload);
         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_QUEUE, {
@@ -144,15 +166,45 @@ class BatchEventsQueue {
      * Clears the request timer
      */
     clearRequestTimer() {
-        clearTimeout(this.timer);
-        this.timer = null;
+        if (this.timer) {
+            clearInterval(this.timer); // FIX: Use clearInterval instead of clearTimeout
+            this.timer = null;
+        }
     }
     /**
      * Flushes the queue and clears the timer
      */
-    flushAndClearTimer() {
-        const flushResult = this.flush(true);
-        return flushResult;
+    async flushAndClearTimer() {
+        this.clearRequestTimer(); // Actually clear the timer
+        return await this.flush(true);
+    }
+    /**
+     * Destroys the BatchEventsQueue instance, clearing timer and flushing remaining events
+     * This method should be called when the VWO client is no longer needed
+     */
+    async destroy() {
+        if (this.isDestroyed) {
+            logger_1.LogManager.Instance.warn('BatchEventsQueue already destroyed');
+            return;
+        }
+        logger_1.LogManager.Instance.info('Destroying BatchEventsQueue instance');
+        this.isDestroyed = true;
+        // Clear the timer first to stop new flushes
+        this.clearRequestTimer();
+        // Flush any remaining events
+        try {
+            await this.flush(true);
+            logger_1.LogManager.Instance.info('BatchEventsQueue destroyed successfully');
+        }
+        catch (error) {
+            logger_1.LogManager.Instance.error('Error flushing events during destroy: ' + error);
+        }
+        // Clear the queue
+        this.queue = [];
+        // Clear singleton instance
+        if (BatchEventsQueue.instance === this) {
+            BatchEventsQueue.instance = null;
+        }
     }
 }
 exports.BatchEventsQueue = BatchEventsQueue;

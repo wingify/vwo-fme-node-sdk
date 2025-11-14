@@ -25,6 +25,8 @@ export interface IVWOClient {
   updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
   flushEvents(): Promise<Record<string, any>>;
   setAlias(context: Record<string, any>, aliasId: string): Promise<boolean>;
+  setVWOBuilder(builder: { stopPolling?: () => void }): void;
+  destroy(): Promise<void>;
 }
 export declare class VWOClient implements IVWOClient {
   settings: SettingsModel;
@@ -34,6 +36,8 @@ export declare class VWOClient implements IVWOClient {
   isSettingsValid: boolean;
   settingsFetchTime: number | undefined;
   isAliasingEnabled: boolean;
+  private vwoBuilder;
+  private isDestroyed;
   constructor(settings: Record<any, any>, options: IVWOOptions);
   options?: IVWOOptions;
   /**
@@ -94,4 +98,15 @@ export declare class VWOClient implements IVWOClient {
    * @returns Promise<boolean> - Returns true if successful, false otherwise
    */
   setAlias(contextOrUserId: Record<string, any> | string, aliasId: string): Promise<boolean>;
+  /**
+   * Sets the VWOBuilder reference for cleanup purposes
+   * This is called internally by VWOBuilder after client creation
+   * @internal
+   */
+  setVWOBuilder(builder: { stopPolling?: () => void }): void;
+  /**
+   * Destroys the VWO client instance and cleans up all resources
+   * This includes flushing pending events and stopping polling
+   */
+  destroy(): Promise<void>;
 }

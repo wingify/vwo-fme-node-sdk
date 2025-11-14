@@ -16,6 +16,7 @@
 export interface BatchConfig {
   requestTimeInterval?: number;
   eventsPerRequest?: number;
+  maxQueueSize?: number;
   flushCallback?: (error: Error | null, data: Record<string, any>) => void;
   dispatcher?: (
     queue: Record<string, any>[],
@@ -28,6 +29,8 @@ export declare class BatchEventsQueue {
   private timer;
   private requestTimeInterval;
   private eventsPerRequest;
+  private maxQueueSize;
+  private isDestroyed;
   private flushCallback;
   private accountId;
   private dispatcher;
@@ -63,5 +66,10 @@ export declare class BatchEventsQueue {
    * Flushes the queue and clears the timer
    */
   flushAndClearTimer(): Promise<Record<string, any>>;
+  /**
+   * Destroys the BatchEventsQueue instance, clearing timer and flushing remaining events
+   * This method should be called when the VWO client is no longer needed
+   */
+  destroy(): Promise<void>;
 }
 export default BatchEventsQueue;

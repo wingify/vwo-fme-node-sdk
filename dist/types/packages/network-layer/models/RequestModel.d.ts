@@ -16,6 +16,7 @@ export declare class RequestModel {
   private body;
   private headers;
   private retryConfig;
+  private lastError;
   private eventName;
   private uuid;
   private campaignId;
@@ -185,6 +186,20 @@ export declare class RequestModel {
      * @returns The event properties.
      */
   getEventProperties(): any;
+  /**
+     * Sets the last error message.
+    /**
+     * Retrieves the last error message.
+     * @returns The last error message.
+     */
+  getLastError(): string;
+  /**
+     * Sets the last error message.
+    /**
+     * Sets the last error message.
+     * @param lastError The last error message to set.
+     */
+  setLastError(lastError: string): this;
   /**
    * Constructs the options for the HTTP request based on the current state of the model.
    * This method is used to prepare the request options for execution.

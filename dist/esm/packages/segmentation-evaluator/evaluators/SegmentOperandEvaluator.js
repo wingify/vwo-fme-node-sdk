@@ -24,6 +24,8 @@ const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 const GatewayServiceUtil_1 = require("../../../utils/GatewayServiceUtil");
 const UrlEnum_1 = require("../../../enums/UrlEnum");
 const logger_1 = require("../../logger");
+const ApiEnum_1 = require("../../../enums/ApiEnum");
+const FunctionUtil_1 = require("../../../utils/FunctionUtil");
 /**
  * SegmentOperandEvaluator class provides methods to evaluate different types of DSL (Domain Specific Language)
  * expressions based on the segment conditions defined for custom variables, user IDs, and user agents.
@@ -35,7 +37,7 @@ class SegmentOperandEvaluator {
      * @param {Record<string, dynamic>} properties - The properties object containing the actual values to be matched against.
      * @returns {Promise<boolean>} - A promise that resolves to a boolean indicating if the DSL condition is met.
      */
-    async evaluateCustomVariableDSL(dslOperandValue, properties) {
+    async evaluateCustomVariableDSL(dslOperandValue, properties, context) {
         // Extract key and value from the DSL operand
         const { key, value } = (0, SegmentUtil_1.getKeyValue)(dslOperandValue);
         const operandKey = key;
@@ -49,7 +51,7 @@ class SegmentOperandEvaluator {
             const listIdRegex = /inlist\(([^)]+)\)/;
             const match = operand.match(listIdRegex);
             if (!match || match.length < 2) {
-                logger_1.LogManager.Instance.error("Invalid 'inList' operand format");
+                logger_1.LogManager.Instance.errorLog('INVALID_ATTRIBUTE_LIST_FORMAT', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                 return false;
             }
             // Process the tag value and prepare query parameters
@@ -62,14 +64,16 @@ class SegmentOperandEvaluator {
             };
             // Make a web service call to check the attribute against the list
             try {
-                const res = await (0, GatewayServiceUtil_1.getFromGatewayService)(queryParamsObj, UrlEnum_1.UrlEnum.ATTRIBUTE_CHECK);
+                const res = await (0, GatewayServiceUtil_1.getFromGatewayService)(queryParamsObj, UrlEnum_1.UrlEnum.ATTRIBUTE_CHECK, context);
                 if (!res || res === undefined || res === 'false' || res.status === 0) {
                     return false;
                 }
                 return res;
             }
             catch (error) {
-                logger_1.LogManager.Instance.error('Error while fetching data: ' + error);
+                logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_DATA_FROM_GATEWAY', {
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                 return false;
             }
         }
@@ -107,7 +111,7 @@ class SegmentOperandEvaluator {
     evaluateUserAgentDSL(dslOperandValue, context) {
         const operand = dslOperandValue;
         if (!context.getUserAgent() || context.getUserAgent() === undefined) {
-            logger_1.LogManager.Instance.info('To Evaluate UserAgent segmentation, please provide userAgent in context');
+            logger_1.LogManager.Instance.errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
             return false;
         }
         let tagValue = decodeURIComponent(context.getUserAgent());

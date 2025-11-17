@@ -22,6 +22,7 @@ const logger_1 = require("../../logger");
 const SettingsService_1 = require("../../../services/SettingsService");
 const SettingsSchemaValidation_1 = require("../../../models/schemas/SettingsSchemaValidation");
 const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
+const FunctionUtil_1 = require("../../../utils/FunctionUtil");
 /**
  * A class that provides browser storage functionality for managing feature flags and experiments data
  * @class BrowserStorageConnector
@@ -71,7 +72,9 @@ class BrowserStorageConnector {
             return data ? JSON.parse(data) : {};
         }
         catch (error) {
-            logger_1.LogManager.Instance.error(`Error reading from storage: ${error}`);
+            logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+            }, { an: constants_1.Constants.BROWSER_STORAGE });
             return {};
         }
     }
@@ -88,7 +91,9 @@ class BrowserStorageConnector {
             this.storage.setItem(this.storageKey, serializedData);
         }
         catch (error) {
-            logger_1.LogManager.Instance.error(`Error writing to storage: ${error}`);
+            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+            }, { an: constants_1.Constants.BROWSER_STORAGE });
         }
     }
     /**
@@ -112,7 +117,9 @@ class BrowserStorageConnector {
                 deferredObject.resolve();
             }
             catch (error) {
-                logger_1.LogManager.Instance.error(`Error storing data: ${error}`);
+                logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                }, { an: constants_1.Constants.BROWSER_STORAGE });
                 deferredObject.reject(error);
             }
         }
@@ -139,7 +146,9 @@ class BrowserStorageConnector {
                 deferredObject.resolve(dataToReturn);
             }
             catch (error) {
-                logger_1.LogManager.Instance.error(`Error retrieving data: ${error}`);
+                logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                }, { an: constants_1.Constants.BROWSER_STORAGE });
                 deferredObject.resolve({});
             }
         }
@@ -173,7 +182,9 @@ class BrowserStorageConnector {
                         data.sdkKey = atob(data.sdkKey);
                     }
                     catch (e) {
-                        logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
+                        logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
+                        }, { an: constants_1.Constants.BROWSER_STORAGE });
                     }
                 }
                 // Check for sdkKey and accountId match
@@ -201,14 +212,18 @@ class BrowserStorageConnector {
                             data.sdkKey = atob(data.sdkKey);
                         }
                         catch (e) {
-                            logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
+                            logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
+                                err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
+                            }, { an: constants_1.Constants.BROWSER_STORAGE });
                         }
                     }
                     deferredObject.resolve(data);
                 }
             }
             catch (error) {
-                logger_1.LogManager.Instance.error(`Error retrieving settings: ${error}`);
+                logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                }, { an: constants_1.Constants.BROWSER_STORAGE });
                 deferredObject.resolve(null);
             }
         }
@@ -233,7 +248,9 @@ class BrowserStorageConnector {
                 }
             })
                 .catch((error) => {
-                logger_1.LogManager.Instance.error(`Error fetching fresh settings: ${error}`);
+                logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                }, { an: constants_1.Constants.BROWSER_STORAGE }, false);
             });
         }
     }
@@ -265,7 +282,9 @@ class BrowserStorageConnector {
                 deferredObject.resolve();
             }
             catch (error) {
-                logger_1.LogManager.Instance.error(`Error storing settings: ${error}`);
+                logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
+                    err: 'Storing settings: ' + (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                }, { an: constants_1.Constants.BROWSER_STORAGE });
                 deferredObject.reject(error);
             }
         }

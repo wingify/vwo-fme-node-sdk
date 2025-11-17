@@ -97,7 +97,7 @@ var createImpressionForAttributes = function (settings, attributes, context) { r
         switch (_a.label) {
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-                payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress());
+                payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress(), context.getSessionId());
                 if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
                 BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
                 return [3 /*break*/, 3];

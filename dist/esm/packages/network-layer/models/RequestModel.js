@@ -20,6 +20,7 @@ const HttpMethodEnum_1 = require("../../../enums/HttpMethodEnum");
 const Url_1 = require("../../../constants/Url");
 const constants_1 = require("../../../constants");
 const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
+const FunctionUtil_1 = require("../../../utils/FunctionUtil");
 /**
  * Represents a model for HTTP requests.
  * This class encapsulates all necessary details such as URL, method, path, query parameters, body, headers,
@@ -257,6 +258,25 @@ class RequestModel {
      */
     getEventProperties() {
         return this.eventProperties;
+    }
+    /**
+     * Sets the last error message.
+    /**
+     * Retrieves the last error message.
+     * @returns The last error message.
+     */
+    getLastError() {
+        return this.lastError;
+    }
+    /**
+     * Sets the last error message.
+    /**
+     * Sets the last error message.
+     * @param lastError The last error message to set.
+     */
+    setLastError(lastError) {
+        this.lastError = (0, FunctionUtil_1.getFormattedErrorMessage)(lastError);
+        return this;
     }
     /**
      * Constructs the options for the HTTP request based on the current state of the model.

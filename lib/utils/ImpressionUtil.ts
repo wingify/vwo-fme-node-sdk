@@ -19,6 +19,9 @@ import { getEventsBaseProperties, getTrackUserPayloadData, sendPostApiRequest } 
 import { ContextModel } from '../models/user/ContextModel';
 import { EventEnum } from '../enums/EventEnum';
 import { BatchEventsQueue } from '../services/BatchEventsQueue';
+import { getCampaignKeyFromCampaignId, getCampaignTypeFromCampaignId } from './CampaignUtil';
+import { getVariationNameFromCampaignIdAndVariationId } from './CampaignUtil';
+import { Constants } from '../constants';
 
 /**
  * Creates and sends an impression for a variation shown event.
@@ -35,6 +38,7 @@ export const createAndSendImpressionForVariationShown = async (
   campaignId: number,
   variationId: number,
   context: ContextModel,
+  featureKey: string,
 ) => {
   // Get base properties for the event
   const properties = getEventsBaseProperties(
@@ -46,10 +50,26 @@ export const createAndSendImpressionForVariationShown = async (
   // Construct payload data for tracking the user
   const payload = getTrackUserPayloadData(settings, EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
 
+  const campaignKeyWithFeatureName = getCampaignKeyFromCampaignId(settings, campaignId);
+  const variationName = getVariationNameFromCampaignIdAndVariationId(settings, campaignId, variationId);
+  let campaignKey = '';
+  if (featureKey === campaignKeyWithFeatureName) {
+    campaignKey = Constants.IMPACT_ANALYSIS;
+  } else {
+    campaignKey = campaignKeyWithFeatureName?.split(`${featureKey}_`)[1];
+  }
+  const campaignType = getCampaignTypeFromCampaignId(settings, campaignId);
+
   if (BatchEventsQueue.Instance) {
     BatchEventsQueue.Instance.enqueue(payload);
   } else {
     // Send the constructed properties and payload as a POST request
-    await sendPostApiRequest(properties, payload, context.getId());
+    await sendPostApiRequest(
+      properties,
+      payload,
+      context.getId(),
+      {},
+      { campaignKey, variationName, featureKey, campaignType },
+    );
   }
 };

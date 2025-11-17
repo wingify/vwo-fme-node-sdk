@@ -25,6 +25,8 @@ import { getKeyValue } from '../utils/SegmentUtil';
 import { SegmentOperandEvaluator } from './SegmentOperandEvaluator';
 import { ContextModel } from '../../../models/user/ContextModel';
 import { FeatureModel } from '../../../models/campaign/FeatureModel';
+import { ApiEnum } from '../../../enums/ApiEnum';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 
 export class SegmentEvaluator implements Segmentation {
   context: ContextModel;
@@ -51,7 +53,7 @@ export class SegmentEvaluator implements Segmentation {
       case SegmentOperatorValueEnum.OR:
         return await this.some(subDsl, properties);
       case SegmentOperatorValueEnum.CUSTOM_VARIABLE:
-        return await new SegmentOperandEvaluator().evaluateCustomVariableDSL(subDsl, properties);
+        return await new SegmentOperandEvaluator().evaluateCustomVariableDSL(subDsl, properties, this.context);
       case SegmentOperatorValueEnum.USER:
         return new SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties);
       case SegmentOperatorValueEnum.UA:
@@ -136,7 +138,13 @@ export class SegmentEvaluator implements Segmentation {
               }
               return result;
             } else {
-              LogManager.Instance.error('Feature not found with featureIdKey: ' + featureIdKey);
+              LogManager.Instance.errorLog(
+                'FEATURE_NOT_FOUND_WITH_ID',
+                {
+                  featureId: featureIdKey,
+                },
+                { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() },
+              );
               return null; // Handle the case when feature is not found
             }
           }
@@ -149,7 +157,13 @@ export class SegmentEvaluator implements Segmentation {
           const uaParserResult = await this.checkUserAgentParser(uaParserMap);
           return uaParserResult;
         } catch (err) {
-          LogManager.Instance.error('Failed to validate User Agent. Erro: ' + err);
+          LogManager.Instance.errorLog(
+            'USER_AGENT_VALIDATION_ERROR',
+            {
+              err: getFormattedErrorMessage(err),
+            },
+            { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() },
+          );
         }
       }
 
@@ -218,7 +232,11 @@ export class SegmentEvaluator implements Segmentation {
   async checkLocationPreSegmentation(locationMap: Record<string, dynamic>): Promise<boolean> {
     // Ensure user's IP address is available
     if (this.context?.getIpAddress() === undefined && typeof process !== 'undefined') {
-      LogManager.Instance.error('To evaluate location pre Segment, please pass ipAddress in context object');
+      LogManager.Instance.errorLog(
+        'INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION',
+        {},
+        { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() },
+      );
       return false;
     }
     // Check if location data is available and matches the expected values
@@ -240,7 +258,11 @@ export class SegmentEvaluator implements Segmentation {
   async checkUserAgentParser(uaParserMap: Record<string, string[]>): Promise<boolean> {
     // Ensure user's user agent is available
     if (!this.context?.getUserAgent() || this.context?.getUserAgent() === undefined) {
-      LogManager.Instance.error('To evaluate user agent related segments, please pass userAgent in context object');
+      LogManager.Instance.errorLog(
+        'INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION',
+        {},
+        { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() },
+      );
       return false;
     }
     // Check if user agent data is available and matches the expected values

@@ -72,7 +72,7 @@ function getUserId(userId, isAliasingEnabled) {
                     logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.ALIAS_ENABLED, { userId: result === null || result === void 0 ? void 0 : result.userId }));
                     return [2 /*return*/, (result === null || result === void 0 ? void 0 : result.userId) || userId];
                 case 2:
-                    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.GATEWAY_URL_ERROR));
+                    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_GATEWAY_URL));
                     return [2 /*return*/, userId];
                 case 3: return [3 /*break*/, 5];
                 case 4: return [2 /*return*/, userId];

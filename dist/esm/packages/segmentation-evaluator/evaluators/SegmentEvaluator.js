@@ -23,6 +23,8 @@ const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 const SegmentOperatorValueEnum_1 = require("../enums/SegmentOperatorValueEnum");
 const SegmentUtil_1 = require("../utils/SegmentUtil");
 const SegmentOperandEvaluator_1 = require("./SegmentOperandEvaluator");
+const ApiEnum_1 = require("../../../enums/ApiEnum");
+const FunctionUtil_1 = require("../../../utils/FunctionUtil");
 class SegmentEvaluator {
     /**
      * Validates if the segmentation defined in the DSL is applicable based on the provided properties.
@@ -43,7 +45,7 @@ class SegmentEvaluator {
             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OR:
                 return await this.some(subDsl, properties);
             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.CUSTOM_VARIABLE:
-                return await new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateCustomVariableDSL(subDsl, properties);
+                return await new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateCustomVariableDSL(subDsl, properties, this.context);
             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.USER:
                 return new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties);
             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.UA:
@@ -107,7 +109,9 @@ class SegmentEvaluator {
                             return result;
                         }
                         else {
-                            logger_1.LogManager.Instance.error('Feature not found with featureIdKey: ' + featureIdKey);
+                            logger_1.LogManager.Instance.errorLog('FEATURE_NOT_FOUND_WITH_ID', {
+                                featureId: featureIdKey,
+                            }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
                             return null; // Handle the case when feature is not found
                         }
                     }
@@ -120,7 +124,9 @@ class SegmentEvaluator {
                     return uaParserResult;
                 }
                 catch (err) {
-                    logger_1.LogManager.Instance.error('Failed to validate User Agent. Erro: ' + err);
+                    logger_1.LogManager.Instance.errorLog('USER_AGENT_VALIDATION_ERROR', {
+                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+                    }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
                 }
             }
             // Recursively check each DSL node
@@ -183,7 +189,7 @@ class SegmentEvaluator {
     async checkLocationPreSegmentation(locationMap) {
         // Ensure user's IP address is available
         if (this.context?.getIpAddress() === undefined && typeof process !== 'undefined') {
-            logger_1.LogManager.Instance.error('To evaluate location pre Segment, please pass ipAddress in context object');
+            logger_1.LogManager.Instance.errorLog('INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
             return false;
         }
         // Check if location data is available and matches the expected values
@@ -202,7 +208,7 @@ class SegmentEvaluator {
     async checkUserAgentParser(uaParserMap) {
         // Ensure user's user agent is available
         if (!this.context?.getUserAgent() || this.context?.getUserAgent() === undefined) {
-            logger_1.LogManager.Instance.error('To evaluate user agent related segments, please pass userAgent in context object');
+            logger_1.LogManager.Instance.errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
             return false;
         }
         // Check if user agent data is available and matches the expected values

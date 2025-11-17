@@ -23,6 +23,8 @@ const logger_1 = require("../../logger");
 const ContextVWOModel_1 = require("../../../models/user/ContextVWOModel");
 const SettingsService_1 = require("../../../services/SettingsService");
 const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
+const ApiEnum_1 = require("../../../enums/ApiEnum");
+const FunctionUtil_1 = require("../../../utils/FunctionUtil");
 class SegmentationManager {
     /**
      * Singleton pattern implementation for getting the instance of SegmentationManager.
@@ -66,12 +68,14 @@ class SegmentationManager {
                 }
                 try {
                     const params = (0, GatewayServiceUtil_1.getQueryParams)(queryParams);
-                    const _vwo = await (0, GatewayServiceUtil_1.getFromGatewayService)(params, UrlEnum_1.UrlEnum.GET_USER_DATA);
+                    const _vwo = await (0, GatewayServiceUtil_1.getFromGatewayService)(params, UrlEnum_1.UrlEnum.GET_USER_DATA, context);
                     context.setVwo(new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(_vwo));
                     this.evaluator.context = context;
                 }
                 catch (err) {
-                    logger_1.LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
+                    logger_1.LogManager.Instance.errorLog('ERROR_SETTING_SEGMENTATION_CONTEXT', {
+                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+                    }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                 }
             }
         }

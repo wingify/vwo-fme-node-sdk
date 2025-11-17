@@ -15,7 +15,7 @@
  */
 import { dynamic } from '../types/Common';
 import { Storage } from '../packages/storage';
-import { LogManager } from '../packages/logger';
+import { LogLevelEnum, LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
 
 import { Deferred } from '../utils/PromiseUtil';
@@ -26,7 +26,11 @@ import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation';
 import { buildMessage } from '../utils/LogMessageUtil';
-import { getSettingsPath } from '../utils/NetworkUtil';
+import { createNetWorkAndRetryDebugEvent, getSettingsPath } from '../utils/NetworkUtil';
+import { DebuggerCategoryEnum } from '../enums/DebuggerCategoryEnum';
+import { sendDebugEventToVWO } from '../utils/DebuggerServiceUtil';
+import { getFormattedErrorMessage } from '../utils/FunctionUtil';
+import { ApiEnum } from '../enums/ApiEnum';
 
 interface ISettingsService {
   sdkKey: string;
@@ -175,27 +179,24 @@ export class SettingsService implements ISettingsService {
         deferredObject.resolve(cachedSettings);
       } else {
         LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
-      }
-
-      const freshSettings = await this.fetchSettings();
-      const normalizedSettings = await this.normalizeSettings(freshSettings);
-      // set the settings in storage only if settings are valid
-      this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
-      if (this.isSettingsValid) {
-        await storageConnector.setSettingsInStorage(normalizedSettings);
-      }
-
-      if (cachedSettings) {
-        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_BACKGROUND_UPDATE));
-      } else {
+        const freshSettings = await this.fetchSettings();
+        const normalizedSettings = await this.normalizeSettings(freshSettings);
+        // set the settings in storage only if settings are valid
+        this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
+        if (this.isSettingsValid) {
+          await storageConnector.setSettingsInStorage(normalizedSettings);
+        }
         LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
         deferredObject.resolve(normalizedSettings);
       }
     } catch (error) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-          err: JSON.stringify(error),
-        }),
+      LogManager.Instance.errorLog(
+        'ERROR_FETCHING_SETTINGS',
+        {
+          err: getFormattedErrorMessage(error),
+        },
+        { an: Constants.BROWSER_STORAGE },
+        false,
       );
       deferredObject.resolve(null);
     }
@@ -210,10 +211,13 @@ export class SettingsService implements ISettingsService {
       const normalizedSettings = await this.normalizeSettings(settings);
       deferredObject.resolve(normalizedSettings);
     } catch (error) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-          err: JSON.stringify(error),
-        }),
+      LogManager.Instance.errorLog(
+        'ERROR_FETCHING_SETTINGS',
+        {
+          err: getFormattedErrorMessage(error),
+        },
+        { an: ApiEnum.INIT },
+        false,
       );
       deferredObject.resolve(null);
     }
@@ -232,7 +236,7 @@ export class SettingsService implements ISettingsService {
     return deferredObject.promise;
   }
 
-  fetchSettings(isViaWebhook = false): Promise<Record<any, any>> {
+  fetchSettings(isViaWebhook = false, apiName = ApiEnum.INIT): Promise<Record<any, any>> {
     const deferredObject = new Deferred();
 
     if (!this.sdkKey || !this.accountId) {
@@ -278,18 +282,74 @@ export class SettingsService implements ISettingsService {
         .then((response: ResponseModel) => {
           //record the timestamp when the response is received
           this.settingsFetchTime = Date.now() - startTime;
+
+          // if attempt is more than 0
+          if (response.getTotalAttempts() > 0) {
+            // set category, if call got success then category is retry, otherwise network
+            let lt = LogLevelEnum.INFO.toString();
+            let category = DebuggerCategoryEnum.RETRY;
+            let msg_t = Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
+            let msg = buildMessage(InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
+              extraData: path,
+              attempts: response.getTotalAttempts(),
+              err: getFormattedErrorMessage(response.getError()),
+            });
+            if (response.getStatusCode() !== 200) {
+              category = DebuggerCategoryEnum.NETWORK;
+              msg_t = Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
+              msg = buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
+                extraData: path,
+                attempts: response.getTotalAttempts(),
+                err: getFormattedErrorMessage(response.getError()),
+              });
+              lt = LogLevelEnum.ERROR.toString();
+            }
+
+            const debugEventProps = createNetWorkAndRetryDebugEvent(
+              request,
+              response,
+              '',
+              isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName,
+              category,
+            );
+            debugEventProps.msg_t = msg_t;
+            debugEventProps.lt = lt;
+            debugEventProps.msg = msg;
+            // send debug event
+            sendDebugEventToVWO(debugEventProps);
+          }
           deferredObject.resolve(response.getData());
         })
         .catch((err: ResponseModel) => {
+          const debugEventProps = createNetWorkAndRetryDebugEvent(
+            request,
+            err,
+            '',
+            isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName,
+            DebuggerCategoryEnum.NETWORK,
+          );
+          debugEventProps.msg_t = Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
+          debugEventProps.msg = buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
+            extraData: path,
+            attempts: err.getTotalAttempts(),
+            err: getFormattedErrorMessage(err.getError()),
+          });
+          debugEventProps.lt = LogLevelEnum.ERROR.toString();
+          // send debug event
+          sendDebugEventToVWO(debugEventProps);
+
           deferredObject.reject(err);
         });
 
       return deferredObject.promise;
     } catch (err) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-          err: JSON.stringify(err),
-        }),
+      LogManager.Instance.errorLog(
+        'ERROR_FETCHING_SETTINGS',
+        {
+          err: getFormattedErrorMessage(err),
+        },
+        { an: isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName },
+        false,
       );
 
       deferredObject.reject(err);
@@ -337,7 +397,7 @@ export class SettingsService implements ISettingsService {
           LogManager.Instance.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
           deferredObject.resolve(fetchedSettings);
         } else {
-          LogManager.Instance.error(ErrorLogMessagesEnum.SETTINGS_SCHEMA_INVALID);
+          LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
 
           deferredObject.resolve({});
         }

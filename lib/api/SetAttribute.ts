@@ -84,6 +84,7 @@ const createImpressionForAttributes = async (
     attributes,
     context.getUserAgent(),
     context.getIpAddress(),
+    context.getSessionId(),
   );
 
   if (BatchEventsQueue.Instance) {

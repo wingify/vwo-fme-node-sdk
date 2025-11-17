@@ -19,6 +19,7 @@ import { HTTPS } from '../../../constants/Url';
 import { IRetryConfig } from '../client/NetworkClient';
 import { Constants } from '../../../constants';
 import { isNull, isUndefined } from '../../../utils/DataTypeUtil';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 
 /**
  * Represents a model for HTTP requests.
@@ -36,6 +37,7 @@ export class RequestModel {
   private body: Record<string, dynamic>; // Body of the HTTP request
   private headers: Record<string, string>; // HTTP headers
   private retryConfig: IRetryConfig; // Retry configuration
+  private lastError: string; // Last error message
   private eventName: string; // Event name
   private uuid: string; // UUID
   private campaignId: string; // Campaign ID
@@ -310,6 +312,27 @@ export class RequestModel {
    */
   getEventProperties(): any {
     return this.eventProperties;
+  }
+
+  /**
+   * Sets the last error message.
+  /**
+   * Retrieves the last error message.
+   * @returns The last error message.
+   */
+  getLastError(): string {
+    return this.lastError;
+  }
+
+  /**
+   * Sets the last error message.
+  /**
+   * Sets the last error message.
+   * @param lastError The last error message to set.
+   */
+  setLastError(lastError: string): this {
+    this.lastError = getFormattedErrorMessage(lastError);
+    return this;
   }
 
   /**

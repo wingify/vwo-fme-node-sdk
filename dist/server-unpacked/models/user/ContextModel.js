@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContextModel = void 0;
 var ContextVWOModel_1 = require("./ContextVWOModel");
+var UuidUtil_1 = require("../../utils/UuidUtil");
+var SettingsService_1 = require("../../services/SettingsService");
+var FunctionUtil_1 = require("../../utils/FunctionUtil");
 var ContextModel = /** @class */ (function () {
     function ContextModel() {
     }
@@ -26,6 +29,8 @@ var ContextModel = /** @class */ (function () {
         if (context === null || context === void 0 ? void 0 : context.postSegmentationVariables) {
             this.postSegmentationVariables = context.postSegmentationVariables;
         }
+        this._vwo_uuid = (0, UuidUtil_1.getUUID)(this.id.toString(), SettingsService_1.SettingsService.Instance.accountId.toString());
+        this._vwo_sessionId = (0, FunctionUtil_1.getCurrentUnixTimestamp)();
         return this;
     };
     ContextModel.prototype.getId = function () {
@@ -61,6 +66,12 @@ var ContextModel = /** @class */ (function () {
     };
     ContextModel.prototype.setPostSegmentationVariables = function (postSegmentationVariables) {
         this.postSegmentationVariables = postSegmentationVariables;
+    };
+    ContextModel.prototype.getUuid = function () {
+        return this._vwo_uuid;
+    };
+    ContextModel.prototype.getSessionId = function () {
+        return this._vwo_sessionId;
     };
     return ContextModel;
 }());

@@ -34,10 +34,10 @@ const evaluateRule = async (settings, feature, campaign, context, evaluatedFeatu
         });
         // Send an impression for the variation shown
         if ((0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) {
-            await (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context);
+            await (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
         }
         else {
-            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context);
+            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
         }
     }
     // Return the results of the evaluation

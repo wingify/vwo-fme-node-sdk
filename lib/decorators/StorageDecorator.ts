@@ -20,10 +20,9 @@ import { FeatureModel } from '../models/campaign/FeatureModel';
 import { VariationModel } from '../models/campaign/VariationModel';
 import { IStorageService } from '../services/StorageService';
 
-import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { ContextModel } from '../models/user/ContextModel';
-import { buildMessage } from '../utils/LogMessageUtil';
 import { Deferred } from '../utils/PromiseUtil';
+import { ApiEnum } from '../enums/ApiEnum';
 
 interface IStorageDecorator {
   /**
@@ -102,40 +101,48 @@ export class StorageDecorator implements IStorageDecorator {
     } = data;
 
     if (!featureKey) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+      LogManager.Instance.errorLog(
+        'ERROR_STORING_DATA_IN_STORAGE',
+        {
           key: 'featureKey',
-        }),
+        },
+        { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId },
       );
 
       deferredObject.reject(); // Reject promise if feature key is invalid
       return;
     }
     if (!context.id) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+      LogManager.Instance.errorLog(
+        'ERROR_STORING_DATA_IN_STORAGE',
+        {
           key: 'Context or Context.id',
-        }),
+        },
+        { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId },
       );
 
       deferredObject.reject(); // Reject promise if user ID is invalid
       return;
     }
     if (rolloutKey && !experimentKey && !rolloutVariationId) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+      LogManager.Instance.errorLog(
+        'ERROR_STORING_DATA_IN_STORAGE',
+        {
           key: 'Variation:(rolloutKey, experimentKey or rolloutVariationId)',
-        }),
+        },
+        { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId },
       );
 
       deferredObject.reject(); // Reject promise if rollout variation is invalid
       return;
     }
     if (experimentKey && !experimentVariationId) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+      LogManager.Instance.errorLog(
+        'ERROR_STORING_DATA_IN_STORAGE',
+        {
           key: 'Variation:(experimentKey or rolloutVariationId)',
-        }),
+        },
+        { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId },
       );
 
       deferredObject.reject(); // Reject promise if experiment variation is invalid

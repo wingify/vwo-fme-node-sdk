@@ -23,6 +23,7 @@ export declare class ResponseModel {
   private error;
   private headers;
   private data;
+  private totalAttempts;
   /**
    * Sets the status code of the response.
    * @param {number} statusCode - The HTTP status code
@@ -62,5 +63,15 @@ export declare class ResponseModel {
    * Retrieves the error object of the response.
    * @returns {dynamic} The error object if the request failed
    */
-  getError(): dynamic;
+  getError(): string;
+  /**
+   * Sets the total number of attempts made to send the request.
+   * @param {number} totalAttempts - The total number of attempts made to send the request
+   */
+  setTotalAttempts(totalAttempts: number): void;
+  /**
+   * Retrieves the total number of attempts made to send the request.
+   * @returns {number} The total number of attempts made to send the request
+   */
+  getTotalAttempts(): number;
 }

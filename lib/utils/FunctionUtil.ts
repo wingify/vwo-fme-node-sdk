@@ -173,3 +173,21 @@ export function addLinkedCampaignsToSettings(settings: SettingsModel): void {
     feature.setRulesLinkedCampaign(rulesLinkedCampaignModel);
   }
 }
+
+/**
+ * Formats an error message.
+ * @param {any} error - The error to format.
+ * @returns {string} The formatted error message.
+ */
+export function getFormattedErrorMessage(error: any): string {
+  let errorMessage = '';
+  if (error instanceof Error) {
+    errorMessage = error.message;
+  } else if (typeof error === 'string') {
+    errorMessage = error;
+  } else if (error && typeof error === 'object') {
+    errorMessage = JSON.stringify(error);
+  }
+
+  return errorMessage;
+}

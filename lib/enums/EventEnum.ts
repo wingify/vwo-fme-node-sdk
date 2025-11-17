@@ -19,4 +19,5 @@ export enum EventEnum {
   VWO_LOG_EVENT = 'vwo_log',
   VWO_INIT_CALLED = 'vwo_fmeSdkInit',
   VWO_USAGE_STATS = 'vwo_sdkUsageStats',
+  VWO_DEBUGGER_EVENT = 'vwo_sdkDebug',
 }

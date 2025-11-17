@@ -54,9 +54,9 @@ exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var ApiEnum_1 = require("../enums/ApiEnum");
 var CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
 var HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
-var log_messages_1 = require("../enums/log-messages");
 var logger_1 = require("../packages/logger");
 var network_layer_1 = require("../packages/network-layer");
 var SettingsService_1 = require("../services/SettingsService");
@@ -67,7 +67,7 @@ var PromiseUtil_1 = require("./PromiseUtil");
  * @param endpoint - The endpoint URL to which the request is sent.
  * @returns A promise that resolves to the response data or false if an error occurs.
  */
-function getFromGatewayService(queryParams, endpoint) {
+function getFromGatewayService(queryParams, endpoint, context) {
     return __awaiter(this, void 0, void 0, function () {
         var deferredObject, networkInstance, retryConfig, gatewayServiceUrl, gatewayServicePort, gatewayServiceProtocol, request;
         return __generator(this, function (_a) {
@@ -77,7 +77,7 @@ function getFromGatewayService(queryParams, endpoint) {
             // Check if the base URL is not set correctly
             if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
                 // Log an informational message about the invalid URL
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.GATEWAY_URL_ERROR);
+                logger_1.LogManager.Instance.errorLog('INVALID_GATEWAY_URL', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                 // Resolve the promise with false indicating an error or invalid state
                 deferredObject.resolve(false);
                 return [2 /*return*/, deferredObject.promise];

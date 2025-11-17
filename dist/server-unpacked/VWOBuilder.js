@@ -65,6 +65,7 @@ var BatchEventsQueue_1 = require("./services/BatchEventsQueue");
 var BatchEventsDispatcher_1 = require("./utils/BatchEventsDispatcher");
 var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
 var constants_1 = require("./constants");
+var ApiEnum_1 = require("./enums/ApiEnum");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.originalSettings = {};
@@ -100,7 +101,7 @@ var VWOBuilder = /** @class */ (function () {
                 this.options.batchEventData.eventsPerRequest <= 0) &&
                 (!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.requestTimeInterval) ||
                     this.options.batchEventData.requestTimeInterval <= 0)) {
-                logger_1.LogManager.Instance.error('Invalid batch events config, should be an object, eventsPerRequest should be a number greater than 0 and requestTimeInterval should be a number greater than 0');
+                logger_1.LogManager.Instance.errorLog('INVALID_BATCH_EVENTS_CONFIG', {}, { an: ApiEnum_1.ApiEnum.INIT });
                 return this;
             }
             this.batchEventsQueue = new BatchEventsQueue_1.BatchEventsQueue(Object.assign({}, this.options.batchEventData, {
@@ -180,7 +181,9 @@ var VWOBuilder = /** @class */ (function () {
             }
         }
         catch (err) {
-            logger_1.LogManager.Instance.error('Failed to fetch settings. Error: ' + err);
+            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+            }, { an: force ? constants_1.Constants.POLLING : ApiEnum_1.ApiEnum.INIT }, false);
             deferredObject.resolve({});
         }
         return deferredObject.promise;
@@ -271,10 +274,10 @@ var VWOBuilder = /** @class */ (function () {
             return (0, UuidUtil_1.getRandomUUID)(this.options.sdkKey);
         }
         catch (err) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
                 apiName: apiName,
-                err: err,
-            }));
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+            });
         }
     };
     /**
@@ -317,10 +320,10 @@ var VWOBuilder = /** @class */ (function () {
             this.checkAndPoll();
         }
         else if (pollInterval != null) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INIT_OPTIONS_INVALID, {
+            logger_1.LogManager.Instance.errorLog('INVALID_POLLING_CONFIGURATION', {
                 key: 'pollInterval',
                 correctType: 'number >= 1000',
-            }));
+            }, { an: ApiEnum_1.ApiEnum.INIT });
         }
         return this;
     };
@@ -377,7 +380,9 @@ var VWOBuilder = /** @class */ (function () {
                         return [3 /*break*/, 4];
                     case 2:
                         ex_1 = _b.sent();
-                        logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.POLLING_FETCH_SETTINGS_FAILED + ': ' + ex_1);
+                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS_WITH_POLLING', {
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(ex_1),
+                        }, { an: constants_1.Constants.POLLING });
                         return [3 /*break*/, 4];
                     case 3:
                         interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;

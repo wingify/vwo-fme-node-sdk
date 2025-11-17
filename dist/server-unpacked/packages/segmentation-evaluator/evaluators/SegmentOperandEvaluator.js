@@ -60,6 +60,8 @@ var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var GatewayServiceUtil_1 = require("../../../utils/GatewayServiceUtil");
 var UrlEnum_1 = require("../../../enums/UrlEnum");
 var logger_1 = require("../../logger");
+var ApiEnum_1 = require("../../../enums/ApiEnum");
+var FunctionUtil_1 = require("../../../utils/FunctionUtil");
 /**
  * SegmentOperandEvaluator class provides methods to evaluate different types of DSL (Domain Specific Language)
  * expressions based on the segment conditions defined for custom variables, user IDs, and user agents.
@@ -73,7 +75,7 @@ var SegmentOperandEvaluator = /** @class */ (function () {
      * @param {Record<string, dynamic>} properties - The properties object containing the actual values to be matched against.
      * @returns {Promise<boolean>} - A promise that resolves to a boolean indicating if the DSL condition is met.
      */
-    SegmentOperandEvaluator.prototype.evaluateCustomVariableDSL = function (dslOperandValue, properties) {
+    SegmentOperandEvaluator.prototype.evaluateCustomVariableDSL = function (dslOperandValue, properties, context) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, key, value, operandKey, operand, listIdRegex, match, tagValue, attributeValue, listId, queryParamsObj, res, error_1, tagValue, _b, operandType, operandValue, processedValues;
             return __generator(this, function (_c) {
@@ -90,7 +92,7 @@ var SegmentOperandEvaluator = /** @class */ (function () {
                         listIdRegex = /inlist\(([^)]+)\)/;
                         match = operand.match(listIdRegex);
                         if (!match || match.length < 2) {
-                            logger_1.LogManager.Instance.error("Invalid 'inList' operand format");
+                            logger_1.LogManager.Instance.errorLog('INVALID_ATTRIBUTE_LIST_FORMAT', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                             return [2 /*return*/, false];
                         }
                         tagValue = properties[operandKey];
@@ -103,7 +105,7 @@ var SegmentOperandEvaluator = /** @class */ (function () {
                         _c.label = 1;
                     case 1:
                         _c.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, (0, GatewayServiceUtil_1.getFromGatewayService)(queryParamsObj, UrlEnum_1.UrlEnum.ATTRIBUTE_CHECK)];
+                        return [4 /*yield*/, (0, GatewayServiceUtil_1.getFromGatewayService)(queryParamsObj, UrlEnum_1.UrlEnum.ATTRIBUTE_CHECK, context)];
                     case 2:
                         res = _c.sent();
                         if (!res || res === undefined || res === 'false' || res.status === 0) {
@@ -112,7 +114,9 @@ var SegmentOperandEvaluator = /** @class */ (function () {
                         return [2 /*return*/, res];
                     case 3:
                         error_1 = _c.sent();
-                        logger_1.LogManager.Instance.error('Error while fetching data: ' + error_1);
+                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_DATA_FROM_GATEWAY', {
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1),
+                        }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                         return [2 /*return*/, false];
                     case 4: return [3 /*break*/, 6];
                     case 5:
@@ -151,7 +155,7 @@ var SegmentOperandEvaluator = /** @class */ (function () {
     SegmentOperandEvaluator.prototype.evaluateUserAgentDSL = function (dslOperandValue, context) {
         var operand = dslOperandValue;
         if (!context.getUserAgent() || context.getUserAgent() === undefined) {
-            logger_1.LogManager.Instance.info('To Evaluate UserAgent segmentation, please provide userAgent in context');
+            logger_1.LogManager.Instance.errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
             return false;
         }
         var tagValue = decodeURIComponent(context.getUserAgent());

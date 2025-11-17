@@ -74,7 +74,7 @@ export class VWO {
         vwoClient.settingsFetchTime = 0;
         return Promise.resolve(vwoClient);
       } else {
-        LogManager.Instance.error(ErrorLogMessagesEnum.SETTINGS_SCHEMA_INVALID);
+        LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT });
         const vwoClient = this.vwoBuilder.build({});
         vwoClient.isSettingsValid = false;
         vwoClient.settingsFetchTime = 0;
@@ -118,33 +118,30 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
   const date = new Date().toISOString();
 
   try {
+    const invalidErrorPrefix = `[ERROR]: VWO-SDK ${date} `;
     if (!isObject(options)) {
-      const msg = buildMessage(ErrorLogMessagesEnum.INIT_OPTIONS_ERROR, {
-        date,
-      });
+      const msg = invalidErrorPrefix + buildMessage(ErrorLogMessagesEnum.INVALID_OPTIONS);
       console.error(msg); // Ensures options is an object.
     }
 
     if (!options?.sdkKey || !isString(options?.sdkKey)) {
-      const msg = buildMessage(ErrorLogMessagesEnum.INIT_OPTIONS_SDK_KEY_ERROR, {
-        date,
-      });
+      const msg = invalidErrorPrefix + buildMessage(ErrorLogMessagesEnum.INVALID_SDK_KEY_IN_OPTIONS);
       console.error(msg); // Validates sdkKey presence and type.
     }
 
     if (!options.accountId) {
-      const msg = buildMessage(ErrorLogMessagesEnum.INIT_OPTIONS_ACCOUNT_ID_ERROR, {
-        date,
-      });
+      const msg = invalidErrorPrefix + buildMessage(ErrorLogMessagesEnum.INVALID_ACCOUNT_ID_IN_OPTIONS);
       console.error(msg); // Validates accountId presence and type.
     }
 
     if (options.isAliasingEnabled && !options.gatewayService) {
-      const msg = buildMessage(ErrorLogMessagesEnum.GATEWAY_URL_ERROR, {
-        date,
-      });
-      console.error('[ERROR]: VWO-SDK ' + new Date().toISOString() + ' ' + msg); // Validates gatewayService presence and type.
-      throw new Error('TypeError: Invalid gatewayService when aliasing is enabled');
+      const msg =
+        invalidErrorPrefix +
+        buildMessage(ErrorLogMessagesEnum.INVALID_GATEWAY_URL, {
+          date,
+        });
+
+      console.error(msg); // Validates gatewayService presence and type.
     }
 
     if (typeof process === 'undefined') {
@@ -194,7 +191,7 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
       return _vwoInstance;
     });
   } catch (err) {
-    const msg = buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
+    const msg = buildMessage(ErrorLogMessagesEnum.EXECUTION_FAILED, {
       apiName,
       err,
     });
@@ -237,7 +234,7 @@ export async function onInit() {
 
     return _global.vwoInitDeferred.promise;
   } catch (err) {
-    const msg = buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
+    const msg = buildMessage(ErrorLogMessagesEnum.EXECUTION_FAILED, {
       apiName,
       err,
     });

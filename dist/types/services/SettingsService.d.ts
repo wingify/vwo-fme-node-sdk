@@ -1,3 +1,4 @@
+import { ApiEnum } from '../enums/ApiEnum';
 interface ISettingsService {
   sdkKey: string;
   getSettings(forceFetch: boolean): Promise<Record<any, any>>;
@@ -28,7 +29,7 @@ export declare class SettingsService implements ISettingsService {
   private handleBrowserEnvironment;
   private handleServerEnvironment;
   private fetchSettingsAndCacheInStorage;
-  fetchSettings(isViaWebhook?: boolean): Promise<Record<any, any>>;
+  fetchSettings(isViaWebhook?: boolean, apiName?: ApiEnum): Promise<Record<any, any>>;
   getSettings(forceFetch?: boolean): Promise<Record<any, any>>;
 }
 export {};

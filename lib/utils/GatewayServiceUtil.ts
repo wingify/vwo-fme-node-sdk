@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApiEnum } from '../enums/ApiEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
-import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
 import { SettingsService } from '../services/SettingsService';
 import { Deferred } from './PromiseUtil';
+import { ContextModel } from '../models/user/ContextModel';
 
 /**
  * Asynchronously retrieves data from a web service using the specified query parameters and endpoint.
@@ -28,7 +29,7 @@ import { Deferred } from './PromiseUtil';
  * @param endpoint - The endpoint URL to which the request is sent.
  * @returns A promise that resolves to the response data or false if an error occurs.
  */
-export async function getFromGatewayService(queryParams: any, endpoint: any): Promise<any> {
+export async function getFromGatewayService(queryParams: any, endpoint: any, context: ContextModel): Promise<any> {
   // Create a new deferred object to manage promise resolution
   const deferredObject = new Deferred();
   // Singleton instance of the network manager
@@ -38,7 +39,11 @@ export async function getFromGatewayService(queryParams: any, endpoint: any): Pr
   // Check if the base URL is not set correctly
   if (!SettingsService.Instance.isGatewayServiceProvided) {
     // Log an informational message about the invalid URL
-    LogManager.Instance.error(ErrorLogMessagesEnum.GATEWAY_URL_ERROR);
+    LogManager.Instance.errorLog(
+      'INVALID_GATEWAY_URL',
+      {},
+      { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
+    );
     // Resolve the promise with false indicating an error or invalid state
     deferredObject.resolve(false);
     return deferredObject.promise;

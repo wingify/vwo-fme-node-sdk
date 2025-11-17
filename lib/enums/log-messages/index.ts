@@ -17,6 +17,6 @@ import * as messages from 'vwo-fme-sdk-log-messages';
 
 const DebugLogMessagesEnum = messages.debugMessages;
 const InfoLogMessagesEnum = messages.infoMessages;
-const ErrorLogMessagesEnum = messages.errorMessages;
+const ErrorLogMessagesEnum = messages.errorMessagesV2;
 
 export { DebugLogMessagesEnum, InfoLogMessagesEnum, ErrorLogMessagesEnum };

@@ -31,6 +31,7 @@ var HttpMethodEnum_1 = require("../../../enums/HttpMethodEnum");
 var Url_1 = require("../../../constants/Url");
 var constants_1 = require("../../../constants");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
+var FunctionUtil_1 = require("../../../utils/FunctionUtil");
 /**
  * Represents a model for HTTP requests.
  * This class encapsulates all necessary details such as URL, method, path, query parameters, body, headers,
@@ -270,6 +271,25 @@ var RequestModel = /** @class */ (function () {
      */
     RequestModel.prototype.getEventProperties = function () {
         return this.eventProperties;
+    };
+    /**
+     * Sets the last error message.
+    /**
+     * Retrieves the last error message.
+     * @returns The last error message.
+     */
+    RequestModel.prototype.getLastError = function () {
+        return this.lastError;
+    };
+    /**
+     * Sets the last error message.
+    /**
+     * Sets the last error message.
+     * @param lastError The last error message to set.
+     */
+    RequestModel.prototype.setLastError = function (lastError) {
+        this.lastError = (0, FunctionUtil_1.getFormattedErrorMessage)(lastError);
+        return this;
     };
     /**
      * Constructs the options for the HTTP request based on the current state of the model.

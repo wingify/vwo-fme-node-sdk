@@ -20,7 +20,7 @@ import { Flag, FlagApi } from './api/GetFlag';
 import { SetAttributeApi } from './api/SetAttribute';
 import { TrackApi } from './api/TrackEvent';
 
-import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';
+import { DebugLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';
 import { SettingsModel } from './models/settings/SettingsModel';
 
 import { dynamic } from './types/Common';
@@ -44,6 +44,7 @@ import { ApiEnum } from './enums/ApiEnum';
 import { AliasingUtil } from './utils/AliasingUtil';
 import { getUserId } from './utils/UserIdUtil';
 import { isArray } from './utils/DataTypeUtil';
+import { getFormattedErrorMessage } from './utils/FunctionUtil';
 
 export interface IVWOClient {
   readonly options?: IVWOOptions;
@@ -122,27 +123,30 @@ export class VWOClient implements IVWOClient {
 
       // Validate featureKey is a string
       if (!isString(featureKey)) {
-        LogManager.Instance.error(
-          buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
+        LogManager.Instance.errorLog(
+          'INVALID_PARAM',
+          {
             apiName,
             key: 'featureKey',
             type: getType(featureKey),
             correctType: 'string',
-          }),
+          },
+          { an: ApiEnum.GET_FLAG },
+          false,
         );
 
-        throw new TypeError('TypeError: featureKey should be a string');
+        throw new TypeError('TypeError: featureKey should be a string, got ' + getType(featureKey));
       }
 
       // Validate settings are loaded and valid
       if (!new SettingsSchema().isSettingsValid(this.originalSettings)) {
-        LogManager.Instance.error(ErrorLogMessagesEnum.API_SETTING_INVALID);
+        LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.GET_FLAG }, false);
         throw new Error('TypeError: Invalid Settings');
       }
 
       // Validate user ID is present in context
       if (!context || !context.id) {
-        LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+        LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.GET_FLAG }, false);
         throw new TypeError('TypeError: Invalid context');
       }
 
@@ -160,11 +164,13 @@ export class VWOClient implements IVWOClient {
           deferredObject.resolve(errorReturnSchema);
         });
     } catch (err) {
-      LogManager.Instance.info(
-        buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
+      LogManager.Instance.errorLog(
+        'EXECUTION_FAILED',
+        {
           apiName,
-          err,
-        }),
+          err: getFormattedErrorMessage(err),
+        },
+        { an: ApiEnum.GET_FLAG },
       );
 
       deferredObject.resolve(errorReturnSchema);
@@ -202,41 +208,47 @@ export class VWOClient implements IVWOClient {
 
       // Validate eventName is a string
       if (!isString(eventName)) {
-        LogManager.Instance.error(
-          buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
+        LogManager.Instance.errorLog(
+          'INVALID_PARAM',
+          {
             apiName,
             key: 'eventName',
             type: getType(eventName),
             correctType: 'string',
-          }),
+          },
+          { an: ApiEnum.TRACK_EVENT },
+          false,
         );
 
-        throw new TypeError('TypeError: Event-name should be a string');
+        throw new TypeError('TypeError: Event-name should be a string, got ' + getType(eventName));
       }
 
       // Validate eventProperties is an object
       if (!isObject(eventProperties)) {
-        LogManager.Instance.error(
-          buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
+        LogManager.Instance.errorLog(
+          'INVALID_PARAM',
+          {
             apiName,
             key: 'eventProperties',
             type: getType(eventProperties),
             correctType: 'object',
-          }),
+          },
+          { an: ApiEnum.TRACK_EVENT },
+          false,
         );
 
-        throw new TypeError('TypeError: eventProperties should be an object');
+        throw new TypeError('TypeError: eventProperties should be an object, got ' + getType(eventProperties));
       }
 
       // Validate settings are loaded and valid
       if (!new SettingsSchema().isSettingsValid(this.originalSettings)) {
-        LogManager.Instance.error(ErrorLogMessagesEnum.API_SETTING_INVALID);
+        LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.TRACK_EVENT }, false);
         throw new Error('TypeError: Invalid Settings');
       }
 
       // Validate user ID is present in context
       if (!context || !context.id) {
-        LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+        LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.TRACK_EVENT }, false);
         throw new TypeError('TypeError: Invalid context');
       }
 
@@ -257,11 +269,13 @@ export class VWOClient implements IVWOClient {
         });
     } catch (err) {
       // Log any errors encountered during the operation
-      LogManager.Instance.info(
-        buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
+      LogManager.Instance.errorLog(
+        'EXECUTION_FAILED',
+        {
           apiName,
-          err,
-        }),
+          err: getFormattedErrorMessage(err),
+        },
+        { an: ApiEnum.TRACK_EVENT },
       );
 
       deferredObject.resolve({ [eventName]: false });
@@ -299,15 +313,7 @@ export class VWOClient implements IVWOClient {
         );
 
         if (Object.entries(attributeOrAttributes).length < 1) {
-          LogManager.Instance.error(
-            buildMessage('Attributes map must contain atleast 1 key-value pair', {
-              apiName,
-              key: 'attributes',
-              type: getType(attributeOrAttributes),
-              correctType: 'object',
-            }),
-          );
-          throw new TypeError('TypeError: Attributes should be an object containing atleast 1 key-value pair');
+          throw new TypeError('TypeError: Attributes should be an object containing at least 1 key-value pair');
         }
 
         // Case where multiple attributes are passed as a map
@@ -321,14 +327,6 @@ export class VWOClient implements IVWOClient {
         // Validate that each attribute value is of a supported type
         Object.entries(attributes).forEach(([key, value]) => {
           if (typeof value !== 'boolean' && typeof value !== 'string' && typeof value !== 'number') {
-            LogManager.Instance.error(
-              buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
-                apiName,
-                key,
-                type: getType(value),
-                correctType: ' boolean, string or number',
-              }),
-            );
             throw new TypeError(
               `Invalid attribute type for key "${key}". Expected boolean, string or number, but got ${getType(value)}`,
             );
@@ -336,14 +334,6 @@ export class VWOClient implements IVWOClient {
 
           // Reject arrays and objects explicitly
           if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
-            LogManager.Instance.error(
-              buildMessage(ErrorLogMessagesEnum.API_INVALID_PARAM, {
-                apiName,
-                key,
-                type: getType(value),
-                correctType: ' boolean | string | number | null',
-              }),
-            );
             throw new TypeError(`Invalid attribute value for key "${key}". Arrays and objects are not supported.`);
           }
         });
@@ -355,7 +345,8 @@ export class VWOClient implements IVWOClient {
 
         // Validate user ID is present in context
         if (!context || !context.id) {
-          LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+          LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.SET_ATTRIBUTE }, false);
+          throw new TypeError('TypeError: Invalid context');
         }
 
         //getUserId from gateway service
@@ -398,7 +389,14 @@ export class VWOClient implements IVWOClient {
         await new SetAttributeApi().setAttribute(this.settings, attributeMap, contextModel);
       }
     } catch (err) {
-      LogManager.Instance.info(buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, { apiName, err }));
+      LogManager.Instance.errorLog(
+        'EXECUTION_FAILED',
+        {
+          apiName,
+          err: getFormattedErrorMessage(err),
+        },
+        { an: ApiEnum.SET_ATTRIBUTE },
+      );
     }
   }
 
@@ -415,7 +413,7 @@ export class VWOClient implements IVWOClient {
       // fetch settings from the server or use the provided settings file if it's not empty
       const settingsToUpdate =
         !settings || Object.keys(settings).length === 0
-          ? await SettingsService.Instance.fetchSettings(isViaWebhook)
+          ? await SettingsService.Instance.fetchSettings(isViaWebhook, apiName)
           : settings;
 
       // validate settings schema
@@ -427,12 +425,14 @@ export class VWOClient implements IVWOClient {
       setSettingsAndAddCampaignsToRules(settingsToUpdate, this.vwoClientInstance);
       LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName, isViaWebhook }));
     } catch (err) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.SETTINGS_FETCH_FAILED, {
+      LogManager.Instance.errorLog(
+        'UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED',
+        {
           apiName,
           isViaWebhook,
-          err: JSON.stringify(err),
-        }),
+          err: getFormattedErrorMessage(err),
+        },
+        { an: ApiEnum.UPDATE_SETTINGS },
       );
     }
   }
@@ -449,13 +449,15 @@ export class VWOClient implements IVWOClient {
         // return the promise from the flushAndClearTimer method
         return BatchEventsQueue.Instance.flushAndClearTimer();
       } else {
-        LogManager.Instance.error(
-          'Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API.',
-        );
+        LogManager.Instance.errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum.FLUSH_EVENTS });
         deferredObject.resolve({ status: 'error', events: [] });
       }
     } catch (err) {
-      LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, { apiName, err }));
+      LogManager.Instance.errorLog(
+        'EXECUTION_FAILED',
+        { apiName, err: getFormattedErrorMessage(err) },
+        { an: ApiEnum.FLUSH_EVENTS },
+      );
       deferredObject.resolve({ status: 'error', events: [] });
     }
     return deferredObject.promise;
@@ -477,22 +479,20 @@ export class VWOClient implements IVWOClient {
       );
 
       if (!this.isAliasingEnabled) {
-        LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.ALIAS_NOT_ENABLED));
+        LogManager.Instance.errorLog('ALIAS_CALLED_BUT_NOT_PASSED', {}, { an: ApiEnum.SET_ALIAS });
         return false;
       }
 
       if (!SettingsService.Instance.isGatewayServiceProvided) {
-        LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.GATEWAY_URL_ERROR));
+        LogManager.Instance.errorLog('INVALID_GATEWAY_URL', {}, { an: ApiEnum.SET_ALIAS });
         return false;
       }
 
       if (!aliasId) {
-        LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
         throw new TypeError('TypeError: Invalid aliasId');
       }
 
       if (isArray(aliasId)) {
-        LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
         throw new TypeError('TypeError: aliasId cannot be an array');
       }
 
@@ -507,17 +507,14 @@ export class VWOClient implements IVWOClient {
 
         // Direct userId provided
         if (contextOrUserId === aliasId) {
-          LogManager.Instance.error('UserId and aliasId cannot be the same.');
-          return false;
+          throw new TypeError('UserId and aliasId cannot be the same.');
         }
 
         if (!contextOrUserId) {
-          LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
           throw new TypeError('TypeError: Invalid userId');
         }
 
         if (isArray(contextOrUserId)) {
-          LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
           throw new TypeError('TypeError: userId cannot be an array');
         }
 
@@ -525,12 +522,10 @@ export class VWOClient implements IVWOClient {
       } else {
         // Context object provided
         if (!contextOrUserId || !contextOrUserId.id) {
-          LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
           throw new TypeError('TypeError: Invalid context');
         }
 
         if (isArray(contextOrUserId.id)) {
-          LogManager.Instance.error(ErrorLogMessagesEnum.API_CONTEXT_INVALID);
           throw new TypeError('TypeError: context.id cannot be an array');
         }
 
@@ -538,8 +533,7 @@ export class VWOClient implements IVWOClient {
         contextOrUserId.id = contextOrUserId.id.trim();
 
         if (contextOrUserId.id === aliasId) {
-          LogManager.Instance.error('UserId and aliasId cannot be the same.');
-          return false;
+          throw new TypeError('UserId and aliasId cannot be the same.');
         }
         userId = contextOrUserId.id;
       }
@@ -547,7 +541,11 @@ export class VWOClient implements IVWOClient {
       await AliasingUtil.setAlias(userId, aliasId);
       return true;
     } catch (error) {
-      LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, { apiName, err: error }));
+      LogManager.Instance.errorLog(
+        'EXECUTION_FAILED',
+        { apiName, err: getFormattedErrorMessage(error) },
+        { an: ApiEnum.SET_ALIAS },
+      );
       return false;
     }
   }

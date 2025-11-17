@@ -77,9 +77,16 @@ export const evaluateRule = async (
         campaign.getId(),
         whitelistedObject.variation.id,
         context,
+        feature.getKey(),
       );
     } else {
-      createAndSendImpressionForVariationShown(settings, campaign.getId(), whitelistedObject.variation.id, context);
+      createAndSendImpressionForVariationShown(
+        settings,
+        campaign.getId(),
+        whitelistedObject.variation.id,
+        context,
+        feature.getKey(),
+      );
     }
   }
 

@@ -18,8 +18,6 @@ import { LogManager } from '../../../../lib/packages/logger/core/LogManager';
 import { LogLevelEnum } from '../../../../lib/packages/logger/enums/LogLevelEnum';
 
 describe('End-to-End Tests for Logger Module', () => {
-  let logManager: LogManager;
-
   beforeAll(() => {
     process.env.TEST_ENV = 'true';
   });
@@ -29,7 +27,7 @@ describe('End-to-End Tests for Logger Module', () => {
   });
 
   it('should log messages at different levels', () => {
-    logManager = new LogManager({
+    new LogManager({
       isAlwaysNewInstance: true,
       level: LogLevelEnum.DEBUG,
     });
@@ -54,7 +52,7 @@ describe('End-to-End Tests for Logger Module', () => {
   });
 
   it('should check for prefix and datetime in log messages, if passed', () => {
-    logManager = new LogManager({
+    new LogManager({
       prefix: 'Test Prefix',
       isAlwaysNewInstance: true,
       dateTimeFormat: () => {
@@ -83,7 +81,7 @@ describe('End-to-End Tests for Logger Module', () => {
   });
 
   it('should log messages of the transport instead of default transport i.e. console', () => {
-    logManager = new LogManager({
+    new LogManager({
       // isAnsiColorEnabled: false,
       isAlwaysNewInstance: true,
       level: LogLevelEnum.DEBUG,
@@ -110,7 +108,7 @@ describe('End-to-End Tests for Logger Module', () => {
   });
 
   it('should handle multiple transports', () => {
-    logManager = new LogManager({
+    new LogManager({
       // isAnsiColorEnabled: false,
       isAlwaysNewInstance: true,
       level: LogLevelEnum.DEBUG,
@@ -152,7 +150,7 @@ describe('End-to-End Tests for Logger Module', () => {
   });
 
   it('should handle logHandler inside transport', () => {
-    logManager = new LogManager({
+    new LogManager({
       // isAnsiColorEnabled: false,
       isAlwaysNewInstance: true,
       level: LogLevelEnum.DEBUG,

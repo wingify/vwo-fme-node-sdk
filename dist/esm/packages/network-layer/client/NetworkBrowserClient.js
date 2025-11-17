@@ -18,7 +18,6 @@ exports.NetworkBrowserClient = void 0;
  */
 const XMLUtil_1 = require("../../../utils/XMLUtil");
 const PromiseUtil_1 = require("../../../utils/PromiseUtil");
-const ResponseModel_1 = require("../models/ResponseModel");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -30,16 +29,12 @@ class NetworkBrowserClient {
      */
     GET(requestModel) {
         const deferred = new PromiseUtil_1.Deferred();
-        // Extract network options from the request model.
-        const responseModel = new ResponseModel_1.ResponseModel();
         (0, XMLUtil_1.sendGetCall)({
             requestModel,
-            successCallback: (data) => {
-                responseModel.setData(data);
+            successCallback: (responseModel) => {
                 deferred.resolve(responseModel);
             },
-            errorCallback: (error) => {
-                responseModel.setError(error);
+            errorCallback: (responseModel) => {
                 deferred.reject(responseModel);
             },
         });
@@ -88,17 +83,12 @@ class NetworkBrowserClient {
      */
     POST(requestModel) {
         const deferred = new PromiseUtil_1.Deferred();
-        const responseModel = new ResponseModel_1.ResponseModel();
         (0, XMLUtil_1.sendPostCall)({
             requestModel,
-            successCallback: (data) => {
-                responseModel.setStatusCode(200);
-                responseModel.setData(data);
+            successCallback: (responseModel) => {
                 deferred.resolve(responseModel);
             },
-            errorCallback: (error) => {
-                responseModel.setStatusCode(400);
-                responseModel.setError(error);
+            errorCallback: (responseModel) => {
                 deferred.reject(responseModel);
             },
         });

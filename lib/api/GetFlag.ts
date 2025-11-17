@@ -18,12 +18,12 @@ import { SettingsModel } from '../models/settings/SettingsModel';
 import { StorageDecorator } from '../decorators/StorageDecorator';
 import { ApiEnum } from '../enums/ApiEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
-import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
+import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import { CampaignModel } from '../models/campaign/CampaignModel';
 import { VariableModel } from '../models/campaign/VariableModel';
 import { VariationModel } from '../models/campaign/VariationModel';
 import { ContextModel } from '../models/user/ContextModel';
-import { LogManager } from '../packages/logger';
+import { LogLevelEnum, LogManager } from '../packages/logger';
 import { SegmentationManager } from '../packages/segmentation-evaluator';
 import IHooksService from '../services/HooksService';
 import { StorageService } from '../services/StorageService';
@@ -36,6 +36,9 @@ import { buildMessage } from '../utils/LogMessageUtil';
 import { Deferred } from '../utils/PromiseUtil';
 import { evaluateRule } from '../utils/RuleEvaluationUtil';
 import { getShouldWaitForTrackingCalls } from '../utils/NetworkUtil';
+import { extractDecisionKeys, sendDebugEventToVWO } from '../utils/DebuggerServiceUtil';
+import { DebuggerCategoryEnum } from '../enums/DebuggerCategoryEnum';
+import { Constants } from '../constants';
 
 export class Flag {
   private readonly enabled: boolean;
@@ -92,6 +95,14 @@ export class FlagApi {
       featureKey: feature?.getKey(),
       userId: context?.getId(),
       api: ApiEnum.GET_FLAG,
+    };
+
+    // create debug event props
+    const debugEventProps: Record<string, any> = {
+      an: ApiEnum.GET_FLAG,
+      uuid: context.getUuid(),
+      fk: feature?.getKey(),
+      sId: context.getSessionId(),
     };
 
     const storageService = new StorageService();
@@ -159,10 +170,12 @@ export class FlagApi {
     }
 
     if (!isObject(feature) || feature === undefined) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.FEATURE_NOT_FOUND, {
+      LogManager.Instance.errorLog(
+        'FEATURE_NOT_FOUND',
+        {
           featureKey,
-        }),
+        },
+        debugEventProps,
       );
 
       deferredObject.reject({});
@@ -225,6 +238,7 @@ export class FlagApi {
               passedRolloutCampaign.getId(),
               variation.getId(),
               context,
+              featureKey,
             );
           } else {
             createAndSendImpressionForVariationShown(
@@ -232,6 +246,7 @@ export class FlagApi {
               passedRolloutCampaign.getId(),
               variation.getId(),
               context,
+              featureKey,
             );
           }
         }
@@ -291,9 +306,21 @@ export class FlagApi {
 
           _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
           if (getShouldWaitForTrackingCalls()) {
-            await createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
+            await createAndSendImpressionForVariationShown(
+              settings,
+              campaign.getId(),
+              variation.getId(),
+              context,
+              featureKey,
+            );
           } else {
-            createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context);
+            createAndSendImpressionForVariationShown(
+              settings,
+              campaign.getId(),
+              variation.getId(),
+              context,
+              featureKey,
+            );
           }
         }
       }
@@ -316,6 +343,18 @@ export class FlagApi {
     hooksService.set(decision);
     hooksService.execute(hooksService.get());
 
+    // send debug event, if debugger is enabled
+    if (feature.getIsDebuggerEnabled()) {
+      debugEventProps.cg = DebuggerCategoryEnum.DECISION;
+      debugEventProps.lt = LogLevelEnum.INFO.toString();
+      debugEventProps.msg_t = Constants.FLAG_DECISION_GIVEN;
+      // update debug event props with decision keys
+      _updateDebugEventProps(debugEventProps, decision);
+
+      // send debug event
+      sendDebugEventToVWO(debugEventProps);
+    }
+
     // Send data for Impact Campaign, if defined
     if (feature.getImpactCampaign()?.getCampaignId()) {
       LogManager.Instance.info(
@@ -331,6 +370,7 @@ export class FlagApi {
           feature.getImpactCampaign()?.getCampaignId(),
           isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
           context,
+          featureKey,
         );
       } else {
         createAndSendImpressionForVariationShown(
@@ -338,6 +378,7 @@ export class FlagApi {
           feature.getImpactCampaign()?.getCampaignId(),
           isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
           context,
+          featureKey,
         );
       }
     }
@@ -375,4 +416,22 @@ function _updateIntegrationsDecisionObject(
     });
   }
   Object.assign(decision, passedRulesInformation);
+}
+
+/**
+ * Update debug event props with decision keys
+ * @param debugEventProps - Debug event props
+ * @param decision - Decision
+ */
+function _updateDebugEventProps(debugEventProps: Record<string, any>, decision: any) {
+  const decisionKeys = extractDecisionKeys(decision);
+  let message = `Flag decision given for feature:${decision.featureKey}.`;
+  if (decision.rolloutKey && decision.rolloutVariationId) {
+    message += ` Got rollout:${decision.rolloutKey.substring((decision.featureKey + '_').length)} with variation:${decision.rolloutVariationId}`;
+  }
+  if (decision.experimentKey && decision.experimentVariationId) {
+    message += ` and experiment:${decision.experimentKey.substring((decision.featureKey + '_').length)} with variation:${decision.experimentVariationId}`;
+  }
+  debugEventProps.msg = message;
+  Object.assign(debugEventProps, decisionKeys);
 }

@@ -22,8 +22,7 @@ const GlobalRequestModel_1 = require("../models/GlobalRequestModel");
 const constants_1 = require("../../../constants");
 const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 const LogManager_1 = require("../../logger/core/LogManager");
-const log_messages_1 = require("../../../enums/log-messages");
-const LogMessageUtil_1 = require("../../../utils/LogMessageUtil");
+const ApiEnum_1 = require("../../../enums/ApiEnum");
 class NetworkManager {
     /**
      * Validates the retry configuration parameters
@@ -60,9 +59,9 @@ class NetworkManager {
             isInvalidConfig = true;
         }
         if (isInvalidConfig) {
-            LogManager_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.RETRY_CONFIG_INVALID, {
+            LogManager_1.LogManager.Instance.errorLog('INVALID_RETRY_CONFIG', {
                 retryConfig: JSON.stringify(validatedConfig),
-            }));
+            }, { an: ApiEnum_1.ApiEnum.INIT });
         }
         return isInvalidConfig ? constants_1.Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
     }

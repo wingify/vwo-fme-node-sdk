@@ -17,10 +17,8 @@ exports.TrackApi = void 0;
  * limitations under the License.
  */
 const ApiEnum_1 = require("../enums/ApiEnum");
-const log_messages_1 = require("../enums/log-messages");
 const logger_1 = require("../packages/logger");
 const FunctionUtil_1 = require("../utils/FunctionUtil");
-const LogMessageUtil_1 = require("../utils/LogMessageUtil");
 const BatchEventsQueue_1 = require("../services/BatchEventsQueue");
 const NetworkUtil_1 = require("../utils/NetworkUtil");
 class TrackApi {
@@ -43,9 +41,9 @@ class TrackApi {
             return { [eventName]: true };
         }
         // Log an error if the event does not exist
-        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EVENT_NOT_FOUND, {
+        logger_1.LogManager.Instance.errorLog('EVENT_NOT_FOUND', {
             eventName,
-        }));
+        }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT, uuid: context.getUuid(), sId: context.getSessionId() });
         return { [eventName]: false };
     }
 }
@@ -61,7 +59,7 @@ const createImpressionForTrack = async (settings, eventName, context, eventPrope
     // Get base properties for the event
     const properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
     // Prepare the payload for the track goal
-    const payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context?.getUserAgent(), context?.getIpAddress());
+    const payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context?.getUserAgent(), context?.getIpAddress(), context.getSessionId());
     // Send the prepared payload via POST API request
     if (BatchEventsQueue_1.BatchEventsQueue.Instance) {
         BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);

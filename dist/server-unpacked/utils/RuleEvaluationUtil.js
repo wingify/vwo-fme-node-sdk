@@ -72,12 +72,12 @@ var evaluateRule = function (settings, feature, campaign, context, evaluatedFeat
                     experimentVariationId: whitelistedObject.variationId,
                 });
                 if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 3];
-                return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context)];
+                return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey())];
             case 2:
                 _b.sent();
                 return [3 /*break*/, 4];
             case 3:
-                (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context);
+                (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
                 _b.label = 4;
             case 4: 
             // Return the results of the evaluation

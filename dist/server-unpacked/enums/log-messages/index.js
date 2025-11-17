@@ -21,6 +21,6 @@ var DebugLogMessagesEnum = messages.debugMessages;
 exports.DebugLogMessagesEnum = DebugLogMessagesEnum;
 var InfoLogMessagesEnum = messages.infoMessages;
 exports.InfoLogMessagesEnum = InfoLogMessagesEnum;
-var ErrorLogMessagesEnum = messages.errorMessages;
+var ErrorLogMessagesEnum = messages.errorMessagesV2;
 exports.ErrorLogMessagesEnum = ErrorLogMessagesEnum;
 //# sourceMappingURL=index.js.map

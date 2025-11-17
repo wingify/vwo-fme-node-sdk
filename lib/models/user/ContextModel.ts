@@ -15,6 +15,9 @@
  */
 import { dynamic } from '../../types/Common';
 import { ContextVWOModel } from './ContextVWOModel';
+import { getUUID } from '../../utils/UuidUtil';
+import { SettingsService } from '../../services/SettingsService';
+import { getCurrentUnixTimestamp } from '../../utils/FunctionUtil';
 
 export interface IVWOContextModel {
   id: string | number;
@@ -30,6 +33,8 @@ export class ContextModel implements IVWOContextModel {
   customVariables?: Record<string, any>;
   variationTargetingVariables?: Record<string, dynamic>;
   postSegmentationVariables?: string[];
+  _vwo_uuid?: string;
+  _vwo_sessionId?: number;
   _vwo?: ContextVWOModel;
 
   modelFromDictionary(context: Record<string, any>): this {
@@ -54,6 +59,9 @@ export class ContextModel implements IVWOContextModel {
     if (context?.postSegmentationVariables) {
       this.postSegmentationVariables = context.postSegmentationVariables;
     }
+
+    this._vwo_uuid = getUUID(this.id.toString(), SettingsService.Instance.accountId.toString());
+    this._vwo_sessionId = getCurrentUnixTimestamp();
     return this;
   }
 
@@ -99,5 +107,13 @@ export class ContextModel implements IVWOContextModel {
 
   setPostSegmentationVariables(postSegmentationVariables: string[]): void {
     this.postSegmentationVariables = postSegmentationVariables;
+  }
+
+  getUuid(): string {
+    return this._vwo_uuid;
+  }
+
+  getSessionId(): number {
+    return this._vwo_sessionId;
   }
 }

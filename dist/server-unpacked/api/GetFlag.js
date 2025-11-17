@@ -82,6 +82,9 @@ var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 var PromiseUtil_1 = require("../utils/PromiseUtil");
 var RuleEvaluationUtil_1 = require("../utils/RuleEvaluationUtil");
 var NetworkUtil_1 = require("../utils/NetworkUtil");
+var DebuggerServiceUtil_1 = require("../utils/DebuggerServiceUtil");
+var DebuggerCategoryEnum_1 = require("../enums/DebuggerCategoryEnum");
+var constants_1 = require("../constants");
 var Flag = /** @class */ (function () {
     function Flag(isEnabled, variation) {
         this.enabled = isEnabled;
@@ -107,7 +110,7 @@ var FlagApi = /** @class */ (function () {
     }
     FlagApi.get = function (featureKey, settings, context, hooksService) {
         return __awaiter(this, void 0, void 0, function () {
-            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, storageService, storedData, variation, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation;
+            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, debugEventProps, storageService, storedData, variation, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation;
             var _d, _e, _f, _g;
             return __generator(this, function (_h) {
                 switch (_h.label) {
@@ -126,6 +129,12 @@ var FlagApi = /** @class */ (function () {
                             featureKey: feature === null || feature === void 0 ? void 0 : feature.getKey(),
                             userId: context === null || context === void 0 ? void 0 : context.getId(),
                             api: ApiEnum_1.ApiEnum.GET_FLAG,
+                        };
+                        debugEventProps = {
+                            an: ApiEnum_1.ApiEnum.GET_FLAG,
+                            uuid: context.getUuid(),
+                            fk: feature === null || feature === void 0 ? void 0 : feature.getKey(),
+                            sId: context.getSessionId(),
                         };
                         storageService = new StorageService_1.StorageService();
                         return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService)];
@@ -171,9 +180,9 @@ var FlagApi = /** @class */ (function () {
                             }
                         }
                         if (!(0, DataTypeUtil_1.isObject)(feature) || feature === undefined) {
-                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.FEATURE_NOT_FOUND, {
+                            logger_1.LogManager.Instance.errorLog('FEATURE_NOT_FOUND', {
                                 featureKey: featureKey,
-                            }));
+                            }, debugEventProps);
                             deferredObject.reject({});
                             return [2 /*return*/, deferredObject.promise];
                         }
@@ -218,12 +227,12 @@ var FlagApi = /** @class */ (function () {
                         rolloutVariationToReturn = variation;
                         _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
                         if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 8];
-                        return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context)];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context, featureKey)];
                     case 7:
                         _h.sent();
                         return [3 /*break*/, 9];
                     case 8:
-                        (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context);
+                        (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context, featureKey);
                         _h.label = 9;
                     case 9: return [3 /*break*/, 11];
                     case 10:
@@ -275,12 +284,12 @@ var FlagApi = /** @class */ (function () {
                         experimentVariationToReturn = variation;
                         _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
                         if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 17];
-                        return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context)];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context, featureKey)];
                     case 16:
                         _h.sent();
                         return [3 /*break*/, 18];
                     case 17:
-                        (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context);
+                        (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context, featureKey);
                         _h.label = 18;
                     case 18:
                         // If flag is enabled, store it in data
@@ -291,6 +300,16 @@ var FlagApi = /** @class */ (function () {
                         // call integration callback, if defined
                         hooksService.set(decision);
                         hooksService.execute(hooksService.get());
+                        // send debug event, if debugger is enabled
+                        if (feature.getIsDebuggerEnabled()) {
+                            debugEventProps.cg = DebuggerCategoryEnum_1.DebuggerCategoryEnum.DECISION;
+                            debugEventProps.lt = logger_1.LogLevelEnum.INFO.toString();
+                            debugEventProps.msg_t = constants_1.Constants.FLAG_DECISION_GIVEN;
+                            // update debug event props with decision keys
+                            _updateDebugEventProps(debugEventProps, decision);
+                            // send debug event
+                            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                        }
                         if (!((_e = feature.getImpactCampaign()) === null || _e === void 0 ? void 0 : _e.getCampaignId())) return [3 /*break*/, 21];
                         logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
                             userId: context.getId(),
@@ -299,13 +318,13 @@ var FlagApi = /** @class */ (function () {
                         }));
                         if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 20];
                         return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_f = feature.getImpactCampaign()) === null || _f === void 0 ? void 0 : _f.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-                            context)];
+                            context, featureKey)];
                     case 19:
                         _h.sent();
                         return [3 /*break*/, 21];
                     case 20:
                         (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_g = feature.getImpactCampaign()) === null || _g === void 0 ? void 0 : _g.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-                        context);
+                        context, featureKey);
                         _h.label = 21;
                     case 21:
                         deferredObject.resolve(new Flag(isEnabled, new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
@@ -334,5 +353,22 @@ function _updateIntegrationsDecisionObject(campaign, variation, passedRulesInfor
         });
     }
     Object.assign(decision, passedRulesInformation);
+}
+/**
+ * Update debug event props with decision keys
+ * @param debugEventProps - Debug event props
+ * @param decision - Decision
+ */
+function _updateDebugEventProps(debugEventProps, decision) {
+    var decisionKeys = (0, DebuggerServiceUtil_1.extractDecisionKeys)(decision);
+    var message = "Flag decision given for feature:".concat(decision.featureKey, ".");
+    if (decision.rolloutKey && decision.rolloutVariationId) {
+        message += " Got rollout:".concat(decision.rolloutKey.substring((decision.featureKey + '_').length), " with variation:").concat(decision.rolloutVariationId);
+    }
+    if (decision.experimentKey && decision.experimentVariationId) {
+        message += " and experiment:".concat(decision.experimentKey.substring((decision.featureKey + '_').length), " with variation:").concat(decision.experimentVariationId);
+    }
+    debugEventProps.msg = message;
+    Object.assign(debugEventProps, decisionKeys);
 }
 //# sourceMappingURL=GetFlag.js.map

@@ -30,7 +30,7 @@ const storedMessages = new Set();
  * @param {Record<string, any>} data - An object containing keys and values used to replace the placeholders in the template.
  * @returns {string} The constructed message with all placeholders replaced by their corresponding values from the data object.
  */
-function buildMessage(template, data = {}) {
+function buildMessage(template = '', data = {}) {
     try {
         return template.replace(nargs, (match, key, index) => {
             // Check for escaped placeholders

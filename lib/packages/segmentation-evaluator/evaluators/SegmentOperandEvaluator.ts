@@ -23,6 +23,8 @@ import { getFromGatewayService } from '../../../utils/GatewayServiceUtil';
 import { UrlEnum } from '../../../enums/UrlEnum';
 import { LogManager } from '../../logger';
 import { ContextModel } from '../../../models/user/ContextModel';
+import { ApiEnum } from '../../../enums/ApiEnum';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 
 /**
  * SegmentOperandEvaluator class provides methods to evaluate different types of DSL (Domain Specific Language)
@@ -40,6 +42,7 @@ export class SegmentOperandEvaluator {
   async evaluateCustomVariableDSL(
     dslOperandValue: Record<string, dynamic>,
     properties: Record<string, dynamic>,
+    context: ContextModel,
   ): Promise<boolean> {
     // Extract key and value from the DSL operand
     const { key, value } = getKeyValue(dslOperandValue);
@@ -56,7 +59,11 @@ export class SegmentOperandEvaluator {
       const listIdRegex = /inlist\(([^)]+)\)/;
       const match = operand.match(listIdRegex);
       if (!match || match.length < 2) {
-        LogManager.Instance.error("Invalid 'inList' operand format");
+        LogManager.Instance.errorLog(
+          'INVALID_ATTRIBUTE_LIST_FORMAT',
+          {},
+          { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
+        );
         return false;
       }
 
@@ -71,13 +78,19 @@ export class SegmentOperandEvaluator {
 
       // Make a web service call to check the attribute against the list
       try {
-        const res = await getFromGatewayService(queryParamsObj, UrlEnum.ATTRIBUTE_CHECK);
+        const res = await getFromGatewayService(queryParamsObj, UrlEnum.ATTRIBUTE_CHECK, context);
         if (!res || res === undefined || res === 'false' || res.status === 0) {
           return false;
         }
         return res;
       } catch (error) {
-        LogManager.Instance.error('Error while fetching data: ' + error);
+        LogManager.Instance.errorLog(
+          'ERROR_FETCHING_DATA_FROM_GATEWAY',
+          {
+            err: getFormattedErrorMessage(error),
+          },
+          { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
+        );
         return false;
       }
     } else {
@@ -116,7 +129,11 @@ export class SegmentOperandEvaluator {
   evaluateUserAgentDSL(dslOperandValue: Record<string, any>, context: ContextModel): boolean {
     const operand = dslOperandValue;
     if (!context.getUserAgent() || context.getUserAgent() === undefined) {
-      LogManager.Instance.info('To Evaluate UserAgent segmentation, please provide userAgent in context');
+      LogManager.Instance.errorLog(
+        'INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION',
+        {},
+        { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
+      );
       return false;
     }
     let tagValue = decodeURIComponent(context.getUserAgent());

@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContextModel = void 0;
 const ContextVWOModel_1 = require("./ContextVWOModel");
+const UuidUtil_1 = require("../../utils/UuidUtil");
+const SettingsService_1 = require("../../services/SettingsService");
+const FunctionUtil_1 = require("../../utils/FunctionUtil");
 class ContextModel {
     modelFromDictionary(context) {
         this.id = context.id;
@@ -24,6 +27,8 @@ class ContextModel {
         if (context?.postSegmentationVariables) {
             this.postSegmentationVariables = context.postSegmentationVariables;
         }
+        this._vwo_uuid = (0, UuidUtil_1.getUUID)(this.id.toString(), SettingsService_1.SettingsService.Instance.accountId.toString());
+        this._vwo_sessionId = (0, FunctionUtil_1.getCurrentUnixTimestamp)();
         return this;
     }
     getId() {
@@ -58,6 +63,12 @@ class ContextModel {
     }
     setPostSegmentationVariables(postSegmentationVariables) {
         this.postSegmentationVariables = postSegmentationVariables;
+    }
+    getUuid() {
+        return this._vwo_uuid;
+    }
+    getSessionId() {
+        return this._vwo_sessionId;
     }
 }
 exports.ContextModel = ContextModel;

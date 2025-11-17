@@ -22,11 +22,9 @@ import { HTTPS } from '../../../constants/Url';
 import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { NetworkClientInterface } from './NetworkClientInterface';
-import { LogLevelEnum, LogManager } from '../../../packages/logger';
-import { buildMessage } from '../../../utils/LogMessageUtil';
-import { ErrorLogMessagesEnum } from '../../../enums/log-messages';
+import { LogManager } from '../../../packages/logger';
 import { EventEnum } from '../../../enums/EventEnum';
-import { sendLogToVWO } from '../../../utils/LogMessageUtil';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 
 export interface IRetryConfig {
   shouldRetry?: boolean;
@@ -72,7 +70,15 @@ export class NetworkClient implements NetworkClientInterface {
           if (error) {
             // Log error and consume response data to free up memory.
             res.resume();
-            return this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, requestModel);
+            return this.retryOrReject(
+              error,
+              attempt,
+              deferred,
+              networkOptions,
+              attemptRequest,
+              requestModel,
+              responseModel,
+            );
           }
           res.setEncoding('utf8');
 
@@ -92,23 +98,37 @@ export class NetworkClient implements NetworkClientInterface {
                 // if status code is 400, reject the promise as it is a bad request
                 if (responseModel.getStatusCode() === 400) {
                   responseModel.setError(error);
+                  responseModel.setTotalAttempts(attempt);
                   deferred.reject(responseModel);
                   return;
                 }
-                return this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, requestModel);
+                return this.retryOrReject(
+                  error,
+                  attempt,
+                  deferred,
+                  networkOptions,
+                  attemptRequest,
+                  requestModel,
+                  responseModel,
+                );
               }
               // send log to vwo, if request is successful and attempt is greater than 0
               if (attempt > 0) {
-                sendLogToVWO(
-                  'Request successfully sent for event: ' + String(networkOptions.path).split('?')[0],
-                  LogLevelEnum.INFO,
-                  requestModel.getExtraInfo(),
-                );
+                responseModel.setTotalAttempts(attempt);
+                responseModel.setError(requestModel.getLastError());
               }
               responseModel.setData(parsedData);
               deferred.resolve(responseModel);
             } catch (err) {
-              return this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel);
+              return this.retryOrReject(
+                err,
+                attempt,
+                deferred,
+                networkOptions,
+                attemptRequest,
+                requestModel,
+                responseModel,
+              );
             }
           });
         });
@@ -122,14 +142,23 @@ export class NetworkClient implements NetworkClientInterface {
             networkOptions,
             attemptRequest,
             requestModel,
+            responseModel,
           );
         });
 
         req.on('error', (err) => {
-          return this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel);
+          return this.retryOrReject(
+            err,
+            attempt,
+            deferred,
+            networkOptions,
+            attemptRequest,
+            requestModel,
+            responseModel,
+          );
         });
       } catch (err) {
-        this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel);
+        this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, requestModel, responseModel);
       }
 
       return deferred.promise;
@@ -167,16 +196,10 @@ export class NetworkClient implements NetworkClientInterface {
           res.on('end', () => {
             try {
               if (res.statusCode === 200) {
-                // if attempt is greater than 0, log the response
-                if (attempt > 0) {
-                  sendLogToVWO(
-                    'Request successfully sent for event: ' + String(networkOptions.path).split('?')[0],
-                    LogLevelEnum.INFO,
-                    request.getExtraInfo(),
-                  );
-                }
                 responseModel.setStatusCode(res.statusCode);
                 responseModel.setData(request.getBody());
+                responseModel.setTotalAttempts(attempt);
+                responseModel.setError(request.getLastError());
                 deferred.resolve(responseModel);
               } else {
                 const error = `Raw Data: ${rawData}, Status Code: ${res.statusCode}`;
@@ -184,13 +207,22 @@ export class NetworkClient implements NetworkClientInterface {
                 // if status code is 400, reject the promise as it is a bad request
                 if (res.statusCode === 400) {
                   responseModel.setError(error);
+                  responseModel.setTotalAttempts(attempt);
                   deferred.reject(responseModel);
                   return;
                 }
-                return this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request);
+                return this.retryOrReject(
+                  error,
+                  attempt,
+                  deferred,
+                  networkOptions,
+                  attemptRequest,
+                  request,
+                  responseModel,
+                );
               }
             } catch (err) {
-              return this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request);
+              return this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request, responseModel);
             }
           });
         });
@@ -198,18 +230,18 @@ export class NetworkClient implements NetworkClientInterface {
         // Handle request timeout.
         req.on('timeout', () => {
           const error = `Timeout: ${networkOptions.timeout}`;
-          return this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request);
+          return this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request, responseModel);
         });
 
         req.on('error', (err) => {
-          return this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request);
+          return this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request, responseModel);
         });
 
         // Write data to the request body and end the request.
         req.write(JSON.stringify(networkOptions.body));
         req.end();
       } catch (err) {
-        this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request);
+        this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request, responseModel);
       }
 
       return deferred.promise;
@@ -233,22 +265,26 @@ export class NetworkClient implements NetworkClientInterface {
     networkOptions: Record<string, dynamic>,
     attemptRequest: (attempt: number) => Promise<ResponseModel>,
     request: RequestModel,
+    responseModel: ResponseModel,
   ) {
     const retryConfig = request.getRetryConfig();
     const extraData = request.getExtraInfo();
     const endpoint = String(networkOptions.path).split('?')[0];
     const delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, attempt) * 1000;
     if (retryConfig.shouldRetry && attempt < retryConfig.maxRetries) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
+      LogManager.Instance.errorLog(
+        'ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL',
+        {
           endPoint: endpoint,
-          err: error,
+          err: getFormattedErrorMessage(error),
           delay: delay / 1000,
           attempt: attempt + 1,
           maxRetries: retryConfig.maxRetries,
-        }),
+        },
         extraData,
+        false,
       );
+      request.setLastError(error);
       setTimeout(() => {
         attemptRequest(attempt + 1)
           .then(deferred.resolve)
@@ -256,16 +292,18 @@ export class NetworkClient implements NetworkClientInterface {
       }, delay);
     } else {
       if (!String(networkOptions.path).includes(EventEnum.VWO_LOG_EVENT)) {
-        // only log error if the endpoint is not vwo_log event
-        LogManager.Instance.error(
-          buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
-            endPoint: endpoint,
-            err: error,
-          }),
+        LogManager.Instance.errorLog(
+          'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
+          {
+            extraData: endpoint,
+            attempts: attempt,
+            err: getFormattedErrorMessage(error),
+          },
           extraData,
+          false,
         );
       }
-      const responseModel = new ResponseModel();
+      responseModel.setTotalAttempts(attempt);
       responseModel.setError(error);
       deferred.reject(responseModel);
     }

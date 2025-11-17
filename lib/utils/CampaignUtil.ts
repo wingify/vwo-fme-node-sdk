@@ -142,6 +142,64 @@ export function getVariationFromCampaignKey(settings: SettingsModel, campaignKey
 }
 
 /**
+ * Retrieves the key of a campaign by its ID.
+ * @param {SettingsModel} settings - The settings model containing all campaigns.
+ * @param {number} campaignId - The ID of the campaign to retrieve.
+ * @returns {string | null} The key of the campaign or null if not found.
+ */
+export function getCampaignKeyFromCampaignId(settings: SettingsModel, campaignId: number): string | null {
+  const campaign = settings.getCampaigns().find((campaign: CampaignModel) => {
+    return campaign.getId() === campaignId;
+  });
+  if (campaign) {
+    return campaign.getKey();
+  }
+  return null;
+}
+
+/**
+ * Retrieves the name of a variation by its ID within a specific campaign identified by its ID.
+ * @param {SettingsModel} settings - The settings model containing all campaigns.
+ * @param {number} campaignId - The ID of the campaign.
+ * @param {number} variationId - The ID of the variation to retrieve.
+ * @returns {string | null} The name of the variation or null if not found.
+ */
+export function getVariationNameFromCampaignIdAndVariationId(
+  settings: SettingsModel,
+  campaignId: number,
+  variationId: number,
+): string | null {
+  const campaign = settings.getCampaigns().find((campaign: CampaignModel) => {
+    return campaign.getId() === campaignId;
+  });
+  if (campaign) {
+    const variation = campaign.getVariations().find((variation: VariationModel) => {
+      return variation.getId() === variationId;
+    });
+    if (variation) {
+      return variation.getKey();
+    }
+  }
+  return null;
+}
+
+/**
+ * Retrieves the type of a campaign by its ID.
+ * @param {SettingsModel} settings - The settings model containing all campaigns.
+ * @param {number} campaignId - The ID of the campaign to retrieve.
+ * @returns {string | null} The type of the campaign or null if not found.
+ */
+export function getCampaignTypeFromCampaignId(settings: SettingsModel, campaignId: number): string | null {
+  const campaign = settings.getCampaigns().find((campaign: CampaignModel) => {
+    return campaign.getId() === campaignId;
+  });
+  if (campaign) {
+    return campaign.getType();
+  }
+  return null;
+}
+
+/**
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.
  */

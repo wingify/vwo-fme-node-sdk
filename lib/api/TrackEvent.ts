@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 import { ApiEnum } from '../enums/ApiEnum';
-import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { ContextModel } from '../models/user/ContextModel';
 import { LogManager } from '../packages/logger';
 import IHooksService from '../services/HooksService';
 import { dynamic } from '../types/Common';
 import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
-import { buildMessage } from '../utils/LogMessageUtil';
 import { BatchEventsQueue } from '../services/BatchEventsQueue';
 import {
   getEventsBaseProperties,
@@ -75,10 +73,12 @@ export class TrackApi implements ITrack {
       return { [eventName]: true };
     }
     // Log an error if the event does not exist
-    LogManager.Instance.error(
-      buildMessage(ErrorLogMessagesEnum.EVENT_NOT_FOUND, {
+    LogManager.Instance.errorLog(
+      'EVENT_NOT_FOUND',
+      {
         eventName,
-      }),
+      },
+      { an: ApiEnum.TRACK_EVENT, uuid: context.getUuid(), sId: context.getSessionId() },
     );
 
     return { [eventName]: false };
@@ -112,6 +112,7 @@ const createImpressionForTrack = async (
     eventProperties,
     context?.getUserAgent(),
     context?.getIpAddress(),
+    context.getSessionId(),
   );
   // Send the prepared payload via POST API request
   if (BatchEventsQueue.Instance) {

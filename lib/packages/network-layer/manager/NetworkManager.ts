@@ -23,8 +23,7 @@ import { ResponseModel } from '../models/ResponseModel';
 import { Constants } from '../../../constants';
 import { isBoolean, isNumber } from '../../../utils/DataTypeUtil';
 import { LogManager } from '../../logger/core/LogManager';
-import { ErrorLogMessagesEnum } from '../../../enums/log-messages';
-import { buildMessage } from '../../../utils/LogMessageUtil';
+import { ApiEnum } from '../../../enums/ApiEnum';
 
 export class NetworkManager {
   private config: GlobalRequestModel; // Holds the global configuration for network requests
@@ -78,10 +77,12 @@ export class NetworkManager {
     }
 
     if (isInvalidConfig) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.RETRY_CONFIG_INVALID, {
+      LogManager.Instance.errorLog(
+        'INVALID_RETRY_CONFIG',
+        {
           retryConfig: JSON.stringify(validatedConfig),
-        }),
+        },
+        { an: ApiEnum.INIT },
       );
     }
     return isInvalidConfig ? Constants.DEFAULT_RETRY_CONFIG : validatedConfig;

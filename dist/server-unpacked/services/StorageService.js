@@ -54,11 +54,10 @@ exports.StorageService = void 0;
  */
 var StorageEnum_1 = require("../enums/StorageEnum");
 var storage_1 = require("../packages/storage");
-var log_messages_1 = require("../enums/log-messages");
 var logger_1 = require("../packages/logger");
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
-var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 var PromiseUtil_1 = require("../utils/PromiseUtil");
+var ApiEnum_1 = require("../enums/ApiEnum");
 var StorageService = /** @class */ (function () {
     function StorageService() {
         this.storageData = {};
@@ -86,9 +85,7 @@ var StorageService = /** @class */ (function () {
                         deferredObject.resolve(data);
                     })
                         .catch(function (err) {
-                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.STORED_DATA_ERROR, {
-                            err: err,
-                        }));
+                        logger_1.LogManager.Instance.errorLog('ERROR_READING_STORED_DATA_IN_STORAGE', { err: err }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                         deferredObject.resolve(StorageEnum_1.StorageEnum.NO_DATA_FOUND);
                     });
                 }

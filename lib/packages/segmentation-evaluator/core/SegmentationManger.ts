@@ -24,6 +24,8 @@ import { FeatureModel } from '../../../models/campaign/FeatureModel';
 import { ContextVWOModel } from '../../../models/user/ContextVWOModel';
 import { SettingsService } from '../../../services/SettingsService';
 import { isUndefined } from '../../../utils/DataTypeUtil';
+import { ApiEnum } from '../../../enums/ApiEnum';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 
 export class SegmentationManager {
   private static instance: SegmentationManager; // Singleton instance of SegmentationManager
@@ -78,11 +80,17 @@ export class SegmentationManager {
         }
         try {
           const params = getQueryParams(queryParams);
-          const _vwo = await getFromGatewayService(params, UrlEnum.GET_USER_DATA);
+          const _vwo = await getFromGatewayService(params, UrlEnum.GET_USER_DATA, context);
           context.setVwo(new ContextVWOModel().modelFromDictionary(_vwo));
           this.evaluator.context = context;
         } catch (err) {
-          LogManager.Instance.error(`Error in setting contextual data for segmentation. Got error: ${err.error}`);
+          LogManager.Instance.errorLog(
+            'ERROR_SETTING_SEGMENTATION_CONTEXT',
+            {
+              err: getFormattedErrorMessage(err),
+            },
+            { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
+          );
         }
       }
     }

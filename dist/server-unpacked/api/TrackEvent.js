@@ -53,10 +53,8 @@ exports.TrackApi = void 0;
  * limitations under the License.
  */
 var ApiEnum_1 = require("../enums/ApiEnum");
-var log_messages_1 = require("../enums/log-messages");
 var logger_1 = require("../packages/logger");
 var FunctionUtil_1 = require("../utils/FunctionUtil");
-var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 var BatchEventsQueue_1 = require("../services/BatchEventsQueue");
 var NetworkUtil_1 = require("../utils/NetworkUtil");
 var TrackApi = /** @class */ (function () {
@@ -88,9 +86,9 @@ var TrackApi = /** @class */ (function () {
                         return [2 /*return*/, (_a = {}, _a[eventName] = true, _a)];
                     case 4:
                         // Log an error if the event does not exist
-                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EVENT_NOT_FOUND, {
+                        logger_1.LogManager.Instance.errorLog('EVENT_NOT_FOUND', {
                             eventName: eventName,
-                        }));
+                        }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT, uuid: context.getUuid(), sId: context.getSessionId() });
                         return [2 /*return*/, (_b = {}, _b[eventName] = false, _b)];
                 }
             });
@@ -112,7 +110,7 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
         switch (_a.label) {
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-                payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
+                payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress(), context.getSessionId());
                 if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
                 BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
                 return [3 /*break*/, 3];

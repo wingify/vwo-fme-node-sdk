@@ -29,6 +29,8 @@ export declare class ContextModel implements IVWOContextModel {
   customVariables?: Record<string, any>;
   variationTargetingVariables?: Record<string, dynamic>;
   postSegmentationVariables?: string[];
+  _vwo_uuid?: string;
+  _vwo_sessionId?: number;
   _vwo?: ContextVWOModel;
   modelFromDictionary(context: Record<string, any>): this;
   getId(): string;
@@ -42,4 +44,6 @@ export declare class ContextModel implements IVWOContextModel {
   setVwo(_vwo: ContextVWOModel): void;
   getPostSegmentationVariables(): string[];
   setPostSegmentationVariables(postSegmentationVariables: string[]): void;
+  getUuid(): string;
+  getSessionId(): number;
 }

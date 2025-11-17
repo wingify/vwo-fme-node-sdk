@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 import { dynamic } from '../../../types/Common';
-
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 /**
  * Represents the response model for network operations.
  * This class encapsulates details about the HTTP response including status code, headers, data, and errors.
  */
 export class ResponseModel {
   private statusCode: number; // HTTP status code of the response
-  private error: dynamic; // Error object if the request failed
+  private error: string; // Error object if the request failed
   private headers: Record<string, string>; // Headers received in the response
   private data: dynamic; // Data payload of the response
+  private totalAttempts: number; // Total number of attempts made to send the request
 
   /**
    * Sets the status code of the response.
@@ -54,7 +55,7 @@ export class ResponseModel {
    * @param {dynamic} error - The error object if the request failed
    */
   setError(error: dynamic): void {
-    this.error = error;
+    this.error = getFormattedErrorMessage(error);
   }
 
   /**
@@ -85,7 +86,23 @@ export class ResponseModel {
    * Retrieves the error object of the response.
    * @returns {dynamic} The error object if the request failed
    */
-  getError(): dynamic {
+  getError(): string {
     return this.error;
+  }
+
+  /**
+   * Sets the total number of attempts made to send the request.
+   * @param {number} totalAttempts - The total number of attempts made to send the request
+   */
+  setTotalAttempts(totalAttempts: number): void {
+    this.totalAttempts = totalAttempts;
+  }
+
+  /**
+   * Retrieves the total number of attempts made to send the request.
+   * @returns {number} The total number of attempts made to send the request
+   */
+  getTotalAttempts(): number {
+    return this.totalAttempts;
   }
 }

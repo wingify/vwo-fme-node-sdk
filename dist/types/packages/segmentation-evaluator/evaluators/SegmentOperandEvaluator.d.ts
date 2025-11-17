@@ -17,6 +17,7 @@ export declare class SegmentOperandEvaluator {
   evaluateCustomVariableDSL(
     dslOperandValue: Record<string, dynamic>,
     properties: Record<string, dynamic>,
+    context: ContextModel,
   ): Promise<boolean>;
   /**
    * Evaluates a user DSL expression to check if a user ID is in a specified list.

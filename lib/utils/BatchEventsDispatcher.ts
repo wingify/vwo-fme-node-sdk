@@ -22,7 +22,7 @@ import { UrlEnum } from '../enums/UrlEnum';
 import { SettingsService } from '../services/SettingsService';
 import { LogManager } from '../packages/logger';
 import { buildMessage } from '../utils/LogMessageUtil';
-import { ErrorLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
+import { InfoLogMessagesEnum } from '../enums/log-messages';
 import { dynamic } from '../types/Common';
 import { isString } from '../utils/DataTypeUtil';
 import { Deferred } from './PromiseUtil';
@@ -127,11 +127,14 @@ export class BatchEventsDispatcher {
 
     if (error) {
       LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+      LogManager.Instance.errorLog(
+        'NETWORK_CALL_FAILED',
+        {
           method: HttpMethodEnum.POST,
           err: error.message,
-        }),
+        },
+        {},
+        false,
       );
       callback(error, payload);
       return { status: 'error', events: payload };
@@ -150,29 +153,38 @@ export class BatchEventsDispatcher {
     }
 
     if (statusCode === 413) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.CONFIG_BATCH_EVENT_LIMIT_EXCEEDED, {
+      LogManager.Instance.errorLog(
+        'CONFIG_BATCH_EVENT_LIMIT_EXCEEDED',
+        {
           accountId,
           endPoint,
           eventsPerRequest,
-        }),
+        },
+        {},
+        false,
       );
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+      LogManager.Instance.errorLog(
+        'NETWORK_CALL_FAILED',
+        {
           method: HttpMethodEnum.POST,
           err: error.message,
-        }),
+        },
+        {},
+        false,
       );
       callback(error, payload);
       return { status: 'error', events: payload };
     }
 
-    LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.IMPRESSION_BATCH_FAILED));
-    LogManager.Instance.error(
-      buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+    LogManager.Instance.errorLog('IMPRESSION_BATCH_FAILED', {}, {}, false);
+    LogManager.Instance.errorLog(
+      'NETWORK_CALL_FAILED',
+      {
         method: HttpMethodEnum.POST,
         err: error.message,
-      }),
+      },
+      {},
+      false,
     );
     callback(error, payload);
     return { status: 'error', events: payload };

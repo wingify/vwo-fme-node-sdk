@@ -77,3 +77,9 @@ export declare function doesEventBelongToAnyFeature(eventName: string, settings:
  * @param {any} settings - The settings file to modify.
  */
 export declare function addLinkedCampaignsToSettings(settings: SettingsModel): void;
+/**
+ * Formats an error message.
+ * @param {any} error - The error to format.
+ * @returns {string} The formatted error message.
+ */
+export declare function getFormattedErrorMessage(error: any): string;

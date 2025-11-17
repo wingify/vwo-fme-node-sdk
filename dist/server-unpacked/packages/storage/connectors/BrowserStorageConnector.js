@@ -69,6 +69,7 @@ var logger_1 = require("../../logger");
 var SettingsService_1 = require("../../../services/SettingsService");
 var SettingsSchemaValidation_1 = require("../../../models/schemas/SettingsSchemaValidation");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
+var FunctionUtil_1 = require("../../../utils/FunctionUtil");
 /**
  * A class that provides browser storage functionality for managing feature flags and experiments data
  * @class BrowserStorageConnector
@@ -118,7 +119,9 @@ var BrowserStorageConnector = /** @class */ (function () {
             return data ? JSON.parse(data) : {};
         }
         catch (error) {
-            logger_1.LogManager.Instance.error("Error reading from storage: ".concat(error));
+            logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+            }, { an: constants_1.Constants.BROWSER_STORAGE });
             return {};
         }
     };
@@ -135,7 +138,9 @@ var BrowserStorageConnector = /** @class */ (function () {
             this.storage.setItem(this.storageKey, serializedData);
         }
         catch (error) {
-            logger_1.LogManager.Instance.error("Error writing to storage: ".concat(error));
+            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+            }, { an: constants_1.Constants.BROWSER_STORAGE });
         }
     };
     /**
@@ -159,7 +164,9 @@ var BrowserStorageConnector = /** @class */ (function () {
                 deferredObject.resolve();
             }
             catch (error) {
-                logger_1.LogManager.Instance.error("Error storing data: ".concat(error));
+                logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                }, { an: constants_1.Constants.BROWSER_STORAGE });
                 deferredObject.reject(error);
             }
         }
@@ -187,7 +194,9 @@ var BrowserStorageConnector = /** @class */ (function () {
                 deferredObject.resolve(dataToReturn);
             }
             catch (error) {
-                logger_1.LogManager.Instance.error("Error retrieving data: ".concat(error));
+                logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                }, { an: constants_1.Constants.BROWSER_STORAGE });
                 deferredObject.resolve({});
             }
         }
@@ -222,7 +231,9 @@ var BrowserStorageConnector = /** @class */ (function () {
                         data.sdkKey = atob(data.sdkKey);
                     }
                     catch (e) {
-                        logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
+                        logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
+                        }, { an: constants_1.Constants.BROWSER_STORAGE });
                     }
                 }
                 // Check for sdkKey and accountId match
@@ -250,14 +261,18 @@ var BrowserStorageConnector = /** @class */ (function () {
                             data.sdkKey = atob(data.sdkKey);
                         }
                         catch (e) {
-                            logger_1.LogManager.Instance.error('Failed to decode sdkKey from storage');
+                            logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
+                                err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
+                            }, { an: constants_1.Constants.BROWSER_STORAGE });
                         }
                     }
                     deferredObject.resolve(data);
                 }
             }
             catch (error) {
-                logger_1.LogManager.Instance.error("Error retrieving settings: ".concat(error));
+                logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                }, { an: constants_1.Constants.BROWSER_STORAGE });
                 deferredObject.resolve(null);
             }
         }
@@ -291,7 +306,9 @@ var BrowserStorageConnector = /** @class */ (function () {
                 });
             }); })
                 .catch(function (error) {
-                logger_1.LogManager.Instance.error("Error fetching fresh settings: ".concat(error));
+                logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                }, { an: constants_1.Constants.BROWSER_STORAGE }, false);
             });
         }
     };
@@ -323,7 +340,9 @@ var BrowserStorageConnector = /** @class */ (function () {
                 deferredObject.resolve();
             }
             catch (error) {
-                logger_1.LogManager.Instance.error("Error storing settings: ".concat(error));
+                logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
+                    err: 'Storing settings: ' + (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                }, { an: constants_1.Constants.BROWSER_STORAGE });
                 deferredObject.reject(error);
             }
         }

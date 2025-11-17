@@ -105,7 +105,7 @@ var VWO = /** @class */ (function () {
                 return Promise.resolve(vwoClient);
             }
             else {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.SETTINGS_SCHEMA_INVALID);
+                logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT });
                 var vwoClient = this.vwoBuilder.build({});
                 vwoClient.isSettingsValid = false;
                 vwoClient.settingsFetchTime = 0;
@@ -148,36 +148,31 @@ var _global = {};
  */
 function init(options) {
     return __awaiter(this, void 0, void 0, function () {
-        var apiName, date, msg, msg, msg, msg, startTimeForInit_1, instance, msg;
+        var apiName, date, invalidErrorPrefix, msg, msg, msg, msg, startTimeForInit_1, instance, msg;
         var _this = this;
         return __generator(this, function (_a) {
             apiName = ApiEnum_1.ApiEnum.INIT;
             date = new Date().toISOString();
             try {
+                invalidErrorPrefix = "[ERROR]: VWO-SDK ".concat(date, " ");
                 if (!(0, DataTypeUtil_1.isObject)(options)) {
-                    msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INIT_OPTIONS_ERROR, {
-                        date: date,
-                    });
+                    msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_OPTIONS);
                     console.error(msg); // Ensures options is an object.
                 }
                 if (!(options === null || options === void 0 ? void 0 : options.sdkKey) || !(0, DataTypeUtil_1.isString)(options === null || options === void 0 ? void 0 : options.sdkKey)) {
-                    msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INIT_OPTIONS_SDK_KEY_ERROR, {
-                        date: date,
-                    });
+                    msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_SDK_KEY_IN_OPTIONS);
                     console.error(msg); // Validates sdkKey presence and type.
                 }
                 if (!options.accountId) {
-                    msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INIT_OPTIONS_ACCOUNT_ID_ERROR, {
-                        date: date,
-                    });
+                    msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_ACCOUNT_ID_IN_OPTIONS);
                     console.error(msg); // Validates accountId presence and type.
                 }
                 if (options.isAliasingEnabled && !options.gatewayService) {
-                    msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.GATEWAY_URL_ERROR, {
-                        date: date,
-                    });
-                    console.error('[ERROR]: VWO-SDK ' + new Date().toISOString() + ' ' + msg); // Validates gatewayService presence and type.
-                    throw new Error('TypeError: Invalid gatewayService when aliasing is enabled');
+                    msg = invalidErrorPrefix +
+                        (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_GATEWAY_URL, {
+                            date: date,
+                        });
+                    console.error(msg); // Validates gatewayService presence and type.
                 }
                 if (typeof process === 'undefined') {
                     options.platform = PlatformEnum_1.PlatformEnum.CLIENT;
@@ -230,7 +225,7 @@ function init(options) {
                     }); })];
             }
             catch (err) {
-                msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+                msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EXECUTION_FAILED, {
                     apiName: apiName,
                     err: err,
                 });
@@ -273,7 +268,7 @@ function onInit() {
                 return [2 /*return*/, _global.vwoInitDeferred.promise];
             }
             catch (err) {
-                msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+                msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EXECUTION_FAILED, {
                     apiName: apiName,
                     err: err,
                 });

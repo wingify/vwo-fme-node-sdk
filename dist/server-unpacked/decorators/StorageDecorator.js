@@ -54,9 +54,8 @@ exports.StorageDecorator = void 0;
  */
 var logger_1 = require("../packages/logger");
 var StorageEnum_1 = require("../enums/StorageEnum");
-var log_messages_1 = require("../enums/log-messages");
-var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 var PromiseUtil_1 = require("../utils/PromiseUtil");
+var ApiEnum_1 = require("../enums/ApiEnum");
 var StorageDecorator = /** @class */ (function () {
     function StorageDecorator() {
     }
@@ -110,30 +109,30 @@ var StorageDecorator = /** @class */ (function () {
         var deferredObject = new PromiseUtil_1.Deferred();
         var featureKey = data.featureKey, context = data.context, rolloutId = data.rolloutId, rolloutKey = data.rolloutKey, rolloutVariationId = data.rolloutVariationId, experimentId = data.experimentId, experimentKey = data.experimentKey, experimentVariationId = data.experimentVariationId;
         if (!featureKey) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'featureKey',
-            }));
+            }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if feature key is invalid
             return;
         }
         if (!context.id) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'Context or Context.id',
-            }));
+            }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if user ID is invalid
             return;
         }
         if (rolloutKey && !experimentKey && !rolloutVariationId) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'Variation:(rolloutKey, experimentKey or rolloutVariationId)',
-            }));
+            }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if rollout variation is invalid
             return;
         }
         if (experimentKey && !experimentVariationId) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.STORING_DATA_ERROR, {
+            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'Variation:(experimentKey or rolloutVariationId)',
-            }));
+            }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if experiment variation is invalid
             return;
         }

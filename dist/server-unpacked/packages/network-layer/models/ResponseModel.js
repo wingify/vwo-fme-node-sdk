@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ResponseModel = void 0;
+var FunctionUtil_1 = require("../../../utils/FunctionUtil");
 /**
  * Represents the response model for network operations.
  * This class encapsulates details about the HTTP response including status code, headers, data, and errors.
@@ -34,7 +35,7 @@ var ResponseModel = /** @class */ (function () {
      * @param {dynamic} error - The error object if the request failed
      */
     ResponseModel.prototype.setError = function (error) {
-        this.error = error;
+        this.error = (0, FunctionUtil_1.getFormattedErrorMessage)(error);
     };
     /**
      * Retrieves the headers of the response.
@@ -63,6 +64,20 @@ var ResponseModel = /** @class */ (function () {
      */
     ResponseModel.prototype.getError = function () {
         return this.error;
+    };
+    /**
+     * Sets the total number of attempts made to send the request.
+     * @param {number} totalAttempts - The total number of attempts made to send the request
+     */
+    ResponseModel.prototype.setTotalAttempts = function (totalAttempts) {
+        this.totalAttempts = totalAttempts;
+    };
+    /**
+     * Retrieves the total number of attempts made to send the request.
+     * @returns {number} The total number of attempts made to send the request
+     */
+    ResponseModel.prototype.getTotalAttempts = function () {
+        return this.totalAttempts;
     };
     return ResponseModel;
 }());

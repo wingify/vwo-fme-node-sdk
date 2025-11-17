@@ -30,7 +30,7 @@ export async function getUserId(userId: string, isAliasingEnabled: boolean): Pro
       LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.ALIAS_ENABLED, { userId: result?.userId }));
       return result?.userId || userId;
     } else {
-      LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.GATEWAY_URL_ERROR));
+      LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.INVALID_GATEWAY_URL));
       return userId;
     }
   } else {

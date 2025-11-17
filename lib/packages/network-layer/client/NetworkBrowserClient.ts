@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { sendGetCall, sendPostCall } from '../../../utils/XMLUtil';
-import { dynamic } from '../../../types/Common';
 import { Deferred } from '../../../utils/PromiseUtil';
 
 import { RequestModel } from '../models/RequestModel';
@@ -33,17 +32,12 @@ export class NetworkBrowserClient implements NetworkClientInterface {
   GET(requestModel: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
 
-    // Extract network options from the request model.
-    const responseModel = new ResponseModel();
-
     sendGetCall({
       requestModel,
-      successCallback: (data: dynamic) => {
-        responseModel.setData(data);
+      successCallback: (responseModel: ResponseModel) => {
         deferred.resolve(responseModel);
       },
-      errorCallback: (error: dynamic) => {
-        responseModel.setError(error);
+      errorCallback: (responseModel: ResponseModel) => {
         deferred.reject(responseModel);
       },
     });
@@ -94,18 +88,13 @@ export class NetworkBrowserClient implements NetworkClientInterface {
    */
   POST(requestModel: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
-    const responseModel = new ResponseModel();
 
     sendPostCall({
       requestModel,
-      successCallback: (data: dynamic) => {
-        responseModel.setStatusCode(200);
-        responseModel.setData(data);
+      successCallback: (responseModel: ResponseModel) => {
         deferred.resolve(responseModel);
       },
-      errorCallback: (error: dynamic) => {
-        responseModel.setStatusCode(400);
-        responseModel.setError(error);
+      errorCallback: (responseModel: ResponseModel) => {
         deferred.reject(responseModel);
       },
     });

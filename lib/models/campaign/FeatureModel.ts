@@ -27,6 +27,7 @@ export class FeatureModel {
   private type: string;
   private rules: Array<RuleModel> = [];
   private impactCampaign: ImpactCapmaignModel = null;
+  private isDebuggerEnabled: boolean = false;
 
   private rulesLinkedCampaign: Array<CampaignModel> = [];
   private isGatewayServiceRequired: boolean = false;
@@ -36,6 +37,9 @@ export class FeatureModel {
     this.key = feature.key;
     this.name = feature.name;
     this.type = feature.type;
+    if (feature?.isDebuggerEnabled) {
+      this.isDebuggerEnabled = feature.isDebuggerEnabled;
+    }
     if (feature?.isGatewayServiceRequired) {
       this.isGatewayServiceRequired = feature.isGatewayServiceRequired;
     }
@@ -111,5 +115,9 @@ export class FeatureModel {
 
   setIsGatewayServiceRequired(isGatewayServiceRequired: boolean): void {
     this.isGatewayServiceRequired = isGatewayServiceRequired;
+  }
+
+  getIsDebuggerEnabled(): boolean {
+    return this.isDebuggerEnabled;
   }
 }

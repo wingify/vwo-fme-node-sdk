@@ -31,6 +31,7 @@ var storedMessages = new Set();
  * @returns {string} The constructed message with all placeholders replaced by their corresponding values from the data object.
  */
 function buildMessage(template, data) {
+    if (template === void 0) { template = ''; }
     if (data === void 0) { data = {}; }
     try {
         return template.replace(nargs, function (match, key, index) {

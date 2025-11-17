@@ -59,6 +59,10 @@ var log_messages_1 = require("../enums/log-messages");
 var SettingsSchemaValidation_1 = require("../models/schemas/SettingsSchemaValidation");
 var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 var NetworkUtil_1 = require("../utils/NetworkUtil");
+var DebuggerCategoryEnum_1 = require("../enums/DebuggerCategoryEnum");
+var DebuggerServiceUtil_1 = require("../utils/DebuggerServiceUtil");
+var FunctionUtil_1 = require("../utils/FunctionUtil");
+var ApiEnum_1 = require("../enums/ApiEnum");
 var SettingsService = /** @class */ (function () {
     function SettingsService(options) {
         var _a, _b, _c, _d, _e, _f;
@@ -186,47 +190,42 @@ var SettingsService = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 6, , 7]);
+                        _a.trys.push([0, 8, , 9]);
                         return [4 /*yield*/, storageConnector.getSettingsFromStorage(this.sdkKey, this.accountId)];
                     case 1:
                         cachedSettings = _a.sent();
-                        if (cachedSettings) {
-                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
-                            deferredObject.resolve(cachedSettings);
-                        }
-                        else {
-                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
-                        }
-                        return [4 /*yield*/, this.fetchSettings()];
+                        if (!cachedSettings) return [3 /*break*/, 2];
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
+                        deferredObject.resolve(cachedSettings);
+                        return [3 /*break*/, 7];
                     case 2:
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
+                        return [4 /*yield*/, this.fetchSettings()];
+                    case 3:
                         freshSettings = _a.sent();
                         return [4 /*yield*/, this.normalizeSettings(freshSettings)];
-                    case 3:
+                    case 4:
                         normalizedSettings = _a.sent();
                         // set the settings in storage only if settings are valid
                         this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
-                        if (!this.isSettingsValid) return [3 /*break*/, 5];
+                        if (!this.isSettingsValid) return [3 /*break*/, 6];
                         return [4 /*yield*/, storageConnector.setSettingsInStorage(normalizedSettings)];
-                    case 4:
-                        _a.sent();
-                        _a.label = 5;
                     case 5:
-                        if (cachedSettings) {
-                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_BACKGROUND_UPDATE));
-                        }
-                        else {
-                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
-                            deferredObject.resolve(normalizedSettings);
-                        }
-                        return [3 /*break*/, 7];
+                        _a.sent();
+                        _a.label = 6;
                     case 6:
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
+                        deferredObject.resolve(normalizedSettings);
+                        _a.label = 7;
+                    case 7: return [3 /*break*/, 9];
+                    case 8:
                         error_1 = _a.sent();
-                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-                            err: JSON.stringify(error_1),
-                        }));
+                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1),
+                        }, { an: constants_1.Constants.BROWSER_STORAGE }, false);
                         deferredObject.resolve(null);
-                        return [3 /*break*/, 7];
-                    case 7: return [2 /*return*/];
+                        return [3 /*break*/, 9];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -248,9 +247,9 @@ var SettingsService = /** @class */ (function () {
                         return [3 /*break*/, 4];
                     case 3:
                         error_2 = _a.sent();
-                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-                            err: JSON.stringify(error_2),
-                        }));
+                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_2),
+                        }, { an: ApiEnum_1.ApiEnum.INIT }, false);
                         deferredObject.resolve(null);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
@@ -269,9 +268,10 @@ var SettingsService = /** @class */ (function () {
         }
         return deferredObject.promise;
     };
-    SettingsService.prototype.fetchSettings = function (isViaWebhook) {
+    SettingsService.prototype.fetchSettings = function (isViaWebhook, apiName) {
         var _this = this;
         if (isViaWebhook === void 0) { isViaWebhook = false; }
+        if (apiName === void 0) { apiName = ApiEnum_1.ApiEnum.INIT; }
         var deferredObject = new PromiseUtil_1.Deferred();
         if (!this.sdkKey || !this.accountId) {
             deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
@@ -293,24 +293,62 @@ var SettingsService = /** @class */ (function () {
         try {
             //record the current timestamp
             var startTime_1 = Date.now();
-            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
-            request.setTimeout(this.networkTimeout);
+            var request_1 = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
+            request_1.setTimeout(this.networkTimeout);
             networkInstance
-                .get(request)
+                .get(request_1)
                 .then(function (response) {
                 //record the timestamp when the response is received
                 _this.settingsFetchTime = Date.now() - startTime_1;
+                // if attempt is more than 0
+                if (response.getTotalAttempts() > 0) {
+                    // set category, if call got success then category is retry, otherwise network
+                    var lt = logger_1.LogLevelEnum.INFO.toString();
+                    var category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.RETRY;
+                    var msg_t = constants_1.Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
+                    var msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
+                        extraData: path,
+                        attempts: response.getTotalAttempts(),
+                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
+                    });
+                    if (response.getStatusCode() !== 200) {
+                        category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK;
+                        msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
+                        msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
+                            extraData: path,
+                            attempts: response.getTotalAttempts(),
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
+                        });
+                        lt = logger_1.LogLevelEnum.ERROR.toString();
+                    }
+                    var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(request_1, response, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, category);
+                    debugEventProps.msg_t = msg_t;
+                    debugEventProps.lt = lt;
+                    debugEventProps.msg = msg;
+                    // send debug event
+                    (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                }
                 deferredObject.resolve(response.getData());
             })
                 .catch(function (err) {
+                var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(request_1, err, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK);
+                debugEventProps.msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
+                debugEventProps.msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
+                    extraData: path,
+                    attempts: err.getTotalAttempts(),
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(err.getError()),
+                });
+                debugEventProps.lt = logger_1.LogLevelEnum.ERROR.toString();
+                // send debug event
+                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
                 deferredObject.reject(err);
             });
             return deferredObject.promise;
         }
         catch (err) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-                err: JSON.stringify(err),
-            }));
+            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+            }, { an: isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName }, false);
             deferredObject.reject(err);
             return deferredObject.promise;
         }
@@ -357,7 +395,7 @@ var SettingsService = /** @class */ (function () {
                     deferredObject.resolve(fetchedSettings);
                 }
                 else {
-                    logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.SETTINGS_SCHEMA_INVALID);
+                    logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
                     deferredObject.resolve({});
                 }
             });

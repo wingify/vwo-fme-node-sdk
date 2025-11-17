@@ -54,6 +54,6 @@ const DebugLogMessagesEnum = messages.debugMessages;
 exports.DebugLogMessagesEnum = DebugLogMessagesEnum;
 const InfoLogMessagesEnum = messages.infoMessages;
 exports.InfoLogMessagesEnum = InfoLogMessagesEnum;
-const ErrorLogMessagesEnum = messages.errorMessages;
+const ErrorLogMessagesEnum = messages.errorMessagesV2;
 exports.ErrorLogMessagesEnum = ErrorLogMessagesEnum;
 //# sourceMappingURL=index.js.map

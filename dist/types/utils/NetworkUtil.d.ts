@@ -1,4 +1,5 @@
 import { SettingsModel } from '../models/settings/SettingsModel';
+import { RequestModel, ResponseModel } from '../packages/network-layer';
 import { dynamic } from '../types/Common';
 import { ContextModel } from '../models/user/ContextModel';
 /**
@@ -44,6 +45,7 @@ export declare function _getEventBasePayload(
   ipAddress?: string,
   isUsageStatsEvent?: boolean,
   usageStatsAccountId?: number,
+  shouldGenerateUUID?: boolean,
 ): Record<string, any>;
 /**
  * Builds payload to track the visitor.
@@ -78,6 +80,7 @@ export declare function getTrackGoalPayloadData(
   eventProperties: Record<string, any>,
   visitorUserAgent?: string,
   ipAddress?: string,
+  sessionId?: number,
 ): Record<string, any>;
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
@@ -96,6 +99,7 @@ export declare function getAttributePayloadData(
   attributes: Record<string, any>,
   visitorUserAgent?: string,
   ipAddress?: string,
+  sessionId?: number,
 ): Record<string, any>;
 /**
  * Sends a POST API request with the specified properties and payload.
@@ -108,6 +112,7 @@ export declare function sendPostApiRequest(
   payload: any,
   userId: string,
   eventProperties?: any,
+  campaignInfo?: any,
 ): Promise<void>;
 /**
  * Checks if the SDK should wait for a network response.
@@ -156,6 +161,12 @@ export declare function getSDKUsageStatsEventPayload(
   usageStatsAccountId: number,
 ): Record<string, any>;
 /**
+ * Constructs the payload for debugger event.
+ * @param eventProps - The properties for the event.
+ * @returns The constructed payload.
+ */
+export declare function getDebuggerEventPayload(eventProps?: Record<string, any>): Record<string, any>;
+/**
  * Sends an event to VWO (generic event sender).
  * @param properties - Query parameters for the request.
  * @param payload - The payload for the request.
@@ -167,3 +178,10 @@ export declare function sendEvent(
   payload: Record<string, any>,
   eventName: string,
 ): Promise<any>;
+export declare function createNetWorkAndRetryDebugEvent(
+  request: RequestModel,
+  response: ResponseModel,
+  payload: any,
+  apiName: string,
+  category: string,
+): Record<string, any>;

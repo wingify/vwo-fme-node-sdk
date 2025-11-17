@@ -23,6 +23,10 @@ const TransportManager_1 = require("./TransportManager");
 const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 const LogLevelEnum_1 = require("../enums/LogLevelEnum");
 const LogMessageUtil_1 = require("../../../utils/LogMessageUtil");
+const DebuggerCategoryEnum_1 = require("../../../enums/DebuggerCategoryEnum");
+const DebuggerServiceUtil_1 = require("../../../utils/DebuggerServiceUtil");
+const log_messages_1 = require("../../../enums/log-messages");
+const FunctionUtil_1 = require("../../../utils/FunctionUtil");
 /**
  * LogManager class provides logging functionality with support for multiple transports.
  * It is designed as a singleton to ensure a single instance throughout the application.
@@ -129,9 +133,34 @@ class LogManager extends Logger_1.Logger {
      * Logs an error message.
      * @param {string} message - The message to log at error level.
      */
-    error(message, extraData = {}) {
+    error(message) {
         this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
-        (0, LogMessageUtil_1.sendLogToVWO)(message, LogLevelEnum_1.LogLevelEnum.ERROR, extraData);
+    }
+    /**
+     * Middleware method that stores error in DebuggerService and logs it.
+     * @param {boolean} shouldSendToVWO - Whether to send the error to VWO.
+     * @param {string} category - The category of the error.
+     */
+    errorLog(template, data = {}, debugData = {}, shouldSendToVWO = true) {
+        try {
+            const message = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum[template], data);
+            this.error(message);
+            if (shouldSendToVWO) {
+                const debugEventProps = {
+                    ...debugData,
+                    ...data,
+                    msg_t: template,
+                    msg: message,
+                    lt: LogLevelEnum_1.LogLevelEnum.ERROR.toString(),
+                    cg: DebuggerCategoryEnum_1.DebuggerCategoryEnum.ERROR,
+                };
+                // send debug event to VWO
+                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+            }
+        }
+        catch (err) {
+            console.error('Got error while logging error' + (0, FunctionUtil_1.getFormattedErrorMessage)(err));
+        }
     }
 }
 exports.LogManager = LogManager;

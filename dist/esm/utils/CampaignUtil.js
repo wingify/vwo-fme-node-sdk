@@ -5,6 +5,9 @@ exports.assignRangeValues = assignRangeValues;
 exports.scaleVariationWeights = scaleVariationWeights;
 exports.getBucketingSeed = getBucketingSeed;
 exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
+exports.getCampaignKeyFromCampaignId = getCampaignKeyFromCampaignId;
+exports.getVariationNameFromCampaignIdAndVariationId = getVariationNameFromCampaignIdAndVariationId;
+exports.getCampaignTypeFromCampaignId = getCampaignTypeFromCampaignId;
 exports.setCampaignAllocation = setCampaignAllocation;
 exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
 exports.getCampaignsByGroupId = getCampaignsByGroupId;
@@ -141,6 +144,57 @@ function getVariationFromCampaignKey(settings, campaignKey, variationId) {
             // Return a new instance of VariationModel based on the found variation
             return new VariationModel_1.VariationModel().modelFromDictionary(variation);
         }
+    }
+    return null;
+}
+/**
+ * Retrieves the key of a campaign by its ID.
+ * @param {SettingsModel} settings - The settings model containing all campaigns.
+ * @param {number} campaignId - The ID of the campaign to retrieve.
+ * @returns {string | null} The key of the campaign or null if not found.
+ */
+function getCampaignKeyFromCampaignId(settings, campaignId) {
+    const campaign = settings.getCampaigns().find((campaign) => {
+        return campaign.getId() === campaignId;
+    });
+    if (campaign) {
+        return campaign.getKey();
+    }
+    return null;
+}
+/**
+ * Retrieves the name of a variation by its ID within a specific campaign identified by its ID.
+ * @param {SettingsModel} settings - The settings model containing all campaigns.
+ * @param {number} campaignId - The ID of the campaign.
+ * @param {number} variationId - The ID of the variation to retrieve.
+ * @returns {string | null} The name of the variation or null if not found.
+ */
+function getVariationNameFromCampaignIdAndVariationId(settings, campaignId, variationId) {
+    const campaign = settings.getCampaigns().find((campaign) => {
+        return campaign.getId() === campaignId;
+    });
+    if (campaign) {
+        const variation = campaign.getVariations().find((variation) => {
+            return variation.getId() === variationId;
+        });
+        if (variation) {
+            return variation.getKey();
+        }
+    }
+    return null;
+}
+/**
+ * Retrieves the type of a campaign by its ID.
+ * @param {SettingsModel} settings - The settings model containing all campaigns.
+ * @param {number} campaignId - The ID of the campaign to retrieve.
+ * @returns {string | null} The type of the campaign or null if not found.
+ */
+function getCampaignTypeFromCampaignId(settings, campaignId) {
+    const campaign = settings.getCampaigns().find((campaign) => {
+        return campaign.getId() === campaignId;
+    });
+    if (campaign) {
+        return campaign.getType();
     }
     return null;
 }

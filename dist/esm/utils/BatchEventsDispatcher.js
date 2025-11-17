@@ -82,10 +82,10 @@ class BatchEventsDispatcher {
         }
         if (error) {
             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+            logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
                 method: HttpMethodEnum_1.HttpMethodEnum.POST,
                 err: error.message,
-            }));
+            }, {}, false);
             callback(error, payload);
             return { status: 'error', events: payload };
         }
@@ -99,23 +99,23 @@ class BatchEventsDispatcher {
             return { status: 'success', events: payload };
         }
         if (statusCode === 413) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.CONFIG_BATCH_EVENT_LIMIT_EXCEEDED, {
+            logger_1.LogManager.Instance.errorLog('CONFIG_BATCH_EVENT_LIMIT_EXCEEDED', {
                 accountId,
                 endPoint,
                 eventsPerRequest,
-            }));
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+            }, {}, false);
+            logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
                 method: HttpMethodEnum_1.HttpMethodEnum.POST,
                 err: error.message,
-            }));
+            }, {}, false);
             callback(error, payload);
             return { status: 'error', events: payload };
         }
-        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.IMPRESSION_BATCH_FAILED));
-        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+        logger_1.LogManager.Instance.errorLog('IMPRESSION_BATCH_FAILED', {}, {}, false);
+        logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
             method: HttpMethodEnum_1.HttpMethodEnum.POST,
             err: error.message,
-        }));
+        }, {}, false);
         callback(error, payload);
         return { status: 'error', events: payload };
     }

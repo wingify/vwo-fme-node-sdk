@@ -18,7 +18,6 @@ exports.NetworkBrowserClient = void 0;
  */
 var XMLUtil_1 = require("../../../utils/XMLUtil");
 var PromiseUtil_1 = require("../../../utils/PromiseUtil");
-var ResponseModel_1 = require("../models/ResponseModel");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -32,16 +31,12 @@ var NetworkBrowserClient = /** @class */ (function () {
      */
     NetworkBrowserClient.prototype.GET = function (requestModel) {
         var deferred = new PromiseUtil_1.Deferred();
-        // Extract network options from the request model.
-        var responseModel = new ResponseModel_1.ResponseModel();
         (0, XMLUtil_1.sendGetCall)({
             requestModel: requestModel,
-            successCallback: function (data) {
-                responseModel.setData(data);
+            successCallback: function (responseModel) {
                 deferred.resolve(responseModel);
             },
-            errorCallback: function (error) {
-                responseModel.setError(error);
+            errorCallback: function (responseModel) {
                 deferred.reject(responseModel);
             },
         });
@@ -90,17 +85,12 @@ var NetworkBrowserClient = /** @class */ (function () {
      */
     NetworkBrowserClient.prototype.POST = function (requestModel) {
         var deferred = new PromiseUtil_1.Deferred();
-        var responseModel = new ResponseModel_1.ResponseModel();
         (0, XMLUtil_1.sendPostCall)({
             requestModel: requestModel,
-            successCallback: function (data) {
-                responseModel.setStatusCode(200);
-                responseModel.setData(data);
+            successCallback: function (responseModel) {
                 deferred.resolve(responseModel);
             },
-            errorCallback: function (error) {
-                responseModel.setStatusCode(400);
-                responseModel.setError(error);
+            errorCallback: function (responseModel) {
                 deferred.reject(responseModel);
             },
         });

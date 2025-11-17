@@ -19,6 +19,9 @@ exports.createAndSendImpressionForVariationShown = void 0;
 const NetworkUtil_1 = require("./NetworkUtil");
 const EventEnum_1 = require("../enums/EventEnum");
 const BatchEventsQueue_1 = require("../services/BatchEventsQueue");
+const CampaignUtil_1 = require("./CampaignUtil");
+const CampaignUtil_2 = require("./CampaignUtil");
+const constants_1 = require("../constants");
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -29,18 +32,28 @@ const BatchEventsQueue_1 = require("../services/BatchEventsQueue");
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-const createAndSendImpressionForVariationShown = async (settings, campaignId, variationId, context) => {
+const createAndSendImpressionForVariationShown = async (settings, campaignId, variationId, context, featureKey) => {
     // Get base properties for the event
     const properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
     context.getIpAddress());
     // Construct payload data for tracking the user
     const payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
+    const campaignKeyWithFeatureName = (0, CampaignUtil_1.getCampaignKeyFromCampaignId)(settings, campaignId);
+    const variationName = (0, CampaignUtil_2.getVariationNameFromCampaignIdAndVariationId)(settings, campaignId, variationId);
+    let campaignKey = '';
+    if (featureKey === campaignKeyWithFeatureName) {
+        campaignKey = constants_1.Constants.IMPACT_ANALYSIS;
+    }
+    else {
+        campaignKey = campaignKeyWithFeatureName?.split(`${featureKey}_`)[1];
+    }
+    const campaignType = (0, CampaignUtil_1.getCampaignTypeFromCampaignId)(settings, campaignId);
     if (BatchEventsQueue_1.BatchEventsQueue.Instance) {
         BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
     }
     else {
         // Send the constructed properties and payload as a POST request
-        await (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId());
+        await (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId(), {}, { campaignKey, variationName, featureKey, campaignType });
     }
 };
 exports.createAndSendImpressionForVariationShown = createAndSendImpressionForVariationShown;

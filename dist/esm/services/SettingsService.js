@@ -12,6 +12,10 @@ const log_messages_1 = require("../enums/log-messages");
 const SettingsSchemaValidation_1 = require("../models/schemas/SettingsSchemaValidation");
 const LogMessageUtil_1 = require("../utils/LogMessageUtil");
 const NetworkUtil_1 = require("../utils/NetworkUtil");
+const DebuggerCategoryEnum_1 = require("../enums/DebuggerCategoryEnum");
+const DebuggerServiceUtil_1 = require("../utils/DebuggerServiceUtil");
+const FunctionUtil_1 = require("../utils/FunctionUtil");
+const ApiEnum_1 = require("../enums/ApiEnum");
 class SettingsService {
     constructor(options) {
         this.isGatewayServiceProvided = false;
@@ -131,26 +135,21 @@ class SettingsService {
             }
             else {
                 logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
-            }
-            const freshSettings = await this.fetchSettings();
-            const normalizedSettings = await this.normalizeSettings(freshSettings);
-            // set the settings in storage only if settings are valid
-            this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
-            if (this.isSettingsValid) {
-                await storageConnector.setSettingsInStorage(normalizedSettings);
-            }
-            if (cachedSettings) {
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_BACKGROUND_UPDATE));
-            }
-            else {
+                const freshSettings = await this.fetchSettings();
+                const normalizedSettings = await this.normalizeSettings(freshSettings);
+                // set the settings in storage only if settings are valid
+                this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
+                if (this.isSettingsValid) {
+                    await storageConnector.setSettingsInStorage(normalizedSettings);
+                }
                 logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
                 deferredObject.resolve(normalizedSettings);
             }
         }
         catch (error) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-                err: JSON.stringify(error),
-            }));
+            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+            }, { an: constants_1.Constants.BROWSER_STORAGE }, false);
             deferredObject.resolve(null);
         }
     }
@@ -161,9 +160,9 @@ class SettingsService {
             deferredObject.resolve(normalizedSettings);
         }
         catch (error) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-                err: JSON.stringify(error),
-            }));
+            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+            }, { an: ApiEnum_1.ApiEnum.INIT }, false);
             deferredObject.resolve(null);
         }
     }
@@ -178,7 +177,7 @@ class SettingsService {
         }
         return deferredObject.promise;
     }
-    fetchSettings(isViaWebhook = false) {
+    fetchSettings(isViaWebhook = false, apiName = ApiEnum_1.ApiEnum.INIT) {
         const deferredObject = new PromiseUtil_1.Deferred();
         if (!this.sdkKey || !this.accountId) {
             deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
@@ -207,17 +206,55 @@ class SettingsService {
                 .then((response) => {
                 //record the timestamp when the response is received
                 this.settingsFetchTime = Date.now() - startTime;
+                // if attempt is more than 0
+                if (response.getTotalAttempts() > 0) {
+                    // set category, if call got success then category is retry, otherwise network
+                    let lt = logger_1.LogLevelEnum.INFO.toString();
+                    let category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.RETRY;
+                    let msg_t = constants_1.Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
+                    let msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
+                        extraData: path,
+                        attempts: response.getTotalAttempts(),
+                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
+                    });
+                    if (response.getStatusCode() !== 200) {
+                        category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK;
+                        msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
+                        msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
+                            extraData: path,
+                            attempts: response.getTotalAttempts(),
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
+                        });
+                        lt = logger_1.LogLevelEnum.ERROR.toString();
+                    }
+                    const debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(request, response, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, category);
+                    debugEventProps.msg_t = msg_t;
+                    debugEventProps.lt = lt;
+                    debugEventProps.msg = msg;
+                    // send debug event
+                    (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                }
                 deferredObject.resolve(response.getData());
             })
                 .catch((err) => {
+                const debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(request, err, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK);
+                debugEventProps.msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
+                debugEventProps.msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
+                    extraData: path,
+                    attempts: err.getTotalAttempts(),
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(err.getError()),
+                });
+                debugEventProps.lt = logger_1.LogLevelEnum.ERROR.toString();
+                // send debug event
+                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
                 deferredObject.reject(err);
             });
             return deferredObject.promise;
         }
         catch (err) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_ERROR, {
-                err: JSON.stringify(err),
-            }));
+            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+            }, { an: isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName }, false);
             deferredObject.reject(err);
             return deferredObject.promise;
         }
@@ -262,7 +299,7 @@ class SettingsService {
                     deferredObject.resolve(fetchedSettings);
                 }
                 else {
-                    logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.SETTINGS_SCHEMA_INVALID);
+                    logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
                     deferredObject.resolve({});
                 }
             });

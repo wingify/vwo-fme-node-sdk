@@ -41,6 +41,32 @@ export declare function getVariationFromCampaignKey(
   variationId: number,
 ): VariationModel;
 /**
+ * Retrieves the key of a campaign by its ID.
+ * @param {SettingsModel} settings - The settings model containing all campaigns.
+ * @param {number} campaignId - The ID of the campaign to retrieve.
+ * @returns {string | null} The key of the campaign or null if not found.
+ */
+export declare function getCampaignKeyFromCampaignId(settings: SettingsModel, campaignId: number): string | null;
+/**
+ * Retrieves the name of a variation by its ID within a specific campaign identified by its ID.
+ * @param {SettingsModel} settings - The settings model containing all campaigns.
+ * @param {number} campaignId - The ID of the campaign.
+ * @param {number} variationId - The ID of the variation to retrieve.
+ * @returns {string | null} The name of the variation or null if not found.
+ */
+export declare function getVariationNameFromCampaignIdAndVariationId(
+  settings: SettingsModel,
+  campaignId: number,
+  variationId: number,
+): string | null;
+/**
+ * Retrieves the type of a campaign by its ID.
+ * @param {SettingsModel} settings - The settings model containing all campaigns.
+ * @param {number} campaignId - The ID of the campaign to retrieve.
+ * @returns {string | null} The type of the campaign or null if not found.
+ */
+export declare function getCampaignTypeFromCampaignId(settings: SettingsModel, campaignId: number): string | null;
+/**
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.
  */

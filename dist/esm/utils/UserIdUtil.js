@@ -32,7 +32,7 @@ async function getUserId(userId, isAliasingEnabled) {
             return result?.userId || userId;
         }
         else {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.GATEWAY_URL_ERROR));
+            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_GATEWAY_URL));
             return userId;
         }
     }

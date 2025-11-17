@@ -36,4 +36,11 @@ export declare const Constants: {
   DEFAULT_SETTINGS_STORAGE_KEY: string;
   POLLING_INTERVAL: number;
   PRODUCT_NAME: string;
+  V2_SETTINGS: string;
+  POLLING: string;
+  BROWSER_STORAGE: string;
+  FLAG_DECISION_GIVEN: string;
+  NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES: string;
+  NETWORK_CALL_SUCCESS_WITH_RETRIES: string;
+  IMPACT_ANALYSIS: string;
 };

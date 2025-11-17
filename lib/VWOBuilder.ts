@@ -24,10 +24,10 @@ import { Storage } from './packages/storage';
 import { IVWOClient, VWOClient } from './VWOClient';
 import { SettingsService } from './services/SettingsService';
 
-import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';
+import { DebugLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';
 import { IVWOOptions } from './models/VWOOptionsModel';
 import { isNumber } from './utils/DataTypeUtil';
-import { cloneObject } from './utils/FunctionUtil';
+import { cloneObject, getFormattedErrorMessage } from './utils/FunctionUtil';
 import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
 import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
@@ -36,6 +36,7 @@ import { BatchEventsQueue } from './services/BatchEventsQueue';
 import { BatchEventsDispatcher } from './utils/BatchEventsDispatcher';
 import { UsageStatsUtil } from './utils/UsageStatsUtil';
 import { Constants } from './constants';
+import { ApiEnum } from './enums/ApiEnum';
 
 export interface IVWOBuilder {
   settings: Record<any, any>; // Holds the configuration settings for the VWO client
@@ -112,9 +113,7 @@ export class VWOBuilder implements IVWOBuilder {
         (!isNumber(this.options.batchEventData.requestTimeInterval) ||
           this.options.batchEventData.requestTimeInterval <= 0)
       ) {
-        LogManager.Instance.error(
-          'Invalid batch events config, should be an object, eventsPerRequest should be a number greater than 0 and requestTimeInterval should be a number greater than 0',
-        );
+        LogManager.Instance.errorLog('INVALID_BATCH_EVENTS_CONFIG', {}, { an: ApiEnum.INIT });
         return this;
       }
       this.batchEventsQueue = new BatchEventsQueue(
@@ -209,7 +208,14 @@ export class VWOBuilder implements IVWOBuilder {
         });
       }
     } catch (err) {
-      LogManager.Instance.error('Failed to fetch settings. Error: ' + err);
+      LogManager.Instance.errorLog(
+        'ERROR_FETCHING_SETTINGS',
+        {
+          err: getFormattedErrorMessage(err),
+        },
+        { an: force ? Constants.POLLING : ApiEnum.INIT },
+        false,
+      );
       deferredObject.resolve({});
     }
     return deferredObject.promise;
@@ -317,12 +323,10 @@ export class VWOBuilder implements IVWOBuilder {
 
       return getRandomUUID(this.options.sdkKey);
     } catch (err) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.API_THROW_ERROR, {
-          apiName,
-          err,
-        }),
-      );
+      LogManager.Instance.errorLog('EXECUTION_FAILED', {
+        apiName,
+        err: getFormattedErrorMessage(err),
+      });
     }
   }
 
@@ -367,11 +371,13 @@ export class VWOBuilder implements IVWOBuilder {
       this.isValidPollIntervalPassedFromInit = true;
       this.checkAndPoll();
     } else if (pollInterval != null) {
-      LogManager.Instance.error(
-        buildMessage(ErrorLogMessagesEnum.INIT_OPTIONS_INVALID, {
+      LogManager.Instance.errorLog(
+        'INVALID_POLLING_CONFIGURATION',
+        {
           key: 'pollInterval',
           correctType: 'number >= 1000',
-        }),
+        },
+        { an: ApiEnum.INIT },
       );
     }
     return this;
@@ -423,7 +429,13 @@ export class VWOBuilder implements IVWOBuilder {
           LogManager.Instance.info(InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
         }
       } catch (ex) {
-        LogManager.Instance.error(ErrorLogMessagesEnum.POLLING_FETCH_SETTINGS_FAILED + ': ' + ex);
+        LogManager.Instance.errorLog(
+          'ERROR_FETCHING_SETTINGS_WITH_POLLING',
+          {
+            err: getFormattedErrorMessage(ex),
+          },
+          { an: Constants.POLLING },
+        );
       } finally {
         // Schedule next poll
         const interval = this.options.pollInterval ?? Constants.POLLING_INTERVAL;

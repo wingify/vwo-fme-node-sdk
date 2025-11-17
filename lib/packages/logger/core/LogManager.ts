@@ -23,7 +23,11 @@ import { LogTransportManager } from './TransportManager';
 
 import { isObject } from '../../../utils/DataTypeUtil';
 import { LogLevelEnum } from '../enums/LogLevelEnum';
-import { sendLogToVWO } from '../../../utils/LogMessageUtil';
+import { buildMessage } from '../../../utils/LogMessageUtil';
+import { DebuggerCategoryEnum } from '../../../enums/DebuggerCategoryEnum';
+import { sendDebugEventToVWO } from '../../../utils/DebuggerServiceUtil';
+import { ErrorLogMessagesEnum } from '../../../enums/log-messages';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 
 type LogTransport = {
   log: (level: string, message: string) => void;
@@ -46,6 +50,12 @@ export interface ILogManager {
 
   addTransport?(transportObject: LogTransport): void;
   addTransports?(transportsList: Array<LogTransport>): void;
+  errorLog?(
+    template: string,
+    data?: Record<string, any>,
+    debugData?: Record<string, any>,
+    shouldSendToVWO?: boolean,
+  ): void;
 }
 
 /**
@@ -176,8 +186,38 @@ export class LogManager extends Logger implements ILogManager {
    * Logs an error message.
    * @param {string} message - The message to log at error level.
    */
-  error(message: string, extraData: any = {}): void {
+  error(message: string): void {
     this.transportManager.log(LogLevelEnum.ERROR, message);
-    sendLogToVWO(message, LogLevelEnum.ERROR, extraData);
+  }
+
+  /**
+   * Middleware method that stores error in DebuggerService and logs it.
+   * @param {boolean} shouldSendToVWO - Whether to send the error to VWO.
+   * @param {string} category - The category of the error.
+   */
+  errorLog(
+    template: string,
+    data: Record<string, any> = {},
+    debugData: Record<string, any> = {},
+    shouldSendToVWO: boolean = true,
+  ): void {
+    try {
+      const message = buildMessage(ErrorLogMessagesEnum[template], data);
+      this.error(message);
+      if (shouldSendToVWO) {
+        const debugEventProps = {
+          ...debugData,
+          ...data,
+          msg_t: template,
+          msg: message,
+          lt: LogLevelEnum.ERROR.toString(),
+          cg: DebuggerCategoryEnum.ERROR,
+        };
+        // send debug event to VWO
+        sendDebugEventToVWO(debugEventProps);
+      }
+    } catch (err) {
+      console.error('Got error while logging error' + getFormattedErrorMessage(err));
+    }
   }
 }

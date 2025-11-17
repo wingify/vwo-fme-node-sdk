@@ -18,9 +18,9 @@ exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const ApiEnum_1 = require("../enums/ApiEnum");
 const CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
 const HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
-const log_messages_1 = require("../enums/log-messages");
 const logger_1 = require("../packages/logger");
 const network_layer_1 = require("../packages/network-layer");
 const SettingsService_1 = require("../services/SettingsService");
@@ -31,7 +31,7 @@ const PromiseUtil_1 = require("./PromiseUtil");
  * @param endpoint - The endpoint URL to which the request is sent.
  * @returns A promise that resolves to the response data or false if an error occurs.
  */
-async function getFromGatewayService(queryParams, endpoint) {
+async function getFromGatewayService(queryParams, endpoint, context) {
     // Create a new deferred object to manage promise resolution
     const deferredObject = new PromiseUtil_1.Deferred();
     // Singleton instance of the network manager
@@ -40,7 +40,7 @@ async function getFromGatewayService(queryParams, endpoint) {
     // Check if the base URL is not set correctly
     if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
         // Log an informational message about the invalid URL
-        logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.GATEWAY_URL_ERROR);
+        logger_1.LogManager.Instance.errorLog('INVALID_GATEWAY_URL', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
         // Resolve the promise with false indicating an error or invalid state
         deferredObject.resolve(false);
         return deferredObject.promise;

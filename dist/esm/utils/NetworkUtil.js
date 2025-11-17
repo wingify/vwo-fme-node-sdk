@@ -13,7 +13,9 @@ exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 exports.getMessagingEventPayload = getMessagingEventPayload;
 exports.getSDKInitEventPayload = getSDKInitEventPayload;
 exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
+exports.getDebuggerEventPayload = getDebuggerEventPayload;
 exports.sendEvent = sendEvent;
+exports.createNetWorkAndRetryDebugEvent = createNetWorkAndRetryDebugEvent;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -45,6 +47,10 @@ const UrlUtil_1 = require("./UrlUtil");
 const PromiseUtil_1 = require("./PromiseUtil");
 const UsageStatsUtil_1 = require("./UsageStatsUtil");
 const EventEnum_1 = require("../enums/EventEnum");
+const DebuggerCategoryEnum_1 = require("../enums/DebuggerCategoryEnum");
+const DebuggerServiceUtil_1 = require("./DebuggerServiceUtil");
+const ApiEnum_1 = require("../enums/ApiEnum");
+const CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
 /**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
@@ -117,13 +123,19 @@ function getEventsBaseProperties(eventName, visitorUserAgent = '', ipAddress = '
  * @param {String} eventName  event name
  * @returns properties
  */
-function _getEventBasePayload(settings, userId, eventName, visitorUserAgent = '', ipAddress = '', isUsageStatsEvent = false, usageStatsAccountId = null) {
+function _getEventBasePayload(settings, userId, eventName, visitorUserAgent = '', ipAddress = '', isUsageStatsEvent = false, usageStatsAccountId = null, shouldGenerateUUID = true) {
     let accountId = SettingsService_1.SettingsService.Instance.accountId;
     if (isUsageStatsEvent) {
         // set account id for internal usage stats event
         accountId = usageStatsAccountId;
     }
-    const uuid = (0, UuidUtil_1.getUUID)(userId.toString(), accountId.toString());
+    let uuid;
+    if (shouldGenerateUUID) {
+        uuid = (0, UuidUtil_1.getUUID)(userId.toString(), accountId.toString());
+    }
+    else {
+        uuid = userId.toString();
+    }
     const props = {
         vwo_sdkName: constants_1.Constants.SDK_NAME,
         vwo_sdkVersion: constants_1.Constants.SDK_VERSION,
@@ -172,6 +184,9 @@ function getTrackUserPayloadData(settings, eventName, campaignId, variationId, c
     const customVariables = context.getCustomVariables();
     const postSegmentationVariables = context.getPostSegmentationVariables();
     const properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
+    if (context.getSessionId() !== 0) {
+        properties.d.sessionId = context.getSessionId();
+    }
     properties.d.event.props.id = campaignId;
     properties.d.event.props.variation = variationId;
     properties.d.event.props.isFirst = 1;
@@ -207,8 +222,11 @@ function getTrackUserPayloadData(settings, eventName, campaignId, variationId, c
  * @param {string} [ipAddress=''] - Visitor's IP address.
  * @returns {any} - The constructed payload data.
  */
-function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, visitorUserAgent = '', ipAddress = '') {
+function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, visitorUserAgent = '', ipAddress = '', sessionId = 0) {
     const properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
+    if (sessionId !== 0) {
+        properties.d.sessionId = sessionId;
+    }
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
     properties.d.event.props.variation = 1; // Temporary value for variation
     properties.d.event.props.id = 1; // Temporary value for ID
@@ -235,8 +253,11 @@ function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, v
  * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
  * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
-function getAttributePayloadData(settings, userId, eventName, attributes, visitorUserAgent = '', ipAddress = '') {
+function getAttributePayloadData(settings, userId, eventName, attributes, visitorUserAgent = '', ipAddress = '', sessionId = 0) {
     const properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
+    if (sessionId !== 0) {
+        properties.d.sessionId = sessionId;
+    }
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
     // Iterate over the attributes map and append to the visitor properties
@@ -256,7 +277,7 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
  * @param {any} payload - Payload for the request.
  * @param {string} userId - User ID.
  */
-async function sendPostApiRequest(properties, payload, userId, eventProperties = {}) {
+async function sendPostApiRequest(properties, payload, userId, eventProperties = {}, campaignInfo = {}) {
     const networkManager = network_layer_1.NetworkManager.Instance;
     networkManager.attachClient();
     const retryConfig = networkManager.getRetryConfig();
@@ -273,14 +294,64 @@ async function sendPostApiRequest(properties, payload, userId, eventProperties =
     const request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
     request.setEventName(properties.en);
     request.setUuid(payload.d.visId);
+    let apiName;
+    let extraDataForMessage;
     if (properties.en === EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
+        apiName = ApiEnum_1.ApiEnum.GET_FLAG;
+        if (campaignInfo.campaignType === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT ||
+            campaignInfo.campaignType === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+            extraDataForMessage = `feature: ${campaignInfo.featureKey}, rule: ${campaignInfo.variationName}`;
+        }
+        else {
+            extraDataForMessage = `feature: ${campaignInfo.featureKey}, rule: ${campaignInfo.campaignKey} and variation: ${campaignInfo.variationName}`;
+        }
         request.setCampaignId(payload.d.event.props.id);
     }
-    else if (properties.en != EventEnum_1.EventEnum.VWO_VARIATION_SHOWN && Object.keys(eventProperties).length > 0) {
-        request.setEventProperties(eventProperties);
+    else if (properties.en != EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
+        if (properties.en === EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP) {
+            apiName = ApiEnum_1.ApiEnum.SET_ATTRIBUTE;
+            extraDataForMessage = apiName;
+        }
+        else if (properties.en !== EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT &&
+            properties.en !== EventEnum_1.EventEnum.VWO_LOG_EVENT &&
+            properties.en !== EventEnum_1.EventEnum.VWO_INIT_CALLED) {
+            apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
+            extraDataForMessage = `event: ${properties.en}`;
+        }
+        if (Object.keys(eventProperties).length > 0) {
+            request.setEventProperties(eventProperties);
+        }
     }
     await network_layer_1.NetworkManager.Instance.post(request)
-        .then(() => {
+        .then((response) => {
+        // if attempt is more than 0
+        if (response.getTotalAttempts() > 0) {
+            // set category, if call got success then category is retry, otherwise network
+            let category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.RETRY;
+            let msg_t = constants_1.Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
+            let msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
+                extraData: extraDataForMessage,
+                attempts: response.getTotalAttempts(),
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
+            });
+            let lt = logger_1.LogLevelEnum.INFO.toString();
+            if (response.getStatusCode() !== 200) {
+                category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK;
+                msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
+                msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
+                    extraData: extraDataForMessage,
+                    attempts: response.getTotalAttempts(),
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
+                });
+                lt = logger_1.LogLevelEnum.ERROR.toString();
+            }
+            const debugEventProps = createNetWorkAndRetryDebugEvent(request, response, payload, apiName, category);
+            debugEventProps.msg_t = msg_t;
+            debugEventProps.lt = lt;
+            debugEventProps.msg = msg;
+            // send debug event
+            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+        }
         // clear usage stats only if network call is successful
         if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
             UsageStatsUtil_1.UsageStatsUtil.getInstance().clearUsageStats();
@@ -294,10 +365,19 @@ async function sendPostApiRequest(properties, payload, userId, eventProperties =
         }));
     })
         .catch((err) => {
-        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+        const debugEventProps = createNetWorkAndRetryDebugEvent(request, err, payload, apiName, DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK);
+        debugEventProps.lt = logger_1.LogLevelEnum.ERROR.toString();
+        debugEventProps.msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
+        debugEventProps.msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
+            extraData: extraDataForMessage,
+            attempts: err.getTotalAttempts(),
+            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err.getError()),
+        });
+        (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+        logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
             method: HttpMethodEnum_1.HttpMethodEnum.POST,
-            err: (0, DataTypeUtil_1.isObject)(err) ? JSON.stringify(err) : err,
-        }));
+            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+        }, {}, false);
     });
 }
 // Flag to determine if the SDK should wait for a network response.
@@ -376,6 +456,44 @@ function getSDKUsageStatsEventPayload(eventName, usageStatsAccountId) {
     return properties;
 }
 /**
+ * Constructs the payload for debugger event.
+ * @param eventProps - The properties for the event.
+ * @returns The constructed payload.
+ */
+function getDebuggerEventPayload(eventProps = {}) {
+    let uuid;
+    const accountId = SettingsService_1.SettingsService.Instance.accountId.toString();
+    const sdkKey = SettingsService_1.SettingsService.Instance.sdkKey;
+    // generate uuid if not present
+    if (!eventProps.uuid) {
+        uuid = (0, UuidUtil_1.getUUID)(accountId + '_' + sdkKey, accountId);
+        eventProps.uuid = uuid;
+    }
+    else {
+        uuid = eventProps.uuid;
+    }
+    // create standard event payload
+    const properties = _getEventBasePayload(null, uuid, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, null, null, false, null, false);
+    properties.d.event.props = {};
+    // add session id to the event props if not present
+    if (eventProps.sId) {
+        properties.d.sessionId = eventProps.sId;
+    }
+    else {
+        eventProps.sId = properties.d.sessionId;
+    }
+    // add all debugger props inside vwoMeta
+    properties.d.event.props.vwoMeta = {
+        ...eventProps,
+        a: SettingsService_1.SettingsService.Instance.accountId,
+        product: constants_1.Constants.PRODUCT_NAME,
+        sn: constants_1.Constants.SDK_NAME,
+        sv: constants_1.Constants.SDK_VERSION,
+        eventId: (0, UuidUtil_1.getRandomUUID)(SettingsService_1.SettingsService.Instance.sdkKey),
+    };
+    return properties;
+}
+/**
  * Sends an event to VWO (generic event sender).
  * @param properties - Query parameters for the request.
  * @param payload - The payload for the request.
@@ -394,7 +512,9 @@ async function sendEvent(properties, payload, eventName) {
     let baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
     let protocol = SettingsService_1.SettingsService.Instance.protocol;
     let port = SettingsService_1.SettingsService.Instance.port;
-    if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT || eventName === EventEnum_1.EventEnum.VWO_USAGE_STATS) {
+    if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT ||
+        eventName === EventEnum_1.EventEnum.VWO_USAGE_STATS ||
+        eventName === EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT) {
         baseUrl = constants_1.Constants.HOST_NAME;
         protocol = constants_1.Constants.HTTPS_PROTOCOL;
         port = 443;
@@ -421,6 +541,37 @@ async function sendEvent(properties, payload, eventName) {
         // Resolve the promise with false as fallback
         deferredObject.resolve(false);
         return deferredObject.promise;
+    }
+}
+function createNetWorkAndRetryDebugEvent(request, response, payload, apiName, category) {
+    try {
+        const debugEventProps = {
+            cg: category,
+            tRa: response.getTotalAttempts(),
+            sc: response.getStatusCode(),
+            err: response.getError(),
+            uuid: request.getUuid(),
+            eId: request.getCampaignId(),
+        };
+        if (payload?.d?.event?.props?.variation) {
+            debugEventProps.vId = payload.d.event.props.variation;
+        }
+        if (apiName) {
+            debugEventProps.an = apiName;
+        }
+        if (payload?.d?.sessionId) {
+            debugEventProps.sId = payload.d.sessionId;
+        }
+        else {
+            debugEventProps.sId = (0, FunctionUtil_1.getCurrentUnixTimestamp)();
+        }
+        return debugEventProps;
+    }
+    catch (err) {
+        return {
+            cg: category,
+            err: err,
+        };
     }
 }
 //# sourceMappingURL=NetworkUtil.js.map

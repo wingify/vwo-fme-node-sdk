@@ -59,6 +59,8 @@ var logger_1 = require("../../logger");
 var ContextVWOModel_1 = require("../../../models/user/ContextVWOModel");
 var SettingsService_1 = require("../../../services/SettingsService");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
+var ApiEnum_1 = require("../../../enums/ApiEnum");
+var FunctionUtil_1 = require("../../../utils/FunctionUtil");
 var SegmentationManager = /** @class */ (function () {
     function SegmentationManager() {
     }
@@ -115,7 +117,7 @@ var SegmentationManager = /** @class */ (function () {
                     case 1:
                         _a.trys.push([1, 3, , 4]);
                         params = (0, GatewayServiceUtil_1.getQueryParams)(queryParams);
-                        return [4 /*yield*/, (0, GatewayServiceUtil_1.getFromGatewayService)(params, UrlEnum_1.UrlEnum.GET_USER_DATA)];
+                        return [4 /*yield*/, (0, GatewayServiceUtil_1.getFromGatewayService)(params, UrlEnum_1.UrlEnum.GET_USER_DATA, context)];
                     case 2:
                         _vwo = _a.sent();
                         context.setVwo(new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(_vwo));
@@ -123,7 +125,9 @@ var SegmentationManager = /** @class */ (function () {
                         return [3 /*break*/, 4];
                     case 3:
                         err_1 = _a.sent();
-                        logger_1.LogManager.Instance.error("Error in setting contextual data for segmentation. Got error: ".concat(err_1.error));
+                        logger_1.LogManager.Instance.errorLog('ERROR_SETTING_SEGMENTATION_CONTEXT', {
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_1),
+                        }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }

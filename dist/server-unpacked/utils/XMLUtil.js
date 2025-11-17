@@ -19,9 +19,9 @@ exports.sendPostCall = sendPostCall;
  */
 var HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
 var logger_1 = require("../packages/logger");
-var LogMessageUtil_1 = require("./LogMessageUtil");
-var log_messages_1 = require("../enums/log-messages");
 var EventEnum_1 = require("../enums/EventEnum");
+var ResponseModel_1 = require("../packages/network-layer/models/ResponseModel");
+var FunctionUtil_1 = require("./FunctionUtil");
 var noop = function () { };
 function sendGetCall(options) {
     sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options);
@@ -36,6 +36,8 @@ function sendRequest(method, options) {
     var shouldRetry = networkOptions.retryConfig.shouldRetry;
     var maxRetries = networkOptions.retryConfig.maxRetries;
     function executeRequest() {
+        // Extract network options from the request model.
+        var responseModel = new ResponseModel_1.ResponseModel();
         var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
         if (networkOptions.port) {
             url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
@@ -48,22 +50,28 @@ function sendRequest(method, options) {
             xhr.timeout = timeout;
         }
         xhr.onload = function () {
+            responseModel.setStatusCode(xhr.status);
             if (xhr.status >= 200 && xhr.status < 300) {
                 var response = xhr.responseText;
                 // send log to vwo, if request is successful and attempt is greater than 0
                 if (retryCount > 0) {
-                    (0, LogMessageUtil_1.sendLogToVWO)('Request successfully sent for event: ' + url.split('?')[0], logger_1.LogLevelEnum.INFO, requestModel.getExtraInfo());
+                    responseModel.setTotalAttempts(retryCount);
+                    responseModel.setError(requestModel.getLastError());
                 }
                 if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
                     var parsedResponse = JSON.parse(response);
-                    successCallback(parsedResponse);
+                    responseModel.setData(parsedResponse);
+                    successCallback(responseModel);
                 }
                 else {
-                    successCallback(response);
+                    responseModel.setData(response);
+                    successCallback(responseModel);
                 }
             }
             else if (xhr.status === 400) {
-                errorCallback(xhr.statusText);
+                responseModel.setTotalAttempts(retryCount);
+                responseModel.setError(xhr.responseText);
+                errorCallback(responseModel);
             }
             else {
                 handleError(xhr.statusText);
@@ -83,23 +91,27 @@ function sendRequest(method, options) {
                     Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) *
                     1000; // Exponential backoff
                 retryCount++;
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
+                logger_1.LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
                     endPoint: url.split('?')[0],
-                    err: error,
+                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
                     delay: delay / 1000,
                     attempt: retryCount,
                     maxRetries: maxRetries,
-                }), requestModel.getExtraInfo());
+                }, {}, false);
+                requestModel.setLastError(error);
                 setTimeout(executeRequest, delay);
             }
             else {
                 if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_LOG_EVENT)) {
-                    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
-                        endPoint: url.split('?')[0],
-                        err: error,
-                    }), requestModel.getExtraInfo());
+                    logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+                        extraData: url.split('?')[0],
+                        attempts: retryCount,
+                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                    }, {}, false);
                 }
-                errorCallback(error);
+                responseModel.setTotalAttempts(retryCount);
+                responseModel.setError((0, FunctionUtil_1.getFormattedErrorMessage)(error));
+                errorCallback(responseModel);
             }
         }
         xhr.open(method, url, true);

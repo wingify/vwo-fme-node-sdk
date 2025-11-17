@@ -40,6 +40,7 @@ const ApiEnum_1 = require("./enums/ApiEnum");
 const AliasingUtil_1 = require("./utils/AliasingUtil");
 const UserIdUtil_1 = require("./utils/UserIdUtil");
 const DataTypeUtil_2 = require("./utils/DataTypeUtil");
+const FunctionUtil_1 = require("./utils/FunctionUtil");
 class VWOClient {
     constructor(settings, options) {
         this.options = options;
@@ -72,22 +73,22 @@ class VWOClient {
             }));
             // Validate featureKey is a string
             if (!(0, DataTypeUtil_1.isString)(featureKey)) {
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                logger_1.LogManager.Instance.errorLog('INVALID_PARAM', {
                     apiName,
                     key: 'featureKey',
                     type: (0, DataTypeUtil_1.getType)(featureKey),
                     correctType: 'string',
-                }));
-                throw new TypeError('TypeError: featureKey should be a string');
+                }, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
+                throw new TypeError('TypeError: featureKey should be a string, got ' + (0, DataTypeUtil_1.getType)(featureKey));
             }
             // Validate settings are loaded and valid
             if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(this.originalSettings)) {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_SETTING_INVALID);
+                logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
                 throw new Error('TypeError: Invalid Settings');
             }
             // Validate user ID is present in context
             if (!context || !context.id) {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+                logger_1.LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
                 throw new TypeError('TypeError: Invalid context');
             }
             //getUserId from gateway service
@@ -103,10 +104,10 @@ class VWOClient {
             });
         }
         catch (err) {
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
                 apiName,
-                err,
-            }));
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+            }, { an: ApiEnum_1.ApiEnum.GET_FLAG });
             deferredObject.resolve(errorReturnSchema);
         }
         return deferredObject.promise;
@@ -131,32 +132,32 @@ class VWOClient {
             }));
             // Validate eventName is a string
             if (!(0, DataTypeUtil_1.isString)(eventName)) {
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                logger_1.LogManager.Instance.errorLog('INVALID_PARAM', {
                     apiName,
                     key: 'eventName',
                     type: (0, DataTypeUtil_1.getType)(eventName),
                     correctType: 'string',
-                }));
-                throw new TypeError('TypeError: Event-name should be a string');
+                }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
+                throw new TypeError('TypeError: Event-name should be a string, got ' + (0, DataTypeUtil_1.getType)(eventName));
             }
             // Validate eventProperties is an object
             if (!(0, DataTypeUtil_1.isObject)(eventProperties)) {
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
+                logger_1.LogManager.Instance.errorLog('INVALID_PARAM', {
                     apiName,
                     key: 'eventProperties',
                     type: (0, DataTypeUtil_1.getType)(eventProperties),
                     correctType: 'object',
-                }));
-                throw new TypeError('TypeError: eventProperties should be an object');
+                }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
+                throw new TypeError('TypeError: eventProperties should be an object, got ' + (0, DataTypeUtil_1.getType)(eventProperties));
             }
             // Validate settings are loaded and valid
             if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(this.originalSettings)) {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_SETTING_INVALID);
+                logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
                 throw new Error('TypeError: Invalid Settings');
             }
             // Validate user ID is present in context
             if (!context || !context.id) {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+                logger_1.LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
                 throw new TypeError('TypeError: Invalid context');
             }
             //getUserId from gateway service
@@ -175,10 +176,10 @@ class VWOClient {
         }
         catch (err) {
             // Log any errors encountered during the operation
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
                 apiName,
-                err,
-            }));
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+            }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT });
             deferredObject.resolve({ [eventName]: false });
         }
         return deferredObject.promise;
@@ -204,13 +205,7 @@ class VWOClient {
                     apiName,
                 }));
                 if (Object.entries(attributeOrAttributes).length < 1) {
-                    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)('Attributes map must contain atleast 1 key-value pair', {
-                        apiName,
-                        key: 'attributes',
-                        type: (0, DataTypeUtil_1.getType)(attributeOrAttributes),
-                        correctType: 'object',
-                    }));
-                    throw new TypeError('TypeError: Attributes should be an object containing atleast 1 key-value pair');
+                    throw new TypeError('TypeError: Attributes should be an object containing at least 1 key-value pair');
                 }
                 // Case where multiple attributes are passed as a map
                 const attributes = attributeOrAttributes; // Type assertion
@@ -221,22 +216,10 @@ class VWOClient {
                 // Validate that each attribute value is of a supported type
                 Object.entries(attributes).forEach(([key, value]) => {
                     if (typeof value !== 'boolean' && typeof value !== 'string' && typeof value !== 'number') {
-                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
-                            apiName,
-                            key,
-                            type: (0, DataTypeUtil_1.getType)(value),
-                            correctType: ' boolean, string or number',
-                        }));
                         throw new TypeError(`Invalid attribute type for key "${key}". Expected boolean, string or number, but got ${(0, DataTypeUtil_1.getType)(value)}`);
                     }
                     // Reject arrays and objects explicitly
                     if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
-                        logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_INVALID_PARAM, {
-                            apiName,
-                            key,
-                            type: (0, DataTypeUtil_1.getType)(value),
-                            correctType: ' boolean | string | number | null',
-                        }));
                         throw new TypeError(`Invalid attribute value for key "${key}". Arrays and objects are not supported.`);
                     }
                 });
@@ -246,7 +229,8 @@ class VWOClient {
                 }
                 // Validate user ID is present in context
                 if (!context || !context.id) {
-                    logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
+                    logger_1.LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE }, false);
+                    throw new TypeError('TypeError: Invalid context');
                 }
                 //getUserId from gateway service
                 const userId = await (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled);
@@ -282,7 +266,10 @@ class VWOClient {
             }
         }
         catch (err) {
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName, err }));
+            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+                apiName,
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+            }, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE });
         }
     }
     /**
@@ -297,7 +284,7 @@ class VWOClient {
             logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName }));
             // fetch settings from the server or use the provided settings file if it's not empty
             const settingsToUpdate = !settings || Object.keys(settings).length === 0
-                ? await SettingsService_1.SettingsService.Instance.fetchSettings(isViaWebhook)
+                ? await SettingsService_1.SettingsService.Instance.fetchSettings(isViaWebhook, apiName)
                 : settings;
             // validate settings schema
             if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(settingsToUpdate)) {
@@ -308,11 +295,11 @@ class VWOClient {
             logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName, isViaWebhook }));
         }
         catch (err) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SETTINGS_FETCH_FAILED, {
+            logger_1.LogManager.Instance.errorLog('UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED', {
                 apiName,
                 isViaWebhook,
-                err: JSON.stringify(err),
-            }));
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+            }, { an: ApiEnum_1.ApiEnum.UPDATE_SETTINGS });
         }
     }
     /**
@@ -328,12 +315,12 @@ class VWOClient {
                 return BatchEventsQueue_1.BatchEventsQueue.Instance.flushAndClearTimer();
             }
             else {
-                logger_1.LogManager.Instance.error('Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API.');
+                logger_1.LogManager.Instance.errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
                 deferredObject.resolve({ status: 'error', events: [] });
             }
         }
         catch (err) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName, err }));
+            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', { apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
             deferredObject.resolve({ status: 'error', events: [] });
         }
         return deferredObject.promise;
@@ -351,19 +338,17 @@ class VWOClient {
                 apiName,
             }));
             if (!this.isAliasingEnabled) {
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.ALIAS_NOT_ENABLED));
+                logger_1.LogManager.Instance.errorLog('ALIAS_CALLED_BUT_NOT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
                 return false;
             }
             if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.GATEWAY_URL_ERROR));
+                logger_1.LogManager.Instance.errorLog('INVALID_GATEWAY_URL', {}, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
                 return false;
             }
             if (!aliasId) {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
                 throw new TypeError('TypeError: Invalid aliasId');
             }
             if ((0, DataTypeUtil_2.isArray)(aliasId)) {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
                 throw new TypeError('TypeError: aliasId cannot be an array');
             }
             // trim aliasId before going forward
@@ -374,15 +359,12 @@ class VWOClient {
                 contextOrUserId = contextOrUserId.trim();
                 // Direct userId provided
                 if (contextOrUserId === aliasId) {
-                    logger_1.LogManager.Instance.error('UserId and aliasId cannot be the same.');
-                    return false;
+                    throw new TypeError('UserId and aliasId cannot be the same.');
                 }
                 if (!contextOrUserId) {
-                    logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
                     throw new TypeError('TypeError: Invalid userId');
                 }
                 if ((0, DataTypeUtil_2.isArray)(contextOrUserId)) {
-                    logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
                     throw new TypeError('TypeError: userId cannot be an array');
                 }
                 userId = contextOrUserId;
@@ -390,18 +372,15 @@ class VWOClient {
             else {
                 // Context object provided
                 if (!contextOrUserId || !contextOrUserId.id) {
-                    logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
                     throw new TypeError('TypeError: Invalid context');
                 }
                 if ((0, DataTypeUtil_2.isArray)(contextOrUserId.id)) {
-                    logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.API_CONTEXT_INVALID);
                     throw new TypeError('TypeError: context.id cannot be an array');
                 }
                 // trim contextOrUserId.id before going forward
                 contextOrUserId.id = contextOrUserId.id.trim();
                 if (contextOrUserId.id === aliasId) {
-                    logger_1.LogManager.Instance.error('UserId and aliasId cannot be the same.');
-                    return false;
+                    throw new TypeError('UserId and aliasId cannot be the same.');
                 }
                 userId = contextOrUserId.id;
             }
@@ -409,7 +388,7 @@ class VWOClient {
             return true;
         }
         catch (error) {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, { apiName, err: error }));
+            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', { apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(error) }, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
             return false;
         }
     }

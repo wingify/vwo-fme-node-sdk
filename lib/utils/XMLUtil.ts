@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
-import { LogLevelEnum, LogManager } from '../packages/logger';
-import { buildMessage, sendLogToVWO } from './LogMessageUtil';
-import { ErrorLogMessagesEnum } from '../enums/log-messages';
+import { LogManager } from '../packages/logger';
 import { EventEnum } from '../enums/EventEnum';
+import { ResponseModel } from '../packages/network-layer/models/ResponseModel';
+import { getFormattedErrorMessage } from './FunctionUtil';
 
 const noop = () => {};
 
@@ -31,13 +31,15 @@ export function sendPostCall(options) {
 
 function sendRequest(method, options) {
   const { requestModel, successCallback = noop, errorCallback = noop } = options;
-
   const networkOptions = requestModel.getOptions();
   let retryCount = 0;
   const shouldRetry = networkOptions.retryConfig.shouldRetry;
   const maxRetries = networkOptions.retryConfig.maxRetries;
 
   function executeRequest() {
+    // Extract network options from the request model.
+    const responseModel = new ResponseModel();
+
     let url = `${networkOptions.scheme}://${networkOptions.hostname}${networkOptions.path}`;
     if (networkOptions.port) {
       url = `${networkOptions.scheme}://${networkOptions.hostname}:${networkOptions.port}${networkOptions.path}`;
@@ -53,25 +55,27 @@ function sendRequest(method, options) {
     }
 
     xhr.onload = function () {
+      responseModel.setStatusCode(xhr.status);
       if (xhr.status >= 200 && xhr.status < 300) {
         const response = xhr.responseText;
         // send log to vwo, if request is successful and attempt is greater than 0
         if (retryCount > 0) {
-          sendLogToVWO(
-            'Request successfully sent for event: ' + url.split('?')[0],
-            LogLevelEnum.INFO,
-            requestModel.getExtraInfo(),
-          );
+          responseModel.setTotalAttempts(retryCount);
+          responseModel.setError(requestModel.getLastError());
         }
 
         if (method === HttpMethodEnum.GET) {
           const parsedResponse = JSON.parse(response);
-          successCallback(parsedResponse);
+          responseModel.setData(parsedResponse);
+          successCallback(responseModel);
         } else {
-          successCallback(response);
+          responseModel.setData(response);
+          successCallback(responseModel);
         }
       } else if (xhr.status === 400) {
-        errorCallback(xhr.statusText);
+        responseModel.setTotalAttempts(retryCount);
+        responseModel.setError(xhr.responseText);
+        errorCallback(responseModel);
       } else {
         handleError(xhr.statusText);
       }
@@ -94,29 +98,36 @@ function sendRequest(method, options) {
           Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) *
           1000; // Exponential backoff
         retryCount++;
-        LogManager.Instance.error(
-          buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_ATTEMPT, {
+        LogManager.Instance.errorLog(
+          'ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL',
+          {
             endPoint: url.split('?')[0],
-            err: error,
+            err: getFormattedErrorMessage(error),
             delay: delay / 1000,
             attempt: retryCount,
             maxRetries: maxRetries,
-          }),
-          requestModel.getExtraInfo(),
+          },
+          {},
+          false,
         );
-
+        requestModel.setLastError(error);
         setTimeout(executeRequest, delay);
       } else {
         if (!String(networkOptions.path).includes(EventEnum.VWO_LOG_EVENT)) {
-          LogManager.Instance.error(
-            buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_RETRY_FAILED, {
-              endPoint: url.split('?')[0],
-              err: error,
-            }),
-            requestModel.getExtraInfo(),
+          LogManager.Instance.errorLog(
+            'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
+            {
+              extraData: url.split('?')[0],
+              attempts: retryCount,
+              err: getFormattedErrorMessage(error),
+            },
+            {},
+            false,
           );
         }
-        errorCallback(error);
+        responseModel.setTotalAttempts(retryCount);
+        responseModel.setError(getFormattedErrorMessage(error));
+        errorCallback(responseModel);
       }
     }
 

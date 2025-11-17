@@ -18,11 +18,10 @@ import { ContextModel } from '../models/user/ContextModel';
 import { Storage } from '../packages/storage';
 import { dynamic } from '../types/Common';
 
-import { ErrorLogMessagesEnum } from '../enums/log-messages';
 import { LogManager } from '../packages/logger';
 import { isNull, isUndefined } from '../utils/DataTypeUtil';
-import { buildMessage } from '../utils/LogMessageUtil';
 import { Deferred } from '../utils/PromiseUtil';
+import { ApiEnum } from '../enums/ApiEnum';
 
 export interface IStorageService {
   getDataInStorage(featureKey: any, context: ContextModel): Promise<Record<any, any>>;
@@ -51,10 +50,10 @@ export class StorageService implements IStorageService {
           deferredObject.resolve(data);
         })
         .catch((err) => {
-          LogManager.Instance.error(
-            buildMessage(ErrorLogMessagesEnum.STORED_DATA_ERROR, {
-              err,
-            }),
+          LogManager.Instance.errorLog(
+            'ERROR_READING_STORED_DATA_IN_STORAGE',
+            { err },
+            { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
           );
 
           deferredObject.resolve(StorageEnum.NO_DATA_FOUND);

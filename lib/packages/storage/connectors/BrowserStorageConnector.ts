@@ -19,6 +19,7 @@ import { LogManager } from '../../logger';
 import { SettingsService } from '../../../services/SettingsService';
 import { SettingsSchema } from '../../../models/schemas/SettingsSchemaValidation';
 import { isNumber, isBoolean } from '../../../utils/DataTypeUtil';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 
 /**
  * Interface representing the structure of data to be stored
@@ -100,7 +101,13 @@ export class BrowserStorageConnector {
       const data = this.storage.getItem(this.storageKey);
       return data ? JSON.parse(data) : {};
     } catch (error) {
-      LogManager.Instance.error(`Error reading from storage: ${error}`);
+      LogManager.Instance.errorLog(
+        'ERROR_READING_DATA_FROM_BROWSER_STORAGE',
+        {
+          err: getFormattedErrorMessage(error),
+        },
+        { an: Constants.BROWSER_STORAGE },
+      );
       return {};
     }
   }
@@ -116,7 +123,13 @@ export class BrowserStorageConnector {
       const serializedData = JSON.stringify(data);
       this.storage.setItem(this.storageKey, serializedData);
     } catch (error) {
-      LogManager.Instance.error(`Error writing to storage: ${error}`);
+      LogManager.Instance.errorLog(
+        'ERROR_STORING_DATA_IN_BROWSER_STORAGE',
+        {
+          err: getFormattedErrorMessage(error),
+        },
+        { an: Constants.BROWSER_STORAGE },
+      );
     }
   }
 
@@ -139,7 +152,13 @@ export class BrowserStorageConnector {
         LogManager.Instance.info(`Stored data in storage for key: ${key}`);
         deferredObject.resolve();
       } catch (error) {
-        LogManager.Instance.error(`Error storing data: ${error}`);
+        LogManager.Instance.errorLog(
+          'ERROR_STORING_DATA_IN_BROWSER_STORAGE',
+          {
+            err: getFormattedErrorMessage(error),
+          },
+          { an: Constants.BROWSER_STORAGE },
+        );
         deferredObject.reject(error);
       }
     }
@@ -166,7 +185,13 @@ export class BrowserStorageConnector {
         LogManager.Instance.info(`Retrieved data from storage for key: ${key}`);
         deferredObject.resolve(dataToReturn);
       } catch (error) {
-        LogManager.Instance.error(`Error retrieving data: ${error}`);
+        LogManager.Instance.errorLog(
+          'ERROR_READING_DATA_FROM_BROWSER_STORAGE',
+          {
+            err: getFormattedErrorMessage(error),
+          },
+          { an: Constants.BROWSER_STORAGE },
+        );
         deferredObject.resolve({});
       }
     }
@@ -203,7 +228,13 @@ export class BrowserStorageConnector {
           try {
             data.sdkKey = atob(data.sdkKey);
           } catch (e) {
-            LogManager.Instance.error('Failed to decode sdkKey from storage');
+            LogManager.Instance.errorLog(
+              'ERROR_DECODING_SDK_KEY_FROM_STORAGE',
+              {
+                err: getFormattedErrorMessage(e),
+              },
+              { an: Constants.BROWSER_STORAGE },
+            );
           }
         }
 
@@ -232,13 +263,25 @@ export class BrowserStorageConnector {
             try {
               data.sdkKey = atob(data.sdkKey);
             } catch (e) {
-              LogManager.Instance.error('Failed to decode sdkKey from storage');
+              LogManager.Instance.errorLog(
+                'ERROR_DECODING_SDK_KEY_FROM_STORAGE',
+                {
+                  err: getFormattedErrorMessage(e),
+                },
+                { an: Constants.BROWSER_STORAGE },
+              );
             }
           }
           deferredObject.resolve(data);
         }
       } catch (error) {
-        LogManager.Instance.error(`Error retrieving settings: ${error}`);
+        LogManager.Instance.errorLog(
+          'ERROR_READING_DATA_FROM_BROWSER_STORAGE',
+          {
+            err: getFormattedErrorMessage(error),
+          },
+          { an: Constants.BROWSER_STORAGE },
+        );
         deferredObject.resolve(null);
       }
     }
@@ -265,7 +308,14 @@ export class BrowserStorageConnector {
           }
         })
         .catch((error) => {
-          LogManager.Instance.error(`Error fetching fresh settings: ${error}`);
+          LogManager.Instance.errorLog(
+            'ERROR_FETCHING_SETTINGS',
+            {
+              err: getFormattedErrorMessage(error),
+            },
+            { an: Constants.BROWSER_STORAGE },
+            false,
+          );
         });
     }
   }
@@ -295,7 +345,13 @@ export class BrowserStorageConnector {
         LogManager.Instance.info('Settings stored successfully in storage');
         deferredObject.resolve();
       } catch (error) {
-        LogManager.Instance.error(`Error storing settings: ${error}`);
+        LogManager.Instance.errorLog(
+          'ERROR_STORING_DATA_IN_BROWSER_STORAGE',
+          {
+            err: 'Storing settings: ' + getFormattedErrorMessage(error),
+          },
+          { an: Constants.BROWSER_STORAGE },
+        );
         deferredObject.reject(error);
       }
     }

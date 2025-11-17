@@ -10,6 +10,7 @@ class FeatureModel {
         this.metrics = [];
         this.rules = [];
         this.impactCampaign = null;
+        this.isDebuggerEnabled = false;
         this.rulesLinkedCampaign = [];
         this.isGatewayServiceRequired = false;
     }
@@ -18,6 +19,9 @@ class FeatureModel {
         this.key = feature.key;
         this.name = feature.name;
         this.type = feature.type;
+        if (feature?.isDebuggerEnabled) {
+            this.isDebuggerEnabled = feature.isDebuggerEnabled;
+        }
         if (feature?.isGatewayServiceRequired) {
             this.isGatewayServiceRequired = feature.isGatewayServiceRequired;
         }
@@ -80,6 +84,9 @@ class FeatureModel {
     }
     setIsGatewayServiceRequired(isGatewayServiceRequired) {
         this.isGatewayServiceRequired = isGatewayServiceRequired;
+    }
+    getIsDebuggerEnabled() {
+        return this.isDebuggerEnabled;
     }
 }
 exports.FeatureModel = FeatureModel;

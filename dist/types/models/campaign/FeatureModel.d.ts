@@ -26,6 +26,7 @@ export declare class FeatureModel {
   private type;
   private rules;
   private impactCampaign;
+  private isDebuggerEnabled;
   private rulesLinkedCampaign;
   private isGatewayServiceRequired;
   modelFromDictionary(feature: FeatureModel): this;
@@ -40,4 +41,5 @@ export declare class FeatureModel {
   getMetrics(): Array<MetricModel>;
   getIsGatewayServiceRequired(): boolean;
   setIsGatewayServiceRequired(isGatewayServiceRequired: boolean): void;
+  getIsDebuggerEnabled(): boolean;
 }

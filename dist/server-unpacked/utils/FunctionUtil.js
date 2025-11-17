@@ -21,6 +21,7 @@ exports.getAllExperimentRules = getAllExperimentRules;
 exports.getFeatureFromKey = getFeatureFromKey;
 exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
 exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
+exports.getFormattedErrorMessage = getFormattedErrorMessage;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -176,5 +177,23 @@ function addLinkedCampaignsToSettings(settings) {
         // Assign the linked campaigns to the feature
         feature.setRulesLinkedCampaign(rulesLinkedCampaignModel);
     }
+}
+/**
+ * Formats an error message.
+ * @param {any} error - The error to format.
+ * @returns {string} The formatted error message.
+ */
+function getFormattedErrorMessage(error) {
+    var errorMessage = '';
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    else if (typeof error === 'string') {
+        errorMessage = error;
+    }
+    else if (error && typeof error === 'object') {
+        errorMessage = JSON.stringify(error);
+    }
+    return errorMessage;
 }
 //# sourceMappingURL=FunctionUtil.js.map

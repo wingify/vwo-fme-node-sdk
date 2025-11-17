@@ -10,6 +10,7 @@ var FeatureModel = /** @class */ (function () {
         this.metrics = [];
         this.rules = [];
         this.impactCampaign = null;
+        this.isDebuggerEnabled = false;
         this.rulesLinkedCampaign = [];
         this.isGatewayServiceRequired = false;
     }
@@ -20,6 +21,9 @@ var FeatureModel = /** @class */ (function () {
         this.key = feature.key;
         this.name = feature.name;
         this.type = feature.type;
+        if (feature === null || feature === void 0 ? void 0 : feature.isDebuggerEnabled) {
+            this.isDebuggerEnabled = feature.isDebuggerEnabled;
+        }
         if (feature === null || feature === void 0 ? void 0 : feature.isGatewayServiceRequired) {
             this.isGatewayServiceRequired = feature.isGatewayServiceRequired;
         }
@@ -82,6 +86,9 @@ var FeatureModel = /** @class */ (function () {
     };
     FeatureModel.prototype.setIsGatewayServiceRequired = function (isGatewayServiceRequired) {
         this.isGatewayServiceRequired = isGatewayServiceRequired;
+    };
+    FeatureModel.prototype.getIsDebuggerEnabled = function () {
+        return this.isDebuggerEnabled;
     };
     return FeatureModel;
 }());

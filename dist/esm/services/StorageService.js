@@ -18,11 +18,10 @@ exports.StorageService = void 0;
  */
 const StorageEnum_1 = require("../enums/StorageEnum");
 const storage_1 = require("../packages/storage");
-const log_messages_1 = require("../enums/log-messages");
 const logger_1 = require("../packages/logger");
 const DataTypeUtil_1 = require("../utils/DataTypeUtil");
-const LogMessageUtil_1 = require("../utils/LogMessageUtil");
 const PromiseUtil_1 = require("../utils/PromiseUtil");
+const ApiEnum_1 = require("../enums/ApiEnum");
 class StorageService {
     constructor() {
         this.storageData = {};
@@ -47,9 +46,7 @@ class StorageService {
                 deferredObject.resolve(data);
             })
                 .catch((err) => {
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.STORED_DATA_ERROR, {
-                    err,
-                }));
+                logger_1.LogManager.Instance.errorLog('ERROR_READING_STORED_DATA_IN_STORAGE', { err }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                 deferredObject.resolve(StorageEnum_1.StorageEnum.NO_DATA_FOUND);
             });
         }

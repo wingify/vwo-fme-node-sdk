@@ -68,7 +68,7 @@ class VWO {
                 return Promise.resolve(vwoClient);
             }
             else {
-                logger_1.LogManager.Instance.error(log_messages_1.ErrorLogMessagesEnum.SETTINGS_SCHEMA_INVALID);
+                logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT });
                 const vwoClient = this.vwoBuilder.build({});
                 vwoClient.isSettingsValid = false;
                 vwoClient.settingsFetchTime = 0;
@@ -108,30 +108,25 @@ async function init(options) {
     const apiName = ApiEnum_1.ApiEnum.INIT;
     const date = new Date().toISOString();
     try {
+        const invalidErrorPrefix = `[ERROR]: VWO-SDK ${date} `;
         if (!(0, DataTypeUtil_1.isObject)(options)) {
-            const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INIT_OPTIONS_ERROR, {
-                date,
-            });
+            const msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_OPTIONS);
             console.error(msg); // Ensures options is an object.
         }
         if (!options?.sdkKey || !(0, DataTypeUtil_1.isString)(options?.sdkKey)) {
-            const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INIT_OPTIONS_SDK_KEY_ERROR, {
-                date,
-            });
+            const msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_SDK_KEY_IN_OPTIONS);
             console.error(msg); // Validates sdkKey presence and type.
         }
         if (!options.accountId) {
-            const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INIT_OPTIONS_ACCOUNT_ID_ERROR, {
-                date,
-            });
+            const msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_ACCOUNT_ID_IN_OPTIONS);
             console.error(msg); // Validates accountId presence and type.
         }
         if (options.isAliasingEnabled && !options.gatewayService) {
-            const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.GATEWAY_URL_ERROR, {
-                date,
-            });
-            console.error('[ERROR]: VWO-SDK ' + new Date().toISOString() + ' ' + msg); // Validates gatewayService presence and type.
-            throw new Error('TypeError: Invalid gatewayService when aliasing is enabled');
+            const msg = invalidErrorPrefix +
+                (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_GATEWAY_URL, {
+                    date,
+                });
+            console.error(msg); // Validates gatewayService presence and type.
         }
         if (typeof process === 'undefined') {
             options.platform = PlatformEnum_1.PlatformEnum.CLIENT;
@@ -177,7 +172,7 @@ async function init(options) {
         });
     }
     catch (err) {
-        const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+        const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EXECUTION_FAILED, {
             apiName,
             err,
         });
@@ -214,7 +209,7 @@ async function onInit() {
         return _global.vwoInitDeferred.promise;
     }
     catch (err) {
-        const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.API_THROW_ERROR, {
+        const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EXECUTION_FAILED, {
             apiName,
             err,
         });

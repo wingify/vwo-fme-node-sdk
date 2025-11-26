@@ -395,29 +395,8 @@ function sendPostApiRequest(properties_1, payload_1, userId_1) {
                             .then(function (response) {
                             // if attempt is more than 0
                             if (response.getTotalAttempts() > 0) {
-                                // set category, if call got success then category is retry, otherwise network
-                                var category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.RETRY;
-                                var msg_t = constants_1.Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
-                                var msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
-                                    extraData: extraDataForMessage,
-                                    attempts: response.getTotalAttempts(),
-                                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
-                                });
-                                var lt = logger_1.LogLevelEnum.INFO.toString();
-                                if (response.getStatusCode() !== 200) {
-                                    category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK;
-                                    msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-                                    msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-                                        extraData: extraDataForMessage,
-                                        attempts: response.getTotalAttempts(),
-                                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
-                                    });
-                                    lt = logger_1.LogLevelEnum.ERROR.toString();
-                                }
-                                var debugEventProps = createNetWorkAndRetryDebugEvent(request, response, payload, apiName, category);
-                                debugEventProps.msg_t = msg_t;
-                                debugEventProps.lt = lt;
-                                debugEventProps.msg = msg;
+                                var debugEventProps = createNetWorkAndRetryDebugEvent(response, payload, apiName, extraDataForMessage);
+                                debugEventProps.uuid = request.getUuid();
                                 // send debug event
                                 (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
                             }
@@ -434,14 +413,8 @@ function sendPostApiRequest(properties_1, payload_1, userId_1) {
                             }));
                         })
                             .catch(function (err) {
-                            var debugEventProps = createNetWorkAndRetryDebugEvent(request, err, payload, apiName, DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK);
-                            debugEventProps.lt = logger_1.LogLevelEnum.ERROR.toString();
-                            debugEventProps.msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-                            debugEventProps.msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-                                extraData: extraDataForMessage,
-                                attempts: err.getTotalAttempts(),
-                                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err.getError()),
-                            });
+                            var debugEventProps = createNetWorkAndRetryDebugEvent(err, payload, apiName, extraDataForMessage);
+                            debugEventProps.uuid = request.getUuid();
                             (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
                             logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
                                 method: HttpMethodEnum_1.HttpMethodEnum.POST,
@@ -559,6 +532,10 @@ function getDebuggerEventPayload(eventProps) {
     else {
         eventProps.sId = properties.d.sessionId;
     }
+    // add a safety check for apiName
+    if (!eventProps.an) {
+        eventProps.an = EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT;
+    }
     // add all debugger props inside vwoMeta
     properties.d.event.props.vwoMeta = __assign(__assign({}, eventProps), { a: SettingsService_1.SettingsService.Instance.accountId, product: constants_1.Constants.PRODUCT_NAME, sn: constants_1.Constants.SDK_NAME, sv: constants_1.Constants.SDK_VERSION, eventId: (0, UuidUtil_1.getRandomUUID)(SettingsService_1.SettingsService.Instance.sdkKey) });
     return properties;
@@ -578,7 +555,7 @@ function sendEvent(properties, payload, eventName) {
             networkInstance = network_layer_1.NetworkManager.Instance;
             retryConfig = networkInstance.getRetryConfig();
             // disable retry for event (no retry for generic events)
-            if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT)
+            if (eventName === EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)
                 retryConfig.shouldRetry = false;
             baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
             protocol = SettingsService_1.SettingsService.Instance.protocol;
@@ -616,24 +593,47 @@ function sendEvent(properties, payload, eventName) {
         });
     });
 }
-function createNetWorkAndRetryDebugEvent(request, response, payload, apiName, category) {
-    var _a, _b, _c, _d;
+/**
+ * Creates a network and retry debug event.
+ * @param response The response model.
+ * @param payload The payload for the request.
+ * @param apiName The name of the API.
+ * @param extraData Extra data for the message.
+ * @param isBatchingDebugEvent Whether the debug event was triggered due to batching.
+ * @returns The debug event properties.
+ */
+function createNetWorkAndRetryDebugEvent(response, payload, apiName, extraData) {
+    var _a;
     try {
+        // set category, if call got success then category is retry, otherwise network
+        var category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.RETRY;
+        var msg_t = constants_1.Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
+        var msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
+            extraData: extraData,
+            attempts: response.getTotalAttempts(),
+            err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
+        });
+        var lt = logger_1.LogLevelEnum.INFO.toString();
+        if (response.getStatusCode() !== 200) {
+            category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK;
+            msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
+            msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
+                extraData: extraData,
+                attempts: response.getTotalAttempts(),
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
+            });
+            lt = logger_1.LogLevelEnum.ERROR.toString();
+        }
         var debugEventProps = {
             cg: category,
-            tRa: response.getTotalAttempts(),
-            sc: response.getStatusCode(),
-            err: response.getError(),
-            uuid: request.getUuid(),
-            eId: request.getCampaignId(),
+            msg_t: msg_t,
+            msg: msg,
+            lt: lt,
         };
-        if ((_c = (_b = (_a = payload === null || payload === void 0 ? void 0 : payload.d) === null || _a === void 0 ? void 0 : _a.event) === null || _b === void 0 ? void 0 : _b.props) === null || _c === void 0 ? void 0 : _c.variation) {
-            debugEventProps.vId = payload.d.event.props.variation;
-        }
         if (apiName) {
             debugEventProps.an = apiName;
         }
-        if ((_d = payload === null || payload === void 0 ? void 0 : payload.d) === null || _d === void 0 ? void 0 : _d.sessionId) {
+        if ((_a = payload === null || payload === void 0 ? void 0 : payload.d) === null || _a === void 0 ? void 0 : _a.sessionId) {
             debugEventProps.sId = payload.d.sessionId;
         }
         else {
@@ -643,8 +643,15 @@ function createNetWorkAndRetryDebugEvent(request, response, payload, apiName, ca
     }
     catch (err) {
         return {
-            cg: category,
-            err: err,
+            cg: DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK,
+            an: apiName,
+            msg_t: 'NETWORK_CALL_FAILED',
+            msg: (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+                method: extraData,
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+            }),
+            lt: logger_1.LogLevelEnum.ERROR.toString(),
+            sId: (0, FunctionUtil_1.getCurrentUnixTimestamp)(),
         };
     }
 }

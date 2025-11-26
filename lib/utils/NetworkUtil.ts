@@ -423,29 +423,8 @@ export async function sendPostApiRequest(
     .then((response: ResponseModel) => {
       // if attempt is more than 0
       if (response.getTotalAttempts() > 0) {
-        // set category, if call got success then category is retry, otherwise network
-        let category = DebuggerCategoryEnum.RETRY;
-        let msg_t = Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
-        let msg = buildMessage(InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
-          extraData: extraDataForMessage,
-          attempts: response.getTotalAttempts(),
-          err: getFormattedErrorMessage(response.getError()),
-        });
-        let lt = LogLevelEnum.INFO.toString();
-        if (response.getStatusCode() !== 200) {
-          category = DebuggerCategoryEnum.NETWORK;
-          msg_t = Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-          msg = buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-            extraData: extraDataForMessage,
-            attempts: response.getTotalAttempts(),
-            err: getFormattedErrorMessage(response.getError()),
-          });
-          lt = LogLevelEnum.ERROR.toString();
-        }
-        const debugEventProps = createNetWorkAndRetryDebugEvent(request, response, payload, apiName, category);
-        debugEventProps.msg_t = msg_t;
-        debugEventProps.lt = lt;
-        debugEventProps.msg = msg;
+        const debugEventProps = createNetWorkAndRetryDebugEvent(response, payload, apiName, extraDataForMessage);
+        debugEventProps.uuid = request.getUuid();
         // send debug event
         sendDebugEventToVWO(debugEventProps);
       }
@@ -465,20 +444,8 @@ export async function sendPostApiRequest(
       );
     })
     .catch((err: ResponseModel) => {
-      const debugEventProps = createNetWorkAndRetryDebugEvent(
-        request,
-        err,
-        payload,
-        apiName,
-        DebuggerCategoryEnum.NETWORK,
-      );
-      debugEventProps.lt = LogLevelEnum.ERROR.toString();
-      debugEventProps.msg_t = Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-      debugEventProps.msg = buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-        extraData: extraDataForMessage,
-        attempts: err.getTotalAttempts(),
-        err: getFormattedErrorMessage(err.getError()),
-      });
+      const debugEventProps = createNetWorkAndRetryDebugEvent(err, payload, apiName, extraDataForMessage);
+      debugEventProps.uuid = request.getUuid();
       sendDebugEventToVWO(debugEventProps);
       LogManager.Instance.errorLog(
         'NETWORK_CALL_FAILED',
@@ -615,6 +582,11 @@ export function getDebuggerEventPayload(eventProps: Record<string, any> = {}): R
     eventProps.sId = properties.d.sessionId;
   }
 
+  // add a safety check for apiName
+  if (!eventProps.an) {
+    eventProps.an = EventEnum.VWO_DEBUGGER_EVENT;
+  }
+
   // add all debugger props inside vwoMeta
   properties.d.event.props.vwoMeta = {
     ...eventProps,
@@ -646,7 +618,7 @@ export async function sendEvent(
   const networkInstance = NetworkManager.Instance;
   const retryConfig: IRetryConfig = networkInstance.getRetryConfig();
   // disable retry for event (no retry for generic events)
-  if (eventName === EventEnum.VWO_LOG_EVENT) retryConfig.shouldRetry = false;
+  if (eventName === EventEnum.VWO_DEBUGGER_EVENT) retryConfig.shouldRetry = false;
 
   let baseUrl = UrlUtil.getBaseUrl();
 
@@ -699,26 +671,47 @@ export async function sendEvent(
   }
 }
 
+/**
+ * Creates a network and retry debug event.
+ * @param response The response model.
+ * @param payload The payload for the request.
+ * @param apiName The name of the API.
+ * @param extraData Extra data for the message.
+ * @param isBatchingDebugEvent Whether the debug event was triggered due to batching.
+ * @returns The debug event properties.
+ */
 export function createNetWorkAndRetryDebugEvent(
-  request: RequestModel,
   response: ResponseModel,
   payload: any,
   apiName: string,
-  category: string,
+  extraData: string,
 ) {
   try {
+    // set category, if call got success then category is retry, otherwise network
+    let category = DebuggerCategoryEnum.RETRY;
+    let msg_t = Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
+    let msg = buildMessage(InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
+      extraData: extraData,
+      attempts: response.getTotalAttempts(),
+      err: getFormattedErrorMessage(response.getError()),
+    });
+    let lt = LogLevelEnum.INFO.toString();
+    if (response.getStatusCode() !== 200) {
+      category = DebuggerCategoryEnum.NETWORK;
+      msg_t = Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
+      msg = buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
+        extraData: extraData,
+        attempts: response.getTotalAttempts(),
+        err: getFormattedErrorMessage(response.getError()),
+      });
+      lt = LogLevelEnum.ERROR.toString();
+    }
     const debugEventProps: Record<string, any> = {
       cg: category,
-      tRa: response.getTotalAttempts(),
-      sc: response.getStatusCode(),
-      err: response.getError(),
-      uuid: request.getUuid(),
-      eId: request.getCampaignId(),
+      msg_t: msg_t,
+      msg: msg,
+      lt: lt,
     };
-
-    if (payload?.d?.event?.props?.variation) {
-      debugEventProps.vId = payload.d.event.props.variation;
-    }
 
     if (apiName) {
       debugEventProps.an = apiName;
@@ -733,8 +726,15 @@ export function createNetWorkAndRetryDebugEvent(
     return debugEventProps;
   } catch (err) {
     return {
-      cg: category,
-      err: err,
+      cg: DebuggerCategoryEnum.NETWORK,
+      an: apiName,
+      msg_t: 'NETWORK_CALL_FAILED',
+      msg: buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+        method: extraData,
+        err: getFormattedErrorMessage(err),
+      }),
+      lt: LogLevelEnum.ERROR.toString(),
+      sId: getCurrentUnixTimestamp(),
     };
   }
 }

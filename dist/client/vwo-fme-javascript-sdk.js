@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.31.0
+ * vwo-fme-javascript-sdk - v1.32.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -20,7 +20,7 @@
  *  1. murmurhash - ^2.0.1
  *  2. superstruct - ^0.14.x
  *  3. uuid - ^9.0.1
- *  4. vwo-fme-sdk-log-messages - ^1.2.7
+ *  4. vwo-fme-sdk-log-messages - ^1.2.8
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	// CommonJS2
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 "use strict";
-module.exports = {"version":"1.31.0"};
+module.exports = {"version":"1.32.0"};
 
 /***/ }),
 
@@ -2043,6 +2043,7 @@ exports.Constants = {
     // Debugger constants
     V2_SETTINGS: 'v2-settings',
     POLLING: 'polling',
+    BATCH_EVENTS: 'batch-events',
     BROWSER_STORAGE: 'browserStorage',
     FLAG_DECISION_GIVEN: 'FLAG_DECISION_GIVEN',
     NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES: 'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
@@ -7803,7 +7804,6 @@ var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enu
 var SettingsSchemaValidation_1 = __webpack_require__(/*! ../models/schemas/SettingsSchemaValidation */ "./lib/models/schemas/SettingsSchemaValidation.ts");
 var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./lib/utils/NetworkUtil.ts");
-var DebuggerCategoryEnum_1 = __webpack_require__(/*! ../enums/DebuggerCategoryEnum */ "./lib/enums/DebuggerCategoryEnum.ts");
 var DebuggerServiceUtil_1 = __webpack_require__(/*! ../utils/DebuggerServiceUtil */ "./lib/utils/DebuggerServiceUtil.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ../utils/FunctionUtil */ "./lib/utils/FunctionUtil.ts");
 var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
@@ -8037,52 +8037,23 @@ var SettingsService = /** @class */ (function () {
         try {
             //record the current timestamp
             var startTime_1 = Date.now();
-            var request_1 = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
-            request_1.setTimeout(this.networkTimeout);
+            var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
+            request.setTimeout(this.networkTimeout);
             networkInstance
-                .get(request_1)
+                .get(request)
                 .then(function (response) {
                 //record the timestamp when the response is received
                 _this.settingsFetchTime = Date.now() - startTime_1;
                 // if attempt is more than 0
                 if (response.getTotalAttempts() > 0) {
-                    // set category, if call got success then category is retry, otherwise network
-                    var lt = logger_1.LogLevelEnum.INFO.toString();
-                    var category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.RETRY;
-                    var msg_t = constants_1.Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
-                    var msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
-                        extraData: path,
-                        attempts: response.getTotalAttempts(),
-                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
-                    });
-                    if (response.getStatusCode() !== 200) {
-                        category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK;
-                        msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-                        msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-                            extraData: path,
-                            attempts: response.getTotalAttempts(),
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
-                        });
-                        lt = logger_1.LogLevelEnum.ERROR.toString();
-                    }
-                    var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(request_1, response, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, category);
-                    debugEventProps.msg_t = msg_t;
-                    debugEventProps.lt = lt;
-                    debugEventProps.msg = msg;
+                    var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
                     // send debug event
                     (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
                 }
                 deferredObject.resolve(response.getData());
             })
                 .catch(function (err) {
-                var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(request_1, err, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK);
-                debugEventProps.msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-                debugEventProps.msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-                    extraData: path,
-                    attempts: err.getTotalAttempts(),
-                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(err.getError()),
-                });
-                debugEventProps.lt = logger_1.LogLevelEnum.ERROR.toString();
+                var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(err, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
                 // send debug event
                 (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
                 deferredObject.reject(err);
@@ -8559,6 +8530,11 @@ var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./lib
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./lib/utils/PromiseUtil.ts");
+var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./lib/utils/FunctionUtil.ts");
+var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
+var DebuggerServiceUtil_1 = __webpack_require__(/*! ./DebuggerServiceUtil */ "./lib/utils/DebuggerServiceUtil.ts");
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
 var BatchEventsDispatcher = /** @class */ (function () {
     function BatchEventsDispatcher() {
     }
@@ -8580,35 +8556,58 @@ var BatchEventsDispatcher = /** @class */ (function () {
      */
     BatchEventsDispatcher.sendPostApiRequest = function (properties, payload, flushCallback) {
         return __awaiter(this, void 0, void 0, function () {
-            var deferred, networkManager, retryConfig, headers, baseUrl, request, response, batchApiResult, error_1, batchApiResult;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        deferred = new PromiseUtil_1.Deferred();
-                        networkManager = network_layer_2.NetworkManager.Instance;
-                        networkManager.attachClient();
-                        retryConfig = networkManager.getRetryConfig();
-                        headers = {};
-                        headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
-                        baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
-                        baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
-                        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, network_layer_2.NetworkManager.Instance.post(request)];
-                    case 2:
-                        response = _a.sent();
-                        batchApiResult = this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
-                        deferred.resolve(batchApiResult);
-                        return [2 /*return*/, deferred.promise];
-                    case 3:
-                        error_1 = _a.sent();
-                        batchApiResult = this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, error_1, null, flushCallback);
-                        deferred.resolve(batchApiResult);
-                        return [2 /*return*/, deferred.promise];
-                    case 4: return [2 /*return*/];
+            var deferred, networkManager, retryConfig, headers, baseUrl, request, _a, variationShownCount, setAttributeCount, customEventCount, extraData;
+            var _this = this;
+            return __generator(this, function (_b) {
+                deferred = new PromiseUtil_1.Deferred();
+                networkManager = network_layer_2.NetworkManager.Instance;
+                networkManager.attachClient();
+                retryConfig = networkManager.getRetryConfig();
+                headers = {};
+                headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
+                baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
+                baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
+                request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
+                _a = this.extractEventCounts(payload), variationShownCount = _a.variationShownCount, setAttributeCount = _a.setAttributeCount, customEventCount = _a.customEventCount;
+                extraData = "".concat(constants_1.Constants.BATCH_EVENTS, " having ");
+                if (variationShownCount > 0) {
+                    extraData += "getFlag events: ".concat(variationShownCount, ", ");
                 }
+                if (customEventCount > 0) {
+                    extraData += "conversion events: ".concat(customEventCount, ", ");
+                }
+                if (setAttributeCount > 0) {
+                    extraData += "setAttribute events: ".concat(setAttributeCount, ", ");
+                }
+                try {
+                    network_layer_2.NetworkManager.Instance.post(request)
+                        .then(function (response) {
+                        if (response.getTotalAttempts() > 0) {
+                            var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', constants_1.Constants.BATCH_EVENTS, extraData);
+                            // send debug event
+                            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                        }
+                        var batchApiResult = _this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
+                        deferred.resolve(batchApiResult);
+                    })
+                        .catch(function (err) {
+                        var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(err, '', constants_1.Constants.BATCH_EVENTS, extraData);
+                        // send debug event
+                        (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                        var batchApiResult = _this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, err, flushCallback);
+                        deferred.resolve(batchApiResult);
+                    });
+                    return [2 /*return*/, deferred.promise];
+                }
+                catch (error) {
+                    logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+                        apiName: constants_1.Constants.BATCH_EVENTS,
+                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                    }, { an: constants_1.Constants.BATCH_EVENTS });
+                    deferred.resolve({ status: 'error', events: payload });
+                    return [2 /*return*/, deferred.promise];
+                }
+                return [2 /*return*/];
             });
         });
     };
@@ -8671,6 +8670,31 @@ var BatchEventsDispatcher = /** @class */ (function () {
         }, {}, false);
         callback(error, payload);
         return { status: 'error', events: payload };
+    };
+    BatchEventsDispatcher.extractEventCounts = function (payload) {
+        var _a, _b, _c;
+        var counts = { variationShownCount: 0, setAttributeCount: 0, customEventCount: 0 };
+        var standardEventNames = new Set(Object.values(EventEnum_1.EventEnum));
+        var events = (_a = payload === null || payload === void 0 ? void 0 : payload.ev) !== null && _a !== void 0 ? _a : [];
+        for (var _i = 0, events_1 = events; _i < events_1.length; _i++) {
+            var entry = events_1[_i];
+            var name_1 = (_c = (_b = entry === null || entry === void 0 ? void 0 : entry.d) === null || _b === void 0 ? void 0 : _b.event) === null || _c === void 0 ? void 0 : _c.name;
+            if (!name_1) {
+                continue;
+            }
+            if (name_1 === EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
+                counts.variationShownCount += 1;
+                continue;
+            }
+            if (name_1 === EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP) {
+                counts.setAttributeCount += 1;
+                continue;
+            }
+            if (!standardEventNames.has(name_1)) {
+                counts.customEventCount += 1;
+            }
+        }
+        return counts;
     };
     return BatchEventsDispatcher;
 }());
@@ -11245,29 +11269,8 @@ function sendPostApiRequest(properties_1, payload_1, userId_1) {
                             .then(function (response) {
                             // if attempt is more than 0
                             if (response.getTotalAttempts() > 0) {
-                                // set category, if call got success then category is retry, otherwise network
-                                var category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.RETRY;
-                                var msg_t = constants_1.Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
-                                var msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
-                                    extraData: extraDataForMessage,
-                                    attempts: response.getTotalAttempts(),
-                                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
-                                });
-                                var lt = logger_1.LogLevelEnum.INFO.toString();
-                                if (response.getStatusCode() !== 200) {
-                                    category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK;
-                                    msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-                                    msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-                                        extraData: extraDataForMessage,
-                                        attempts: response.getTotalAttempts(),
-                                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
-                                    });
-                                    lt = logger_1.LogLevelEnum.ERROR.toString();
-                                }
-                                var debugEventProps = createNetWorkAndRetryDebugEvent(request, response, payload, apiName, category);
-                                debugEventProps.msg_t = msg_t;
-                                debugEventProps.lt = lt;
-                                debugEventProps.msg = msg;
+                                var debugEventProps = createNetWorkAndRetryDebugEvent(response, payload, apiName, extraDataForMessage);
+                                debugEventProps.uuid = request.getUuid();
                                 // send debug event
                                 (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
                             }
@@ -11284,14 +11287,8 @@ function sendPostApiRequest(properties_1, payload_1, userId_1) {
                             }));
                         })
                             .catch(function (err) {
-                            var debugEventProps = createNetWorkAndRetryDebugEvent(request, err, payload, apiName, DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK);
-                            debugEventProps.lt = logger_1.LogLevelEnum.ERROR.toString();
-                            debugEventProps.msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-                            debugEventProps.msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-                                extraData: extraDataForMessage,
-                                attempts: err.getTotalAttempts(),
-                                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err.getError()),
-                            });
+                            var debugEventProps = createNetWorkAndRetryDebugEvent(err, payload, apiName, extraDataForMessage);
+                            debugEventProps.uuid = request.getUuid();
                             (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
                             logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
                                 method: HttpMethodEnum_1.HttpMethodEnum.POST,
@@ -11409,6 +11406,10 @@ function getDebuggerEventPayload(eventProps) {
     else {
         eventProps.sId = properties.d.sessionId;
     }
+    // add a safety check for apiName
+    if (!eventProps.an) {
+        eventProps.an = EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT;
+    }
     // add all debugger props inside vwoMeta
     properties.d.event.props.vwoMeta = __assign(__assign({}, eventProps), { a: SettingsService_1.SettingsService.Instance.accountId, product: constants_1.Constants.PRODUCT_NAME, sn: constants_1.Constants.SDK_NAME, sv: constants_1.Constants.SDK_VERSION, eventId: (0, UuidUtil_1.getRandomUUID)(SettingsService_1.SettingsService.Instance.sdkKey) });
     return properties;
@@ -11428,7 +11429,7 @@ function sendEvent(properties, payload, eventName) {
             networkInstance = network_layer_1.NetworkManager.Instance;
             retryConfig = networkInstance.getRetryConfig();
             // disable retry for event (no retry for generic events)
-            if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT)
+            if (eventName === EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)
                 retryConfig.shouldRetry = false;
             baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
             protocol = SettingsService_1.SettingsService.Instance.protocol;
@@ -11466,24 +11467,47 @@ function sendEvent(properties, payload, eventName) {
         });
     });
 }
-function createNetWorkAndRetryDebugEvent(request, response, payload, apiName, category) {
-    var _a, _b, _c, _d;
+/**
+ * Creates a network and retry debug event.
+ * @param response The response model.
+ * @param payload The payload for the request.
+ * @param apiName The name of the API.
+ * @param extraData Extra data for the message.
+ * @param isBatchingDebugEvent Whether the debug event was triggered due to batching.
+ * @returns The debug event properties.
+ */
+function createNetWorkAndRetryDebugEvent(response, payload, apiName, extraData) {
+    var _a;
     try {
+        // set category, if call got success then category is retry, otherwise network
+        var category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.RETRY;
+        var msg_t = constants_1.Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
+        var msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
+            extraData: extraData,
+            attempts: response.getTotalAttempts(),
+            err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
+        });
+        var lt = logger_1.LogLevelEnum.INFO.toString();
+        if (response.getStatusCode() !== 200) {
+            category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK;
+            msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
+            msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
+                extraData: extraData,
+                attempts: response.getTotalAttempts(),
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
+            });
+            lt = logger_1.LogLevelEnum.ERROR.toString();
+        }
         var debugEventProps = {
             cg: category,
-            tRa: response.getTotalAttempts(),
-            sc: response.getStatusCode(),
-            err: response.getError(),
-            uuid: request.getUuid(),
-            eId: request.getCampaignId(),
+            msg_t: msg_t,
+            msg: msg,
+            lt: lt,
         };
-        if ((_c = (_b = (_a = payload === null || payload === void 0 ? void 0 : payload.d) === null || _a === void 0 ? void 0 : _a.event) === null || _b === void 0 ? void 0 : _b.props) === null || _c === void 0 ? void 0 : _c.variation) {
-            debugEventProps.vId = payload.d.event.props.variation;
-        }
         if (apiName) {
             debugEventProps.an = apiName;
         }
-        if ((_d = payload === null || payload === void 0 ? void 0 : payload.d) === null || _d === void 0 ? void 0 : _d.sessionId) {
+        if ((_a = payload === null || payload === void 0 ? void 0 : payload.d) === null || _a === void 0 ? void 0 : _a.sessionId) {
             debugEventProps.sId = payload.d.sessionId;
         }
         else {
@@ -11493,8 +11517,15 @@ function createNetWorkAndRetryDebugEvent(request, response, payload, apiName, ca
     }
     catch (err) {
         return {
-            cg: category,
-            err: err,
+            cg: DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK,
+            an: apiName,
+            msg_t: 'NETWORK_CALL_FAILED',
+            msg: (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILED, {
+                method: extraData,
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+            }),
+            lt: logger_1.LogLevelEnum.ERROR.toString(),
+            sId: (0, FunctionUtil_1.getCurrentUnixTimestamp)(),
         };
     }
 }
@@ -14635,7 +14666,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Error while fetching data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API."}');
+module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {endPoint} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Error while fetching data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API."}');
 
 /***/ }),
 
@@ -14657,7 +14688,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}"}');
 
 /***/ }),
 

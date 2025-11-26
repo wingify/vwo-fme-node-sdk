@@ -15,7 +15,7 @@
  */
 import { dynamic } from '../types/Common';
 import { Storage } from '../packages/storage';
-import { LogLevelEnum, LogManager } from '../packages/logger';
+import { LogManager } from '../packages/logger';
 import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
 
 import { Deferred } from '../utils/PromiseUtil';
@@ -23,11 +23,10 @@ import { Deferred } from '../utils/PromiseUtil';
 import { Constants } from '../constants';
 import { HTTPS_PROTOCOL, HTTP_PROTOCOL } from '../constants/Url';
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
-import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
+import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation';
 import { buildMessage } from '../utils/LogMessageUtil';
 import { createNetWorkAndRetryDebugEvent, getSettingsPath } from '../utils/NetworkUtil';
-import { DebuggerCategoryEnum } from '../enums/DebuggerCategoryEnum';
 import { sendDebugEventToVWO } from '../utils/DebuggerServiceUtil';
 import { getFormattedErrorMessage } from '../utils/FunctionUtil';
 import { ApiEnum } from '../enums/ApiEnum';
@@ -285,36 +284,12 @@ export class SettingsService implements ISettingsService {
 
           // if attempt is more than 0
           if (response.getTotalAttempts() > 0) {
-            // set category, if call got success then category is retry, otherwise network
-            let lt = LogLevelEnum.INFO.toString();
-            let category = DebuggerCategoryEnum.RETRY;
-            let msg_t = Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
-            let msg = buildMessage(InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
-              extraData: path,
-              attempts: response.getTotalAttempts(),
-              err: getFormattedErrorMessage(response.getError()),
-            });
-            if (response.getStatusCode() !== 200) {
-              category = DebuggerCategoryEnum.NETWORK;
-              msg_t = Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-              msg = buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-                extraData: path,
-                attempts: response.getTotalAttempts(),
-                err: getFormattedErrorMessage(response.getError()),
-              });
-              lt = LogLevelEnum.ERROR.toString();
-            }
-
             const debugEventProps = createNetWorkAndRetryDebugEvent(
-              request,
               response,
               '',
               isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName,
-              category,
+              path,
             );
-            debugEventProps.msg_t = msg_t;
-            debugEventProps.lt = lt;
-            debugEventProps.msg = msg;
             // send debug event
             sendDebugEventToVWO(debugEventProps);
           }
@@ -322,19 +297,11 @@ export class SettingsService implements ISettingsService {
         })
         .catch((err: ResponseModel) => {
           const debugEventProps = createNetWorkAndRetryDebugEvent(
-            request,
             err,
             '',
             isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName,
-            DebuggerCategoryEnum.NETWORK,
+            path,
           );
-          debugEventProps.msg_t = Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-          debugEventProps.msg = buildMessage(ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-            extraData: path,
-            attempts: err.getTotalAttempts(),
-            err: getFormattedErrorMessage(err.getError()),
-          });
-          debugEventProps.lt = LogLevelEnum.ERROR.toString();
           // send debug event
           sendDebugEventToVWO(debugEventProps);
 

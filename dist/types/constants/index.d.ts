@@ -38,6 +38,7 @@ export declare const Constants: {
   PRODUCT_NAME: string;
   V2_SETTINGS: string;
   POLLING: string;
+  BATCH_EVENTS: string;
   BROWSER_STORAGE: string;
   FLAG_DECISION_GIVEN: string;
   NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES: string;

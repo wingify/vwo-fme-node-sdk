@@ -27,6 +27,11 @@ const LogMessageUtil_1 = require("../utils/LogMessageUtil");
 const log_messages_1 = require("../enums/log-messages");
 const DataTypeUtil_1 = require("../utils/DataTypeUtil");
 const PromiseUtil_1 = require("./PromiseUtil");
+const FunctionUtil_1 = require("./FunctionUtil");
+const constants_1 = require("../constants");
+const DebuggerServiceUtil_1 = require("./DebuggerServiceUtil");
+const NetworkUtil_1 = require("./NetworkUtil");
+const EventEnum_1 = require("../enums/EventEnum");
 class BatchEventsDispatcher {
     static async dispatch(payload, flushCallback, queryParams) {
         return await this.sendPostApiRequest(queryParams, payload, flushCallback);
@@ -47,15 +52,43 @@ class BatchEventsDispatcher {
         let baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
         baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
         const request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
+        const { variationShownCount, setAttributeCount, customEventCount } = this.extractEventCounts(payload);
+        let extraData = `${constants_1.Constants.BATCH_EVENTS} having `;
+        if (variationShownCount > 0) {
+            extraData += `getFlag events: ${variationShownCount}, `;
+        }
+        if (customEventCount > 0) {
+            extraData += `conversion events: ${customEventCount}, `;
+        }
+        if (setAttributeCount > 0) {
+            extraData += `setAttribute events: ${setAttributeCount}, `;
+        }
         try {
-            const response = await network_layer_2.NetworkManager.Instance.post(request);
-            const batchApiResult = this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
-            deferred.resolve(batchApiResult);
+            network_layer_2.NetworkManager.Instance.post(request)
+                .then((response) => {
+                if (response.getTotalAttempts() > 0) {
+                    const debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', constants_1.Constants.BATCH_EVENTS, extraData);
+                    // send debug event
+                    (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                }
+                const batchApiResult = this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
+                deferred.resolve(batchApiResult);
+            })
+                .catch((err) => {
+                const debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(err, '', constants_1.Constants.BATCH_EVENTS, extraData);
+                // send debug event
+                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                const batchApiResult = this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, err, flushCallback);
+                deferred.resolve(batchApiResult);
+            });
             return deferred.promise;
         }
         catch (error) {
-            const batchApiResult = this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, error, null, flushCallback);
-            deferred.resolve(batchApiResult);
+            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+                apiName: constants_1.Constants.BATCH_EVENTS,
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+            }, { an: constants_1.Constants.BATCH_EVENTS });
+            deferred.resolve({ status: 'error', events: payload });
             return deferred.promise;
         }
     }
@@ -118,6 +151,29 @@ class BatchEventsDispatcher {
         }, {}, false);
         callback(error, payload);
         return { status: 'error', events: payload };
+    }
+    static extractEventCounts(payload) {
+        const counts = { variationShownCount: 0, setAttributeCount: 0, customEventCount: 0 };
+        const standardEventNames = new Set(Object.values(EventEnum_1.EventEnum));
+        const events = payload?.ev ?? [];
+        for (const entry of events) {
+            const name = entry?.d?.event?.name;
+            if (!name) {
+                continue;
+            }
+            if (name === EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
+                counts.variationShownCount += 1;
+                continue;
+            }
+            if (name === EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP) {
+                counts.setAttributeCount += 1;
+                continue;
+            }
+            if (!standardEventNames.has(name)) {
+                counts.customEventCount += 1;
+            }
+        }
+        return counts;
     }
 }
 exports.BatchEventsDispatcher = BatchEventsDispatcher;

@@ -1,5 +1,5 @@
 import { SettingsModel } from '../models/settings/SettingsModel';
-import { RequestModel, ResponseModel } from '../packages/network-layer';
+import { ResponseModel } from '../packages/network-layer';
 import { dynamic } from '../types/Common';
 import { ContextModel } from '../models/user/ContextModel';
 /**
@@ -178,10 +178,18 @@ export declare function sendEvent(
   payload: Record<string, any>,
   eventName: string,
 ): Promise<any>;
+/**
+ * Creates a network and retry debug event.
+ * @param response The response model.
+ * @param payload The payload for the request.
+ * @param apiName The name of the API.
+ * @param extraData Extra data for the message.
+ * @param isBatchingDebugEvent Whether the debug event was triggered due to batching.
+ * @returns The debug event properties.
+ */
 export declare function createNetWorkAndRetryDebugEvent(
-  request: RequestModel,
   response: ResponseModel,
   payload: any,
   apiName: string,
-  category: string,
+  extraData: string,
 ): Record<string, any>;

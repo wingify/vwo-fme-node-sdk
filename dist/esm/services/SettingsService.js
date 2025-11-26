@@ -12,7 +12,6 @@ const log_messages_1 = require("../enums/log-messages");
 const SettingsSchemaValidation_1 = require("../models/schemas/SettingsSchemaValidation");
 const LogMessageUtil_1 = require("../utils/LogMessageUtil");
 const NetworkUtil_1 = require("../utils/NetworkUtil");
-const DebuggerCategoryEnum_1 = require("../enums/DebuggerCategoryEnum");
 const DebuggerServiceUtil_1 = require("../utils/DebuggerServiceUtil");
 const FunctionUtil_1 = require("../utils/FunctionUtil");
 const ApiEnum_1 = require("../enums/ApiEnum");
@@ -208,43 +207,14 @@ class SettingsService {
                 this.settingsFetchTime = Date.now() - startTime;
                 // if attempt is more than 0
                 if (response.getTotalAttempts() > 0) {
-                    // set category, if call got success then category is retry, otherwise network
-                    let lt = logger_1.LogLevelEnum.INFO.toString();
-                    let category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.RETRY;
-                    let msg_t = constants_1.Constants.NETWORK_CALL_SUCCESS_WITH_RETRIES;
-                    let msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS_WITH_RETRIES, {
-                        extraData: path,
-                        attempts: response.getTotalAttempts(),
-                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
-                    });
-                    if (response.getStatusCode() !== 200) {
-                        category = DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK;
-                        msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-                        msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-                            extraData: path,
-                            attempts: response.getTotalAttempts(),
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(response.getError()),
-                        });
-                        lt = logger_1.LogLevelEnum.ERROR.toString();
-                    }
-                    const debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(request, response, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, category);
-                    debugEventProps.msg_t = msg_t;
-                    debugEventProps.lt = lt;
-                    debugEventProps.msg = msg;
+                    const debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
                     // send debug event
                     (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
                 }
                 deferredObject.resolve(response.getData());
             })
                 .catch((err) => {
-                const debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(request, err, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, DebuggerCategoryEnum_1.DebuggerCategoryEnum.NETWORK);
-                debugEventProps.msg_t = constants_1.Constants.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES;
-                debugEventProps.msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES, {
-                    extraData: path,
-                    attempts: err.getTotalAttempts(),
-                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(err.getError()),
-                });
-                debugEventProps.lt = logger_1.LogLevelEnum.ERROR.toString();
+                const debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(err, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
                 // send debug event
                 (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
                 deferredObject.reject(err);

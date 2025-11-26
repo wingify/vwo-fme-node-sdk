@@ -90,6 +90,7 @@ export const Constants = {
   // Debugger constants
   V2_SETTINGS: 'v2-settings',
   POLLING: 'polling',
+  BATCH_EVENTS: 'batch-events',
   BROWSER_STORAGE: 'browserStorage',
   FLAG_DECISION_GIVEN: 'FLAG_DECISION_GIVEN',
   NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES: 'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',

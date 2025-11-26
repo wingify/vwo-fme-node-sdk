@@ -26,6 +26,11 @@ import { InfoLogMessagesEnum } from '../enums/log-messages';
 import { dynamic } from '../types/Common';
 import { isString } from '../utils/DataTypeUtil';
 import { Deferred } from './PromiseUtil';
+import { getFormattedErrorMessage } from './FunctionUtil';
+import { Constants } from '../constants';
+import { sendDebugEventToVWO } from './DebuggerServiceUtil';
+import { createNetWorkAndRetryDebugEvent } from './NetworkUtil';
+import { EventEnum } from '../enums/EventEnum';
 
 export class BatchEventsDispatcher {
   public static async dispatch(
@@ -69,29 +74,70 @@ export class BatchEventsDispatcher {
       SettingsService.Instance.port,
       retryConfig,
     );
-
+    const { variationShownCount, setAttributeCount, customEventCount } = this.extractEventCounts(payload);
+    let extraData = `${Constants.BATCH_EVENTS} having `;
+    if (variationShownCount > 0) {
+      extraData += `getFlag events: ${variationShownCount}, `;
+    }
+    if (customEventCount > 0) {
+      extraData += `conversion events: ${customEventCount}, `;
+    }
+    if (setAttributeCount > 0) {
+      extraData += `setAttribute events: ${setAttributeCount}, `;
+    }
     try {
-      const response = await NetworkManager.Instance.post(request);
-      const batchApiResult = this.handleBatchResponse(
-        UrlEnum.BATCH_EVENTS,
-        payload,
-        properties,
-        null,
-        response,
-        flushCallback,
-      );
-      deferred.resolve(batchApiResult);
+      NetworkManager.Instance.post(request)
+        .then((response) => {
+          if (response.getTotalAttempts() > 0) {
+            const debugEventProps: Record<string, any> = createNetWorkAndRetryDebugEvent(
+              response,
+              '',
+              Constants.BATCH_EVENTS,
+              extraData,
+            );
+            // send debug event
+            sendDebugEventToVWO(debugEventProps);
+          }
+          const batchApiResult = this.handleBatchResponse(
+            UrlEnum.BATCH_EVENTS,
+            payload,
+            properties,
+            null,
+            response,
+            flushCallback,
+          );
+          deferred.resolve(batchApiResult);
+        })
+        .catch((err: ResponseModel) => {
+          const debugEventProps: Record<string, any> = createNetWorkAndRetryDebugEvent(
+            err,
+            '',
+            Constants.BATCH_EVENTS,
+            extraData,
+          );
+          // send debug event
+          sendDebugEventToVWO(debugEventProps);
+          const batchApiResult = this.handleBatchResponse(
+            UrlEnum.BATCH_EVENTS,
+            payload,
+            properties,
+            null,
+            err,
+            flushCallback,
+          );
+          deferred.resolve(batchApiResult);
+        });
       return deferred.promise;
     } catch (error) {
-      const batchApiResult = this.handleBatchResponse(
-        UrlEnum.BATCH_EVENTS,
-        payload,
-        properties,
-        error,
-        null,
-        flushCallback,
+      LogManager.Instance.errorLog(
+        'EXECUTION_FAILED',
+        {
+          apiName: Constants.BATCH_EVENTS,
+          err: getFormattedErrorMessage(error),
+        },
+        { an: Constants.BATCH_EVENTS },
       );
-      deferred.resolve(batchApiResult);
+      deferred.resolve({ status: 'error', events: payload });
       return deferred.promise;
     }
   }
@@ -188,6 +234,40 @@ export class BatchEventsDispatcher {
     );
     callback(error, payload);
     return { status: 'error', events: payload };
+  }
+
+  private static extractEventCounts(payload: Record<string, any>): {
+    variationShownCount: number;
+    setAttributeCount: number;
+    customEventCount: number;
+  } {
+    const counts = { variationShownCount: 0, setAttributeCount: 0, customEventCount: 0 };
+    const standardEventNames = new Set(Object.values(EventEnum));
+    const events = payload?.ev ?? [];
+
+    for (const entry of events) {
+      const name = entry?.d?.event?.name;
+
+      if (!name) {
+        continue;
+      }
+
+      if (name === EventEnum.VWO_VARIATION_SHOWN) {
+        counts.variationShownCount += 1;
+        continue;
+      }
+
+      if (name === EventEnum.VWO_SYNC_VISITOR_PROP) {
+        counts.setAttributeCount += 1;
+        continue;
+      }
+
+      if (!standardEventNames.has(name)) {
+        counts.customEventCount += 1;
+      }
+    }
+
+    return counts;
   }
 }
 

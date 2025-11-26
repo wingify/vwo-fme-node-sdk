@@ -37,5 +37,6 @@ export declare class BatchEventsDispatcher {
    * @param callback - Callback function to handle the result
    */
   private static handleBatchResponse;
+  private static extractEventCounts;
 }
 export default BatchEventsDispatcher;

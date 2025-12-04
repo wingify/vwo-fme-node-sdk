@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -15,7 +13,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* import { Connector } from '../Connector';
+/* import { Connector } from '../Connector.js';
 
 export class MemoryConnector extends Connector {
   map: any;

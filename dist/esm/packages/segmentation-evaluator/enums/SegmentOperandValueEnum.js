@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SegmentOperandValueEnum = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,7 +13,7 @@ exports.SegmentOperandValueEnum = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var SegmentOperandValueEnum;
+export var SegmentOperandValueEnum;
 (function (SegmentOperandValueEnum) {
     SegmentOperandValueEnum[SegmentOperandValueEnum["LOWER_VALUE"] = 1] = "LOWER_VALUE";
     SegmentOperandValueEnum[SegmentOperandValueEnum["STARTING_ENDING_STAR_VALUE"] = 2] = "STARTING_ENDING_STAR_VALUE";
@@ -28,5 +25,5 @@ var SegmentOperandValueEnum;
     SegmentOperandValueEnum[SegmentOperandValueEnum["GREATER_THAN_EQUAL_TO_VALUE"] = 8] = "GREATER_THAN_EQUAL_TO_VALUE";
     SegmentOperandValueEnum[SegmentOperandValueEnum["LESS_THAN_VALUE"] = 9] = "LESS_THAN_VALUE";
     SegmentOperandValueEnum[SegmentOperandValueEnum["LESS_THAN_EQUAL_TO_VALUE"] = 10] = "LESS_THAN_EQUAL_TO_VALUE";
-})(SegmentOperandValueEnum || (exports.SegmentOperandValueEnum = SegmentOperandValueEnum = {}));
+})(SegmentOperandValueEnum || (SegmentOperandValueEnum = {}));
 //# sourceMappingURL=SegmentOperandValueEnum.js.map

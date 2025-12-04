@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SettingsModel = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,9 +13,9 @@ exports.SettingsModel = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const CampaignModel_1 = require("../campaign/CampaignModel");
-const FeatureModel_1 = require("../campaign/FeatureModel");
-class SettingsModel {
+import { CampaignModel } from '../campaign/CampaignModel.js';
+import { FeatureModel } from '../campaign/FeatureModel.js';
+export class SettingsModel {
     constructor(settings) {
         this.f = [];
         this.features = [];
@@ -37,14 +34,14 @@ class SettingsModel {
             (settings.features && settings.features.constructor !== {}.constructor)) {
             const featureList = settings.f || settings.features;
             featureList.forEach((feature) => {
-                this.features.push(new FeatureModel_1.FeatureModel().modelFromDictionary(feature));
+                this.features.push(new FeatureModel().modelFromDictionary(feature));
             });
         }
         if ((settings.c && settings.c.constructor !== {}.constructor) ||
             (settings.campaigns && settings.campaigns.constructor !== {}.constructor)) {
             const campaignList = settings.c || settings.campaigns;
             campaignList.forEach((campaign) => {
-                this.campaigns.push(new CampaignModel_1.CampaignModel().modelFromDictionary(campaign));
+                this.campaigns.push(new CampaignModel().modelFromDictionary(campaign));
             });
         }
         if (settings.cG || settings.campaignGroups) {
@@ -92,5 +89,4 @@ class SettingsModel {
         return this.usageStatsAccountId;
     }
 }
-exports.SettingsModel = SettingsModel;
 //# sourceMappingURL=SettingsModel.js.map

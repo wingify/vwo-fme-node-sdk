@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SegmentOperandRegexEnum = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,7 +13,7 @@ exports.SegmentOperandRegexEnum = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var SegmentOperandRegexEnum;
+export var SegmentOperandRegexEnum;
 (function (SegmentOperandRegexEnum) {
     SegmentOperandRegexEnum["LOWER"] = "^lower";
     SegmentOperandRegexEnum["LOWER_MATCH"] = "^lower\\((.*)\\)";
@@ -30,5 +27,5 @@ var SegmentOperandRegexEnum;
     SegmentOperandRegexEnum["GREATER_THAN_EQUAL_TO_MATCH"] = "^gte\\((\\d+(?:\\.\\d+)*|\\.\\d+)\\)";
     SegmentOperandRegexEnum["LESS_THAN_MATCH"] = "^lt\\((\\d+(?:\\.\\d+)*|\\.\\d+)\\)";
     SegmentOperandRegexEnum["LESS_THAN_EQUAL_TO_MATCH"] = "^lte\\((\\d+(?:\\.\\d+)*|\\.\\d+)\\)";
-})(SegmentOperandRegexEnum || (exports.SegmentOperandRegexEnum = SegmentOperandRegexEnum = {}));
+})(SegmentOperandRegexEnum || (SegmentOperandRegexEnum = {}));
 //# sourceMappingURL=SegmentOperandRegexEnum.js.map

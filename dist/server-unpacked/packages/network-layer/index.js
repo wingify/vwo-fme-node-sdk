@@ -15,16 +15,7 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ResponseModel = exports.RequestModel = exports.GlobalRequestModel = exports.NetworkManager = exports.NetworkClient = void 0;
-var NetworkClient;
-if (typeof process === 'undefined') {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    exports.NetworkClient = NetworkClient = require('./client/NetworkBrowserClient').NetworkBrowserClient;
-}
-else {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    exports.NetworkClient = NetworkClient = require('./client/NetworkClient').NetworkClient;
-}
+exports.ResponseModel = exports.RequestModel = exports.GlobalRequestModel = exports.NetworkManager = void 0;
 var NetworkManager_1 = require("./manager/NetworkManager");
 Object.defineProperty(exports, "NetworkManager", { enumerable: true, get: function () { return NetworkManager_1.NetworkManager; } });
 var GlobalRequestModel_1 = require("./models/GlobalRequestModel");

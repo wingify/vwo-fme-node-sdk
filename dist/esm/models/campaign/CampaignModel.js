@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CampaignModel = void 0;
-const MetricModel_1 = require("./MetricModel");
-const VariableModel_1 = require("./VariableModel");
-const VariationModel_1 = require("./VariationModel");
-class CampaignModel {
+import { MetricModel } from './MetricModel.js';
+import { VariableModel } from './VariableModel.js';
+import { VariationModel } from './VariationModel.js';
+export class CampaignModel {
     constructor() {
         this.variations = [];
         this.metrics = [];
@@ -32,7 +29,7 @@ class CampaignModel {
             else {
                 const variableList = campaign.variables; // campaign.var ||
                 variableList.forEach((variable) => {
-                    this.variables.push(VariableModel_1.VariableModel.modelFromDictionary(variable));
+                    this.variables.push(VariableModel.modelFromDictionary(variable));
                 });
             }
         }
@@ -46,7 +43,7 @@ class CampaignModel {
             else {
                 const variationList = campaign.variations; // campaign.v ||
                 variationList.forEach((variation) => {
-                    this.variations.push(new VariationModel_1.VariationModel().modelFromDictionary(variation));
+                    this.variations.push(new VariationModel().modelFromDictionary(variation));
                 });
             }
         }
@@ -58,7 +55,7 @@ class CampaignModel {
             else {
                 const metricsList = campaign.metrics || [];
                 metricsList.forEach((metric) => {
-                    this.metrics.push(new MetricModel_1.MetricModel().modelFromDictionary(metric));
+                    this.metrics.push(new MetricModel().modelFromDictionary(metric));
                 });
             }
         }
@@ -118,5 +115,4 @@ class CampaignModel {
         return this.salt;
     }
 }
-exports.CampaignModel = CampaignModel;
 //# sourceMappingURL=CampaignModel.js.map

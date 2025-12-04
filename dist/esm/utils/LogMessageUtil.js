@@ -1,7 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.buildMessage = buildMessage;
-exports.sendLogToVWO = sendLogToVWO;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -17,10 +13,10 @@ exports.sendLogToVWO = sendLogToVWO;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const constants_1 = require("../constants");
-const EventEnum_1 = require("../enums/EventEnum");
-const DataTypeUtil_1 = require("../utils/DataTypeUtil");
-const NetworkUtil_1 = require("./NetworkUtil");
+import { Constants } from '../constants/index.js';
+import { EventEnum } from '../enums/EventEnum.js';
+import { isFunction } from '../utils/DataTypeUtil.js';
+import { getEventsBaseProperties, getMessagingEventPayload, sendEvent } from './NetworkUtil.js';
 const nargs = /\{([0-9a-zA-Z_]+)\}/g;
 const storedMessages = new Set();
 /**
@@ -30,7 +26,7 @@ const storedMessages = new Set();
  * @param {Record<string, any>} data - An object containing keys and values used to replace the placeholders in the template.
  * @returns {string} The constructed message with all placeholders replaced by their corresponding values from the data object.
  */
-function buildMessage(template = '', data = {}) {
+export function buildMessage(template = '', data = {}) {
     try {
         return template.replace(nargs, (match, key, index) => {
             // Check for escaped placeholders
@@ -44,7 +40,7 @@ function buildMessage(template = '', data = {}) {
                 return '';
             }
             // If the value is a function, evaluate it
-            return (0, DataTypeUtil_1.isFunction)(value) ? value() : value;
+            return isFunction(value) ? value() : value;
         });
     }
     catch (err) {
@@ -57,12 +53,12 @@ function buildMessage(template = '', data = {}) {
  * @param {string} messageType - The type of message to log.
  * @param {string} eventName - The name of the event to log.
  */
-function sendLogToVWO(message, messageType, extraData = {}) {
+export function sendLogToVWO(message, messageType, extraData = {}) {
     if (typeof process != 'undefined' && process.env.TEST_ENV === 'true') {
         return;
     }
     let messageToSend = message;
-    messageToSend = messageToSend + '-' + constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION;
+    messageToSend = messageToSend + '-' + Constants.SDK_NAME + '-' + Constants.SDK_VERSION;
     if (Object.keys(extraData).length > 0) {
         messageToSend = messageToSend + ' ' + JSON.stringify(extraData);
     }
@@ -70,12 +66,12 @@ function sendLogToVWO(message, messageType, extraData = {}) {
         // add the message to the set
         storedMessages.add(messageToSend);
         // create the query parameters
-        const properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_LOG_EVENT);
+        const properties = getEventsBaseProperties(EventEnum.VWO_LOG_EVENT);
         // create the payload
-        const payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT, extraData);
+        const payload = getMessagingEventPayload(messageType, message, EventEnum.VWO_LOG_EVENT, extraData);
         // Send the constructed payload via POST request
         // send eventName in parameters so that we can disable retry for this event
-        (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_LOG_EVENT).catch(() => { });
+        sendEvent(properties, payload, EventEnum.VWO_LOG_EVENT).catch(() => { });
     }
 }
 //# sourceMappingURL=LogMessageUtil.js.map

@@ -79,15 +79,15 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         var networkInstance = network_layer_1.NetworkManager.Instance;
         // Attach the network client from options
-        networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig);
+        networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig, ((_d = this.options) === null || _d === void 0 ? void 0 : _d.shouldWaitForTrackingCalls) ? true : false);
         logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: "Network Layer",
         }));
         // Set the development mode based on options
-        networkInstance.getConfig().setDevelopmentMode((_d = this.options) === null || _d === void 0 ? void 0 : _d.isDevelopmentMode);
+        networkInstance.getConfig().setDevelopmentMode((_e = this.options) === null || _e === void 0 ? void 0 : _e.isDevelopmentMode);
         return this;
     };
     VWOBuilder.prototype.initBatching = function () {

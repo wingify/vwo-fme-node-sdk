@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.StorageService = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,13 +13,13 @@ exports.StorageService = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const StorageEnum_1 = require("../enums/StorageEnum");
-const storage_1 = require("../packages/storage");
-const logger_1 = require("../packages/logger");
-const DataTypeUtil_1 = require("../utils/DataTypeUtil");
-const PromiseUtil_1 = require("../utils/PromiseUtil");
-const ApiEnum_1 = require("../enums/ApiEnum");
-class StorageService {
+import { StorageEnum } from '../enums/StorageEnum.js';
+import { Storage } from '../packages/storage/index.js';
+import { LogManager } from '../packages/logger/index.js';
+import { isNull, isUndefined } from '../utils/DataTypeUtil.js';
+import { Deferred } from '../utils/PromiseUtil.js';
+import { ApiEnum } from '../enums/ApiEnum.js';
+export class StorageService {
     constructor() {
         this.storageData = {};
     }
@@ -33,11 +30,11 @@ class StorageService {
      * @returns A promise that resolves to the data retrieved or an error/storage status enum.
      */
     async getDataInStorage(featureKey, context) {
-        const deferredObject = new PromiseUtil_1.Deferred();
-        const storageInstance = storage_1.Storage.Instance.getConnector();
+        const deferredObject = new Deferred();
+        const storageInstance = Storage.Instance.getConnector();
         // Check if the storage instance is available
-        if ((0, DataTypeUtil_1.isNull)(storageInstance) || (0, DataTypeUtil_1.isUndefined)(storageInstance)) {
-            deferredObject.resolve(StorageEnum_1.StorageEnum.STORAGE_UNDEFINED);
+        if (isNull(storageInstance) || isUndefined(storageInstance)) {
+            deferredObject.resolve(StorageEnum.STORAGE_UNDEFINED);
         }
         else {
             storageInstance
@@ -46,8 +43,8 @@ class StorageService {
                 deferredObject.resolve(data);
             })
                 .catch((err) => {
-                logger_1.LogManager.Instance.errorLog('ERROR_READING_STORED_DATA_IN_STORAGE', { err }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
-                deferredObject.resolve(StorageEnum_1.StorageEnum.NO_DATA_FOUND);
+                LogManager.Instance.errorLog('ERROR_READING_STORED_DATA_IN_STORAGE', { err }, { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+                deferredObject.resolve(StorageEnum.NO_DATA_FOUND);
             });
         }
         return deferredObject.promise;
@@ -58,8 +55,8 @@ class StorageService {
      * @returns A promise that resolves to true if data is successfully stored, otherwise false.
      */
     async setDataInStorage(data) {
-        const deferredObject = new PromiseUtil_1.Deferred();
-        const storageInstance = storage_1.Storage.Instance.getConnector();
+        const deferredObject = new Deferred();
+        const storageInstance = Storage.Instance.getConnector();
         // Check if the storage instance is available
         if (storageInstance === null || storageInstance === undefined) {
             deferredObject.resolve(false);
@@ -77,5 +74,4 @@ class StorageService {
         return deferredObject.promise;
     }
 }
-exports.StorageService = StorageService;
 //# sourceMappingURL=StorageService.js.map

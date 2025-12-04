@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *

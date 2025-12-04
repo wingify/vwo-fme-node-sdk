@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Constants = void 0;
 /**
@@ -18,20 +21,22 @@ exports.Constants = void 0;
  */
 var PlatformEnum_1 = require("../enums/PlatformEnum");
 var Url_1 = require("./Url");
+var VERSION_1 = __importDefault(require("../../VERSION"));
+var SDK_VERSION = VERSION_1.default.version;
 var packageFile;
 var platform;
 // Reading package.json will bundle the whole file that's why preventing it by reading VERSION
 if (typeof process === 'undefined') {
     packageFile = {
         name: 'vwo-fme-javascript-sdk',
-        version: require('../../VERSION.json').version, // eslint-disable-line @typescript-eslint/no-var-requires
+        version: SDK_VERSION,
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
 else {
     packageFile = {
         name: 'vwo-fme-node-sdk',
-        version: require('../../VERSION.json').version, // eslint-disable-line @typescript-eslint/no-var-requires
+        version: SDK_VERSION,
     };
     platform = PlatformEnum_1.PlatformEnum.SERVER;
 }

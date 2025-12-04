@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Constants = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,26 +13,28 @@ exports.Constants = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const PlatformEnum_1 = require("../enums/PlatformEnum");
-const Url_1 = require("./Url");
+import { PlatformEnum } from '../enums/PlatformEnum.js';
+import { SEED_URL, HTTP_PROTOCOL, HTTPS_PROTOCOL } from './Url.js';
+import sdkMeta from '../../VERSION.js';
+const SDK_VERSION = sdkMeta.version;
 let packageFile;
 let platform;
 // Reading package.json will bundle the whole file that's why preventing it by reading VERSION
 if (typeof process === 'undefined') {
     packageFile = {
         name: 'vwo-fme-javascript-sdk',
-        version: require('../../VERSION.json').version, // eslint-disable-line @typescript-eslint/no-var-requires
+        version: SDK_VERSION,
     };
-    platform = PlatformEnum_1.PlatformEnum.CLIENT;
+    platform = PlatformEnum.CLIENT;
 }
 else {
     packageFile = {
         name: 'vwo-fme-node-sdk',
-        version: require('../../VERSION.json').version, // eslint-disable-line @typescript-eslint/no-var-requires
+        version: SDK_VERSION,
     };
-    platform = PlatformEnum_1.PlatformEnum.SERVER;
+    platform = PlatformEnum.SERVER;
 }
-exports.Constants = {
+export const Constants = {
     SDK_NAME: packageFile.name,
     SDK_VERSION: packageFile.version,
     PLATFORM: platform,
@@ -46,9 +45,9 @@ exports.Constants = {
     MAX_EVENTS_PER_REQUEST: 5000,
     DEFAULT_REQUEST_TIME_INTERVAL: 600, // 10 * 60(secs) = 600 secs i.e. 10 minutes
     DEFAULT_EVENTS_PER_REQUEST: 100,
-    SEED_URL: Url_1.SEED_URL,
-    HTTP_PROTOCOL: Url_1.HTTP_PROTOCOL,
-    HTTPS_PROTOCOL: Url_1.HTTPS_PROTOCOL,
+    SEED_URL,
+    HTTP_PROTOCOL,
+    HTTPS_PROTOCOL,
     SETTINGS: 'settings',
     SETTINGS_EXPIRY: 10000000,
     SETTINGS_TIMEOUT: 50000,

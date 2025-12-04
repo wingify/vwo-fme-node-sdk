@@ -1,12 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ResponseModel = void 0;
-const FunctionUtil_1 = require("../../../utils/FunctionUtil");
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
 /**
  * Represents the response model for network operations.
  * This class encapsulates details about the HTTP response including status code, headers, data, and errors.
  */
-class ResponseModel {
+export class ResponseModel {
     /**
      * Sets the status code of the response.
      * @param {number} statusCode - The HTTP status code
@@ -33,7 +30,7 @@ class ResponseModel {
      * @param {dynamic} error - The error object if the request failed
      */
     setError(error) {
-        this.error = (0, FunctionUtil_1.getFormattedErrorMessage)(error);
+        this.error = getFormattedErrorMessage(error);
     }
     /**
      * Retrieves the headers of the response.
@@ -78,5 +75,4 @@ class ResponseModel {
         return this.totalAttempts;
     }
 }
-exports.ResponseModel = ResponseModel;
 //# sourceMappingURL=ResponseModel.js.map

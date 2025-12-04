@@ -22,7 +22,7 @@ const projectRoot = path.resolve(__dirname, '..');
 
 // Read package.json
 const packageJsonPath = path.join(projectRoot, 'package.json');
-const versionFilePath = path.join(projectRoot, 'VERSION.json');
+const versionFilePath = path.join(projectRoot, 'VERSION.js');
 
 try {
   // Read and parse package.json
@@ -37,10 +37,11 @@ try {
     process.exit(1);
   }
 
-  // Write version to VERSION file
-  fs.writeFileSync(versionFilePath, JSON.stringify({ version }));
+  const fileContent = `module.exports = { version: "${version}" };`
 
-  console.log(`\n✅ Successfully wrote version ${version} to VERSION.json file\n`);
+  // Write version to VERSION.js file (for backward compatibility)
+  fs.writeFileSync(versionFilePath, fileContent);
+  console.log(`✅ Successfully wrote version ${version} to VERSION.js file\n`);
 } catch (error) {
   console.error('\n\nError generating SDK version:', error.message, '. Please check scripts/generate-sdk-version.js file.\n\n');
   process.exit(1);

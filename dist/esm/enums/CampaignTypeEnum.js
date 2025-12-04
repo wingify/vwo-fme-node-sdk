@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CampaignTypeEnum = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,10 +13,10 @@ exports.CampaignTypeEnum = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var CampaignTypeEnum;
+export var CampaignTypeEnum;
 (function (CampaignTypeEnum) {
     CampaignTypeEnum["ROLLOUT"] = "FLAG_ROLLOUT";
     CampaignTypeEnum["AB"] = "FLAG_TESTING";
     CampaignTypeEnum["PERSONALIZE"] = "FLAG_PERSONALIZE";
-})(CampaignTypeEnum || (exports.CampaignTypeEnum = CampaignTypeEnum = {}));
+})(CampaignTypeEnum || (CampaignTypeEnum = {}));
 //# sourceMappingURL=CampaignTypeEnum.js.map

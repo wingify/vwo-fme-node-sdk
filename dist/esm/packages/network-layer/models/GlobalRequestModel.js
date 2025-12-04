@@ -1,13 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.GlobalRequestModel = void 0;
-const constants_1 = require("../../../constants");
+import { Constants } from '../../../constants/index.js';
 /**
  * Represents a model for global HTTP requests configuration.
  * This class encapsulates all necessary details such as URL, query parameters, body, headers,
  * timeout settings, and development mode flag.
  */
-class GlobalRequestModel {
+export class GlobalRequestModel {
     /**
      * Constructs an instance of the GlobalRequestModel.
      * @param url The base URL of the HTTP request.
@@ -16,7 +13,7 @@ class GlobalRequestModel {
      * @param headers HTTP headers as a record of key-value pairs.
      */
     constructor(url, query, body, headers) {
-        this.timeout = constants_1.Constants.EVENTS_CALL_TIMEOUT; // Default timeout for the HTTP request in milliseconds
+        this.timeout = Constants.EVENTS_CALL_TIMEOUT; // Default timeout for the HTTP request in milliseconds
         this.url = url;
         this.query = query;
         this.body = body;
@@ -107,5 +104,4 @@ class GlobalRequestModel {
         return this.isDevelopmentMode;
     }
 }
-exports.GlobalRequestModel = GlobalRequestModel;
 //# sourceMappingURL=GlobalRequestModel.js.map

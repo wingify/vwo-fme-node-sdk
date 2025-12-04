@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RequestHandler = void 0;
 /**
  * A class responsible for creating and modifying request models based on a global configuration.
  */
-class RequestHandler {
+export class RequestHandler {
     /**
      * Creates a new request by merging properties from a base request and a configuration model.
      * If both the request URL and the base URL from the configuration are missing, it returns null.
@@ -43,5 +40,4 @@ class RequestHandler {
         return request; // Return the modified request
     }
 }
-exports.RequestHandler = RequestHandler;
 //# sourceMappingURL=RequestHandler.js.map

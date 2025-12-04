@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.GatewayServiceModel = void 0;
-class GatewayServiceModel {
+export class GatewayServiceModel {
     modelFromDictionary(gatewayServiceModel) {
         this.url = gatewayServiceModel.url;
         this.port = gatewayServiceModel.port;
@@ -29,5 +26,4 @@ class GatewayServiceModel {
         return this.port;
     }
 }
-exports.GatewayServiceModel = GatewayServiceModel;
 //# sourceMappingURL=GatewayServiceModel.js.map

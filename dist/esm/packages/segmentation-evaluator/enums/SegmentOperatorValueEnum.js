@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SegmentOperatorValueEnum = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,7 +13,7 @@ exports.SegmentOperatorValueEnum = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var SegmentOperatorValueEnum;
+export var SegmentOperatorValueEnum;
 (function (SegmentOperatorValueEnum) {
     SegmentOperatorValueEnum["AND"] = "and";
     SegmentOperatorValueEnum["NOT"] = "not";
@@ -35,5 +32,5 @@ var SegmentOperatorValueEnum;
     SegmentOperatorValueEnum["IP"] = "ip_address";
     SegmentOperatorValueEnum["BROWSER_VERSION"] = "browser_version";
     SegmentOperatorValueEnum["OS_VERSION"] = "os_version";
-})(SegmentOperatorValueEnum || (exports.SegmentOperatorValueEnum = SegmentOperatorValueEnum = {}));
+})(SegmentOperatorValueEnum || (SegmentOperatorValueEnum = {}));
 //# sourceMappingURL=SegmentOperatorValueEnum.js.map

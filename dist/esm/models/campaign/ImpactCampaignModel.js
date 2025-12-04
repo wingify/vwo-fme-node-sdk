@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ImpactCapmaignModel = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,7 +13,7 @@ exports.ImpactCapmaignModel = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ImpactCapmaignModel {
+export class ImpactCapmaignModel {
     modelFromDictionary(impactCampaign) {
         this.type = impactCampaign.type;
         this.campaignId = impactCampaign.campaignId;
@@ -29,5 +26,4 @@ class ImpactCapmaignModel {
         return this.type;
     }
 }
-exports.ImpactCapmaignModel = ImpactCapmaignModel;
 //# sourceMappingURL=ImpactCampaignModel.js.map

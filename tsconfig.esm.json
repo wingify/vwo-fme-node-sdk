@@ -10,10 +10,11 @@
     "removeComments": false,
     "sourceMap": true,
 
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
 
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
 
     "outDir": "dist/esm",
     "target": "ES2020",

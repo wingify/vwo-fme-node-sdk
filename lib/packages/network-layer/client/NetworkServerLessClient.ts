@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { sendGetCall, sendPostCall } from '../../../utils/FetchUtil';
-import { dynamic } from '../../../types/Common';
 import { Deferred } from '../../../utils/PromiseUtil';
 
 import { RequestModel } from '../models/RequestModel';
@@ -33,18 +32,12 @@ export class NetworkServerLessClient implements NetworkClientInterface {
   GET(requestModel: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
 
-    // Extract network options from the request model.
-    const networkOptions: Record<string, dynamic> = requestModel.getOptions();
-    const responseModel = new ResponseModel();
-
-    sendGetCall(networkOptions)
-      .then((data: dynamic) => {
-        responseModel.setData(data);
-        deferred.resolve(responseModel);
+    sendGetCall(requestModel)
+      .then((data: ResponseModel) => {
+        deferred.resolve(data);
       })
-      .catch((error: dynamic) => {
-        responseModel.setError(error);
-        deferred.reject(responseModel);
+      .catch((error: ResponseModel) => {
+        deferred.reject(error);
       });
 
     return deferred.promise;
@@ -57,17 +50,13 @@ export class NetworkServerLessClient implements NetworkClientInterface {
    */
   POST(request: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
-    const networkOptions: Record<string, dynamic> = request.getOptions();
-    const responseModel = new ResponseModel();
 
-    sendPostCall(networkOptions)
-      .then((data: dynamic) => {
-        responseModel.setData(data);
-        deferred.resolve(responseModel);
+    sendPostCall(request)
+      .then((data: ResponseModel) => {
+        deferred.resolve(data);
       })
-      .catch((error: dynamic) => {
-        responseModel.setError(error);
-        deferred.reject(responseModel);
+      .catch((error: ResponseModel) => {
+        deferred.reject(error);
       });
     return deferred.promise;
   }

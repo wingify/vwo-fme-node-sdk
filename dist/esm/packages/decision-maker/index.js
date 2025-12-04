@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,44 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DecisionMaker = void 0;
-const Hasher = __importStar(require("murmurhash"));
+import murmurhash from 'murmurhash';
+const Hasher = murmurhash;
+if (!Hasher.v3) {
+    Hasher.v3 = Hasher;
+}
 const SEED_VALUE = 1; // Seed value for the hash function
-class DecisionMaker {
+export class DecisionMaker {
     /**
      * Generates a bucket value based on the hash value, maximum value, and an optional multiplier.
      *
@@ -103,5 +71,4 @@ class DecisionMaker {
         return Hasher.v3(hashKey, SEED_VALUE); // Return the hash value generated using murmurHash
     }
 }
-exports.DecisionMaker = DecisionMaker;
 //# sourceMappingURL=index.js.map

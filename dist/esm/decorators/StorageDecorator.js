@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.StorageDecorator = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,11 +13,11 @@ exports.StorageDecorator = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const logger_1 = require("../packages/logger");
-const StorageEnum_1 = require("../enums/StorageEnum");
-const PromiseUtil_1 = require("../utils/PromiseUtil");
-const ApiEnum_1 = require("../enums/ApiEnum");
-class StorageDecorator {
+import { LogManager } from '../packages/logger/index.js';
+import { StorageEnum } from '../enums/StorageEnum.js';
+import { Deferred } from '../utils/PromiseUtil.js';
+import { ApiEnum } from '../enums/ApiEnum.js';
+export class StorageDecorator {
     /**
      * Asynchronously retrieves a feature from storage based on the feature key and user.
      * @param featureKey The key of the feature to retrieve.
@@ -29,25 +26,25 @@ class StorageDecorator {
      * @returns A promise that resolves to the retrieved feature or relevant status.
      */
     async getFeatureFromStorage(featureKey, context, storageService) {
-        const deferredObject = new PromiseUtil_1.Deferred();
+        const deferredObject = new Deferred();
         storageService.getDataInStorage(featureKey, context).then((campaignMap) => {
             switch (campaignMap) {
-                case StorageEnum_1.StorageEnum.STORAGE_UNDEFINED:
+                case StorageEnum.STORAGE_UNDEFINED:
                     deferredObject.resolve(null); // No storage defined
                     break;
-                case StorageEnum_1.StorageEnum.NO_DATA_FOUND:
+                case StorageEnum.NO_DATA_FOUND:
                     deferredObject.resolve(null); // No data found in storage
                     break;
-                case StorageEnum_1.StorageEnum.INCORRECT_DATA:
-                    deferredObject.resolve(StorageEnum_1.StorageEnum.INCORRECT_DATA); // Incorrect data found
+                case StorageEnum.INCORRECT_DATA:
+                    deferredObject.resolve(StorageEnum.INCORRECT_DATA); // Incorrect data found
                     break;
-                case StorageEnum_1.StorageEnum.CAMPAIGN_PAUSED:
+                case StorageEnum.CAMPAIGN_PAUSED:
                     deferredObject.resolve(null); // Campaign is paused
                     break;
-                case StorageEnum_1.StorageEnum.VARIATION_NOT_FOUND:
-                    deferredObject.resolve(StorageEnum_1.StorageEnum.VARIATION_NOT_FOUND); // No variation found
+                case StorageEnum.VARIATION_NOT_FOUND:
+                    deferredObject.resolve(StorageEnum.VARIATION_NOT_FOUND); // No variation found
                     break;
-                case StorageEnum_1.StorageEnum.WHITELISTED_VARIATION:
+                case StorageEnum.WHITELISTED_VARIATION:
                     deferredObject.resolve(null); // Whitelisted variation, handle accordingly
                     break;
                 default:
@@ -63,33 +60,33 @@ class StorageDecorator {
      * @returns A promise that resolves when the data is successfully stored.
      */
     setDataInStorage(data, storageService) {
-        const deferredObject = new PromiseUtil_1.Deferred();
+        const deferredObject = new Deferred();
         const { featureKey, context, rolloutId, rolloutKey, rolloutVariationId, experimentId, experimentKey, experimentVariationId, } = data;
         if (!featureKey) {
-            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+            LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'featureKey',
-            }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
+            }, { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if feature key is invalid
             return;
         }
         if (!context.id) {
-            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+            LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'Context or Context.id',
-            }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
+            }, { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if user ID is invalid
             return;
         }
         if (rolloutKey && !experimentKey && !rolloutVariationId) {
-            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+            LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'Variation:(rolloutKey, experimentKey or rolloutVariationId)',
-            }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
+            }, { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if rollout variation is invalid
             return;
         }
         if (experimentKey && !experimentVariationId) {
-            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+            LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'Variation:(experimentKey or rolloutVariationId)',
-            }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
+            }, { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if experiment variation is invalid
             return;
         }
@@ -107,5 +104,4 @@ class StorageDecorator {
         return deferredObject.promise;
     }
 }
-exports.StorageDecorator = StorageDecorator;
 //# sourceMappingURL=StorageDecorator.js.map

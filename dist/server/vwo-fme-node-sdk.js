@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.32.0
+ * vwo-fme-node-sdk - v1.33.0
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -23,16 +23,17 @@
  *  4. vwo-fme-sdk-log-messages - ^1.2.8
  */
 /******/ (() => { // webpackBootstrap
-/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./dist/VERSION.json":
-/*!***************************!*\
-  !*** ./dist/VERSION.json ***!
-  \***************************/
+/***/ "./dist/VERSION.js":
+/*!*************************!*\
+  !*** ./dist/VERSION.js ***!
+  \*************************/
 /***/ ((module) => {
 
-module.exports = {"version":"1.32.0"};
+module.exports = {
+  version: "1.33.0"
+};
 
 /***/ }),
 
@@ -42,6 +43,7 @@ module.exports = {"version":"1.32.0"};
   \*************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -405,6 +407,7 @@ function onInit() {
   \********************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __assign = this && this.__assign || function () {
@@ -563,15 +566,15 @@ var VWOBuilder = /** @class */function () {
    * @returns {this} The instance of this builder.
    */
   VWOBuilder.prototype.setNetworkManager = function () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     var networkInstance = network_layer_1.NetworkManager.Instance;
     // Attach the network client from options
-    networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig);
+    networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig, ((_d = this.options) === null || _d === void 0 ? void 0 : _d.shouldWaitForTrackingCalls) ? true : false);
     logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
       service: "Network Layer"
     }));
     // Set the development mode based on options
-    networkInstance.getConfig().setDevelopmentMode((_d = this.options) === null || _d === void 0 ? void 0 : _d.isDevelopmentMode);
+    networkInstance.getConfig().setDevelopmentMode((_e = this.options) === null || _e === void 0 ? void 0 : _e.isDevelopmentMode);
     return this;
   };
   VWOBuilder.prototype.initBatching = function () {
@@ -901,6 +904,7 @@ exports.VWOBuilder = VWOBuilder;
   \*******************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -1014,6 +1018,11 @@ var __generator = this && this.__generator || function (thisArg, body) {
     };
   }
 };
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -1041,7 +1050,7 @@ var log_messages_1 = __webpack_require__(/*! ./enums/log-messages */ "./dist/ser
 var BatchEventsQueue_1 = __webpack_require__(/*! ./services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 var SettingsSchemaValidation_1 = __webpack_require__(/*! ./models/schemas/SettingsSchemaValidation */ "./dist/server-unpacked/models/schemas/SettingsSchemaValidation.js");
 var ContextModel_1 = __webpack_require__(/*! ./models/user/ContextModel */ "./dist/server-unpacked/models/user/ContextModel.js");
-var HooksService_1 = __webpack_require__(/*! ./services/HooksService */ "./dist/server-unpacked/services/HooksService.js");
+var HooksService_1 = __importDefault(__webpack_require__(/*! ./services/HooksService */ "./dist/server-unpacked/services/HooksService.js"));
 var UrlUtil_1 = __webpack_require__(/*! ./utils/UrlUtil */ "./dist/server-unpacked/utils/UrlUtil.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
@@ -1551,6 +1560,7 @@ exports.VWOClient = VWOClient;
   \*********************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 /**
@@ -2015,6 +2025,7 @@ function _updateDebugEventProps(debugEventProps, decision) {
   \**************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 /**
@@ -2219,6 +2230,7 @@ var createImpressionForAttributes = function (settings, attributes, context) {
   \************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -2442,6 +2454,7 @@ var createImpressionForTrack = function (settings, eventName, context, eventProp
   \***********************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -2475,10 +2488,16 @@ exports.HTTPS_PROTOCOL = "".concat(exports.HTTPS);
 /*!*************************************************!*\
   !*** ./dist/server-unpacked/constants/index.js ***!
   \*************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
 
 
-
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -2500,19 +2519,21 @@ exports.Constants = void 0;
  */
 var PlatformEnum_1 = __webpack_require__(/*! ../enums/PlatformEnum */ "./dist/server-unpacked/enums/PlatformEnum.js");
 var Url_1 = __webpack_require__(/*! ./Url */ "./dist/server-unpacked/constants/Url.js");
+var VERSION_1 = __importDefault(__webpack_require__(/*! ../../VERSION */ "./dist/VERSION.js"));
+var SDK_VERSION = VERSION_1.default.version;
 var packageFile;
 var platform;
 // Reading package.json will bundle the whole file that's why preventing it by reading VERSION
 if (typeof process === 'undefined') {
   packageFile = {
     name: 'vwo-fme-javascript-sdk',
-    version: (__webpack_require__(/*! ../../VERSION.json */ "./dist/VERSION.json").version) // eslint-disable-line @typescript-eslint/no-var-requires
+    version: SDK_VERSION
   };
   platform = PlatformEnum_1.PlatformEnum.CLIENT;
 } else {
   packageFile = {
     name: 'vwo-fme-node-sdk',
-    version: (__webpack_require__(/*! ../../VERSION.json */ "./dist/VERSION.json").version) // eslint-disable-line @typescript-eslint/no-var-requires
+    version: SDK_VERSION
   };
   platform = PlatformEnum_1.PlatformEnum.SERVER;
 }
@@ -2577,6 +2598,7 @@ exports.Constants = {
   \*************************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -2841,6 +2863,7 @@ exports.StorageDecorator = StorageDecorator;
   \***********************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -2882,6 +2905,7 @@ var ApiEnum;
   \********************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -2918,6 +2942,7 @@ var CampaignTypeEnum;
   \************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 /**
@@ -2956,6 +2981,7 @@ var DebuggerCategoryEnum;
   \*************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -2995,6 +3021,7 @@ var EventEnum;
   \***************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3030,6 +3057,7 @@ var HeadersEnum;
   \******************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3065,6 +3093,7 @@ var HttpMethodEnum;
   \****************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3100,6 +3129,7 @@ var PlatformEnum;
   \**************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3135,6 +3165,7 @@ var StatusEnum;
   \***************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3174,6 +3205,7 @@ var StorageEnum;
   \***********************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3211,10 +3243,16 @@ var UrlEnum;
 /*!**********************************************************!*\
   !*** ./dist/server-unpacked/enums/log-messages/index.js ***!
   \**********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
 
 
-
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -3234,12 +3272,13 @@ exports.ErrorLogMessagesEnum = exports.InfoLogMessagesEnum = exports.DebugLogMes
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var messages = __webpack_require__(/*! vwo-fme-sdk-log-messages */ "vwo-fme-sdk-log-messages");
-var DebugLogMessagesEnum = messages.debugMessages;
+var vwo_fme_sdk_log_messages_1 = __importDefault(__webpack_require__(/*! vwo-fme-sdk-log-messages */ "vwo-fme-sdk-log-messages"));
+var resolvedMessages = vwo_fme_sdk_log_messages_1.default.default || vwo_fme_sdk_log_messages_1.default;
+var DebugLogMessagesEnum = resolvedMessages.debugMessages;
 exports.DebugLogMessagesEnum = DebugLogMessagesEnum;
-var InfoLogMessagesEnum = messages.infoMessages;
+var InfoLogMessagesEnum = resolvedMessages.infoMessages;
 exports.InfoLogMessagesEnum = InfoLogMessagesEnum;
-var ErrorLogMessagesEnum = messages.errorMessagesV2;
+var ErrorLogMessagesEnum = resolvedMessages.errorMessagesV2;
 exports.ErrorLogMessagesEnum = ErrorLogMessagesEnum;
 
 /***/ }),
@@ -3250,6 +3289,7 @@ exports.ErrorLogMessagesEnum = ErrorLogMessagesEnum;
   \***************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3382,6 +3422,7 @@ exports.CampaignModel = CampaignModel;
   \**************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3487,6 +3528,7 @@ exports.FeatureModel = FeatureModel;
   \*********************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3533,6 +3575,7 @@ exports.ImpactCapmaignModel = ImpactCapmaignModel;
   \*************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3583,6 +3626,7 @@ exports.MetricModel = MetricModel;
   \***********************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3641,6 +3685,7 @@ exports.RuleModel = RuleModel;
   \***************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3691,6 +3736,7 @@ exports.VariableModel = VariableModel;
   \****************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3792,6 +3838,7 @@ exports.VariationModel = VariationModel;
   \*************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -3908,6 +3955,7 @@ exports.SettingsSchema = SettingsSchema;
   \***************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4015,6 +4063,7 @@ exports.SettingsModel = SettingsModel;
   \**********************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4104,6 +4153,7 @@ exports.ContextModel = ContextModel;
   \*************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 /**
@@ -4152,8 +4202,9 @@ exports.ContextVWOModel = ContextVWOModel;
 /*!***************************************************************!*\
   !*** ./dist/server-unpacked/packages/decision-maker/index.js ***!
   \***************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 /**
@@ -4171,11 +4222,20 @@ exports.ContextVWOModel = ContextVWOModel;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.DecisionMaker = void 0;
-var Hasher = __webpack_require__(/*! murmurhash */ "murmurhash");
+var murmurhash_1 = __importDefault(__webpack_require__(/*! murmurhash */ "murmurhash"));
+var Hasher = murmurhash_1.default;
+if (!Hasher.v3) {
+  Hasher.v3 = Hasher;
+}
 var SEED_VALUE = 1; // Seed value for the hash function
 var DecisionMaker = /** @class */function () {
   function DecisionMaker() {}
@@ -4253,6 +4313,7 @@ exports.DecisionMaker = DecisionMaker;
   \*******************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4337,6 +4398,7 @@ exports.LogMessageBuilder = LogMessageBuilder;
   \********************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4376,6 +4438,7 @@ exports.Logger = Logger;
   \*****************************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 /**
@@ -4594,6 +4657,7 @@ exports.LogManager = LogManager;
   \***********************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 /**
@@ -4726,6 +4790,7 @@ exports.LogTransportManager = LogTransportManager;
   \********************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 /**
@@ -4764,6 +4829,7 @@ var LogLevelEnum;
   \*******************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4808,6 +4874,7 @@ Object.defineProperty(exports, "LogLevelEnum", ({
   \*****************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4901,6 +4968,7 @@ exports.ConsoleTransport = ConsoleTransport;
   \************************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -5049,10 +5117,52 @@ exports.NetworkBrowserClient = NetworkBrowserClient;
 /*!*****************************************************************************!*\
   !*** ./dist/server-unpacked/packages/network-layer/client/NetworkClient.js ***!
   \*****************************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
 
 
-
+var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  var desc = Object.getOwnPropertyDescriptor(m, k);
+  if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+    desc = {
+      enumerable: true,
+      get: function () {
+        return m[k];
+      }
+    };
+  }
+  Object.defineProperty(o, k2, desc);
+} : function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  o[k2] = m[k];
+});
+var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
+  Object.defineProperty(o, "default", {
+    enumerable: true,
+    value: v
+  });
+} : function (o, v) {
+  o["default"] = v;
+});
+var __importStar = this && this.__importStar || function () {
+  var ownKeys = function (o) {
+    ownKeys = Object.getOwnPropertyNames || function (o) {
+      var ar = [];
+      for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+      return ar;
+    };
+    return ownKeys(o);
+  };
+  return function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+    __setModuleDefault(result, mod);
+    return result;
+  };
+}();
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -5072,8 +5182,8 @@ exports.NetworkClient = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var http = __webpack_require__(/*! http */ "http");
-var https = __webpack_require__(/*! https */ "https");
+var http = __importStar(__webpack_require__(/*! http */ "http"));
+var https = __importStar(__webpack_require__(/*! https */ "https"));
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./dist/server-unpacked/constants/Url.js");
 var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
@@ -5254,7 +5364,7 @@ var NetworkClient = /** @class */function () {
         attemptRequest(attempt + 1).then(deferred.resolve).catch(deferred.reject);
       }, delay);
     } else {
-      if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_LOG_EVENT)) {
+      if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
         logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
           extraData: endpoint,
           attempts: attempt,
@@ -5278,6 +5388,7 @@ exports.NetworkClient = NetworkClient;
   \***************************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -5301,7 +5412,6 @@ exports.NetworkServerLessClient = void 0;
  */
 var FetchUtil_1 = __webpack_require__(/*! ../../../utils/FetchUtil */ "./dist/server-unpacked/utils/FetchUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
-var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -5314,15 +5424,10 @@ var NetworkServerLessClient = /** @class */function () {
    */
   NetworkServerLessClient.prototype.GET = function (requestModel) {
     var deferred = new PromiseUtil_1.Deferred();
-    // Extract network options from the request model.
-    var networkOptions = requestModel.getOptions();
-    var responseModel = new ResponseModel_1.ResponseModel();
-    (0, FetchUtil_1.sendGetCall)(networkOptions).then(function (data) {
-      responseModel.setData(data);
-      deferred.resolve(responseModel);
+    (0, FetchUtil_1.sendGetCall)(requestModel).then(function (data) {
+      deferred.resolve(data);
     }).catch(function (error) {
-      responseModel.setError(error);
-      deferred.reject(responseModel);
+      deferred.reject(error);
     });
     return deferred.promise;
   };
@@ -5333,14 +5438,10 @@ var NetworkServerLessClient = /** @class */function () {
    */
   NetworkServerLessClient.prototype.POST = function (request) {
     var deferred = new PromiseUtil_1.Deferred();
-    var networkOptions = request.getOptions();
-    var responseModel = new ResponseModel_1.ResponseModel();
-    (0, FetchUtil_1.sendPostCall)(networkOptions).then(function (data) {
-      responseModel.setData(data);
-      deferred.resolve(responseModel);
+    (0, FetchUtil_1.sendPostCall)(request).then(function (data) {
+      deferred.resolve(data);
     }).catch(function (error) {
-      responseModel.setError(error);
-      deferred.reject(responseModel);
+      deferred.reject(error);
     });
     return deferred.promise;
   };
@@ -5356,6 +5457,7 @@ exports.NetworkServerLessClient = NetworkServerLessClient;
   \********************************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -5415,6 +5517,7 @@ exports.RequestHandler = RequestHandler;
   \**************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 /**
@@ -5435,15 +5538,7 @@ exports.RequestHandler = RequestHandler;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.ResponseModel = exports.RequestModel = exports.GlobalRequestModel = exports.NetworkManager = exports.NetworkClient = void 0;
-var NetworkClient;
-if (typeof process === 'undefined') {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  exports.NetworkClient = NetworkClient = (__webpack_require__(/*! ./client/NetworkBrowserClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkBrowserClient.js").NetworkBrowserClient);
-} else {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  exports.NetworkClient = NetworkClient = (__webpack_require__(/*! ./client/NetworkClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkClient.js").NetworkClient);
-}
+exports.ResponseModel = exports.RequestModel = exports.GlobalRequestModel = exports.NetworkManager = void 0;
 var NetworkManager_1 = __webpack_require__(/*! ./manager/NetworkManager */ "./dist/server-unpacked/packages/network-layer/manager/NetworkManager.js");
 Object.defineProperty(exports, "NetworkManager", ({
   enumerable: true,
@@ -5481,6 +5576,7 @@ Object.defineProperty(exports, "ResponseModel", ({
   \*******************************************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __assign = this && this.__assign || function () {
@@ -5519,6 +5615,11 @@ var constants_1 = __webpack_require__(/*! ../../../constants */ "./dist/server-u
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var LogManager_1 = __webpack_require__(/*! ../../logger/core/LogManager */ "./dist/server-unpacked/packages/logger/core/LogManager.js");
 var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
+var NetworkServerLessClient_1 = __webpack_require__(/*! ../client/NetworkServerLessClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkServerLessClient.js");
+var NetworkBrowserClient_1 = __webpack_require__(/*! ../client/NetworkBrowserClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkBrowserClient.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
+var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./dist/server-unpacked/constants/Url.js");
 var NetworkManager = /** @class */function () {
   function NetworkManager() {}
   /**
@@ -5563,7 +5664,10 @@ var NetworkManager = /** @class */function () {
    * @param {NetworkClientInterface} client - The client to attach, optional.
    * @param {IRetryConfig} retryConfig - The retry configuration, optional.
    */
-  NetworkManager.prototype.attachClient = function (client, retryConfig) {
+  NetworkManager.prototype.attachClient = function (client, retryConfig, shouldWaitForTrackingCalls) {
+    if (shouldWaitForTrackingCalls === void 0) {
+      shouldWaitForTrackingCalls = false;
+    }
     // Only set retry configuration if it's not already initialized or if a new config is provided
     if (!this.retryConfig || retryConfig) {
       // Define default retry configuration
@@ -5572,25 +5676,37 @@ var NetworkManager = /** @class */function () {
       var mergedConfig = __assign(__assign({}, defaultRetryConfig), retryConfig || {});
       // Validate the merged configuration
       this.retryConfig = this.validateRetryConfig(mergedConfig);
+      // If shouldWaitForTrackingCalls is true, set shouldRetry to false
+      // This is because we don't want to retry the request if the SDK is waiting for a network response (serverless mode)
+      if (shouldWaitForTrackingCalls) {
+        this.retryConfig.shouldRetry = false;
+      }
     }
     // if env is undefined, we are in browser
     if (typeof process === 'undefined') {
       // if XMLHttpRequest is undefined, we are in serverless
       if (typeof XMLHttpRequest === 'undefined') {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        var NetworkServerLessClient = (__webpack_require__(/*! ../client/NetworkServerLessClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkServerLessClient.js").NetworkServerLessClient);
-        this.client = client || new NetworkServerLessClient();
+        this.client = client || new NetworkServerLessClient_1.NetworkServerLessClient();
       } else {
+        LogManager_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+          api: 'xhr',
+          process: 'undefined'
+        }));
         // if XMLHttpRequest is defined, we are in browser
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        var NetworkBrowserClient = (__webpack_require__(/*! ../client/NetworkBrowserClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkBrowserClient.js").NetworkBrowserClient);
-        this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+        this.client = client || new NetworkBrowserClient_1.NetworkBrowserClient(); // Use provided client or default to NetworkClient
       }
     } else {
-      // if env is defined, we are in node
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      var NetworkClient = (__webpack_require__(/*! ../client/NetworkClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkClient.js").NetworkClient);
-      this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+      // if env is defined, we expect to be in Node
+      // In CommonJS builds `require` exists; in pure ESM it does not.
+      if (true) {
+        LogManager_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+          api: Url_1.HTTPS_PROTOCOL,
+          process: 'defined'
+        }));
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        var NetworkClient = (__webpack_require__(/*! ../client/NetworkClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkClient.js").NetworkClient);
+        this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+      } else {}
     }
     this.config = new GlobalRequestModel_1.GlobalRequestModel(null, null, null, null); // Initialize with default config
   };
@@ -5686,6 +5802,7 @@ exports.NetworkManager = NetworkManager;
   \**********************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -5809,6 +5926,7 @@ exports.GlobalRequestModel = GlobalRequestModel;
   \****************************************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __assign = this && this.__assign || function () {
@@ -6194,6 +6312,7 @@ exports.RequestModel = RequestModel;
   \*****************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -6289,6 +6408,7 @@ exports.ResponseModel = ResponseModel;
   \*****************************************************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -6539,6 +6659,7 @@ exports.SegmentationManager = SegmentationManager;
   \***********************************************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -6584,6 +6705,7 @@ var SegmentOperandRegexEnum;
   \***********************************************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -6627,6 +6749,7 @@ var SegmentOperandValueEnum;
   \************************************************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -6677,6 +6800,7 @@ var SegmentOperatorValueEnum;
   \*********************************************************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -7265,6 +7389,7 @@ exports.SegmentEvaluator = SegmentEvaluator;
   \****************************************************************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -7843,6 +7968,7 @@ exports.SegmentOperandEvaluator = SegmentOperandEvaluator;
   \***********************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -7887,6 +8013,7 @@ Object.defineProperty(exports, "SegmentEvaluator", ({
   \***********************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -7954,6 +8081,7 @@ function matchWithRegex(string, regex) {
   \************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -7974,6 +8102,7 @@ exports.Connector = Connector;
   \**********************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -8020,6 +8149,7 @@ exports.Storage = Storage;
   \*************************************************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __assign = this && this.__assign || function () {
@@ -8461,6 +8591,7 @@ exports.BrowserStorageConnector = BrowserStorageConnector;
   \********************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -8498,6 +8629,7 @@ Object.defineProperty(exports, "Storage", ({
   \***********************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 /**
@@ -8802,6 +8934,7 @@ exports["default"] = BatchEventsQueue;
   \******************************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -9102,6 +9235,7 @@ exports.CampaignDecisionService = CampaignDecisionService;
   \*******************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -9152,6 +9286,7 @@ exports["default"] = HooksService;
   \**********************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __assign = this && this.__assign || function () {
@@ -9617,6 +9752,7 @@ exports.SettingsService = SettingsService;
   \*********************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -9823,12 +9959,31 @@ exports.StorageService = StorageService;
 
 /***/ }),
 
+/***/ "./dist/server-unpacked/utils sync recursive":
+/*!******************************************!*\
+  !*** ./dist/server-unpacked/utils/ sync ***!
+  \******************************************/
+/***/ ((module) => {
+
+function webpackEmptyContext(req) {
+	var e = new Error("Cannot find module '" + req + "'");
+	e.code = 'MODULE_NOT_FOUND';
+	throw e;
+}
+webpackEmptyContext.keys = () => ([]);
+webpackEmptyContext.resolve = webpackEmptyContext;
+webpackEmptyContext.id = "./dist/server-unpacked/utils sync recursive";
+module.exports = webpackEmptyContext;
+
+/***/ }),
+
 /***/ "./dist/server-unpacked/utils/AliasingUtil.js":
 /*!****************************************************!*\
   !*** ./dist/server-unpacked/utils/AliasingUtil.js ***!
   \****************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 /**
@@ -10089,6 +10244,7 @@ exports.AliasingUtil = AliasingUtil;
   \*************************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 /**
@@ -10264,7 +10420,6 @@ var BatchEventsDispatcher = /** @class */function () {
       return __generator(this, function (_b) {
         deferred = new PromiseUtil_1.Deferred();
         networkManager = network_layer_2.NetworkManager.Instance;
-        networkManager.attachClient();
         retryConfig = networkManager.getRetryConfig();
         headers = {};
         headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
@@ -10429,6 +10584,7 @@ exports["default"] = BatchEventsDispatcher;
   \****************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -10805,6 +10961,7 @@ function _handleRolloutCampaign(campaign) {
   \****************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -10930,6 +11087,7 @@ function getType(val) {
   \***********************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 /**
@@ -11132,6 +11290,7 @@ function sendDebugEventToVWO() {
   \****************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -11517,8 +11676,9 @@ var _evaluateWhitelisting = function (campaign, context) {
 /*!*************************************************!*\
   !*** ./dist/server-unpacked/utils/FetchUtil.js ***!
   \*************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 /**
@@ -11536,6 +11696,158 @@ var _evaluateWhitelisting = function (campaign, context) {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  var desc = Object.getOwnPropertyDescriptor(m, k);
+  if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+    desc = {
+      enumerable: true,
+      get: function () {
+        return m[k];
+      }
+    };
+  }
+  Object.defineProperty(o, k2, desc);
+} : function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  o[k2] = m[k];
+});
+var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
+  Object.defineProperty(o, "default", {
+    enumerable: true,
+    value: v
+  });
+} : function (o, v) {
+  o["default"] = v;
+});
+var __importStar = this && this.__importStar || function () {
+  var ownKeys = function (o) {
+    ownKeys = Object.getOwnPropertyNames || function (o) {
+      var ar = [];
+      for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+      return ar;
+    };
+    return ownKeys(o);
+  };
+  return function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+    __setModuleDefault(result, mod);
+    return result;
+  };
+}();
+var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function (resolve) {
+      resolve(value);
+    });
+  }
+  return new (P || (P = Promise))(function (resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator = this && this.__generator || function (thisArg, body) {
+  var _ = {
+      label: 0,
+      sent: function () {
+        if (t[0] & 1) throw t[1];
+        return t[1];
+      },
+      trys: [],
+      ops: []
+    },
+    f,
+    y,
+    t,
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    return this;
+  }), g;
+  function verb(n) {
+    return function (v) {
+      return step([n, v]);
+    };
+  }
+  function step(op) {
+    if (f) throw new TypeError("Generator is already executing.");
+    while (g && (g = 0, op[0] && (_ = 0)), _) try {
+      if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+      if (y = 0, t) op = [op[0] & 2, t.value];
+      switch (op[0]) {
+        case 0:
+        case 1:
+          t = op;
+          break;
+        case 4:
+          _.label++;
+          return {
+            value: op[1],
+            done: false
+          };
+        case 5:
+          _.label++;
+          y = op[1];
+          op = [0];
+          continue;
+        case 7:
+          op = _.ops.pop();
+          _.trys.pop();
+          continue;
+        default:
+          if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+            _ = 0;
+            continue;
+          }
+          if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+            _.label = op[1];
+            break;
+          }
+          if (op[0] === 6 && _.label < t[1]) {
+            _.label = t[1];
+            t = op;
+            break;
+          }
+          if (t && _.label < t[2]) {
+            _.label = t[2];
+            _.ops.push(op);
+            break;
+          }
+          if (t[2]) _.ops.pop();
+          _.trys.pop();
+          continue;
+      }
+      op = body.call(thisArg, _);
+    } catch (e) {
+      op = [6, e];
+      y = 0;
+    } finally {
+      f = t = 0;
+    }
+    if (op[0] & 5) throw op[1];
+    return {
+      value: op[0] ? op[1] : void 0,
+      done: true
+    };
+  }
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -11543,60 +11855,194 @@ exports.sendGetCall = sendGetCall;
 exports.sendPostCall = sendPostCall;
 var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
-function sendGetCall(networkOptions) {
-  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, networkOptions);
+var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
+var ResponseModel_1 = __webpack_require__(/*! ../packages/network-layer/models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
+// Cache the fetch function to avoid re-importing on every request
+var cachedFetch = null;
+var fetchPromise = null;
+/**
+ * Gets the fetch function to use, checking for global fetch first, then falling back to node-fetch.
+ * @returns The fetch function to use
+ */
+function getFetch() {
+  return __awaiter(this, void 0, void 0, function () {
+    var _this = this;
+    return __generator(this, function (_a) {
+      // Return cached fetch if available
+      if (cachedFetch) {
+        return [2 /*return*/, cachedFetch];
+      }
+      // If a fetch initialization is already in progress, wait for it
+      if (fetchPromise) {
+        return [2 /*return*/, fetchPromise];
+      }
+      // Initialize fetch
+      fetchPromise = function () {
+        return __awaiter(_this, void 0, void 0, function () {
+          var nodeFetchModule, nodeFetch, fetchFn, error_1;
+          return __generator(this, function (_a) {
+            switch (_a.label) {
+              case 0:
+                // Check if fetch is available globally (Node.js 18+, browsers, etc.)
+                if (typeof fetch !== 'undefined') {
+                  logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                    api: 'Global fetch',
+                    process: typeof process === 'undefined' ? 'undefined' : 'defined'
+                  }));
+                  cachedFetch = fetch;
+                  return [2 /*return*/, fetch];
+                }
+                _a.label = 1;
+              case 1:
+                _a.trys.push([1, 3,, 4]);
+                logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                  api: 'Node-fetch',
+                  process: typeof process === 'undefined' ? 'undefined' : 'defined'
+                }));
+                nodeFetchModule = 'node-' + 'fetch';
+                return [4 /*yield*/, Promise.resolve("".concat(nodeFetchModule)).then(function (s) {
+                  return __importStar(__webpack_require__("./dist/server-unpacked/utils sync recursive")(s));
+                })];
+              case 2:
+                nodeFetch = _a.sent();
+                fetchFn = nodeFetch.default || nodeFetch;
+                cachedFetch = fetchFn;
+                return [2 /*return*/, fetchFn];
+              case 3:
+                error_1 = _a.sent();
+                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.ERROR_INITIALIZING_FETCH, {
+                  error: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1)
+                }));
+                return [3 /*break*/, 4];
+              case 4:
+                return [2 /*return*/];
+            }
+          });
+        });
+      }();
+      return [2 /*return*/, fetchPromise];
+    });
+  });
 }
-function sendPostCall(networkOptions) {
-  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, networkOptions);
+function sendGetCall(request) {
+  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, request);
+}
+function sendPostCall(request) {
+  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, request);
 }
 /**
  * Sends a request to the server using the Fetch API.
  * @param method - The HTTP method to use for the request.
- * @param networkOptions - The options for the request.
+ * @param request - The request model.
  * @returns A Promise that resolves to the response data.
  */
-function sendRequest(method, networkOptions) {
-  var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
-  return new Promise(function (resolve, reject) {
-    if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
-      networkOptions.body = JSON.stringify(networkOptions.body);
-    }
-    fetch(url, networkOptions).then(function (res) {
-      // Some endpoints return empty strings as the response body; treat
-      // as raw text and handle potential JSON parsing errors below
-      return res.text().then(function (text) {
-        var jsonData = {};
-        try {
-          if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-            jsonData = JSON.parse(text);
-          } else {
-            jsonData = text;
+function sendRequest(method, request) {
+  return __awaiter(this, void 0, void 0, function () {
+    var responseModel, networkOptions, url, retryCount, fetchFn_1, retryConfig_1, shouldRetry_1, maxRetries_1, executeRequest_1, handleError_1, err_1;
+    return __generator(this, function (_a) {
+      switch (_a.label) {
+        case 0:
+          responseModel = new ResponseModel_1.ResponseModel();
+          networkOptions = request.getOptions();
+          url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+          if (networkOptions.port) {
+            url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
           }
-        } catch (err) {
-          console.info("VWO-SDK - [INFO]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " VWO didn't send JSON response which is expected: ").concat(err));
-        }
-        if (res.status === 200) {
-          resolve(jsonData);
-        } else {
-          var errorMessage = '';
-          if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-            errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " Request failed for fetching account settings. Got Status Code: ").concat(res.status);
-          } else if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
-            errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " Request failed while making a POST request. Got Status Code: ").concat(res.status);
+          retryCount = 0;
+          _a.label = 1;
+        case 1:
+          _a.trys.push([1, 3,, 4]);
+          return [4 /*yield*/, getFetch()];
+        case 2:
+          fetchFn_1 = _a.sent();
+          retryConfig_1 = request.getRetryConfig();
+          shouldRetry_1 = retryConfig_1.shouldRetry;
+          maxRetries_1 = retryConfig_1.maxRetries;
+          if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
+            networkOptions.body = JSON.stringify(networkOptions.body);
           }
-          console.error(errorMessage);
-          reject(errorMessage);
-        }
-      });
-    }).catch(function (err) {
-      var errorMessage = '';
-      if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-        errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " GET request failed for fetching account settings. Error: ").concat(err);
-      } else if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
-        errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " POST request failed while sending data. Error: ").concat(err);
+          executeRequest_1 = function () {
+            return new Promise(function (resolve, reject) {
+              fetchFn_1(url, networkOptions).then(function (res) {
+                // Some endpoints return empty strings as the response body; treat
+                // as raw text and handle potential JSON parsing errors below
+                return res.text().then(function (text) {
+                  responseModel.setStatusCode(res.status);
+                  if (retryCount > 0) {
+                    responseModel.setTotalAttempts(retryCount);
+                    responseModel.setError(request.getLastError());
+                  }
+                  try {
+                    if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+                      responseModel.setData(JSON.parse(text));
+                    } else {
+                      responseModel.setData(text);
+                    }
+                  } catch (err) {
+                    responseModel.setError((0, FunctionUtil_1.getFormattedErrorMessage)(err));
+                    reject(responseModel);
+                  }
+                  if (res.status === 200) {
+                    resolve(responseModel);
+                  } else if (res.status === 400) {
+                    responseModel.setError((0, FunctionUtil_1.getFormattedErrorMessage)(res.statusText));
+                    responseModel.setTotalAttempts(retryCount);
+                    reject(responseModel);
+                  } else {
+                    handleError_1("".concat(res.statusText, ", status: ").concat(res.status), resolve, reject);
+                  }
+                });
+              }).catch(function (err) {
+                var errorMessage = (0, FunctionUtil_1.getFormattedErrorMessage)(err);
+                // incase of no internet connection, error will have cause property which is the error message
+                if (err && err.cause) {
+                  errorMessage = "".concat(errorMessage, " ").concat(err.cause);
+                }
+                handleError_1(errorMessage, resolve, reject);
+              });
+            });
+          };
+          handleError_1 = function (error, resolve, reject) {
+            var endpoint = String(networkOptions.path || url).split('?')[0];
+            if (shouldRetry_1 && retryCount < maxRetries_1) {
+              var delay = retryConfig_1.initialDelay * Math.pow(retryConfig_1.backoffMultiplier, retryCount) * 1000; // Exponential backoff
+              retryCount++;
+              logger_1.LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+                endPoint: endpoint,
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                delay: delay / 1000,
+                attempt: retryCount,
+                maxRetries: maxRetries_1
+              }, {}, false);
+              request.setLastError((0, FunctionUtil_1.getFormattedErrorMessage)(error));
+              setTimeout(function () {
+                executeRequest_1().then(resolve).catch(reject);
+              }, delay);
+            } else {
+              if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
+                logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+                  extraData: endpoint,
+                  attempts: retryCount,
+                  err: (0, FunctionUtil_1.getFormattedErrorMessage)(error)
+                }, {}, false);
+              }
+              responseModel.setError((0, FunctionUtil_1.getFormattedErrorMessage)(error));
+              responseModel.setTotalAttempts(retryCount);
+              reject(responseModel);
+            }
+          };
+          return [2 /*return*/, executeRequest_1()];
+        case 3:
+          err_1 = _a.sent();
+          responseModel.setError((0, FunctionUtil_1.getFormattedErrorMessage)(err_1));
+          responseModel.setTotalAttempts(retryCount);
+          throw responseModel;
+        case 4:
+          return [2 /*return*/];
       }
-      console.error(errorMessage);
-      reject(errorMessage);
     });
   });
 }
@@ -11609,6 +12055,7 @@ function sendRequest(method, networkOptions) {
   \****************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __assign = this && this.__assign || function () {
@@ -11830,6 +12277,7 @@ function getFormattedErrorMessage(error) {
   \**********************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -12088,6 +12536,7 @@ function addIsGatewayServiceRequiredFlag(settings) {
   \******************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 /**
@@ -12286,6 +12735,7 @@ exports.createAndSendImpressionForVariationShown = createAndSendImpressionForVar
   \******************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -12386,6 +12836,7 @@ function sendLogToVWO(message, messageType, extraData) {
   \***********************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -12983,6 +13434,7 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
   \***************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __assign = this && this.__assign || function () {
@@ -13456,7 +13908,6 @@ function sendPostApiRequest(properties_1, payload_1, userId_1) {
       switch (_a.label) {
         case 0:
           networkManager = network_layer_1.NetworkManager.Instance;
-          networkManager.attachClient();
           retryConfig = networkManager.getRetryConfig();
           headers = {};
           userAgent = payload.d.visitor_ua;
@@ -13759,6 +14210,7 @@ function createNetWorkAndRetryDebugEvent(response, payload, apiName, extraData) 
   \***************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -13788,6 +14240,7 @@ function Deferred() {
   \**********************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -13970,6 +14423,7 @@ exports.evaluateRule = evaluateRule;
   \****************************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -14172,6 +14626,7 @@ function sendSDKUsageStatsEvent(usageStatsAccountId) {
   \****************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -14209,6 +14664,7 @@ function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance) {
   \***********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -14281,6 +14737,7 @@ exports.UrlUtil = {
   \******************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 /**
@@ -14397,6 +14854,7 @@ exports.UsageStatsUtil = UsageStatsUtil;
   \**************************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
+"use strict";
 
 
 /**
@@ -14574,6 +15032,7 @@ function getUserId(userId, isAliasingEnabled) {
   \************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -14654,6 +15113,7 @@ function generateUUID(name, namespace) {
   \***********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -14759,7 +15219,7 @@ function sendRequest(method, options) {
         requestModel.setLastError(error);
         setTimeout(executeRequest, delay);
       } else {
-        if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_LOG_EVENT)) {
+        if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
           logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
             extraData: url.split('?')[0],
             attempts: retryCount,
@@ -14798,6 +15258,7 @@ function sendRequest(method, options) {
   \***********************/
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("http");
 
 /***/ }),
@@ -14808,6 +15269,7 @@ module.exports = require("http");
   \************************/
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("https");
 
 /***/ }),
@@ -14818,6 +15280,7 @@ module.exports = require("https");
   \*****************************/
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("murmurhash");
 
 /***/ }),
@@ -14828,6 +15291,7 @@ module.exports = require("murmurhash");
   \******************************/
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("superstruct");
 
 /***/ }),
@@ -14838,6 +15302,7 @@ module.exports = require("superstruct");
   \***********************/
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("uuid");
 
 /***/ }),
@@ -14848,6 +15313,7 @@ module.exports = require("uuid");
   \*******************************************/
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("vwo-fme-sdk-log-messages");
 
 /***/ })
@@ -14879,9 +15345,16 @@ module.exports = require("vwo-fme-sdk-log-messages");
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/************************************************************************/
 var __webpack_exports__ = {};
-// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
+"use strict";
 var exports = __webpack_exports__;
 /*!***************************************!*\
   !*** ./dist/server-unpacked/index.js ***!

@@ -291,7 +291,7 @@ export class NetworkClient implements NetworkClientInterface {
           .catch(deferred.reject);
       }, delay);
     } else {
-      if (!String(networkOptions.path).includes(EventEnum.VWO_LOG_EVENT)) {
+      if (!String(networkOptions.path).includes(EventEnum.VWO_DEBUGGER_EVENT)) {
         LogManager.Instance.errorLog(
           'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
           {

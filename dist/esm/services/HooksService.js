@@ -1,10 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const DataTypeUtil_1 = require("../utils/DataTypeUtil");
+import { isFunction } from '../utils/DataTypeUtil.js';
 class HooksService {
     constructor(options) {
         this.callback = options.integrations?.callback;
-        this.isCallBackFunction = (0, DataTypeUtil_1.isFunction)(this.callback);
+        this.isCallBackFunction = isFunction(this.callback);
         this.decision = {};
     }
     /**
@@ -33,5 +31,5 @@ class HooksService {
         return this.decision;
     }
 }
-exports.default = HooksService;
+export default HooksService;
 //# sourceMappingURL=HooksService.js.map

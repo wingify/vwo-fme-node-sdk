@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ErrorLogMessagesEnum = exports.InfoLogMessagesEnum = exports.DebugLogMessagesEnum = void 0;
 /**
@@ -16,11 +19,12 @@ exports.ErrorLogMessagesEnum = exports.InfoLogMessagesEnum = exports.DebugLogMes
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var messages = require("vwo-fme-sdk-log-messages");
-var DebugLogMessagesEnum = messages.debugMessages;
+var vwo_fme_sdk_log_messages_1 = __importDefault(require("vwo-fme-sdk-log-messages"));
+var resolvedMessages = vwo_fme_sdk_log_messages_1.default.default || vwo_fme_sdk_log_messages_1.default;
+var DebugLogMessagesEnum = resolvedMessages.debugMessages;
 exports.DebugLogMessagesEnum = DebugLogMessagesEnum;
-var InfoLogMessagesEnum = messages.infoMessages;
+var InfoLogMessagesEnum = resolvedMessages.infoMessages;
 exports.InfoLogMessagesEnum = InfoLogMessagesEnum;
-var ErrorLogMessagesEnum = messages.errorMessagesV2;
+var ErrorLogMessagesEnum = resolvedMessages.errorMessagesV2;
 exports.ErrorLogMessagesEnum = ErrorLogMessagesEnum;
 //# sourceMappingURL=index.js.map

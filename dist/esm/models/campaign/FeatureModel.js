@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.FeatureModel = void 0;
-const ImpactCampaignModel_1 = require("./ImpactCampaignModel");
-const MetricModel_1 = require("./MetricModel");
-const RuleModel_1 = require("./RuleModel");
-class FeatureModel {
+import { ImpactCapmaignModel } from './ImpactCampaignModel.js';
+import { MetricModel } from './MetricModel.js';
+import { RuleModel } from './RuleModel.js';
+export class FeatureModel {
     constructor() {
         this.m = [];
         this.metrics = [];
@@ -26,7 +23,7 @@ class FeatureModel {
             this.isGatewayServiceRequired = feature.isGatewayServiceRequired;
         }
         if (feature.impactCampaign) {
-            this.impactCampaign = new ImpactCampaignModel_1.ImpactCapmaignModel().modelFromDictionary(feature.impactCampaign);
+            this.impactCampaign = new ImpactCapmaignModel().modelFromDictionary(feature.impactCampaign);
         }
         if ((feature.m && feature.m.constructor === {}.constructor) || feature.metrics?.constructor === {}.constructor) {
             this.metrics = [];
@@ -34,7 +31,7 @@ class FeatureModel {
         else {
             const metricList = feature.m || feature.metrics;
             metricList?.forEach((metric) => {
-                this.metrics.push(new MetricModel_1.MetricModel().modelFromDictionary(metric));
+                this.metrics.push(new MetricModel().modelFromDictionary(metric));
             });
         }
         if (feature?.rules?.constructor === {}.constructor) {
@@ -43,7 +40,7 @@ class FeatureModel {
         else {
             const ruleList = feature.rules;
             ruleList?.forEach((rule) => {
-                this.rules.push(new RuleModel_1.RuleModel().modelFromDictionary(rule));
+                this.rules.push(new RuleModel().modelFromDictionary(rule));
             });
         }
         if (feature?.rulesLinkedCampaign && feature.rulesLinkedCampaign?.constructor !== {}.constructor) {
@@ -89,5 +86,4 @@ class FeatureModel {
         return this.isDebuggerEnabled;
     }
 }
-exports.FeatureModel = FeatureModel;
 //# sourceMappingURL=FeatureModel.js.map

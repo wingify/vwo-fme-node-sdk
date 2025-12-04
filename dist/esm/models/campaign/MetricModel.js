@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MetricModel = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,7 +13,7 @@ exports.MetricModel = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class MetricModel {
+export class MetricModel {
     modelFromDictionary(metric) {
         this.identifier = metric.identifier || metric.key;
         this.id = metric.i || metric.id;
@@ -33,5 +30,4 @@ class MetricModel {
         return this.type;
     }
 }
-exports.MetricModel = MetricModel;
 //# sourceMappingURL=MetricModel.js.map

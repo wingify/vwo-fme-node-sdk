@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LogLevelEnum = void 0;
-var LogLevelEnum;
+export var LogLevelEnum;
 (function (LogLevelEnum) {
     LogLevelEnum["TRACE"] = "trace";
     LogLevelEnum["DEBUG"] = "debug";
     LogLevelEnum["INFO"] = "info";
     LogLevelEnum["WARN"] = "warn";
     LogLevelEnum["ERROR"] = "error";
-})(LogLevelEnum || (exports.LogLevelEnum = LogLevelEnum = {}));
+})(LogLevelEnum || (LogLevelEnum = {}));
 //# sourceMappingURL=LogLevelEnum.js.map

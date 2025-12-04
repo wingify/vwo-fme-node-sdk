@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 
-import * as Hasher from 'murmurhash';
+import murmurhash from 'murmurhash';
+
+const Hasher: typeof murmurhash & {
+  v2?: typeof murmurhash;
+  v3?: typeof murmurhash;
+} = murmurhash as any;
+
+if (!Hasher.v3) {
+  Hasher.v3 = Hasher as unknown as typeof murmurhash;
+}
 
 const SEED_VALUE = 1; // Seed value for the hash function
 export class DecisionMaker {

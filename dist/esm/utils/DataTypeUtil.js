@@ -1,21 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.isObject = isObject;
-exports.isArray = isArray;
-exports.isNull = isNull;
-exports.isUndefined = isUndefined;
-exports.isNumber = isNumber;
-exports.isString = isString;
-exports.isBoolean = isBoolean;
-exports.isFunction = isFunction;
-exports.isPromise = isPromise;
-exports.getType = getType;
 /**
  * Checks if a value is an object excluding arrays, functions, regexes, promises, and dates.
  * @param val The value to check.
  * @returns True if the value is an object, false otherwise.
  */
-function isObject(val) {
+export function isObject(val) {
     // Using Object.prototype.toString to get a precise string representation of the value type
     return Object.prototype.toString.call(val) === '[object Object]';
 }
@@ -24,7 +12,7 @@ function isObject(val) {
  * @param val The value to check.
  * @returns True if the value is an array, false otherwise.
  */
-function isArray(val) {
+export function isArray(val) {
     return Object.prototype.toString.call(val) === '[object Array]';
 }
 /**
@@ -32,7 +20,7 @@ function isArray(val) {
  * @param val The value to check.
  * @returns True if the value is null, false otherwise.
  */
-function isNull(val) {
+export function isNull(val) {
     return Object.prototype.toString.call(val) === '[object Null]';
 }
 /**
@@ -40,7 +28,7 @@ function isNull(val) {
  * @param val The value to check.
  * @returns True if the value is undefined, false otherwise.
  */
-function isUndefined(val) {
+export function isUndefined(val) {
     return Object.prototype.toString.call(val) === '[object Undefined]';
 }
 /**
@@ -48,7 +36,7 @@ function isUndefined(val) {
  * @param val The value to check.
  * @returns True if the value is a number, false otherwise.
  */
-function isNumber(val) {
+export function isNumber(val) {
     // Note: NaN is also a number
     return Object.prototype.toString.call(val) === '[object Number]';
 }
@@ -57,7 +45,7 @@ function isNumber(val) {
  * @param val The value to check.
  * @returns True if the value is a string, false otherwise.
  */
-function isString(val) {
+export function isString(val) {
     return Object.prototype.toString.call(val) === '[object String]';
 }
 /**
@@ -65,7 +53,7 @@ function isString(val) {
  * @param val The value to check.
  * @returns True if the value is a boolean, false otherwise.
  */
-function isBoolean(val) {
+export function isBoolean(val) {
     return Object.prototype.toString.call(val) === '[object Boolean]';
 }
 /**
@@ -73,7 +61,7 @@ function isBoolean(val) {
  * @param val The value to check.
  * @returns True if the value is a function, false otherwise.
  */
-function isFunction(val) {
+export function isFunction(val) {
     return Object.prototype.toString.call(val) === '[object Function]';
 }
 /**
@@ -81,7 +69,7 @@ function isFunction(val) {
  * @param val The value to check.
  * @returns True if the value is a Promise, false otherwise.
  */
-function isPromise(val) {
+export function isPromise(val) {
     return Object.prototype.toString.call(val) === '[object Promise]';
 }
 /**
@@ -89,7 +77,7 @@ function isPromise(val) {
  * @param val The value to determine the type of.
  * @returns A string representing the type of the value.
  */
-function getType(val) {
+export function getType(val) {
     // Check if the value is an Object (excluding arrays, functions, etc.)
     return isObject(val)
         ? 'Object'

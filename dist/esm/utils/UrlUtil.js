@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.UrlUtil = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,10 +13,10 @@ exports.UrlUtil = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const constants_1 = require("../constants");
-const SettingsService_1 = require("../services/SettingsService");
-const DataTypeUtil_1 = require("./DataTypeUtil");
-exports.UrlUtil = {
+import { Constants } from '../constants/index.js';
+import { SettingsService } from '../services/SettingsService.js';
+import { isString } from './DataTypeUtil.js';
+export const UrlUtil = {
     /**
      * Initializes the UrlUtil with optional collectionPrefix and gatewayServiceUrl.
      * If provided, these values are set after validation.
@@ -28,10 +25,10 @@ exports.UrlUtil = {
      */
     init: ({ collectionPrefix } = {}) => {
         // Set collectionPrefix if it is a valid string
-        if (collectionPrefix && (0, DataTypeUtil_1.isString)(collectionPrefix)) {
-            exports.UrlUtil.collectionPrefix = collectionPrefix;
+        if (collectionPrefix && isString(collectionPrefix)) {
+            UrlUtil.collectionPrefix = collectionPrefix;
         }
-        return exports.UrlUtil;
+        return UrlUtil;
     },
     /**
      * Retrieves the base URL.
@@ -39,7 +36,7 @@ exports.UrlUtil = {
      * @returns {string} The base URL.
      */
     getBaseUrl: () => {
-        const baseUrl = SettingsService_1.SettingsService.Instance.hostname;
+        const baseUrl = SettingsService.Instance.hostname;
         // Return the default baseUrl if no specific URL components are set
         return baseUrl;
     },
@@ -50,8 +47,8 @@ exports.UrlUtil = {
      */
     getUpdatedBaseUrl: (baseUrl) => {
         // If collection prefix is set and the base URL is the default host name, return the base URL with the collection prefix.
-        if (exports.UrlUtil.collectionPrefix && baseUrl === constants_1.Constants.HOST_NAME) {
-            return `${baseUrl}/${exports.UrlUtil.collectionPrefix}`;
+        if (UrlUtil.collectionPrefix && baseUrl === Constants.HOST_NAME) {
+            return `${baseUrl}/${UrlUtil.collectionPrefix}`;
         }
         return baseUrl;
     },

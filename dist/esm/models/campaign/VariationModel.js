@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.VariationModel = void 0;
-const VariableModel_1 = require("./VariableModel");
-class VariationModel {
+import { VariableModel } from './VariableModel.js';
+export class VariationModel {
     constructor() {
         this.variables = [];
         this.variations = [];
@@ -26,7 +23,7 @@ class VariationModel {
             else {
                 const variableList = variation.variables;
                 variableList.forEach((variable) => {
-                    this.variables.push(VariableModel_1.VariableModel.modelFromDictionary(variable));
+                    this.variables.push(VariableModel.modelFromDictionary(variable));
                 });
             }
         }
@@ -86,5 +83,4 @@ class VariationModel {
         return this.salt;
     }
 }
-exports.VariationModel = VariationModel;
 //# sourceMappingURL=VariationModel.js.map

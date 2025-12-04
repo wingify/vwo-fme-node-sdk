@@ -14,9 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DecisionMaker = void 0;
-var Hasher = require("murmurhash");
+var murmurhash_1 = __importDefault(require("murmurhash"));
+var Hasher = murmurhash_1.default;
+if (!Hasher.v3) {
+    Hasher.v3 = Hasher;
+}
 var SEED_VALUE = 1; // Seed value for the hash function
 var DecisionMaker = /** @class */ (function () {
     function DecisionMaker() {

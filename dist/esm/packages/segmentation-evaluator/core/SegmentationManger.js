@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SegmentationManager = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,16 +13,16 @@ exports.SegmentationManager = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const SegmentEvaluator_1 = require("../evaluators/SegmentEvaluator");
-const GatewayServiceUtil_1 = require("../../../utils/GatewayServiceUtil");
-const UrlEnum_1 = require("../../../enums/UrlEnum");
-const logger_1 = require("../../logger");
-const ContextVWOModel_1 = require("../../../models/user/ContextVWOModel");
-const SettingsService_1 = require("../../../services/SettingsService");
-const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
-const ApiEnum_1 = require("../../../enums/ApiEnum");
-const FunctionUtil_1 = require("../../../utils/FunctionUtil");
-class SegmentationManager {
+import { SegmentEvaluator } from '../evaluators/SegmentEvaluator.js';
+import { getFromGatewayService, getQueryParams } from '../../../utils/GatewayServiceUtil.js';
+import { UrlEnum } from '../../../enums/UrlEnum.js';
+import { LogManager } from '../../logger/index.js';
+import { ContextVWOModel } from '../../../models/user/ContextVWOModel.js';
+import { SettingsService } from '../../../services/SettingsService.js';
+import { isUndefined } from '../../../utils/DataTypeUtil.js';
+import { ApiEnum } from '../../../enums/ApiEnum.js';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
+export class SegmentationManager {
     /**
      * Singleton pattern implementation for getting the instance of SegmentationManager.
      * @returns {SegmentationManager} The singleton instance.
@@ -39,7 +36,7 @@ class SegmentationManager {
      * @param {SegmentEvaluator} evaluator - Optional evaluator to attach.
      */
     attachEvaluator(evaluator) {
-        this.evaluator = evaluator || new SegmentEvaluator_1.SegmentEvaluator(); // Use provided evaluator or create new one
+        this.evaluator = evaluator || new SegmentEvaluator(); // Use provided evaluator or create new one
     }
     /**
      * Sets the contextual data for the segmentation process.
@@ -57,8 +54,8 @@ class SegmentationManager {
             return;
         }
         if (feature.getIsGatewayServiceRequired() === true) {
-            if (SettingsService_1.SettingsService.Instance.isGatewayServiceProvided &&
-                ((0, DataTypeUtil_1.isUndefined)(context.getVwo()) || context.getVwo() === null)) {
+            if (SettingsService.Instance.isGatewayServiceProvided &&
+                (isUndefined(context.getVwo()) || context.getVwo() === null)) {
                 const queryParams = {};
                 if (context?.getUserAgent()) {
                     queryParams['userAgent'] = context.getUserAgent();
@@ -67,15 +64,15 @@ class SegmentationManager {
                     queryParams['ipAddress'] = context.getIpAddress();
                 }
                 try {
-                    const params = (0, GatewayServiceUtil_1.getQueryParams)(queryParams);
-                    const _vwo = await (0, GatewayServiceUtil_1.getFromGatewayService)(params, UrlEnum_1.UrlEnum.GET_USER_DATA, context);
-                    context.setVwo(new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(_vwo));
+                    const params = getQueryParams(queryParams);
+                    const _vwo = await getFromGatewayService(params, UrlEnum.GET_USER_DATA, context);
+                    context.setVwo(new ContextVWOModel().modelFromDictionary(_vwo));
                     this.evaluator.context = context;
                 }
                 catch (err) {
-                    logger_1.LogManager.Instance.errorLog('ERROR_SETTING_SEGMENTATION_CONTEXT', {
-                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
-                    }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+                    LogManager.Instance.errorLog('ERROR_SETTING_SEGMENTATION_CONTEXT', {
+                        err: getFormattedErrorMessage(err),
+                    }, { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                 }
             }
         }
@@ -92,5 +89,4 @@ class SegmentationManager {
         return await this.evaluator.isSegmentationValid(dsl, properties); // Delegate to evaluator's method
     }
 }
-exports.SegmentationManager = SegmentationManager;
 //# sourceMappingURL=SegmentationManger.js.map

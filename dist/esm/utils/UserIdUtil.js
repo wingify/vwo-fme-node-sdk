@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserId = getUserId;
-const AliasingUtil_1 = require("./AliasingUtil");
-const SettingsService_1 = require("../services/SettingsService");
-const log_messages_1 = require("../enums/log-messages");
-const logger_1 = require("../packages/logger");
-const LogMessageUtil_1 = require("./LogMessageUtil");
-async function getUserId(userId, isAliasingEnabled) {
+import { AliasingUtil } from './AliasingUtil.js';
+import { SettingsService } from '../services/SettingsService.js';
+import { ErrorLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages/index.js';
+import { LogManager } from '../packages/logger/index.js';
+import { buildMessage } from './LogMessageUtil.js';
+export async function getUserId(userId, isAliasingEnabled) {
     if (isAliasingEnabled) {
-        if (SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
+        if (SettingsService.Instance.isGatewayServiceProvided) {
             // lets call getAlias here and return the alias id
-            const alias = await AliasingUtil_1.AliasingUtil.getAlias(userId);
+            const alias = await AliasingUtil.getAlias(userId);
             // Backend returns array of results, find the matching one
             const result = alias.find((item) => item.aliasId === userId);
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.ALIAS_ENABLED, { userId: result?.userId }));
+            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.ALIAS_ENABLED, { userId: result?.userId }));
             return result?.userId || userId;
         }
         else {
-            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_GATEWAY_URL));
+            LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.INVALID_GATEWAY_URL));
             return userId;
         }
     }

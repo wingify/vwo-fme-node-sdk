@@ -15,6 +15,9 @@
  */
 import { PlatformEnum } from '../enums/PlatformEnum';
 import { SEED_URL, HTTP_PROTOCOL, HTTPS_PROTOCOL } from './Url';
+import sdkMeta from '../../VERSION';
+
+const SDK_VERSION = sdkMeta.version;
 
 let packageFile;
 let platform;
@@ -23,14 +26,14 @@ let platform;
 if (typeof process === 'undefined') {
   packageFile = {
     name: 'vwo-fme-javascript-sdk',
-    version: require('../../VERSION.json').version, // eslint-disable-line @typescript-eslint/no-var-requires
+    version: SDK_VERSION,
   };
 
   platform = PlatformEnum.CLIENT;
 } else {
   packageFile = {
     name: 'vwo-fme-node-sdk',
-    version: require('../../VERSION.json').version, // eslint-disable-line @typescript-eslint/no-var-requires
+    version: SDK_VERSION,
   };
   platform = PlatformEnum.SERVER;
 }

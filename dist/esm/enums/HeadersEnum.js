@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.HeadersEnum = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,9 +13,9 @@ exports.HeadersEnum = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var HeadersEnum;
+export var HeadersEnum;
 (function (HeadersEnum) {
     HeadersEnum["USER_AGENT"] = "X-Device-User-Agent";
     HeadersEnum["IP"] = "VWO-X-Forwarded-For";
-})(HeadersEnum || (exports.HeadersEnum = HeadersEnum = {}));
+})(HeadersEnum || (HeadersEnum = {}));
 //# sourceMappingURL=HeadersEnum.js.map

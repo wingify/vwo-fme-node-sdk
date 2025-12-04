@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare let NetworkClient: any;
-export { NetworkClient };
 export { NetworkClientInterface } from './client/NetworkClientInterface';
 export { NetworkManager } from './manager/NetworkManager';
 export { GlobalRequestModel } from './models/GlobalRequestModel';

@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SegmentOperandEvaluator = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,21 +13,21 @@ exports.SegmentOperandEvaluator = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const SegmentUtil_1 = require("../utils/SegmentUtil");
-const SegmentOperandValueEnum_1 = require("../enums/SegmentOperandValueEnum");
-const SegmentOperandRegexEnum_1 = require("../enums/SegmentOperandRegexEnum");
-const SegmentOperatorValueEnum_1 = require("../enums/SegmentOperatorValueEnum");
-const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
-const GatewayServiceUtil_1 = require("../../../utils/GatewayServiceUtil");
-const UrlEnum_1 = require("../../../enums/UrlEnum");
-const logger_1 = require("../../logger");
-const ApiEnum_1 = require("../../../enums/ApiEnum");
-const FunctionUtil_1 = require("../../../utils/FunctionUtil");
+import { getKeyValue, matchWithRegex } from '../utils/SegmentUtil.js';
+import { SegmentOperandValueEnum } from '../enums/SegmentOperandValueEnum.js';
+import { SegmentOperandRegexEnum } from '../enums/SegmentOperandRegexEnum.js';
+import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum.js';
+import { isBoolean } from '../../../utils/DataTypeUtil.js';
+import { getFromGatewayService } from '../../../utils/GatewayServiceUtil.js';
+import { UrlEnum } from '../../../enums/UrlEnum.js';
+import { LogManager } from '../../logger/index.js';
+import { ApiEnum } from '../../../enums/ApiEnum.js';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
 /**
  * SegmentOperandEvaluator class provides methods to evaluate different types of DSL (Domain Specific Language)
  * expressions based on the segment conditions defined for custom variables, user IDs, and user agents.
  */
-class SegmentOperandEvaluator {
+export class SegmentOperandEvaluator {
     /**
      * Evaluates a custom variable DSL expression.
      * @param {Record<string, dynamic>} dslOperandValue - The DSL expression for the custom variable.
@@ -39,7 +36,7 @@ class SegmentOperandEvaluator {
      */
     async evaluateCustomVariableDSL(dslOperandValue, properties, context) {
         // Extract key and value from the DSL operand
-        const { key, value } = (0, SegmentUtil_1.getKeyValue)(dslOperandValue);
+        const { key, value } = getKeyValue(dslOperandValue);
         const operandKey = key;
         const operand = value;
         // Check if the property exists
@@ -51,7 +48,7 @@ class SegmentOperandEvaluator {
             const listIdRegex = /inlist\(([^)]+)\)/;
             const match = operand.match(listIdRegex);
             if (!match || match.length < 2) {
-                logger_1.LogManager.Instance.errorLog('INVALID_ATTRIBUTE_LIST_FORMAT', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+                LogManager.Instance.errorLog('INVALID_ATTRIBUTE_LIST_FORMAT', {}, { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                 return false;
             }
             // Process the tag value and prepare query parameters
@@ -64,16 +61,16 @@ class SegmentOperandEvaluator {
             };
             // Make a web service call to check the attribute against the list
             try {
-                const res = await (0, GatewayServiceUtil_1.getFromGatewayService)(queryParamsObj, UrlEnum_1.UrlEnum.ATTRIBUTE_CHECK, context);
+                const res = await getFromGatewayService(queryParamsObj, UrlEnum.ATTRIBUTE_CHECK, context);
                 if (!res || res === undefined || res === 'false' || res.status === 0) {
                     return false;
                 }
                 return res;
             }
             catch (error) {
-                logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_DATA_FROM_GATEWAY', {
-                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-                }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+                LogManager.Instance.errorLog('ERROR_FETCHING_DATA_FROM_GATEWAY', {
+                    err: getFormattedErrorMessage(error),
+                }, { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                 return false;
             }
         }
@@ -111,7 +108,7 @@ class SegmentOperandEvaluator {
     evaluateUserAgentDSL(dslOperandValue, context) {
         const operand = dslOperandValue;
         if (!context.getUserAgent() || context.getUserAgent() === undefined) {
-            logger_1.LogManager.Instance.errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+            LogManager.Instance.errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
             return false;
         }
         let tagValue = decodeURIComponent(context.getUserAgent());
@@ -131,7 +128,7 @@ class SegmentOperandEvaluator {
             tagValue = '';
         }
         // Convert boolean values to boolean type
-        if ((0, DataTypeUtil_1.isBoolean)(tagValue)) {
+        if (isBoolean(tagValue)) {
             tagValue = tagValue ? true : false;
         }
         // Convert all non-null values to string
@@ -149,51 +146,51 @@ class SegmentOperandEvaluator {
         let operandType;
         let operandValue;
         // Determine the type of operand and extract value based on regex patterns
-        if ((0, SegmentUtil_1.matchWithRegex)(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.LOWER_MATCH)) {
-            operandType = SegmentOperandValueEnum_1.SegmentOperandValueEnum.LOWER_VALUE;
-            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.LOWER_MATCH);
+        if (matchWithRegex(operand, SegmentOperandRegexEnum.LOWER_MATCH)) {
+            operandType = SegmentOperandValueEnum.LOWER_VALUE;
+            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.LOWER_MATCH);
         }
-        else if ((0, SegmentUtil_1.matchWithRegex)(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.WILDCARD_MATCH)) {
-            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.WILDCARD_MATCH);
-            const startingStar = (0, SegmentUtil_1.matchWithRegex)(operandValue, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.STARTING_STAR);
-            const endingStar = (0, SegmentUtil_1.matchWithRegex)(operandValue, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.ENDING_STAR);
+        else if (matchWithRegex(operand, SegmentOperandRegexEnum.WILDCARD_MATCH)) {
+            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.WILDCARD_MATCH);
+            const startingStar = matchWithRegex(operandValue, SegmentOperandRegexEnum.STARTING_STAR);
+            const endingStar = matchWithRegex(operandValue, SegmentOperandRegexEnum.ENDING_STAR);
             // Determine specific wildcard type
             if (startingStar && endingStar) {
-                operandType = SegmentOperandValueEnum_1.SegmentOperandValueEnum.STARTING_ENDING_STAR_VALUE;
+                operandType = SegmentOperandValueEnum.STARTING_ENDING_STAR_VALUE;
             }
             else if (startingStar) {
-                operandType = SegmentOperandValueEnum_1.SegmentOperandValueEnum.STARTING_STAR_VALUE;
+                operandType = SegmentOperandValueEnum.STARTING_STAR_VALUE;
             }
             else if (endingStar) {
-                operandType = SegmentOperandValueEnum_1.SegmentOperandValueEnum.ENDING_STAR_VALUE;
+                operandType = SegmentOperandValueEnum.ENDING_STAR_VALUE;
             }
             // Remove wildcard characters from the operand value
             operandValue = operandValue
-                .replace(new RegExp(SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.STARTING_STAR), '')
-                .replace(new RegExp(SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.ENDING_STAR), '');
+                .replace(new RegExp(SegmentOperandRegexEnum.STARTING_STAR), '')
+                .replace(new RegExp(SegmentOperandRegexEnum.ENDING_STAR), '');
         }
-        else if ((0, SegmentUtil_1.matchWithRegex)(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.REGEX_MATCH)) {
-            operandType = SegmentOperandValueEnum_1.SegmentOperandValueEnum.REGEX_VALUE;
-            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.REGEX_MATCH);
+        else if (matchWithRegex(operand, SegmentOperandRegexEnum.REGEX_MATCH)) {
+            operandType = SegmentOperandValueEnum.REGEX_VALUE;
+            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.REGEX_MATCH);
         }
-        else if ((0, SegmentUtil_1.matchWithRegex)(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.GREATER_THAN_MATCH)) {
-            operandType = SegmentOperandValueEnum_1.SegmentOperandValueEnum.GREATER_THAN_VALUE;
-            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.GREATER_THAN_MATCH);
+        else if (matchWithRegex(operand, SegmentOperandRegexEnum.GREATER_THAN_MATCH)) {
+            operandType = SegmentOperandValueEnum.GREATER_THAN_VALUE;
+            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.GREATER_THAN_MATCH);
         }
-        else if ((0, SegmentUtil_1.matchWithRegex)(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.GREATER_THAN_EQUAL_TO_MATCH)) {
-            operandType = SegmentOperandValueEnum_1.SegmentOperandValueEnum.GREATER_THAN_EQUAL_TO_VALUE;
-            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.GREATER_THAN_EQUAL_TO_MATCH);
+        else if (matchWithRegex(operand, SegmentOperandRegexEnum.GREATER_THAN_EQUAL_TO_MATCH)) {
+            operandType = SegmentOperandValueEnum.GREATER_THAN_EQUAL_TO_VALUE;
+            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.GREATER_THAN_EQUAL_TO_MATCH);
         }
-        else if ((0, SegmentUtil_1.matchWithRegex)(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.LESS_THAN_MATCH)) {
-            operandType = SegmentOperandValueEnum_1.SegmentOperandValueEnum.LESS_THAN_VALUE;
-            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.LESS_THAN_MATCH);
+        else if (matchWithRegex(operand, SegmentOperandRegexEnum.LESS_THAN_MATCH)) {
+            operandType = SegmentOperandValueEnum.LESS_THAN_VALUE;
+            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.LESS_THAN_MATCH);
         }
-        else if ((0, SegmentUtil_1.matchWithRegex)(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.LESS_THAN_EQUAL_TO_MATCH)) {
-            operandType = SegmentOperandValueEnum_1.SegmentOperandValueEnum.LESS_THAN_EQUAL_TO_VALUE;
-            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum_1.SegmentOperandRegexEnum.LESS_THAN_EQUAL_TO_MATCH);
+        else if (matchWithRegex(operand, SegmentOperandRegexEnum.LESS_THAN_EQUAL_TO_MATCH)) {
+            operandType = SegmentOperandValueEnum.LESS_THAN_EQUAL_TO_VALUE;
+            operandValue = this.extractOperandValue(operand, SegmentOperandRegexEnum.LESS_THAN_EQUAL_TO_MATCH);
         }
         else {
-            operandType = SegmentOperandValueEnum_1.SegmentOperandValueEnum.EQUAL_VALUE;
+            operandType = SegmentOperandValueEnum.EQUAL_VALUE;
             operandValue = operand;
         }
         return {
@@ -209,7 +206,7 @@ class SegmentOperandEvaluator {
      */
     extractOperandValue(operand, regex) {
         // Match operand with regex and return the first capturing group
-        return (0, SegmentUtil_1.matchWithRegex)(operand, regex) && (0, SegmentUtil_1.matchWithRegex)(operand, regex)[1];
+        return matchWithRegex(operand, regex) && matchWithRegex(operand, regex)[1];
     }
     /**
      * Processes numeric values from operand and tag values, converting them to strings.
@@ -218,9 +215,9 @@ class SegmentOperandEvaluator {
      * @returns {Record<string, dynamic>} - An object containing the processed operand and tag values as strings.
      */
     processValues(operandValue, tagValue, operandType = undefined) {
-        if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP ||
-            operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION ||
-            operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION) {
+        if (operandType === SegmentOperatorValueEnum.IP ||
+            operandType === SegmentOperatorValueEnum.BROWSER_VERSION ||
+            operandType === SegmentOperatorValueEnum.OS_VERSION) {
             return {
                 operandValue: operandValue,
                 tagValue: tagValue,
@@ -273,19 +270,19 @@ class SegmentOperandEvaluator {
         const operandValueStr = String(operandValue);
         const tagValueStr = String(tagValue);
         switch (operandType) {
-            case SegmentOperandValueEnum_1.SegmentOperandValueEnum.LOWER_VALUE:
+            case SegmentOperandValueEnum.LOWER_VALUE:
                 result = operandValueStr.toLowerCase() === tagValueStr.toLowerCase();
                 break;
-            case SegmentOperandValueEnum_1.SegmentOperandValueEnum.STARTING_ENDING_STAR_VALUE:
+            case SegmentOperandValueEnum.STARTING_ENDING_STAR_VALUE:
                 result = tagValueStr.indexOf(operandValueStr) !== -1;
                 break;
-            case SegmentOperandValueEnum_1.SegmentOperandValueEnum.STARTING_STAR_VALUE:
+            case SegmentOperandValueEnum.STARTING_STAR_VALUE:
                 result = tagValueStr.endsWith(operandValueStr);
                 break;
-            case SegmentOperandValueEnum_1.SegmentOperandValueEnum.ENDING_STAR_VALUE:
+            case SegmentOperandValueEnum.ENDING_STAR_VALUE:
                 result = tagValueStr.startsWith(operandValueStr);
                 break;
-            case SegmentOperandValueEnum_1.SegmentOperandValueEnum.REGEX_VALUE:
+            case SegmentOperandValueEnum.REGEX_VALUE:
                 try {
                     const pattern = new RegExp(operandValueStr);
                     const matcher = pattern.exec(tagValueStr);
@@ -295,16 +292,16 @@ class SegmentOperandEvaluator {
                     result = false;
                 }
                 break;
-            case SegmentOperandValueEnum_1.SegmentOperandValueEnum.GREATER_THAN_VALUE:
+            case SegmentOperandValueEnum.GREATER_THAN_VALUE:
                 result = this.compareVersions(tagValueStr, operandValueStr) > 0;
                 break;
-            case SegmentOperandValueEnum_1.SegmentOperandValueEnum.GREATER_THAN_EQUAL_TO_VALUE:
+            case SegmentOperandValueEnum.GREATER_THAN_EQUAL_TO_VALUE:
                 result = this.compareVersions(tagValueStr, operandValueStr) >= 0;
                 break;
-            case SegmentOperandValueEnum_1.SegmentOperandValueEnum.LESS_THAN_VALUE:
+            case SegmentOperandValueEnum.LESS_THAN_VALUE:
                 result = this.compareVersions(tagValueStr, operandValueStr) < 0;
                 break;
-            case SegmentOperandValueEnum_1.SegmentOperandValueEnum.LESS_THAN_EQUAL_TO_VALUE:
+            case SegmentOperandValueEnum.LESS_THAN_EQUAL_TO_VALUE:
                 result = this.compareVersions(tagValueStr, operandValueStr) <= 0;
                 break;
             default:
@@ -345,10 +342,10 @@ class SegmentOperandEvaluator {
      * @returns {string | null} - The tag value or null if not available.
      */
     getTagValueForOperandType(context, operandType) {
-        if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP) {
+        if (operandType === SegmentOperatorValueEnum.IP) {
             return context.getIpAddress() || null;
         }
-        else if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION) {
+        else if (operandType === SegmentOperatorValueEnum.BROWSER_VERSION) {
             return this.getBrowserVersionFromContext(context);
         }
         else {
@@ -393,14 +390,14 @@ class SegmentOperandEvaluator {
      * @param {SegmentOperatorValueEnum} operandType - The type of operand.
      */
     logMissingContextError(operandType) {
-        if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP) {
-            logger_1.LogManager.Instance.info('To evaluate IP segmentation, please provide ipAddress in context');
+        if (operandType === SegmentOperatorValueEnum.IP) {
+            LogManager.Instance.info('To evaluate IP segmentation, please provide ipAddress in context');
         }
-        else if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION) {
-            logger_1.LogManager.Instance.info('To evaluate browser version segmentation, please provide userAgent in context');
+        else if (operandType === SegmentOperatorValueEnum.BROWSER_VERSION) {
+            LogManager.Instance.info('To evaluate browser version segmentation, please provide userAgent in context');
         }
         else {
-            logger_1.LogManager.Instance.info('To evaluate OS version segmentation, please provide userAgent in context');
+            LogManager.Instance.info('To evaluate OS version segmentation, please provide userAgent in context');
         }
     }
     /**
@@ -437,7 +434,6 @@ class SegmentOperandEvaluator {
         return 0; // Versions are equal
     }
 }
-exports.SegmentOperandEvaluator = SegmentOperandEvaluator;
 // Regex pattern to check if a string contains non-numeric characters (except decimal point)
 SegmentOperandEvaluator.NON_NUMERIC_PATTERN = /[^0-9.]/;
 //# sourceMappingURL=SegmentOperandEvaluator.js.map

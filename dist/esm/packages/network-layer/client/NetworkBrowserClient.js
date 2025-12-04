@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.NetworkBrowserClient = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,20 +13,20 @@ exports.NetworkBrowserClient = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const XMLUtil_1 = require("../../../utils/XMLUtil");
-const PromiseUtil_1 = require("../../../utils/PromiseUtil");
+import { sendGetCall, sendPostCall } from '../../../utils/XMLUtil.js';
+import { Deferred } from '../../../utils/PromiseUtil.js';
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
-class NetworkBrowserClient {
+export class NetworkBrowserClient {
     /**
      * Performs a GET request using the provided RequestModel.
      * @param {RequestModel} requestModel - The model containing request options.
      * @returns {Promise<ResponseModel>} A promise that resolves to a ResponseModel.
      */
     GET(requestModel) {
-        const deferred = new PromiseUtil_1.Deferred();
-        (0, XMLUtil_1.sendGetCall)({
+        const deferred = new Deferred();
+        sendGetCall({
             requestModel,
             successCallback: (responseModel) => {
                 deferred.resolve(responseModel);
@@ -82,8 +79,8 @@ class NetworkBrowserClient {
      * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
      */
     POST(requestModel) {
-        const deferred = new PromiseUtil_1.Deferred();
-        (0, XMLUtil_1.sendPostCall)({
+        const deferred = new Deferred();
+        sendPostCall({
             requestModel,
             successCallback: (responseModel) => {
                 deferred.resolve(responseModel);
@@ -138,5 +135,4 @@ class NetworkBrowserClient {
         return deferred.promise;
     }
 }
-exports.NetworkBrowserClient = NetworkBrowserClient;
 //# sourceMappingURL=NetworkBrowserClient.js.map

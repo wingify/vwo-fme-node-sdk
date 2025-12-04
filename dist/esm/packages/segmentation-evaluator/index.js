@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SegmentEvaluator = exports.SegmentationManager = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,8 +13,6 @@ exports.SegmentEvaluator = exports.SegmentationManager = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var SegmentationManger_1 = require("./core/SegmentationManger");
-Object.defineProperty(exports, "SegmentationManager", { enumerable: true, get: function () { return SegmentationManger_1.SegmentationManager; } });
-var SegmentEvaluator_1 = require("./evaluators/SegmentEvaluator");
-Object.defineProperty(exports, "SegmentEvaluator", { enumerable: true, get: function () { return SegmentEvaluator_1.SegmentEvaluator; } });
+export { SegmentationManager } from './core/SegmentationManger.js';
+export { SegmentEvaluator } from './evaluators/SegmentEvaluator.js';
 //# sourceMappingURL=index.js.map

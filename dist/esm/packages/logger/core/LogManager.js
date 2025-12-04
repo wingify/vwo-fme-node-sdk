@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LogManager = void 0;
-const uuid_1 = require("uuid");
-const Logger_1 = require("../Logger");
-const ConsoleTransport_1 = require("../transports/ConsoleTransport");
-const TransportManager_1 = require("./TransportManager");
-const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
-const LogLevelEnum_1 = require("../enums/LogLevelEnum");
-const LogMessageUtil_1 = require("../../../utils/LogMessageUtil");
-const DebuggerCategoryEnum_1 = require("../../../enums/DebuggerCategoryEnum");
-const DebuggerServiceUtil_1 = require("../../../utils/DebuggerServiceUtil");
-const log_messages_1 = require("../../../enums/log-messages");
-const FunctionUtil_1 = require("../../../utils/FunctionUtil");
+import { v4 as uuidv4 } from 'uuid';
+import { Logger } from '../Logger.js';
+import { ConsoleTransport } from '../transports/ConsoleTransport.js';
+import { LogTransportManager } from './TransportManager.js';
+import { isObject } from '../../../utils/DataTypeUtil.js';
+import { LogLevelEnum } from '../enums/LogLevelEnum.js';
+import { buildMessage } from '../../../utils/LogMessageUtil.js';
+import { DebuggerCategoryEnum } from '../../../enums/DebuggerCategoryEnum.js';
+import { sendDebugEventToVWO } from '../../../utils/DebuggerServiceUtil.js';
+import { ErrorLogMessagesEnum } from '../../../enums/log-messages/index.js';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
 /**
  * LogManager class provides logging functionality with support for multiple transports.
  * It is designed as a singleton to ensure a single instance throughout the application.
  */
-class LogManager extends Logger_1.Logger {
+export class LogManager extends Logger {
     dateTimeFormat() {
         return new Date().toISOString(); // Default date-time format for log messages
     }
@@ -42,8 +39,8 @@ class LogManager extends Logger_1.Logger {
     constructor(config) {
         super();
         this.name = 'VWO Logger'; // Default logger name
-        this.requestId = (0, uuid_1.v4)(); // Unique request ID generated for each instance
-        this.level = LogLevelEnum_1.LogLevelEnum.ERROR; // Default logging level
+        this.requestId = uuidv4(); // Unique request ID generated for each instance
+        this.level = LogLevelEnum.ERROR; // Default logging level
         this.prefix = 'VWO-SDK'; // Default prefix for log messages
         this.config = config;
         if (config.isAlwaysNewInstance || !LogManager.instance) {
@@ -54,7 +51,7 @@ class LogManager extends Logger_1.Logger {
             this.config.level = config.level || this.level;
             this.config.prefix = config.prefix || this.prefix;
             this.config.dateTimeFormat = config.dateTimeFormat || this.dateTimeFormat;
-            this.transportManager = new TransportManager_1.LogTransportManager(this.config);
+            this.transportManager = new LogTransportManager(this.config);
             this.handleTransports();
         }
         return LogManager.instance;
@@ -74,13 +71,13 @@ class LogManager extends Logger_1.Logger {
         if (transports?.length) {
             this.addTransports(this.config.transports);
         }
-        else if (this.config.transport && (0, DataTypeUtil_1.isObject)(this.config.transport)) {
+        else if (this.config.transport && isObject(this.config.transport)) {
             this.addTransport(this.config.transport);
         }
         else {
             // if (this.config.defaultTransport)
             // Add default ConsoleTransport if no other transport is specified
-            this.addTransport(new ConsoleTransport_1.ConsoleTransport({
+            this.addTransport(new ConsoleTransport({
                 level: this.config.level,
             }));
         }
@@ -106,35 +103,35 @@ class LogManager extends Logger_1.Logger {
      * @param {string} message - The message to log at trace level.
      */
     trace(message) {
-        this.transportManager.log(LogLevelEnum_1.LogLevelEnum.TRACE, message);
+        this.transportManager.log(LogLevelEnum.TRACE, message);
     }
     /**
      * Logs a debug message.
      * @param {string} message - The message to log at debug level.
      */
     debug(message) {
-        this.transportManager.log(LogLevelEnum_1.LogLevelEnum.DEBUG, message);
+        this.transportManager.log(LogLevelEnum.DEBUG, message);
     }
     /**
      * Logs an informational message.
      * @param {string} message - The message to log at info level.
      */
     info(message) {
-        this.transportManager.log(LogLevelEnum_1.LogLevelEnum.INFO, message);
+        this.transportManager.log(LogLevelEnum.INFO, message);
     }
     /**
      * Logs a warning message.
      * @param {string} message - The message to log at warn level.
      */
     warn(message) {
-        this.transportManager.log(LogLevelEnum_1.LogLevelEnum.WARN, message);
+        this.transportManager.log(LogLevelEnum.WARN, message);
     }
     /**
      * Logs an error message.
      * @param {string} message - The message to log at error level.
      */
     error(message) {
-        this.transportManager.log(LogLevelEnum_1.LogLevelEnum.ERROR, message);
+        this.transportManager.log(LogLevelEnum.ERROR, message);
     }
     /**
      * Middleware method that stores error in DebuggerService and logs it.
@@ -143,7 +140,7 @@ class LogManager extends Logger_1.Logger {
      */
     errorLog(template, data = {}, debugData = {}, shouldSendToVWO = true) {
         try {
-            const message = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum[template], data);
+            const message = buildMessage(ErrorLogMessagesEnum[template], data);
             this.error(message);
             if (shouldSendToVWO) {
                 const debugEventProps = {
@@ -151,17 +148,16 @@ class LogManager extends Logger_1.Logger {
                     ...data,
                     msg_t: template,
                     msg: message,
-                    lt: LogLevelEnum_1.LogLevelEnum.ERROR.toString(),
-                    cg: DebuggerCategoryEnum_1.DebuggerCategoryEnum.ERROR,
+                    lt: LogLevelEnum.ERROR.toString(),
+                    cg: DebuggerCategoryEnum.ERROR,
                 };
                 // send debug event to VWO
-                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                sendDebugEventToVWO(debugEventProps);
             }
         }
         catch (err) {
-            console.error('Got error while logging error' + (0, FunctionUtil_1.getFormattedErrorMessage)(err));
+            console.error('Got error while logging error' + getFormattedErrorMessage(err));
         }
     }
 }
-exports.LogManager = LogManager;
 //# sourceMappingURL=LogManager.js.map

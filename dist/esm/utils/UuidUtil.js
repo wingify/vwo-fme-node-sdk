@@ -1,8 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRandomUUID = getRandomUUID;
-exports.getUUID = getUUID;
-exports.generateUUID = generateUUID;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -18,19 +13,19 @@ exports.generateUUID = generateUUID;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const Url_1 = require("../constants/Url");
-const uuid_1 = require("uuid");
-const uuid_2 = require("uuid");
+import { SEED_URL } from '../constants/Url.js';
+import { v4 as uuidv4 } from 'uuid';
+import { v5 as uuidv5 } from 'uuid';
 /**
  * Generates a random UUID based on an API key.
  * @param sdkKey The API key used to generate a namespace for the UUID.
  * @returns A random UUID string.
  */
-function getRandomUUID(sdkKey) {
+export function getRandomUUID(sdkKey) {
     // Generate a namespace based on the API key using DNS namespace
-    const namespace = (0, uuid_2.v5)(sdkKey, uuid_2.v5.DNS);
+    const namespace = uuidv5(sdkKey, uuidv5.DNS);
     // Generate a random UUID using the namespace derived from the API key
-    const randomUUID = (0, uuid_2.v5)((0, uuid_1.v4)(), namespace);
+    const randomUUID = uuidv5(uuidv4(), namespace);
     return randomUUID;
 }
 /**
@@ -39,8 +34,8 @@ function getRandomUUID(sdkKey) {
  * @param accountId The account ID associated with the user.
  * @returns A UUID string formatted without dashes and in uppercase.
  */
-function getUUID(userId, accountId) {
-    const VWO_NAMESPACE = (0, uuid_2.v5)(Url_1.SEED_URL, uuid_2.v5.URL);
+export function getUUID(userId, accountId) {
+    const VWO_NAMESPACE = uuidv5(SEED_URL, uuidv5.URL);
     // Convert userId and accountId to string to ensure proper type
     userId = String(userId);
     accountId = String(accountId);
@@ -58,12 +53,12 @@ function getUUID(userId, accountId) {
  * @param namespace The namespace used to generate the UUID.
  * @returns A UUID string or undefined if inputs are invalid.
  */
-function generateUUID(name, namespace) {
+export function generateUUID(name, namespace) {
     // Check for valid input to prevent errors
     if (!name || !namespace) {
         return;
     }
     // Generate and return the UUID v5
-    return (0, uuid_2.v5)(name, namespace);
+    return uuidv5(name, namespace);
 }
 //# sourceMappingURL=UuidUtil.js.map

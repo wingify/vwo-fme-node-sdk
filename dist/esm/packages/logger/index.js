@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LogLevelEnum = exports.LogManager = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,8 +13,6 @@ exports.LogLevelEnum = exports.LogManager = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var LogManager_1 = require("./core/LogManager");
-Object.defineProperty(exports, "LogManager", { enumerable: true, get: function () { return LogManager_1.LogManager; } });
-var LogLevelEnum_1 = require("./enums/LogLevelEnum");
-Object.defineProperty(exports, "LogLevelEnum", { enumerable: true, get: function () { return LogLevelEnum_1.LogLevelEnum; } });
+export { LogManager } from './core/LogManager.js';
+export { LogLevelEnum } from './enums/LogLevelEnum.js';
 //# sourceMappingURL=index.js.map

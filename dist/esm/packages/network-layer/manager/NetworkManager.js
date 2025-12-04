@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.NetworkManager = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,14 +13,19 @@ exports.NetworkManager = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const PromiseUtil_1 = require("../../../utils/PromiseUtil");
-const RequestHandler_1 = require("../handlers/RequestHandler");
-const GlobalRequestModel_1 = require("../models/GlobalRequestModel");
-const constants_1 = require("../../../constants");
-const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
-const LogManager_1 = require("../../logger/core/LogManager");
-const ApiEnum_1 = require("../../../enums/ApiEnum");
-class NetworkManager {
+import { Deferred } from '../../../utils/PromiseUtil.js';
+import { RequestHandler } from '../handlers/RequestHandler.js';
+import { GlobalRequestModel } from '../models/GlobalRequestModel.js';
+import { Constants } from '../../../constants/index.js';
+import { isBoolean, isNumber } from '../../../utils/DataTypeUtil.js';
+import { LogManager } from '../../logger/core/LogManager.js';
+import { ApiEnum } from '../../../enums/ApiEnum.js';
+import { NetworkServerLessClient } from '../client/NetworkServerLessClient.js';
+import { NetworkBrowserClient } from '../client/NetworkBrowserClient.js';
+import { buildMessage } from '../../../utils/LogMessageUtil.js';
+import { DebugLogMessagesEnum } from '../../../enums/log-messages/index.js';
+import { HTTPS_PROTOCOL } from '../../../constants/Url.js';
+export class NetworkManager {
     /**
      * Validates the retry configuration parameters
      * @param {IRetryConfig} retryConfig - The retry configuration to validate
@@ -33,48 +35,48 @@ class NetworkManager {
         const validatedConfig = { ...retryConfig };
         let isInvalidConfig = false;
         // Validate shouldRetry: should be a boolean value
-        if (!(0, DataTypeUtil_1.isBoolean)(validatedConfig.shouldRetry)) {
-            validatedConfig.shouldRetry = constants_1.Constants.DEFAULT_RETRY_CONFIG.shouldRetry;
+        if (!isBoolean(validatedConfig.shouldRetry)) {
+            validatedConfig.shouldRetry = Constants.DEFAULT_RETRY_CONFIG.shouldRetry;
             isInvalidConfig = true;
         }
         // Validate maxRetries: should be a non-negative integer and should not be less than 1
-        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.maxRetries) ||
+        if (!isNumber(validatedConfig.maxRetries) ||
             !Number.isInteger(validatedConfig.maxRetries) ||
             validatedConfig.maxRetries < 1) {
-            validatedConfig.maxRetries = constants_1.Constants.DEFAULT_RETRY_CONFIG.maxRetries;
+            validatedConfig.maxRetries = Constants.DEFAULT_RETRY_CONFIG.maxRetries;
             isInvalidConfig = true;
         }
         // Validate initialDelay: should be a non-negative integer and should not be less than 1
-        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.initialDelay) ||
+        if (!isNumber(validatedConfig.initialDelay) ||
             !Number.isInteger(validatedConfig.initialDelay) ||
             validatedConfig.initialDelay < 1) {
-            validatedConfig.initialDelay = constants_1.Constants.DEFAULT_RETRY_CONFIG.initialDelay;
+            validatedConfig.initialDelay = Constants.DEFAULT_RETRY_CONFIG.initialDelay;
             isInvalidConfig = true;
         }
         // Validate backoffMultiplier: should be a non-negative integer and should not be less than 2
-        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.backoffMultiplier) ||
+        if (!isNumber(validatedConfig.backoffMultiplier) ||
             !Number.isInteger(validatedConfig.backoffMultiplier) ||
             validatedConfig.backoffMultiplier < 2) {
-            validatedConfig.backoffMultiplier = constants_1.Constants.DEFAULT_RETRY_CONFIG.backoffMultiplier;
+            validatedConfig.backoffMultiplier = Constants.DEFAULT_RETRY_CONFIG.backoffMultiplier;
             isInvalidConfig = true;
         }
         if (isInvalidConfig) {
-            LogManager_1.LogManager.Instance.errorLog('INVALID_RETRY_CONFIG', {
+            LogManager.Instance.errorLog('INVALID_RETRY_CONFIG', {
                 retryConfig: JSON.stringify(validatedConfig),
-            }, { an: ApiEnum_1.ApiEnum.INIT });
+            }, { an: ApiEnum.INIT });
         }
-        return isInvalidConfig ? constants_1.Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
+        return isInvalidConfig ? Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
     }
     /**
      * Attaches a network client to the manager, or uses a default if none provided.
      * @param {NetworkClientInterface} client - The client to attach, optional.
      * @param {IRetryConfig} retryConfig - The retry configuration, optional.
      */
-    attachClient(client, retryConfig) {
+    attachClient(client, retryConfig, shouldWaitForTrackingCalls = false) {
         // Only set retry configuration if it's not already initialized or if a new config is provided
         if (!this.retryConfig || retryConfig) {
             // Define default retry configuration
-            const defaultRetryConfig = constants_1.Constants.DEFAULT_RETRY_CONFIG;
+            const defaultRetryConfig = Constants.DEFAULT_RETRY_CONFIG;
             // Merge provided retryConfig with defaults, giving priority to provided values
             const mergedConfig = {
                 ...defaultRetryConfig,
@@ -82,29 +84,45 @@ class NetworkManager {
             };
             // Validate the merged configuration
             this.retryConfig = this.validateRetryConfig(mergedConfig);
+            // If shouldWaitForTrackingCalls is true, set shouldRetry to false
+            // This is because we don't want to retry the request if the SDK is waiting for a network response (serverless mode)
+            if (shouldWaitForTrackingCalls) {
+                this.retryConfig.shouldRetry = false;
+            }
         }
         // if env is undefined, we are in browser
         if (typeof process === 'undefined') {
             // if XMLHttpRequest is undefined, we are in serverless
             if (typeof XMLHttpRequest === 'undefined') {
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                const { NetworkServerLessClient } = require('../client/NetworkServerLessClient');
                 this.client = client || new NetworkServerLessClient();
             }
             else {
+                LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                    api: 'xhr',
+                    process: 'undefined',
+                }));
                 // if XMLHttpRequest is defined, we are in browser
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                const { NetworkBrowserClient } = require('../client/NetworkBrowserClient');
                 this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
             }
         }
         else {
-            // if env is defined, we are in node
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const { NetworkClient } = require('../client/NetworkClient');
-            this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+            // if env is defined, we expect to be in Node
+            // In CommonJS builds `require` exists; in pure ESM it does not.
+            if (typeof require === 'function') {
+                LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                    api: HTTPS_PROTOCOL,
+                    process: 'defined',
+                }));
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                const { NetworkClient } = require('../client/NetworkClient');
+                this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+            }
+            else {
+                // Node ESM runtime: fall back to the fetch-based client which is compatible everywhere
+                this.client = client || new NetworkServerLessClient();
+            }
         }
-        this.config = new GlobalRequestModel_1.GlobalRequestModel(null, null, null, null); // Initialize with default config
+        this.config = new GlobalRequestModel(null, null, null, null); // Initialize with default config
     }
     /**
      * Retrieves the current retry configuration.
@@ -141,7 +159,7 @@ class NetworkManager {
      * @returns {RequestModel} The merged request model.
      */
     createRequest(request) {
-        const options = new RequestHandler_1.RequestHandler().createRequest(request, this.config); // Merge and create request
+        const options = new RequestHandler().createRequest(request, this.config); // Merge and create request
         return options;
     }
     /**
@@ -150,7 +168,7 @@ class NetworkManager {
      * @returns {Promise<ResponseModel>} A promise that resolves to the response model.
      */
     get(request) {
-        const deferred = new PromiseUtil_1.Deferred(); // Create a new deferred promise
+        const deferred = new Deferred(); // Create a new deferred promise
         const networkOptions = this.createRequest(request); // Create network request options
         if (!networkOptions.getUrl()) {
             deferred.reject(new Error('no url found')); // Reject if no URL is found
@@ -173,7 +191,7 @@ class NetworkManager {
      * @returns {Promise<ResponseModel>} A promise that resolves to the response model.
      */
     post(request) {
-        const deferred = new PromiseUtil_1.Deferred(); // Create a new deferred promise
+        const deferred = new Deferred(); // Create a new deferred promise
         const networkOptions = this.createRequest(request); // Create network request options
         if (!networkOptions.getUrl()) {
             deferred.reject(new Error('no url found')); // Reject if no URL is found
@@ -191,5 +209,4 @@ class NetworkManager {
         return deferred.promise; // Return the promise
     }
 }
-exports.NetworkManager = NetworkManager;
 //# sourceMappingURL=NetworkManager.js.map

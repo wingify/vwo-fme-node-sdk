@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractDecisionKeys = extractDecisionKeys;
-exports.sendDebugEventToVWO = sendDebugEventToVWO;
-const NetworkUtil_1 = require("./NetworkUtil");
-const EventEnum_1 = require("../enums/EventEnum");
+import { getDebuggerEventPayload, getEventsBaseProperties, sendEvent } from './NetworkUtil.js';
+import { EventEnum } from '../enums/EventEnum.js';
 /**
  * Utility functions for handling debugger service operations including
  * filtering sensitive properties and extracting decision keys.
@@ -28,7 +24,7 @@ const EventEnum_1 = require("../enums/EventEnum");
  * @param decisionObj - The decision object to extract fields from
  * @returns An object containing only rolloutKey and experimentKey if they exist
  */
-function extractDecisionKeys(decisionObj = {}) {
+export function extractDecisionKeys(decisionObj = {}) {
     const extractedKeys = {};
     // Extract rolloutKey if present
     if (decisionObj.rolloutId) {
@@ -53,12 +49,12 @@ function extractDecisionKeys(decisionObj = {}) {
  * @param eventProps - The properties for the event.
  * @returns A promise that resolves when the event is sent.
  */
-async function sendDebugEventToVWO(eventProps = {}) {
+export async function sendDebugEventToVWO(eventProps = {}) {
     // create query parameters
-    const properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, null, null);
+    const properties = getEventsBaseProperties(EventEnum.VWO_DEBUGGER_EVENT, null, null);
     // create payload
-    const payload = (0, NetworkUtil_1.getDebuggerEventPayload)(eventProps);
+    const payload = getDebuggerEventPayload(eventProps);
     // send event
-    await (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT).catch(() => { });
+    await sendEvent(properties, payload, EventEnum.VWO_DEBUGGER_EVENT).catch(() => { });
 }
 //# sourceMappingURL=DebuggerServiceUtil.js.map

@@ -1,7 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendGetCall = sendGetCall;
-exports.sendPostCall = sendPostCall;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -17,17 +13,17 @@ exports.sendPostCall = sendPostCall;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
-const logger_1 = require("../packages/logger");
-const EventEnum_1 = require("../enums/EventEnum");
-const ResponseModel_1 = require("../packages/network-layer/models/ResponseModel");
-const FunctionUtil_1 = require("./FunctionUtil");
+import { HttpMethodEnum } from '../enums/HttpMethodEnum.js';
+import { LogManager } from '../packages/logger/index.js';
+import { EventEnum } from '../enums/EventEnum.js';
+import { ResponseModel } from '../packages/network-layer/models/ResponseModel.js';
+import { getFormattedErrorMessage } from './FunctionUtil.js';
 const noop = () => { };
-function sendGetCall(options) {
-    sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options);
+export function sendGetCall(options) {
+    sendRequest(HttpMethodEnum.GET, options);
 }
-function sendPostCall(options) {
-    sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options);
+export function sendPostCall(options) {
+    sendRequest(HttpMethodEnum.POST, options);
 }
 function sendRequest(method, options) {
     const { requestModel, successCallback = noop, errorCallback = noop } = options;
@@ -37,7 +33,7 @@ function sendRequest(method, options) {
     const maxRetries = networkOptions.retryConfig.maxRetries;
     function executeRequest() {
         // Extract network options from the request model.
-        const responseModel = new ResponseModel_1.ResponseModel();
+        const responseModel = new ResponseModel();
         let url = `${networkOptions.scheme}://${networkOptions.hostname}${networkOptions.path}`;
         if (networkOptions.port) {
             url = `${networkOptions.scheme}://${networkOptions.hostname}:${networkOptions.port}${networkOptions.path}`;
@@ -58,7 +54,7 @@ function sendRequest(method, options) {
                     responseModel.setTotalAttempts(retryCount);
                     responseModel.setError(requestModel.getLastError());
                 }
-                if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+                if (method === HttpMethodEnum.GET) {
                     const parsedResponse = JSON.parse(response);
                     responseModel.setData(parsedResponse);
                     successCallback(responseModel);
@@ -91,9 +87,9 @@ function sendRequest(method, options) {
                     Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) *
                     1000; // Exponential backoff
                 retryCount++;
-                logger_1.LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+                LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
                     endPoint: url.split('?')[0],
-                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                    err: getFormattedErrorMessage(error),
                     delay: delay / 1000,
                     attempt: retryCount,
                     maxRetries: maxRetries,
@@ -102,15 +98,15 @@ function sendRequest(method, options) {
                 setTimeout(executeRequest, delay);
             }
             else {
-                if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_LOG_EVENT)) {
-                    logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+                if (!String(networkOptions.path).includes(EventEnum.VWO_DEBUGGER_EVENT)) {
+                    LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
                         extraData: url.split('?')[0],
                         attempts: retryCount,
-                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                        err: getFormattedErrorMessage(error),
                     }, {}, false);
                 }
                 responseModel.setTotalAttempts(retryCount);
-                responseModel.setError((0, FunctionUtil_1.getFormattedErrorMessage)(error));
+                responseModel.setError(getFormattedErrorMessage(error));
                 errorCallback(responseModel);
             }
         }
@@ -124,10 +120,10 @@ function sendRequest(method, options) {
                 }
             }
         }
-        if (method === HttpMethodEnum_1.HttpMethodEnum.POST && typeof body !== 'string') {
+        if (method === HttpMethodEnum.POST && typeof body !== 'string') {
             xhr.send(JSON.stringify(body));
         }
-        else if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+        else if (method === HttpMethodEnum.GET) {
             xhr.send();
         }
     }

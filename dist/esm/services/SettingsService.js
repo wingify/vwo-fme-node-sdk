@@ -1,21 +1,18 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SettingsService = void 0;
-const storage_1 = require("../packages/storage");
-const logger_1 = require("../packages/logger");
-const network_layer_1 = require("../packages/network-layer");
-const PromiseUtil_1 = require("../utils/PromiseUtil");
-const constants_1 = require("../constants");
-const Url_1 = require("../constants/Url");
-const HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
-const log_messages_1 = require("../enums/log-messages");
-const SettingsSchemaValidation_1 = require("../models/schemas/SettingsSchemaValidation");
-const LogMessageUtil_1 = require("../utils/LogMessageUtil");
-const NetworkUtil_1 = require("../utils/NetworkUtil");
-const DebuggerServiceUtil_1 = require("../utils/DebuggerServiceUtil");
-const FunctionUtil_1 = require("../utils/FunctionUtil");
-const ApiEnum_1 = require("../enums/ApiEnum");
-class SettingsService {
+import { Storage } from '../packages/storage/index.js';
+import { LogManager } from '../packages/logger/index.js';
+import { NetworkManager, RequestModel } from '../packages/network-layer/index.js';
+import { Deferred } from '../utils/PromiseUtil.js';
+import { Constants } from '../constants/index.js';
+import { HTTPS_PROTOCOL, HTTP_PROTOCOL } from '../constants/Url.js';
+import { HttpMethodEnum } from '../enums/HttpMethodEnum.js';
+import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages/index.js';
+import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation.js';
+import { buildMessage } from '../utils/LogMessageUtil.js';
+import { createNetWorkAndRetryDebugEvent, getSettingsPath } from '../utils/NetworkUtil.js';
+import { sendDebugEventToVWO } from '../utils/DebuggerServiceUtil.js';
+import { getFormattedErrorMessage } from '../utils/FunctionUtil.js';
+import { ApiEnum } from '../enums/ApiEnum.js';
+export class SettingsService {
     constructor(options) {
         this.isGatewayServiceProvided = false;
         this.settingsFetchTime = undefined; //time taken to fetch the settings
@@ -28,8 +25,8 @@ class SettingsService {
         };
         this.sdkKey = options.sdkKey;
         this.accountId = options.accountId;
-        this.expiry = options?.settings?.expiry || constants_1.Constants.SETTINGS_EXPIRY;
-        this.networkTimeout = options?.settings?.timeout || constants_1.Constants.SETTINGS_TIMEOUT;
+        this.expiry = options?.settings?.expiry || Constants.SETTINGS_EXPIRY;
+        this.networkTimeout = options?.settings?.timeout || Constants.SETTINGS_TIMEOUT;
         // if sdk is running in browser environment then set isGatewayServiceProvided to true
         // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
         // Check if sdk running in browser and not in edge/serverless environment
@@ -39,11 +36,11 @@ class SettingsService {
             if (options?.proxyUrl) {
                 this.proxyProvided = true;
                 let parsedUrl;
-                if (options.proxyUrl.startsWith(Url_1.HTTP_PROTOCOL) || options.proxyUrl.startsWith(Url_1.HTTPS_PROTOCOL)) {
+                if (options.proxyUrl.startsWith(HTTP_PROTOCOL) || options.proxyUrl.startsWith(HTTPS_PROTOCOL)) {
                     parsedUrl = new URL(`${options.proxyUrl}`);
                 }
                 else {
-                    parsedUrl = new URL(`${Url_1.HTTPS_PROTOCOL}${options.proxyUrl}`);
+                    parsedUrl = new URL(`${HTTPS_PROTOCOL}${options.proxyUrl}`);
                 }
                 this.hostname = parsedUrl.hostname;
                 this.protocol = parsedUrl.protocol.replace(':', '');
@@ -56,15 +53,15 @@ class SettingsService {
         if (options?.gatewayService?.url) {
             let parsedUrl;
             this.isGatewayServiceProvided = true;
-            if (options.gatewayService.url.startsWith(Url_1.HTTP_PROTOCOL) ||
-                options.gatewayService.url.startsWith(Url_1.HTTPS_PROTOCOL)) {
+            if (options.gatewayService.url.startsWith(HTTP_PROTOCOL) ||
+                options.gatewayService.url.startsWith(HTTPS_PROTOCOL)) {
                 parsedUrl = new URL(`${options.gatewayService.url}`);
             }
             else if (options.gatewayService?.protocol) {
                 parsedUrl = new URL(`${options.gatewayService.protocol}://${options.gatewayService.url}`);
             }
             else {
-                parsedUrl = new URL(`${Url_1.HTTPS_PROTOCOL}${options.gatewayService.url}`);
+                parsedUrl = new URL(`${HTTPS_PROTOCOL}${options.gatewayService.url}`);
             }
             // dont replace the hostname, protocol and port if proxy is provided
             if (!this.proxyProvided) {
@@ -90,13 +87,13 @@ class SettingsService {
         }
         else {
             if (!this.proxyProvided) {
-                this.hostname = constants_1.Constants.HOST_NAME;
+                this.hostname = Constants.HOST_NAME;
             }
         }
         // if (this.expiry > 0) {
         //   this.setSettingsExpiry();
         // }
-        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+        LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: 'Settings Manager',
         }));
         SettingsService.instance = this;
@@ -129,26 +126,26 @@ class SettingsService {
         try {
             const cachedSettings = await storageConnector.getSettingsFromStorage(this.sdkKey, this.accountId);
             if (cachedSettings) {
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
+                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
                 deferredObject.resolve(cachedSettings);
             }
             else {
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
+                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
                 const freshSettings = await this.fetchSettings();
                 const normalizedSettings = await this.normalizeSettings(freshSettings);
                 // set the settings in storage only if settings are valid
-                this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
+                this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
                 if (this.isSettingsValid) {
                     await storageConnector.setSettingsInStorage(normalizedSettings);
                 }
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
+                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
                 deferredObject.resolve(normalizedSettings);
             }
         }
         catch (error) {
-            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
-                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-            }, { an: constants_1.Constants.BROWSER_STORAGE }, false);
+            LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                err: getFormattedErrorMessage(error),
+            }, { an: Constants.BROWSER_STORAGE }, false);
             deferredObject.resolve(null);
         }
     }
@@ -159,15 +156,15 @@ class SettingsService {
             deferredObject.resolve(normalizedSettings);
         }
         catch (error) {
-            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
-                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-            }, { an: ApiEnum_1.ApiEnum.INIT }, false);
+            LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                err: getFormattedErrorMessage(error),
+            }, { an: ApiEnum.INIT }, false);
             deferredObject.resolve(null);
         }
     }
     fetchSettingsAndCacheInStorage() {
-        const deferredObject = new PromiseUtil_1.Deferred();
-        const storageConnector = storage_1.Storage.Instance.getConnector();
+        const deferredObject = new Deferred();
+        const storageConnector = Storage.Instance.getConnector();
         if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
             this.handleBrowserEnvironment(storageConnector, deferredObject);
         }
@@ -176,29 +173,29 @@ class SettingsService {
         }
         return deferredObject.promise;
     }
-    fetchSettings(isViaWebhook = false, apiName = ApiEnum_1.ApiEnum.INIT) {
-        const deferredObject = new PromiseUtil_1.Deferred();
+    fetchSettings(isViaWebhook = false, apiName = ApiEnum.INIT) {
+        const deferredObject = new Deferred();
         if (!this.sdkKey || !this.accountId) {
             deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
         }
-        const networkInstance = network_layer_1.NetworkManager.Instance;
-        const options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
+        const networkInstance = NetworkManager.Instance;
+        const options = getSettingsPath(this.sdkKey, this.accountId);
         const retryConfig = networkInstance.getRetryConfig();
-        options.platform = constants_1.Constants.PLATFORM;
-        options.sn = constants_1.Constants.SDK_NAME;
-        options.sv = constants_1.Constants.SDK_VERSION;
-        options['api-version'] = constants_1.Constants.API_VERSION;
+        options.platform = Constants.PLATFORM;
+        options.sn = Constants.SDK_NAME;
+        options.sv = Constants.SDK_VERSION;
+        options['api-version'] = Constants.API_VERSION;
         if (!networkInstance.getConfig().getDevelopmentMode()) {
             options.s = 'prod';
         }
-        let path = constants_1.Constants.SETTINGS_ENDPOINT;
+        let path = Constants.SETTINGS_ENDPOINT;
         if (isViaWebhook) {
-            path = constants_1.Constants.WEBHOOK_SETTINGS_ENDPOINT;
+            path = Constants.WEBHOOK_SETTINGS_ENDPOINT;
         }
         try {
             //record the current timestamp
             const startTime = Date.now();
-            const request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
+            const request = new RequestModel(this.hostname, HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
             request.setTimeout(this.networkTimeout);
             networkInstance
                 .get(request)
@@ -207,30 +204,30 @@ class SettingsService {
                 this.settingsFetchTime = Date.now() - startTime;
                 // if attempt is more than 0
                 if (response.getTotalAttempts() > 0) {
-                    const debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
+                    const debugEventProps = createNetWorkAndRetryDebugEvent(response, '', isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName, path);
                     // send debug event
-                    (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                    sendDebugEventToVWO(debugEventProps);
                 }
                 deferredObject.resolve(response.getData());
             })
                 .catch((err) => {
-                const debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(err, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
+                const debugEventProps = createNetWorkAndRetryDebugEvent(err, '', isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName, path);
                 // send debug event
-                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                sendDebugEventToVWO(debugEventProps);
                 deferredObject.reject(err);
             });
             return deferredObject.promise;
         }
         catch (err) {
-            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
-                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
-            }, { an: isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName }, false);
+            LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                err: getFormattedErrorMessage(err),
+            }, { an: isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName }, false);
             deferredObject.reject(err);
             return deferredObject.promise;
         }
     }
     getSettings(forceFetch = false) {
-        const deferredObject = new PromiseUtil_1.Deferred();
+        const deferredObject = new Deferred();
         if (forceFetch) {
             this.fetchSettingsAndCacheInStorage().then((settings) => {
                 deferredObject.resolve(settings);
@@ -262,14 +259,14 @@ class SettingsService {
             //     });
             // } else {
             this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-                const isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(fetchedSettings);
+                const isSettingsValid = new SettingsSchema().isSettingsValid(fetchedSettings);
                 this.isSettingsValid = isSettingsValid;
                 if (this.isSettingsValid) {
-                    logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+                    LogManager.Instance.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
                     deferredObject.resolve(fetchedSettings);
                 }
                 else {
-                    logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                    LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
                     deferredObject.resolve({});
                 }
             });
@@ -277,5 +274,4 @@ class SettingsService {
         return deferredObject.promise;
     }
 }
-exports.SettingsService = SettingsService;
 //# sourceMappingURL=SettingsService.js.map

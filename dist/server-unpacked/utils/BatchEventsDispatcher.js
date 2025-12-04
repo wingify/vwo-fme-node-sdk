@@ -94,7 +94,6 @@ var BatchEventsDispatcher = /** @class */ (function () {
             return __generator(this, function (_b) {
                 deferred = new PromiseUtil_1.Deferred();
                 networkManager = network_layer_2.NetworkManager.Instance;
-                networkManager.attachClient();
                 retryConfig = networkManager.getRetryConfig();
                 headers = {};
                 headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;

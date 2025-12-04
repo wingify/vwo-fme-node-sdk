@@ -1,12 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Storage = void 0;
 // TODO: move to file
 // enum ConnectorEnum {
 //   MEMORY = 'memory',
 //   REDIS = 'redis'
 // }
-class Storage {
+export class Storage {
     // public storageType: dynamic;
     attachConnector(connector) {
         if (connector?.prototype?.constructor?.toString()?.trim()?.substring(0, 5) === 'class') {
@@ -25,5 +22,4 @@ class Storage {
         return this.connector;
     }
 }
-exports.Storage = Storage;
 //# sourceMappingURL=Storage.js.map

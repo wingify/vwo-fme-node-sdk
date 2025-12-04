@@ -34,6 +34,11 @@ var constants_1 = require("../../../constants");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var LogManager_1 = require("../../logger/core/LogManager");
 var ApiEnum_1 = require("../../../enums/ApiEnum");
+var NetworkServerLessClient_1 = require("../client/NetworkServerLessClient");
+var NetworkBrowserClient_1 = require("../client/NetworkBrowserClient");
+var LogMessageUtil_1 = require("../../../utils/LogMessageUtil");
+var log_messages_1 = require("../../../enums/log-messages");
+var Url_1 = require("../../../constants/Url");
 var NetworkManager = /** @class */ (function () {
     function NetworkManager() {
     }
@@ -83,7 +88,8 @@ var NetworkManager = /** @class */ (function () {
      * @param {NetworkClientInterface} client - The client to attach, optional.
      * @param {IRetryConfig} retryConfig - The retry configuration, optional.
      */
-    NetworkManager.prototype.attachClient = function (client, retryConfig) {
+    NetworkManager.prototype.attachClient = function (client, retryConfig, shouldWaitForTrackingCalls) {
+        if (shouldWaitForTrackingCalls === void 0) { shouldWaitForTrackingCalls = false; }
         // Only set retry configuration if it's not already initialized or if a new config is provided
         if (!this.retryConfig || retryConfig) {
             // Define default retry configuration
@@ -92,27 +98,43 @@ var NetworkManager = /** @class */ (function () {
             var mergedConfig = __assign(__assign({}, defaultRetryConfig), (retryConfig || {}));
             // Validate the merged configuration
             this.retryConfig = this.validateRetryConfig(mergedConfig);
+            // If shouldWaitForTrackingCalls is true, set shouldRetry to false
+            // This is because we don't want to retry the request if the SDK is waiting for a network response (serverless mode)
+            if (shouldWaitForTrackingCalls) {
+                this.retryConfig.shouldRetry = false;
+            }
         }
         // if env is undefined, we are in browser
         if (typeof process === 'undefined') {
             // if XMLHttpRequest is undefined, we are in serverless
             if (typeof XMLHttpRequest === 'undefined') {
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                var NetworkServerLessClient = require('../client/NetworkServerLessClient').NetworkServerLessClient;
-                this.client = client || new NetworkServerLessClient();
+                this.client = client || new NetworkServerLessClient_1.NetworkServerLessClient();
             }
             else {
+                LogManager_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                    api: 'xhr',
+                    process: 'undefined',
+                }));
                 // if XMLHttpRequest is defined, we are in browser
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                var NetworkBrowserClient = require('../client/NetworkBrowserClient').NetworkBrowserClient;
-                this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+                this.client = client || new NetworkBrowserClient_1.NetworkBrowserClient(); // Use provided client or default to NetworkClient
             }
         }
         else {
-            // if env is defined, we are in node
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            var NetworkClient = require('../client/NetworkClient').NetworkClient;
-            this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+            // if env is defined, we expect to be in Node
+            // In CommonJS builds `require` exists; in pure ESM it does not.
+            if (typeof require === 'function') {
+                LogManager_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                    api: Url_1.HTTPS_PROTOCOL,
+                    process: 'defined',
+                }));
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                var NetworkClient = require('../client/NetworkClient').NetworkClient;
+                this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+            }
+            else {
+                // Node ESM runtime: fall back to the fetch-based client which is compatible everywhere
+                this.client = client || new NetworkServerLessClient_1.NetworkServerLessClient();
+            }
         }
         this.config = new GlobalRequestModel_1.GlobalRequestModel(null, null, null, null); // Initialize with default config
     };

@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as messages from 'vwo-fme-sdk-log-messages';
+import messages from 'vwo-fme-sdk-log-messages';
 
-const DebugLogMessagesEnum = messages.debugMessages;
-const InfoLogMessagesEnum = messages.infoMessages;
-const ErrorLogMessagesEnum = messages.errorMessagesV2;
+const resolvedMessages: Record<string, any> =
+  (messages as unknown as { default?: Record<string, any> }).default || (messages as Record<string, any>);
+
+const DebugLogMessagesEnum = resolvedMessages.debugMessages;
+const InfoLogMessagesEnum = resolvedMessages.infoMessages;
+const ErrorLogMessagesEnum = resolvedMessages.errorMessagesV2;
 
 export { DebugLogMessagesEnum, InfoLogMessagesEnum, ErrorLogMessagesEnum };

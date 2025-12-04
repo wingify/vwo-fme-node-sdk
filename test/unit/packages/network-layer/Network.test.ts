@@ -19,6 +19,20 @@ import { GlobalRequestModel, RequestModel, ResponseModel } from '../../../../lib
 
 jest.mock('../../../../lib/packages/network-layer/client/NetworkClient'); // Mock the NetworkClient if it's used as a default client
 
+// Mock LogManager
+jest.mock('../../../../lib/packages/logger/core/LogManager', () => ({
+  LogManager: {
+    Instance: {
+      debug: jest.fn(),
+      errorLog: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+      trace: jest.fn(),
+    },
+  },
+}));
+
 describe('NetworkManager', () => {
   let networkManager: NetworkManager;
   let mockClient: jest.Mocked<NetworkClientInterface>;

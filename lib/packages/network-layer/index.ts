@@ -14,17 +14,6 @@
  * limitations under the License.
  */
 
-let NetworkClient;
-
-if ((typeof process as any) === 'undefined') {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  NetworkClient = require('./client/NetworkBrowserClient').NetworkBrowserClient;
-} else {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  NetworkClient = require('./client/NetworkClient').NetworkClient;
-}
-
-export { NetworkClient };
 export { NetworkClientInterface } from './client/NetworkClientInterface';
 export { NetworkManager } from './manager/NetworkManager';
 export { GlobalRequestModel } from './models/GlobalRequestModel';

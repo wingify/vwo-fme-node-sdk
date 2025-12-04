@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CampaignDecisionService = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,15 +13,15 @@ exports.CampaignDecisionService = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const decision_maker_1 = require("../packages/decision-maker");
-const logger_1 = require("../packages/logger");
-const segmentation_evaluator_1 = require("../packages/segmentation-evaluator");
-const constants_1 = require("../constants");
-const CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
-const log_messages_1 = require("../enums/log-messages");
-const DataTypeUtil_1 = require("../utils/DataTypeUtil");
-const LogMessageUtil_1 = require("../utils/LogMessageUtil");
-class CampaignDecisionService {
+import { DecisionMaker } from '../packages/decision-maker/index.js';
+import { LogManager } from '../packages/logger/index.js';
+import { SegmentationManager } from '../packages/segmentation-evaluator/index.js';
+import { Constants } from '../constants/index.js';
+import { CampaignTypeEnum } from '../enums/CampaignTypeEnum.js';
+import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages/index.js';
+import { isObject } from '../utils/DataTypeUtil.js';
+import { buildMessage } from '../utils/LogMessageUtil.js';
+export class CampaignDecisionService {
     /**
      * Calculate if this user should become part of the campaign or not
      *
@@ -41,7 +38,7 @@ class CampaignDecisionService {
             return false;
         }
         // check if campaign is rollout or personalize
-        const isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+        const isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE;
         // get salt
         const salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
         // get traffic allocation
@@ -49,13 +46,13 @@ class CampaignDecisionService {
         // get bucket key
         const bucketKey = salt ? `${salt}_${userId}` : `${campaign.getId()}_${userId}`;
         // get bucket value for user
-        const valueAssignedToUser = new decision_maker_1.DecisionMaker().getBucketValueForUser(bucketKey);
+        const valueAssignedToUser = new DecisionMaker().getBucketValueForUser(bucketKey);
         // check if user is part of campaign
         const isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
+        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
             userId,
             notPart: isUserPart ? '' : 'not',
-            campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+            campaignKey: campaign.getType() === CampaignTypeEnum.AB
                 ? campaign.getKey()
                 : campaign.getName() + '_' + campaign.getRuleKey(),
         }));
@@ -105,9 +102,9 @@ class CampaignDecisionService {
         // get bucket key
         const bucketKey = salt ? `${salt}_${accountId}_${userId}` : `${campaign.getId()}_${accountId}_${userId}`;
         // get hash value
-        const hashValue = new decision_maker_1.DecisionMaker().generateHashValue(bucketKey);
-        const bucketValue = new decision_maker_1.DecisionMaker().generateBucketValue(hashValue, constants_1.Constants.MAX_TRAFFIC_VALUE, multiplier);
-        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
+        const hashValue = new DecisionMaker().generateHashValue(bucketKey);
+        const bucketValue = new DecisionMaker().generateBucketValue(hashValue, Constants.MAX_TRAFFIC_VALUE, multiplier);
+        LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
             userId,
             campaignKey: campaign.getKey(),
             percentTraffic,
@@ -120,36 +117,36 @@ class CampaignDecisionService {
         // validate segmentation
         const campaignType = campaign.getType();
         let segments = {};
-        if (campaignType === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaignType === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+        if (campaignType === CampaignTypeEnum.ROLLOUT || campaignType === CampaignTypeEnum.PERSONALIZE) {
             segments = campaign.getVariations()[0].getSegments();
         }
-        else if (campaignType === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
+        else if (campaignType === CampaignTypeEnum.AB) {
             segments = campaign.getSegments();
         }
-        if ((0, DataTypeUtil_1.isObject)(segments) && !Object.keys(segments).length) {
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_SKIP, {
+        if (isObject(segments) && !Object.keys(segments).length) {
+            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_SKIP, {
                 userId: context.getId(),
-                campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+                campaignKey: campaign.getType() === CampaignTypeEnum.AB
                     ? campaign.getKey()
                     : campaign.getName() + '_' + campaign.getRuleKey(),
             }));
             return true;
         }
         else {
-            const preSegmentationResult = await segmentation_evaluator_1.SegmentationManager.Instance.validateSegmentation(segments, context.getCustomVariables());
+            const preSegmentationResult = await SegmentationManager.Instance.validateSegmentation(segments, context.getCustomVariables());
             if (!preSegmentationResult) {
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
+                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
                     userId: context.getId(),
-                    campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+                    campaignKey: campaign.getType() === CampaignTypeEnum.AB
                         ? campaign.getKey()
                         : campaign.getName() + '_' + campaign.getRuleKey(),
                     status: 'failed',
                 }));
                 return false;
             }
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
+            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
                 userId: context.getId(),
-                campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+                campaignKey: campaign.getType() === CampaignTypeEnum.AB
                     ? campaign.getKey()
                     : campaign.getName() + '_' + campaign.getRuleKey(),
                 status: 'passed',
@@ -159,7 +156,7 @@ class CampaignDecisionService {
     }
     getVariationAlloted(userId, accountId, campaign) {
         const isUserPart = this.isUserPartOfCampaign(userId, campaign);
-        if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+        if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
             if (isUserPart) {
                 return campaign.getVariations()[0];
             }
@@ -177,5 +174,4 @@ class CampaignDecisionService {
         }
     }
 }
-exports.CampaignDecisionService = CampaignDecisionService;
 //# sourceMappingURL=CampaignDecisionService.js.map

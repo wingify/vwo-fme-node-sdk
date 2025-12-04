@@ -54,7 +54,6 @@ export class BatchEventsDispatcher {
   ): Promise<Record<string, any>> {
     const deferred = new Deferred();
     const networkManager = NetworkManager.Instance;
-    networkManager.attachClient();
     const retryConfig = networkManager.getRetryConfig();
 
     const headers: Record<string, string> = {};

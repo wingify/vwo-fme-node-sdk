@@ -1,39 +1,3 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.NetworkClient = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -49,18 +13,18 @@ exports.NetworkClient = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const http = __importStar(require("http"));
-const https = __importStar(require("https"));
-const PromiseUtil_1 = require("../../../utils/PromiseUtil");
-const Url_1 = require("../../../constants/Url");
-const ResponseModel_1 = require("../models/ResponseModel");
-const logger_1 = require("../../../packages/logger");
-const EventEnum_1 = require("../../../enums/EventEnum");
-const FunctionUtil_1 = require("../../../utils/FunctionUtil");
+import * as http from 'http';
+import * as https from 'https';
+import { Deferred } from '../../../utils/PromiseUtil.js';
+import { HTTPS } from '../../../constants/Url.js';
+import { ResponseModel } from '../models/ResponseModel.js';
+import { LogManager } from '../../../packages/logger/index.js';
+import { EventEnum } from '../../../enums/EventEnum.js';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
-class NetworkClient {
+export class NetworkClient {
     /**
      * Performs a GET request using the provided RequestModel.
      * @param {RequestModel} requestModel - The model containing request options.
@@ -68,13 +32,13 @@ class NetworkClient {
      */
     GET(requestModel) {
         const attemptRequest = (attempt) => {
-            const deferred = new PromiseUtil_1.Deferred();
+            const deferred = new Deferred();
             // Extract network options from the request model.
             const networkOptions = requestModel.getOptions();
-            const responseModel = new ResponseModel_1.ResponseModel();
+            const responseModel = new ResponseModel();
             try {
                 // Choose HTTP or HTTPS client based on the scheme.
-                const httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
+                const httpClient = networkOptions.scheme === HTTPS ? https : http;
                 // Perform the HTTP GET request.
                 const req = httpClient.get(networkOptions, (res) => {
                     responseModel.setStatusCode(res.statusCode);
@@ -146,12 +110,12 @@ class NetworkClient {
      */
     POST(request) {
         const attemptRequest = (attempt) => {
-            const deferred = new PromiseUtil_1.Deferred();
+            const deferred = new Deferred();
             const networkOptions = request.getOptions();
-            const responseModel = new ResponseModel_1.ResponseModel();
+            const responseModel = new ResponseModel();
             try {
                 // Choose HTTP or HTTPS client based on the scheme.
-                const httpClient = networkOptions.scheme === Url_1.HTTPS ? https : http;
+                const httpClient = networkOptions.scheme === HTTPS ? https : http;
                 // Perform the HTTP POST request.
                 const req = httpClient.request(networkOptions, (res) => {
                     let rawData = '';
@@ -221,9 +185,9 @@ class NetworkClient {
         const endpoint = String(networkOptions.path).split('?')[0];
         const delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, attempt) * 1000;
         if (retryConfig.shouldRetry && attempt < retryConfig.maxRetries) {
-            logger_1.LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+            LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
                 endPoint: endpoint,
-                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                err: getFormattedErrorMessage(error),
                 delay: delay / 1000,
                 attempt: attempt + 1,
                 maxRetries: retryConfig.maxRetries,
@@ -236,11 +200,11 @@ class NetworkClient {
             }, delay);
         }
         else {
-            if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_LOG_EVENT)) {
-                logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+            if (!String(networkOptions.path).includes(EventEnum.VWO_DEBUGGER_EVENT)) {
+                LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
                     extraData: endpoint,
                     attempts: attempt,
-                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                    err: getFormattedErrorMessage(error),
                 }, extraData, false);
             }
             responseModel.setTotalAttempts(attempt);
@@ -249,5 +213,4 @@ class NetworkClient {
         }
     }
 }
-exports.NetworkClient = NetworkClient;
 //# sourceMappingURL=NetworkClient.js.map

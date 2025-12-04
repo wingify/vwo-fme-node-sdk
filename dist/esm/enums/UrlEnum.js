@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.UrlEnum = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,7 +13,7 @@ exports.UrlEnum = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var UrlEnum;
+export var UrlEnum;
 (function (UrlEnum) {
     UrlEnum["EVENTS"] = "/events/t";
     UrlEnum["ATTRIBUTE_CHECK"] = "/check-attribute";
@@ -24,5 +21,5 @@ var UrlEnum;
     UrlEnum["BATCH_EVENTS"] = "/server-side/batch-events-v2";
     UrlEnum["SET_ALIAS"] = "/user-alias/setUserAlias";
     UrlEnum["GET_ALIAS"] = "/user-alias/getAliasUserId";
-})(UrlEnum || (exports.UrlEnum = UrlEnum = {}));
+})(UrlEnum || (UrlEnum = {}));
 //# sourceMappingURL=UrlEnum.js.map

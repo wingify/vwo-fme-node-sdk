@@ -14,74 +14,202 @@
  * limitations under the License.
  */
 
-import { dynamic } from '../types/Common';
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
-import { getCurrentTime } from './FunctionUtil';
+import { getFormattedErrorMessage } from './FunctionUtil';
+import { LogManager } from '../packages/logger';
+import { buildMessage } from './LogMessageUtil';
+import { DebugLogMessagesEnum, ErrorLogMessagesEnum } from '../enums/log-messages';
+import { EventEnum } from '../enums/EventEnum';
+import { ResponseModel } from '../packages/network-layer/models/ResponseModel';
+import { RequestModel } from '../packages/network-layer/models/RequestModel';
 
-export function sendGetCall(networkOptions: Record<string, dynamic>): Promise<dynamic> {
-  return sendRequest(HttpMethodEnum.GET, networkOptions);
+// Cache the fetch function to avoid re-importing on every request
+let cachedFetch: typeof fetch | null = null;
+let fetchPromise: Promise<typeof fetch> | null = null;
+
+/**
+ * Gets the fetch function to use, checking for global fetch first, then falling back to node-fetch.
+ * @returns The fetch function to use
+ */
+async function getFetch(): Promise<typeof fetch> {
+  // Return cached fetch if available
+  if (cachedFetch) {
+    return cachedFetch;
+  }
+
+  // If a fetch initialization is already in progress, wait for it
+  if (fetchPromise) {
+    return fetchPromise;
+  }
+
+  // Initialize fetch
+  fetchPromise = (async () => {
+    // Check if fetch is available globally (Node.js 18+, browsers, etc.)
+    if (typeof fetch !== 'undefined') {
+      LogManager.Instance.debug(
+        buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+          api: 'Global fetch',
+          process: typeof process === 'undefined' ? 'undefined' : 'defined',
+        }),
+      );
+      cachedFetch = fetch;
+      return fetch;
+    }
+
+    // Fallback to node-fetch for older Node.js versions
+    try {
+      LogManager.Instance.debug(
+        buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+          api: 'Node-fetch',
+          process: typeof process === 'undefined' ? 'undefined' : 'defined',
+        }),
+      );
+      // Use dynamic import with a constructed string to prevent webpack from statically analyzing it
+      // This ensures node-fetch is only loaded at runtime if needed
+      const nodeFetchModule = 'node-' + 'fetch';
+      const nodeFetch = await import(nodeFetchModule);
+      const fetchFn = (nodeFetch.default || nodeFetch) as typeof fetch;
+      cachedFetch = fetchFn;
+      return fetchFn;
+    } catch (error) {
+      LogManager.Instance.error(
+        buildMessage(ErrorLogMessagesEnum.ERROR_INITIALIZING_FETCH, {
+          error: getFormattedErrorMessage(error),
+        }),
+      );
+    }
+  })();
+
+  return fetchPromise;
 }
 
-export function sendPostCall(networkOptions: Record<string, dynamic>): Promise<dynamic> {
-  return sendRequest(HttpMethodEnum.POST, networkOptions);
+export function sendGetCall(request: RequestModel): Promise<ResponseModel> {
+  return sendRequest(HttpMethodEnum.GET, request);
+}
+
+export function sendPostCall(request: RequestModel): Promise<ResponseModel> {
+  return sendRequest(HttpMethodEnum.POST, request);
 }
 
 /**
  * Sends a request to the server using the Fetch API.
  * @param method - The HTTP method to use for the request.
- * @param networkOptions - The options for the request.
+ * @param request - The request model.
  * @returns A Promise that resolves to the response data.
  */
-function sendRequest(method: HttpMethodEnum, networkOptions: Record<string, dynamic>): Promise<dynamic> {
-  const url = `${networkOptions.scheme}://${networkOptions.hostname}${networkOptions.path}`;
-  return new Promise((resolve, reject) => {
+async function sendRequest(method: HttpMethodEnum, request: RequestModel): Promise<ResponseModel> {
+  const responseModel = new ResponseModel();
+  const networkOptions = request.getOptions();
+  let url = `${networkOptions.scheme}://${networkOptions.hostname}${networkOptions.path}`;
+  if (networkOptions.port) {
+    url = `${networkOptions.scheme}://${networkOptions.hostname}:${networkOptions.port}${networkOptions.path}`;
+  }
+  let retryCount = 0;
+  try {
+    const fetchFn = await getFetch();
+    const retryConfig = request.getRetryConfig();
+    const shouldRetry = retryConfig.shouldRetry;
+    const maxRetries = retryConfig.maxRetries;
+
     if (method === HttpMethodEnum.POST) {
       networkOptions.body = JSON.stringify(networkOptions.body);
     }
-    fetch(url, networkOptions)
-      .then((res) => {
-        // Some endpoints return empty strings as the response body; treat
-        // as raw text and handle potential JSON parsing errors below
-        return res.text().then((text) => {
-          let jsonData = {};
-          try {
-            if (method === HttpMethodEnum.GET) {
-              jsonData = JSON.parse(text);
-            } else {
-              jsonData = text;
+
+    const executeRequest = (): Promise<ResponseModel> => {
+      return new Promise((resolve, reject) => {
+        fetchFn(url, networkOptions)
+          .then((res) => {
+            // Some endpoints return empty strings as the response body; treat
+            // as raw text and handle potential JSON parsing errors below
+            return res.text().then((text) => {
+              responseModel.setStatusCode(res.status);
+              if (retryCount > 0) {
+                responseModel.setTotalAttempts(retryCount);
+                responseModel.setError(request.getLastError());
+              }
+              try {
+                if (method === HttpMethodEnum.GET) {
+                  responseModel.setData(JSON.parse(text));
+                } else {
+                  responseModel.setData(text);
+                }
+              } catch (err) {
+                responseModel.setError(getFormattedErrorMessage(err));
+                reject(responseModel);
+              }
+
+              if (res.status === 200) {
+                resolve(responseModel);
+              } else if (res.status === 400) {
+                responseModel.setError(getFormattedErrorMessage(res.statusText));
+                responseModel.setTotalAttempts(retryCount);
+                reject(responseModel);
+              } else {
+                handleError(`${res.statusText}, status: ${res.status}`, resolve, reject);
+              }
+            });
+          })
+          .catch((err) => {
+            let errorMessage = getFormattedErrorMessage(err);
+            // incase of no internet connection, error will have cause property which is the error message
+            if (err && (err as any).cause) {
+              errorMessage = `${errorMessage} ${(err as any).cause}`;
             }
-          } catch (err) {
-            console.info(
-              `VWO-SDK - [INFO]: ${getCurrentTime()} VWO didn't send JSON response which is expected: ${err}`,
-            );
-          }
+            handleError(errorMessage, resolve, reject);
+          });
+      });
+    };
 
-          if (res.status === 200) {
-            resolve(jsonData);
-          } else {
-            let errorMessage = '';
+    const handleError = (
+      error: string,
+      resolve: (value: ResponseModel) => void,
+      reject: (reason?: ResponseModel) => void,
+    ) => {
+      const endpoint = String(networkOptions.path || url).split('?')[0];
 
-            if (method === HttpMethodEnum.GET) {
-              errorMessage = `VWO-SDK - [ERROR]: ${getCurrentTime()} Request failed for fetching account settings. Got Status Code: ${res.status}`;
-            } else if (method === HttpMethodEnum.POST) {
-              errorMessage = `VWO-SDK - [ERROR]: ${getCurrentTime()} Request failed while making a POST request. Got Status Code: ${res.status}`;
-            }
-            console.error(errorMessage);
-            reject(errorMessage);
-          }
-        });
-      })
-      .catch((err) => {
-        let errorMessage = '';
-
-        if (method === HttpMethodEnum.GET) {
-          errorMessage = `VWO-SDK - [ERROR]: ${getCurrentTime()} GET request failed for fetching account settings. Error: ${err}`;
-        } else if (method === HttpMethodEnum.POST) {
-          errorMessage = `VWO-SDK - [ERROR]: ${getCurrentTime()} POST request failed while sending data. Error: ${err}`;
+      if (shouldRetry && retryCount < maxRetries) {
+        const delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, retryCount) * 1000; // Exponential backoff
+        retryCount++;
+        LogManager.Instance.errorLog(
+          'ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL',
+          {
+            endPoint: endpoint,
+            err: getFormattedErrorMessage(error),
+            delay: delay / 1000,
+            attempt: retryCount,
+            maxRetries: maxRetries,
+          },
+          {},
+          false,
+        );
+        request.setLastError(getFormattedErrorMessage(error));
+        setTimeout(() => {
+          executeRequest().then(resolve).catch(reject);
+        }, delay);
+      } else {
+        if (!String(networkOptions.path).includes(EventEnum.VWO_DEBUGGER_EVENT)) {
+          LogManager.Instance.errorLog(
+            'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
+            {
+              extraData: endpoint,
+              attempts: retryCount,
+              err: getFormattedErrorMessage(error),
+            },
+            {},
+            false,
+          );
         }
 
-        console.error(errorMessage);
-        reject(errorMessage);
-      });
-  });
+        responseModel.setError(getFormattedErrorMessage(error));
+        responseModel.setTotalAttempts(retryCount);
+        reject(responseModel);
+      }
+    };
+
+    return executeRequest();
+  } catch (err) {
+    responseModel.setError(getFormattedErrorMessage(err));
+    responseModel.setTotalAttempts(retryCount);
+    throw responseModel;
+  }
 }

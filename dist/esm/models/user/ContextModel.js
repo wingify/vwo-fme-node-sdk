@@ -1,11 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContextModel = void 0;
-const ContextVWOModel_1 = require("./ContextVWOModel");
-const UuidUtil_1 = require("../../utils/UuidUtil");
-const SettingsService_1 = require("../../services/SettingsService");
-const FunctionUtil_1 = require("../../utils/FunctionUtil");
-class ContextModel {
+import { ContextVWOModel } from './ContextVWOModel.js';
+import { getUUID } from '../../utils/UuidUtil.js';
+import { SettingsService } from '../../services/SettingsService.js';
+import { getCurrentUnixTimestamp } from '../../utils/FunctionUtil.js';
+export class ContextModel {
     modelFromDictionary(context) {
         this.id = context.id;
         this.userAgent = context.userAgent;
@@ -22,13 +19,13 @@ class ContextModel {
             this.variationTargetingVariables = context.variationTargetingVariables;
         }
         if (context?._vwo) {
-            this._vwo = new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(context._vwo);
+            this._vwo = new ContextVWOModel().modelFromDictionary(context._vwo);
         }
         if (context?.postSegmentationVariables) {
             this.postSegmentationVariables = context.postSegmentationVariables;
         }
-        this._vwo_uuid = (0, UuidUtil_1.getUUID)(this.id.toString(), SettingsService_1.SettingsService.Instance.accountId.toString());
-        this._vwo_sessionId = (0, FunctionUtil_1.getCurrentUnixTimestamp)();
+        this._vwo_uuid = getUUID(this.id.toString(), SettingsService.Instance.accountId.toString());
+        this._vwo_sessionId = getCurrentUnixTimestamp();
         return this;
     }
     getId() {
@@ -71,5 +68,4 @@ class ContextModel {
         return this._vwo_sessionId;
     }
 }
-exports.ContextModel = ContextModel;
 //# sourceMappingURL=ContextModel.js.map

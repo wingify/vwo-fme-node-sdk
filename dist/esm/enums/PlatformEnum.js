@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PlatformEnum = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,9 +13,9 @@ exports.PlatformEnum = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var PlatformEnum;
+export var PlatformEnum;
 (function (PlatformEnum) {
     PlatformEnum["CLIENT"] = "client";
     PlatformEnum["SERVER"] = "server";
-})(PlatformEnum || (exports.PlatformEnum = PlatformEnum = {}));
+})(PlatformEnum || (PlatformEnum = {}));
 //# sourceMappingURL=PlatformEnum.js.map

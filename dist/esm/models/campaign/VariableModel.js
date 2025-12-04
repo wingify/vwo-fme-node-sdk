@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.VariableModel = void 0;
-class VariableModel {
+export class VariableModel {
     constructor(id, type, key, value) {
         this.value = value;
         this.type = type;
@@ -33,5 +30,4 @@ class VariableModel {
         return this.key;
     }
 }
-exports.VariableModel = VariableModel;
 //# sourceMappingURL=VariableModel.js.map

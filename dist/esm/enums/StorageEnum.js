@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.StorageEnum = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,7 +13,7 @@ exports.StorageEnum = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var StorageEnum;
+export var StorageEnum;
 (function (StorageEnum) {
     StorageEnum[StorageEnum["STORAGE_UNDEFINED"] = 0] = "STORAGE_UNDEFINED";
     StorageEnum[StorageEnum["INCORRECT_DATA"] = 1] = "INCORRECT_DATA";
@@ -24,5 +21,5 @@ var StorageEnum;
     StorageEnum[StorageEnum["CAMPAIGN_PAUSED"] = 3] = "CAMPAIGN_PAUSED";
     StorageEnum[StorageEnum["VARIATION_NOT_FOUND"] = 4] = "VARIATION_NOT_FOUND";
     StorageEnum[StorageEnum["WHITELISTED_VARIATION"] = 5] = "WHITELISTED_VARIATION";
-})(StorageEnum || (exports.StorageEnum = StorageEnum = {}));
+})(StorageEnum || (StorageEnum = {}));
 //# sourceMappingURL=StorageEnum.js.map

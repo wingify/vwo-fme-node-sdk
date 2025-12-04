@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.32.0
+ * vwo-fme-javascript-sdk - v1.33.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -39,14 +39,15 @@
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./VERSION.json":
-/*!**********************!*\
-  !*** ./VERSION.json ***!
-  \**********************/
+/***/ "./VERSION.js":
+/*!********************!*\
+  !*** ./VERSION.js ***!
+  \********************/
 /***/ ((module) => {
 
-"use strict";
-module.exports = {"version":"1.32.0"};
+module.exports = {
+  version: "1.33.0"
+};
 
 /***/ }),
 
@@ -427,15 +428,15 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         var networkInstance = network_layer_1.NetworkManager.Instance;
         // Attach the network client from options
-        networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig);
+        networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig, ((_d = this.options) === null || _d === void 0 ? void 0 : _d.shouldWaitForTrackingCalls) ? true : false);
         logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: "Network Layer",
         }));
         // Set the development mode based on options
-        networkInstance.getConfig().setDevelopmentMode((_d = this.options) === null || _d === void 0 ? void 0 : _d.isDevelopmentMode);
+        networkInstance.getConfig().setDevelopmentMode((_e = this.options) === null || _e === void 0 ? void 0 : _e.isDevelopmentMode);
         return this;
     };
     VWOBuilder.prototype.initBatching = function () {
@@ -809,6 +810,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VWOClient = void 0;
 /**
@@ -834,7 +838,7 @@ var log_messages_1 = __webpack_require__(/*! ./enums/log-messages */ "./lib/enum
 var BatchEventsQueue_1 = __webpack_require__(/*! ./services/BatchEventsQueue */ "./lib/services/BatchEventsQueue.ts");
 var SettingsSchemaValidation_1 = __webpack_require__(/*! ./models/schemas/SettingsSchemaValidation */ "./lib/models/schemas/SettingsSchemaValidation.ts");
 var ContextModel_1 = __webpack_require__(/*! ./models/user/ContextModel */ "./lib/models/user/ContextModel.ts");
-var HooksService_1 = __webpack_require__(/*! ./services/HooksService */ "./lib/services/HooksService.ts");
+var HooksService_1 = __importDefault(__webpack_require__(/*! ./services/HooksService */ "./lib/services/HooksService.ts"));
 var UrlUtil_1 = __webpack_require__(/*! ./utils/UrlUtil */ "./lib/utils/UrlUtil.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
@@ -1968,10 +1972,13 @@ exports.HTTPS_PROTOCOL = "".concat(exports.HTTPS);
 /*!********************************!*\
   !*** ./lib/constants/index.ts ***!
   \********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Constants = void 0;
 /**
@@ -1991,13 +1998,15 @@ exports.Constants = void 0;
  */
 var PlatformEnum_1 = __webpack_require__(/*! ../enums/PlatformEnum */ "./lib/enums/PlatformEnum.ts");
 var Url_1 = __webpack_require__(/*! ./Url */ "./lib/constants/Url.ts");
+var VERSION_1 = __importDefault(__webpack_require__(/*! ../../VERSION */ "./VERSION.js"));
+var SDK_VERSION = VERSION_1.default.version;
 var packageFile;
 var platform;
 // Reading package.json will bundle the whole file that's why preventing it by reading VERSION
 if (true) {
     packageFile = {
         name: 'vwo-fme-javascript-sdk',
-        version: (__webpack_require__(/*! ../../VERSION.json */ "./VERSION.json").version), // eslint-disable-line @typescript-eslint/no-var-requires
+        version: SDK_VERSION,
     };
     platform = PlatformEnum_1.PlatformEnum.CLIENT;
 }
@@ -2585,10 +2594,13 @@ var UrlEnum;
 /*!*****************************************!*\
   !*** ./lib/enums/log-messages/index.ts ***!
   \*****************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ErrorLogMessagesEnum = exports.InfoLogMessagesEnum = exports.DebugLogMessagesEnum = void 0;
 /**
@@ -2606,12 +2618,13 @@ exports.ErrorLogMessagesEnum = exports.InfoLogMessagesEnum = exports.DebugLogMes
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var messages = __webpack_require__(/*! vwo-fme-sdk-log-messages */ "./node_modules/vwo-fme-sdk-log-messages/index.js");
-var DebugLogMessagesEnum = messages.debugMessages;
+var vwo_fme_sdk_log_messages_1 = __importDefault(__webpack_require__(/*! vwo-fme-sdk-log-messages */ "./node_modules/vwo-fme-sdk-log-messages/index.js"));
+var resolvedMessages = vwo_fme_sdk_log_messages_1.default.default || vwo_fme_sdk_log_messages_1.default;
+var DebugLogMessagesEnum = resolvedMessages.debugMessages;
 exports.DebugLogMessagesEnum = DebugLogMessagesEnum;
-var InfoLogMessagesEnum = messages.infoMessages;
+var InfoLogMessagesEnum = resolvedMessages.infoMessages;
 exports.InfoLogMessagesEnum = InfoLogMessagesEnum;
-var ErrorLogMessagesEnum = messages.errorMessagesV2;
+var ErrorLogMessagesEnum = resolvedMessages.errorMessagesV2;
 exports.ErrorLogMessagesEnum = ErrorLogMessagesEnum;
 
 
@@ -3526,7 +3539,7 @@ exports.ContextVWOModel = ContextVWOModel;
 /*!**********************************************!*\
   !*** ./lib/packages/decision-maker/index.ts ***!
   \**********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
@@ -3545,9 +3558,16 @@ exports.ContextVWOModel = ContextVWOModel;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DecisionMaker = void 0;
-var Hasher = __webpack_require__(/*! murmurhash */ "./node_modules/murmurhash/murmurhash.js");
+var murmurhash_1 = __importDefault(__webpack_require__(/*! murmurhash */ "./node_modules/murmurhash/murmurhash.js"));
+var Hasher = murmurhash_1.default;
+if (!Hasher.v3) {
+    Hasher.v3 = Hasher;
+}
 var SEED_VALUE = 1; // Seed value for the hash function
 var DecisionMaker = /** @class */ (function () {
     function DecisionMaker() {
@@ -4427,7 +4447,6 @@ exports.NetworkServerLessClient = void 0;
  */
 var FetchUtil_1 = __webpack_require__(/*! ../../../utils/FetchUtil */ "./lib/utils/FetchUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
-var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./lib/packages/network-layer/models/ResponseModel.ts");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -4441,17 +4460,12 @@ var NetworkServerLessClient = /** @class */ (function () {
      */
     NetworkServerLessClient.prototype.GET = function (requestModel) {
         var deferred = new PromiseUtil_1.Deferred();
-        // Extract network options from the request model.
-        var networkOptions = requestModel.getOptions();
-        var responseModel = new ResponseModel_1.ResponseModel();
-        (0, FetchUtil_1.sendGetCall)(networkOptions)
+        (0, FetchUtil_1.sendGetCall)(requestModel)
             .then(function (data) {
-            responseModel.setData(data);
-            deferred.resolve(responseModel);
+            deferred.resolve(data);
         })
             .catch(function (error) {
-            responseModel.setError(error);
-            deferred.reject(responseModel);
+            deferred.reject(error);
         });
         return deferred.promise;
     };
@@ -4462,16 +4476,12 @@ var NetworkServerLessClient = /** @class */ (function () {
      */
     NetworkServerLessClient.prototype.POST = function (request) {
         var deferred = new PromiseUtil_1.Deferred();
-        var networkOptions = request.getOptions();
-        var responseModel = new ResponseModel_1.ResponseModel();
-        (0, FetchUtil_1.sendPostCall)(networkOptions)
+        (0, FetchUtil_1.sendPostCall)(request)
             .then(function (data) {
-            responseModel.setData(data);
-            deferred.resolve(responseModel);
+            deferred.resolve(data);
         })
             .catch(function (error) {
-            responseModel.setError(error);
-            deferred.reject(responseModel);
+            deferred.reject(error);
         });
         return deferred.promise;
     };
@@ -4566,13 +4576,7 @@ exports.RequestHandler = RequestHandler;
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ResponseModel = exports.RequestModel = exports.GlobalRequestModel = exports.NetworkManager = exports.NetworkClient = void 0;
-var NetworkClient;
-if (true) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    exports.NetworkClient = NetworkClient = (__webpack_require__(/*! ./client/NetworkBrowserClient */ "./lib/packages/network-layer/client/NetworkBrowserClient.ts").NetworkBrowserClient);
-}
-else {}
+exports.ResponseModel = exports.RequestModel = exports.GlobalRequestModel = exports.NetworkManager = void 0;
 var NetworkManager_1 = __webpack_require__(/*! ./manager/NetworkManager */ "./lib/packages/network-layer/manager/NetworkManager.ts");
 Object.defineProperty(exports, "NetworkManager", ({ enumerable: true, get: function () { return NetworkManager_1.NetworkManager; } }));
 var GlobalRequestModel_1 = __webpack_require__(/*! ./models/GlobalRequestModel */ "./lib/packages/network-layer/models/GlobalRequestModel.ts");
@@ -4628,6 +4632,11 @@ var constants_1 = __webpack_require__(/*! ../../../constants */ "./lib/constants
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var LogManager_1 = __webpack_require__(/*! ../../logger/core/LogManager */ "./lib/packages/logger/core/LogManager.ts");
 var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
+var NetworkServerLessClient_1 = __webpack_require__(/*! ../client/NetworkServerLessClient */ "./lib/packages/network-layer/client/NetworkServerLessClient.ts");
+var NetworkBrowserClient_1 = __webpack_require__(/*! ../client/NetworkBrowserClient */ "./lib/packages/network-layer/client/NetworkBrowserClient.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
+var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./lib/constants/Url.ts");
 var NetworkManager = /** @class */ (function () {
     function NetworkManager() {
     }
@@ -4677,7 +4686,8 @@ var NetworkManager = /** @class */ (function () {
      * @param {NetworkClientInterface} client - The client to attach, optional.
      * @param {IRetryConfig} retryConfig - The retry configuration, optional.
      */
-    NetworkManager.prototype.attachClient = function (client, retryConfig) {
+    NetworkManager.prototype.attachClient = function (client, retryConfig, shouldWaitForTrackingCalls) {
+        if (shouldWaitForTrackingCalls === void 0) { shouldWaitForTrackingCalls = false; }
         // Only set retry configuration if it's not already initialized or if a new config is provided
         if (!this.retryConfig || retryConfig) {
             // Define default retry configuration
@@ -4686,20 +4696,25 @@ var NetworkManager = /** @class */ (function () {
             var mergedConfig = __assign(__assign({}, defaultRetryConfig), (retryConfig || {}));
             // Validate the merged configuration
             this.retryConfig = this.validateRetryConfig(mergedConfig);
+            // If shouldWaitForTrackingCalls is true, set shouldRetry to false
+            // This is because we don't want to retry the request if the SDK is waiting for a network response (serverless mode)
+            if (shouldWaitForTrackingCalls) {
+                this.retryConfig.shouldRetry = false;
+            }
         }
         // if env is undefined, we are in browser
         if (true) {
             // if XMLHttpRequest is undefined, we are in serverless
             if (typeof XMLHttpRequest === 'undefined') {
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                var NetworkServerLessClient = (__webpack_require__(/*! ../client/NetworkServerLessClient */ "./lib/packages/network-layer/client/NetworkServerLessClient.ts").NetworkServerLessClient);
-                this.client = client || new NetworkServerLessClient();
+                this.client = client || new NetworkServerLessClient_1.NetworkServerLessClient();
             }
             else {
+                LogManager_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                    api: 'xhr',
+                    process: 'undefined',
+                }));
                 // if XMLHttpRequest is defined, we are in browser
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                var NetworkBrowserClient = (__webpack_require__(/*! ../client/NetworkBrowserClient */ "./lib/packages/network-layer/client/NetworkBrowserClient.ts").NetworkBrowserClient);
-                this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+                this.client = client || new NetworkBrowserClient_1.NetworkBrowserClient(); // Use provided client or default to NetworkClient
             }
         }
         else { var NetworkClient; }
@@ -8262,6 +8277,24 @@ exports.StorageService = StorageService;
 
 /***/ }),
 
+/***/ "./lib/utils sync recursive":
+/*!*************************!*\
+  !*** ./lib/utils/ sync ***!
+  \*************************/
+/***/ ((module) => {
+
+function webpackEmptyContext(req) {
+	var e = new Error("Cannot find module '" + req + "'");
+	e.code = 'MODULE_NOT_FOUND';
+	throw e;
+}
+webpackEmptyContext.keys = () => ([]);
+webpackEmptyContext.resolve = webpackEmptyContext;
+webpackEmptyContext.id = "./lib/utils sync recursive";
+module.exports = webpackEmptyContext;
+
+/***/ }),
+
 /***/ "./lib/utils/AliasingUtil.ts":
 /*!***********************************!*\
   !*** ./lib/utils/AliasingUtil.ts ***!
@@ -8561,7 +8594,6 @@ var BatchEventsDispatcher = /** @class */ (function () {
             return __generator(this, function (_b) {
                 deferred = new PromiseUtil_1.Deferred();
                 networkManager = network_layer_2.NetworkManager.Instance;
-                networkManager.attachClient();
                 retryConfig = networkManager.getRetryConfig();
                 headers = {};
                 headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
@@ -9654,7 +9686,7 @@ var _evaluateWhitelisting = function (campaign, context) { return __awaiter(void
 /*!********************************!*\
   !*** ./lib/utils/FetchUtil.ts ***!
   \********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
@@ -9673,72 +9705,269 @@ var _evaluateWhitelisting = function (campaign, context) { return __awaiter(void
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.sendGetCall = sendGetCall;
 exports.sendPostCall = sendPostCall;
 var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./lib/enums/HttpMethodEnum.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./lib/utils/FunctionUtil.ts");
-function sendGetCall(networkOptions) {
-    return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, networkOptions);
+var logger_1 = __webpack_require__(/*! ../packages/logger */ "./lib/packages/logger/index.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
+var ResponseModel_1 = __webpack_require__(/*! ../packages/network-layer/models/ResponseModel */ "./lib/packages/network-layer/models/ResponseModel.ts");
+// Cache the fetch function to avoid re-importing on every request
+var cachedFetch = null;
+var fetchPromise = null;
+/**
+ * Gets the fetch function to use, checking for global fetch first, then falling back to node-fetch.
+ * @returns The fetch function to use
+ */
+function getFetch() {
+    return __awaiter(this, void 0, void 0, function () {
+        var _this = this;
+        return __generator(this, function (_a) {
+            // Return cached fetch if available
+            if (cachedFetch) {
+                return [2 /*return*/, cachedFetch];
+            }
+            // If a fetch initialization is already in progress, wait for it
+            if (fetchPromise) {
+                return [2 /*return*/, fetchPromise];
+            }
+            // Initialize fetch
+            fetchPromise = (function () { return __awaiter(_this, void 0, void 0, function () {
+                var nodeFetchModule, nodeFetch, fetchFn, error_1;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            // Check if fetch is available globally (Node.js 18+, browsers, etc.)
+                            if (typeof fetch !== 'undefined') {
+                                logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                                    api: 'Global fetch',
+                                    process:  true ? 'undefined' : 0,
+                                }));
+                                cachedFetch = fetch;
+                                return [2 /*return*/, fetch];
+                            }
+                            _a.label = 1;
+                        case 1:
+                            _a.trys.push([1, 3, , 4]);
+                            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                                api: 'Node-fetch',
+                                process:  true ? 'undefined' : 0,
+                            }));
+                            nodeFetchModule = 'node-' + 'fetch';
+                            return [4 /*yield*/, Promise.resolve("".concat(nodeFetchModule)).then(function (s) { return __importStar(__webpack_require__("./lib/utils sync recursive")(s)); })];
+                        case 2:
+                            nodeFetch = _a.sent();
+                            fetchFn = (nodeFetch.default || nodeFetch);
+                            cachedFetch = fetchFn;
+                            return [2 /*return*/, fetchFn];
+                        case 3:
+                            error_1 = _a.sent();
+                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.ERROR_INITIALIZING_FETCH, {
+                                error: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1),
+                            }));
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
+                    }
+                });
+            }); })();
+            return [2 /*return*/, fetchPromise];
+        });
+    });
 }
-function sendPostCall(networkOptions) {
-    return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, networkOptions);
+function sendGetCall(request) {
+    return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, request);
+}
+function sendPostCall(request) {
+    return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, request);
 }
 /**
  * Sends a request to the server using the Fetch API.
  * @param method - The HTTP method to use for the request.
- * @param networkOptions - The options for the request.
+ * @param request - The request model.
  * @returns A Promise that resolves to the response data.
  */
-function sendRequest(method, networkOptions) {
-    var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
-    return new Promise(function (resolve, reject) {
-        if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
-            networkOptions.body = JSON.stringify(networkOptions.body);
-        }
-        fetch(url, networkOptions)
-            .then(function (res) {
-            // Some endpoints return empty strings as the response body; treat
-            // as raw text and handle potential JSON parsing errors below
-            return res.text().then(function (text) {
-                var jsonData = {};
-                try {
-                    if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-                        jsonData = JSON.parse(text);
+function sendRequest(method, request) {
+    return __awaiter(this, void 0, void 0, function () {
+        var responseModel, networkOptions, url, retryCount, fetchFn_1, retryConfig_1, shouldRetry_1, maxRetries_1, executeRequest_1, handleError_1, err_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    responseModel = new ResponseModel_1.ResponseModel();
+                    networkOptions = request.getOptions();
+                    url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+                    if (networkOptions.port) {
+                        url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
                     }
-                    else {
-                        jsonData = text;
+                    retryCount = 0;
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, getFetch()];
+                case 2:
+                    fetchFn_1 = _a.sent();
+                    retryConfig_1 = request.getRetryConfig();
+                    shouldRetry_1 = retryConfig_1.shouldRetry;
+                    maxRetries_1 = retryConfig_1.maxRetries;
+                    if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
+                        networkOptions.body = JSON.stringify(networkOptions.body);
                     }
-                }
-                catch (err) {
-                    console.info("VWO-SDK - [INFO]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " VWO didn't send JSON response which is expected: ").concat(err));
-                }
-                if (res.status === 200) {
-                    resolve(jsonData);
-                }
-                else {
-                    var errorMessage = '';
-                    if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-                        errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " Request failed for fetching account settings. Got Status Code: ").concat(res.status);
-                    }
-                    else if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
-                        errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " Request failed while making a POST request. Got Status Code: ").concat(res.status);
-                    }
-                    console.error(errorMessage);
-                    reject(errorMessage);
-                }
-            });
-        })
-            .catch(function (err) {
-            var errorMessage = '';
-            if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
-                errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " GET request failed for fetching account settings. Error: ").concat(err);
+                    executeRequest_1 = function () {
+                        return new Promise(function (resolve, reject) {
+                            fetchFn_1(url, networkOptions)
+                                .then(function (res) {
+                                // Some endpoints return empty strings as the response body; treat
+                                // as raw text and handle potential JSON parsing errors below
+                                return res.text().then(function (text) {
+                                    responseModel.setStatusCode(res.status);
+                                    if (retryCount > 0) {
+                                        responseModel.setTotalAttempts(retryCount);
+                                        responseModel.setError(request.getLastError());
+                                    }
+                                    try {
+                                        if (method === HttpMethodEnum_1.HttpMethodEnum.GET) {
+                                            responseModel.setData(JSON.parse(text));
+                                        }
+                                        else {
+                                            responseModel.setData(text);
+                                        }
+                                    }
+                                    catch (err) {
+                                        responseModel.setError((0, FunctionUtil_1.getFormattedErrorMessage)(err));
+                                        reject(responseModel);
+                                    }
+                                    if (res.status === 200) {
+                                        resolve(responseModel);
+                                    }
+                                    else if (res.status === 400) {
+                                        responseModel.setError((0, FunctionUtil_1.getFormattedErrorMessage)(res.statusText));
+                                        responseModel.setTotalAttempts(retryCount);
+                                        reject(responseModel);
+                                    }
+                                    else {
+                                        handleError_1("".concat(res.statusText, ", status: ").concat(res.status), resolve, reject);
+                                    }
+                                });
+                            })
+                                .catch(function (err) {
+                                var errorMessage = (0, FunctionUtil_1.getFormattedErrorMessage)(err);
+                                // incase of no internet connection, error will have cause property which is the error message
+                                if (err && err.cause) {
+                                    errorMessage = "".concat(errorMessage, " ").concat(err.cause);
+                                }
+                                handleError_1(errorMessage, resolve, reject);
+                            });
+                        });
+                    };
+                    handleError_1 = function (error, resolve, reject) {
+                        var endpoint = String(networkOptions.path || url).split('?')[0];
+                        if (shouldRetry_1 && retryCount < maxRetries_1) {
+                            var delay = retryConfig_1.initialDelay * Math.pow(retryConfig_1.backoffMultiplier, retryCount) * 1000; // Exponential backoff
+                            retryCount++;
+                            logger_1.LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+                                endPoint: endpoint,
+                                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                                delay: delay / 1000,
+                                attempt: retryCount,
+                                maxRetries: maxRetries_1,
+                            }, {}, false);
+                            request.setLastError((0, FunctionUtil_1.getFormattedErrorMessage)(error));
+                            setTimeout(function () {
+                                executeRequest_1().then(resolve).catch(reject);
+                            }, delay);
+                        }
+                        else {
+                            if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
+                                logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+                                    extraData: endpoint,
+                                    attempts: retryCount,
+                                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                                }, {}, false);
+                            }
+                            responseModel.setError((0, FunctionUtil_1.getFormattedErrorMessage)(error));
+                            responseModel.setTotalAttempts(retryCount);
+                            reject(responseModel);
+                        }
+                    };
+                    return [2 /*return*/, executeRequest_1()];
+                case 3:
+                    err_1 = _a.sent();
+                    responseModel.setError((0, FunctionUtil_1.getFormattedErrorMessage)(err_1));
+                    responseModel.setTotalAttempts(retryCount);
+                    throw responseModel;
+                case 4: return [2 /*return*/];
             }
-            else if (method === HttpMethodEnum_1.HttpMethodEnum.POST) {
-                errorMessage = "VWO-SDK - [ERROR]: ".concat((0, FunctionUtil_1.getCurrentTime)(), " POST request failed while sending data. Error: ").concat(err);
-            }
-            console.error(errorMessage);
-            reject(errorMessage);
         });
     });
 }
@@ -11224,7 +11453,6 @@ function sendPostApiRequest(properties_1, payload_1, userId_1) {
             switch (_a.label) {
                 case 0:
                     networkManager = network_layer_1.NetworkManager.Instance;
-                    networkManager.attachClient();
                     retryConfig = networkManager.getRetryConfig();
                     headers = {};
                     userAgent = payload.d.visitor_ua;
@@ -12288,7 +12516,7 @@ function sendRequest(method, options) {
                 setTimeout(executeRequest, delay);
             }
             else {
-                if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_LOG_EVENT)) {
+                if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
                     logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
                         extraData: url.split('?')[0],
                         attempts: retryCount,
@@ -14655,7 +14883,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty. Nothing to flush.","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}."}');
+module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty. Nothing to flush.","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}.","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}"}');
 
 /***/ }),
 
@@ -14666,7 +14894,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {endPoint} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Error while fetching data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API."}');
+module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {endPoint} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Error while fetching data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API.","ERROR_INITIALIZING_FETCH":"Unable to initialize the fetch API. Details: {error}"}');
 
 /***/ }),
 
@@ -14739,6 +14967,12 @@ module.exports = {};
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};

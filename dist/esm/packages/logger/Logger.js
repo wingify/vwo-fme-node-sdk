@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Logger = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -20,7 +17,6 @@ exports.Logger = void 0;
  * Abstract class representing a logger.
  * This class provides the structure for logging mechanisms and should be extended by specific logger implementations.
  */
-class Logger {
+export class Logger {
 }
-exports.Logger = Logger;
 //# sourceMappingURL=Logger.js.map

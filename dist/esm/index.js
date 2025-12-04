@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUUID = exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
-const LogLevelEnum_1 = require("./packages/logger/enums/LogLevelEnum");
-Object.defineProperty(exports, "LogLevelEnum", { enumerable: true, get: function () { return LogLevelEnum_1.LogLevelEnum; } });
-const Connector_1 = require("./packages/storage/Connector");
-Object.defineProperty(exports, "StorageConnector", { enumerable: true, get: function () { return Connector_1.Connector; } });
-const GetFlag_1 = require("./api/GetFlag");
-Object.defineProperty(exports, "Flag", { enumerable: true, get: function () { return GetFlag_1.Flag; } });
-const UuidUtil_1 = require("./utils/UuidUtil");
-Object.defineProperty(exports, "getUUID", { enumerable: true, get: function () { return UuidUtil_1.getUUID; } });
-var VWO_1 = require("./VWO");
-Object.defineProperty(exports, "init", { enumerable: true, get: function () { return VWO_1.init; } });
-Object.defineProperty(exports, "onInit", { enumerable: true, get: function () { return VWO_1.onInit; } });
+import { LogLevelEnum } from './packages/logger/enums/LogLevelEnum.js';
+import { Connector } from './packages/storage/Connector.js';
+import { Flag } from './api/GetFlag.js';
+import { getUUID } from './utils/UuidUtil.js';
+export { init, onInit } from './VWO.js';
+export { LogLevelEnum, Connector as StorageConnector };
+export { Flag, getUUID };
 //# sourceMappingURL=index.js.map

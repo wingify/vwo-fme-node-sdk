@@ -88,7 +88,11 @@ module.exports = function(_env, argv) {
       extensions: ['.js'],
     },
     target: 'node',
-    externals: [nodeExternals()],
+    externals: [
+      nodeExternals(),
+      // Externalize node-fetch since it's an optional dependency
+      'node-fetch'
+    ],
     plugins: addPlugins(argv)
   };
 };

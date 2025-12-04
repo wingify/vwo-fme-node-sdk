@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RequestModel = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,17 +13,17 @@ exports.RequestModel = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const HttpMethodEnum_1 = require("../../../enums/HttpMethodEnum");
-const Url_1 = require("../../../constants/Url");
-const constants_1 = require("../../../constants");
-const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
-const FunctionUtil_1 = require("../../../utils/FunctionUtil");
+import { HttpMethodEnum } from '../../../enums/HttpMethodEnum.js';
+import { HTTPS } from '../../../constants/Url.js';
+import { Constants } from '../../../constants/index.js';
+import { isNull, isUndefined } from '../../../utils/DataTypeUtil.js';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
 /**
  * Represents a model for HTTP requests.
  * This class encapsulates all necessary details such as URL, method, path, query parameters, body, headers,
  * scheme, port, and timeout settings.
  */
-class RequestModel {
+export class RequestModel {
     /**
      * Constructs an instance of the RequestModel.
      * @param url The base URL of the HTTP request.
@@ -38,7 +35,7 @@ class RequestModel {
      * @param scheme Protocol scheme, default is 'http'.
      * @param port Port number, default is 80.
      */
-    constructor(url, method = HttpMethodEnum_1.HttpMethodEnum.GET, path, query, body, headers, scheme = Url_1.HTTPS, port, retryConfig) {
+    constructor(url, method = HttpMethodEnum.GET, path, query, body, headers, scheme = HTTPS, port, retryConfig) {
         this.whiteListedKeys = ['eventName', 'uuid', 'campaignId', 'eventProperties'];
         this.url = url;
         this.method = method;
@@ -48,7 +45,7 @@ class RequestModel {
         this.headers = headers;
         this.scheme = scheme;
         this.port = port;
-        this.retryConfig = retryConfig || constants_1.Constants.DEFAULT_RETRY_CONFIG;
+        this.retryConfig = retryConfig || Constants.DEFAULT_RETRY_CONFIG;
     }
     /**
      * Retrieves the HTTP method.
@@ -275,7 +272,7 @@ class RequestModel {
      * @param lastError The last error message to set.
      */
     setLastError(lastError) {
-        this.lastError = (0, FunctionUtil_1.getFormattedErrorMessage)(lastError);
+        this.lastError = getFormattedErrorMessage(lastError);
         return this;
     }
     /**
@@ -344,8 +341,7 @@ class RequestModel {
      */
     getExtraInfo() {
         // return eventName, uuid, campaignId if they are not null and not undefined
-        return Object.fromEntries(Object.entries(this).filter(([key, value]) => !(0, DataTypeUtil_1.isNull)(value) && !(0, DataTypeUtil_1.isUndefined)(value) && this.whiteListedKeys.includes(key)));
+        return Object.fromEntries(Object.entries(this).filter(([key, value]) => !isNull(value) && !isUndefined(value) && this.whiteListedKeys.includes(key)));
     }
 }
-exports.RequestModel = RequestModel;
 //# sourceMappingURL=RequestModel.js.map

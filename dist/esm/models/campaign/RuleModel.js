@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RuleModel = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,7 +13,7 @@ exports.RuleModel = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class RuleModel {
+export class RuleModel {
     modelFromDictionary(rule) {
         this.type = rule.type;
         this.status = rule.status;
@@ -41,5 +38,4 @@ class RuleModel {
         return this.ruleKey;
     }
 }
-exports.RuleModel = RuleModel;
 //# sourceMappingURL=RuleModel.js.map

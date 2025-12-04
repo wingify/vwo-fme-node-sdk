@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SettingsSchema = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,87 +13,86 @@ exports.SettingsSchema = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const superstruct_1 = require("superstruct");
-class SettingsSchema {
+import { array, boolean, number, object, optional, string, type, union, validate } from 'superstruct';
+export class SettingsSchema {
     constructor() {
         this.initializeSchemas();
     }
     initializeSchemas() {
-        this.campaignMetricSchema = (0, superstruct_1.type)({
-            id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
-            type: (0, superstruct_1.string)(),
-            identifier: (0, superstruct_1.string)(),
-            mca: (0, superstruct_1.optional)((0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()])),
-            hasProps: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
-            revenueProp: (0, superstruct_1.optional)((0, superstruct_1.string)()),
+        this.campaignMetricSchema = type({
+            id: union([number(), string()]),
+            type: string(),
+            identifier: string(),
+            mca: optional(union([number(), string()])),
+            hasProps: optional(boolean()),
+            revenueProp: optional(string()),
         });
-        this.variableObjectSchema = (0, superstruct_1.type)({
-            id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
-            type: (0, superstruct_1.string)(),
-            key: (0, superstruct_1.string)(),
-            value: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)(), (0, superstruct_1.boolean)(), (0, superstruct_1.object)()]),
+        this.variableObjectSchema = type({
+            id: union([number(), string()]),
+            type: string(),
+            key: string(),
+            value: union([number(), string(), boolean(), object()]),
         });
-        this.campaignVariationSchema = (0, superstruct_1.type)({
-            id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
-            name: (0, superstruct_1.string)(),
-            weight: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
-            segments: (0, superstruct_1.optional)((0, superstruct_1.object)()),
-            variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema)),
-            startRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
-            endRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
-            salt: (0, superstruct_1.optional)((0, superstruct_1.string)()),
+        this.campaignVariationSchema = type({
+            id: union([number(), string()]),
+            name: string(),
+            weight: union([number(), string()]),
+            segments: optional(object()),
+            variables: optional(array(this.variableObjectSchema)),
+            startRangeVariation: optional(number()),
+            endRangeVariation: optional(number()),
+            salt: optional(string()),
         });
-        this.campaignObjectSchema = (0, superstruct_1.type)({
-            id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
-            type: (0, superstruct_1.string)(),
-            key: (0, superstruct_1.string)(),
-            percentTraffic: (0, superstruct_1.optional)((0, superstruct_1.number)()),
-            status: (0, superstruct_1.string)(),
-            variations: (0, superstruct_1.array)(this.campaignVariationSchema),
-            segments: (0, superstruct_1.object)(),
-            isForcedVariationEnabled: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
-            isAlwaysCheckSegment: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
-            name: (0, superstruct_1.string)(),
-            salt: (0, superstruct_1.optional)((0, superstruct_1.string)()),
+        this.campaignObjectSchema = type({
+            id: union([number(), string()]),
+            type: string(),
+            key: string(),
+            percentTraffic: optional(number()),
+            status: string(),
+            variations: array(this.campaignVariationSchema),
+            segments: object(),
+            isForcedVariationEnabled: optional(boolean()),
+            isAlwaysCheckSegment: optional(boolean()),
+            name: string(),
+            salt: optional(string()),
         });
-        this.ruleSchema = (0, superstruct_1.type)({
-            type: (0, superstruct_1.string)(),
-            ruleKey: (0, superstruct_1.string)(),
-            campaignId: (0, superstruct_1.number)(),
-            variationId: (0, superstruct_1.optional)((0, superstruct_1.number)()),
+        this.ruleSchema = type({
+            type: string(),
+            ruleKey: string(),
+            campaignId: number(),
+            variationId: optional(number()),
         });
-        this.featureSchema = (0, superstruct_1.type)({
-            id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
-            key: (0, superstruct_1.string)(),
-            status: (0, superstruct_1.string)(),
-            name: (0, superstruct_1.string)(),
-            type: (0, superstruct_1.string)(),
-            metrics: (0, superstruct_1.array)(this.campaignMetricSchema),
-            impactCampaign: (0, superstruct_1.optional)((0, superstruct_1.object)()),
-            rules: (0, superstruct_1.optional)((0, superstruct_1.array)(this.ruleSchema)),
-            variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema)),
+        this.featureSchema = type({
+            id: union([number(), string()]),
+            key: string(),
+            status: string(),
+            name: string(),
+            type: string(),
+            metrics: array(this.campaignMetricSchema),
+            impactCampaign: optional(object()),
+            rules: optional(array(this.ruleSchema)),
+            variables: optional(array(this.variableObjectSchema)),
         });
-        this.settingsSchema = (0, superstruct_1.type)({
-            sdkKey: (0, superstruct_1.optional)((0, superstruct_1.string)()),
-            version: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
-            accountId: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
-            usageStatsAccountId: (0, superstruct_1.optional)((0, superstruct_1.number)()),
-            features: (0, superstruct_1.optional)((0, superstruct_1.array)(this.featureSchema)),
-            campaigns: (0, superstruct_1.array)(this.campaignObjectSchema),
-            groups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
-            campaignGroups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
-            collectionPrefix: (0, superstruct_1.optional)((0, superstruct_1.string)()),
-            sdkMetaInfo: (0, superstruct_1.optional)((0, superstruct_1.object)({ wasInitializedEarlier: (0, superstruct_1.optional)((0, superstruct_1.boolean)()) })),
-            pollInterval: (0, superstruct_1.optional)((0, superstruct_1.number)()),
+        this.settingsSchema = type({
+            sdkKey: optional(string()),
+            version: union([number(), string()]),
+            accountId: union([number(), string()]),
+            usageStatsAccountId: optional(number()),
+            features: optional(array(this.featureSchema)),
+            campaigns: array(this.campaignObjectSchema),
+            groups: optional(object()),
+            campaignGroups: optional(object()),
+            collectionPrefix: optional(string()),
+            sdkMetaInfo: optional(object({ wasInitializedEarlier: optional(boolean()) })),
+            pollInterval: optional(number()),
         });
     }
     isSettingsValid(settings) {
         if (!settings) {
             return false;
         }
-        const [error] = (0, superstruct_1.validate)(settings, this.settingsSchema);
+        const [error] = validate(settings, this.settingsSchema);
         return !error;
     }
 }
-exports.SettingsSchema = SettingsSchema;
 //# sourceMappingURL=SettingsSchemaValidation.js.map

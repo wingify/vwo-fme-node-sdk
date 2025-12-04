@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.HttpMethodEnum = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,9 +13,9 @@ exports.HttpMethodEnum = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var HttpMethodEnum;
+export var HttpMethodEnum;
 (function (HttpMethodEnum) {
     HttpMethodEnum["GET"] = "GET";
     HttpMethodEnum["POST"] = "POST";
-})(HttpMethodEnum || (exports.HttpMethodEnum = HttpMethodEnum = {}));
+})(HttpMethodEnum || (HttpMethodEnum = {}));
 //# sourceMappingURL=HttpMethodEnum.js.map

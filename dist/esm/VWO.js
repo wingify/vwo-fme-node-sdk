@@ -1,8 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.VWO = void 0;
-exports.init = init;
-exports.onInit = onInit;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -18,17 +13,17 @@ exports.onInit = onInit;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const VWOBuilder_1 = require("./VWOBuilder");
-const DataTypeUtil_1 = require("./utils/DataTypeUtil");
-const PromiseUtil_1 = require("./utils/PromiseUtil");
-const SdkInitAndUsageStatsUtil_1 = require("./utils/SdkInitAndUsageStatsUtil");
-const log_messages_1 = require("./enums/log-messages");
-const LogMessageUtil_1 = require("./utils/LogMessageUtil");
-const PlatformEnum_1 = require("./enums/PlatformEnum");
-const ApiEnum_1 = require("./enums/ApiEnum");
-const logger_1 = require("./packages/logger");
-const SettingsSchemaValidation_1 = require("./models/schemas/SettingsSchemaValidation");
-class VWO {
+import { VWOBuilder } from './VWOBuilder.js';
+import { isObject, isString } from './utils/DataTypeUtil.js';
+import { Deferred } from './utils/PromiseUtil.js';
+import { sendSdkInitEvent, sendSDKUsageStatsEvent } from './utils/SdkInitAndUsageStatsUtil.js';
+import { InfoLogMessagesEnum, ErrorLogMessagesEnum } from './enums/log-messages/index.js';
+import { buildMessage } from './utils/LogMessageUtil.js';
+import { PlatformEnum } from './enums/PlatformEnum.js';
+import { ApiEnum } from './enums/ApiEnum.js';
+import { LogManager } from './packages/logger/index.js';
+import { SettingsSchema } from './models/schemas/SettingsSchemaValidation.js';
+export class VWO {
     /**
      * Constructor for the VWO class.
      * Initializes a new instance of VWO with the provided options.
@@ -46,7 +41,7 @@ class VWO {
      */
     static setInstance(options) {
         const optionsVWOBuilder = options?.vwoBuilder;
-        this.vwoBuilder = optionsVWOBuilder || new VWOBuilder_1.VWOBuilder(options);
+        this.vwoBuilder = optionsVWOBuilder || new VWOBuilder(options);
         this.instance = this.vwoBuilder
             .setLogger() // Sets up logging for debugging and monitoring.
             .setSettingsService() // Sets the settings service for configuration management.
@@ -59,16 +54,16 @@ class VWO {
             .initUsageStats(); // Initializes usage statistics for the SDK.
         // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
         if (options?.settings) {
-            const isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(options.settings);
+            const isSettingsValid = new SettingsSchema().isSettingsValid(options.settings);
             if (isSettingsValid) {
-                logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+                LogManager.Instance.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
                 const vwoClient = this.vwoBuilder.build(options.settings);
                 vwoClient.isSettingsValid = true;
                 vwoClient.settingsFetchTime = 0;
                 return Promise.resolve(vwoClient);
             }
             else {
-                logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT });
+                LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT });
                 const vwoClient = this.vwoBuilder.build({});
                 vwoClient.isSettingsValid = false;
                 vwoClient.settingsFetchTime = 0;
@@ -92,7 +87,6 @@ class VWO {
         return this.instance;
     }
 }
-exports.VWO = VWO;
 let _global = {};
 /**
  * Initializes a new instance of VWO with the provided options.
@@ -104,41 +98,41 @@ let _global = {};
  * @property {StorageService} storage - The storage configuration.
  * @returns
  */
-async function init(options) {
-    const apiName = ApiEnum_1.ApiEnum.INIT;
+export async function init(options) {
+    const apiName = ApiEnum.INIT;
     const date = new Date().toISOString();
     try {
         const invalidErrorPrefix = `[ERROR]: VWO-SDK ${date} `;
-        if (!(0, DataTypeUtil_1.isObject)(options)) {
-            const msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_OPTIONS);
+        if (!isObject(options)) {
+            const msg = invalidErrorPrefix + buildMessage(ErrorLogMessagesEnum.INVALID_OPTIONS);
             console.error(msg); // Ensures options is an object.
         }
-        if (!options?.sdkKey || !(0, DataTypeUtil_1.isString)(options?.sdkKey)) {
-            const msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_SDK_KEY_IN_OPTIONS);
+        if (!options?.sdkKey || !isString(options?.sdkKey)) {
+            const msg = invalidErrorPrefix + buildMessage(ErrorLogMessagesEnum.INVALID_SDK_KEY_IN_OPTIONS);
             console.error(msg); // Validates sdkKey presence and type.
         }
         if (!options.accountId) {
-            const msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_ACCOUNT_ID_IN_OPTIONS);
+            const msg = invalidErrorPrefix + buildMessage(ErrorLogMessagesEnum.INVALID_ACCOUNT_ID_IN_OPTIONS);
             console.error(msg); // Validates accountId presence and type.
         }
         if (options.isAliasingEnabled && !options.gatewayService) {
             const msg = invalidErrorPrefix +
-                (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_GATEWAY_URL, {
+                buildMessage(ErrorLogMessagesEnum.INVALID_GATEWAY_URL, {
                     date,
                 });
             console.error(msg); // Validates gatewayService presence and type.
         }
         if (typeof process === 'undefined') {
-            options.platform = PlatformEnum_1.PlatformEnum.CLIENT;
+            options.platform = PlatformEnum.CLIENT;
         }
         else {
-            options.platform = PlatformEnum_1.PlatformEnum.SERVER;
+            options.platform = PlatformEnum.SERVER;
         }
         let startTimeForInit = undefined;
         startTimeForInit = Date.now();
         const instance = new VWO(options); // Creates a new VWO instance with the validated options.
         _global = {
-            vwoInitDeferred: new PromiseUtil_1.Deferred(),
+            vwoInitDeferred: new Deferred(),
             isSettingsFetched: false,
             instance: null,
         };
@@ -148,10 +142,10 @@ async function init(options) {
             if (_vwoInstance.isSettingsValid && !_vwoInstance.originalSettings?.sdkMetaInfo?.wasInitializedEarlier) {
                 //if shouldwaitForTrackingCalls is true, then wait for sendSdkInitEvent to complete
                 if (_vwoInstance.options?.shouldWaitForTrackingCalls) {
-                    await (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                    await sendSdkInitEvent(_vwoInstance.settingsFetchTime, sdkInitTime);
                 }
                 else {
-                    (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                    sendSdkInitEvent(_vwoInstance.settingsFetchTime, sdkInitTime);
                 }
             }
             // send sdk usage stats event
@@ -159,10 +153,10 @@ async function init(options) {
             const usageStatsAccountId = _vwoInstance.originalSettings?.usageStatsAccountId;
             if (usageStatsAccountId) {
                 if (_vwoInstance.options?.shouldWaitForTrackingCalls) {
-                    await (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
+                    await sendSDKUsageStatsEvent(usageStatsAccountId);
                 }
                 else {
-                    (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
+                    sendSDKUsageStatsEvent(usageStatsAccountId);
                 }
             }
             _global.isSettingsFetched = true;
@@ -172,21 +166,21 @@ async function init(options) {
         });
     }
     catch (err) {
-        const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EXECUTION_FAILED, {
+        const msg = buildMessage(ErrorLogMessagesEnum.EXECUTION_FAILED, {
             apiName,
             err,
         });
         console.info(`[INFO]: VWO-SDK ${new Date().toISOString()} ${msg}`);
     }
 }
-async function onInit() {
-    const apiName = ApiEnum_1.ApiEnum.ON_INIT;
+export async function onInit() {
+    const apiName = ApiEnum.ON_INIT;
     try {
-        _global.vwoInitDeferred = new PromiseUtil_1.Deferred();
+        _global.vwoInitDeferred = new Deferred();
         const date = new Date().toISOString();
         // If settings are already fetched, resolve the promise
         if (_global.isSettingsFetched) {
-            const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.ON_INIT_ALREADY_RESOLVED, {
+            const msg = buildMessage(InfoLogMessagesEnum.ON_INIT_ALREADY_RESOLVED, {
                 date,
                 apiName,
             });
@@ -199,7 +193,7 @@ async function onInit() {
                 if (_global.isSettingsFetched) {
                     return;
                 }
-                const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.ON_INIT_SETTINGS_FAILED, {
+                const msg = buildMessage(InfoLogMessagesEnum.ON_INIT_SETTINGS_FAILED, {
                     date,
                 });
                 console.error(msg);
@@ -209,7 +203,7 @@ async function onInit() {
         return _global.vwoInitDeferred.promise;
     }
     catch (err) {
-        const msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EXECUTION_FAILED, {
+        const msg = buildMessage(ErrorLogMessagesEnum.EXECUTION_FAILED, {
             apiName,
             err,
         });

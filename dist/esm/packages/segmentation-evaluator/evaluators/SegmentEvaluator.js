@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SegmentEvaluator = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,16 +13,16 @@ exports.SegmentEvaluator = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const StorageDecorator_1 = require("../../../decorators/StorageDecorator");
-const logger_1 = require("../../logger");
-const StorageService_1 = require("../../../services/StorageService");
-const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
-const SegmentOperatorValueEnum_1 = require("../enums/SegmentOperatorValueEnum");
-const SegmentUtil_1 = require("../utils/SegmentUtil");
-const SegmentOperandEvaluator_1 = require("./SegmentOperandEvaluator");
-const ApiEnum_1 = require("../../../enums/ApiEnum");
-const FunctionUtil_1 = require("../../../utils/FunctionUtil");
-class SegmentEvaluator {
+import { StorageDecorator } from '../../../decorators/StorageDecorator.js';
+import { LogManager } from '../../logger/index.js';
+import { StorageService } from '../../../services/StorageService.js';
+import { isObject } from '../../../utils/DataTypeUtil.js';
+import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum.js';
+import { getKeyValue } from '../utils/SegmentUtil.js';
+import { SegmentOperandEvaluator } from './SegmentOperandEvaluator.js';
+import { ApiEnum } from '../../../enums/ApiEnum.js';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
+export class SegmentEvaluator {
     /**
      * Validates if the segmentation defined in the DSL is applicable based on the provided properties.
      * @param dsl The domain-specific language defining the segmentation rules.
@@ -33,29 +30,29 @@ class SegmentEvaluator {
      * @returns A Promise resolving to a boolean indicating if the segmentation is valid.
      */
     async isSegmentationValid(dsl, properties) {
-        const { key, value } = (0, SegmentUtil_1.getKeyValue)(dsl);
+        const { key, value } = getKeyValue(dsl);
         const operator = key;
         const subDsl = value;
         // Evaluate based on the type of segmentation operator
         switch (operator) {
-            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.NOT:
+            case SegmentOperatorValueEnum.NOT:
                 return !(await this.isSegmentationValid(subDsl, properties));
-            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.AND:
+            case SegmentOperatorValueEnum.AND:
                 return await this.every(subDsl, properties);
-            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OR:
+            case SegmentOperatorValueEnum.OR:
                 return await this.some(subDsl, properties);
-            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.CUSTOM_VARIABLE:
-                return await new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateCustomVariableDSL(subDsl, properties, this.context);
-            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.USER:
-                return new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties);
-            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.UA:
-                return new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context);
-            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP:
-                return new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP);
-            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION:
-                return new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION);
-            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION:
-                return new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION);
+            case SegmentOperatorValueEnum.CUSTOM_VARIABLE:
+                return await new SegmentOperandEvaluator().evaluateCustomVariableDSL(subDsl, properties, this.context);
+            case SegmentOperatorValueEnum.USER:
+                return new SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties);
+            case SegmentOperatorValueEnum.UA:
+                return new SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context);
+            case SegmentOperatorValueEnum.IP:
+                return new SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum.IP);
+            case SegmentOperatorValueEnum.BROWSER_VERSION:
+                return new SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum.BROWSER_VERSION);
+            case SegmentOperatorValueEnum.OS_VERSION:
+                return new SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum.OS_VERSION);
             default:
                 return false;
         }
@@ -73,10 +70,10 @@ class SegmentEvaluator {
         for (const dsl of dslNodes) {
             for (const key in dsl) {
                 // Check for user agent related keys
-                if (key === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OPERATING_SYSTEM ||
-                    key === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_AGENT ||
-                    key === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.DEVICE_TYPE ||
-                    key === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.DEVICE) {
+                if (key === SegmentOperatorValueEnum.OPERATING_SYSTEM ||
+                    key === SegmentOperatorValueEnum.BROWSER_AGENT ||
+                    key === SegmentOperatorValueEnum.DEVICE_TYPE ||
+                    key === SegmentOperatorValueEnum.DEVICE) {
                     isUaParser = true;
                     const value = dsl[key];
                     if (!uaParserMap[key]) {
@@ -92,7 +89,7 @@ class SegmentEvaluator {
                     keyCount++; // Increment count of keys encountered
                 }
                 // Check for feature toggle based on feature ID
-                if (key === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.FEATURE_ID) {
+                if (key === SegmentOperatorValueEnum.FEATURE_ID) {
                     const featureIdObject = dsl[key];
                     const featureIdKey = Object.keys(featureIdObject)[0];
                     const featureIdValue = featureIdObject[featureIdKey];
@@ -109,9 +106,9 @@ class SegmentEvaluator {
                             return result;
                         }
                         else {
-                            logger_1.LogManager.Instance.errorLog('FEATURE_NOT_FOUND_WITH_ID', {
+                            LogManager.Instance.errorLog('FEATURE_NOT_FOUND_WITH_ID', {
                                 featureId: featureIdKey,
-                            }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
+                            }, { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
                             return null; // Handle the case when feature is not found
                         }
                     }
@@ -124,9 +121,9 @@ class SegmentEvaluator {
                     return uaParserResult;
                 }
                 catch (err) {
-                    logger_1.LogManager.Instance.errorLog('USER_AGENT_VALIDATION_ERROR', {
-                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
-                    }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
+                    LogManager.Instance.errorLog('USER_AGENT_VALIDATION_ERROR', {
+                        err: getFormattedErrorMessage(err),
+                    }, { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
                 }
             }
             // Recursively check each DSL node
@@ -146,9 +143,9 @@ class SegmentEvaluator {
         const locationMap = {};
         for (const dsl of dslNodes) {
             // Check if the DSL node contains location-related keys
-            if (SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.COUNTRY in dsl ||
-                SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.REGION in dsl ||
-                SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.CITY in dsl) {
+            if (SegmentOperatorValueEnum.COUNTRY in dsl ||
+                SegmentOperatorValueEnum.REGION in dsl ||
+                SegmentOperatorValueEnum.CITY in dsl) {
                 this.addLocationValuesToMap(dsl, locationMap);
                 // Check if the number of location keys matches the number of DSL nodes
                 if (Object.keys(locationMap).length === dslNodes.length) {
@@ -171,14 +168,14 @@ class SegmentEvaluator {
      */
     addLocationValuesToMap(dsl, locationMap) {
         // Add country, region, and city information to the location map if present
-        if (SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.COUNTRY in dsl) {
-            locationMap[SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.COUNTRY] = dsl[SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.COUNTRY];
+        if (SegmentOperatorValueEnum.COUNTRY in dsl) {
+            locationMap[SegmentOperatorValueEnum.COUNTRY] = dsl[SegmentOperatorValueEnum.COUNTRY];
         }
-        if (SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.REGION in dsl) {
-            locationMap[SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.REGION] = dsl[SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.REGION];
+        if (SegmentOperatorValueEnum.REGION in dsl) {
+            locationMap[SegmentOperatorValueEnum.REGION] = dsl[SegmentOperatorValueEnum.REGION];
         }
-        if (SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.CITY in dsl) {
-            locationMap[SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.CITY] = dsl[SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.CITY];
+        if (SegmentOperatorValueEnum.CITY in dsl) {
+            locationMap[SegmentOperatorValueEnum.CITY] = dsl[SegmentOperatorValueEnum.CITY];
         }
     }
     /**
@@ -189,7 +186,7 @@ class SegmentEvaluator {
     async checkLocationPreSegmentation(locationMap) {
         // Ensure user's IP address is available
         if (this.context?.getIpAddress() === undefined && typeof process !== 'undefined') {
-            logger_1.LogManager.Instance.errorLog('INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
+            LogManager.Instance.errorLog('INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
             return false;
         }
         // Check if location data is available and matches the expected values
@@ -208,7 +205,7 @@ class SegmentEvaluator {
     async checkUserAgentParser(uaParserMap) {
         // Ensure user's user agent is available
         if (!this.context?.getUserAgent() || this.context?.getUserAgent() === undefined) {
-            logger_1.LogManager.Instance.errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
+            LogManager.Instance.errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
             return false;
         }
         // Check if user agent data is available and matches the expected values
@@ -225,11 +222,11 @@ class SegmentEvaluator {
      * @returns A Promise resolving to a boolean indicating if the feature is enabled for the user.
      */
     async checkInUserStorage(settings, featureKey, context) {
-        const storageService = new StorageService_1.StorageService();
+        const storageService = new StorageService();
         // Retrieve feature data from storage
-        const storedData = await new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService);
+        const storedData = await new StorageDecorator().getFeatureFromStorage(featureKey, context, storageService);
         // Check if the stored data is an object and not empty
-        if ((0, DataTypeUtil_1.isObject)(storedData) && Object.keys(storedData).length > 0) {
+        if (isObject(storedData) && Object.keys(storedData).length > 0) {
             return true;
         }
         else {
@@ -308,5 +305,4 @@ class SegmentEvaluator {
         return value.toString().replace(/^"|"$/g, '').trim();
     }
 }
-exports.SegmentEvaluator = SegmentEvaluator;
 //# sourceMappingURL=SegmentEvaluator.js.map

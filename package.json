@@ -1,6 +1,6 @@
 {
   "name": "vwo-fme-node-sdk",
-  "version": "1.32.0",
+  "version": "1.33.0",
   "description": "VWO Node/JavaScript SDK for Feature Management and Experimentation",
   "main": "dist/server/vwo-fme-node-sdk.min.js",
   "browser": "dist/client/vwo-fme-javascript-sdk.min.js",
@@ -10,9 +10,14 @@
     ".": {
       "types": "./dist/types/index.d.ts",
       "browser": {
-        "import": "./dist/esm/index.js",
+        "import": "./dist/client/vwo-fme-javascript-sdk.min.js",
         "require": "./dist/client/vwo-fme-javascript-sdk.min.js",
         "default": "./dist/client/vwo-fme-javascript-sdk.min.js"
+      },
+      "node": {
+        "import": "./dist/esm/index.js",
+        "require": "./dist/server/vwo-fme-node-sdk.min.js",
+        "default": "./dist/server/vwo-fme-node-sdk.min.js"
       },
       "import": "./dist/esm/index.js",
       "require": "./dist/server/vwo-fme-node-sdk.min.js",
@@ -33,7 +38,7 @@
     "build": "rm -rf dist/ && yarn gen:sdk-version && yarn tsc:prod && yarn build:node && yarn build:browser && yarn build:esm && prettier -w dist/types/",
     "build:browser": "yarn build:dev-browser && yarn build:prod-browser",
     "build:node": "yarn build:dev-node && yarn build:prod-node",
-    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:esm": "tsc --project tsconfig.esm.json && node scripts/add-js-extensions.js && cp package.esm.json dist/esm/package.json",
     "build:dev-browser": "webpack --config ./webpack.browser.config.js --mode=development",
     "build:dev-node": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development",
     "build:dev-browser-watch": "webpack --config ./webpack.browser.config.js --mode=development --watch",
@@ -56,7 +61,7 @@
     "test:prod": "jest --runInBand --colors --errorOnDeprecated",
     "test:coverage": "jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info",
     "tsc": "yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w",
-    "tsc:prod": "yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/ && cp VERSION.json dist/",
+    "tsc:prod": "yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/ && cp VERSION.js dist/",
     "typedoc": "typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ",
     "typedoc:html": "typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"
   },
@@ -81,7 +86,10 @@
     "murmurhash": "^2.0.1",
     "superstruct": "^0.14.x",
     "uuid": "^9.0.1",
-    "vwo-fme-sdk-log-messages": "^1.2.8"
+    "vwo-fme-sdk-log-messages": "^1.2.9"
+  },
+  "optionalDependencies": {
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",

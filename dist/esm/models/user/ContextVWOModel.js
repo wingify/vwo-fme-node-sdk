@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContextVWOModel = void 0;
-class ContextVWOModel {
+export class ContextVWOModel {
     modelFromDictionary(context) {
         if (context?.location) {
             this.location = context.location;
@@ -33,5 +30,4 @@ class ContextVWOModel {
         return this.userAgent;
     }
 }
-exports.ContextVWOModel = ContextVWOModel;
 //# sourceMappingURL=ContextVWOModel.js.map

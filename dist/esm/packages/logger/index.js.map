@@ -1,1 +1,1 @@
-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../../lib/packages/logger/index.ts"],"names":[],"mappings":";;;AAAA;;;;;;;;;;;;;;GAcG;AACH,gDAA4D;AAAnD,wGAAA,UAAU,OAAA;AACnB,qDAAoD;AAA3C,4GAAA,YAAY,OAAA"}
+{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../../lib/packages/logger/index.ts"],"names":[],"mappings":"AAAA;;;;;;;;;;;;;;GAcG;AACH,OAAO,EAAE,UAAU,EAAe,MAAM,mBAAmB,CAAC;AAC5D,OAAO,EAAE,YAAY,EAAE,MAAM,sBAAsB,CAAC"}

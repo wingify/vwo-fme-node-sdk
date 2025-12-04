@@ -19,7 +19,7 @@ export declare class NetworkManager {
    * @param {NetworkClientInterface} client - The client to attach, optional.
    * @param {IRetryConfig} retryConfig - The retry configuration, optional.
    */
-  attachClient(client?: NetworkClientInterface, retryConfig?: IRetryConfig): void;
+  attachClient(client?: NetworkClientInterface, retryConfig?: IRetryConfig, shouldWaitForTrackingCalls?: boolean): void;
   /**
    * Retrieves the current retry configuration.
    * @returns {IRetryConfig} A copy of the current retry configuration.

@@ -88,7 +88,11 @@ export class VWOBuilder implements IVWOBuilder {
   setNetworkManager(): this {
     const networkInstance = NetworkManager.Instance;
     // Attach the network client from options
-    networkInstance.attachClient(this.options?.network?.client, this.options?.retryConfig);
+    networkInstance.attachClient(
+      this.options?.network?.client,
+      this.options?.retryConfig,
+      this.options?.shouldWaitForTrackingCalls ? true : false,
+    );
 
     LogManager.Instance.debug(
       buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {

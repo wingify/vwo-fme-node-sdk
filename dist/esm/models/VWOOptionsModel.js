@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.VWOOptionsModel = void 0;
-class VWOOptionsModel {
+export class VWOOptionsModel {
     modelFromDictionary(options) {
         this.accountId = options.accountId;
         this.sdkKey = options.sdkKey;
@@ -123,5 +120,4 @@ class VWOOptionsModel {
         return this.isAliasingEnabled;
     }
 }
-exports.VWOOptionsModel = VWOOptionsModel;
 //# sourceMappingURL=VWOOptionsModel.js.map

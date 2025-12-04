@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.UsageStatsUtil = void 0;
-const TransportManager_1 = require("../packages/logger/core/TransportManager");
-const SettingsService_1 = require("../services/SettingsService");
+import { LogLevelNumberEnum } from '../packages/logger/core/TransportManager.js';
+import { SettingsService } from '../services/SettingsService.js';
 /**
  * Manages usage statistics for the SDK.
  * Tracks various features and configurations being used by the client.
  * Implements Singleton pattern to ensure a single instance.
  */
-class UsageStatsUtil {
+export class UsageStatsUtil {
     /** Private constructor to prevent direct instantiation */
     constructor() {
         /** Internal storage for usage statistics data */
@@ -55,8 +52,8 @@ class UsageStatsUtil {
     setUsageStats(options) {
         const { storage, logger, batchEventData, gatewayService, integrations, pollInterval, _vwo_meta, shouldWaitForTrackingCalls, } = options;
         const data = {};
-        data.a = SettingsService_1.SettingsService.Instance.accountId;
-        data.env = SettingsService_1.SettingsService.Instance.sdkKey;
+        data.a = SettingsService.Instance.accountId;
+        data.env = SettingsService.Instance.sdkKey;
         // Map configuration options to usage stats flags
         if (integrations)
             data.ig = 1; // Integration enabled
@@ -68,7 +65,7 @@ class UsageStatsUtil {
         if (storage)
             data.ss = 1; // Storage service configured
         if (logger?.level) {
-            data.ll = TransportManager_1.LogLevelNumberEnum[logger.level.toUpperCase()] ?? -1; // Default to -1 if level is not recognized
+            data.ll = LogLevelNumberEnum[logger.level.toUpperCase()] ?? -1; // Default to -1 if level is not recognized
         }
         if (gatewayService)
             data.gs = 1; // Gateway service configured
@@ -100,5 +97,4 @@ class UsageStatsUtil {
         this.usageStatsData = {};
     }
 }
-exports.UsageStatsUtil = UsageStatsUtil;
 //# sourceMappingURL=UsageStatsUtil.js.map

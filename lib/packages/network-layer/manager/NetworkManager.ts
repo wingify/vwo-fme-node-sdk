@@ -24,6 +24,11 @@ import { Constants } from '../../../constants';
 import { isBoolean, isNumber } from '../../../utils/DataTypeUtil';
 import { LogManager } from '../../logger/core/LogManager';
 import { ApiEnum } from '../../../enums/ApiEnum';
+import { NetworkServerLessClient } from '../client/NetworkServerLessClient';
+import { NetworkBrowserClient } from '../client/NetworkBrowserClient';
+import { buildMessage } from '../../../utils/LogMessageUtil';
+import { DebugLogMessagesEnum } from '../../../enums/log-messages';
+import { HTTPS_PROTOCOL } from '../../../constants/Url';
 
 export class NetworkManager {
   private config: GlobalRequestModel; // Holds the global configuration for network requests
@@ -93,7 +98,11 @@ export class NetworkManager {
    * @param {NetworkClientInterface} client - The client to attach, optional.
    * @param {IRetryConfig} retryConfig - The retry configuration, optional.
    */
-  attachClient(client?: NetworkClientInterface, retryConfig?: IRetryConfig): void {
+  attachClient(
+    client?: NetworkClientInterface,
+    retryConfig?: IRetryConfig,
+    shouldWaitForTrackingCalls: boolean = false,
+  ): void {
     // Only set retry configuration if it's not already initialized or if a new config is provided
     if (!this.retryConfig || retryConfig) {
       // Define default retry configuration
@@ -107,28 +116,46 @@ export class NetworkManager {
 
       // Validate the merged configuration
       this.retryConfig = this.validateRetryConfig(mergedConfig);
+
+      // If shouldWaitForTrackingCalls is true, set shouldRetry to false
+      // This is because we don't want to retry the request if the SDK is waiting for a network response (serverless mode)
+      if (shouldWaitForTrackingCalls) {
+        this.retryConfig.shouldRetry = false;
+      }
     }
 
     // if env is undefined, we are in browser
     if ((typeof process as any) === 'undefined') {
       // if XMLHttpRequest is undefined, we are in serverless
       if (typeof XMLHttpRequest === 'undefined') {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { NetworkServerLessClient } = require('../client/NetworkServerLessClient');
         this.client = client || new NetworkServerLessClient();
       } else {
+        LogManager.Instance.debug(
+          buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+            api: 'xhr',
+            process: 'undefined',
+          }),
+        );
         // if XMLHttpRequest is defined, we are in browser
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { NetworkBrowserClient } = require('../client/NetworkBrowserClient');
-
         this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
       }
     } else {
-      // if env is defined, we are in node
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { NetworkClient } = require('../client/NetworkClient');
-
-      this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+      // if env is defined, we expect to be in Node
+      // In CommonJS builds `require` exists; in pure ESM it does not.
+      if (typeof require === 'function') {
+        LogManager.Instance.debug(
+          buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+            api: HTTPS_PROTOCOL,
+            process: 'defined',
+          }),
+        );
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { NetworkClient } = require('../client/NetworkClient');
+        this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+      } else {
+        // Node ESM runtime: fall back to the fetch-based client which is compatible everywhere
+        this.client = client || new NetworkServerLessClient();
+      }
     }
 
     this.config = new GlobalRequestModel(null, null, null, null); // Initialize with default config

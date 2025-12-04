@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConsoleTransport = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,12 +13,12 @@ exports.ConsoleTransport = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const LogLevelEnum_1 = require("../enums/LogLevelEnum");
+import { LogLevelEnum } from '../enums/LogLevelEnum.js';
 /**
  * ConsoleTransport class implements the Logger interface to provide logging functionality.
  * It outputs logs to the console based on the log level set in the configuration.
  */
-class ConsoleTransport {
+export class ConsoleTransport {
     /**
      * Constructor initializes the ConsoleTransport with a configuration object.
      * @param {Record<string, any>} config - Configuration settings for the logger, including 'level'.
@@ -35,35 +32,35 @@ class ConsoleTransport {
      * @param {string} message - The message to log.
      */
     trace(message) {
-        this.consoleLog(LogLevelEnum_1.LogLevelEnum.TRACE, message);
+        this.consoleLog(LogLevelEnum.TRACE, message);
     }
     /**
      * Logs a debug message.
      * @param {string} message - The message to log.
      */
     debug(message) {
-        this.consoleLog(LogLevelEnum_1.LogLevelEnum.DEBUG, message);
+        this.consoleLog(LogLevelEnum.DEBUG, message);
     }
     /**
      * Logs an informational message.
      * @param {string} message - The message to log.
      */
     info(message) {
-        this.consoleLog(LogLevelEnum_1.LogLevelEnum.INFO, message);
+        this.consoleLog(LogLevelEnum.INFO, message);
     }
     /**
      * Logs a warning message.
      * @param {string} message - The message to log.
      */
     warn(message) {
-        this.consoleLog(LogLevelEnum_1.LogLevelEnum.WARN, message);
+        this.consoleLog(LogLevelEnum.WARN, message);
     }
     /**
      * Logs an error message.
      * @param {string} message - The message to log.
      */
     error(message) {
-        this.consoleLog(LogLevelEnum_1.LogLevelEnum.ERROR, message);
+        this.consoleLog(LogLevelEnum.ERROR, message);
     }
     /**
      * Generic log function that logs messages to the console based on the log level.
@@ -74,5 +71,4 @@ class ConsoleTransport {
         console[level](message); // Use console's logging function dynamically based on the level
     }
 }
-exports.ConsoleTransport = ConsoleTransport;
 //# sourceMappingURL=ConsoleTransport.js.map

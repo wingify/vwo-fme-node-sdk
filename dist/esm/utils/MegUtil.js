@@ -1,7 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.evaluateGroups = void 0;
-exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -17,21 +13,21 @@ exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const constants_1 = require("../constants");
-const StorageDecorator_1 = require("../decorators/StorageDecorator");
-const CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
-const log_messages_1 = require("../enums/log-messages");
-const CampaignModel_1 = require("../models/campaign/CampaignModel");
-const VariationModel_1 = require("../models/campaign/VariationModel");
-const decision_maker_1 = require("../packages/decision-maker");
-const logger_1 = require("../packages/logger");
-const CampaignDecisionService_1 = require("../services/CampaignDecisionService");
-const RuleEvaluationUtil_1 = require("../utils/RuleEvaluationUtil");
-const CampaignUtil_1 = require("./CampaignUtil");
-const DataTypeUtil_1 = require("./DataTypeUtil");
-const DecisionUtil_1 = require("./DecisionUtil");
-const FunctionUtil_1 = require("./FunctionUtil");
-const LogMessageUtil_1 = require("./LogMessageUtil");
+import { Constants } from '../constants/index.js';
+import { StorageDecorator } from '../decorators/StorageDecorator.js';
+import { CampaignTypeEnum } from '../enums/CampaignTypeEnum.js';
+import { InfoLogMessagesEnum } from '../enums/log-messages/index.js';
+import { CampaignModel } from '../models/campaign/CampaignModel.js';
+import { VariationModel } from '../models/campaign/VariationModel.js';
+import { DecisionMaker } from '../packages/decision-maker/index.js';
+import { LogManager } from '../packages/logger/index.js';
+import { CampaignDecisionService } from '../services/CampaignDecisionService.js';
+import { evaluateRule } from '../utils/RuleEvaluationUtil.js';
+import { getBucketingSeed, getCampaignIdsFromFeatureKey, getCampaignsByGroupId, getFeatureKeysFromCampaignIds, getVariationFromCampaignKey, setCampaignAllocation, } from './CampaignUtil.js';
+import { isObject, isUndefined } from './DataTypeUtil.js';
+import { evaluateTrafficAndGetVariation } from './DecisionUtil.js';
+import { cloneObject, getFeatureFromKey, getSpecificRulesBasedOnType } from './FunctionUtil.js';
+import { buildMessage } from './LogMessageUtil.js';
 /**
  * Evaluates groups for a given feature and group ID.
  *
@@ -43,13 +39,13 @@ const LogMessageUtil_1 = require("./LogMessageUtil");
  * @param storageService - The storage service.
  * @returns A promise that resolves to the evaluation result.
  */
-const evaluateGroups = async (settings, feature, groupId, evaluatedFeatureMap, context, storageService) => {
+export const evaluateGroups = async (settings, feature, groupId, evaluatedFeatureMap, context, storageService) => {
     const featureToSkip = [];
     const campaignMap = new Map();
     // get all feature keys and all campaignIds from the groupId
     const { featureKeys, groupCampaignIds } = getFeatureKeysFromGroup(settings, groupId);
     for (const featureKey of featureKeys) {
-        const feature = (0, FunctionUtil_1.getFeatureFromKey)(settings, featureKey);
+        const feature = getFeatureFromKey(settings, featureKey);
         // check if the feature is already evaluated
         if (featureToSkip.includes(featureKey)) {
             continue;
@@ -78,7 +74,6 @@ const evaluateGroups = async (settings, feature, groupId, evaluatedFeatureMap, c
     const { eligibleCampaigns, eligibleCampaignsWithStorage } = await _getEligbleCampaigns(settings, campaignMap, context, storageService);
     return await _findWinnerCampaignAmongEligibleCampaigns(settings, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService);
 };
-exports.evaluateGroups = evaluateGroups;
 /**
  * Retrieves feature keys associated with a group based on the group ID.
  *
@@ -86,9 +81,9 @@ exports.evaluateGroups = evaluateGroups;
  * @param groupId - The ID of the group.
  * @returns An object containing feature keys and group campaign IDs.
  */
-function getFeatureKeysFromGroup(settings, groupId) {
-    const groupCampaignIds = (0, CampaignUtil_1.getCampaignsByGroupId)(settings, groupId);
-    const featureKeys = (0, CampaignUtil_1.getFeatureKeysFromCampaignIds)(settings, groupCampaignIds);
+export function getFeatureKeysFromGroup(settings, groupId) {
+    const groupCampaignIds = getCampaignsByGroupId(settings, groupId);
+    const featureKeys = getFeatureKeysFromCampaignIds(settings, groupCampaignIds);
     return { featureKeys, groupCampaignIds };
 }
 /*******************************
@@ -109,11 +104,11 @@ const _isRolloutRuleForFeaturePassed = async (settings, feature, evaluatedFeatur
     if (evaluatedFeatureMap.has(feature.getKey()) && 'rolloutId' in evaluatedFeatureMap.get(feature.getKey())) {
         return true;
     }
-    const rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
+    const rollOutRules = getSpecificRulesBasedOnType(feature, CampaignTypeEnum.ROLLOUT);
     if (rollOutRules.length > 0) {
         let ruleToTestForTraffic = null;
         for (const rule of rollOutRules) {
-            const { preSegmentationResult } = await (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, {});
+            const { preSegmentationResult } = await evaluateRule(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, {});
             if (preSegmentationResult) {
                 ruleToTestForTraffic = rule;
                 break;
@@ -121,9 +116,9 @@ const _isRolloutRuleForFeaturePassed = async (settings, feature, evaluatedFeatur
             continue;
         }
         if (ruleToTestForTraffic !== null) {
-            const campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(ruleToTestForTraffic);
-            const variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(settings, campaign, context.getId());
-            if ((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0) {
+            const campaign = new CampaignModel().modelFromDictionary(ruleToTestForTraffic);
+            const variation = evaluateTrafficAndGetVariation(settings, campaign, context.getId());
+            if (isObject(variation) && Object.keys(variation).length > 0) {
                 evaluatedFeatureMap.set(feature.getKey(), {
                     rolloutId: ruleToTestForTraffic.id,
                     rolloutKey: ruleToTestForTraffic.key,
@@ -137,7 +132,7 @@ const _isRolloutRuleForFeaturePassed = async (settings, feature, evaluatedFeatur
         return false;
     }
     // no rollout rule, evaluate experiments
-    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS, {
+    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS, {
         featureKey: feature.getKey(),
     }));
     return true;
@@ -159,13 +154,13 @@ const _getEligbleCampaigns = async (settings, campaignMap, context, storageServi
     // Iterate over the campaign map to determine eligible campaigns
     for (const [featureKey, campaigns] of campaignMapArray) {
         for (const campaign of campaigns) {
-            const storedData = await new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService);
+            const storedData = await new StorageDecorator().getFeatureFromStorage(featureKey, context, storageService);
             // Check if campaign is stored in storage
             if (storedData?.experimentVariationId) {
                 if (storedData.experimentKey && storedData.experimentKey === campaign.getKey()) {
-                    const variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.experimentKey, storedData.experimentVariationId);
+                    const variation = getVariationFromCampaignKey(settings, storedData.experimentKey, storedData.experimentVariationId);
                     if (variation) {
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+                        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
                             campaignKey: storedData.experimentKey,
                             userId: context.getId(),
                         }));
@@ -177,10 +172,10 @@ const _getEligbleCampaigns = async (settings, campaignMap, context, storageServi
                 }
             }
             // Check if user is eligible for the campaign
-            if ((await new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(new CampaignModel_1.CampaignModel().modelFromDictionary(campaign), context)) &&
-                new CampaignDecisionService_1.CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign)) {
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_ELIGIBLE, {
-                    campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+            if ((await new CampaignDecisionService().getPreSegmentationDecision(new CampaignModel().modelFromDictionary(campaign), context)) &&
+                new CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign)) {
+                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_ELIGIBLE, {
+                    campaignKey: campaign.getType() === CampaignTypeEnum.AB
                         ? campaign.getKey()
                         : campaign.getName() + '_' + campaign.getRuleKey(),
                     userId: context.getId(),
@@ -211,16 +206,16 @@ const _getEligbleCampaigns = async (settings, campaignMap, context, storageServi
 const _findWinnerCampaignAmongEligibleCampaigns = async (settings, featureKey, eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService) => {
     // getCampaignIds from featureKey
     let winnerCampaign = null;
-    const campaignIds = (0, CampaignUtil_1.getCampaignIdsFromFeatureKey)(settings, featureKey);
+    const campaignIds = getCampaignIdsFromFeatureKey(settings, featureKey);
     // get the winner from each group and store it in winnerFromEachGroup
-    const megAlgoNumber = !(0, DataTypeUtil_1.isUndefined)(settings?.getGroups()[groupId]?.et)
+    const megAlgoNumber = !isUndefined(settings?.getGroups()[groupId]?.et)
         ? settings.getGroups()[groupId].et
-        : constants_1.Constants.RANDOM_ALGO;
+        : Constants.RANDOM_ALGO;
     // if eligibleCampaignsWithStorage has only one campaign, then that campaign is the winner
     if (eligibleCampaignsWithStorage.length === 1) {
         winnerCampaign = eligibleCampaignsWithStorage[0];
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-            campaignKey: eligibleCampaignsWithStorage[0].getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+            campaignKey: eligibleCampaignsWithStorage[0].getType() === CampaignTypeEnum.AB
                 ? eligibleCampaignsWithStorage[0].getKey()
                 : eligibleCampaignsWithStorage[0].getName() + '_' + eligibleCampaignsWithStorage[0].getRuleKey(),
             groupId,
@@ -228,7 +223,7 @@ const _findWinnerCampaignAmongEligibleCampaigns = async (settings, featureKey, e
             algo: '',
         }));
     }
-    else if (eligibleCampaignsWithStorage.length > 1 && megAlgoNumber === constants_1.Constants.RANDOM_ALGO) {
+    else if (eligibleCampaignsWithStorage.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
         // if eligibleCampaignsWithStorage has more than one campaign and algo is random, then find the winner using random algo
         winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
     }
@@ -239,8 +234,8 @@ const _findWinnerCampaignAmongEligibleCampaigns = async (settings, featureKey, e
     if (eligibleCampaignsWithStorage.length === 0) {
         if (eligibleCampaigns.length === 1) {
             winnerCampaign = eligibleCampaigns[0];
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-                campaignKey: eligibleCampaigns[0].getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+                campaignKey: eligibleCampaigns[0].getType() === CampaignTypeEnum.AB
                     ? eligibleCampaigns[0].getKey()
                     : eligibleCampaigns[0].getName() + '_' + eligibleCampaigns[0].getRuleKey(),
                 groupId,
@@ -248,7 +243,7 @@ const _findWinnerCampaignAmongEligibleCampaigns = async (settings, featureKey, e
                 algo: '',
             }));
         }
-        else if (eligibleCampaigns.length > 1 && megAlgoNumber === constants_1.Constants.RANDOM_ALGO) {
+        else if (eligibleCampaigns.length > 1 && megAlgoNumber === Constants.RANDOM_ALGO) {
             winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaigns, context, campaignIds, groupId, storageService);
         }
         else if (eligibleCampaigns.length > 1) {
@@ -272,12 +267,12 @@ const _normalizeWeightsAndFindWinningCampaign = (shortlistedCampaigns, context, 
         campaign.weight = Math.round((100 / shortlistedCampaigns.length) * 10000) / 10000;
     });
     // make shortlistedCampaigns as array of VariationModel
-    shortlistedCampaigns = shortlistedCampaigns.map((campaign) => new VariationModel_1.VariationModel().modelFromDictionary(campaign));
+    shortlistedCampaigns = shortlistedCampaigns.map((campaign) => new VariationModel().modelFromDictionary(campaign));
     // re-distribute the traffic for each camapign
-    (0, CampaignUtil_1.setCampaignAllocation)(shortlistedCampaigns);
-    const winnerCampaign = new CampaignDecisionService_1.CampaignDecisionService().getVariation(shortlistedCampaigns, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getId(), undefined, groupId)));
-    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-        campaignKey: winnerCampaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+    setCampaignAllocation(shortlistedCampaigns);
+    const winnerCampaign = new CampaignDecisionService().getVariation(shortlistedCampaigns, new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), undefined, groupId)));
+    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+        campaignKey: winnerCampaign.getType() === CampaignTypeEnum.AB
             ? winnerCampaign.getKey()
             : winnerCampaign.getKey() + '_' + winnerCampaign.getRuleKey(),
         groupId,
@@ -285,12 +280,12 @@ const _normalizeWeightsAndFindWinningCampaign = (shortlistedCampaigns, context, 
         algo: 'using random algorithm',
     }));
     if (winnerCampaign) {
-        new StorageDecorator_1.StorageDecorator().setDataInStorage({
-            featureKey: `${constants_1.Constants.VWO_META_MEG_KEY}${groupId}`,
+        new StorageDecorator().setDataInStorage({
+            featureKey: `${Constants.VWO_META_MEG_KEY}${groupId}`,
             context,
             experimentId: winnerCampaign.getId(),
             experimentKey: winnerCampaign.getKey(),
-            experimentVariationId: winnerCampaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? winnerCampaign.getVariations()[0].getId() : -1,
+            experimentVariationId: winnerCampaign.getType() === CampaignTypeEnum.PERSONALIZE ? winnerCampaign.getVariations()[0].getId() : -1,
         }, storageService);
         if (calledCampaignIds.includes(winnerCampaign.getId())) {
             return winnerCampaign;
@@ -311,17 +306,17 @@ const _normalizeWeightsAndFindWinningCampaign = (shortlistedCampaigns, context, 
 const _getCampaignUsingAdvancedAlgo = (settings, shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) => {
     let winnerCampaign = null;
     let found = false; // flag to check whether winnerCampaign has been found or not and helps to break from the outer loop
-    const priorityOrder = !(0, DataTypeUtil_1.isUndefined)(settings.getGroups()[groupId].p) ? settings.getGroups()[groupId].p : {};
-    const wt = !(0, DataTypeUtil_1.isUndefined)(settings.getGroups()[groupId].wt) ? settings.getGroups()[groupId].wt : {};
+    const priorityOrder = !isUndefined(settings.getGroups()[groupId].p) ? settings.getGroups()[groupId].p : {};
+    const wt = !isUndefined(settings.getGroups()[groupId].wt) ? settings.getGroups()[groupId].wt : {};
     for (let i = 0; i < priorityOrder.length; i++) {
         for (let j = 0; j < shortlistedCampaigns.length; j++) {
             if (shortlistedCampaigns[j].id == priorityOrder[i]) {
-                winnerCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[j]);
+                winnerCampaign = cloneObject(shortlistedCampaigns[j]);
                 found = true;
                 break;
             }
             else if (shortlistedCampaigns[j].id + '_' + shortlistedCampaigns[j].variations[0].id === priorityOrder[i]) {
-                winnerCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[j]);
+                winnerCampaign = cloneObject(shortlistedCampaigns[j]);
                 found = true;
                 break;
             }
@@ -336,13 +331,13 @@ const _getCampaignUsingAdvancedAlgo = (settings, shortlistedCampaigns, context, 
         // iterate over shortlisted campaigns and add weights from the weight array
         for (let i = 0; i < shortlistedCampaigns.length; i++) {
             const campaignId = shortlistedCampaigns[i].id;
-            if (!(0, DataTypeUtil_1.isUndefined)(wt[campaignId])) {
-                const clonedCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[i]);
+            if (!isUndefined(wt[campaignId])) {
+                const clonedCampaign = cloneObject(shortlistedCampaigns[i]);
                 clonedCampaign.weight = wt[campaignId];
                 participatingCampaignList.push(clonedCampaign);
             }
-            else if (!(0, DataTypeUtil_1.isUndefined)(wt[campaignId + '_' + shortlistedCampaigns[i].variations[0].id])) {
-                const clonedCampaign = (0, FunctionUtil_1.cloneObject)(shortlistedCampaigns[i]);
+            else if (!isUndefined(wt[campaignId + '_' + shortlistedCampaigns[i].variations[0].id])) {
+                const clonedCampaign = cloneObject(shortlistedCampaigns[i]);
                 clonedCampaign.weight = wt[campaignId + '_' + shortlistedCampaigns[i].variations[0].id];
                 participatingCampaignList.push(clonedCampaign);
             }
@@ -353,15 +348,15 @@ const _getCampaignUsingAdvancedAlgo = (settings, shortlistedCampaigns, context, 
           3. Get the winnerCampaign by checking the Start and End Bucket Allocations of each campaign
         */
         // make participatingCampaignList as array of VariationModel
-        participatingCampaignList = participatingCampaignList.map((campaign) => new VariationModel_1.VariationModel().modelFromDictionary(campaign));
-        (0, CampaignUtil_1.setCampaignAllocation)(participatingCampaignList);
-        winnerCampaign = new CampaignDecisionService_1.CampaignDecisionService().getVariation(participatingCampaignList, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getId(), undefined, groupId)));
+        participatingCampaignList = participatingCampaignList.map((campaign) => new VariationModel().modelFromDictionary(campaign));
+        setCampaignAllocation(participatingCampaignList);
+        winnerCampaign = new CampaignDecisionService().getVariation(participatingCampaignList, new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), undefined, groupId)));
     }
     // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
     // also shortlistedCampaigns and wt array does not have a single campaign id in common
     if (winnerCampaign) {
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
-            campaignKey: winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB
+        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+            campaignKey: winnerCampaign.type === CampaignTypeEnum.AB
                 ? winnerCampaign.key
                 : winnerCampaign.key + '_' + winnerCampaign.ruleKey,
             groupId,
@@ -377,15 +372,15 @@ const _getCampaignUsingAdvancedAlgo = (settings, shortlistedCampaigns, context, 
         //     userId: context.getId(),
         //   }),
         // );
-        logger_1.LogManager.Instance.info(`No winner campaign found for MEG group: ${groupId}`);
+        LogManager.Instance.info(`No winner campaign found for MEG group: ${groupId}`);
     }
     if (winnerCampaign) {
-        new StorageDecorator_1.StorageDecorator().setDataInStorage({
-            featureKey: `${constants_1.Constants.VWO_META_MEG_KEY}${groupId}`,
+        new StorageDecorator().setDataInStorage({
+            featureKey: `${Constants.VWO_META_MEG_KEY}${groupId}`,
             context,
             experimentId: winnerCampaign.id,
             experimentKey: winnerCampaign.key,
-            experimentVariationId: winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? winnerCampaign.variations[0].id : -1,
+            experimentVariationId: winnerCampaign.type === CampaignTypeEnum.PERSONALIZE ? winnerCampaign.variations[0].id : -1,
         }, storageService);
         if (calledCampaignIds.includes(winnerCampaign.id)) {
             return winnerCampaign;

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { dynamic } from '../types/Common';
-export declare function sendGetCall(networkOptions: Record<string, dynamic>): Promise<dynamic>;
-export declare function sendPostCall(networkOptions: Record<string, dynamic>): Promise<dynamic>;
+import { ResponseModel } from '../packages/network-layer/models/ResponseModel';
+import { RequestModel } from '../packages/network-layer/models/RequestModel';
+export declare function sendGetCall(request: RequestModel): Promise<ResponseModel>;
+export declare function sendPostCall(request: RequestModel): Promise<ResponseModel>;

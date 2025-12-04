@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.StorageDataModel = void 0;
-class StorageDataModel {
+export class StorageDataModel {
     modelFromDictionary(storageData) {
         this.featureKey = storageData.featureKey;
         this.context = storageData.context;
@@ -62,5 +59,4 @@ class StorageDataModel {
         this.experimentVariationId = experimentVariationId;
     }
 }
-exports.StorageDataModel = StorageDataModel;
 //# sourceMappingURL=StorageDataModel.js.map

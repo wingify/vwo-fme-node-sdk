@@ -350,7 +350,6 @@ function sendPostApiRequest(properties_1, payload_1, userId_1) {
             switch (_a.label) {
                 case 0:
                     networkManager = network_layer_1.NetworkManager.Instance;
-                    networkManager.attachClient();
                     retryConfig = networkManager.getRetryConfig();
                     headers = {};
                     userAgent = payload.d.visitor_ua;

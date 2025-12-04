@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.StatusEnum = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,9 +13,9 @@ exports.StatusEnum = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var StatusEnum;
+export var StatusEnum;
 (function (StatusEnum) {
     StatusEnum["PASSED"] = "passed";
     StatusEnum["FAILED"] = "failed";
-})(StatusEnum || (exports.StatusEnum = StatusEnum = {}));
+})(StatusEnum || (StatusEnum = {}));
 //# sourceMappingURL=StatusEnum.js.map

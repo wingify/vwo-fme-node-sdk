@@ -1,19 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.setVariationAllocation = setVariationAllocation;
-exports.assignRangeValues = assignRangeValues;
-exports.scaleVariationWeights = scaleVariationWeights;
-exports.getBucketingSeed = getBucketingSeed;
-exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
-exports.getCampaignKeyFromCampaignId = getCampaignKeyFromCampaignId;
-exports.getVariationNameFromCampaignIdAndVariationId = getVariationNameFromCampaignIdAndVariationId;
-exports.getCampaignTypeFromCampaignId = getCampaignTypeFromCampaignId;
-exports.setCampaignAllocation = setCampaignAllocation;
-exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
-exports.getCampaignsByGroupId = getCampaignsByGroupId;
-exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
-exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
-exports.assignRangeValuesMEG = assignRangeValuesMEG;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -29,21 +13,21 @@ exports.assignRangeValuesMEG = assignRangeValuesMEG;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const constants_1 = require("../constants");
-const CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
-const log_messages_1 = require("../enums/log-messages");
-const VariationModel_1 = require("../models/campaign/VariationModel");
-const logger_1 = require("../packages/logger");
-const LogMessageUtil_1 = require("./LogMessageUtil");
+import { Constants } from '../constants/index.js';
+import { CampaignTypeEnum } from '../enums/CampaignTypeEnum.js';
+import { InfoLogMessagesEnum } from '../enums/log-messages/index.js';
+import { VariationModel } from '../models/campaign/VariationModel.js';
+import { LogManager } from '../packages/logger/index.js';
+import { buildMessage } from './LogMessageUtil.js';
 /**
  * Sets the variation allocation for a given campaign based on its type.
  * If the campaign type is ROLLOUT or PERSONALIZE, it handles the campaign using `_handleRolloutCampaign`.
  * Otherwise, it assigns range values to each variation in the campaign.
  * @param {CampaignModel} campaign - The campaign for which to set the variation allocation.
  */
-function setVariationAllocation(campaign) {
+export function setVariationAllocation(campaign) {
     // Check if the campaign type is ROLLOUT or PERSONALIZE
-    if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+    if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
         _handleRolloutCampaign(campaign);
     }
     else {
@@ -54,7 +38,7 @@ function setVariationAllocation(campaign) {
             const stepFactor = assignRangeValues(variation, currentAllocation);
             currentAllocation += stepFactor;
             // Log the range allocation for debugging
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
                 variationKey: variation.getKey(),
                 campaignKey: campaign.getKey(),
                 variationWeight: variation.getWeight(),
@@ -70,7 +54,7 @@ function setVariationAllocation(campaign) {
  * @param {number} currentAllocation - The current allocation value before this variation.
  * @returns {number} The step factor calculated from the variation's weight.
  */
-function assignRangeValues(data, currentAllocation) {
+export function assignRangeValues(data, currentAllocation) {
     // Calculate the bucket range based on the variation's weight
     const stepFactor = _getVariationBucketRange(data.getWeight());
     // Set the start and end range of the variation
@@ -88,7 +72,7 @@ function assignRangeValues(data, currentAllocation) {
  * Scales the weights of variations to sum up to 100%.
  * @param {any[]} variations - The list of variations to scale.
  */
-function scaleVariationWeights(variations) {
+export function scaleVariationWeights(variations) {
     // Calculate the total weight of all variations
     const totalWeight = variations.reduce((acc, variation) => {
         return acc + variation.weight;
@@ -110,12 +94,12 @@ function scaleVariationWeights(variations) {
  * @param {string} [groupId] - The optional group ID.
  * @returns {string} The bucketing seed.
  */
-function getBucketingSeed(userId, campaign, groupId) {
+export function getBucketingSeed(userId, campaign, groupId) {
     // Return a seed combining group ID and user ID if group ID is provided
     if (groupId) {
         return `${groupId}_${userId}`;
     }
-    const isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+    const isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE;
     // get salt
     const salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
     // get bucket key
@@ -130,7 +114,7 @@ function getBucketingSeed(userId, campaign, groupId) {
  * @param {string} variationId - The ID of the variation to retrieve.
  * @returns {VariationModel | null} The found variation model or null if not found.
  */
-function getVariationFromCampaignKey(settings, campaignKey, variationId) {
+export function getVariationFromCampaignKey(settings, campaignKey, variationId) {
     // Find the campaign by its key
     const campaign = settings.getCampaigns().find((campaign) => {
         return campaign.getKey() === campaignKey;
@@ -142,7 +126,7 @@ function getVariationFromCampaignKey(settings, campaignKey, variationId) {
         });
         if (variation) {
             // Return a new instance of VariationModel based on the found variation
-            return new VariationModel_1.VariationModel().modelFromDictionary(variation);
+            return new VariationModel().modelFromDictionary(variation);
         }
     }
     return null;
@@ -153,7 +137,7 @@ function getVariationFromCampaignKey(settings, campaignKey, variationId) {
  * @param {number} campaignId - The ID of the campaign to retrieve.
  * @returns {string | null} The key of the campaign or null if not found.
  */
-function getCampaignKeyFromCampaignId(settings, campaignId) {
+export function getCampaignKeyFromCampaignId(settings, campaignId) {
     const campaign = settings.getCampaigns().find((campaign) => {
         return campaign.getId() === campaignId;
     });
@@ -169,7 +153,7 @@ function getCampaignKeyFromCampaignId(settings, campaignId) {
  * @param {number} variationId - The ID of the variation to retrieve.
  * @returns {string | null} The name of the variation or null if not found.
  */
-function getVariationNameFromCampaignIdAndVariationId(settings, campaignId, variationId) {
+export function getVariationNameFromCampaignIdAndVariationId(settings, campaignId, variationId) {
     const campaign = settings.getCampaigns().find((campaign) => {
         return campaign.getId() === campaignId;
     });
@@ -189,7 +173,7 @@ function getVariationNameFromCampaignIdAndVariationId(settings, campaignId, vari
  * @param {number} campaignId - The ID of the campaign to retrieve.
  * @returns {string | null} The type of the campaign or null if not found.
  */
-function getCampaignTypeFromCampaignId(settings, campaignId) {
+export function getCampaignTypeFromCampaignId(settings, campaignId) {
     const campaign = settings.getCampaigns().find((campaign) => {
         return campaign.getId() === campaignId;
     });
@@ -202,7 +186,7 @@ function getCampaignTypeFromCampaignId(settings, campaignId) {
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.
  */
-function setCampaignAllocation(campaigns) {
+export function setCampaignAllocation(campaigns) {
     let stepFactor = 0;
     for (let i = 0, currentAllocation = 0; i < campaigns.length; i++) {
         const campaign = campaigns[i];
@@ -218,7 +202,7 @@ function setCampaignAllocation(campaigns) {
  * @param {any} [variationId=null] - The optional variation ID.
  * @returns {Object} An object containing the group ID and name if the campaign is part of a group, otherwise an empty object.
  */
-function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId = null) {
+export function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId = null) {
     /**
      * If variationId is null, that means that campaign is testing campaign
      * If variationId is not null, that means that campaign is personalization campaign and we need to append variationId to campaignId using _
@@ -245,7 +229,7 @@ function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId = n
  * @param {any} groupId - The ID of the group.
  * @returns {Array} An array of campaigns associated with the specified group ID.
  */
-function getCampaignsByGroupId(settings, groupId) {
+export function getCampaignsByGroupId(settings, groupId) {
     const group = settings.getGroups()[groupId];
     if (group) {
         return group.campaigns; // Return the campaigns associated with the group
@@ -260,7 +244,7 @@ function getCampaignsByGroupId(settings, groupId) {
  * @param {any} campaignIdWithVariation - An array of campaign IDs and variation IDs in format campaignId_variationId.
  * @returns {Array} An array of feature keys associated with the provided campaign IDs.
  */
-function getFeatureKeysFromCampaignIds(settings, campaignIdWithVariation) {
+export function getFeatureKeysFromCampaignIds(settings, campaignIdWithVariation) {
     const featureKeys = [];
     for (const campaign of campaignIdWithVariation) {
         // split key with _ to separate campaignId and variationId
@@ -295,7 +279,7 @@ function getFeatureKeysFromCampaignIds(settings, campaignIdWithVariation) {
  * @param {string} featureKey - The key of the feature.
  * @returns {Array} An array of campaign IDs associated with the specified feature key.
  */
-function getCampaignIdsFromFeatureKey(settings, featureKey) {
+export function getCampaignIdsFromFeatureKey(settings, featureKey) {
     const campaignIds = [];
     settings.getFeatures().forEach((feature) => {
         if (feature.getKey() === featureKey) {
@@ -312,7 +296,7 @@ function getCampaignIdsFromFeatureKey(settings, featureKey) {
  * @param {number} currentAllocation - The current allocation value before this campaign.
  * @returns {number} The step factor calculated from the campaign's weight.
  */
-function assignRangeValuesMEG(data, currentAllocation) {
+export function assignRangeValuesMEG(data, currentAllocation) {
     const stepFactor = _getVariationBucketRange(data.weight);
     if (stepFactor) {
         data.startRangeVariation = currentAllocation + 1; // Set the start range
@@ -334,7 +318,7 @@ function _getVariationBucketRange(variationWeight) {
         return 0; // Return zero if weight is invalid or zero
     }
     const startRange = Math.ceil(variationWeight * 100);
-    return Math.min(startRange, constants_1.Constants.MAX_TRAFFIC_VALUE); // Ensure the range does not exceed the max traffic value
+    return Math.min(startRange, Constants.MAX_TRAFFIC_VALUE); // Ensure the range does not exceed the max traffic value
 }
 /**
  * Handles the rollout campaign by setting start and end ranges for all variations.
@@ -347,7 +331,7 @@ function _handleRolloutCampaign(campaign) {
         const endRange = campaign.getVariations()[i].getWeight() * 100;
         variation.setStartRange(1);
         variation.setEndRange(endRange);
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
             variationKey: variation.getKey(),
             campaignKey: campaign.getKey(),
             variationWeight: variation.getWeight(),

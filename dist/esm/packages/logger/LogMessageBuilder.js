@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LogMessageBuilder = void 0;
-const LogLevelEnum_1 = require("./enums/LogLevelEnum");
+import { LogLevelEnum } from './enums/LogLevelEnum.js';
 const AnsiColorEnum = {
     BOLD: '\x1b[1m',
     CYAN: '\x1b[36m',
@@ -15,7 +12,7 @@ const AnsiColorEnum = {
 /**
  * Implements the ILogMessageBuilder interface to provide a concrete log message builder.
  */
-class LogMessageBuilder {
+export class LogMessageBuilder {
     /**
      * Constructs a new LogMessageBuilder instance.
      * @param {Record<string, any>} loggerConfig - Configuration for the logger.
@@ -54,20 +51,20 @@ class LogMessageBuilder {
         let LogLevelColorInfoEnum;
         if (this.loggerConfig.isAnsiColorEnabled) {
             LogLevelColorInfoEnum = {
-                [LogLevelEnum_1.LogLevelEnum.TRACE]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.WHITE}${upperCaseLevel}${AnsiColorEnum.RESET}`,
-                [LogLevelEnum_1.LogLevelEnum.DEBUG]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.LIGHTBLUE}${upperCaseLevel}${AnsiColorEnum.RESET}`,
-                [LogLevelEnum_1.LogLevelEnum.INFO]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.CYAN}${upperCaseLevel}${AnsiColorEnum.RESET}`,
-                [LogLevelEnum_1.LogLevelEnum.WARN]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.YELLOW}${upperCaseLevel}${AnsiColorEnum.RESET}`,
-                [LogLevelEnum_1.LogLevelEnum.ERROR]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.RED}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+                [LogLevelEnum.TRACE]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.WHITE}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+                [LogLevelEnum.DEBUG]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.LIGHTBLUE}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+                [LogLevelEnum.INFO]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.CYAN}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+                [LogLevelEnum.WARN]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.YELLOW}${upperCaseLevel}${AnsiColorEnum.RESET}`,
+                [LogLevelEnum.ERROR]: `${AnsiColorEnum.BOLD}${AnsiColorEnum.RED}${upperCaseLevel}${AnsiColorEnum.RESET}`,
             };
         }
         else {
             LogLevelColorInfoEnum = {
-                [LogLevelEnum_1.LogLevelEnum.TRACE]: upperCaseLevel,
-                [LogLevelEnum_1.LogLevelEnum.DEBUG]: upperCaseLevel,
-                [LogLevelEnum_1.LogLevelEnum.INFO]: upperCaseLevel,
-                [LogLevelEnum_1.LogLevelEnum.WARN]: upperCaseLevel,
-                [LogLevelEnum_1.LogLevelEnum.ERROR]: upperCaseLevel,
+                [LogLevelEnum.TRACE]: upperCaseLevel,
+                [LogLevelEnum.DEBUG]: upperCaseLevel,
+                [LogLevelEnum.INFO]: upperCaseLevel,
+                [LogLevelEnum.WARN]: upperCaseLevel,
+                [LogLevelEnum.ERROR]: upperCaseLevel,
             };
         }
         return LogLevelColorInfoEnum[level];
@@ -80,5 +77,4 @@ class LogMessageBuilder {
         return this.dateTimeFormat();
     }
 }
-exports.LogMessageBuilder = LogMessageBuilder;
 //# sourceMappingURL=LogMessageBuilder.js.map

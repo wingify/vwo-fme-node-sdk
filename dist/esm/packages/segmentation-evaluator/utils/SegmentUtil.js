@@ -1,7 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getKeyValue = getKeyValue;
-exports.matchWithRegex = matchWithRegex;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -17,15 +13,15 @@ exports.matchWithRegex = matchWithRegex;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
+import { isObject } from '../../../utils/DataTypeUtil.js';
 /**
  * Extracts the first key-value pair from the provided object.
  * @param {Record<string, any>} obj - The object from which to extract the key-value pair.
  * @returns {Record<string, any> | undefined} An object containing the first key and value, or undefined if input is not an object.
  */
-function getKeyValue(obj) {
+export function getKeyValue(obj) {
     // Check if the input is a valid object using isObject utility function
-    if (!(0, DataTypeUtil_1.isObject)(obj)) {
+    if (!isObject(obj)) {
         return;
     }
     // Extract the first key from the object
@@ -44,7 +40,7 @@ function getKeyValue(obj) {
  * @param {string} regex - The regex pattern as a string.
  * @returns {RegExpMatchArray | null} The results of the regex match, or null if an error occurs.
  */
-function matchWithRegex(string, regex) {
+export function matchWithRegex(string, regex) {
     try {
         // Attempt to match the string with the regex
         return string.match(new RegExp(regex));

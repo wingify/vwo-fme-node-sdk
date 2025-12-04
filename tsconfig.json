@@ -16,6 +16,8 @@
     "declaration": true,
     "removeComments": false,
     "sourceMap": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "lib": ["ES5", "DOM", "es2015"],
     "plugins": [
       {

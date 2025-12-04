@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Storage = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,6 +13,5 @@ exports.Storage = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var Storage_1 = require("./Storage");
-Object.defineProperty(exports, "Storage", { enumerable: true, get: function () { return Storage_1.Storage; } });
+export { Storage } from './Storage.js';
 //# sourceMappingURL=index.js.map

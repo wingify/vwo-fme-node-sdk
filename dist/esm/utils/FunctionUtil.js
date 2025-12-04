@@ -1,16 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.cloneObject = cloneObject;
-exports.getCurrentTime = getCurrentTime;
-exports.getCurrentUnixTimestamp = getCurrentUnixTimestamp;
-exports.getCurrentUnixTimestampInMillis = getCurrentUnixTimestampInMillis;
-exports.getRandomNumber = getRandomNumber;
-exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
-exports.getAllExperimentRules = getAllExperimentRules;
-exports.getFeatureFromKey = getFeatureFromKey;
-exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
-exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
-exports.getFormattedErrorMessage = getFormattedErrorMessage;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -26,15 +13,15 @@ exports.getFormattedErrorMessage = getFormattedErrorMessage;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
-const CampaignModel_1 = require("../models/campaign/CampaignModel");
-const DataTypeUtil_1 = require("./DataTypeUtil");
+import { CampaignTypeEnum } from '../enums/CampaignTypeEnum.js';
+import { CampaignModel } from '../models/campaign/CampaignModel.js';
+import { isString } from './DataTypeUtil.js';
 /**
  * Clones an object deeply.
  * @param {dynamic} obj - The object to clone.
  * @returns {any} The cloned object.
  */
-function cloneObject(obj) {
+export function cloneObject(obj) {
     if (!obj) {
         // Return the original object if it is null or undefined
         return obj;
@@ -47,14 +34,14 @@ function cloneObject(obj) {
  * Gets the current time in ISO string format.
  * @returns {string} The current time in ISO string format.
  */
-function getCurrentTime() {
+export function getCurrentTime() {
     return new Date().toISOString();
 }
 /**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.
  */
-function getCurrentUnixTimestamp() {
+export function getCurrentUnixTimestamp() {
     // Convert the current date to Unix timestamp in seconds
     return Math.ceil(+new Date() / 1000);
 }
@@ -62,7 +49,7 @@ function getCurrentUnixTimestamp() {
  * Gets the current Unix timestamp in milliseconds.
  * @returns {number} The current Unix timestamp in milliseconds.
  */
-function getCurrentUnixTimestampInMillis() {
+export function getCurrentUnixTimestampInMillis() {
     // Convert the current date to Unix timestamp in milliseconds
     return +new Date();
 }
@@ -70,7 +57,7 @@ function getCurrentUnixTimestampInMillis() {
  * Generates a random number between 0 and 1.
  * @returns {number} A random number.
  */
-function getRandomNumber() {
+export function getRandomNumber() {
     // Use Math.random to generate a random number
     return Math.random();
 }
@@ -80,15 +67,15 @@ function getRandomNumber() {
  * @param {CampaignTypeEnum | null} type - The type of the rules to retrieve.
  * @returns {Array} An array of rules that match the type.
  */
-function getSpecificRulesBasedOnType(feature, type = null) {
+export function getSpecificRulesBasedOnType(feature, type = null) {
     // Return an empty array if no linked campaigns are found
     if (feature && !feature?.getRulesLinkedCampaign()) {
         return [];
     }
     // Filter the rules by type if a type is specified and is a string
-    if (feature && feature.getRulesLinkedCampaign() && type && (0, DataTypeUtil_1.isString)(type)) {
+    if (feature && feature.getRulesLinkedCampaign() && type && isString(type)) {
         return feature.getRulesLinkedCampaign().filter((rule) => {
-            const ruleModel = new CampaignModel_1.CampaignModel().modelFromDictionary(rule);
+            const ruleModel = new CampaignModel().modelFromDictionary(rule);
             return ruleModel.getType() === type;
         });
     }
@@ -101,12 +88,12 @@ function getSpecificRulesBasedOnType(feature, type = null) {
  * @param {string} featureKey - The key of the feature.
  * @returns {Array} An array of AB and Personalize rules.
  */
-function getAllExperimentRules(feature) {
+export function getAllExperimentRules(feature) {
     // Retrieve the feature by its key
     // Filter the rules to include only AB and Personalize types
     return (feature
         ?.getRulesLinkedCampaign()
-        .filter((rule) => rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB || rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) || []);
+        .filter((rule) => rule.getType() === CampaignTypeEnum.AB || rule.getType() === CampaignTypeEnum.PERSONALIZE) || []);
 }
 /**
  * Retrieves a feature by its key from the settings.
@@ -114,7 +101,7 @@ function getAllExperimentRules(feature) {
  * @param {string} featureKey - The key of the feature to find.
  * @returns {any} The feature if found, otherwise undefined.
  */
-function getFeatureFromKey(settings, featureKey) {
+export function getFeatureFromKey(settings, featureKey) {
     // Find the feature by its key
     return settings?.getFeatures()?.find((feature) => feature.getKey() === featureKey);
 }
@@ -124,7 +111,7 @@ function getFeatureFromKey(settings, featureKey) {
  * @param {any} settings - The settings containing features.
  * @returns {boolean} True if the event exists, otherwise false.
  */
-function doesEventBelongToAnyFeature(eventName, settings) {
+export function doesEventBelongToAnyFeature(eventName, settings) {
     // Use the `some` method to check if any feature contains the event in its metrics
     return settings
         .getFeatures()
@@ -134,7 +121,7 @@ function doesEventBelongToAnyFeature(eventName, settings) {
  * Adds linked campaigns to each feature in the settings based on rules.
  * @param {any} settings - The settings file to modify.
  */
-function addLinkedCampaignsToSettings(settings) {
+export function addLinkedCampaignsToSettings(settings) {
     // Create maps for quick access to campaigns and variations
     const campaignMap = new Map(settings.getCampaigns().map((campaign) => [campaign.getId(), campaign]));
     // Loop over all features
@@ -158,7 +145,7 @@ function addLinkedCampaignsToSettings(settings) {
         })
             .filter((campaign) => campaign !== null); // Filter out any null entries
         const rulesLinkedCampaignModel = rulesLinkedCampaign.map((campaign) => {
-            const campaignModel = new CampaignModel_1.CampaignModel();
+            const campaignModel = new CampaignModel();
             campaignModel.modelFromDictionary(campaign);
             return campaignModel;
         });
@@ -171,7 +158,7 @@ function addLinkedCampaignsToSettings(settings) {
  * @param {any} error - The error to format.
  * @returns {string} The formatted error message.
  */
-function getFormattedErrorMessage(error) {
+export function getFormattedErrorMessage(error) {
     let errorMessage = '';
     if (error instanceof Error) {
         errorMessage = error.message;

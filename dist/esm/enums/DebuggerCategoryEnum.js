@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DebuggerCategoryEnum = void 0;
-var DebuggerCategoryEnum;
+export var DebuggerCategoryEnum;
 (function (DebuggerCategoryEnum) {
     DebuggerCategoryEnum["NETWORK"] = "network";
     DebuggerCategoryEnum["DECISION"] = "decision";
     DebuggerCategoryEnum["INITIALIZATION"] = "initialization";
     DebuggerCategoryEnum["RETRY"] = "retry";
     DebuggerCategoryEnum["ERROR"] = "error";
-})(DebuggerCategoryEnum || (exports.DebuggerCategoryEnum = DebuggerCategoryEnum = {}));
+})(DebuggerCategoryEnum || (DebuggerCategoryEnum = {}));
 //# sourceMappingURL=DebuggerCategoryEnum.js.map

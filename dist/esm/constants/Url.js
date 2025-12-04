@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.HTTPS_PROTOCOL = exports.HTTP_PROTOCOL = exports.SEED_URL = exports.HTTPS = exports.HTTP = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,9 +13,9 @@ exports.HTTPS_PROTOCOL = exports.HTTP_PROTOCOL = exports.SEED_URL = exports.HTTP
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-exports.HTTP = 'http';
-exports.HTTPS = 'https';
-exports.SEED_URL = 'https://vwo.com';
-exports.HTTP_PROTOCOL = `${exports.HTTP}://`;
-exports.HTTPS_PROTOCOL = `${exports.HTTPS}`;
+export const HTTP = 'http';
+export const HTTPS = 'https';
+export const SEED_URL = 'https://vwo.com';
+export const HTTP_PROTOCOL = `${HTTP}://`;
+export const HTTPS_PROTOCOL = `${HTTPS}`;
 //# sourceMappingURL=Url.js.map

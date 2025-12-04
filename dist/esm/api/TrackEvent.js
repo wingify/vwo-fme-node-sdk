@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TrackApi = void 0;
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -16,38 +13,37 @@ exports.TrackApi = void 0;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApiEnum_1 = require("../enums/ApiEnum");
-const logger_1 = require("../packages/logger");
-const FunctionUtil_1 = require("../utils/FunctionUtil");
-const BatchEventsQueue_1 = require("../services/BatchEventsQueue");
-const NetworkUtil_1 = require("../utils/NetworkUtil");
-class TrackApi {
+import { ApiEnum } from '../enums/ApiEnum.js';
+import { LogManager } from '../packages/logger/index.js';
+import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil.js';
+import { BatchEventsQueue } from '../services/BatchEventsQueue.js';
+import { getEventsBaseProperties, getTrackGoalPayloadData, sendPostApiRequest, getShouldWaitForTrackingCalls, } from '../utils/NetworkUtil.js';
+export class TrackApi {
     /**
      * Implementation of the track method to handle event tracking.
      * Checks if the event exists, creates an impression, and executes hooks.
      */
     async track(settings, eventName, context, eventProperties, hooksService) {
-        if ((0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, settings)) {
+        if (doesEventBelongToAnyFeature(eventName, settings)) {
             // Create an impression for the track event
-            if ((0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) {
+            if (getShouldWaitForTrackingCalls()) {
                 await createImpressionForTrack(settings, eventName, context, eventProperties);
             }
             else {
                 createImpressionForTrack(settings, eventName, context, eventProperties);
             }
             // Set and execute integration callback for the track event
-            hooksService.set({ eventName: eventName, api: ApiEnum_1.ApiEnum.TRACK_EVENT });
+            hooksService.set({ eventName: eventName, api: ApiEnum.TRACK_EVENT });
             hooksService.execute(hooksService.get());
             return { [eventName]: true };
         }
         // Log an error if the event does not exist
-        logger_1.LogManager.Instance.errorLog('EVENT_NOT_FOUND', {
+        LogManager.Instance.errorLog('EVENT_NOT_FOUND', {
             eventName,
-        }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT, uuid: context.getUuid(), sId: context.getSessionId() });
+        }, { an: ApiEnum.TRACK_EVENT, uuid: context.getUuid(), sId: context.getSessionId() });
         return { [eventName]: false };
     }
 }
-exports.TrackApi = TrackApi;
 /**
  * Creates an impression for a track event and sends it via a POST API request.
  * @param settings Configuration settings for the tracking.
@@ -57,16 +53,16 @@ exports.TrackApi = TrackApi;
  */
 const createImpressionForTrack = async (settings, eventName, context, eventProperties) => {
     // Get base properties for the event
-    const properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+    const properties = getEventsBaseProperties(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
     // Prepare the payload for the track goal
-    const payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context?.getUserAgent(), context?.getIpAddress(), context.getSessionId());
+    const payload = getTrackGoalPayloadData(settings, context.getId(), eventName, eventProperties, context?.getUserAgent(), context?.getIpAddress(), context.getSessionId());
     // Send the prepared payload via POST API request
-    if (BatchEventsQueue_1.BatchEventsQueue.Instance) {
-        BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+    if (BatchEventsQueue.Instance) {
+        BatchEventsQueue.Instance.enqueue(payload);
     }
     else {
         // Send the constructed payload via POST request
-        await (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId(), eventProperties);
+        await sendPostApiRequest(properties, payload, context.getId(), eventProperties);
     }
 };
 //# sourceMappingURL=TrackEvent.js.map

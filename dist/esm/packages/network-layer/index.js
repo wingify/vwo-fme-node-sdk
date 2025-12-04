@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
  *
@@ -14,23 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ResponseModel = exports.RequestModel = exports.GlobalRequestModel = exports.NetworkManager = exports.NetworkClient = void 0;
-let NetworkClient;
-if (typeof process === 'undefined') {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    exports.NetworkClient = NetworkClient = require('./client/NetworkBrowserClient').NetworkBrowserClient;
-}
-else {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    exports.NetworkClient = NetworkClient = require('./client/NetworkClient').NetworkClient;
-}
-var NetworkManager_1 = require("./manager/NetworkManager");
-Object.defineProperty(exports, "NetworkManager", { enumerable: true, get: function () { return NetworkManager_1.NetworkManager; } });
-var GlobalRequestModel_1 = require("./models/GlobalRequestModel");
-Object.defineProperty(exports, "GlobalRequestModel", { enumerable: true, get: function () { return GlobalRequestModel_1.GlobalRequestModel; } });
-var RequestModel_1 = require("./models/RequestModel");
-Object.defineProperty(exports, "RequestModel", { enumerable: true, get: function () { return RequestModel_1.RequestModel; } });
-var ResponseModel_1 = require("./models/ResponseModel");
-Object.defineProperty(exports, "ResponseModel", { enumerable: true, get: function () { return ResponseModel_1.ResponseModel; } });
+export { NetworkManager } from './manager/NetworkManager.js';
+export { GlobalRequestModel } from './models/GlobalRequestModel.js';
+export { RequestModel } from './models/RequestModel.js';
+export { ResponseModel } from './models/ResponseModel.js';
 //# sourceMappingURL=index.js.map

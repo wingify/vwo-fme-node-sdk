@@ -360,7 +360,6 @@ export async function sendPostApiRequest(
   campaignInfo: any = {},
 ): Promise<void> {
   const networkManager = NetworkManager.Instance;
-  networkManager.attachClient();
   const retryConfig: IRetryConfig = networkManager.getRetryConfig();
 
   const headers: Record<string, string> = {};

@@ -18,7 +18,6 @@ exports.NetworkServerLessClient = void 0;
  */
 var FetchUtil_1 = require("../../../utils/FetchUtil");
 var PromiseUtil_1 = require("../../../utils/PromiseUtil");
-var ResponseModel_1 = require("../models/ResponseModel");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -32,17 +31,12 @@ var NetworkServerLessClient = /** @class */ (function () {
      */
     NetworkServerLessClient.prototype.GET = function (requestModel) {
         var deferred = new PromiseUtil_1.Deferred();
-        // Extract network options from the request model.
-        var networkOptions = requestModel.getOptions();
-        var responseModel = new ResponseModel_1.ResponseModel();
-        (0, FetchUtil_1.sendGetCall)(networkOptions)
+        (0, FetchUtil_1.sendGetCall)(requestModel)
             .then(function (data) {
-            responseModel.setData(data);
-            deferred.resolve(responseModel);
+            deferred.resolve(data);
         })
             .catch(function (error) {
-            responseModel.setError(error);
-            deferred.reject(responseModel);
+            deferred.reject(error);
         });
         return deferred.promise;
     };
@@ -53,16 +47,12 @@ var NetworkServerLessClient = /** @class */ (function () {
      */
     NetworkServerLessClient.prototype.POST = function (request) {
         var deferred = new PromiseUtil_1.Deferred();
-        var networkOptions = request.getOptions();
-        var responseModel = new ResponseModel_1.ResponseModel();
-        (0, FetchUtil_1.sendPostCall)(networkOptions)
+        (0, FetchUtil_1.sendPostCall)(request)
             .then(function (data) {
-            responseModel.setData(data);
-            deferred.resolve(responseModel);
+            deferred.resolve(data);
         })
             .catch(function (error) {
-            responseModel.setError(error);
-            deferred.reject(responseModel);
+            deferred.reject(error);
         });
         return deferred.promise;
     };

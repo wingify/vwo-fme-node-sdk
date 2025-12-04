@@ -35,6 +35,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VWOClient = void 0;
 /**
@@ -60,7 +63,7 @@ var log_messages_1 = require("./enums/log-messages");
 var BatchEventsQueue_1 = require("./services/BatchEventsQueue");
 var SettingsSchemaValidation_1 = require("./models/schemas/SettingsSchemaValidation");
 var ContextModel_1 = require("./models/user/ContextModel");
-var HooksService_1 = require("./services/HooksService");
+var HooksService_1 = __importDefault(require("./services/HooksService"));
 var UrlUtil_1 = require("./utils/UrlUtil");
 var DataTypeUtil_1 = require("./utils/DataTypeUtil");
 var LogMessageUtil_1 = require("./utils/LogMessageUtil");

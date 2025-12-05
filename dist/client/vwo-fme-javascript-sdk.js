@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.33.0
+ * vwo-fme-javascript-sdk - v1.33.1
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -20,7 +20,7 @@
  *  1. murmurhash - ^2.0.1
  *  2. superstruct - ^0.14.x
  *  3. uuid - ^9.0.1
- *  4. vwo-fme-sdk-log-messages - ^1.2.8
+ *  4. vwo-fme-sdk-log-messages - ^1.2.9
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	// CommonJS2
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.33.0"
+  version: "1.33.1"
 };
 
 /***/ }),
@@ -248,32 +248,26 @@ function init(options) {
                 };
                 return [2 /*return*/, instance.then(function (_vwoInstance) { return __awaiter(_this, void 0, void 0, function () {
                         var sdkInitTime, usageStatsAccountId;
-                        var _a, _b, _c, _d, _e;
-                        return __generator(this, function (_f) {
-                            switch (_f.label) {
+                        var _a, _b, _c, _d;
+                        return __generator(this, function (_e) {
+                            switch (_e.label) {
                                 case 0:
                                     sdkInitTime = Date.now() - startTimeForInit_1;
-                                    if (!(_vwoInstance.isSettingsValid && !((_b = (_a = _vwoInstance.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier))) return [3 /*break*/, 3];
-                                    if (!((_c = _vwoInstance.options) === null || _c === void 0 ? void 0 : _c.shouldWaitForTrackingCalls)) return [3 /*break*/, 2];
-                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime)];
+                                    // send sdk init event
+                                    if (_vwoInstance.isSettingsValid && !((_b = (_a = _vwoInstance.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier)) {
+                                        (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                                    }
+                                    usageStatsAccountId = (_c = _vwoInstance.originalSettings) === null || _c === void 0 ? void 0 : _c.usageStatsAccountId;
+                                    if (!usageStatsAccountId) return [3 /*break*/, 3];
+                                    if (!((_d = _vwoInstance.options) === null || _d === void 0 ? void 0 : _d.shouldWaitForTrackingCalls)) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId)];
                                 case 1:
-                                    _f.sent();
+                                    _e.sent();
                                     return [3 /*break*/, 3];
                                 case 2:
-                                    (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
-                                    _f.label = 3;
-                                case 3:
-                                    usageStatsAccountId = (_d = _vwoInstance.originalSettings) === null || _d === void 0 ? void 0 : _d.usageStatsAccountId;
-                                    if (!usageStatsAccountId) return [3 /*break*/, 6];
-                                    if (!((_e = _vwoInstance.options) === null || _e === void 0 ? void 0 : _e.shouldWaitForTrackingCalls)) return [3 /*break*/, 5];
-                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId)];
-                                case 4:
-                                    _f.sent();
-                                    return [3 /*break*/, 6];
-                                case 5:
                                     (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
-                                    _f.label = 6;
-                                case 6:
+                                    _e.label = 3;
+                                case 3:
                                     _global.isSettingsFetched = true;
                                     _global.instance = _vwoInstance;
                                     _global.vwoInitDeferred.resolve(_vwoInstance);

@@ -98,6 +98,7 @@ To customize the SDK further, additional parameters can be passed to the `init()
 | `integrations`               | A callback function that receives data which can be pushed to any external tool that you need to integrate with.                                            | No           | Object   | See [Integrations](#integrations)             |
 | `batchEventData`             | Configuration for batch event processing to optimize network requests                                                                                       | No           | Object   | See [Batch Events](#batch-events) section     |
 | `retryConfig`                | Configuration for network request retry behavior and exponential backoff strategy                                                                           | No           | Object   | See [Retry Config](#retry-config) section     |
+| `edgeConfig`                 | Configuration for edge/serverless environment optimizations (e.g., Cloudflare Workers)                                                                      | No           | Object   | See [Edge Config](#edge-config) section       |
 
 Refer to the [official VWO documentation](https://developers.vwo.com/v2/docs/fme-node-install) for additional parameter details.
 
@@ -542,6 +543,31 @@ With this configuration, the retry delays would be:
 - 3rd retry: 12 seconds (3 × 2^2)
 - 4th retry: 24 seconds (3 × 2^3)
 - 5th retry: 48 seconds (3 × 2^4)
+
+### Edge Config
+
+The `edgeConfig` option enables edge/serverless environment optimizations. This configuration should only be passed in serverless environments (e.g., Cloudflare Workers). When used in Cloudflare environments, events are automatically flushed using `ctx.waitUntil(vwoClient.flushEvents());` to ensure proper event tracking after execution completes.
+
+| **Parameter**                | **Description**                                           | **Required** | **Type** | **Default** |
+| ---------------------------- | --------------------------------------------------------- | ------------ | -------- | ----------- |
+| `shouldWaitForTrackingCalls` | Ensures tracking calls complete before resolving promises | Yes          | Boolean  | `false`     |
+
+#### Example Usage
+
+```javascript
+const vwoClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  edgeConfig: {
+    shouldWaitForTrackingCalls: true,
+  },
+});
+
+// at the end flush all events
+await vwoClient.flushEvents();
+```
+
+**Note:** In Cloudflare, use `ctx.waitUntil(vwoClient.flushEvents());` to ensure all events flush.
 
 ### Get UUID for a user and VWO account
 

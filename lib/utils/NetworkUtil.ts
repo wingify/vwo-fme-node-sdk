@@ -491,7 +491,7 @@ export function getMessagingEventPayload(
   extraData: any = {},
 ): Record<string, any> {
   const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
-  const properties = _getEventBasePayload(null, userId, eventName, null, null);
+  const properties = _getEventBasePayload(null, userId, eventName);
 
   properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = SettingsService.Instance.sdkKey; // Set environment key
   properties.d.event.props.product = Constants.PRODUCT_NAME;
@@ -520,7 +520,7 @@ export function getSDKInitEventPayload(
   sdkInitTime?: number,
 ): Record<string, any> {
   const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
-  const properties = _getEventBasePayload(null, userId, eventName, null, null);
+  const properties = _getEventBasePayload(null, userId, eventName);
 
   // Set the required fields as specified
   properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = SettingsService.Instance.sdkKey;
@@ -544,7 +544,7 @@ export function getSDKInitEventPayload(
  */
 export function getSDKUsageStatsEventPayload(eventName: string, usageStatsAccountId: number): Record<string, any> {
   const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
-  const properties = _getEventBasePayload(null, userId, eventName, null, null, true, usageStatsAccountId);
+  const properties = _getEventBasePayload(null, userId, eventName, '', '', true, usageStatsAccountId);
 
   // Set the required fields as specified
   properties.d.event.props.product = Constants.PRODUCT_NAME;
@@ -571,7 +571,7 @@ export function getDebuggerEventPayload(eventProps: Record<string, any> = {}): R
     uuid = eventProps.uuid;
   }
   // create standard event payload
-  const properties = _getEventBasePayload(null, uuid, EventEnum.VWO_DEBUGGER_EVENT, null, null, false, null, false);
+  const properties = _getEventBasePayload(null, uuid, EventEnum.VWO_DEBUGGER_EVENT, '', '', false, null, false);
 
   properties.d.event.props = {};
   // add session id to the event props if not present

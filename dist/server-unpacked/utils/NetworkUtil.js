@@ -453,7 +453,7 @@ function setShouldWaitForTrackingCalls(value) {
 function getMessagingEventPayload(messageType, message, eventName, extraData) {
     if (extraData === void 0) { extraData = {}; }
     var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
-    var properties = _getEventBasePayload(null, userId, eventName, null, null);
+    var properties = _getEventBasePayload(null, userId, eventName);
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey; // Set environment key
     properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     var data = {
@@ -476,7 +476,7 @@ function getMessagingEventPayload(messageType, message, eventName, extraData) {
  */
 function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
     var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
-    var properties = _getEventBasePayload(null, userId, eventName, null, null);
+    var properties = _getEventBasePayload(null, userId, eventName);
     // Set the required fields as specified
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey;
     properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
@@ -497,7 +497,7 @@ function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
  */
 function getSDKUsageStatsEventPayload(eventName, usageStatsAccountId) {
     var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
-    var properties = _getEventBasePayload(null, userId, eventName, null, null, true, usageStatsAccountId);
+    var properties = _getEventBasePayload(null, userId, eventName, '', '', true, usageStatsAccountId);
     // Set the required fields as specified
     properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     properties.d.event.props.vwoMeta = UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats();
@@ -522,7 +522,7 @@ function getDebuggerEventPayload(eventProps) {
         uuid = eventProps.uuid;
     }
     // create standard event payload
-    var properties = _getEventBasePayload(null, uuid, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, null, null, false, null, false);
+    var properties = _getEventBasePayload(null, uuid, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, '', '', false, null, false);
     properties.d.event.props = {};
     // add session id to the event props if not present
     if (eventProps.sId) {

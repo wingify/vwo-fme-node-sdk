@@ -359,7 +359,7 @@ export function setShouldWaitForTrackingCalls(value) {
  */
 export function getMessagingEventPayload(messageType, message, eventName, extraData = {}) {
     const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
-    const properties = _getEventBasePayload(null, userId, eventName, null, null);
+    const properties = _getEventBasePayload(null, userId, eventName);
     properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = SettingsService.Instance.sdkKey; // Set environment key
     properties.d.event.props.product = Constants.PRODUCT_NAME;
     const data = {
@@ -382,7 +382,7 @@ export function getMessagingEventPayload(messageType, message, eventName, extraD
  */
 export function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
     const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
-    const properties = _getEventBasePayload(null, userId, eventName, null, null);
+    const properties = _getEventBasePayload(null, userId, eventName);
     // Set the required fields as specified
     properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = SettingsService.Instance.sdkKey;
     properties.d.event.props.product = Constants.PRODUCT_NAME;
@@ -403,7 +403,7 @@ export function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime
  */
 export function getSDKUsageStatsEventPayload(eventName, usageStatsAccountId) {
     const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
-    const properties = _getEventBasePayload(null, userId, eventName, null, null, true, usageStatsAccountId);
+    const properties = _getEventBasePayload(null, userId, eventName, '', '', true, usageStatsAccountId);
     // Set the required fields as specified
     properties.d.event.props.product = Constants.PRODUCT_NAME;
     properties.d.event.props.vwoMeta = UsageStatsUtil.getInstance().getUsageStats();
@@ -427,7 +427,7 @@ export function getDebuggerEventPayload(eventProps = {}) {
         uuid = eventProps.uuid;
     }
     // create standard event payload
-    const properties = _getEventBasePayload(null, uuid, EventEnum.VWO_DEBUGGER_EVENT, null, null, false, null, false);
+    const properties = _getEventBasePayload(null, uuid, EventEnum.VWO_DEBUGGER_EVENT, '', '', false, null, false);
     properties.d.event.props = {};
     // add session id to the event props if not present
     if (eventProps.sId) {

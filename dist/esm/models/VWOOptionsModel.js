@@ -66,6 +66,9 @@ export class VWOOptionsModel {
         if (options?.isAliasingEnabled) {
             this.isAliasingEnabled = options.isAliasingEnabled;
         }
+        if (options?.edgeConfig) {
+            this.edgeConfig = options.edgeConfig;
+        }
         return this;
     }
     getAccountId() {
@@ -118,6 +121,9 @@ export class VWOOptionsModel {
     }
     getIsAliasingEnabled() {
         return this.isAliasingEnabled;
+    }
+    getEdgeConfig() {
+        return this.edgeConfig;
     }
 }
 //# sourceMappingURL=VWOOptionsModel.js.map

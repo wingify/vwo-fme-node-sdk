@@ -15,6 +15,7 @@
  */
 import { getDebuggerEventPayload, getEventsBaseProperties, sendEvent } from './NetworkUtil.js';
 import { EventEnum } from '../enums/EventEnum.js';
+import { BatchEventsQueue } from '../services/BatchEventsQueue.js';
 /**
  * Utility functions for handling debugger service operations including
  * filtering sensitive properties and extracting decision keys.
@@ -54,7 +55,11 @@ export async function sendDebugEventToVWO(eventProps = {}) {
     const properties = getEventsBaseProperties(EventEnum.VWO_DEBUGGER_EVENT, null, null);
     // create payload
     const payload = getDebuggerEventPayload(eventProps);
-    // send event
-    await sendEvent(properties, payload, EventEnum.VWO_DEBUGGER_EVENT).catch(() => { });
+    if (BatchEventsQueue.Instance) {
+        BatchEventsQueue.Instance.enqueue(payload);
+    }
+    else {
+        await sendEvent(properties, payload, EventEnum.VWO_DEBUGGER_EVENT).catch(() => { });
+    }
 }
 //# sourceMappingURL=DebuggerServiceUtil.js.map

@@ -190,26 +190,32 @@ function init(options) {
                 };
                 return [2 /*return*/, instance.then(function (_vwoInstance) { return __awaiter(_this, void 0, void 0, function () {
                         var sdkInitTime, usageStatsAccountId;
-                        var _a, _b, _c, _d;
-                        return __generator(this, function (_e) {
-                            switch (_e.label) {
+                        var _a, _b, _c, _d, _e;
+                        return __generator(this, function (_f) {
+                            switch (_f.label) {
                                 case 0:
                                     sdkInitTime = Date.now() - startTimeForInit_1;
-                                    // send sdk init event
-                                    if (_vwoInstance.isSettingsValid && !((_b = (_a = _vwoInstance.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier)) {
-                                        (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
-                                    }
-                                    usageStatsAccountId = (_c = _vwoInstance.originalSettings) === null || _c === void 0 ? void 0 : _c.usageStatsAccountId;
-                                    if (!usageStatsAccountId) return [3 /*break*/, 3];
-                                    if (!((_d = _vwoInstance.options) === null || _d === void 0 ? void 0 : _d.shouldWaitForTrackingCalls)) return [3 /*break*/, 2];
-                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId)];
+                                    if (!(_vwoInstance.isSettingsValid && !((_b = (_a = _vwoInstance.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier))) return [3 /*break*/, 3];
+                                    if (!((_c = _vwoInstance.options) === null || _c === void 0 ? void 0 : _c.shouldWaitForTrackingCalls)) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime)];
                                 case 1:
-                                    _e.sent();
+                                    _f.sent();
                                     return [3 /*break*/, 3];
                                 case 2:
-                                    (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
-                                    _e.label = 3;
+                                    (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                                    _f.label = 3;
                                 case 3:
+                                    usageStatsAccountId = (_d = _vwoInstance.originalSettings) === null || _d === void 0 ? void 0 : _d.usageStatsAccountId;
+                                    if (!usageStatsAccountId) return [3 /*break*/, 6];
+                                    if (!((_e = _vwoInstance.options) === null || _e === void 0 ? void 0 : _e.shouldWaitForTrackingCalls)) return [3 /*break*/, 5];
+                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId)];
+                                case 4:
+                                    _f.sent();
+                                    return [3 /*break*/, 6];
+                                case 5:
+                                    (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
+                                    _f.label = 6;
+                                case 6:
                                     _global.isSettingsFetched = true;
                                     _global.instance = _vwoInstance;
                                     _global.vwoInitDeferred.resolve(_vwoInstance);

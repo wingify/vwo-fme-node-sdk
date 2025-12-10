@@ -37,6 +37,7 @@ import { BatchEventsDispatcher } from './utils/BatchEventsDispatcher';
 import { UsageStatsUtil } from './utils/UsageStatsUtil';
 import { Constants } from './constants';
 import { ApiEnum } from './enums/ApiEnum';
+import { EdgeConfigModel } from './models/edge/EdgeConfigModel';
 
 export interface IVWOBuilder {
   settings: Record<any, any>; // Holds the configuration settings for the VWO client
@@ -106,6 +107,14 @@ export class VWOBuilder implements IVWOBuilder {
   }
 
   initBatching(): this {
+    // If edge config is provided, set the batch event data to the default values
+    if (this.options.edgeConfig && Object.keys(this.options?.edgeConfig).length > 0) {
+      const edgeConfigModel = new EdgeConfigModel().modelFromDictionary(this.options.edgeConfig);
+      this.options.batchEventData = {
+        eventsPerRequest: edgeConfigModel.getMaxEventsToBatch(),
+        isEdgeEnvironment: true,
+      };
+    }
     if (this.options.batchEventData) {
       if (this.settingFileManager.isGatewayServiceProvided) {
         LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));

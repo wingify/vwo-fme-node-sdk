@@ -140,7 +140,12 @@ export async function init(options) {
             const sdkInitTime = Date.now() - startTimeForInit;
             // send sdk init event
             if (_vwoInstance.isSettingsValid && !_vwoInstance.originalSettings?.sdkMetaInfo?.wasInitializedEarlier) {
-                sendSdkInitEvent(_vwoInstance.settingsFetchTime, sdkInitTime);
+                if (_vwoInstance.options?.shouldWaitForTrackingCalls) {
+                    await sendSdkInitEvent(_vwoInstance.settingsFetchTime, sdkInitTime);
+                }
+                else {
+                    sendSdkInitEvent(_vwoInstance.settingsFetchTime, sdkInitTime);
+                }
             }
             // send sdk usage stats event
             // get usage stats account id from settings

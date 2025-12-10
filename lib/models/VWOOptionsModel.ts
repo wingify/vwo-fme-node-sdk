@@ -23,6 +23,7 @@ import { IGatewayService } from './GatewayServiceModel';
 import { BatchConfig } from '../services/BatchEventsQueue';
 import { ClientStorageOptions } from '../packages/storage/connectors/BrowserStorageConnector';
 import { IRetryConfig } from '../packages/network-layer/client/NetworkClient';
+import { IEdgeConfig } from './edge/EdgeConfigModel';
 interface IIntegrationOptions {
   callback?: (properties: Record<string, any>) => void;
 }
@@ -53,6 +54,7 @@ export interface IVWOOptions {
   retryConfig?: IRetryConfig;
   proxyUrl?: string;
   isAliasingEnabled?: boolean;
+  edgeConfig?: IEdgeConfig;
 }
 
 export class VWOOptionsModel implements IVWOOptions {
@@ -75,6 +77,7 @@ export class VWOOptionsModel implements IVWOOptions {
   clientStorage?: ClientStorageOptions;
   retryConfig?: IRetryConfig;
   proxyUrl?: string;
+  edgeConfig?: IEdgeConfig;
   modelFromDictionary(options: VWOOptionsModel): this {
     this.accountId = options.accountId;
     this.sdkKey = options.sdkKey;
@@ -134,6 +137,10 @@ export class VWOOptionsModel implements IVWOOptions {
 
     if (options?.isAliasingEnabled) {
       this.isAliasingEnabled = options.isAliasingEnabled;
+    }
+
+    if (options?.edgeConfig) {
+      this.edgeConfig = options.edgeConfig;
     }
 
     return this;
@@ -205,5 +212,9 @@ export class VWOOptionsModel implements IVWOOptions {
 
   getIsAliasingEnabled(): boolean {
     return this.isAliasingEnabled;
+  }
+
+  getEdgeConfig(): IEdgeConfig {
+    return this.edgeConfig;
   }
 }

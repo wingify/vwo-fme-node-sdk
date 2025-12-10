@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Constants } from '../constants/index.js';
-import { isNumber, isFunction } from '../utils/DataTypeUtil.js';
+import { isNumber, isFunction, isBoolean } from '../utils/DataTypeUtil.js';
 import { LogManager } from '../packages/logger/index.js';
 import { buildMessage } from '../utils/LogMessageUtil.js';
 import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages/index.js';
@@ -27,6 +27,10 @@ export class BatchEventsQueue {
     constructor(config = {}) {
         this.queue = [];
         this.timer = null;
+        this.isEdgeEnvironment = false;
+        if (isBoolean(config.isEdgeEnvironment)) {
+            this.isEdgeEnvironment = config.isEdgeEnvironment;
+        }
         if (isNumber(config.requestTimeInterval) && config.requestTimeInterval >= 1) {
             this.requestTimeInterval = config.requestTimeInterval;
         }
@@ -61,7 +65,10 @@ export class BatchEventsQueue {
         this.flushCallback = isFunction(config.flushCallback) ? config.flushCallback : () => { };
         this.dispatcher = config.dispatcher;
         this.accountId = SettingsService.Instance.accountId;
-        this.createNewBatchTimer();
+        // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
+        if (!this.isEdgeEnvironment) {
+            this.createNewBatchTimer();
+        }
         BatchEventsQueue.instance = this;
         return this;
     }

@@ -16,6 +16,7 @@ import { BatchEventsDispatcher } from './utils/BatchEventsDispatcher.js';
 import { UsageStatsUtil } from './utils/UsageStatsUtil.js';
 import { Constants } from './constants/index.js';
 import { ApiEnum } from './enums/ApiEnum.js';
+import { EdgeConfigModel } from './models/edge/EdgeConfigModel.js';
 export class VWOBuilder {
     constructor(options) {
         this.originalSettings = {};
@@ -40,6 +41,14 @@ export class VWOBuilder {
         return this;
     }
     initBatching() {
+        // If edge config is provided, set the batch event data to the default values
+        if (this.options.edgeConfig && Object.keys(this.options?.edgeConfig).length > 0) {
+            const edgeConfigModel = new EdgeConfigModel().modelFromDictionary(this.options.edgeConfig);
+            this.options.batchEventData = {
+                eventsPerRequest: edgeConfigModel.getMaxEventsToBatch(),
+                isEdgeEnvironment: true,
+            };
+        }
         if (this.options.batchEventData) {
             if (this.settingFileManager.isGatewayServiceProvided) {
                 LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));

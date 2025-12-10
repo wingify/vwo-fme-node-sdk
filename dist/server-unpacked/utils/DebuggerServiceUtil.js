@@ -55,6 +55,7 @@ exports.extractDecisionKeys = extractDecisionKeys;
 exports.sendDebugEventToVWO = sendDebugEventToVWO;
 var NetworkUtil_1 = require("./NetworkUtil");
 var EventEnum_1 = require("../enums/EventEnum");
+var BatchEventsQueue_1 = require("../services/BatchEventsQueue");
 /**
  * Utility functions for handling debugger service operations including
  * filtering sensitive properties and extracting decision keys.
@@ -99,12 +100,14 @@ function sendDebugEventToVWO() {
                 case 0:
                     properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, null, null);
                     payload = (0, NetworkUtil_1.getDebuggerEventPayload)(eventProps);
-                    // send event
-                    return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT).catch(function () { })];
-                case 1:
-                    // send event
+                    if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+                    BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                    return [3 /*break*/, 3];
+                case 1: return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT).catch(function () { })];
+                case 2:
                     _a.sent();
-                    return [2 /*return*/];
+                    _a.label = 3;
+                case 3: return [2 /*return*/];
             }
         });
     });

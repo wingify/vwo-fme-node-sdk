@@ -71,6 +71,9 @@ var VWOOptionsModel = /** @class */ (function () {
         if (options === null || options === void 0 ? void 0 : options.isAliasingEnabled) {
             this.isAliasingEnabled = options.isAliasingEnabled;
         }
+        if (options === null || options === void 0 ? void 0 : options.edgeConfig) {
+            this.edgeConfig = options.edgeConfig;
+        }
         return this;
     };
     VWOOptionsModel.prototype.getAccountId = function () {
@@ -123,6 +126,9 @@ var VWOOptionsModel = /** @class */ (function () {
     };
     VWOOptionsModel.prototype.getIsAliasingEnabled = function () {
         return this.isAliasingEnabled;
+    };
+    VWOOptionsModel.prototype.getEdgeConfig = function () {
+        return this.edgeConfig;
     };
     return VWOOptionsModel;
 }());

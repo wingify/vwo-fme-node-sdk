@@ -67,6 +67,10 @@ var BatchEventsQueue = /** @class */ (function () {
         if (config === void 0) { config = {}; }
         this.queue = [];
         this.timer = null;
+        this.isEdgeEnvironment = false;
+        if ((0, DataTypeUtil_1.isBoolean)(config.isEdgeEnvironment)) {
+            this.isEdgeEnvironment = config.isEdgeEnvironment;
+        }
         if ((0, DataTypeUtil_1.isNumber)(config.requestTimeInterval) && config.requestTimeInterval >= 1) {
             this.requestTimeInterval = config.requestTimeInterval;
         }
@@ -101,7 +105,10 @@ var BatchEventsQueue = /** @class */ (function () {
         this.flushCallback = (0, DataTypeUtil_1.isFunction)(config.flushCallback) ? config.flushCallback : function () { };
         this.dispatcher = config.dispatcher;
         this.accountId = SettingsService_1.SettingsService.Instance.accountId;
-        this.createNewBatchTimer();
+        // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
+        if (!this.isEdgeEnvironment) {
+            this.createNewBatchTimer();
+        }
         BatchEventsQueue.instance = this;
         return this;
     }

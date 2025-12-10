@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.34.0] - 2025-12-10
+
+### Added
+
+- Added support for `edgeConfig` option to enable edge/serverless environment optimizations. This configuration should only be passed in serverless environments (e.g., Cloudflare Workers, Vercel, Fastl, etc.). When used in environments like Cloudflare, Vercel, and Fastly,events areflushed using `ctx.waitUntil(vwoClient.flushEvents());` to ensure proper event tracking after execution completes.
+
+```javascript
+vwoClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  edgeConfig: {
+    shouldWaitForTrackingCalls: true,
+  },
+});
+
+// at the end flush all events
+await vwoClient.flushEvents();
+```
+
+**Note:** In Cloudflare/Vercel/Fastly environments, use `ctx.waitUntil(vwoClient.flushEvents());` to ensure all events flush and data is sent to VWO servers for reporting purposes.
+
 ## [1.33.1] - 2025-12-05
 
 ### Changed

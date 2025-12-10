@@ -15,13 +15,14 @@
  */
 
 import { Constants } from '../constants';
-import { isNumber, isFunction } from '../utils/DataTypeUtil';
+import { isNumber, isFunction, isBoolean } from '../utils/DataTypeUtil';
 import { LogManager } from '../packages/logger';
 import { buildMessage } from '../utils/LogMessageUtil';
 import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import { SettingsService } from '../services/SettingsService';
 
 export interface BatchConfig {
+  isEdgeEnvironment?: boolean;
   requestTimeInterval?: number;
   eventsPerRequest?: number;
   flushCallback?: (error: Error | null, data: Record<string, any>) => void;
@@ -39,6 +40,7 @@ export class BatchEventsQueue {
   private eventsPerRequest: number;
   private flushCallback: (error: Error | null, data: Record<string, any>) => void;
   private accountId: number;
+  private isEdgeEnvironment: boolean = false;
   private dispatcher: (
     queue: Record<string, any>[],
     flushCallback: (error: Error | null, data: Record<string, any>) => void,
@@ -49,6 +51,9 @@ export class BatchEventsQueue {
    * @param config - The configuration for the batch events queue
    */
   constructor(config: BatchConfig = {}) {
+    if (isBoolean(config.isEdgeEnvironment)) {
+      this.isEdgeEnvironment = config.isEdgeEnvironment;
+    }
     if (isNumber(config.requestTimeInterval) && config.requestTimeInterval >= 1) {
       this.requestTimeInterval = config.requestTimeInterval;
     } else {
@@ -90,7 +95,11 @@ export class BatchEventsQueue {
     this.flushCallback = isFunction(config.flushCallback) ? config.flushCallback : () => {};
     this.dispatcher = config.dispatcher;
     this.accountId = SettingsService.Instance.accountId;
-    this.createNewBatchTimer();
+
+    // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
+    if (!this.isEdgeEnvironment) {
+      this.createNewBatchTimer();
+    }
     BatchEventsQueue.instance = this;
     return this;
   }

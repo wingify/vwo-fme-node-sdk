@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 export interface BatchConfig {
+  isEdgeEnvironment?: boolean;
   requestTimeInterval?: number;
   eventsPerRequest?: number;
   flushCallback?: (error: Error | null, data: Record<string, any>) => void;
@@ -30,6 +31,7 @@ export declare class BatchEventsQueue {
   private eventsPerRequest;
   private flushCallback;
   private accountId;
+  private isEdgeEnvironment;
   private dispatcher;
   /**
    * Constructor for the BatchEventsQueue

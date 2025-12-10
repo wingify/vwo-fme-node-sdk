@@ -66,6 +66,7 @@ var BatchEventsDispatcher_1 = require("./utils/BatchEventsDispatcher");
 var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
 var constants_1 = require("./constants");
 var ApiEnum_1 = require("./enums/ApiEnum");
+var EdgeConfigModel_1 = require("./models/edge/EdgeConfigModel");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.originalSettings = {};
@@ -92,6 +93,15 @@ var VWOBuilder = /** @class */ (function () {
     };
     VWOBuilder.prototype.initBatching = function () {
         var _this = this;
+        var _a;
+        // If edge config is provided, set the batch event data to the default values
+        if (this.options.edgeConfig && Object.keys((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig).length > 0) {
+            var edgeConfigModel = new EdgeConfigModel_1.EdgeConfigModel().modelFromDictionary(this.options.edgeConfig);
+            this.options.batchEventData = {
+                eventsPerRequest: edgeConfigModel.getMaxEventsToBatch(),
+                isEdgeEnvironment: true,
+            };
+        }
         if (this.options.batchEventData) {
             if (this.settingFileManager.isGatewayServiceProvided) {
                 logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));

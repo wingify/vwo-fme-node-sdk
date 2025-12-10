@@ -100,14 +100,19 @@ function sendSDKUsageStatsEvent(usageStatsAccountId) {
                 case 0:
                     properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
                     payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(EventEnum_1.EventEnum.VWO_USAGE_STATS, usageStatsAccountId);
-                    // Send the constructed properties and payload as a POST request
-                    //send eventName in parameters so that we can enable retry for this event
-                    return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_USAGE_STATS).catch(function () { })];
-                case 1:
+                    if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+                    BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                    return [3 /*break*/, 3];
+                case 1: 
+                // Send the constructed properties and payload as a POST request
+                //send eventName in parameters so that we can enable retry for this event
+                return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_USAGE_STATS).catch(function () { })];
+                case 2:
                     // Send the constructed properties and payload as a POST request
                     //send eventName in parameters so that we can enable retry for this event
                     _a.sent();
-                    return [2 /*return*/];
+                    _a.label = 3;
+                case 3: return [2 /*return*/];
             }
         });
     });

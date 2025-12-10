@@ -46,8 +46,13 @@ export async function sendSDKUsageStatsEvent(usageStatsAccountId) {
     const properties = getEventsBaseProperties(EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
     // create the payload with required fields
     const payload = getSDKUsageStatsEventPayload(EventEnum.VWO_USAGE_STATS, usageStatsAccountId);
-    // Send the constructed properties and payload as a POST request
-    //send eventName in parameters so that we can enable retry for this event
-    await sendEvent(properties, payload, EventEnum.VWO_USAGE_STATS).catch(() => { });
+    if (BatchEventsQueue.Instance) {
+        BatchEventsQueue.Instance.enqueue(payload);
+    }
+    else {
+        // Send the constructed properties and payload as a POST request
+        //send eventName in parameters so that we can enable retry for this event
+        await sendEvent(properties, payload, EventEnum.VWO_USAGE_STATS).catch(() => { });
+    }
 }
 //# sourceMappingURL=SdkInitAndUsageStatsUtil.js.map

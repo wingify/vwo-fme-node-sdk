@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.33.1
+ * vwo-fme-javascript-sdk - v1.34.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.33.1"
+  version: "1.34.0"
 };
 
 /***/ }),
@@ -248,26 +248,32 @@ function init(options) {
                 };
                 return [2 /*return*/, instance.then(function (_vwoInstance) { return __awaiter(_this, void 0, void 0, function () {
                         var sdkInitTime, usageStatsAccountId;
-                        var _a, _b, _c, _d;
-                        return __generator(this, function (_e) {
-                            switch (_e.label) {
+                        var _a, _b, _c, _d, _e;
+                        return __generator(this, function (_f) {
+                            switch (_f.label) {
                                 case 0:
                                     sdkInitTime = Date.now() - startTimeForInit_1;
-                                    // send sdk init event
-                                    if (_vwoInstance.isSettingsValid && !((_b = (_a = _vwoInstance.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier)) {
-                                        (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
-                                    }
-                                    usageStatsAccountId = (_c = _vwoInstance.originalSettings) === null || _c === void 0 ? void 0 : _c.usageStatsAccountId;
-                                    if (!usageStatsAccountId) return [3 /*break*/, 3];
-                                    if (!((_d = _vwoInstance.options) === null || _d === void 0 ? void 0 : _d.shouldWaitForTrackingCalls)) return [3 /*break*/, 2];
-                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId)];
+                                    if (!(_vwoInstance.isSettingsValid && !((_b = (_a = _vwoInstance.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier))) return [3 /*break*/, 3];
+                                    if (!((_c = _vwoInstance.options) === null || _c === void 0 ? void 0 : _c.shouldWaitForTrackingCalls)) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime)];
                                 case 1:
-                                    _e.sent();
+                                    _f.sent();
                                     return [3 /*break*/, 3];
                                 case 2:
-                                    (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
-                                    _e.label = 3;
+                                    (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
+                                    _f.label = 3;
                                 case 3:
+                                    usageStatsAccountId = (_d = _vwoInstance.originalSettings) === null || _d === void 0 ? void 0 : _d.usageStatsAccountId;
+                                    if (!usageStatsAccountId) return [3 /*break*/, 6];
+                                    if (!((_e = _vwoInstance.options) === null || _e === void 0 ? void 0 : _e.shouldWaitForTrackingCalls)) return [3 /*break*/, 5];
+                                    return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId)];
+                                case 4:
+                                    _f.sent();
+                                    return [3 /*break*/, 6];
+                                case 5:
+                                    (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
+                                    _f.label = 6;
+                                case 6:
                                     _global.isSettingsFetched = true;
                                     _global.instance = _vwoInstance;
                                     _global.vwoInitDeferred.resolve(_vwoInstance);
@@ -409,6 +415,7 @@ var BatchEventsDispatcher_1 = __webpack_require__(/*! ./utils/BatchEventsDispatc
 var UsageStatsUtil_1 = __webpack_require__(/*! ./utils/UsageStatsUtil */ "./lib/utils/UsageStatsUtil.ts");
 var constants_1 = __webpack_require__(/*! ./constants */ "./lib/constants/index.ts");
 var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
+var EdgeConfigModel_1 = __webpack_require__(/*! ./models/edge/EdgeConfigModel */ "./lib/models/edge/EdgeConfigModel.ts");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.originalSettings = {};
@@ -435,6 +442,15 @@ var VWOBuilder = /** @class */ (function () {
     };
     VWOBuilder.prototype.initBatching = function () {
         var _this = this;
+        var _a;
+        // If edge config is provided, set the batch event data to the default values
+        if (this.options.edgeConfig && Object.keys((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig).length > 0) {
+            var edgeConfigModel = new EdgeConfigModel_1.EdgeConfigModel().modelFromDictionary(this.options.edgeConfig);
+            this.options.batchEventData = {
+                eventsPerRequest: edgeConfigModel.getMaxEventsToBatch(),
+                isEdgeEnvironment: true,
+            };
+        }
         if (this.options.batchEventData) {
             if (this.settingFileManager.isGatewayServiceProvided) {
                 logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
@@ -3165,6 +3181,77 @@ var VariationModel = /** @class */ (function () {
     return VariationModel;
 }());
 exports.VariationModel = VariationModel;
+
+
+/***/ }),
+
+/***/ "./lib/models/edge/EdgeConfigModel.ts":
+/*!********************************************!*\
+  !*** ./lib/models/edge/EdgeConfigModel.ts ***!
+  \********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.EdgeConfigModel = void 0;
+var constants_1 = __webpack_require__(/*! ../../constants */ "./lib/constants/index.ts");
+/**
+ * Model for the edge config.
+ */
+var EdgeConfigModel = /** @class */ (function () {
+    function EdgeConfigModel() {
+        this.shouldWaitForTrackingCalls = true;
+    }
+    /**
+     * Models the edge config from a dictionary.
+     * @param edgeConfigModel - The edge config dictionary.
+     * @returns {this} - The edge config model.
+     */
+    EdgeConfigModel.prototype.modelFromDictionary = function (edgeConfigModel) {
+        if (edgeConfigModel.shouldWaitForTrackingCalls) {
+            this.shouldWaitForTrackingCalls = edgeConfigModel.shouldWaitForTrackingCalls;
+        }
+        if (edgeConfigModel.maxEventsToBatch) {
+            this.maxEventsToBatch = edgeConfigModel.maxEventsToBatch;
+        }
+        else {
+            this.maxEventsToBatch = constants_1.Constants.MAX_EVENTS_PER_REQUEST;
+        }
+        return this;
+    };
+    /**
+     * Checks if the SDK should wait for a network response.
+     * @returns {boolean} - True if the SDK should wait for a network response, false otherwise.
+     */
+    EdgeConfigModel.prototype.getShouldWaitForTrackingCalls = function () {
+        return this.shouldWaitForTrackingCalls;
+    };
+    /**
+     * Gets the maximum number of events to batch.
+     * @returns {number} - The maximum number of events to batch.
+     */
+    EdgeConfigModel.prototype.getMaxEventsToBatch = function () {
+        return this.maxEventsToBatch;
+    };
+    return EdgeConfigModel;
+}());
+exports.EdgeConfigModel = EdgeConfigModel;
 
 
 /***/ }),
@@ -7312,6 +7399,10 @@ var BatchEventsQueue = /** @class */ (function () {
         if (config === void 0) { config = {}; }
         this.queue = [];
         this.timer = null;
+        this.isEdgeEnvironment = false;
+        if ((0, DataTypeUtil_1.isBoolean)(config.isEdgeEnvironment)) {
+            this.isEdgeEnvironment = config.isEdgeEnvironment;
+        }
         if ((0, DataTypeUtil_1.isNumber)(config.requestTimeInterval) && config.requestTimeInterval >= 1) {
             this.requestTimeInterval = config.requestTimeInterval;
         }
@@ -7346,7 +7437,10 @@ var BatchEventsQueue = /** @class */ (function () {
         this.flushCallback = (0, DataTypeUtil_1.isFunction)(config.flushCallback) ? config.flushCallback : function () { };
         this.dispatcher = config.dispatcher;
         this.accountId = SettingsService_1.SettingsService.Instance.accountId;
-        this.createNewBatchTimer();
+        // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
+        if (!this.isEdgeEnvironment) {
+            this.createNewBatchTimer();
+        }
         BatchEventsQueue.instance = this;
         return this;
     }
@@ -9301,6 +9395,7 @@ exports.extractDecisionKeys = extractDecisionKeys;
 exports.sendDebugEventToVWO = sendDebugEventToVWO;
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
+var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./lib/services/BatchEventsQueue.ts");
 /**
  * Utility functions for handling debugger service operations including
  * filtering sensitive properties and extracting decision keys.
@@ -9345,12 +9440,14 @@ function sendDebugEventToVWO() {
                 case 0:
                     properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, null, null);
                     payload = (0, NetworkUtil_1.getDebuggerEventPayload)(eventProps);
-                    // send event
-                    return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT).catch(function () { })];
-                case 1:
-                    // send event
+                    if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+                    BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                    return [3 /*break*/, 3];
+                case 1: return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT).catch(function () { })];
+                case 2:
                     _a.sent();
-                    return [2 /*return*/];
+                    _a.label = 3;
+                case 3: return [2 /*return*/];
             }
         });
     });
@@ -11550,7 +11647,7 @@ function setShouldWaitForTrackingCalls(value) {
 function getMessagingEventPayload(messageType, message, eventName, extraData) {
     if (extraData === void 0) { extraData = {}; }
     var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
-    var properties = _getEventBasePayload(null, userId, eventName, null, null);
+    var properties = _getEventBasePayload(null, userId, eventName);
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey; // Set environment key
     properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     var data = {
@@ -11573,7 +11670,7 @@ function getMessagingEventPayload(messageType, message, eventName, extraData) {
  */
 function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
     var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
-    var properties = _getEventBasePayload(null, userId, eventName, null, null);
+    var properties = _getEventBasePayload(null, userId, eventName);
     // Set the required fields as specified
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey;
     properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
@@ -11594,7 +11691,7 @@ function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
  */
 function getSDKUsageStatsEventPayload(eventName, usageStatsAccountId) {
     var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
-    var properties = _getEventBasePayload(null, userId, eventName, null, null, true, usageStatsAccountId);
+    var properties = _getEventBasePayload(null, userId, eventName, '', '', true, usageStatsAccountId);
     // Set the required fields as specified
     properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     properties.d.event.props.vwoMeta = UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats();
@@ -11619,7 +11716,7 @@ function getDebuggerEventPayload(eventProps) {
         uuid = eventProps.uuid;
     }
     // create standard event payload
-    var properties = _getEventBasePayload(null, uuid, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, null, null, false, null, false);
+    var properties = _getEventBasePayload(null, uuid, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, '', '', false, null, false);
     properties.d.event.props = {};
     // add session id to the event props if not present
     if (eventProps.sId) {
@@ -11991,14 +12088,19 @@ function sendSDKUsageStatsEvent(usageStatsAccountId) {
                 case 0:
                     properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
                     payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(EventEnum_1.EventEnum.VWO_USAGE_STATS, usageStatsAccountId);
-                    // Send the constructed properties and payload as a POST request
-                    //send eventName in parameters so that we can enable retry for this event
-                    return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_USAGE_STATS).catch(function () { })];
-                case 1:
+                    if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
+                    BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                    return [3 /*break*/, 3];
+                case 1: 
+                // Send the constructed properties and payload as a POST request
+                //send eventName in parameters so that we can enable retry for this event
+                return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_USAGE_STATS).catch(function () { })];
+                case 2:
                     // Send the constructed properties and payload as a POST request
                     //send eventName in parameters so that we can enable retry for this event
                     _a.sent();
-                    return [2 /*return*/];
+                    _a.label = 3;
+                case 3: return [2 /*return*/];
             }
         });
     });
@@ -14888,7 +14990,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {endPoint} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Error while fetching data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API.","ERROR_INITIALIZING_FETCH":"Unable to initialize the fetch API. Details: {error}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Error while fetching data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API.","ERROR_INITIALIZING_FETCH":"Unable to initialize the fetch API. Details: {error}"}');
 
 /***/ }),
 

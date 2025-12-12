@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.34.1] - 2025-12-12
+
+### Fixed
+
+- Fixed parameter types for `Connector` class `get` and `set` methods to ensure correct usage and TypeScript compatibility.
+- Improved log transport so that console logging consistently respects the configured `shouldLogToStandardOutput` if transports are provided.
+
 ## [1.34.0] - 2025-12-10
 
 ### Added

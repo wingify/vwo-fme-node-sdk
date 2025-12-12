@@ -19,6 +19,7 @@ import { LogLevelEnum } from '../enums/LogLevelEnum';
 import { LogMessageBuilder } from '../LogMessageBuilder';
 import { Logger } from '../Logger';
 import { isFunction } from '../../../utils/DataTypeUtil';
+import { ConsoleTransport } from '../transports/ConsoleTransport';
 
 export enum LogLevelNumberEnum {
   TRACE = 0,
@@ -45,6 +46,7 @@ interface IlogTransport extends Logger {
 export class LogTransportManager implements IlogTransport {
   transports: Array<Record<string, any>>;
   config: Record<string, any>;
+  consoleTransport: ConsoleTransport;
 
   /**
    * Initializes the manager with a configuration object.
@@ -53,6 +55,9 @@ export class LogTransportManager implements IlogTransport {
   constructor(config: Record<string, any>) {
     this.transports = [];
     this.config = config;
+    this.consoleTransport = new ConsoleTransport({
+      level: config.level,
+    });
   }
 
   /**
@@ -125,16 +130,26 @@ export class LogTransportManager implements IlogTransport {
    * @param {string} message - The message to log.
    */
   log(level: string, message: string): void {
+    const logMessageBuilder = new LogMessageBuilder(this.config, this.consoleTransport);
+    const formattedMessage = logMessageBuilder.formatMessage(level, message);
+
+    // handling console log
+    // always log to console if config.level is set
+    if (this.config.level) {
+      if (this.transports.length === 0 || (this.transports.length > 0 && this.config.shouldLogToStandardOutput)) {
+        if (this.shouldLog(level, this.config.level)) {
+          this.consoleTransport[level](formattedMessage);
+        }
+      }
+    }
+
+    // handling transports
+    // log to transports -- use transport level if set, otherwise use config.level (in shouldLog function)
     for (let i = 0; i < this.transports.length; i++) {
-      const logMessageBuilder = new LogMessageBuilder(this.config, this.transports[i]);
-      const formattedMessage = logMessageBuilder.formatMessage(level, message);
       if (this.shouldLog(level, this.transports[i].level)) {
         if (this.transports[i].log && isFunction(this.transports[i].log)) {
           // Use custom log handler if available
           this.transports[i].log(level, message);
-        } else {
-          // Otherwise, use the default log method
-          this.transports[i][level](formattedMessage);
         }
       }
     }

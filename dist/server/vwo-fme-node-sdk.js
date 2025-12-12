@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.34.0
+ * vwo-fme-node-sdk - v1.34.1
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.34.0"
+  version: "1.34.1"
 };
 
 /***/ }),
@@ -4574,7 +4574,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.LogManager = void 0;
 var uuid_1 = __webpack_require__(/*! uuid */ "uuid");
 var Logger_1 = __webpack_require__(/*! ../Logger */ "./dist/server-unpacked/packages/logger/Logger.js");
-var ConsoleTransport_1 = __webpack_require__(/*! ../transports/ConsoleTransport */ "./dist/server-unpacked/packages/logger/transports/ConsoleTransport.js");
 var TransportManager_1 = __webpack_require__(/*! ./TransportManager */ "./dist/server-unpacked/packages/logger/core/TransportManager.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var LogLevelEnum_1 = __webpack_require__(/*! ../enums/LogLevelEnum */ "./dist/server-unpacked/packages/logger/enums/LogLevelEnum.js");
@@ -4599,6 +4598,7 @@ var LogManager = /** @class */function (_super) {
     _this.requestId = (0, uuid_1.v4)(); // Unique request ID generated for each instance
     _this.level = LogLevelEnum_1.LogLevelEnum.ERROR; // Default logging level
     _this.prefix = 'VWO-SDK'; // Default prefix for log messages
+    _this.shouldLogToStandardOutput = false;
     _this.config = config;
     if (config.isAlwaysNewInstance || !LogManager.instance) {
       LogManager.instance = _this;
@@ -4608,6 +4608,7 @@ var LogManager = /** @class */function (_super) {
       _this.config.level = config.level || _this.level;
       _this.config.prefix = config.prefix || _this.prefix;
       _this.config.dateTimeFormat = config.dateTimeFormat || _this.dateTimeFormat;
+      _this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || _this.shouldLogToStandardOutput;
       _this.transportManager = new TransportManager_1.LogTransportManager(_this.config);
       _this.handleTransports();
     }
@@ -4636,12 +4637,6 @@ var LogManager = /** @class */function (_super) {
       this.addTransports(this.config.transports);
     } else if (this.config.transport && (0, DataTypeUtil_1.isObject)(this.config.transport)) {
       this.addTransport(this.config.transport);
-    } else {
-      // if (this.config.defaultTransport)
-      // Add default ConsoleTransport if no other transport is specified
-      this.addTransport(new ConsoleTransport_1.ConsoleTransport({
-        level: this.config.level
-      }));
     }
   };
   /**
@@ -4764,6 +4759,7 @@ exports.LogTransportManager = exports.LogLevelNumberEnum = void 0;
 var LogLevelEnum_1 = __webpack_require__(/*! ../enums/LogLevelEnum */ "./dist/server-unpacked/packages/logger/enums/LogLevelEnum.js");
 var LogMessageBuilder_1 = __webpack_require__(/*! ../LogMessageBuilder */ "./dist/server-unpacked/packages/logger/LogMessageBuilder.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var ConsoleTransport_1 = __webpack_require__(/*! ../transports/ConsoleTransport */ "./dist/server-unpacked/packages/logger/transports/ConsoleTransport.js");
 var LogLevelNumberEnum;
 (function (LogLevelNumberEnum) {
   LogLevelNumberEnum[LogLevelNumberEnum["TRACE"] = 0] = "TRACE";
@@ -4784,6 +4780,9 @@ var LogTransportManager = /** @class */function () {
   function LogTransportManager(config) {
     this.transports = [];
     this.config = config;
+    this.consoleTransport = new ConsoleTransport_1.ConsoleTransport({
+      level: config.level
+    });
   }
   /**
    * Adds a new transport to the manager.
@@ -4846,16 +4845,24 @@ var LogTransportManager = /** @class */function () {
    * @param {string} message - The message to log.
    */
   LogTransportManager.prototype.log = function (level, message) {
+    var logMessageBuilder = new LogMessageBuilder_1.LogMessageBuilder(this.config, this.consoleTransport);
+    var formattedMessage = logMessageBuilder.formatMessage(level, message);
+    // handling console log
+    // always log to console if config.level is set
+    if (this.config.level) {
+      if (this.transports.length === 0 || this.transports.length > 0 && this.config.shouldLogToStandardOutput) {
+        if (this.shouldLog(level, this.config.level)) {
+          this.consoleTransport[level](formattedMessage);
+        }
+      }
+    }
+    // handling transports
+    // log to transports -- use transport level if set, otherwise use config.level (in shouldLog function)
     for (var i = 0; i < this.transports.length; i++) {
-      var logMessageBuilder = new LogMessageBuilder_1.LogMessageBuilder(this.config, this.transports[i]);
-      var formattedMessage = logMessageBuilder.formatMessage(level, message);
       if (this.shouldLog(level, this.transports[i].level)) {
         if (this.transports[i].log && (0, DataTypeUtil_1.isFunction)(this.transports[i].log)) {
           // Use custom log handler if available
           this.transports[i].log(level, message);
-        } else {
-          // Otherwise, use the default log method
-          this.transports[i][level](formattedMessage);
         }
       }
     }

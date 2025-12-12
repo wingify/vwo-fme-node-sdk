@@ -15,7 +15,6 @@
  */
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '../Logger.js';
-import { ConsoleTransport } from '../transports/ConsoleTransport.js';
 import { LogTransportManager } from './TransportManager.js';
 import { isObject } from '../../../utils/DataTypeUtil.js';
 import { LogLevelEnum } from '../enums/LogLevelEnum.js';
@@ -42,6 +41,7 @@ export class LogManager extends Logger {
         this.requestId = uuidv4(); // Unique request ID generated for each instance
         this.level = LogLevelEnum.ERROR; // Default logging level
         this.prefix = 'VWO-SDK'; // Default prefix for log messages
+        this.shouldLogToStandardOutput = false;
         this.config = config;
         if (config.isAlwaysNewInstance || !LogManager.instance) {
             LogManager.instance = this;
@@ -51,6 +51,7 @@ export class LogManager extends Logger {
             this.config.level = config.level || this.level;
             this.config.prefix = config.prefix || this.prefix;
             this.config.dateTimeFormat = config.dateTimeFormat || this.dateTimeFormat;
+            this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || this.shouldLogToStandardOutput;
             this.transportManager = new LogTransportManager(this.config);
             this.handleTransports();
         }
@@ -73,13 +74,6 @@ export class LogManager extends Logger {
         }
         else if (this.config.transport && isObject(this.config.transport)) {
             this.addTransport(this.config.transport);
-        }
-        else {
-            // if (this.config.defaultTransport)
-            // Add default ConsoleTransport if no other transport is specified
-            this.addTransport(new ConsoleTransport({
-                level: this.config.level,
-            }));
         }
     }
     /**

@@ -15,6 +15,7 @@
  */
 import { dynamic } from '../../../types/Common';
 import { Logger } from '../Logger';
+import { ConsoleTransport } from '../transports/ConsoleTransport';
 export declare enum LogLevelNumberEnum {
   TRACE = 0,
   DEBUG = 1,
@@ -35,6 +36,7 @@ interface IlogTransport extends Logger {
 export declare class LogTransportManager implements IlogTransport {
   transports: Array<Record<string, any>>;
   config: Record<string, any>;
+  consoleTransport: ConsoleTransport;
   /**
    * Initializes the manager with a configuration object.
    * @param {Record<string, any>} config - Configuration settings for the log manager.

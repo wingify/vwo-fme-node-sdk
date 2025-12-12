@@ -18,9 +18,9 @@ import { dynamic } from '../../types/Common';
 export abstract class Connector {
   // abstract connect(_config: Record<string, dynamic>): this;
 
-  abstract set(_key: string, _data: dynamic): void | Promise<dynamic>;
+  abstract set(data: dynamic): void | Promise<dynamic>;
 
-  abstract get(_key: string): this | Promise<dynamic>;
+  abstract get(featureKey: string, userId: string): this | Promise<dynamic>;
 
   // abstract getAll(): Record<string, dynamic> | Promise<Array<Record<string, dynamic>>>;
 

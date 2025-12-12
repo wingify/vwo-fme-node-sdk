@@ -44,7 +44,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LogManager = void 0;
 var uuid_1 = require("uuid");
 var Logger_1 = require("../Logger");
-var ConsoleTransport_1 = require("../transports/ConsoleTransport");
 var TransportManager_1 = require("./TransportManager");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var LogLevelEnum_1 = require("../enums/LogLevelEnum");
@@ -69,6 +68,7 @@ var LogManager = /** @class */ (function (_super) {
         _this.requestId = (0, uuid_1.v4)(); // Unique request ID generated for each instance
         _this.level = LogLevelEnum_1.LogLevelEnum.ERROR; // Default logging level
         _this.prefix = 'VWO-SDK'; // Default prefix for log messages
+        _this.shouldLogToStandardOutput = false;
         _this.config = config;
         if (config.isAlwaysNewInstance || !LogManager.instance) {
             LogManager.instance = _this;
@@ -78,6 +78,7 @@ var LogManager = /** @class */ (function (_super) {
             _this.config.level = config.level || _this.level;
             _this.config.prefix = config.prefix || _this.prefix;
             _this.config.dateTimeFormat = config.dateTimeFormat || _this.dateTimeFormat;
+            _this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || _this.shouldLogToStandardOutput;
             _this.transportManager = new TransportManager_1.LogTransportManager(_this.config);
             _this.handleTransports();
         }
@@ -107,13 +108,6 @@ var LogManager = /** @class */ (function (_super) {
         }
         else if (this.config.transport && (0, DataTypeUtil_1.isObject)(this.config.transport)) {
             this.addTransport(this.config.transport);
-        }
-        else {
-            // if (this.config.defaultTransport)
-            // Add default ConsoleTransport if no other transport is specified
-            this.addTransport(new ConsoleTransport_1.ConsoleTransport({
-                level: this.config.level,
-            }));
         }
     };
     /**

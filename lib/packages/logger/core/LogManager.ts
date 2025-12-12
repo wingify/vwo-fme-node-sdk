@@ -18,7 +18,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { dynamic } from '../../../types/Common';
 
 import { Logger } from '../Logger';
-import { ConsoleTransport } from '../transports/ConsoleTransport';
 import { LogTransportManager } from './TransportManager';
 
 import { isObject } from '../../../utils/DataTypeUtil';
@@ -43,6 +42,7 @@ export interface ILogManager {
   requestId?: string;
   level: string;
   prefix?: string;
+  shouldLogToStandardOutput?: boolean;
   dateTimeFormat?: () => string;
 
   transport?: LogTransport;
@@ -75,6 +75,7 @@ export class LogManager extends Logger implements ILogManager {
   }
   transport: LogTransport;
   transports: Array<LogTransport>;
+  shouldLogToStandardOutput: boolean = false;
 
   /**
    * Constructor for LogManager.
@@ -94,7 +95,7 @@ export class LogManager extends Logger implements ILogManager {
       this.config.level = config.level || this.level;
       this.config.prefix = config.prefix || this.prefix;
       this.config.dateTimeFormat = config.dateTimeFormat || this.dateTimeFormat;
-
+      this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || this.shouldLogToStandardOutput;
       this.transportManager = new LogTransportManager(this.config);
 
       this.handleTransports();
@@ -121,14 +122,6 @@ export class LogManager extends Logger implements ILogManager {
       this.addTransports(this.config.transports);
     } else if (this.config.transport && isObject(this.config.transport)) {
       this.addTransport(this.config.transport);
-    } else {
-      // if (this.config.defaultTransport)
-      // Add default ConsoleTransport if no other transport is specified
-      this.addTransport(
-        new ConsoleTransport({
-          level: this.config.level,
-        }),
-      );
     }
   }
 

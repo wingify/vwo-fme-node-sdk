@@ -30,6 +30,7 @@ export interface ILogManager {
   requestId?: string;
   level: string;
   prefix?: string;
+  shouldLogToStandardOutput?: boolean;
   dateTimeFormat?: () => string;
   transport?: LogTransport;
   transports?: Array<LogTransport>;
@@ -57,6 +58,7 @@ export declare class LogManager extends Logger implements ILogManager {
   dateTimeFormat(): string;
   transport: LogTransport;
   transports: Array<LogTransport>;
+  shouldLogToStandardOutput: boolean;
   /**
    * Constructor for LogManager.
    * @param {Record<string, any>} config - Configuration object for LogManager.

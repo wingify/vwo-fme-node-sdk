@@ -86,11 +86,7 @@ describe('End-to-End Tests for Logger Module', () => {
       isAlwaysNewInstance: true,
       level: LogLevelEnum.DEBUG,
       transport: {
-        debug: (msg) => console.log(msg),
-        info: (msg) => console.log(msg),
-        warn: (msg) => console.log(msg),
-        error: (msg) => console.log(msg),
-        trace: (msg) => console.log(msg),
+        log: (level, msg) => console.log(msg),
       },
     });
 
@@ -111,21 +107,14 @@ describe('End-to-End Tests for Logger Module', () => {
     new LogManager({
       // isAnsiColorEnabled: false,
       isAlwaysNewInstance: true,
-      level: LogLevelEnum.DEBUG,
       transports: [
         {
-          debug: (msg) => console.log(msg),
-          info: (msg) => console.log(msg),
-          warn: (msg) => console.log(msg),
-          error: (msg) => console.log(msg),
-          trace: (msg) => console.log(msg),
+          level: LogLevelEnum.DEBUG,
+          log: (level, msg) => console.log(level, msg),
         },
         {
-          debug: (msg) => console.count(msg),
-          info: (msg) => console.count(msg),
-          warn: (msg) => console.count(msg),
-          error: (msg) => console.count(msg),
-          trace: (msg) => console.count(msg),
+          level: LogLevelEnum.DEBUG,
+          log: (level, msg) => console.count(msg),
         },
       ],
     });

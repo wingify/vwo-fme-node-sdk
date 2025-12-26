@@ -1,4 +1,3 @@
-import { Storage } from '../packages/storage/index.js';
 import { LogManager } from '../packages/logger/index.js';
 import { NetworkManager, RequestModel } from '../packages/network-layer/index.js';
 import { Deferred } from '../utils/PromiseUtil.js';
@@ -12,12 +11,16 @@ import { createNetWorkAndRetryDebugEvent, getSettingsPath } from '../utils/Netwo
 import { sendDebugEventToVWO } from '../utils/DebuggerServiceUtil.js';
 import { getFormattedErrorMessage } from '../utils/FunctionUtil.js';
 import { ApiEnum } from '../enums/ApiEnum.js';
+import { StorageService } from './StorageService.js';
+import { isEmptyObject } from '../utils/DataTypeUtil.js';
 export class SettingsService {
     constructor(options) {
         this.isGatewayServiceProvided = false;
         this.settingsFetchTime = undefined; //time taken to fetch the settings
         this.isSettingsValid = false;
         this.proxyProvided = false;
+        this.isStorageServiceProvided = false;
+        this.isEdgeEnvironment = false;
         this.gatewayServiceConfig = {
             hostname: null,
             protocol: null,
@@ -27,6 +30,10 @@ export class SettingsService {
         this.accountId = options.accountId;
         this.expiry = options?.settings?.expiry || Constants.SETTINGS_EXPIRY;
         this.networkTimeout = options?.settings?.timeout || Constants.SETTINGS_TIMEOUT;
+        this.isStorageServiceProvided = options?.isStorageServiceProvided || false;
+        if (options?.edgeConfig && Object.keys(options?.edgeConfig).length > 0) {
+            this.isEdgeEnvironment = true;
+        }
         // if sdk is running in browser environment then set isGatewayServiceProvided to true
         // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
         // Check if sdk running in browser and not in edge/serverless environment
@@ -101,17 +108,6 @@ export class SettingsService {
     static get Instance() {
         return SettingsService.instance;
     }
-    setSettingsExpiry() {
-        const settingsTimeout = setTimeout(() => {
-            this.fetchSettingsAndCacheInStorage().then(() => {
-                clearTimeout(settingsTimeout);
-                // again set the timer
-                // NOTE: setInterval could be used but it will not consider the time required to fetch settings
-                // This breaks the timer rythm and also sends more call than required
-                this.setSettingsExpiry();
-            });
-        }, this.expiry);
-    }
     async normalizeSettings(settings) {
         const normalizedSettings = { ...settings };
         if (!normalizedSettings.features || Object.keys(normalizedSettings.features).length === 0) {
@@ -121,57 +117,6 @@ export class SettingsService {
             normalizedSettings.campaigns = [];
         }
         return normalizedSettings;
-    }
-    async handleBrowserEnvironment(storageConnector, deferredObject) {
-        try {
-            const cachedSettings = await storageConnector.getSettingsFromStorage(this.sdkKey, this.accountId);
-            if (cachedSettings) {
-                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
-                deferredObject.resolve(cachedSettings);
-            }
-            else {
-                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
-                const freshSettings = await this.fetchSettings();
-                const normalizedSettings = await this.normalizeSettings(freshSettings);
-                // set the settings in storage only if settings are valid
-                this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
-                if (this.isSettingsValid) {
-                    await storageConnector.setSettingsInStorage(normalizedSettings);
-                }
-                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
-                deferredObject.resolve(normalizedSettings);
-            }
-        }
-        catch (error) {
-            LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
-                err: getFormattedErrorMessage(error),
-            }, { an: Constants.BROWSER_STORAGE }, false);
-            deferredObject.resolve(null);
-        }
-    }
-    async handleServerEnvironment(deferredObject) {
-        try {
-            const settings = await this.fetchSettings();
-            const normalizedSettings = await this.normalizeSettings(settings);
-            deferredObject.resolve(normalizedSettings);
-        }
-        catch (error) {
-            LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
-                err: getFormattedErrorMessage(error),
-            }, { an: ApiEnum.INIT }, false);
-            deferredObject.resolve(null);
-        }
-    }
-    fetchSettingsAndCacheInStorage() {
-        const deferredObject = new Deferred();
-        const storageConnector = Storage.Instance.getConnector();
-        if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
-            this.handleBrowserEnvironment(storageConnector, deferredObject);
-        }
-        else {
-            this.handleServerEnvironment(deferredObject);
-        }
-        return deferredObject.promise;
     }
     fetchSettings(isViaWebhook = false, apiName = ApiEnum.INIT) {
         const deferredObject = new Deferred();
@@ -226,50 +171,62 @@ export class SettingsService {
             return deferredObject.promise;
         }
     }
-    getSettings(forceFetch = false) {
+    /**
+     * Gets the settings, fetching them if not cached from storage or server.
+     s* @returns {Promise<Record<any, any>>} A promise that resolves to the settings.
+     */
+    async getSettings() {
         const deferredObject = new Deferred();
-        if (forceFetch) {
-            this.fetchSettingsAndCacheInStorage().then((settings) => {
-                deferredObject.resolve(settings);
-            });
-        }
-        else {
-            // const storageConnector = Storage.Instance.getConnector();
-            // if (storageConnector) {
-            //   storageConnector
-            //     .get(Constants.SETTINGS)
-            //     .then((storedSettings: dynamic) => {
-            //       if (!isObject(storedSettings)) {
-            //         this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-            //           const isSettingsValid = new SettingsSchema().isSettingsValid(fetchedSettings);
-            //           if (isSettingsValid) {
-            //             deferredObject.resolve(fetchedSettings);
-            //           } else {
-            //             deferredObject.reject(new Error('Settings are not valid. Failed schema validation.'));
-            //           }
-            //         });
-            //       } else {
-            //         deferredObject.resolve(storedSettings);
-            //       }
-            //     })
-            //     .catch(() => {
-            //       this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-            //         deferredObject.resolve(fetchedSettings);
-            //       });
-            //     });
-            // } else {
-            this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-                const isSettingsValid = new SettingsSchema().isSettingsValid(fetchedSettings);
-                this.isSettingsValid = isSettingsValid;
+        try {
+            // check if the storage service is provided
+            if (this.isStorageServiceProvided) {
+                const storageService = new StorageService();
+                // get the cached settings from storage
+                const cachedSettings = await storageService.getSettingsFromStorage(this.accountId, this.sdkKey, !this.isEdgeEnvironment);
+                // if cached settings are found, return the cached settings
+                if (cachedSettings && !isEmptyObject(cachedSettings)) {
+                    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
+                    deferredObject.resolve(cachedSettings);
+                }
+                else {
+                    // if no cached settings are found, fetch fresh settings from server
+                    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
+                    const freshSettings = await this.fetchSettings();
+                    const normalizedSettings = await this.normalizeSettings(freshSettings);
+                    // check if the settings are valid
+                    this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
+                    if (this.isSettingsValid) {
+                        // if settings are valid, set the settings in storage
+                        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
+                        await storageService.setSettingsInStorage(this.accountId, this.sdkKey, normalizedSettings);
+                        deferredObject.resolve(normalizedSettings);
+                    }
+                    else {
+                        LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
+                        deferredObject.resolve({});
+                    }
+                }
+            }
+            else {
+                // if the storage service is not provided, fetch fresh settings from server
+                const freshSettings = await this.fetchSettings();
+                const normalizedSettings = await this.normalizeSettings(freshSettings);
+                this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
                 if (this.isSettingsValid) {
                     LogManager.Instance.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
-                    deferredObject.resolve(fetchedSettings);
+                    deferredObject.resolve(normalizedSettings);
                 }
                 else {
                     LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
                     deferredObject.resolve({});
                 }
-            });
+            }
+        }
+        catch (error) {
+            LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                err: getFormattedErrorMessage(error),
+            }, { an: ApiEnum.INIT }, false);
+            deferredObject.resolve({});
         }
         return deferredObject.promise;
     }

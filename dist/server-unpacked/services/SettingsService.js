@@ -48,7 +48,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingsService = void 0;
-var storage_1 = require("../packages/storage");
 var logger_1 = require("../packages/logger");
 var network_layer_1 = require("../packages/network-layer");
 var PromiseUtil_1 = require("../utils/PromiseUtil");
@@ -62,6 +61,8 @@ var NetworkUtil_1 = require("../utils/NetworkUtil");
 var DebuggerServiceUtil_1 = require("../utils/DebuggerServiceUtil");
 var FunctionUtil_1 = require("../utils/FunctionUtil");
 var ApiEnum_1 = require("../enums/ApiEnum");
+var StorageService_1 = require("./StorageService");
+var DataTypeUtil_1 = require("../utils/DataTypeUtil");
 var SettingsService = /** @class */ (function () {
     function SettingsService(options) {
         var _a, _b, _c, _d, _e, _f;
@@ -69,6 +70,8 @@ var SettingsService = /** @class */ (function () {
         this.settingsFetchTime = undefined; //time taken to fetch the settings
         this.isSettingsValid = false;
         this.proxyProvided = false;
+        this.isStorageServiceProvided = false;
+        this.isEdgeEnvironment = false;
         this.gatewayServiceConfig = {
             hostname: null,
             protocol: null,
@@ -78,6 +81,10 @@ var SettingsService = /** @class */ (function () {
         this.accountId = options.accountId;
         this.expiry = ((_a = options === null || options === void 0 ? void 0 : options.settings) === null || _a === void 0 ? void 0 : _a.expiry) || constants_1.Constants.SETTINGS_EXPIRY;
         this.networkTimeout = ((_b = options === null || options === void 0 ? void 0 : options.settings) === null || _b === void 0 ? void 0 : _b.timeout) || constants_1.Constants.SETTINGS_TIMEOUT;
+        this.isStorageServiceProvided = (options === null || options === void 0 ? void 0 : options.isStorageServiceProvided) || false;
+        if ((options === null || options === void 0 ? void 0 : options.edgeConfig) && Object.keys(options === null || options === void 0 ? void 0 : options.edgeConfig).length > 0) {
+            this.isEdgeEnvironment = true;
+        }
         // if sdk is running in browser environment then set isGatewayServiceProvided to true
         // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
         // Check if sdk running in browser and not in edge/serverless environment
@@ -156,18 +163,6 @@ var SettingsService = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
-    SettingsService.prototype.setSettingsExpiry = function () {
-        var _this = this;
-        var settingsTimeout = setTimeout(function () {
-            _this.fetchSettingsAndCacheInStorage().then(function () {
-                clearTimeout(settingsTimeout);
-                // again set the timer
-                // NOTE: setInterval could be used but it will not consider the time required to fetch settings
-                // This breaks the timer rythm and also sends more call than required
-                _this.setSettingsExpiry();
-            });
-        }, this.expiry);
-    };
     SettingsService.prototype.normalizeSettings = function (settings) {
         return __awaiter(this, void 0, void 0, function () {
             var normalizedSettings;
@@ -182,90 +177,6 @@ var SettingsService = /** @class */ (function () {
                 return [2 /*return*/, normalizedSettings];
             });
         });
-    };
-    SettingsService.prototype.handleBrowserEnvironment = function (storageConnector, deferredObject) {
-        return __awaiter(this, void 0, void 0, function () {
-            var cachedSettings, freshSettings, normalizedSettings, error_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 8, , 9]);
-                        return [4 /*yield*/, storageConnector.getSettingsFromStorage(this.sdkKey, this.accountId)];
-                    case 1:
-                        cachedSettings = _a.sent();
-                        if (!cachedSettings) return [3 /*break*/, 2];
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
-                        deferredObject.resolve(cachedSettings);
-                        return [3 /*break*/, 7];
-                    case 2:
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
-                        return [4 /*yield*/, this.fetchSettings()];
-                    case 3:
-                        freshSettings = _a.sent();
-                        return [4 /*yield*/, this.normalizeSettings(freshSettings)];
-                    case 4:
-                        normalizedSettings = _a.sent();
-                        // set the settings in storage only if settings are valid
-                        this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
-                        if (!this.isSettingsValid) return [3 /*break*/, 6];
-                        return [4 /*yield*/, storageConnector.setSettingsInStorage(normalizedSettings)];
-                    case 5:
-                        _a.sent();
-                        _a.label = 6;
-                    case 6:
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
-                        deferredObject.resolve(normalizedSettings);
-                        _a.label = 7;
-                    case 7: return [3 /*break*/, 9];
-                    case 8:
-                        error_1 = _a.sent();
-                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1),
-                        }, { an: constants_1.Constants.BROWSER_STORAGE }, false);
-                        deferredObject.resolve(null);
-                        return [3 /*break*/, 9];
-                    case 9: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    SettingsService.prototype.handleServerEnvironment = function (deferredObject) {
-        return __awaiter(this, void 0, void 0, function () {
-            var settings, normalizedSettings, error_2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, this.fetchSettings()];
-                    case 1:
-                        settings = _a.sent();
-                        return [4 /*yield*/, this.normalizeSettings(settings)];
-                    case 2:
-                        normalizedSettings = _a.sent();
-                        deferredObject.resolve(normalizedSettings);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        error_2 = _a.sent();
-                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_2),
-                        }, { an: ApiEnum_1.ApiEnum.INIT }, false);
-                        deferredObject.resolve(null);
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    SettingsService.prototype.fetchSettingsAndCacheInStorage = function () {
-        var deferredObject = new PromiseUtil_1.Deferred();
-        var storageConnector = storage_1.Storage.Instance.getConnector();
-        if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
-            this.handleBrowserEnvironment(storageConnector, deferredObject);
-        }
-        else {
-            this.handleServerEnvironment(deferredObject);
-        }
-        return deferredObject.promise;
     };
     SettingsService.prototype.fetchSettings = function (isViaWebhook, apiName) {
         var _this = this;
@@ -323,54 +234,81 @@ var SettingsService = /** @class */ (function () {
             return deferredObject.promise;
         }
     };
-    SettingsService.prototype.getSettings = function (forceFetch) {
-        var _this = this;
-        if (forceFetch === void 0) { forceFetch = false; }
-        var deferredObject = new PromiseUtil_1.Deferred();
-        if (forceFetch) {
-            this.fetchSettingsAndCacheInStorage().then(function (settings) {
-                deferredObject.resolve(settings);
-            });
-        }
-        else {
-            // const storageConnector = Storage.Instance.getConnector();
-            // if (storageConnector) {
-            //   storageConnector
-            //     .get(Constants.SETTINGS)
-            //     .then((storedSettings: dynamic) => {
-            //       if (!isObject(storedSettings)) {
-            //         this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-            //           const isSettingsValid = new SettingsSchema().isSettingsValid(fetchedSettings);
-            //           if (isSettingsValid) {
-            //             deferredObject.resolve(fetchedSettings);
-            //           } else {
-            //             deferredObject.reject(new Error('Settings are not valid. Failed schema validation.'));
-            //           }
-            //         });
-            //       } else {
-            //         deferredObject.resolve(storedSettings);
-            //       }
-            //     })
-            //     .catch(() => {
-            //       this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-            //         deferredObject.resolve(fetchedSettings);
-            //       });
-            //     });
-            // } else {
-            this.fetchSettingsAndCacheInStorage().then(function (fetchedSettings) {
-                var isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(fetchedSettings);
-                _this.isSettingsValid = isSettingsValid;
-                if (_this.isSettingsValid) {
-                    logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
-                    deferredObject.resolve(fetchedSettings);
+    /**
+     * Gets the settings, fetching them if not cached from storage or server.
+     s* @returns {Promise<Record<any, any>>} A promise that resolves to the settings.
+     */
+    SettingsService.prototype.getSettings = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var deferredObject, storageService, cachedSettings, freshSettings, normalizedSettings, freshSettings, normalizedSettings, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        deferredObject = new PromiseUtil_1.Deferred();
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 13, , 14]);
+                        if (!this.isStorageServiceProvided) return [3 /*break*/, 9];
+                        storageService = new StorageService_1.StorageService();
+                        return [4 /*yield*/, storageService.getSettingsFromStorage(this.accountId, this.sdkKey, !this.isEdgeEnvironment)];
+                    case 2:
+                        cachedSettings = _a.sent();
+                        if (!(cachedSettings && !(0, DataTypeUtil_1.isEmptyObject)(cachedSettings))) return [3 /*break*/, 3];
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
+                        deferredObject.resolve(cachedSettings);
+                        return [3 /*break*/, 8];
+                    case 3:
+                        // if no cached settings are found, fetch fresh settings from server
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
+                        return [4 /*yield*/, this.fetchSettings()];
+                    case 4:
+                        freshSettings = _a.sent();
+                        return [4 /*yield*/, this.normalizeSettings(freshSettings)];
+                    case 5:
+                        normalizedSettings = _a.sent();
+                        // check if the settings are valid
+                        this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
+                        if (!this.isSettingsValid) return [3 /*break*/, 7];
+                        // if settings are valid, set the settings in storage
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
+                        return [4 /*yield*/, storageService.setSettingsInStorage(this.accountId, this.sdkKey, normalizedSettings)];
+                    case 6:
+                        _a.sent();
+                        deferredObject.resolve(normalizedSettings);
+                        return [3 /*break*/, 8];
+                    case 7:
+                        logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                        deferredObject.resolve({});
+                        _a.label = 8;
+                    case 8: return [3 /*break*/, 12];
+                    case 9: return [4 /*yield*/, this.fetchSettings()];
+                    case 10:
+                        freshSettings = _a.sent();
+                        return [4 /*yield*/, this.normalizeSettings(freshSettings)];
+                    case 11:
+                        normalizedSettings = _a.sent();
+                        this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
+                        if (this.isSettingsValid) {
+                            logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+                            deferredObject.resolve(normalizedSettings);
+                        }
+                        else {
+                            logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                            deferredObject.resolve({});
+                        }
+                        _a.label = 12;
+                    case 12: return [3 /*break*/, 14];
+                    case 13:
+                        error_1 = _a.sent();
+                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1),
+                        }, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                        deferredObject.resolve({});
+                        return [3 /*break*/, 14];
+                    case 14: return [2 /*return*/, deferredObject.promise];
                 }
-                else {
-                    logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
-                    deferredObject.resolve({});
-                }
             });
-        }
-        return deferredObject.promise;
+        });
     };
     return SettingsService;
 }());

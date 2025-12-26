@@ -15,12 +15,27 @@
  */
 import { dynamic } from '../../types/Common';
 
+/**
+ * Interface representing the structure of settings data to be stored
+ * @interface SettingsData
+ */
+export interface ISettingsData {
+  settings: Record<string, any>;
+  timestamp: number;
+}
+
 export abstract class Connector {
-  // abstract connect(_config: Record<string, dynamic>): this;
+  protected ttl?: number;
+  protected alwaysUseCachedSettings?: boolean;
 
   abstract set(data: dynamic): void | Promise<dynamic>;
 
   abstract get(featureKey: string, userId: string): this | Promise<dynamic>;
+
+  // For backward compatibility, optional methods - connectors can implement if they support settings storage
+  getSettings?(accountId: number, sdkKey: string): Promise<ISettingsData>;
+
+  setSettings?(data: ISettingsData): Promise<void>;
 
   // abstract getAll(): Record<string, dynamic> | Promise<Array<Record<string, dynamic>>>;
 

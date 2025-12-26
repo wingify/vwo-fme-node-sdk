@@ -53,6 +53,7 @@ export const Constants = {
     SETTINGS_TIMEOUT: 50000,
     EVENTS_CALL_TIMEOUT: 10000, // 10 seconds
     SETTINGS_TTL: 7200000, // 2 HOURS
+    ALWAYS_USE_CACHED_SETTINGS: false,
     MIN_TTL_MS: 60000, // 1 MINUTE
     HOST_NAME: 'dev.visualwebsiteoptimizer.com',
     SETTINGS_ENDPOINT: '/server-side/v2-settings',
@@ -76,7 +77,7 @@ export const Constants = {
     V2_SETTINGS: 'v2-settings',
     POLLING: 'polling',
     BATCH_EVENTS: 'batch-events',
-    BROWSER_STORAGE: 'browserStorage',
+    STORAGE: 'storage',
     FLAG_DECISION_GIVEN: 'FLAG_DECISION_GIVEN',
     NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES: 'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
     NETWORK_CALL_SUCCESS_WITH_RETRIES: 'NETWORK_CALL_SUCCESS_WITH_RETRIES',

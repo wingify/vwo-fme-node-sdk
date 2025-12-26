@@ -72,6 +72,7 @@ var SettingsUtil_1 = require("./utils/SettingsUtil");
 var VariationModel_1 = require("./models/campaign/VariationModel");
 var NetworkUtil_1 = require("./utils/NetworkUtil");
 var SettingsService_1 = require("./services/SettingsService");
+var StorageService_1 = require("./services/StorageService");
 var ApiEnum_1 = require("./enums/ApiEnum");
 var AliasingUtil_1 = require("./utils/AliasingUtil");
 var UserIdUtil_1 = require("./utils/UserIdUtil");
@@ -407,24 +408,47 @@ var VWOClient = /** @class */ (function () {
      * Flushes the events manually from the batch events queue
      */
     VWOClient.prototype.flushEvents = function () {
-        var apiName = ApiEnum_1.ApiEnum.FLUSH_EVENTS;
-        var deferredObject = new PromiseUtil_1.Deferred();
-        try {
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
-            if (BatchEventsQueue_1.BatchEventsQueue.Instance) {
-                // return the promise from the flushAndClearTimer method
-                return BatchEventsQueue_1.BatchEventsQueue.Instance.flushAndClearTimer();
-            }
-            else {
-                logger_1.LogManager.Instance.errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
-                deferredObject.resolve({ status: 'error', events: [] });
-            }
-        }
-        catch (err) {
-            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
-            deferredObject.resolve({ status: 'error', events: [] });
-        }
-        return deferredObject.promise;
+        return __awaiter(this, void 0, void 0, function () {
+            var apiName, promises, storageService, flushResult, err_5;
+            var _a, _b, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        apiName = ApiEnum_1.ApiEnum.FLUSH_EVENTS;
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 3, , 4]);
+                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
+                        if (!BatchEventsQueue_1.BatchEventsQueue.Instance) {
+                            logger_1.LogManager.Instance.errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
+                            return [2 /*return*/, { status: 'error', events: [] }];
+                        }
+                        promises = [BatchEventsQueue_1.BatchEventsQueue.Instance.flushAndClearTimer()];
+                        if (((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig) &&
+                            Object.keys(this.options.edgeConfig).length > 0 &&
+                            ((_b = this.options) === null || _b === void 0 ? void 0 : _b.accountId) &&
+                            ((_c = this.options) === null || _c === void 0 ? void 0 : _c.sdkKey)) {
+                            storageService = new StorageService_1.StorageService();
+                            promises.push(storageService
+                                .setFreshSettingsInStorage(parseInt(this.options.accountId), this.options.sdkKey)
+                                .catch(function (error) {
+                                logger_1.LogManager.Instance.errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
+                                // by returning undefined, we are swallowing the error intentionally to avoid the promise from rejecting
+                                return undefined;
+                            }));
+                        }
+                        return [4 /*yield*/, Promise.all(promises)];
+                    case 2:
+                        flushResult = (_d.sent())[0];
+                        return [2 /*return*/, flushResult];
+                    case 3:
+                        err_5 = _d.sent();
+                        logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
+                        return [2 /*return*/, { status: 'error', events: [] }];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
     };
     /**
      * Sets alias for a given user ID

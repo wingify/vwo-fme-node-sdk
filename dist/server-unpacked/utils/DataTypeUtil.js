@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isObject = isObject;
+exports.isEmptyObject = isEmptyObject;
 exports.isArray = isArray;
 exports.isNull = isNull;
 exports.isUndefined = isUndefined;
@@ -18,6 +19,14 @@ exports.getType = getType;
 function isObject(val) {
     // Using Object.prototype.toString to get a precise string representation of the value type
     return Object.prototype.toString.call(val) === '[object Object]';
+}
+/**
+ * Checks if a value is an empty object.
+ * @param val The value to check.
+ * @returns True if the value is an empty object, false otherwise.
+ */
+function isEmptyObject(val) {
+    return isObject(val) && Object.keys(val).length === 0;
 }
 /**
  * Checks if a value is an array.

@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -58,6 +69,12 @@ var logger_1 = require("../packages/logger");
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
 var PromiseUtil_1 = require("../utils/PromiseUtil");
 var ApiEnum_1 = require("../enums/ApiEnum");
+var FunctionUtil_1 = require("../utils/FunctionUtil");
+var constants_1 = require("../constants");
+var SettingsService_1 = require("./SettingsService");
+var SettingsSchemaValidation_1 = require("../models/schemas/SettingsSchemaValidation");
+var LogMessageUtil_1 = require("../utils/LogMessageUtil");
+var log_messages_1 = require("../enums/log-messages");
 var StorageService = /** @class */ (function () {
     function StorageService() {
         this.storageData = {};
@@ -119,6 +136,177 @@ var StorageService = /** @class */ (function () {
                     });
                 }
                 return [2 /*return*/, deferredObject.promise];
+            });
+        });
+    };
+    /**
+     * Gets the settings from storage.
+     * @param accountId The account ID.
+     * @param sdkKey The SDK key.
+     * @returns {Promise<Record<string, any>>} A promise that resolves to the settings or empty object if not found.
+     */
+    StorageService.prototype.getSettingsFromStorage = function (accountId_1, sdkKey_1) {
+        return __awaiter(this, arguments, void 0, function (accountId, sdkKey, shouldFetchFreshSettings) {
+            var deferredObject, storageInstance, settingsData, settings, timestamp, shouldUseCachedSettings, currentTime, settingsTTL, error_1;
+            var _a;
+            if (shouldFetchFreshSettings === void 0) { shouldFetchFreshSettings = true; }
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        deferredObject = new PromiseUtil_1.Deferred();
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 5, , 6]);
+                        storageInstance = storage_1.Storage.Instance.getConnector();
+                        if (!(storageInstance && typeof storageInstance.getSettings === 'function')) return [3 /*break*/, 3];
+                        return [4 /*yield*/, storageInstance.getSettings(accountId, sdkKey)];
+                    case 2:
+                        settingsData = _b.sent();
+                        if (!settingsData || (0, DataTypeUtil_1.isEmptyObject)(settingsData)) {
+                            // if no settings data is found, resolve the promise with empty object
+                            deferredObject.resolve({});
+                            return [2 /*return*/, deferredObject.promise];
+                        }
+                        settings = settingsData.settings, timestamp = settingsData.timestamp;
+                        // Check for sdkKey and accountId match
+                        if (!settings || settings.sdkKey !== sdkKey || String((_a = settings.accountId) !== null && _a !== void 0 ? _a : settings.a) !== String(accountId)) {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH));
+                            deferredObject.resolve({});
+                            return [2 /*return*/, deferredObject.promise];
+                        }
+                        shouldUseCachedSettings = storageInstance.alwaysUseCachedSettings || constants_1.Constants.ALWAYS_USE_CACHED_SETTINGS;
+                        if (shouldUseCachedSettings) {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_USING_CACHED_SETTINGS));
+                            deferredObject.resolve(settings);
+                            return [2 /*return*/, deferredObject.promise];
+                        }
+                        currentTime = Date.now();
+                        settingsTTL = storageInstance.ttl || constants_1.Constants.SETTINGS_TTL;
+                        // check if the settings are expired based on the last updated timestamp
+                        if (currentTime - timestamp > settingsTTL) {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_EXPIRED));
+                            deferredObject.resolve({});
+                        }
+                        else {
+                            // if settings are not expired, then return the existing settings and update the settings in storage with new timestamp
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_RETRIEVED_FROM_STORAGE));
+                            if (shouldFetchFreshSettings) {
+                                // if shouldFetchFreshSettings is true, then fetch fresh settings asynchronously and update the storage with new timestamp
+                                this.setFreshSettingsInStorage(accountId, sdkKey);
+                            }
+                            // decode sdkKey if present in the settings
+                            if (settings && settings.sdkKey) {
+                                try {
+                                    settings.sdkKey = atob(settings.sdkKey);
+                                }
+                                catch (e) {
+                                    logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
+                                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
+                                    }, { an: constants_1.Constants.STORAGE });
+                                }
+                            }
+                            deferredObject.resolve(settings);
+                        }
+                        return [3 /*break*/, 4];
+                    case 3:
+                        deferredObject.resolve({});
+                        _b.label = 4;
+                    case 4: return [3 /*break*/, 6];
+                    case 5:
+                        error_1 = _b.sent();
+                        logger_1.LogManager.Instance.errorLog('ERROR_READING_SETTINGS_FROM_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1) }, { an: constants_1.Constants.STORAGE });
+                        deferredObject.resolve({});
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/, deferredObject.promise];
+                }
+            });
+        });
+    };
+    /**
+     * Sets the settings in storage.
+     * @param accountId The account ID.
+     * @param sdkKey The SDK key.
+     * @param settings The settings to be stored.
+     * @returns {Promise<void>} A promise that resolves when the settings are successfully stored.
+     */
+    StorageService.prototype.setSettingsInStorage = function (accountId, sdkKey, settings) {
+        return __awaiter(this, void 0, void 0, function () {
+            var deferredObject, storageInstance, clonedSettings, settingsToStore, error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        deferredObject = new PromiseUtil_1.Deferred();
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 5, , 6]);
+                        storageInstance = storage_1.Storage.Instance.getConnector();
+                        if (!(storageInstance && typeof storageInstance.setSettings === 'function')) return [3 /*break*/, 3];
+                        clonedSettings = __assign({}, settings);
+                        settingsToStore = { settings: clonedSettings, timestamp: Date.now() };
+                        // set the settings in storage
+                        return [4 /*yield*/, storageInstance.setSettings(settingsToStore)];
+                    case 2:
+                        // set the settings in storage
+                        _a.sent();
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_SUCCESSFULLY_STORED));
+                        deferredObject.resolve();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        deferredObject.resolve();
+                        _a.label = 4;
+                    case 4: return [3 /*break*/, 6];
+                    case 5:
+                        error_2 = _a.sent();
+                        logger_1.LogManager.Instance.errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_2) }, { an: constants_1.Constants.STORAGE });
+                        deferredObject.resolve();
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/, deferredObject.promise];
+                }
+            });
+        });
+    };
+    /**
+     * Fetches fresh settings and updates the storage with a new timestamp
+     */
+    StorageService.prototype.setFreshSettingsInStorage = function (accountId, sdkKey) {
+        return __awaiter(this, void 0, void 0, function () {
+            var deferredObject, settingsService, storageInstance;
+            var _this = this;
+            return __generator(this, function (_a) {
+                deferredObject = new PromiseUtil_1.Deferred();
+                settingsService = SettingsService_1.SettingsService.Instance;
+                storageInstance = storage_1.Storage.Instance.getConnector();
+                if (settingsService && storageInstance && typeof storageInstance.setSettings === 'function') {
+                    settingsService
+                        .fetchSettings()
+                        .then(function (freshSettings) { return __awaiter(_this, void 0, void 0, function () {
+                        var isSettingsValid;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if (!freshSettings) return [3 /*break*/, 2];
+                                    isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(freshSettings);
+                                    if (!isSettingsValid) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, this.setSettingsInStorage(accountId, sdkKey, freshSettings)];
+                                case 1:
+                                    _a.sent();
+                                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED_WITH_FRESH_DATA));
+                                    _a.label = 2;
+                                case 2:
+                                    deferredObject.resolve();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); })
+                        .catch(function (error) {
+                        logger_1.LogManager.Instance.errorLog('ERROR_STORING_FRESH_SETTINGS_IN_STORAGE', {
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                        }, { an: constants_1.Constants.STORAGE });
+                        deferredObject.resolve();
+                    });
+                    return [2 /*return*/, deferredObject.promise];
+                }
+                return [2 /*return*/];
             });
         });
     };

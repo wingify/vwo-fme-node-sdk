@@ -1,3 +1,4 @@
+import { Connector, ISettingsData } from '../Connector';
 /**
  * Interface representing the structure of data to be stored
  * @interface StorageData
@@ -26,12 +27,12 @@ export interface ClientStorageOptions {
  * A class that provides browser storage functionality for managing feature flags and experiments data
  * @class BrowserStorageConnector
  */
-export declare class BrowserStorageConnector {
+export declare class BrowserStorageConnector extends Connector {
   private storage;
   private readonly storageKey;
   private readonly isDisabled;
-  private readonly alwaysUseCachedSettings;
-  private readonly ttl;
+  protected alwaysUseCachedSettings: boolean;
+  protected ttl: number;
   private readonly SETTINGS_KEY;
   /**
    * Creates an instance of BrowserStorageConnector
@@ -75,18 +76,14 @@ export declare class BrowserStorageConnector {
    * @public
    * @param {string} sdkKey - The sdkKey to match
    * @param {number|string} accountId - The accountId to match
-   * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found/mismatch
+   * @returns {Promise<ISettingsData>} A promise that resolves to the ISettingsData or empty object if not found
    */
-  getSettingsFromStorage(sdkKey: string, accountId: string | number): Promise<Record<string, any> | null>;
-  /**
-   * Fetches fresh settings and updates the storage with a new timestamp
-   */
-  setFreshSettingsInStorage(): void;
+  getSettings(accountId: number, sdkKey: string): Promise<ISettingsData>;
   /**
    * Sets the settings in storage with current timestamp
    * @public
-   * @param {Record<string, any>} settings - The settings data to be stored
+   * @param {ISettingsData} data - The settings data to be stored
    * @returns {Promise<void>} A promise that resolves when the settings are successfully stored
    */
-  setSettingsInStorage(settings: Record<string, any>): Promise<void>;
+  setSettings(data: ISettingsData): Promise<void>;
 }

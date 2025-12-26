@@ -30,6 +30,15 @@ export function isObject<T>(
 }
 
 /**
+ * Checks if a value is an empty object.
+ * @param val The value to check.
+ * @returns True if the value is an empty object, false otherwise.
+ */
+export function isEmptyObject(val: dynamic): boolean {
+  return isObject(val) && Object.keys(val).length === 0;
+}
+
+/**
  * Checks if a value is an array.
  * @param val The value to check.
  * @returns True if the value is an array, false otherwise.

@@ -17,6 +17,7 @@ export declare const Constants: {
   SETTINGS_TIMEOUT: number;
   EVENTS_CALL_TIMEOUT: number;
   SETTINGS_TTL: number;
+  ALWAYS_USE_CACHED_SETTINGS: boolean;
   MIN_TTL_MS: number;
   HOST_NAME: string;
   SETTINGS_ENDPOINT: string;
@@ -39,7 +40,7 @@ export declare const Constants: {
   V2_SETTINGS: string;
   POLLING: string;
   BATCH_EVENTS: string;
-  BROWSER_STORAGE: string;
+  STORAGE: string;
   FLAG_DECISION_GIVEN: string;
   NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES: string;
   NETWORK_CALL_SUCCESS_WITH_RETRIES: string;

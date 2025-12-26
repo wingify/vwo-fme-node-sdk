@@ -76,11 +76,13 @@ var BatchEventsQueue = /** @class */ (function () {
         }
         else {
             this.requestTimeInterval = constants_1.Constants.DEFAULT_REQUEST_TIME_INTERVAL;
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
-                parameter: 'requestTimeInterval',
-                minLimit: 0,
-                defaultValue: this.requestTimeInterval.toString(),
-            }));
+            if (!this.isEdgeEnvironment) {
+                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
+                    parameter: 'requestTimeInterval',
+                    minLimit: 0,
+                    defaultValue: this.requestTimeInterval.toString(),
+                }));
+            }
         }
         if ((0, DataTypeUtil_1.isNumber)(config.eventsPerRequest) &&
             config.eventsPerRequest > 0 &&

@@ -18,4 +18,27 @@ export declare class StorageService implements IStorageService {
    * @returns A promise that resolves to true if data is successfully stored, otherwise false.
    */
   setDataInStorage(data: Record<any, any>): Promise<void>;
+  /**
+   * Gets the settings from storage.
+   * @param accountId The account ID.
+   * @param sdkKey The SDK key.
+   * @returns {Promise<Record<string, any>>} A promise that resolves to the settings or empty object if not found.
+   */
+  getSettingsFromStorage(
+    accountId: number,
+    sdkKey: string,
+    shouldFetchFreshSettings?: boolean,
+  ): Promise<Record<string, any>>;
+  /**
+   * Sets the settings in storage.
+   * @param accountId The account ID.
+   * @param sdkKey The SDK key.
+   * @param settings The settings to be stored.
+   * @returns {Promise<void>} A promise that resolves when the settings are successfully stored.
+   */
+  setSettingsInStorage(accountId: number, sdkKey: string, settings: Record<string, any>): Promise<void>;
+  /**
+   * Fetches fresh settings and updates the storage with a new timestamp
+   */
+  setFreshSettingsInStorage(accountId: number, sdkKey: string): Promise<void>;
 }

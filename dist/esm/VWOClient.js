@@ -30,6 +30,7 @@ import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil.js';
 import { VariationModel } from './models/campaign/VariationModel.js';
 import { setShouldWaitForTrackingCalls } from './utils/NetworkUtil.js';
 import { SettingsService } from './services/SettingsService.js';
+import { StorageService } from './services/StorageService.js';
 import { ApiEnum } from './enums/ApiEnum.js';
 import { AliasingUtil } from './utils/AliasingUtil.js';
 import { getUserId } from './utils/UserIdUtil.js';
@@ -299,25 +300,35 @@ export class VWOClient {
     /**
      * Flushes the events manually from the batch events queue
      */
-    flushEvents() {
+    async flushEvents() {
         const apiName = ApiEnum.FLUSH_EVENTS;
-        const deferredObject = new Deferred();
         try {
             LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName }));
-            if (BatchEventsQueue.Instance) {
-                // return the promise from the flushAndClearTimer method
-                return BatchEventsQueue.Instance.flushAndClearTimer();
-            }
-            else {
+            if (!BatchEventsQueue.Instance) {
                 LogManager.Instance.errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum.FLUSH_EVENTS });
-                deferredObject.resolve({ status: 'error', events: [] });
+                return { status: 'error', events: [] };
             }
+            const promises = [BatchEventsQueue.Instance.flushAndClearTimer()];
+            if (this.options?.edgeConfig &&
+                Object.keys(this.options.edgeConfig).length > 0 &&
+                this.options?.accountId &&
+                this.options?.sdkKey) {
+                const storageService = new StorageService();
+                promises.push(storageService
+                    .setFreshSettingsInStorage(parseInt(this.options.accountId), this.options.sdkKey)
+                    .catch((error) => {
+                    LogManager.Instance.errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: getFormattedErrorMessage(error) }, { an: ApiEnum.FLUSH_EVENTS });
+                    // by returning undefined, we are swallowing the error intentionally to avoid the promise from rejecting
+                    return undefined;
+                }));
+            }
+            const [flushResult] = await Promise.all(promises);
+            return flushResult;
         }
         catch (err) {
             LogManager.Instance.errorLog('EXECUTION_FAILED', { apiName, err: getFormattedErrorMessage(err) }, { an: ApiEnum.FLUSH_EVENTS });
-            deferredObject.resolve({ status: 'error', events: [] });
+            return { status: 'error', events: [] };
         }
-        return deferredObject.promise;
     }
     /**
      * Sets alias for a given user ID

@@ -15,7 +15,7 @@
  */
 
 import { LogLevelEnum } from './packages/logger/enums/LogLevelEnum';
-import { Connector } from './packages/storage/Connector';
+import { Connector, ISettingsData } from './packages/storage/Connector';
 
 import { IVWOOptions } from './models/VWOOptionsModel';
 import { IVWOClient } from './VWOClient';
@@ -24,7 +24,7 @@ import { Flag } from './api/GetFlag';
 import { getUUID } from './utils/UuidUtil';
 
 export { init, onInit } from './VWO';
-export { LogLevelEnum, Connector as StorageConnector };
+export { LogLevelEnum, Connector as StorageConnector, ISettingsData };
 export { IVWOOptions, IVWOClient, IVWOContextModel, Flag, getUUID };
 export { ClientStorageOptions } from './packages/storage/connectors/BrowserStorageConnector';
 export { IRetryConfig } from './packages/network-layer/client/NetworkClient';

@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.34.1
+ * vwo-fme-javascript-sdk - v1.35.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2025 Wingify Software Pvt. Ltd.
@@ -20,7 +20,7 @@
  *  1. murmurhash - ^2.0.1
  *  2. superstruct - ^0.14.x
  *  3. uuid - ^9.0.1
- *  4. vwo-fme-sdk-log-messages - ^1.2.9
+ *  4. vwo-fme-sdk-log-messages - ^1.2.10
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	// CommonJS2
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.34.1"
+  version: "1.35.0"
 };
 
 /***/ }),
@@ -429,22 +429,25 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
+        if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
+            this.options.shouldWaitForTrackingCalls = true;
+        }
         var networkInstance = network_layer_1.NetworkManager.Instance;
         // Attach the network client from options
-        networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig, ((_d = this.options) === null || _d === void 0 ? void 0 : _d.shouldWaitForTrackingCalls) ? true : false);
+        networkInstance.attachClient((_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.network) === null || _c === void 0 ? void 0 : _c.client, (_d = this.options) === null || _d === void 0 ? void 0 : _d.retryConfig, ((_e = this.options) === null || _e === void 0 ? void 0 : _e.shouldWaitForTrackingCalls) ? true : false);
         logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: "Network Layer",
         }));
         // Set the development mode based on options
-        networkInstance.getConfig().setDevelopmentMode((_e = this.options) === null || _e === void 0 ? void 0 : _e.isDevelopmentMode);
+        networkInstance.getConfig().setDevelopmentMode((_f = this.options) === null || _f === void 0 ? void 0 : _f.isDevelopmentMode);
         return this;
     };
     VWOBuilder.prototype.initBatching = function () {
         var _this = this;
         var _a;
         // If edge config is provided, set the batch event data to the default values
-        if (this.options.edgeConfig && Object.keys((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig).length > 0) {
+        if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
             var edgeConfigModel = new EdgeConfigModel_1.EdgeConfigModel().modelFromDictionary(this.options.edgeConfig);
             this.options.batchEventData = {
                 eventsPerRequest: edgeConfigModel.getMaxEventsToBatch(),
@@ -493,22 +496,18 @@ var VWOBuilder = /** @class */ (function () {
     };
     /**
      * Fetches settings asynchronously, ensuring no parallel fetches.
-     * @param {boolean} [force=false] - Force fetch ignoring cache.
      * @returns {Promise<SettingsModel>} A promise that resolves to the fetched settings.
      */
-    VWOBuilder.prototype.fetchSettings = function (force) {
+    VWOBuilder.prototype.fetchSettings = function () {
         var _this = this;
         var deferredObject = new PromiseUtil_1.Deferred();
         // Check if a fetch operation is already in progress
         if (!this.isSettingsFetchInProgress) {
             this.isSettingsFetchInProgress = true;
-            this.settingFileManager.getSettings(force).then(function (settings) {
+            this.settingFileManager.getSettings().then(function (settings) {
                 _this.isSettingsValid = _this.settingFileManager.isSettingsValid;
                 _this.settingsFetchTime = _this.settingFileManager.settingsFetchTime;
-                // if force is false, update original settings, if true the request is from polling and no need to update original settings
-                if (!force) {
-                    _this.originalSettings = settings;
-                }
+                _this.originalSettings = settings;
                 _this.isSettingsFetchInProgress = false;
                 deferredObject.resolve(settings);
             });
@@ -521,20 +520,19 @@ var VWOBuilder = /** @class */ (function () {
     };
     /**
      * Gets the settings, fetching them if not cached or if forced.
-     * @param {boolean} [force=false] - Force fetch ignoring cache.
      * @returns {Promise<SettingsModel>} A promise that resolves to the settings.
      */
-    VWOBuilder.prototype.getSettings = function (force) {
+    VWOBuilder.prototype.getSettings = function () {
         var deferredObject = new PromiseUtil_1.Deferred();
         try {
             // Use cached settings if available and not forced to fetch
-            if (!force && this.settings) {
+            if (this.settings) {
                 logger_1.LogManager.Instance.info('Using already fetched and cached settings');
                 deferredObject.resolve(this.settings);
             }
             else {
-                // Fetch settings if not cached or forced
-                this.fetchSettings(force).then(function (settings) {
+                // Fetch settings if not cached
+                this.fetchSettings().then(function (settings) {
                     deferredObject.resolve(settings);
                 });
             }
@@ -542,7 +540,7 @@ var VWOBuilder = /** @class */ (function () {
         catch (err) {
             logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
-            }, { an: force ? constants_1.Constants.POLLING : ApiEnum_1.ApiEnum.INIT }, false);
+            }, { an: ApiEnum_1.ApiEnum.INIT }, false);
             deferredObject.resolve({});
         }
         return deferredObject.promise;
@@ -556,6 +554,7 @@ var VWOBuilder = /** @class */ (function () {
         if (this.options.storage) {
             // Attach the storage connector from options
             this.storage = storage_1.Storage.Instance.attachConnector(this.options.storage);
+            this.settingFileManager.isStorageServiceProvided = true;
         }
         else if ( true && typeof window !== 'undefined' && window.localStorage) {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -565,6 +564,7 @@ var VWOBuilder = /** @class */ (function () {
             logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
                 service: ((_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.clientStorage) === null || _d === void 0 ? void 0 : _d.provider) === sessionStorage ? "Session Storage" : "Local Storage",
             }));
+            this.settingFileManager.isStorageServiceProvided = true;
         }
         else {
             // Set storage to null if no storage options provided
@@ -720,7 +720,7 @@ var VWOBuilder = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         _b.trys.push([0, 2, 3, 4]);
-                        return [4 /*yield*/, this.getSettings(true)];
+                        return [4 /*yield*/, this.getSettings()];
                     case 1:
                         latestSettings = _b.sent();
                         if (latestSettings &&
@@ -857,6 +857,7 @@ var SettingsUtil_1 = __webpack_require__(/*! ./utils/SettingsUtil */ "./lib/util
 var VariationModel_1 = __webpack_require__(/*! ./models/campaign/VariationModel */ "./lib/models/campaign/VariationModel.ts");
 var NetworkUtil_1 = __webpack_require__(/*! ./utils/NetworkUtil */ "./lib/utils/NetworkUtil.ts");
 var SettingsService_1 = __webpack_require__(/*! ./services/SettingsService */ "./lib/services/SettingsService.ts");
+var StorageService_1 = __webpack_require__(/*! ./services/StorageService */ "./lib/services/StorageService.ts");
 var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
 var AliasingUtil_1 = __webpack_require__(/*! ./utils/AliasingUtil */ "./lib/utils/AliasingUtil.ts");
 var UserIdUtil_1 = __webpack_require__(/*! ./utils/UserIdUtil */ "./lib/utils/UserIdUtil.ts");
@@ -1192,24 +1193,47 @@ var VWOClient = /** @class */ (function () {
      * Flushes the events manually from the batch events queue
      */
     VWOClient.prototype.flushEvents = function () {
-        var apiName = ApiEnum_1.ApiEnum.FLUSH_EVENTS;
-        var deferredObject = new PromiseUtil_1.Deferred();
-        try {
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
-            if (BatchEventsQueue_1.BatchEventsQueue.Instance) {
-                // return the promise from the flushAndClearTimer method
-                return BatchEventsQueue_1.BatchEventsQueue.Instance.flushAndClearTimer();
-            }
-            else {
-                logger_1.LogManager.Instance.errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
-                deferredObject.resolve({ status: 'error', events: [] });
-            }
-        }
-        catch (err) {
-            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
-            deferredObject.resolve({ status: 'error', events: [] });
-        }
-        return deferredObject.promise;
+        return __awaiter(this, void 0, void 0, function () {
+            var apiName, promises, storageService, flushResult, err_5;
+            var _a, _b, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        apiName = ApiEnum_1.ApiEnum.FLUSH_EVENTS;
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 3, , 4]);
+                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
+                        if (!BatchEventsQueue_1.BatchEventsQueue.Instance) {
+                            logger_1.LogManager.Instance.errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
+                            return [2 /*return*/, { status: 'error', events: [] }];
+                        }
+                        promises = [BatchEventsQueue_1.BatchEventsQueue.Instance.flushAndClearTimer()];
+                        if (((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig) &&
+                            Object.keys(this.options.edgeConfig).length > 0 &&
+                            ((_b = this.options) === null || _b === void 0 ? void 0 : _b.accountId) &&
+                            ((_c = this.options) === null || _c === void 0 ? void 0 : _c.sdkKey)) {
+                            storageService = new StorageService_1.StorageService();
+                            promises.push(storageService
+                                .setFreshSettingsInStorage(parseInt(this.options.accountId), this.options.sdkKey)
+                                .catch(function (error) {
+                                logger_1.LogManager.Instance.errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
+                                // by returning undefined, we are swallowing the error intentionally to avoid the promise from rejecting
+                                return undefined;
+                            }));
+                        }
+                        return [4 /*yield*/, Promise.all(promises)];
+                    case 2:
+                        flushResult = (_d.sent())[0];
+                        return [2 /*return*/, flushResult];
+                    case 3:
+                        err_5 = _d.sent();
+                        logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
+                        return [2 /*return*/, { status: 'error', events: [] }];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
     };
     /**
      * Sets alias for a given user ID
@@ -2040,6 +2064,7 @@ exports.Constants = {
     SETTINGS_TIMEOUT: 50000,
     EVENTS_CALL_TIMEOUT: 10000, // 10 seconds
     SETTINGS_TTL: 7200000, // 2 HOURS
+    ALWAYS_USE_CACHED_SETTINGS: false,
     MIN_TTL_MS: 60000, // 1 MINUTE
     HOST_NAME: 'dev.visualwebsiteoptimizer.com',
     SETTINGS_ENDPOINT: '/server-side/v2-settings',
@@ -2063,7 +2088,7 @@ exports.Constants = {
     V2_SETTINGS: 'v2-settings',
     POLLING: 'polling',
     BATCH_EVENTS: 'batch-events',
-    BROWSER_STORAGE: 'browserStorage',
+    STORAGE: 'storage',
     FLAG_DECISION_GIVEN: 'FLAG_DECISION_GIVEN',
     NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES: 'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
     NETWORK_CALL_SUCCESS_WITH_RETRIES: 'NETWORK_CALL_SUCCESS_WITH_RETRIES',
@@ -6941,53 +6966,21 @@ exports.Storage = Storage;
 
 "use strict";
 
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
     };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BrowserStorageConnector = void 0;
 /**
@@ -7008,15 +7001,15 @@ exports.BrowserStorageConnector = void 0;
 var constants_1 = __webpack_require__(/*! ../../../constants */ "./lib/constants/index.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 var logger_1 = __webpack_require__(/*! ../../logger */ "./lib/packages/logger/index.ts");
-var SettingsService_1 = __webpack_require__(/*! ../../../services/SettingsService */ "./lib/services/SettingsService.ts");
-var SettingsSchemaValidation_1 = __webpack_require__(/*! ../../../models/schemas/SettingsSchemaValidation */ "./lib/models/schemas/SettingsSchemaValidation.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./lib/utils/FunctionUtil.ts");
+var Connector_1 = __webpack_require__(/*! ../Connector */ "./lib/packages/storage/Connector.ts");
 /**
  * A class that provides browser storage functionality for managing feature flags and experiments data
  * @class BrowserStorageConnector
  */
-var BrowserStorageConnector = /** @class */ (function () {
+var BrowserStorageConnector = /** @class */ (function (_super) {
+    __extends(BrowserStorageConnector, _super);
     /**
      * Creates an instance of BrowserStorageConnector
      * @param {ClientStorageOptions} [options] - Configuration options for the storage connector
@@ -7027,26 +7020,28 @@ var BrowserStorageConnector = /** @class */ (function () {
      * @param {number} [options.ttl] - Custom TTL in milliseconds (defaults to Constants.SETTINGS_TTL)
      */
     function BrowserStorageConnector(options) {
-        this.SETTINGS_KEY = constants_1.Constants.DEFAULT_SETTINGS_STORAGE_KEY;
-        this.storageKey = (options === null || options === void 0 ? void 0 : options.key) || constants_1.Constants.DEFAULT_LOCAL_STORAGE_KEY;
-        this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
-        this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
-        this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
+        var _this = _super.call(this) || this;
+        _this.SETTINGS_KEY = constants_1.Constants.DEFAULT_SETTINGS_STORAGE_KEY;
+        _this.storageKey = (options === null || options === void 0 ? void 0 : options.key) || constants_1.Constants.DEFAULT_LOCAL_STORAGE_KEY;
+        _this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
+        _this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
+        _this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
         //options.ttl should be greater than 1 minute
         if (!(0, DataTypeUtil_1.isNumber)(options === null || options === void 0 ? void 0 : options.ttl) || options.ttl < constants_1.Constants.MIN_TTL_MS) {
             logger_1.LogManager.Instance.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
-            this.ttl = constants_1.Constants.SETTINGS_TTL;
+            _this.ttl = constants_1.Constants.SETTINGS_TTL;
         }
         else {
-            this.ttl = (options === null || options === void 0 ? void 0 : options.ttl) || constants_1.Constants.SETTINGS_TTL;
+            _this.ttl = (options === null || options === void 0 ? void 0 : options.ttl) || constants_1.Constants.SETTINGS_TTL;
         }
         if (!(0, DataTypeUtil_1.isBoolean)(options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings)) {
             logger_1.LogManager.Instance.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
-            this.alwaysUseCachedSettings = false;
+            _this.alwaysUseCachedSettings = false;
         }
         else {
-            this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
+            _this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
         }
+        return _this;
     }
     /**
      * Retrieves all stored data from the storage
@@ -7063,7 +7058,7 @@ var BrowserStorageConnector = /** @class */ (function () {
         catch (error) {
             logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-            }, { an: constants_1.Constants.BROWSER_STORAGE });
+            }, { an: constants_1.Constants.STORAGE });
             return {};
         }
     };
@@ -7082,7 +7077,7 @@ var BrowserStorageConnector = /** @class */ (function () {
         catch (error) {
             logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-            }, { an: constants_1.Constants.BROWSER_STORAGE });
+            }, { an: constants_1.Constants.STORAGE });
         }
     };
     /**
@@ -7108,7 +7103,7 @@ var BrowserStorageConnector = /** @class */ (function () {
             catch (error) {
                 logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
                     err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-                }, { an: constants_1.Constants.BROWSER_STORAGE });
+                }, { an: constants_1.Constants.STORAGE });
                 deferredObject.reject(error);
             }
         }
@@ -7138,7 +7133,7 @@ var BrowserStorageConnector = /** @class */ (function () {
             catch (error) {
                 logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
                     err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-                }, { an: constants_1.Constants.BROWSER_STORAGE });
+                }, { an: constants_1.Constants.STORAGE });
                 deferredObject.resolve({});
             }
         }
@@ -7149,118 +7144,44 @@ var BrowserStorageConnector = /** @class */ (function () {
      * @public
      * @param {string} sdkKey - The sdkKey to match
      * @param {number|string} accountId - The accountId to match
-     * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found/mismatch
+     * @returns {Promise<ISettingsData>} A promise that resolves to the ISettingsData or empty object if not found
      */
-    BrowserStorageConnector.prototype.getSettingsFromStorage = function (sdkKey, accountId) {
-        var _a;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    BrowserStorageConnector.prototype.getSettings = function (accountId, sdkKey) {
         var deferredObject = new PromiseUtil_1.Deferred();
         if (this.isDisabled) {
-            deferredObject.resolve(null);
+            deferredObject.resolve({});
         }
         else {
             try {
                 var storedData = this.getStoredData();
                 var settingsData = storedData[this.SETTINGS_KEY];
-                if (!settingsData) {
-                    deferredObject.resolve(null);
-                    return deferredObject.promise;
-                }
-                var data = settingsData.data, timestamp = settingsData.timestamp;
-                var currentTime = Date.now();
                 // Decode sdkKey if present
-                if (data && data.sdkKey) {
+                if (settingsData && settingsData.settings && settingsData.settings.sdkKey) {
                     try {
-                        data.sdkKey = atob(data.sdkKey);
+                        settingsData.settings.sdkKey = atob(settingsData.settings.sdkKey);
                     }
                     catch (e) {
                         logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
-                        }, { an: constants_1.Constants.BROWSER_STORAGE });
+                        }, { an: constants_1.Constants.STORAGE });
                     }
                 }
-                // Check for sdkKey and accountId match
-                if (!data || data.sdkKey !== sdkKey || String((_a = data.accountId) !== null && _a !== void 0 ? _a : data.a) !== String(accountId)) {
-                    logger_1.LogManager.Instance.info('Cached settings do not match sdkKey/accountId, treating as cache miss');
-                    deferredObject.resolve(null);
-                    return deferredObject.promise;
-                }
-                if (this.alwaysUseCachedSettings) {
-                    logger_1.LogManager.Instance.info('Using cached settings as alwaysUseCachedSettings is enabled');
-                    deferredObject.resolve(data);
-                    return deferredObject.promise;
-                }
-                if (currentTime - timestamp > this.ttl) {
-                    logger_1.LogManager.Instance.info('Settings have expired, need to fetch new settings');
-                    deferredObject.resolve(null);
-                }
-                else {
-                    // if settings are valid then return the existing settings and update the settings in storage with new timestamp
-                    logger_1.LogManager.Instance.info('Retrieved valid settings from storage');
-                    this.setFreshSettingsInStorage();
-                    // Decode sdkKey if present
-                    if (data && data.sdkKey) {
-                        try {
-                            data.sdkKey = atob(data.sdkKey);
-                        }
-                        catch (e) {
-                            logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
-                                err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
-                            }, { an: constants_1.Constants.BROWSER_STORAGE });
-                        }
-                    }
-                    deferredObject.resolve(data);
-                }
+                deferredObject.resolve(settingsData);
             }
             catch (error) {
-                logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
-                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-                }, { an: constants_1.Constants.BROWSER_STORAGE });
-                deferredObject.resolve(null);
+                deferredObject.resolve({});
             }
         }
         return deferredObject.promise;
     };
     /**
-     * Fetches fresh settings and updates the storage with a new timestamp
-     */
-    BrowserStorageConnector.prototype.setFreshSettingsInStorage = function () {
-        var _this = this;
-        // Fetch fresh settings asynchronously and update storage
-        var settingsService = SettingsService_1.SettingsService.Instance;
-        if (settingsService) {
-            settingsService
-                .fetchSettings()
-                .then(function (freshSettings) { return __awaiter(_this, void 0, void 0, function () {
-                var isSettingsValid;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            if (!freshSettings) return [3 /*break*/, 2];
-                            isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(freshSettings);
-                            if (!isSettingsValid) return [3 /*break*/, 2];
-                            return [4 /*yield*/, this.setSettingsInStorage(freshSettings)];
-                        case 1:
-                            _a.sent();
-                            logger_1.LogManager.Instance.info('Settings updated with fresh data from server');
-                            _a.label = 2;
-                        case 2: return [2 /*return*/];
-                    }
-                });
-            }); })
-                .catch(function (error) {
-                logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
-                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-                }, { an: constants_1.Constants.BROWSER_STORAGE }, false);
-            });
-        }
-    };
-    /**
      * Sets the settings in storage with current timestamp
      * @public
-     * @param {Record<string, any>} settings - The settings data to be stored
+     * @param {ISettingsData} data - The settings data to be stored
      * @returns {Promise<void>} A promise that resolves when the settings are successfully stored
      */
-    BrowserStorageConnector.prototype.setSettingsInStorage = function (settings) {
+    BrowserStorageConnector.prototype.setSettings = function (data) {
         var deferredObject = new PromiseUtil_1.Deferred();
         if (this.isDisabled) {
             deferredObject.resolve();
@@ -7268,30 +7189,21 @@ var BrowserStorageConnector = /** @class */ (function () {
         else {
             try {
                 var storedData = this.getStoredData();
-                // Clone settings to avoid mutating the original object
-                var settingsToStore = __assign({}, settings);
-                if (settingsToStore.sdkKey) {
-                    settingsToStore.sdkKey = btoa(settingsToStore.sdkKey);
+                if (data.settings && data.settings.sdkKey) {
+                    data.settings.sdkKey = btoa(data.settings.sdkKey);
                 }
-                storedData[this.SETTINGS_KEY] = {
-                    data: settingsToStore,
-                    timestamp: Date.now(),
-                };
+                storedData[this.SETTINGS_KEY] = data;
                 this.storeData(storedData);
-                logger_1.LogManager.Instance.info('Settings stored successfully in storage');
                 deferredObject.resolve();
             }
             catch (error) {
-                logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
-                    err: 'Storing settings: ' + (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-                }, { an: constants_1.Constants.BROWSER_STORAGE });
                 deferredObject.reject(error);
             }
         }
         return deferredObject.promise;
     };
     return BrowserStorageConnector;
-}());
+}(Connector_1.Connector));
 exports.BrowserStorageConnector = BrowserStorageConnector;
 
 
@@ -7413,11 +7325,13 @@ var BatchEventsQueue = /** @class */ (function () {
         }
         else {
             this.requestTimeInterval = constants_1.Constants.DEFAULT_REQUEST_TIME_INTERVAL;
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
-                parameter: 'requestTimeInterval',
-                minLimit: 0,
-                defaultValue: this.requestTimeInterval.toString(),
-            }));
+            if (!this.isEdgeEnvironment) {
+                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
+                    parameter: 'requestTimeInterval',
+                    minLimit: 0,
+                    defaultValue: this.requestTimeInterval.toString(),
+                }));
+            }
         }
         if ((0, DataTypeUtil_1.isNumber)(config.eventsPerRequest) &&
             config.eventsPerRequest > 0 &&
@@ -7901,7 +7815,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SettingsService = void 0;
-var storage_1 = __webpack_require__(/*! ../packages/storage */ "./lib/packages/storage/index.ts");
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./lib/packages/logger/index.ts");
 var network_layer_1 = __webpack_require__(/*! ../packages/network-layer */ "./lib/packages/network-layer/index.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
@@ -7915,6 +7828,8 @@ var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./lib/utils
 var DebuggerServiceUtil_1 = __webpack_require__(/*! ../utils/DebuggerServiceUtil */ "./lib/utils/DebuggerServiceUtil.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ../utils/FunctionUtil */ "./lib/utils/FunctionUtil.ts");
 var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
+var StorageService_1 = __webpack_require__(/*! ./StorageService */ "./lib/services/StorageService.ts");
+var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var SettingsService = /** @class */ (function () {
     function SettingsService(options) {
         var _a, _b, _c, _d, _e, _f;
@@ -7922,6 +7837,8 @@ var SettingsService = /** @class */ (function () {
         this.settingsFetchTime = undefined; //time taken to fetch the settings
         this.isSettingsValid = false;
         this.proxyProvided = false;
+        this.isStorageServiceProvided = false;
+        this.isEdgeEnvironment = false;
         this.gatewayServiceConfig = {
             hostname: null,
             protocol: null,
@@ -7931,6 +7848,10 @@ var SettingsService = /** @class */ (function () {
         this.accountId = options.accountId;
         this.expiry = ((_a = options === null || options === void 0 ? void 0 : options.settings) === null || _a === void 0 ? void 0 : _a.expiry) || constants_1.Constants.SETTINGS_EXPIRY;
         this.networkTimeout = ((_b = options === null || options === void 0 ? void 0 : options.settings) === null || _b === void 0 ? void 0 : _b.timeout) || constants_1.Constants.SETTINGS_TIMEOUT;
+        this.isStorageServiceProvided = (options === null || options === void 0 ? void 0 : options.isStorageServiceProvided) || false;
+        if ((options === null || options === void 0 ? void 0 : options.edgeConfig) && Object.keys(options === null || options === void 0 ? void 0 : options.edgeConfig).length > 0) {
+            this.isEdgeEnvironment = true;
+        }
         // if sdk is running in browser environment then set isGatewayServiceProvided to true
         // when gatewayService is not provided then we dont update the url and let it point to dacdn by default
         // Check if sdk running in browser and not in edge/serverless environment
@@ -8009,18 +7930,6 @@ var SettingsService = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
-    SettingsService.prototype.setSettingsExpiry = function () {
-        var _this = this;
-        var settingsTimeout = setTimeout(function () {
-            _this.fetchSettingsAndCacheInStorage().then(function () {
-                clearTimeout(settingsTimeout);
-                // again set the timer
-                // NOTE: setInterval could be used but it will not consider the time required to fetch settings
-                // This breaks the timer rythm and also sends more call than required
-                _this.setSettingsExpiry();
-            });
-        }, this.expiry);
-    };
     SettingsService.prototype.normalizeSettings = function (settings) {
         return __awaiter(this, void 0, void 0, function () {
             var normalizedSettings;
@@ -8035,90 +7944,6 @@ var SettingsService = /** @class */ (function () {
                 return [2 /*return*/, normalizedSettings];
             });
         });
-    };
-    SettingsService.prototype.handleBrowserEnvironment = function (storageConnector, deferredObject) {
-        return __awaiter(this, void 0, void 0, function () {
-            var cachedSettings, freshSettings, normalizedSettings, error_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 8, , 9]);
-                        return [4 /*yield*/, storageConnector.getSettingsFromStorage(this.sdkKey, this.accountId)];
-                    case 1:
-                        cachedSettings = _a.sent();
-                        if (!cachedSettings) return [3 /*break*/, 2];
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
-                        deferredObject.resolve(cachedSettings);
-                        return [3 /*break*/, 7];
-                    case 2:
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
-                        return [4 /*yield*/, this.fetchSettings()];
-                    case 3:
-                        freshSettings = _a.sent();
-                        return [4 /*yield*/, this.normalizeSettings(freshSettings)];
-                    case 4:
-                        normalizedSettings = _a.sent();
-                        // set the settings in storage only if settings are valid
-                        this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
-                        if (!this.isSettingsValid) return [3 /*break*/, 6];
-                        return [4 /*yield*/, storageConnector.setSettingsInStorage(normalizedSettings)];
-                    case 5:
-                        _a.sent();
-                        _a.label = 6;
-                    case 6:
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
-                        deferredObject.resolve(normalizedSettings);
-                        _a.label = 7;
-                    case 7: return [3 /*break*/, 9];
-                    case 8:
-                        error_1 = _a.sent();
-                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1),
-                        }, { an: constants_1.Constants.BROWSER_STORAGE }, false);
-                        deferredObject.resolve(null);
-                        return [3 /*break*/, 9];
-                    case 9: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    SettingsService.prototype.handleServerEnvironment = function (deferredObject) {
-        return __awaiter(this, void 0, void 0, function () {
-            var settings, normalizedSettings, error_2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, this.fetchSettings()];
-                    case 1:
-                        settings = _a.sent();
-                        return [4 /*yield*/, this.normalizeSettings(settings)];
-                    case 2:
-                        normalizedSettings = _a.sent();
-                        deferredObject.resolve(normalizedSettings);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        error_2 = _a.sent();
-                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_2),
-                        }, { an: ApiEnum_1.ApiEnum.INIT }, false);
-                        deferredObject.resolve(null);
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    SettingsService.prototype.fetchSettingsAndCacheInStorage = function () {
-        var deferredObject = new PromiseUtil_1.Deferred();
-        var storageConnector = storage_1.Storage.Instance.getConnector();
-        if ( true && typeof XMLHttpRequest !== 'undefined') {
-            this.handleBrowserEnvironment(storageConnector, deferredObject);
-        }
-        else {
-            this.handleServerEnvironment(deferredObject);
-        }
-        return deferredObject.promise;
     };
     SettingsService.prototype.fetchSettings = function (isViaWebhook, apiName) {
         var _this = this;
@@ -8176,54 +8001,81 @@ var SettingsService = /** @class */ (function () {
             return deferredObject.promise;
         }
     };
-    SettingsService.prototype.getSettings = function (forceFetch) {
-        var _this = this;
-        if (forceFetch === void 0) { forceFetch = false; }
-        var deferredObject = new PromiseUtil_1.Deferred();
-        if (forceFetch) {
-            this.fetchSettingsAndCacheInStorage().then(function (settings) {
-                deferredObject.resolve(settings);
-            });
-        }
-        else {
-            // const storageConnector = Storage.Instance.getConnector();
-            // if (storageConnector) {
-            //   storageConnector
-            //     .get(Constants.SETTINGS)
-            //     .then((storedSettings: dynamic) => {
-            //       if (!isObject(storedSettings)) {
-            //         this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-            //           const isSettingsValid = new SettingsSchema().isSettingsValid(fetchedSettings);
-            //           if (isSettingsValid) {
-            //             deferredObject.resolve(fetchedSettings);
-            //           } else {
-            //             deferredObject.reject(new Error('Settings are not valid. Failed schema validation.'));
-            //           }
-            //         });
-            //       } else {
-            //         deferredObject.resolve(storedSettings);
-            //       }
-            //     })
-            //     .catch(() => {
-            //       this.fetchSettingsAndCacheInStorage().then((fetchedSettings) => {
-            //         deferredObject.resolve(fetchedSettings);
-            //       });
-            //     });
-            // } else {
-            this.fetchSettingsAndCacheInStorage().then(function (fetchedSettings) {
-                var isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(fetchedSettings);
-                _this.isSettingsValid = isSettingsValid;
-                if (_this.isSettingsValid) {
-                    logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
-                    deferredObject.resolve(fetchedSettings);
+    /**
+     * Gets the settings, fetching them if not cached from storage or server.
+     s* @returns {Promise<Record<any, any>>} A promise that resolves to the settings.
+     */
+    SettingsService.prototype.getSettings = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var deferredObject, storageService, cachedSettings, freshSettings, normalizedSettings, freshSettings, normalizedSettings, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        deferredObject = new PromiseUtil_1.Deferred();
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 13, , 14]);
+                        if (!this.isStorageServiceProvided) return [3 /*break*/, 9];
+                        storageService = new StorageService_1.StorageService();
+                        return [4 /*yield*/, storageService.getSettingsFromStorage(this.accountId, this.sdkKey, !this.isEdgeEnvironment)];
+                    case 2:
+                        cachedSettings = _a.sent();
+                        if (!(cachedSettings && !(0, DataTypeUtil_1.isEmptyObject)(cachedSettings))) return [3 /*break*/, 3];
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
+                        deferredObject.resolve(cachedSettings);
+                        return [3 /*break*/, 8];
+                    case 3:
+                        // if no cached settings are found, fetch fresh settings from server
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
+                        return [4 /*yield*/, this.fetchSettings()];
+                    case 4:
+                        freshSettings = _a.sent();
+                        return [4 /*yield*/, this.normalizeSettings(freshSettings)];
+                    case 5:
+                        normalizedSettings = _a.sent();
+                        // check if the settings are valid
+                        this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
+                        if (!this.isSettingsValid) return [3 /*break*/, 7];
+                        // if settings are valid, set the settings in storage
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
+                        return [4 /*yield*/, storageService.setSettingsInStorage(this.accountId, this.sdkKey, normalizedSettings)];
+                    case 6:
+                        _a.sent();
+                        deferredObject.resolve(normalizedSettings);
+                        return [3 /*break*/, 8];
+                    case 7:
+                        logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                        deferredObject.resolve({});
+                        _a.label = 8;
+                    case 8: return [3 /*break*/, 12];
+                    case 9: return [4 /*yield*/, this.fetchSettings()];
+                    case 10:
+                        freshSettings = _a.sent();
+                        return [4 /*yield*/, this.normalizeSettings(freshSettings)];
+                    case 11:
+                        normalizedSettings = _a.sent();
+                        this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
+                        if (this.isSettingsValid) {
+                            logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+                            deferredObject.resolve(normalizedSettings);
+                        }
+                        else {
+                            logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                            deferredObject.resolve({});
+                        }
+                        _a.label = 12;
+                    case 12: return [3 /*break*/, 14];
+                    case 13:
+                        error_1 = _a.sent();
+                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1),
+                        }, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                        deferredObject.resolve({});
+                        return [3 /*break*/, 14];
+                    case 14: return [2 /*return*/, deferredObject.promise];
                 }
-                else {
-                    logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
-                    deferredObject.resolve({});
-                }
             });
-        }
-        return deferredObject.promise;
+        });
     };
     return SettingsService;
 }());
@@ -8240,6 +8092,17 @@ exports.SettingsService = SettingsService;
 
 "use strict";
 
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8299,6 +8162,12 @@ var logger_1 = __webpack_require__(/*! ../packages/logger */ "./lib/packages/log
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
+var FunctionUtil_1 = __webpack_require__(/*! ../utils/FunctionUtil */ "./lib/utils/FunctionUtil.ts");
+var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
+var SettingsService_1 = __webpack_require__(/*! ./SettingsService */ "./lib/services/SettingsService.ts");
+var SettingsSchemaValidation_1 = __webpack_require__(/*! ../models/schemas/SettingsSchemaValidation */ "./lib/models/schemas/SettingsSchemaValidation.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
 var StorageService = /** @class */ (function () {
     function StorageService() {
         this.storageData = {};
@@ -8360,6 +8229,177 @@ var StorageService = /** @class */ (function () {
                     });
                 }
                 return [2 /*return*/, deferredObject.promise];
+            });
+        });
+    };
+    /**
+     * Gets the settings from storage.
+     * @param accountId The account ID.
+     * @param sdkKey The SDK key.
+     * @returns {Promise<Record<string, any>>} A promise that resolves to the settings or empty object if not found.
+     */
+    StorageService.prototype.getSettingsFromStorage = function (accountId_1, sdkKey_1) {
+        return __awaiter(this, arguments, void 0, function (accountId, sdkKey, shouldFetchFreshSettings) {
+            var deferredObject, storageInstance, settingsData, settings, timestamp, shouldUseCachedSettings, currentTime, settingsTTL, error_1;
+            var _a;
+            if (shouldFetchFreshSettings === void 0) { shouldFetchFreshSettings = true; }
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        deferredObject = new PromiseUtil_1.Deferred();
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 5, , 6]);
+                        storageInstance = storage_1.Storage.Instance.getConnector();
+                        if (!(storageInstance && typeof storageInstance.getSettings === 'function')) return [3 /*break*/, 3];
+                        return [4 /*yield*/, storageInstance.getSettings(accountId, sdkKey)];
+                    case 2:
+                        settingsData = _b.sent();
+                        if (!settingsData || (0, DataTypeUtil_1.isEmptyObject)(settingsData)) {
+                            // if no settings data is found, resolve the promise with empty object
+                            deferredObject.resolve({});
+                            return [2 /*return*/, deferredObject.promise];
+                        }
+                        settings = settingsData.settings, timestamp = settingsData.timestamp;
+                        // Check for sdkKey and accountId match
+                        if (!settings || settings.sdkKey !== sdkKey || String((_a = settings.accountId) !== null && _a !== void 0 ? _a : settings.a) !== String(accountId)) {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH));
+                            deferredObject.resolve({});
+                            return [2 /*return*/, deferredObject.promise];
+                        }
+                        shouldUseCachedSettings = storageInstance.alwaysUseCachedSettings || constants_1.Constants.ALWAYS_USE_CACHED_SETTINGS;
+                        if (shouldUseCachedSettings) {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_USING_CACHED_SETTINGS));
+                            deferredObject.resolve(settings);
+                            return [2 /*return*/, deferredObject.promise];
+                        }
+                        currentTime = Date.now();
+                        settingsTTL = storageInstance.ttl || constants_1.Constants.SETTINGS_TTL;
+                        // check if the settings are expired based on the last updated timestamp
+                        if (currentTime - timestamp > settingsTTL) {
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_EXPIRED));
+                            deferredObject.resolve({});
+                        }
+                        else {
+                            // if settings are not expired, then return the existing settings and update the settings in storage with new timestamp
+                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_RETRIEVED_FROM_STORAGE));
+                            if (shouldFetchFreshSettings) {
+                                // if shouldFetchFreshSettings is true, then fetch fresh settings asynchronously and update the storage with new timestamp
+                                this.setFreshSettingsInStorage(accountId, sdkKey);
+                            }
+                            // decode sdkKey if present in the settings
+                            if (settings && settings.sdkKey) {
+                                try {
+                                    settings.sdkKey = atob(settings.sdkKey);
+                                }
+                                catch (e) {
+                                    logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
+                                        err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
+                                    }, { an: constants_1.Constants.STORAGE });
+                                }
+                            }
+                            deferredObject.resolve(settings);
+                        }
+                        return [3 /*break*/, 4];
+                    case 3:
+                        deferredObject.resolve({});
+                        _b.label = 4;
+                    case 4: return [3 /*break*/, 6];
+                    case 5:
+                        error_1 = _b.sent();
+                        logger_1.LogManager.Instance.errorLog('ERROR_READING_SETTINGS_FROM_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1) }, { an: constants_1.Constants.STORAGE });
+                        deferredObject.resolve({});
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/, deferredObject.promise];
+                }
+            });
+        });
+    };
+    /**
+     * Sets the settings in storage.
+     * @param accountId The account ID.
+     * @param sdkKey The SDK key.
+     * @param settings The settings to be stored.
+     * @returns {Promise<void>} A promise that resolves when the settings are successfully stored.
+     */
+    StorageService.prototype.setSettingsInStorage = function (accountId, sdkKey, settings) {
+        return __awaiter(this, void 0, void 0, function () {
+            var deferredObject, storageInstance, clonedSettings, settingsToStore, error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        deferredObject = new PromiseUtil_1.Deferred();
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 5, , 6]);
+                        storageInstance = storage_1.Storage.Instance.getConnector();
+                        if (!(storageInstance && typeof storageInstance.setSettings === 'function')) return [3 /*break*/, 3];
+                        clonedSettings = __assign({}, settings);
+                        settingsToStore = { settings: clonedSettings, timestamp: Date.now() };
+                        // set the settings in storage
+                        return [4 /*yield*/, storageInstance.setSettings(settingsToStore)];
+                    case 2:
+                        // set the settings in storage
+                        _a.sent();
+                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_SUCCESSFULLY_STORED));
+                        deferredObject.resolve();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        deferredObject.resolve();
+                        _a.label = 4;
+                    case 4: return [3 /*break*/, 6];
+                    case 5:
+                        error_2 = _a.sent();
+                        logger_1.LogManager.Instance.errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_2) }, { an: constants_1.Constants.STORAGE });
+                        deferredObject.resolve();
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/, deferredObject.promise];
+                }
+            });
+        });
+    };
+    /**
+     * Fetches fresh settings and updates the storage with a new timestamp
+     */
+    StorageService.prototype.setFreshSettingsInStorage = function (accountId, sdkKey) {
+        return __awaiter(this, void 0, void 0, function () {
+            var deferredObject, settingsService, storageInstance;
+            var _this = this;
+            return __generator(this, function (_a) {
+                deferredObject = new PromiseUtil_1.Deferred();
+                settingsService = SettingsService_1.SettingsService.Instance;
+                storageInstance = storage_1.Storage.Instance.getConnector();
+                if (settingsService && storageInstance && typeof storageInstance.setSettings === 'function') {
+                    settingsService
+                        .fetchSettings()
+                        .then(function (freshSettings) { return __awaiter(_this, void 0, void 0, function () {
+                        var isSettingsValid;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if (!freshSettings) return [3 /*break*/, 2];
+                                    isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(freshSettings);
+                                    if (!isSettingsValid) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, this.setSettingsInStorage(accountId, sdkKey, freshSettings)];
+                                case 1:
+                                    _a.sent();
+                                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED_WITH_FRESH_DATA));
+                                    _a.label = 2;
+                                case 2:
+                                    deferredObject.resolve();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); })
+                        .catch(function (error) {
+                        logger_1.LogManager.Instance.errorLog('ERROR_STORING_FRESH_SETTINGS_IN_STORAGE', {
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+                        }, { an: constants_1.Constants.STORAGE });
+                        deferredObject.resolve();
+                    });
+                    return [2 /*return*/, deferredObject.promise];
+                }
+                return [2 /*return*/];
             });
         });
     };
@@ -9213,6 +9253,7 @@ function _handleRolloutCampaign(campaign) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isObject = isObject;
+exports.isEmptyObject = isEmptyObject;
 exports.isArray = isArray;
 exports.isNull = isNull;
 exports.isUndefined = isUndefined;
@@ -9230,6 +9271,14 @@ exports.getType = getType;
 function isObject(val) {
     // Using Object.prototype.toString to get a precise string representation of the value type
     return Object.prototype.toString.call(val) === '[object Object]';
+}
+/**
+ * Checks if a value is an empty object.
+ * @param val The value to check.
+ * @returns True if the value is an empty object, false otherwise.
+ */
+function isEmptyObject(val) {
+    return isObject(val) && Object.keys(val).length === 0;
 }
 /**
  * Checks if a value is an array.
@@ -14995,7 +15044,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Error while fetching data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API.","ERROR_INITIALIZING_FETCH":"Unable to initialize the fetch API. Details: {error}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","ERROR_STORING_SETTINGS_IN_STORAGE":"Error while storing settings in storage. Error: {err}","ERROR_READING_SETTINGS_FROM_STORAGE":"Error while reading settings from storage. Error: {err}","ERROR_STORING_FRESH_SETTINGS_IN_STORAGE":"Error while storing fresh settings in storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Error while fetching data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API.","ERROR_INITIALIZING_FETCH":"Unable to initialize the fetch API. Details: {error}"}');
 
 /***/ }),
 
@@ -15017,7 +15066,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings do not match the provided sdkKey or accountId. Fetching fresh settings from the server.","SETTINGS_EXPIRED":"Cached settings have expired. Initiating fetch for updated settings from server.","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings successfully retrieved from storage.","SETTINGS_SUCCESSFULLY_STORED":"Settings have been successfully stored in storage.","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings have been updated with the latest data fetched from the server.","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled.","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}"}');
 
 /***/ }),
 

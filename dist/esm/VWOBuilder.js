@@ -5,7 +5,7 @@ import { Storage } from './packages/storage/index.js';
 import { VWOClient } from './VWOClient.js';
 import { SettingsService } from './services/SettingsService.js';
 import { DebugLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages/index.js';
-import { isNumber } from './utils/DataTypeUtil.js';
+import { isEmptyObject, isNumber } from './utils/DataTypeUtil.js';
 import { cloneObject, getFormattedErrorMessage } from './utils/FunctionUtil.js';
 import { buildMessage } from './utils/LogMessageUtil.js';
 import { Deferred } from './utils/PromiseUtil.js';
@@ -30,6 +30,9 @@ export class VWOBuilder {
      * @returns {this} The instance of this builder.
      */
     setNetworkManager() {
+        if (this.options.edgeConfig && !isEmptyObject(this.options?.edgeConfig)) {
+            this.options.shouldWaitForTrackingCalls = true;
+        }
         const networkInstance = NetworkManager.Instance;
         // Attach the network client from options
         networkInstance.attachClient(this.options?.network?.client, this.options?.retryConfig, this.options?.shouldWaitForTrackingCalls ? true : false);
@@ -42,7 +45,7 @@ export class VWOBuilder {
     }
     initBatching() {
         // If edge config is provided, set the batch event data to the default values
-        if (this.options.edgeConfig && Object.keys(this.options?.edgeConfig).length > 0) {
+        if (this.options.edgeConfig && !isEmptyObject(this.options?.edgeConfig)) {
             const edgeConfigModel = new EdgeConfigModel().modelFromDictionary(this.options.edgeConfig);
             this.options.batchEventData = {
                 eventsPerRequest: edgeConfigModel.getMaxEventsToBatch(),
@@ -88,21 +91,17 @@ export class VWOBuilder {
     }
     /**
      * Fetches settings asynchronously, ensuring no parallel fetches.
-     * @param {boolean} [force=false] - Force fetch ignoring cache.
      * @returns {Promise<SettingsModel>} A promise that resolves to the fetched settings.
      */
-    fetchSettings(force) {
+    fetchSettings() {
         const deferredObject = new Deferred();
         // Check if a fetch operation is already in progress
         if (!this.isSettingsFetchInProgress) {
             this.isSettingsFetchInProgress = true;
-            this.settingFileManager.getSettings(force).then((settings) => {
+            this.settingFileManager.getSettings().then((settings) => {
                 this.isSettingsValid = this.settingFileManager.isSettingsValid;
                 this.settingsFetchTime = this.settingFileManager.settingsFetchTime;
-                // if force is false, update original settings, if true the request is from polling and no need to update original settings
-                if (!force) {
-                    this.originalSettings = settings;
-                }
+                this.originalSettings = settings;
                 this.isSettingsFetchInProgress = false;
                 deferredObject.resolve(settings);
             });
@@ -115,20 +114,19 @@ export class VWOBuilder {
     }
     /**
      * Gets the settings, fetching them if not cached or if forced.
-     * @param {boolean} [force=false] - Force fetch ignoring cache.
      * @returns {Promise<SettingsModel>} A promise that resolves to the settings.
      */
-    getSettings(force) {
+    getSettings() {
         const deferredObject = new Deferred();
         try {
             // Use cached settings if available and not forced to fetch
-            if (!force && this.settings) {
+            if (this.settings) {
                 LogManager.Instance.info('Using already fetched and cached settings');
                 deferredObject.resolve(this.settings);
             }
             else {
-                // Fetch settings if not cached or forced
-                this.fetchSettings(force).then((settings) => {
+                // Fetch settings if not cached
+                this.fetchSettings().then((settings) => {
                     deferredObject.resolve(settings);
                 });
             }
@@ -136,7 +134,7 @@ export class VWOBuilder {
         catch (err) {
             LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: getFormattedErrorMessage(err),
-            }, { an: force ? Constants.POLLING : ApiEnum.INIT }, false);
+            }, { an: ApiEnum.INIT }, false);
             deferredObject.resolve({});
         }
         return deferredObject.promise;
@@ -149,6 +147,7 @@ export class VWOBuilder {
         if (this.options.storage) {
             // Attach the storage connector from options
             this.storage = Storage.Instance.attachConnector(this.options.storage);
+            this.settingFileManager.isStorageServiceProvided = true;
         }
         else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -162,6 +161,7 @@ export class VWOBuilder {
             LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
                 service: this.options?.clientStorage?.provider === sessionStorage ? `Session Storage` : `Local Storage`,
             }));
+            this.settingFileManager.isStorageServiceProvided = true;
         }
         else {
             // Set storage to null if no storage options provided
@@ -310,7 +310,7 @@ export class VWOBuilder {
     checkAndPoll() {
         const poll = async () => {
             try {
-                const latestSettings = await this.getSettings(true);
+                const latestSettings = await this.getSettings();
                 if (latestSettings &&
                     Object.keys(latestSettings).length > 0 &&
                     JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {

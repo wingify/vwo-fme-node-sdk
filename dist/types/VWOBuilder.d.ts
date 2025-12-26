@@ -64,16 +64,14 @@ export declare class VWOBuilder implements IVWOBuilder {
   setSegmentation(): this;
   /**
    * Fetches settings asynchronously, ensuring no parallel fetches.
-   * @param {boolean} [force=false] - Force fetch ignoring cache.
    * @returns {Promise<SettingsModel>} A promise that resolves to the fetched settings.
    */
-  fetchSettings(force?: boolean): Promise<Record<any, any>>;
+  fetchSettings(): Promise<Record<any, any>>;
   /**
    * Gets the settings, fetching them if not cached or if forced.
-   * @param {boolean} [force=false] - Force fetch ignoring cache.
    * @returns {Promise<SettingsModel>} A promise that resolves to the settings.
    */
-  getSettings(force?: boolean): Promise<Record<any, any>>;
+  getSettings(): Promise<Record<any, any>>;
   /**
    * Sets the storage connector based on the provided storage options.
    * @returns {this} The instance of this builder.

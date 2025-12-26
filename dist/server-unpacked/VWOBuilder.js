@@ -80,22 +80,25 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
+        if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
+            this.options.shouldWaitForTrackingCalls = true;
+        }
         var networkInstance = network_layer_1.NetworkManager.Instance;
         // Attach the network client from options
-        networkInstance.attachClient((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.network) === null || _b === void 0 ? void 0 : _b.client, (_c = this.options) === null || _c === void 0 ? void 0 : _c.retryConfig, ((_d = this.options) === null || _d === void 0 ? void 0 : _d.shouldWaitForTrackingCalls) ? true : false);
+        networkInstance.attachClient((_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.network) === null || _c === void 0 ? void 0 : _c.client, (_d = this.options) === null || _d === void 0 ? void 0 : _d.retryConfig, ((_e = this.options) === null || _e === void 0 ? void 0 : _e.shouldWaitForTrackingCalls) ? true : false);
         logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: "Network Layer",
         }));
         // Set the development mode based on options
-        networkInstance.getConfig().setDevelopmentMode((_e = this.options) === null || _e === void 0 ? void 0 : _e.isDevelopmentMode);
+        networkInstance.getConfig().setDevelopmentMode((_f = this.options) === null || _f === void 0 ? void 0 : _f.isDevelopmentMode);
         return this;
     };
     VWOBuilder.prototype.initBatching = function () {
         var _this = this;
         var _a;
         // If edge config is provided, set the batch event data to the default values
-        if (this.options.edgeConfig && Object.keys((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig).length > 0) {
+        if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
             var edgeConfigModel = new EdgeConfigModel_1.EdgeConfigModel().modelFromDictionary(this.options.edgeConfig);
             this.options.batchEventData = {
                 eventsPerRequest: edgeConfigModel.getMaxEventsToBatch(),
@@ -144,22 +147,18 @@ var VWOBuilder = /** @class */ (function () {
     };
     /**
      * Fetches settings asynchronously, ensuring no parallel fetches.
-     * @param {boolean} [force=false] - Force fetch ignoring cache.
      * @returns {Promise<SettingsModel>} A promise that resolves to the fetched settings.
      */
-    VWOBuilder.prototype.fetchSettings = function (force) {
+    VWOBuilder.prototype.fetchSettings = function () {
         var _this = this;
         var deferredObject = new PromiseUtil_1.Deferred();
         // Check if a fetch operation is already in progress
         if (!this.isSettingsFetchInProgress) {
             this.isSettingsFetchInProgress = true;
-            this.settingFileManager.getSettings(force).then(function (settings) {
+            this.settingFileManager.getSettings().then(function (settings) {
                 _this.isSettingsValid = _this.settingFileManager.isSettingsValid;
                 _this.settingsFetchTime = _this.settingFileManager.settingsFetchTime;
-                // if force is false, update original settings, if true the request is from polling and no need to update original settings
-                if (!force) {
-                    _this.originalSettings = settings;
-                }
+                _this.originalSettings = settings;
                 _this.isSettingsFetchInProgress = false;
                 deferredObject.resolve(settings);
             });
@@ -172,20 +171,19 @@ var VWOBuilder = /** @class */ (function () {
     };
     /**
      * Gets the settings, fetching them if not cached or if forced.
-     * @param {boolean} [force=false] - Force fetch ignoring cache.
      * @returns {Promise<SettingsModel>} A promise that resolves to the settings.
      */
-    VWOBuilder.prototype.getSettings = function (force) {
+    VWOBuilder.prototype.getSettings = function () {
         var deferredObject = new PromiseUtil_1.Deferred();
         try {
             // Use cached settings if available and not forced to fetch
-            if (!force && this.settings) {
+            if (this.settings) {
                 logger_1.LogManager.Instance.info('Using already fetched and cached settings');
                 deferredObject.resolve(this.settings);
             }
             else {
-                // Fetch settings if not cached or forced
-                this.fetchSettings(force).then(function (settings) {
+                // Fetch settings if not cached
+                this.fetchSettings().then(function (settings) {
                     deferredObject.resolve(settings);
                 });
             }
@@ -193,7 +191,7 @@ var VWOBuilder = /** @class */ (function () {
         catch (err) {
             logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
-            }, { an: force ? constants_1.Constants.POLLING : ApiEnum_1.ApiEnum.INIT }, false);
+            }, { an: ApiEnum_1.ApiEnum.INIT }, false);
             deferredObject.resolve({});
         }
         return deferredObject.promise;
@@ -207,6 +205,7 @@ var VWOBuilder = /** @class */ (function () {
         if (this.options.storage) {
             // Attach the storage connector from options
             this.storage = storage_1.Storage.Instance.attachConnector(this.options.storage);
+            this.settingFileManager.isStorageServiceProvided = true;
         }
         else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -216,6 +215,7 @@ var VWOBuilder = /** @class */ (function () {
             logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
                 service: ((_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.clientStorage) === null || _d === void 0 ? void 0 : _d.provider) === sessionStorage ? "Session Storage" : "Local Storage",
             }));
+            this.settingFileManager.isStorageServiceProvided = true;
         }
         else {
             // Set storage to null if no storage options provided
@@ -371,7 +371,7 @@ var VWOBuilder = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         _b.trys.push([0, 2, 3, 4]);
-                        return [4 /*yield*/, this.getSettings(true)];
+                        return [4 /*yield*/, this.getSettings()];
                     case 1:
                         latestSettings = _b.sent();
                         if (latestSettings &&

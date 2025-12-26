@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.35.0] - 2025-12-27
+
+### Added
+
+- Introduced `setSettings` and `getSettings` methods in the `Connector` class, enabling persistent storage and retrieval of VWO settings through custom storage connectors.
+
+```javascript
+class StorageConnector extends StorageConnector {
+  constructor() {
+    super();
+  }
+
+  /**
+   * Get data from storage
+   * @param {string} featureKey
+   * @param {string} userId
+   * @returns {Promise<any>}
+   */
+  async getSettings(accountId, sdkKey) {
+    // return await settings (based on accountId and sdkKey)
+  }
+
+  /**
+   * Set data in storage
+   * @param {object} data
+   */
+  async setSettings(settings) {
+    // Set settings
+    // Use settings.accountId and settings.sdkKey to store the above settings for a specific accountId and a sdkKey
+  }
+}
+```
+
 ## [1.34.1] - 2025-12-12
 
 ### Fixed

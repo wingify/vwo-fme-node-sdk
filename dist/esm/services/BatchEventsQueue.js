@@ -36,11 +36,13 @@ export class BatchEventsQueue {
         }
         else {
             this.requestTimeInterval = Constants.DEFAULT_REQUEST_TIME_INTERVAL;
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
-                parameter: 'requestTimeInterval',
-                minLimit: 0,
-                defaultValue: this.requestTimeInterval.toString(),
-            }));
+            if (!this.isEdgeEnvironment) {
+                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
+                    parameter: 'requestTimeInterval',
+                    minLimit: 0,
+                    defaultValue: this.requestTimeInterval.toString(),
+                }));
+            }
         }
         if (isNumber(config.eventsPerRequest) &&
             config.eventsPerRequest > 0 &&

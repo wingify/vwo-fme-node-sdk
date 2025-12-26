@@ -1,51 +1,19 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
     };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BrowserStorageConnector = void 0;
 /**
@@ -66,15 +34,15 @@ exports.BrowserStorageConnector = void 0;
 var constants_1 = require("../../../constants");
 var PromiseUtil_1 = require("../../../utils/PromiseUtil");
 var logger_1 = require("../../logger");
-var SettingsService_1 = require("../../../services/SettingsService");
-var SettingsSchemaValidation_1 = require("../../../models/schemas/SettingsSchemaValidation");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var FunctionUtil_1 = require("../../../utils/FunctionUtil");
+var Connector_1 = require("../Connector");
 /**
  * A class that provides browser storage functionality for managing feature flags and experiments data
  * @class BrowserStorageConnector
  */
-var BrowserStorageConnector = /** @class */ (function () {
+var BrowserStorageConnector = /** @class */ (function (_super) {
+    __extends(BrowserStorageConnector, _super);
     /**
      * Creates an instance of BrowserStorageConnector
      * @param {ClientStorageOptions} [options] - Configuration options for the storage connector
@@ -85,26 +53,28 @@ var BrowserStorageConnector = /** @class */ (function () {
      * @param {number} [options.ttl] - Custom TTL in milliseconds (defaults to Constants.SETTINGS_TTL)
      */
     function BrowserStorageConnector(options) {
-        this.SETTINGS_KEY = constants_1.Constants.DEFAULT_SETTINGS_STORAGE_KEY;
-        this.storageKey = (options === null || options === void 0 ? void 0 : options.key) || constants_1.Constants.DEFAULT_LOCAL_STORAGE_KEY;
-        this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
-        this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
-        this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
+        var _this = _super.call(this) || this;
+        _this.SETTINGS_KEY = constants_1.Constants.DEFAULT_SETTINGS_STORAGE_KEY;
+        _this.storageKey = (options === null || options === void 0 ? void 0 : options.key) || constants_1.Constants.DEFAULT_LOCAL_STORAGE_KEY;
+        _this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
+        _this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
+        _this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
         //options.ttl should be greater than 1 minute
         if (!(0, DataTypeUtil_1.isNumber)(options === null || options === void 0 ? void 0 : options.ttl) || options.ttl < constants_1.Constants.MIN_TTL_MS) {
             logger_1.LogManager.Instance.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
-            this.ttl = constants_1.Constants.SETTINGS_TTL;
+            _this.ttl = constants_1.Constants.SETTINGS_TTL;
         }
         else {
-            this.ttl = (options === null || options === void 0 ? void 0 : options.ttl) || constants_1.Constants.SETTINGS_TTL;
+            _this.ttl = (options === null || options === void 0 ? void 0 : options.ttl) || constants_1.Constants.SETTINGS_TTL;
         }
         if (!(0, DataTypeUtil_1.isBoolean)(options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings)) {
             logger_1.LogManager.Instance.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
-            this.alwaysUseCachedSettings = false;
+            _this.alwaysUseCachedSettings = false;
         }
         else {
-            this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
+            _this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
         }
+        return _this;
     }
     /**
      * Retrieves all stored data from the storage
@@ -121,7 +91,7 @@ var BrowserStorageConnector = /** @class */ (function () {
         catch (error) {
             logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-            }, { an: constants_1.Constants.BROWSER_STORAGE });
+            }, { an: constants_1.Constants.STORAGE });
             return {};
         }
     };
@@ -140,7 +110,7 @@ var BrowserStorageConnector = /** @class */ (function () {
         catch (error) {
             logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-            }, { an: constants_1.Constants.BROWSER_STORAGE });
+            }, { an: constants_1.Constants.STORAGE });
         }
     };
     /**
@@ -166,7 +136,7 @@ var BrowserStorageConnector = /** @class */ (function () {
             catch (error) {
                 logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
                     err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-                }, { an: constants_1.Constants.BROWSER_STORAGE });
+                }, { an: constants_1.Constants.STORAGE });
                 deferredObject.reject(error);
             }
         }
@@ -196,7 +166,7 @@ var BrowserStorageConnector = /** @class */ (function () {
             catch (error) {
                 logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
                     err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-                }, { an: constants_1.Constants.BROWSER_STORAGE });
+                }, { an: constants_1.Constants.STORAGE });
                 deferredObject.resolve({});
             }
         }
@@ -207,118 +177,44 @@ var BrowserStorageConnector = /** @class */ (function () {
      * @public
      * @param {string} sdkKey - The sdkKey to match
      * @param {number|string} accountId - The accountId to match
-     * @returns {Promise<Record<string, any> | null>} A promise that resolves to the settings or null if expired/not found/mismatch
+     * @returns {Promise<ISettingsData>} A promise that resolves to the ISettingsData or empty object if not found
      */
-    BrowserStorageConnector.prototype.getSettingsFromStorage = function (sdkKey, accountId) {
-        var _a;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    BrowserStorageConnector.prototype.getSettings = function (accountId, sdkKey) {
         var deferredObject = new PromiseUtil_1.Deferred();
         if (this.isDisabled) {
-            deferredObject.resolve(null);
+            deferredObject.resolve({});
         }
         else {
             try {
                 var storedData = this.getStoredData();
                 var settingsData = storedData[this.SETTINGS_KEY];
-                if (!settingsData) {
-                    deferredObject.resolve(null);
-                    return deferredObject.promise;
-                }
-                var data = settingsData.data, timestamp = settingsData.timestamp;
-                var currentTime = Date.now();
                 // Decode sdkKey if present
-                if (data && data.sdkKey) {
+                if (settingsData && settingsData.settings && settingsData.settings.sdkKey) {
                     try {
-                        data.sdkKey = atob(data.sdkKey);
+                        settingsData.settings.sdkKey = atob(settingsData.settings.sdkKey);
                     }
                     catch (e) {
                         logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
-                        }, { an: constants_1.Constants.BROWSER_STORAGE });
+                        }, { an: constants_1.Constants.STORAGE });
                     }
                 }
-                // Check for sdkKey and accountId match
-                if (!data || data.sdkKey !== sdkKey || String((_a = data.accountId) !== null && _a !== void 0 ? _a : data.a) !== String(accountId)) {
-                    logger_1.LogManager.Instance.info('Cached settings do not match sdkKey/accountId, treating as cache miss');
-                    deferredObject.resolve(null);
-                    return deferredObject.promise;
-                }
-                if (this.alwaysUseCachedSettings) {
-                    logger_1.LogManager.Instance.info('Using cached settings as alwaysUseCachedSettings is enabled');
-                    deferredObject.resolve(data);
-                    return deferredObject.promise;
-                }
-                if (currentTime - timestamp > this.ttl) {
-                    logger_1.LogManager.Instance.info('Settings have expired, need to fetch new settings');
-                    deferredObject.resolve(null);
-                }
-                else {
-                    // if settings are valid then return the existing settings and update the settings in storage with new timestamp
-                    logger_1.LogManager.Instance.info('Retrieved valid settings from storage');
-                    this.setFreshSettingsInStorage();
-                    // Decode sdkKey if present
-                    if (data && data.sdkKey) {
-                        try {
-                            data.sdkKey = atob(data.sdkKey);
-                        }
-                        catch (e) {
-                            logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
-                                err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
-                            }, { an: constants_1.Constants.BROWSER_STORAGE });
-                        }
-                    }
-                    deferredObject.resolve(data);
-                }
+                deferredObject.resolve(settingsData);
             }
             catch (error) {
-                logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
-                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-                }, { an: constants_1.Constants.BROWSER_STORAGE });
-                deferredObject.resolve(null);
+                deferredObject.resolve({});
             }
         }
         return deferredObject.promise;
     };
     /**
-     * Fetches fresh settings and updates the storage with a new timestamp
-     */
-    BrowserStorageConnector.prototype.setFreshSettingsInStorage = function () {
-        var _this = this;
-        // Fetch fresh settings asynchronously and update storage
-        var settingsService = SettingsService_1.SettingsService.Instance;
-        if (settingsService) {
-            settingsService
-                .fetchSettings()
-                .then(function (freshSettings) { return __awaiter(_this, void 0, void 0, function () {
-                var isSettingsValid;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            if (!freshSettings) return [3 /*break*/, 2];
-                            isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(freshSettings);
-                            if (!isSettingsValid) return [3 /*break*/, 2];
-                            return [4 /*yield*/, this.setSettingsInStorage(freshSettings)];
-                        case 1:
-                            _a.sent();
-                            logger_1.LogManager.Instance.info('Settings updated with fresh data from server');
-                            _a.label = 2;
-                        case 2: return [2 /*return*/];
-                    }
-                });
-            }); })
-                .catch(function (error) {
-                logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
-                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-                }, { an: constants_1.Constants.BROWSER_STORAGE }, false);
-            });
-        }
-    };
-    /**
      * Sets the settings in storage with current timestamp
      * @public
-     * @param {Record<string, any>} settings - The settings data to be stored
+     * @param {ISettingsData} data - The settings data to be stored
      * @returns {Promise<void>} A promise that resolves when the settings are successfully stored
      */
-    BrowserStorageConnector.prototype.setSettingsInStorage = function (settings) {
+    BrowserStorageConnector.prototype.setSettings = function (data) {
         var deferredObject = new PromiseUtil_1.Deferred();
         if (this.isDisabled) {
             deferredObject.resolve();
@@ -326,29 +222,20 @@ var BrowserStorageConnector = /** @class */ (function () {
         else {
             try {
                 var storedData = this.getStoredData();
-                // Clone settings to avoid mutating the original object
-                var settingsToStore = __assign({}, settings);
-                if (settingsToStore.sdkKey) {
-                    settingsToStore.sdkKey = btoa(settingsToStore.sdkKey);
+                if (data.settings && data.settings.sdkKey) {
+                    data.settings.sdkKey = btoa(data.settings.sdkKey);
                 }
-                storedData[this.SETTINGS_KEY] = {
-                    data: settingsToStore,
-                    timestamp: Date.now(),
-                };
+                storedData[this.SETTINGS_KEY] = data;
                 this.storeData(storedData);
-                logger_1.LogManager.Instance.info('Settings stored successfully in storage');
                 deferredObject.resolve();
             }
             catch (error) {
-                logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
-                    err: 'Storing settings: ' + (0, FunctionUtil_1.getFormattedErrorMessage)(error),
-                }, { an: constants_1.Constants.BROWSER_STORAGE });
                 deferredObject.reject(error);
             }
         }
         return deferredObject.promise;
     };
     return BrowserStorageConnector;
-}());
+}(Connector_1.Connector));
 exports.BrowserStorageConnector = BrowserStorageConnector;
 //# sourceMappingURL=BrowserStorageConnector.js.map

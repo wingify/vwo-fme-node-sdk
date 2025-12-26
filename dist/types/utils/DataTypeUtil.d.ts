@@ -24,6 +24,12 @@ export declare function isObject<T>(
   val: T,
 ): val is Record<any, dynamic> & Exclude<T, Array<dynamic> | FunctionType | RegExp | Promise<dynamic> | Date>;
 /**
+ * Checks if a value is an empty object.
+ * @param val The value to check.
+ * @returns True if the value is an empty object, false otherwise.
+ */
+export declare function isEmptyObject(val: dynamic): boolean;
+/**
  * Checks if a value is an array.
  * @param val The value to check.
  * @returns True if the value is an array, false otherwise.

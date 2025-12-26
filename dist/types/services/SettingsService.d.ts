@@ -17,6 +17,8 @@ export declare class SettingsService implements ISettingsService {
   private static instance;
   isSettingsValid: boolean;
   proxyProvided: boolean;
+  isStorageServiceProvided: boolean;
+  isEdgeEnvironment: boolean;
   gatewayServiceConfig: {
     hostname: string | null;
     protocol: string | null;
@@ -24,12 +26,12 @@ export declare class SettingsService implements ISettingsService {
   };
   constructor(options: Record<string, any>);
   static get Instance(): SettingsService;
-  private setSettingsExpiry;
   normalizeSettings(settings: Record<any, any>): Promise<Record<any, any>>;
-  private handleBrowserEnvironment;
-  private handleServerEnvironment;
-  private fetchSettingsAndCacheInStorage;
   fetchSettings(isViaWebhook?: boolean, apiName?: ApiEnum): Promise<Record<any, any>>;
-  getSettings(forceFetch?: boolean): Promise<Record<any, any>>;
+  /**
+     * Gets the settings, fetching them if not cached from storage or server.
+     s* @returns {Promise<Record<any, any>>} A promise that resolves to the settings.
+     */
+  getSettings(): Promise<Record<any, any>>;
 }
 export {};

@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 import { dynamic } from '../../types/Common';
+/**
+ * Interface representing the structure of settings data to be stored
+ * @interface SettingsData
+ */
+export interface ISettingsData {
+  settings: Record<string, any>;
+  timestamp: number;
+}
 export declare abstract class Connector {
+  protected ttl?: number;
+  protected alwaysUseCachedSettings?: boolean;
   abstract set(data: dynamic): void | Promise<dynamic>;
   abstract get(featureKey: string, userId: string): this | Promise<dynamic>;
+  getSettings?(accountId: number, sdkKey: string): Promise<ISettingsData>;
+  setSettings?(data: ISettingsData): Promise<void>;
 }

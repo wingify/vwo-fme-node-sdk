@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ```javascript
 class StorageConnector extends StorageConnector {
+  protected ttl = 7200000; // 2 hours in milliseconds
+  protected alwaysUseCachedSettings = false;
+  
   constructor() {
     super();
   }
@@ -23,18 +26,39 @@ class StorageConnector extends StorageConnector {
    * @param {string} userId
    * @returns {Promise<any>}
    */
-  async getSettings(accountId, sdkKey) {
-    // return await settings (based on accountId and sdkKey)
+  async get(featureKey, userId) {
+    // return await data (based on featureKey and userId)
   }
 
   /**
    * Set data in storage
    * @param {object} data
    */
-  async setSettings(settings) {
-    // Set settings
-    // Use settings.accountId and settings.sdkKey to store the above settings for a specific accountId and a sdkKey
+  async set(data) {
+    // Set data corresponding to a featureKey and user ID
+    // Use data.featureKey and data.userId to store the above data for a specific feature and a user
   }
+  
+  /**
+   * Get settingsData from storage
+   * @param {number} accountId
+   * @param {string} sdkKey
+   * @returns {Promise<ISettingsData>}
+   */
+  async getSettings(accountId, sdkKey) {
+    // Implement logic to retrieve cached settings based on accountId and sdkKey
+    // Must return an object with structure: { settings: {...}, timestamp: number }
+  }
+
+  /**
+   * Set settingsData in storage
+   * @param {ISettingsData} data
+   */
+  async setSettings(data) {
+    // Implement logic to store settings data
+    // Use data.settings.accountId and data.settings.sdkKey to store the above data for a specific accountId and sdkKey
+  }
+
 }
 ```
 

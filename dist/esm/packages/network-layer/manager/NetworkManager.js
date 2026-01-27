@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,61 +18,14 @@ import { RequestHandler } from '../handlers/RequestHandler.js';
 import { GlobalRequestModel } from '../models/GlobalRequestModel.js';
 import { Constants } from '../../../constants/index.js';
 import { isBoolean, isNumber } from '../../../utils/DataTypeUtil.js';
-import { LogManager } from '../../logger/core/LogManager.js';
-import { ApiEnum } from '../../../enums/ApiEnum.js';
 import { NetworkServerLessClient } from '../client/NetworkServerLessClient.js';
 import { NetworkBrowserClient } from '../client/NetworkBrowserClient.js';
 import { buildMessage } from '../../../utils/LogMessageUtil.js';
 import { DebugLogMessagesEnum } from '../../../enums/log-messages/index.js';
 import { HTTPS_PROTOCOL } from '../../../constants/Url.js';
 export class NetworkManager {
-    /**
-     * Validates the retry configuration parameters
-     * @param {IRetryConfig} retryConfig - The retry configuration to validate
-     * @returns {IRetryConfig} The validated retry configuration with corrected values
-     */
-    validateRetryConfig(retryConfig) {
-        const validatedConfig = { ...retryConfig };
-        let isInvalidConfig = false;
-        // Validate shouldRetry: should be a boolean value
-        if (!isBoolean(validatedConfig.shouldRetry)) {
-            validatedConfig.shouldRetry = Constants.DEFAULT_RETRY_CONFIG.shouldRetry;
-            isInvalidConfig = true;
-        }
-        // Validate maxRetries: should be a non-negative integer and should not be less than 1
-        if (!isNumber(validatedConfig.maxRetries) ||
-            !Number.isInteger(validatedConfig.maxRetries) ||
-            validatedConfig.maxRetries < 1) {
-            validatedConfig.maxRetries = Constants.DEFAULT_RETRY_CONFIG.maxRetries;
-            isInvalidConfig = true;
-        }
-        // Validate initialDelay: should be a non-negative integer and should not be less than 1
-        if (!isNumber(validatedConfig.initialDelay) ||
-            !Number.isInteger(validatedConfig.initialDelay) ||
-            validatedConfig.initialDelay < 1) {
-            validatedConfig.initialDelay = Constants.DEFAULT_RETRY_CONFIG.initialDelay;
-            isInvalidConfig = true;
-        }
-        // Validate backoffMultiplier: should be a non-negative integer and should not be less than 2
-        if (!isNumber(validatedConfig.backoffMultiplier) ||
-            !Number.isInteger(validatedConfig.backoffMultiplier) ||
-            validatedConfig.backoffMultiplier < 2) {
-            validatedConfig.backoffMultiplier = Constants.DEFAULT_RETRY_CONFIG.backoffMultiplier;
-            isInvalidConfig = true;
-        }
-        if (isInvalidConfig) {
-            LogManager.Instance.errorLog('INVALID_RETRY_CONFIG', {
-                retryConfig: JSON.stringify(validatedConfig),
-            }, { an: ApiEnum.INIT });
-        }
-        return isInvalidConfig ? Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
-    }
-    /**
-     * Attaches a network client to the manager, or uses a default if none provided.
-     * @param {NetworkClientInterface} client - The client to attach, optional.
-     * @param {IRetryConfig} retryConfig - The retry configuration, optional.
-     */
-    attachClient(client, retryConfig, shouldWaitForTrackingCalls = false) {
+    constructor(logManager, client, retryConfig, shouldWaitForTrackingCalls = false) {
+        this.logManager = logManager;
         // Only set retry configuration if it's not already initialized or if a new config is provided
         if (!this.retryConfig || retryConfig) {
             // Define default retry configuration
@@ -94,35 +47,77 @@ export class NetworkManager {
         if (typeof process === 'undefined') {
             // if XMLHttpRequest is undefined, we are in serverless
             if (typeof XMLHttpRequest === 'undefined') {
-                this.client = client || new NetworkServerLessClient();
+                this.client = client || new NetworkServerLessClient(this.logManager);
             }
             else {
-                LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                this.logManager.debug(buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
                     api: 'xhr',
                     process: 'undefined',
                 }));
                 // if XMLHttpRequest is defined, we are in browser
-                this.client = client || new NetworkBrowserClient(); // Use provided client or default to NetworkClient
+                this.client = client || new NetworkBrowserClient(this.logManager); // Use provided client or default to NetworkClient
             }
         }
         else {
             // if env is defined, we expect to be in Node
             // In CommonJS builds `require` exists; in pure ESM it does not.
             if (typeof require === 'function') {
-                LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                this.logManager.debug(buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
                     api: HTTPS_PROTOCOL,
                     process: 'defined',
                 }));
                 // eslint-disable-next-line @typescript-eslint/no-var-requires
                 const { NetworkClient } = require('../client/NetworkClient');
-                this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+                this.client = client || new NetworkClient(this.logManager); // Use provided client or default to NetworkClient
             }
             else {
                 // Node ESM runtime: fall back to the fetch-based client which is compatible everywhere
-                this.client = client || new NetworkServerLessClient();
+                this.client = client || new NetworkServerLessClient(this.logManager);
             }
         }
         this.config = new GlobalRequestModel(null, null, null, null); // Initialize with default config
+    }
+    /**
+     * Validates the retry configuration parameters
+     * @param {IRetryConfig} retryConfig - The retry configuration to validate
+     * @returns {IRetryConfig} The validated retry configuration with corrected values
+     */
+    validateRetryConfig(retryConfig) {
+        const validatedConfig = { ...retryConfig };
+        // Validate shouldRetry: should be a boolean value
+        if (!isBoolean(validatedConfig.shouldRetry)) {
+            validatedConfig.shouldRetry = Constants.DEFAULT_RETRY_CONFIG.shouldRetry;
+            this.isInvalidRetryConfig = true;
+        }
+        // Validate maxRetries: should be a non-negative integer and should not be less than 1
+        if (!isNumber(validatedConfig.maxRetries) ||
+            !Number.isInteger(validatedConfig.maxRetries) ||
+            validatedConfig.maxRetries < 1) {
+            validatedConfig.maxRetries = Constants.DEFAULT_RETRY_CONFIG.maxRetries;
+            this.isInvalidRetryConfig = true;
+        }
+        // Validate initialDelay: should be a non-negative integer and should not be less than 1
+        if (!isNumber(validatedConfig.initialDelay) ||
+            !Number.isInteger(validatedConfig.initialDelay) ||
+            validatedConfig.initialDelay < 1) {
+            validatedConfig.initialDelay = Constants.DEFAULT_RETRY_CONFIG.initialDelay;
+            this.isInvalidRetryConfig = true;
+        }
+        // Validate backoffMultiplier: should be a non-negative integer and should not be less than 2
+        if (!isNumber(validatedConfig.backoffMultiplier) ||
+            !Number.isInteger(validatedConfig.backoffMultiplier) ||
+            validatedConfig.backoffMultiplier < 2) {
+            validatedConfig.backoffMultiplier = Constants.DEFAULT_RETRY_CONFIG.backoffMultiplier;
+            this.isInvalidRetryConfig = true;
+        }
+        return this.isInvalidRetryConfig ? Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
+    }
+    /**
+     * Retrieves the current retry configuration.
+     * @returns {boolean} Whether the retry configuration is invalid.
+     */
+    getIsInvalidRetryConfig() {
+        return this.isInvalidRetryConfig;
     }
     /**
      * Retrieves the current retry configuration.
@@ -132,12 +127,11 @@ export class NetworkManager {
         return { ...this.retryConfig };
     }
     /**
-     * Singleton accessor for the NetworkManager instance.
-     * @returns {NetworkManager} The singleton instance.
+     * Injects the service container into the network manager.
+     * @param {ServiceContainer} serviceContainer - The service container to inject.
      */
-    static get Instance() {
-        this.instance = this.instance || new NetworkManager(); // Create instance if it doesn't exist
-        return this.instance;
+    injectServiceContainer(serviceContainer) {
+        this.serviceContainer = serviceContainer;
     }
     /**
      * Sets the global configuration for network requests.

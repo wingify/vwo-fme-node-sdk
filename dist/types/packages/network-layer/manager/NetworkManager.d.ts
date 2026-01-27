@@ -3,11 +3,21 @@ import { NetworkClientInterface } from '../client/NetworkClientInterface';
 import { GlobalRequestModel } from '../models/GlobalRequestModel';
 import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
+import { LogManager } from '../../logger/core/LogManager';
+import { ServiceContainer } from '../../../services/ServiceContainer';
 export declare class NetworkManager {
   private config;
   private client;
-  private static instance;
   private retryConfig;
+  private isInvalidRetryConfig;
+  private logManager;
+  private serviceContainer;
+  constructor(
+    logManager: LogManager,
+    client?: NetworkClientInterface,
+    retryConfig?: IRetryConfig,
+    shouldWaitForTrackingCalls?: boolean,
+  );
   /**
    * Validates the retry configuration parameters
    * @param {IRetryConfig} retryConfig - The retry configuration to validate
@@ -15,21 +25,20 @@ export declare class NetworkManager {
    */
   private validateRetryConfig;
   /**
-   * Attaches a network client to the manager, or uses a default if none provided.
-   * @param {NetworkClientInterface} client - The client to attach, optional.
-   * @param {IRetryConfig} retryConfig - The retry configuration, optional.
+   * Retrieves the current retry configuration.
+   * @returns {boolean} Whether the retry configuration is invalid.
    */
-  attachClient(client?: NetworkClientInterface, retryConfig?: IRetryConfig, shouldWaitForTrackingCalls?: boolean): void;
+  getIsInvalidRetryConfig(): boolean;
   /**
    * Retrieves the current retry configuration.
    * @returns {IRetryConfig} A copy of the current retry configuration.
    */
   getRetryConfig(): IRetryConfig;
   /**
-   * Singleton accessor for the NetworkManager instance.
-   * @returns {NetworkManager} The singleton instance.
+   * Injects the service container into the network manager.
+   * @param {ServiceContainer} serviceContainer - The service container to inject.
    */
-  static get Instance(): NetworkManager;
+  injectServiceContainer(serviceContainer: ServiceContainer): void;
   /**
    * Sets the global configuration for network requests.
    * @param {GlobalRequestModel} config - The configuration to set.

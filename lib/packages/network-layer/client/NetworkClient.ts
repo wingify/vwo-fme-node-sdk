@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,11 @@ export interface IRetryConfig {
  * Implements the NetworkClientInterface to handle network requests.
  */
 export class NetworkClient implements NetworkClientInterface {
+  private logManager: LogManager;
+
+  constructor(logManager: LogManager) {
+    this.logManager = logManager;
+  }
   /**
    * Performs a GET request using the provided RequestModel.
    * @param {RequestModel} requestModel - The model containing request options.
@@ -272,7 +277,7 @@ export class NetworkClient implements NetworkClientInterface {
     const endpoint = String(networkOptions.path).split('?')[0];
     const delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, attempt) * 1000;
     if (retryConfig.shouldRetry && attempt < retryConfig.maxRetries) {
-      LogManager.Instance.errorLog(
+      this.logManager.errorLog(
         'ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL',
         {
           endPoint: endpoint,
@@ -292,7 +297,7 @@ export class NetworkClient implements NetworkClientInterface {
       }, delay);
     } else {
       if (!String(networkOptions.path).includes(EventEnum.VWO_DEBUGGER_EVENT)) {
-        LogManager.Instance.errorLog(
+        this.logManager.errorLog(
           'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
           {
             extraData: endpoint,

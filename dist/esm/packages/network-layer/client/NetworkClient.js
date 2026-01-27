@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,15 @@ import * as https from 'https';
 import { Deferred } from '../../../utils/PromiseUtil.js';
 import { HTTPS } from '../../../constants/Url.js';
 import { ResponseModel } from '../models/ResponseModel.js';
-import { LogManager } from '../../../packages/logger/index.js';
 import { EventEnum } from '../../../enums/EventEnum.js';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
 export class NetworkClient {
+    constructor(logManager) {
+        this.logManager = logManager;
+    }
     /**
      * Performs a GET request using the provided RequestModel.
      * @param {RequestModel} requestModel - The model containing request options.
@@ -185,7 +187,7 @@ export class NetworkClient {
         const endpoint = String(networkOptions.path).split('?')[0];
         const delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, attempt) * 1000;
         if (retryConfig.shouldRetry && attempt < retryConfig.maxRetries) {
-            LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+            this.logManager.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
                 endPoint: endpoint,
                 err: getFormattedErrorMessage(error),
                 delay: delay / 1000,
@@ -201,7 +203,7 @@ export class NetworkClient {
         }
         else {
             if (!String(networkOptions.path).includes(EventEnum.VWO_DEBUGGER_EVENT)) {
-                LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+                this.logManager.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
                     extraData: endpoint,
                     attempts: attempt,
                     err: getFormattedErrorMessage(error),

@@ -1,3 +1,4 @@
+import { LogManager } from '../../logger';
 import { Connector, ISettingsData } from '../Connector';
 /**
  * Interface representing the structure of data to be stored
@@ -34,16 +35,17 @@ export declare class BrowserStorageConnector extends Connector {
   protected alwaysUseCachedSettings: boolean;
   protected ttl: number;
   private readonly SETTINGS_KEY;
+  private logManager;
   /**
    * Creates an instance of BrowserStorageConnector
    * @param {ClientStorageOptions} [options] - Configuration options for the storage connector
-   * @param {string} [options.key] - Custom key for storage (defaults to Constants.DEFAULT_LOCAL_STORAGE_KEY)
+   * @param {string} defaultStorageKey - Default key for storage
    * @param {Storage} [options.provider] - Storage provider (defaults to window.localStorage)
    * @param {boolean} [options.isDisabled] - Whether storage operations should be disabled
    * @param {boolean} [options.alwaysUseCachedSettings] - Whether to always use cached settings
    * @param {number} [options.ttl] - Custom TTL in milliseconds (defaults to Constants.SETTINGS_TTL)
    */
-  constructor(options?: ClientStorageOptions);
+  constructor(options: ClientStorageOptions, defaultStorageKey: string, logManager: LogManager);
   /**
    * Retrieves all stored data from the storage
    * @private

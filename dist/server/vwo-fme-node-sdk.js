@@ -1,8 +1,8 @@
 /*!
- * vwo-fme-node-sdk - v1.35.0
+ * vwo-fme-node-sdk - v1.36.0
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
  *  1. murmurhash - ^2.0.1
  *  2. superstruct - ^0.14.x
  *  3. uuid - ^9.0.1
- *  4. vwo-fme-sdk-log-messages - ^1.2.10
+ *  4. vwo-fme-sdk-log-messages - ^1.3.0
  */
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
@@ -32,7 +32,7 @@
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.35.0"
+  version: "1.36.0"
 };
 
 /***/ }),
@@ -164,7 +164,7 @@ exports.VWO = void 0;
 exports.init = init;
 exports.onInit = onInit;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,13 +181,11 @@ exports.onInit = onInit;
 var VWOBuilder_1 = __webpack_require__(/*! ./VWOBuilder */ "./dist/server-unpacked/VWOBuilder.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
-var SdkInitAndUsageStatsUtil_1 = __webpack_require__(/*! ./utils/SdkInitAndUsageStatsUtil */ "./dist/server-unpacked/utils/SdkInitAndUsageStatsUtil.js");
 var log_messages_1 = __webpack_require__(/*! ./enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var PlatformEnum_1 = __webpack_require__(/*! ./enums/PlatformEnum */ "./dist/server-unpacked/enums/PlatformEnum.js");
 var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
-var logger_1 = __webpack_require__(/*! ./packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
-var SettingsSchemaValidation_1 = __webpack_require__(/*! ./models/schemas/SettingsSchemaValidation */ "./dist/server-unpacked/models/schemas/SettingsSchemaValidation.js");
+var FunctionUtil_1 = __webpack_require__(/*! ./utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var VWO = /** @class */function () {
   /**
    * Constructor for the VWO class.
@@ -206,42 +204,24 @@ var VWO = /** @class */function () {
    */
   VWO.setInstance = function (options) {
     var _this = this;
+    var startTimeForInit = Date.now();
     var optionsVWOBuilder = options === null || options === void 0 ? void 0 : options.vwoBuilder;
     this.vwoBuilder = optionsVWOBuilder || new VWOBuilder_1.VWOBuilder(options);
     this.instance = this.vwoBuilder.setLogger() // Sets up logging for debugging and monitoring.
     .setSettingsService() // Sets the settings service for configuration management.
     .setStorage() // Configures storage for data persistence.
     .setNetworkManager() // Configures network management for API communication.
-    .setSegmentation() // Sets up segmentation for targeted functionality.
     // .initBatching()        // Initializes batching for bulk data processing.
     .initPolling() // Starts polling mechanism for regular updates.
-    .initBatching().initUsageStats(); // Initializes usage statistics for the SDK.
+    .initBatching(); // Initializes usage statistics for the SDK.
     // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
+    this.vwoBuilder.getSettingsService().startTimeForInit = startTimeForInit;
     if (options === null || options === void 0 ? void 0 : options.settings) {
-      var isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(options.settings);
-      if (isSettingsValid) {
-        logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
-        var vwoClient = this.vwoBuilder.build(options.settings);
-        vwoClient.isSettingsValid = true;
-        vwoClient.settingsFetchTime = 0;
-        return Promise.resolve(vwoClient);
-      } else {
-        logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, {
-          an: ApiEnum_1.ApiEnum.INIT
-        });
-        var vwoClient = this.vwoBuilder.build({});
-        vwoClient.isSettingsValid = false;
-        vwoClient.settingsFetchTime = 0;
-        return Promise.resolve(vwoClient);
-      }
+      this.vwoBuilder.getSettingsService().isSettingsProvidedInInit = true;
+      return Promise.resolve(this.vwoBuilder.build(options.settings));
     }
     return this.vwoBuilder.getSettings().then(function (settings) {
-      var vwoClient = _this.vwoBuilder.build(settings);
-      // Attach to instance for logging
-      vwoClient.isSettingsValid = _this.vwoBuilder.isSettingsValid;
-      vwoClient.settingsFetchTime = _this.vwoBuilder.settingsFetchTime;
-      _this.settings = settings;
-      return vwoClient;
+      return _this.vwoBuilder.build(settings); // Builds the VWO instance with the fetched settings.
     });
   };
   Object.defineProperty(VWO, "Instance", {
@@ -271,8 +251,7 @@ var _global = {};
  */
 function init(options) {
   return __awaiter(this, void 0, void 0, function () {
-    var apiName, date, invalidErrorPrefix, msg, msg, msg, msg, startTimeForInit_1, instance, msg;
-    var _this = this;
+    var apiName, date, invalidErrorPrefix, msg, msg, msg, msg, instance, msg;
     return __generator(this, function (_a) {
       apiName = ApiEnum_1.ApiEnum.INIT;
       date = new Date().toISOString();
@@ -301,8 +280,6 @@ function init(options) {
         } else {
           options.platform = PlatformEnum_1.PlatformEnum.SERVER;
         }
-        startTimeForInit_1 = undefined;
-        startTimeForInit_1 = Date.now();
         instance = new VWO(options);
         _global = {
           vwoInitDeferred: new PromiseUtil_1.Deferred(),
@@ -310,46 +287,15 @@ function init(options) {
           instance: null
         };
         return [2 /*return*/, instance.then(function (_vwoInstance) {
-          return __awaiter(_this, void 0, void 0, function () {
-            var sdkInitTime, usageStatsAccountId;
-            var _a, _b, _c, _d, _e;
-            return __generator(this, function (_f) {
-              switch (_f.label) {
-                case 0:
-                  sdkInitTime = Date.now() - startTimeForInit_1;
-                  if (!(_vwoInstance.isSettingsValid && !((_b = (_a = _vwoInstance.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier))) return [3 /*break*/, 3];
-                  if (!((_c = _vwoInstance.options) === null || _c === void 0 ? void 0 : _c.shouldWaitForTrackingCalls)) return [3 /*break*/, 2];
-                  return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime)];
-                case 1:
-                  _f.sent();
-                  return [3 /*break*/, 3];
-                case 2:
-                  (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(_vwoInstance.settingsFetchTime, sdkInitTime);
-                  _f.label = 3;
-                case 3:
-                  usageStatsAccountId = (_d = _vwoInstance.originalSettings) === null || _d === void 0 ? void 0 : _d.usageStatsAccountId;
-                  if (!usageStatsAccountId) return [3 /*break*/, 6];
-                  if (!((_e = _vwoInstance.options) === null || _e === void 0 ? void 0 : _e.shouldWaitForTrackingCalls)) return [3 /*break*/, 5];
-                  return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId)];
-                case 4:
-                  _f.sent();
-                  return [3 /*break*/, 6];
-                case 5:
-                  (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId);
-                  _f.label = 6;
-                case 6:
-                  _global.isSettingsFetched = true;
-                  _global.instance = _vwoInstance;
-                  _global.vwoInitDeferred.resolve(_vwoInstance);
-                  return [2 /*return*/, _vwoInstance];
-              }
-            });
-          });
+          _global.isSettingsFetched = true;
+          _global.instance = _vwoInstance;
+          _global.vwoInitDeferred.resolve(_vwoInstance);
+          return _vwoInstance;
         })];
       } catch (err) {
         msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EXECUTION_FAILED, {
           apiName: apiName,
-          err: err
+          err: (0, FunctionUtil_1.getFormattedErrorMessage)(err)
         });
         console.info("[INFO]: VWO-SDK ".concat(new Date().toISOString(), " ").concat(msg));
       }
@@ -390,7 +336,7 @@ function onInit() {
       } catch (err) {
         msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EXECUTION_FAILED, {
           apiName: apiName,
-          err: err
+          err: (0, FunctionUtil_1.getFormattedErrorMessage)(err)
         });
         console.info("[INFO]: VWO-SDK ".concat(new Date().toISOString(), " ").concat(msg));
       }
@@ -537,7 +483,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.VWOBuilder = void 0;
 var logger_1 = __webpack_require__(/*! ./packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var network_layer_1 = __webpack_require__(/*! ./packages/network-layer */ "./dist/server-unpacked/packages/network-layer/index.js");
-var segmentation_evaluator_1 = __webpack_require__(/*! ./packages/segmentation-evaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/index.js");
 var storage_1 = __webpack_require__(/*! ./packages/storage */ "./dist/server-unpacked/packages/storage/index.js");
 var VWOClient_1 = __webpack_require__(/*! ./VWOClient */ "./dist/server-unpacked/VWOClient.js");
 var SettingsService_1 = __webpack_require__(/*! ./services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
@@ -546,14 +491,12 @@ var DataTypeUtil_1 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./dist/ser
 var FunctionUtil_1 = __webpack_require__(/*! ./utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
-var SettingsUtil_1 = __webpack_require__(/*! ./utils/SettingsUtil */ "./dist/server-unpacked/utils/SettingsUtil.js");
 var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./dist/server-unpacked/utils/UuidUtil.js");
 var BatchEventsQueue_1 = __webpack_require__(/*! ./services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
-var BatchEventsDispatcher_1 = __webpack_require__(/*! ./utils/BatchEventsDispatcher */ "./dist/server-unpacked/utils/BatchEventsDispatcher.js");
-var UsageStatsUtil_1 = __webpack_require__(/*! ./utils/UsageStatsUtil */ "./dist/server-unpacked/utils/UsageStatsUtil.js");
 var constants_1 = __webpack_require__(/*! ./constants */ "./dist/server-unpacked/constants/index.js");
 var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var EdgeConfigModel_1 = __webpack_require__(/*! ./models/edge/EdgeConfigModel */ "./dist/server-unpacked/models/edge/EdgeConfigModel.js");
+var ServiceContainer_1 = __webpack_require__(/*! ./services/ServiceContainer */ "./dist/server-unpacked/services/ServiceContainer.js");
 var VWOBuilder = /** @class */function () {
   function VWOBuilder(options) {
     this.originalSettings = {};
@@ -561,28 +504,25 @@ var VWOBuilder = /** @class */function () {
     this.isSettingsValid = false;
     this.settingsFetchTime = undefined;
     this.options = options;
+    this.defaultServiceContainer = new ServiceContainer_1.ServiceContainer(this.options);
   }
   /**
    * Sets the network manager with the provided client and development mode options.
    * @returns {this} The instance of this builder.
    */
   VWOBuilder.prototype.setNetworkManager = function () {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d;
     if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
       this.options.shouldWaitForTrackingCalls = true;
     }
-    var networkInstance = network_layer_1.NetworkManager.Instance;
-    // Attach the network client from options
-    networkInstance.attachClient((_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.network) === null || _c === void 0 ? void 0 : _c.client, (_d = this.options) === null || _d === void 0 ? void 0 : _d.retryConfig, ((_e = this.options) === null || _e === void 0 ? void 0 : _e.shouldWaitForTrackingCalls) ? true : false);
-    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+    this.networkManager = new network_layer_1.NetworkManager(this.logManager, (_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.network) === null || _c === void 0 ? void 0 : _c.client, (_d = this.options) === null || _d === void 0 ? void 0 : _d.retryConfig);
+    this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
       service: "Network Layer"
     }));
-    // Set the development mode based on options
-    networkInstance.getConfig().setDevelopmentMode((_f = this.options) === null || _f === void 0 ? void 0 : _f.isDevelopmentMode);
+    this.defaultServiceContainer.setNetworkManager(this.networkManager);
     return this;
   };
   VWOBuilder.prototype.initBatching = function () {
-    var _this = this;
     var _a;
     // If edge config is provided, set the batch event data to the default values
     if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
@@ -594,41 +534,21 @@ var VWOBuilder = /** @class */function () {
     }
     if (this.options.batchEventData) {
       if (this.settingFileManager.isGatewayServiceProvided) {
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
-        return this;
-      }
-      if ((!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.eventsPerRequest) || this.options.batchEventData.eventsPerRequest <= 0) && (!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.requestTimeInterval) || this.options.batchEventData.requestTimeInterval <= 0)) {
-        logger_1.LogManager.Instance.errorLog('INVALID_BATCH_EVENTS_CONFIG', {}, {
-          an: ApiEnum_1.ApiEnum.INIT
-        });
-        return this;
-      }
-      this.batchEventsQueue = new BatchEventsQueue_1.BatchEventsQueue(Object.assign({}, this.options.batchEventData, {
-        dispatcher: function (events, callback) {
-          return BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch({
-            ev: events
-          }, callback, Object.assign({}, {
-            a: _this.options.accountId,
-            env: _this.options.sdkKey,
-            sn: constants_1.Constants.SDK_NAME,
-            sv: constants_1.Constants.SDK_VERSION
-          }));
+        this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
+      } else {
+        if ((!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.eventsPerRequest) || this.options.batchEventData.eventsPerRequest <= 0) && (!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.requestTimeInterval) || this.options.batchEventData.requestTimeInterval <= 0)) {
+          this.logManager.errorLog('INVALID_BATCH_EVENTS_CONFIG', {}, {
+            an: ApiEnum_1.ApiEnum.INIT
+          });
+        } else {
+          this.options.batchEventData.accountId = parseInt(this.options.accountId);
+          this.batchEventsQueue = new BatchEventsQueue_1.BatchEventsQueue(Object.assign({}, this.options.batchEventData), this.logManager);
+          this.batchEventsQueue.flushAndClearTimer.bind(this.batchEventsQueue);
         }
-      }));
-      this.batchEventsQueue.flushAndClearTimer.bind(this.batchEventsQueue);
+      }
     }
-    return this;
-  };
-  /**
-   * Sets the segmentation evaluator with the provided segmentation options.
-   * @returns {this} The instance of this builder.
-   */
-  VWOBuilder.prototype.setSegmentation = function () {
-    var _a;
-    segmentation_evaluator_1.SegmentationManager.Instance.attachEvaluator((_a = this.options) === null || _a === void 0 ? void 0 : _a.segmentation);
-    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-      service: "Segmentation Evaluator"
-    }));
+    this.defaultServiceContainer.setBatchEventsQueue(this.batchEventsQueue);
+    this.defaultServiceContainer.injectServiceContainer(this.defaultServiceContainer);
     return this;
   };
   /**
@@ -644,7 +564,6 @@ var VWOBuilder = /** @class */function () {
       this.settingFileManager.getSettings().then(function (settings) {
         _this.isSettingsValid = _this.settingFileManager.isSettingsValid;
         _this.settingsFetchTime = _this.settingFileManager.settingsFetchTime;
-        _this.originalSettings = settings;
         _this.isSettingsFetchInProgress = false;
         deferredObject.resolve(settings);
       });
@@ -663,7 +582,7 @@ var VWOBuilder = /** @class */function () {
     try {
       // Use cached settings if available and not forced to fetch
       if (this.settings) {
-        logger_1.LogManager.Instance.info('Using already fetched and cached settings');
+        this.logManager.info('Using already fetched and cached settings');
         deferredObject.resolve(this.settings);
       } else {
         // Fetch settings if not cached
@@ -672,7 +591,7 @@ var VWOBuilder = /** @class */function () {
         });
       }
     } catch (err) {
-      logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+      this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
         err: (0, FunctionUtil_1.getFormattedErrorMessage)(err)
       }, {
         an: ApiEnum_1.ApiEnum.INIT
@@ -689,17 +608,20 @@ var VWOBuilder = /** @class */function () {
     var _a, _b, _c, _d;
     if (this.options.storage) {
       // Attach the storage connector from options
-      this.storage = storage_1.Storage.Instance.attachConnector(this.options.storage);
+      this.storage = new storage_1.Storage(this.options.storage);
       this.settingFileManager.isStorageServiceProvided = true;
     } else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       var BrowserStorageConnector = (__webpack_require__(/*! ./packages/storage/connectors/BrowserStorageConnector */ "./dist/server-unpacked/packages/storage/connectors/BrowserStorageConnector.js").BrowserStorageConnector);
+      // create accountId and sdkKey hash and use it as key for storage
+      var encodedSdkKey = btoa(this.options.sdkKey);
+      var defaultStorageKey = "".concat(constants_1.Constants.PRODUCT_NAME, "_").concat(this.options.accountId, "_").concat(encodedSdkKey);
       // Pass clientStorage config to BrowserStorageConnector
-      this.storage = storage_1.Storage.Instance.attachConnector(new BrowserStorageConnector(__assign(__assign({}, this.options.clientStorage), {
+      this.storage = new storage_1.Storage(new BrowserStorageConnector(__assign(__assign({}, this.options.clientStorage), {
         alwaysUseCachedSettings: (_a = this.options.clientStorage) === null || _a === void 0 ? void 0 : _a.alwaysUseCachedSettings,
         ttl: (_b = this.options.clientStorage) === null || _b === void 0 ? void 0 : _b.ttl
-      })));
-      logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+      }), defaultStorageKey, this.logManager));
+      this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
         service: ((_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.clientStorage) === null || _d === void 0 ? void 0 : _d.provider) === sessionStorage ? "Session Storage" : "Local Storage"
       }));
       this.settingFileManager.isStorageServiceProvided = true;
@@ -707,6 +629,7 @@ var VWOBuilder = /** @class */function () {
       // Set storage to null if no storage options provided
       this.storage = null;
     }
+    this.defaultServiceContainer.setStorage(this.storage);
     return this;
   };
   /**
@@ -714,8 +637,30 @@ var VWOBuilder = /** @class */function () {
    * @returns {this} The instance of this builder.
    */
   VWOBuilder.prototype.setSettingsService = function () {
-    this.settingFileManager = new SettingsService_1.SettingsService(this.options);
+    this.settingFileManager = new SettingsService_1.SettingsService(this.options, this.logManager);
+    this.defaultServiceContainer.setSettingsService(this.settingFileManager);
     return this;
+  };
+  /**
+   * Returns the logger.
+   * @returns {LogManager} The logger.
+   */
+  VWOBuilder.prototype.getLogger = function () {
+    return this.logManager;
+  };
+  /**
+   * Returns the settings manager.
+   * @returns {SettingsService} The settings manager.
+   */
+  VWOBuilder.prototype.getSettingsService = function () {
+    return this.settingFileManager;
+  };
+  /**
+   * Returns the storage.
+   * @returns {Storage} The storage.
+   */
+  VWOBuilder.prototype.getStorage = function () {
+    return this.storage;
   };
   /**
    * Sets the logger with the provided logger options.
@@ -723,9 +668,10 @@ var VWOBuilder = /** @class */function () {
    */
   VWOBuilder.prototype.setLogger = function () {
     this.logManager = new logger_1.LogManager(this.options.logger || {});
-    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+    this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
       service: "Logger"
     }));
+    this.defaultServiceContainer.setLogManager(this.logManager);
     return this;
   };
   /**
@@ -761,12 +707,12 @@ var VWOBuilder = /** @class */function () {
   VWOBuilder.prototype.getRandomUserId = function () {
     var apiName = 'getRandomUserId';
     try {
-      logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+      this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
         apiName: apiName
       }));
       return (0, UuidUtil_1.getRandomUUID)(this.options.sdkKey);
     } catch (err) {
-      logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+      this.logManager.errorLog('EXECUTION_FAILED', {
         apiName: apiName,
         err: (0, FunctionUtil_1.getFormattedErrorMessage)(err)
       });
@@ -808,7 +754,7 @@ var VWOBuilder = /** @class */function () {
       this.isValidPollIntervalPassedFromInit = true;
       this.checkAndPoll();
     } else if (pollInterval != null) {
-      logger_1.LogManager.Instance.errorLog('INVALID_POLLING_CONFIGURATION', {
+      this.logManager.errorLog('INVALID_POLLING_CONFIGURATION', {
         key: 'pollInterval',
         correctType: 'number >= 1000'
       }, {
@@ -818,23 +764,13 @@ var VWOBuilder = /** @class */function () {
     return this;
   };
   /**
-   * Initializes usage statistics for the SDK.
-   * @returns {this} The instance of this builder.
-   */
-  VWOBuilder.prototype.initUsageStats = function () {
-    if (this.options.isUsageStatsDisabled) {
-      return this;
-    }
-    UsageStatsUtil_1.UsageStatsUtil.getInstance().setUsageStats(this.options);
-    return this;
-  };
-  /**
    * Builds a new VWOClient instance with the provided settings.
    * @param {SettingsModel} settings - The settings for the VWOClient.
    * @returns {VWOClient} The new VWOClient instance.
    */
   VWOBuilder.prototype.build = function (settings) {
-    this.vwoInstance = new VWOClient_1.VWOClient(settings, this.options);
+    this.originalSettings = settings;
+    this.vwoInstance = new VWOClient_1.VWOClient(settings, this.options, this.defaultServiceContainer);
     this.updatePollIntervalAndCheckAndPoll(settings, true);
     return this.vwoInstance;
   };
@@ -858,17 +794,17 @@ var VWOBuilder = /** @class */function () {
               if (latestSettings && Object.keys(latestSettings).length > 0 && JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
                 this.originalSettings = latestSettings;
                 clonedSettings = (0, FunctionUtil_1.cloneObject)(latestSettings);
-                logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS);
-                (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(clonedSettings, this.vwoInstance);
+                this.logManager.info(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS);
+                this.vwoInstance.updateSettings(clonedSettings, false);
                 // Reinitialize the poll_interval value if there is a change in settings
                 this.updatePollIntervalAndCheckAndPoll(latestSettings, false);
               } else if (latestSettings) {
-                logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
+                this.logManager.info(log_messages_1.InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
               }
               return [3 /*break*/, 4];
             case 2:
               ex_1 = _b.sent();
-              logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS_WITH_POLLING', {
+              this.logManager.errorLog('ERROR_FETCHING_SETTINGS_WITH_POLLING', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(ex_1)
               }, {
                 an: constants_1.Constants.POLLING
@@ -892,7 +828,7 @@ var VWOBuilder = /** @class */function () {
     var _a;
     if (!this.isValidPollIntervalPassedFromInit) {
       var pollInterval = (_a = settings === null || settings === void 0 ? void 0 : settings.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
-      logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_POLL_INTERVAL_FROM_SETTINGS, {
+      this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_POLL_INTERVAL_FROM_SETTINGS, {
         source: (settings === null || settings === void 0 ? void 0 : settings.pollInterval) ? 'settings' : 'default',
         pollInterval: pollInterval.toString()
       }));
@@ -917,6 +853,16 @@ exports.VWOBuilder = VWOBuilder;
 "use strict";
 
 
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function (resolve) {
@@ -1028,66 +974,124 @@ var __generator = this && this.__generator || function (thisArg, body) {
     };
   }
 };
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.VWOClient = void 0;
-/**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var logger_1 = __webpack_require__(/*! ./packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var GetFlag_1 = __webpack_require__(/*! ./api/GetFlag */ "./dist/server-unpacked/api/GetFlag.js");
 var SetAttribute_1 = __webpack_require__(/*! ./api/SetAttribute */ "./dist/server-unpacked/api/SetAttribute.js");
 var TrackEvent_1 = __webpack_require__(/*! ./api/TrackEvent */ "./dist/server-unpacked/api/TrackEvent.js");
 var log_messages_1 = __webpack_require__(/*! ./enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
-var BatchEventsQueue_1 = __webpack_require__(/*! ./services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 var SettingsSchemaValidation_1 = __webpack_require__(/*! ./models/schemas/SettingsSchemaValidation */ "./dist/server-unpacked/models/schemas/SettingsSchemaValidation.js");
 var ContextModel_1 = __webpack_require__(/*! ./models/user/ContextModel */ "./dist/server-unpacked/models/user/ContextModel.js");
-var HooksService_1 = __importDefault(__webpack_require__(/*! ./services/HooksService */ "./dist/server-unpacked/services/HooksService.js"));
-var UrlUtil_1 = __webpack_require__(/*! ./utils/UrlUtil */ "./dist/server-unpacked/utils/UrlUtil.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ./utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var SettingsUtil_1 = __webpack_require__(/*! ./utils/SettingsUtil */ "./dist/server-unpacked/utils/SettingsUtil.js");
 var VariationModel_1 = __webpack_require__(/*! ./models/campaign/VariationModel */ "./dist/server-unpacked/models/campaign/VariationModel.js");
-var NetworkUtil_1 = __webpack_require__(/*! ./utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
-var SettingsService_1 = __webpack_require__(/*! ./services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
-var StorageService_1 = __webpack_require__(/*! ./services/StorageService */ "./dist/server-unpacked/services/StorageService.js");
 var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var AliasingUtil_1 = __webpack_require__(/*! ./utils/AliasingUtil */ "./dist/server-unpacked/utils/AliasingUtil.js");
 var UserIdUtil_1 = __webpack_require__(/*! ./utils/UserIdUtil */ "./dist/server-unpacked/utils/UserIdUtil.js");
 var DataTypeUtil_2 = __webpack_require__(/*! ./utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
+var SdkInitAndUsageStatsUtil_1 = __webpack_require__(/*! ./utils/SdkInitAndUsageStatsUtil */ "./dist/server-unpacked/utils/SdkInitAndUsageStatsUtil.js");
+var UsageStatsUtil_1 = __webpack_require__(/*! ./utils/UsageStatsUtil */ "./dist/server-unpacked/utils/UsageStatsUtil.js");
+var StorageService_1 = __webpack_require__(/*! ./services/StorageService */ "./dist/server-unpacked/services/StorageService.js");
 var VWOClient = /** @class */function () {
-  function VWOClient(settings, options) {
-    this.options = options;
-    (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settings, this);
-    UrlUtil_1.UrlUtil.init({
-      collectionPrefix: this.settings.getCollectionPrefix()
-    });
-    (0, NetworkUtil_1.setShouldWaitForTrackingCalls)(this.options.shouldWaitForTrackingCalls || false);
-    logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.CLIENT_INITIALIZED);
-    this.vwoClientInstance = this;
-    this.isAliasingEnabled = options.isAliasingEnabled || false;
-    return this;
+  /**
+   * Constructor for the VWOClient class.
+   * @param settings - The settings to initialize the client with.
+   * @param options - The options to initialize the client with.
+   * @param logManager - The log manager to use for logging.
+   * @param settingsService - The settings service to use for fetching settings.
+   * @param networkManager - The network manager to use for making network requests.
+   * @param storage - The storage to use for storing data.
+   * @param batchEventsQueue - The batch events queue to use for batching events.
+   */
+  function VWOClient(settings, options, serviceContainer) {
+    try {
+      this.options = options;
+      this.serviceContainer = serviceContainer;
+      this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(settings);
+      this.isAliasingEnabled = options.isAliasingEnabled || false;
+      if (this.isSettingsValid && !this.serviceContainer.getSettingsService().isSettingsProvidedInInit) {
+        this.serviceContainer.getLogManager().info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+      } else if (!this.isSettingsValid && this.options.settings) {
+        this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, {
+          an: ApiEnum_1.ApiEnum.INIT
+        }, false);
+      }
+      (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settings, this, this.serviceContainer.getLogManager());
+      this.serviceContainer.setSettings(this.settings);
+      this.serviceContainer.injectServiceContainer(this.serviceContainer);
+      this.serviceContainer.setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
+      this.serviceContainer.getLogManager().info(log_messages_1.InfoLogMessagesEnum.CLIENT_INITIALIZED);
+      this.vwoClientInstance = this;
+      var usageStatsUtil = new UsageStatsUtil_1.UsageStatsUtil(this.options);
+      this.sendSdkInitAndUsageStatsEvents(usageStatsUtil);
+      return this;
+    } catch (err) {
+      this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
+        apiName: ApiEnum_1.ApiEnum.INIT,
+        err: (0, FunctionUtil_1.getFormattedErrorMessage)(err)
+      }, {
+        an: ApiEnum_1.ApiEnum.INIT
+      }, false);
+    }
   }
+  /**
+   * Sends the SDK init event and usage stats event
+   * @param usageStatsUtil - The usage stats util to use for sending the usage stats event
+   */
+  VWOClient.prototype.sendSdkInitAndUsageStatsEvents = function (usageStatsUtil) {
+    return __awaiter(this, void 0, void 0, function () {
+      var settingsFetchTime, sdkInitTime, usageStatsAccountId, err_1;
+      var _a, _b, _c;
+      return __generator(this, function (_d) {
+        switch (_d.label) {
+          case 0:
+            _d.trys.push([0, 7,, 8]);
+            settingsFetchTime = this.serviceContainer.getSettingsService().settingsFetchTime;
+            if (this.serviceContainer.getSettingsService().isSettingsProvidedInInit) {
+              // if settings are provided in init, then settings fetch time is 0
+              settingsFetchTime = 0;
+            }
+            sdkInitTime = Date.now() - this.serviceContainer.getSettingsService().startTimeForInit;
+            if (!(this.isSettingsValid && !((_b = (_a = this.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier))) return [3 /*break*/, 3];
+            if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 2];
+            return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(settingsFetchTime, sdkInitTime, this.serviceContainer)];
+          case 1:
+            _d.sent();
+            return [3 /*break*/, 3];
+          case 2:
+            // send sdk init event
+            (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(settingsFetchTime, sdkInitTime, this.serviceContainer);
+            _d.label = 3;
+          case 3:
+            usageStatsAccountId = (_c = this.originalSettings) === null || _c === void 0 ? void 0 : _c.usageStatsAccountId;
+            if (!usageStatsAccountId) return [3 /*break*/, 6];
+            if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 5];
+            return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil)];
+          case 4:
+            _d.sent();
+            return [3 /*break*/, 6];
+          case 5:
+            (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil);
+            _d.label = 6;
+          case 6:
+            return [3 /*break*/, 8];
+          case 7:
+            err_1 = _d.sent();
+            this.serviceContainer.getLogManager().error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SDK_INIT_EVENT_FAILED, {
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_1)
+            }));
+            return [3 /*break*/, 8];
+          case 8:
+            return [2 /*return*/];
+        }
+      });
+    });
+  };
   /**
    * Retrieves the value of a feature flag for a given feature key and context.
    * This method validates the feature key and context, ensures the settings are valid, and then uses the FlagApi to get the flag value.
@@ -1098,7 +1102,7 @@ var VWOClient = /** @class */function () {
    */
   VWOClient.prototype.getFlag = function (featureKey, context) {
     return __awaiter(this, void 0, void 0, function () {
-      var apiName, deferredObject, errorReturnSchema, hooksService, userId, contextModel, err_1;
+      var apiName, deferredObject, errorReturnSchema, userId, contextCopy, contextModel, err_2;
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
@@ -1108,13 +1112,12 @@ var VWOClient = /** @class */function () {
             _a.label = 1;
           case 1:
             _a.trys.push([1, 3,, 4]);
-            hooksService = new HooksService_1.default(this.options);
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+            this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
               apiName: apiName
             }));
             // Validate featureKey is a string
             if (!(0, DataTypeUtil_1.isString)(featureKey)) {
-              logger_1.LogManager.Instance.errorLog('INVALID_PARAM', {
+              this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
                 apiName: apiName,
                 key: 'featureKey',
                 type: (0, DataTypeUtil_1.getType)(featureKey),
@@ -1125,35 +1128,36 @@ var VWOClient = /** @class */function () {
               throw new TypeError('TypeError: featureKey should be a string, got ' + (0, DataTypeUtil_1.getType)(featureKey));
             }
             // Validate settings are loaded and valid
-            if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(this.originalSettings)) {
-              logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, {
+            if (!this.isSettingsValid) {
+              this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, {
                 an: ApiEnum_1.ApiEnum.GET_FLAG
               }, false);
               throw new Error('TypeError: Invalid Settings');
             }
             // Validate user ID is present in context
             if (!context || !context.id) {
-              logger_1.LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, {
+              this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, {
                 an: ApiEnum_1.ApiEnum.GET_FLAG
               }, false);
               throw new TypeError('TypeError: Invalid context');
             }
-            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
           case 2:
             userId = _a.sent();
-            context.id = userId;
-            contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
-            GetFlag_1.FlagApi.get(featureKey, this.settings, contextModel, hooksService).then(function (data) {
+            contextCopy = __assign({}, context);
+            contextCopy.id = userId;
+            contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
+            GetFlag_1.FlagApi.get(featureKey, contextModel, this.serviceContainer).then(function (data) {
               deferredObject.resolve(data);
             }).catch(function () {
               deferredObject.resolve(errorReturnSchema);
             });
             return [3 /*break*/, 4];
           case 3:
-            err_1 = _a.sent();
-            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+            err_2 = _a.sent();
+            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
               apiName: apiName,
-              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_1)
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_2)
             }, {
               an: ApiEnum_1.ApiEnum.GET_FLAG
             });
@@ -1176,7 +1180,7 @@ var VWOClient = /** @class */function () {
    */
   VWOClient.prototype.trackEvent = function (eventName_1, context_1) {
     return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
-      var apiName, deferredObject, hooksService, userId, contextModel, err_2;
+      var apiName, deferredObject, userId, contextCopy, contextModel, err_3;
       var _a;
       if (eventProperties === void 0) {
         eventProperties = {};
@@ -1189,14 +1193,13 @@ var VWOClient = /** @class */function () {
             _b.label = 1;
           case 1:
             _b.trys.push([1, 3,, 4]);
-            hooksService = new HooksService_1.default(this.options);
             // Log the API call
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+            this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
               apiName: apiName
             }));
             // Validate eventName is a string
             if (!(0, DataTypeUtil_1.isString)(eventName)) {
-              logger_1.LogManager.Instance.errorLog('INVALID_PARAM', {
+              this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
                 apiName: apiName,
                 key: 'eventName',
                 type: (0, DataTypeUtil_1.getType)(eventName),
@@ -1208,7 +1211,7 @@ var VWOClient = /** @class */function () {
             }
             // Validate eventProperties is an object
             if (!(0, DataTypeUtil_1.isObject)(eventProperties)) {
-              logger_1.LogManager.Instance.errorLog('INVALID_PARAM', {
+              this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
                 apiName: apiName,
                 key: 'eventProperties',
                 type: (0, DataTypeUtil_1.getType)(eventProperties),
@@ -1219,26 +1222,27 @@ var VWOClient = /** @class */function () {
               throw new TypeError('TypeError: eventProperties should be an object, got ' + (0, DataTypeUtil_1.getType)(eventProperties));
             }
             // Validate settings are loaded and valid
-            if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(this.originalSettings)) {
-              logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, {
+            if (!this.isSettingsValid) {
+              this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, {
                 an: ApiEnum_1.ApiEnum.TRACK_EVENT
               }, false);
               throw new Error('TypeError: Invalid Settings');
             }
             // Validate user ID is present in context
             if (!context || !context.id) {
-              logger_1.LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, {
+              this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, {
                 an: ApiEnum_1.ApiEnum.TRACK_EVENT
               }, false);
               throw new TypeError('TypeError: Invalid context');
             }
-            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
           case 2:
             userId = _b.sent();
-            context.id = userId;
-            contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+            contextCopy = __assign({}, context);
+            contextCopy.id = userId;
+            contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
             // Proceed with tracking the event
-            new TrackEvent_1.TrackApi().track(this.settings, eventName, contextModel, eventProperties, hooksService).then(function (data) {
+            new TrackEvent_1.TrackApi().track(this.serviceContainer, eventName, contextModel, eventProperties).then(function (data) {
               deferredObject.resolve(data);
             }).catch(function () {
               var _a;
@@ -1246,11 +1250,11 @@ var VWOClient = /** @class */function () {
             });
             return [3 /*break*/, 4];
           case 3:
-            err_2 = _b.sent();
+            err_3 = _b.sent();
             // Log any errors encountered during the operation
-            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
               apiName: apiName,
-              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_2)
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3)
             }, {
               an: ApiEnum_1.ApiEnum.TRACK_EVENT
             });
@@ -1276,7 +1280,7 @@ var VWOClient = /** @class */function () {
    */
   VWOClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
     return __awaiter(this, void 0, void 0, function () {
-      var apiName, attributes, userId, contextModel, attributeKey, attributeValue, userId, contextModel, attributeMap, err_3;
+      var apiName, attributes, userId, contextCopy, contextModel, attributeKey, attributeValue, userId, contextCopy, contextModel, attributeMap, err_4;
       var _a;
       return __generator(this, function (_b) {
         switch (_b.label) {
@@ -1287,7 +1291,7 @@ var VWOClient = /** @class */function () {
             _b.trys.push([1, 8,, 9]);
             if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 4];
             // Log the API call
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+            this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
               apiName: apiName
             }));
             if (Object.entries(attributeOrAttributes).length < 1) {
@@ -1316,18 +1320,19 @@ var VWOClient = /** @class */function () {
             }
             // Validate user ID is present in context
             if (!context || !context.id) {
-              logger_1.LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, {
+              this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, {
                 an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE
               }, false);
               throw new TypeError('TypeError: Invalid context');
             }
-            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
           case 2:
             userId = _b.sent();
-            context.id = userId;
-            contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+            contextCopy = __assign({}, context);
+            contextCopy.id = userId;
+            contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
             // Proceed with setting the attributes if validation is successful
-            return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributes, contextModel)];
+            return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.serviceContainer, attributes, contextModel)];
           case 3:
             // Proceed with setting the attributes if validation is successful
             _b.sent();
@@ -1347,14 +1352,15 @@ var VWOClient = /** @class */function () {
             if (!context || !context.id) {
               throw new TypeError('Invalid context');
             }
-            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
           case 5:
             userId = _b.sent();
-            context.id = userId;
-            contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+            contextCopy = __assign({}, context);
+            contextCopy.id = userId;
+            contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
             attributeMap = (_a = {}, _a[attributeKey] = attributeValue, _a);
             // Proceed with setting the attribute map if validation is successful
-            return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributeMap, contextModel)];
+            return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.serviceContainer, attributeMap, contextModel)];
           case 6:
             // Proceed with setting the attribute map if validation is successful
             _b.sent();
@@ -1362,10 +1368,10 @@ var VWOClient = /** @class */function () {
           case 7:
             return [3 /*break*/, 9];
           case 8:
-            err_3 = _b.sent();
-            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+            err_4 = _b.sent();
+            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
               apiName: apiName,
-              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3)
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4)
             }, {
               an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE
             });
@@ -1384,7 +1390,7 @@ var VWOClient = /** @class */function () {
    */
   VWOClient.prototype.updateSettings = function (settings_1) {
     return __awaiter(this, arguments, void 0, function (settings, isViaWebhook) {
-      var apiName, settingsToUpdate, _a, err_4;
+      var apiName, settingsToUpdate, _a, normalizedSettings, err_5;
       if (isViaWebhook === void 0) {
         isViaWebhook = true;
       }
@@ -1395,11 +1401,11 @@ var VWOClient = /** @class */function () {
             _b.label = 1;
           case 1:
             _b.trys.push([1, 5,, 6]);
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+            this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
               apiName: apiName
             }));
             if (!(!settings || Object.keys(settings).length === 0)) return [3 /*break*/, 3];
-            return [4 /*yield*/, SettingsService_1.SettingsService.Instance.fetchSettings(isViaWebhook, apiName)];
+            return [4 /*yield*/, this.serviceContainer.getSettingsService().fetchSettings(isViaWebhook, apiName)];
           case 2:
             _a = _b.sent();
             return [3 /*break*/, 4];
@@ -1408,23 +1414,26 @@ var VWOClient = /** @class */function () {
             _b.label = 4;
           case 4:
             settingsToUpdate = _a;
+            normalizedSettings = this.serviceContainer.getSettingsService().normalizeSettings(settingsToUpdate);
             // validate settings schema
-            if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(settingsToUpdate)) {
+            if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings)) {
               throw new Error('TypeError: Invalid Settings schema');
             }
             // set the settings on the client instance
-            (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settingsToUpdate, this.vwoClientInstance);
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, {
+            (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(normalizedSettings, this.vwoClientInstance, this.serviceContainer.getLogManager());
+            this.serviceContainer.setSettings(this.vwoClientInstance.settings);
+            this.serviceContainer.injectServiceContainer(this.serviceContainer);
+            this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, {
               apiName: apiName,
               isViaWebhook: isViaWebhook
             }));
             return [3 /*break*/, 6];
           case 5:
-            err_4 = _b.sent();
-            logger_1.LogManager.Instance.errorLog('UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED', {
+            err_5 = _b.sent();
+            this.serviceContainer.getLogManager().errorLog('UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED', {
               apiName: apiName,
               isViaWebhook: isViaWebhook,
-              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4)
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5)
             }, {
               an: ApiEnum_1.ApiEnum.UPDATE_SETTINGS
             });
@@ -1440,7 +1449,8 @@ var VWOClient = /** @class */function () {
    */
   VWOClient.prototype.flushEvents = function () {
     return __awaiter(this, void 0, void 0, function () {
-      var apiName, promises, storageService, flushResult, err_5;
+      var apiName, promises, storageService, flushResult, err_6;
+      var _this = this;
       var _a, _b, _c;
       return __generator(this, function (_d) {
         switch (_d.label) {
@@ -1449,11 +1459,11 @@ var VWOClient = /** @class */function () {
             _d.label = 1;
           case 1:
             _d.trys.push([1, 3,, 4]);
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+            this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
               apiName: apiName
             }));
-            if (!BatchEventsQueue_1.BatchEventsQueue.Instance) {
-              logger_1.LogManager.Instance.errorLog('BATCHING_NOT_ENABLED', {}, {
+            if (!this.serviceContainer.getBatchEventsQueue()) {
+              this.serviceContainer.getLogManager().errorLog('BATCHING_NOT_ENABLED', {}, {
                 an: ApiEnum_1.ApiEnum.FLUSH_EVENTS
               });
               return [2 /*return*/, {
@@ -1461,11 +1471,11 @@ var VWOClient = /** @class */function () {
                 events: []
               }];
             }
-            promises = [BatchEventsQueue_1.BatchEventsQueue.Instance.flushAndClearTimer()];
+            promises = [this.serviceContainer.getBatchEventsQueue().flushAndClearTimer()];
             if (((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig) && Object.keys(this.options.edgeConfig).length > 0 && ((_b = this.options) === null || _b === void 0 ? void 0 : _b.accountId) && ((_c = this.options) === null || _c === void 0 ? void 0 : _c.sdkKey)) {
-              storageService = new StorageService_1.StorageService();
+              storageService = new StorageService_1.StorageService(this.serviceContainer);
               promises.push(storageService.setFreshSettingsInStorage(parseInt(this.options.accountId), this.options.sdkKey).catch(function (error) {
-                logger_1.LogManager.Instance.errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', {
+                _this.serviceContainer.getLogManager().errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', {
                   err: (0, FunctionUtil_1.getFormattedErrorMessage)(error)
                 }, {
                   an: ApiEnum_1.ApiEnum.FLUSH_EVENTS
@@ -1479,10 +1489,10 @@ var VWOClient = /** @class */function () {
             flushResult = _d.sent()[0];
             return [2 /*return*/, flushResult];
           case 3:
-            err_5 = _d.sent();
-            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+            err_6 = _d.sent();
+            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
               apiName: apiName,
-              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5)
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_6)
             }, {
               an: ApiEnum_1.ApiEnum.FLUSH_EVENTS
             });
@@ -1512,17 +1522,17 @@ var VWOClient = /** @class */function () {
             _a.label = 1;
           case 1:
             _a.trys.push([1, 3,, 4]);
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+            this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
               apiName: apiName
             }));
             if (!this.isAliasingEnabled) {
-              logger_1.LogManager.Instance.errorLog('ALIAS_CALLED_BUT_NOT_PASSED', {}, {
+              this.serviceContainer.getLogManager().errorLog('ALIAS_CALLED_BUT_NOT_PASSED', {}, {
                 an: ApiEnum_1.ApiEnum.SET_ALIAS
               });
               return [2 /*return*/, false];
             }
-            if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
-              logger_1.LogManager.Instance.errorLog('INVALID_GATEWAY_URL', {}, {
+            if (!this.serviceContainer.getSettingsService().isGatewayServiceProvided) {
+              this.serviceContainer.getLogManager().errorLog('INVALID_GATEWAY_URL', {}, {
                 an: ApiEnum_1.ApiEnum.SET_ALIAS
               });
               return [2 /*return*/, false];
@@ -1565,13 +1575,13 @@ var VWOClient = /** @class */function () {
               }
               userId = contextOrUserId.id;
             }
-            return [4 /*yield*/, AliasingUtil_1.AliasingUtil.setAlias(userId, aliasId)];
+            return [4 /*yield*/, AliasingUtil_1.AliasingUtil.setAlias(userId, aliasId, this.serviceContainer)];
           case 2:
             _a.sent();
             return [2 /*return*/, true];
           case 3:
             error_1 = _a.sent();
-            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
               apiName: apiName,
               err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1)
             }, {
@@ -1600,7 +1610,7 @@ exports.VWOClient = VWOClient;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1747,7 +1757,6 @@ var CampaignModel_1 = __webpack_require__(/*! ../models/campaign/CampaignModel *
 var VariableModel_1 = __webpack_require__(/*! ../models/campaign/VariableModel */ "./dist/server-unpacked/models/campaign/VariableModel.js");
 var VariationModel_1 = __webpack_require__(/*! ../models/campaign/VariationModel */ "./dist/server-unpacked/models/campaign/VariationModel.js");
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
-var segmentation_evaluator_1 = __webpack_require__(/*! ../packages/segmentation-evaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/index.js");
 var StorageService_1 = __webpack_require__(/*! ../services/StorageService */ "./dist/server-unpacked/services/StorageService.js");
 var CampaignUtil_1 = __webpack_require__(/*! ../utils/CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
@@ -1757,10 +1766,10 @@ var ImpressionUtil_1 = __webpack_require__(/*! ../utils/ImpressionUtil */ "./dis
 var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var RuleEvaluationUtil_1 = __webpack_require__(/*! ../utils/RuleEvaluationUtil */ "./dist/server-unpacked/utils/RuleEvaluationUtil.js");
-var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var DebuggerServiceUtil_1 = __webpack_require__(/*! ../utils/DebuggerServiceUtil */ "./dist/server-unpacked/utils/DebuggerServiceUtil.js");
 var DebuggerCategoryEnum_1 = __webpack_require__(/*! ../enums/DebuggerCategoryEnum */ "./dist/server-unpacked/enums/DebuggerCategoryEnum.js");
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
+var CampaignUtil_2 = __webpack_require__(/*! ../utils/CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var Flag = /** @class */function () {
   function Flag(isEnabled, variation) {
     this.enabled = isEnabled;
@@ -1785,7 +1794,7 @@ var Flag = /** @class */function () {
 exports.Flag = Flag;
 var FlagApi = /** @class */function () {
   function FlagApi() {}
-  FlagApi.get = function (featureKey, settings, context, hooksService) {
+  FlagApi.get = function (featureKey, context, serviceContainer) {
     return __awaiter(this, void 0, void 0, function () {
       var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, debugEventProps, storageService, storedData, variation, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation;
       var _d, _e, _f, _g;
@@ -1799,7 +1808,7 @@ var FlagApi = /** @class */function () {
             passedRulesInformation = {};
             deferredObject = new PromiseUtil_1.Deferred();
             evaluatedFeatureMap = new Map();
-            feature = (0, FunctionUtil_1.getFeatureFromKey)(settings, featureKey);
+            feature = (0, FunctionUtil_1.getFeatureFromKey)(serviceContainer.getSettings(), featureKey);
             decision = {
               featureName: feature === null || feature === void 0 ? void 0 : feature.getName(),
               featureId: feature === null || feature === void 0 ? void 0 : feature.getId(),
@@ -1813,57 +1822,59 @@ var FlagApi = /** @class */function () {
               fk: feature === null || feature === void 0 ? void 0 : feature.getKey(),
               sId: context.getSessionId()
             };
-            storageService = new StorageService_1.StorageService();
-            return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService)];
+            storageService = new StorageService_1.StorageService(serviceContainer);
+            return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer)];
           case 1:
             storedData = _h.sent();
-            if (storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId) {
-              if (storedData.experimentKey) {
-                variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.experimentKey, storedData.experimentVariationId);
+            if ((storedData === null || storedData === void 0 ? void 0 : storedData.featureId) && (0, CampaignUtil_2.isFeatureIdPresentInSettings)(serviceContainer.getSettings(), storedData.featureId)) {
+              if (storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId) {
+                if (storedData.experimentKey) {
+                  variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.experimentKey, storedData.experimentVariationId);
+                  if (variation) {
+                    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
+                      variationKey: variation.getKey(),
+                      userId: context.getId(),
+                      experimentType: 'experiment',
+                      experimentKey: storedData.experimentKey
+                    }));
+                    deferredObject.resolve(new Flag(true, variation));
+                    return [2 /*return*/, deferredObject.promise];
+                  }
+                }
+              } else if ((storedData === null || storedData === void 0 ? void 0 : storedData.rolloutKey) && (storedData === null || storedData === void 0 ? void 0 : storedData.rolloutId)) {
+                variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.rolloutKey, storedData.rolloutVariationId);
                 if (variation) {
-                  logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
+                  serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
                     variationKey: variation.getKey(),
                     userId: context.getId(),
-                    experimentType: 'experiment',
-                    experimentKey: storedData.experimentKey
+                    experimentType: 'rollout',
+                    experimentKey: storedData.rolloutKey
                   }));
-                  deferredObject.resolve(new Flag(true, variation));
-                  return [2 /*return*/, deferredObject.promise];
+                  serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED, {
+                    userId: context.getId()
+                  }));
+                  isEnabled = true;
+                  shouldCheckForExperimentsRules = true;
+                  rolloutVariationToReturn = variation;
+                  featureInfo = {
+                    rolloutId: storedData.rolloutId,
+                    rolloutKey: storedData.rolloutKey,
+                    rolloutVariationId: storedData.rolloutVariationId
+                  };
+                  evaluatedFeatureMap.set(featureKey, featureInfo);
+                  Object.assign(passedRulesInformation, featureInfo);
                 }
-              }
-            } else if ((storedData === null || storedData === void 0 ? void 0 : storedData.rolloutKey) && (storedData === null || storedData === void 0 ? void 0 : storedData.rolloutId)) {
-              variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.rolloutKey, storedData.rolloutVariationId);
-              if (variation) {
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
-                  variationKey: variation.getKey(),
-                  userId: context.getId(),
-                  experimentType: 'rollout',
-                  experimentKey: storedData.rolloutKey
-                }));
-                logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED, {
-                  userId: context.getId()
-                }));
-                isEnabled = true;
-                shouldCheckForExperimentsRules = true;
-                rolloutVariationToReturn = variation;
-                featureInfo = {
-                  rolloutId: storedData.rolloutId,
-                  rolloutKey: storedData.rolloutKey,
-                  rolloutVariationId: storedData.rolloutVariationId
-                };
-                evaluatedFeatureMap.set(featureKey, featureInfo);
-                Object.assign(passedRulesInformation, featureInfo);
               }
             }
             if (!(0, DataTypeUtil_1.isObject)(feature) || feature === undefined) {
-              logger_1.LogManager.Instance.errorLog('FEATURE_NOT_FOUND', {
+              serviceContainer.getLogManager().errorLog('FEATURE_NOT_FOUND', {
                 featureKey: featureKey
               }, debugEventProps);
               deferredObject.reject({});
               return [2 /*return*/, deferredObject.promise];
             }
             // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
-            return [4 /*yield*/, segmentation_evaluator_1.SegmentationManager.Instance.setContextualData(settings, feature, context)];
+            return [4 /*yield*/, serviceContainer.getSegmentationManager().setContextualData(serviceContainer, feature, context)];
           case 2:
             // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
             _h.sent();
@@ -1875,7 +1886,7 @@ var FlagApi = /** @class */function () {
           case 3:
             if (!(_i < rollOutRules_1.length)) return [3 /*break*/, 6];
             rule = rollOutRules_1[_i];
-            return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
+            return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
           case 4:
             _a = _h.sent(), preSegmentationResult = _a.preSegmentationResult, updatedDecision = _a.updatedDecision;
             Object.assign(decision, updatedDecision);
@@ -1897,25 +1908,25 @@ var FlagApi = /** @class */function () {
           case 6:
             if (!(rolloutRulesToEvaluate.length > 0)) return [3 /*break*/, 9];
             passedRolloutCampaign = new CampaignModel_1.CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
-            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(settings, passedRolloutCampaign, context.getId());
+            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, passedRolloutCampaign, context.getId());
             if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 9];
             isEnabled = true;
             shouldCheckForExperimentsRules = true;
             rolloutVariationToReturn = variation;
             _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
-            if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 8];
-            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context, featureKey)];
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 8];
+            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey)];
           case 7:
             _h.sent();
             return [3 /*break*/, 9];
           case 8:
-            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, passedRolloutCampaign.getId(), variation.getId(), context, featureKey);
+            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey);
             _h.label = 9;
           case 9:
             return [3 /*break*/, 11];
           case 10:
             if (rollOutRules.length === 0) {
-              logger_1.LogManager.Instance.debug(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
+              serviceContainer.getLogManager().debug(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
               shouldCheckForExperimentsRules = true;
             }
             _h.label = 11;
@@ -1929,7 +1940,7 @@ var FlagApi = /** @class */function () {
           case 12:
             if (!(_b < experimentRules_1.length)) return [3 /*break*/, 15];
             rule = experimentRules_1[_b];
-            return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
+            return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
           case 13:
             _c = _h.sent(), preSegmentationResult = _c.preSegmentationResult, whitelistedObject = _c.whitelistedObject, updatedDecision = _c.updatedDecision;
             Object.assign(decision, updatedDecision);
@@ -1955,18 +1966,18 @@ var FlagApi = /** @class */function () {
           case 15:
             if (!(experimentRulesToEvaluate.length > 0)) return [3 /*break*/, 18];
             campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
-            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(settings, campaign, context.getId());
+            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context.getId());
             if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 18];
             isEnabled = true;
             experimentVariationToReturn = variation;
             _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
-            if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 17];
-            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context, featureKey)];
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 17];
+            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey)];
           case 16:
             _h.sent();
             return [3 /*break*/, 18];
           case 17:
-            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), variation.getId(), context, featureKey);
+            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey);
             _h.label = 18;
           case 18:
             // If flag is enabled, store it in data
@@ -1974,12 +1985,13 @@ var FlagApi = /** @class */function () {
               // set storage data
               new StorageDecorator_1.StorageDecorator().setDataInStorage(__assign({
                 featureKey: featureKey,
+                featureId: feature.getId(),
                 context: context
-              }, passedRulesInformation), storageService);
+              }, passedRulesInformation), storageService, serviceContainer);
             }
             // call integration callback, if defined
-            hooksService.set(decision);
-            hooksService.execute(hooksService.get());
+            serviceContainer.getHooksService().set(decision);
+            serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
             // send debug event, if debugger is enabled
             if (feature.getIsDebuggerEnabled()) {
               debugEventProps.cg = DebuggerCategoryEnum_1.DebuggerCategoryEnum.DECISION;
@@ -1988,23 +2000,23 @@ var FlagApi = /** @class */function () {
               // update debug event props with decision keys
               _updateDebugEventProps(debugEventProps, decision);
               // send debug event
-              (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+              (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
             }
             if (!((_e = feature.getImpactCampaign()) === null || _e === void 0 ? void 0 : _e.getCampaignId())) return [3 /*break*/, 21];
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
               userId: context.getId(),
               featureKey: featureKey,
               status: isEnabled ? 'enabled' : 'disabled'
             }));
-            if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 20];
-            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_f = feature.getImpactCampaign()) === null || _f === void 0 ? void 0 : _f.getCampaignId(), isEnabled ? 2 : 1,
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 20];
+            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, (_f = feature.getImpactCampaign()) === null || _f === void 0 ? void 0 : _f.getCampaignId(), isEnabled ? 2 : 1,
             // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
             context, featureKey)];
           case 19:
             _h.sent();
             return [3 /*break*/, 21];
           case 20:
-            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, (_g = feature.getImpactCampaign()) === null || _g === void 0 ? void 0 : _g.getCampaignId(), isEnabled ? 2 : 1,
+            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, (_g = feature.getImpactCampaign()) === null || _g === void 0 ? void 0 : _g.getCampaignId(), isEnabled ? 2 : 1,
             // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
             context, featureKey);
             _h.label = 21;
@@ -2065,7 +2077,7 @@ function _updateDebugEventProps(debugEventProps, decision) {
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2196,27 +2208,26 @@ Object.defineProperty(exports, "__esModule", ({
 exports.SetAttributeApi = void 0;
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
-var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 var SetAttributeApi = /** @class */function () {
   function SetAttributeApi() {}
   /**
    * Implementation of setAttributes to create an impression for multiple user attributes.
-   * @param settings Configuration settings.
+   * @param serviceContainer Service container.
    * @param attributes Key-value map of attributes.
    * @param context Context containing user information.
    */
-  SetAttributeApi.prototype.setAttribute = function (settings, attributes, context) {
+  SetAttributeApi.prototype.setAttribute = function (serviceContainer, attributes, context) {
     return __awaiter(this, void 0, void 0, function () {
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
-            if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 2];
-            return [4 /*yield*/, createImpressionForAttributes(settings, attributes, context)];
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 2];
+            return [4 /*yield*/, createImpressionForAttributes(serviceContainer, attributes, context)];
           case 1:
             _a.sent();
             return [3 /*break*/, 3];
           case 2:
-            createImpressionForAttributes(settings, attributes, context);
+            createImpressionForAttributes(serviceContainer, attributes, context);
             _a.label = 3;
           case 3:
             return [2 /*return*/];
@@ -2229,24 +2240,24 @@ var SetAttributeApi = /** @class */function () {
 exports.SetAttributeApi = SetAttributeApi;
 /**
  * Creates an impression for multiple user attributes and sends it to the server.
- * @param settings Configuration settings.
+ * @param serviceContainer Service container.
  * @param attributes Key-value map of attributes.
  * @param context Context containing user information.
  */
-var createImpressionForAttributes = function (settings, attributes, context) {
+var createImpressionForAttributes = function (serviceContainer, attributes, context) {
   return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-          payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress(), context.getSessionId());
-          if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
-          BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+          properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+          payload = (0, NetworkUtil_1.getAttributePayloadData)(serviceContainer, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress(), context.getSessionId());
+          if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
+          serviceContainer.getBatchEventsQueue().enqueue(payload);
           return [3 /*break*/, 3];
         case 1:
           // Send the constructed payload via POST request
-          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId())];
         case 2:
           // Send the constructed payload via POST request
           _a.sent();
@@ -2385,7 +2396,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.TrackApi = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2400,9 +2411,7 @@ exports.TrackApi = void 0;
  * limitations under the License.
  */
 var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
-var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var TrackApi = /** @class */function () {
   function TrackApi() {}
@@ -2410,32 +2419,32 @@ var TrackApi = /** @class */function () {
    * Implementation of the track method to handle event tracking.
    * Checks if the event exists, creates an impression, and executes hooks.
    */
-  TrackApi.prototype.track = function (settings, eventName, context, eventProperties, hooksService) {
+  TrackApi.prototype.track = function (serviceContainer, eventName, context, eventProperties) {
     return __awaiter(this, void 0, void 0, function () {
       var _a, _b;
       return __generator(this, function (_c) {
         switch (_c.label) {
           case 0:
-            if (!(0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, settings)) return [3 /*break*/, 4];
-            if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 2];
-            return [4 /*yield*/, createImpressionForTrack(settings, eventName, context, eventProperties)];
+            if (!(0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, serviceContainer.getSettings())) return [3 /*break*/, 4];
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 2];
+            return [4 /*yield*/, createImpressionForTrack(serviceContainer, eventName, context, eventProperties)];
           case 1:
             _c.sent();
             return [3 /*break*/, 3];
           case 2:
-            createImpressionForTrack(settings, eventName, context, eventProperties);
+            createImpressionForTrack(serviceContainer, eventName, context, eventProperties);
             _c.label = 3;
           case 3:
             // Set and execute integration callback for the track event
-            hooksService.set({
+            serviceContainer.getHooksService().set({
               eventName: eventName,
               api: ApiEnum_1.ApiEnum.TRACK_EVENT
             });
-            hooksService.execute(hooksService.get());
+            serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
             return [2 /*return*/, (_a = {}, _a[eventName] = true, _a)];
           case 4:
             // Log an error if the event does not exist
-            logger_1.LogManager.Instance.errorLog('EVENT_NOT_FOUND', {
+            serviceContainer.getLogManager().errorLog('EVENT_NOT_FOUND', {
               eventName: eventName
             }, {
               an: ApiEnum_1.ApiEnum.TRACK_EVENT,
@@ -2452,25 +2461,25 @@ var TrackApi = /** @class */function () {
 exports.TrackApi = TrackApi;
 /**
  * Creates an impression for a track event and sends it via a POST API request.
- * @param settings Configuration settings for the tracking.
+ * @param serviceContainer Service container.
  * @param eventName Name of the event to track.
  * @param user User details.
  * @param eventProperties Properties associated with the event.
  */
-var createImpressionForTrack = function (settings, eventName, context, eventProperties) {
+var createImpressionForTrack = function (serviceContainer, eventName, context, eventProperties) {
   return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-          payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress(), context.getSessionId());
-          if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
-          BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+          properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+          payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(serviceContainer, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress(), context.getSessionId());
+          if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
+          serviceContainer.getBatchEventsQueue().enqueue(payload);
           return [3 /*break*/, 3];
         case 1:
           // Send the constructed payload via POST request
-          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId(), eventProperties)];
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId(), eventProperties)];
         case 2:
           // Send the constructed payload via POST request
           _a.sent();
@@ -2498,7 +2507,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.HTTPS_PROTOCOL = exports.HTTP_PROTOCOL = exports.SEED_URL = exports.HTTPS = exports.HTTP = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2539,7 +2548,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Constants = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2612,7 +2621,6 @@ exports.Constants = {
     maxRetries: 3,
     backoffMultiplier: 2
   },
-  DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
   DEFAULT_SETTINGS_STORAGE_KEY: 'vwo_fme_settings',
   POLLING_INTERVAL: 600000,
   PRODUCT_NAME: 'fme',
@@ -2638,6 +2646,21 @@ exports.Constants = {
 "use strict";
 
 
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function (resolve) {
@@ -2753,22 +2776,6 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.StorageDecorator = void 0;
-/**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var StorageEnum_1 = __webpack_require__(/*! ../enums/StorageEnum */ "./dist/server-unpacked/enums/StorageEnum.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
@@ -2781,12 +2788,12 @@ var StorageDecorator = /** @class */function () {
    * @param storageService The storage service instance.
    * @returns A promise that resolves to the retrieved feature or relevant status.
    */
-  StorageDecorator.prototype.getFeatureFromStorage = function (featureKey, context, storageService) {
+  StorageDecorator.prototype.getFeatureFromStorage = function (featureKey, context, storageService, serviceContainer) {
     return __awaiter(this, void 0, void 0, function () {
       var deferredObject;
       return __generator(this, function (_a) {
         deferredObject = new PromiseUtil_1.Deferred();
-        storageService.getDataInStorage(featureKey, context).then(function (campaignMap) {
+        storageService.getDataInStorage(featureKey, context, serviceContainer).then(function (campaignMap) {
           switch (campaignMap) {
             case StorageEnum_1.StorageEnum.STORAGE_UNDEFINED:
               deferredObject.resolve(null); // No storage defined
@@ -2821,9 +2828,10 @@ var StorageDecorator = /** @class */function () {
    * @param storageService The storage service instance.
    * @returns A promise that resolves when the data is successfully stored.
    */
-  StorageDecorator.prototype.setDataInStorage = function (data, storageService) {
+  StorageDecorator.prototype.setDataInStorage = function (data, storageService, serviceContainer) {
     var deferredObject = new PromiseUtil_1.Deferred();
     var featureKey = data.featureKey,
+      featureId = data.featureId,
       context = data.context,
       rolloutId = data.rolloutId,
       rolloutKey = data.rolloutKey,
@@ -2832,7 +2840,7 @@ var StorageDecorator = /** @class */function () {
       experimentKey = data.experimentKey,
       experimentVariationId = data.experimentVariationId;
     if (!featureKey) {
-      logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+      serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
         key: 'featureKey'
       }, {
         an: ApiEnum_1.ApiEnum.GET_FLAG,
@@ -2843,7 +2851,7 @@ var StorageDecorator = /** @class */function () {
       return;
     }
     if (!context.id) {
-      logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+      serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
         key: 'Context or Context.id'
       }, {
         an: ApiEnum_1.ApiEnum.GET_FLAG,
@@ -2854,7 +2862,7 @@ var StorageDecorator = /** @class */function () {
       return;
     }
     if (rolloutKey && !experimentKey && !rolloutVariationId) {
-      logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+      serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
         key: 'Variation:(rolloutKey, experimentKey or rolloutVariationId)'
       }, {
         an: ApiEnum_1.ApiEnum.GET_FLAG,
@@ -2865,7 +2873,7 @@ var StorageDecorator = /** @class */function () {
       return;
     }
     if (experimentKey && !experimentVariationId) {
-      logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+      serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
         key: 'Variation:(experimentKey or rolloutVariationId)'
       }, {
         an: ApiEnum_1.ApiEnum.GET_FLAG,
@@ -2877,6 +2885,7 @@ var StorageDecorator = /** @class */function () {
     }
     storageService.setDataInStorage({
       featureKey: featureKey,
+      featureId: featureId,
       userId: context.id,
       rolloutId: rolloutId,
       rolloutKey: rolloutKey,
@@ -2884,7 +2893,7 @@ var StorageDecorator = /** @class */function () {
       experimentId: experimentId,
       experimentKey: experimentKey,
       experimentVariationId: experimentVariationId
-    });
+    }, serviceContainer);
     deferredObject.resolve(); // Resolve promise when data is successfully set
     return deferredObject.promise;
   };
@@ -2908,7 +2917,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ApiEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2950,7 +2959,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.CampaignTypeEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2983,7 +2992,7 @@ var CampaignTypeEnum;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3026,7 +3035,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.EventEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3066,7 +3075,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.HeadersEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3102,7 +3111,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.HttpMethodEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3138,7 +3147,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.PlatformEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3174,7 +3183,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StatusEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3210,7 +3219,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StorageEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3250,7 +3259,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.UrlEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3295,7 +3304,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ErrorLogMessagesEnum = exports.InfoLogMessagesEnum = exports.DebugLogMessagesEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3573,7 +3582,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ImpactCapmaignModel = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3620,7 +3629,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.MetricModel = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3671,7 +3680,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RuleModel = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3879,7 +3888,7 @@ exports.VariationModel = VariationModel;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3955,7 +3964,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SettingsSchema = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4072,7 +4081,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SettingsModel = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4181,11 +4190,10 @@ Object.defineProperty(exports, "__esModule", ({
 exports.ContextModel = void 0;
 var ContextVWOModel_1 = __webpack_require__(/*! ./ContextVWOModel */ "./dist/server-unpacked/models/user/ContextVWOModel.js");
 var UuidUtil_1 = __webpack_require__(/*! ../../utils/UuidUtil */ "./dist/server-unpacked/utils/UuidUtil.js");
-var SettingsService_1 = __webpack_require__(/*! ../../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var ContextModel = /** @class */function () {
   function ContextModel() {}
-  ContextModel.prototype.modelFromDictionary = function (context) {
+  ContextModel.prototype.modelFromDictionary = function (context, options) {
     this.id = context.id;
     this.userAgent = context.userAgent;
     this.ipAddress = context.ipAddress;
@@ -4206,7 +4214,7 @@ var ContextModel = /** @class */function () {
     if (context === null || context === void 0 ? void 0 : context.postSegmentationVariables) {
       this.postSegmentationVariables = context.postSegmentationVariables;
     }
-    this._vwo_uuid = (0, UuidUtil_1.getUUID)(this.id.toString(), SettingsService_1.SettingsService.Instance.accountId.toString());
+    this._vwo_uuid = (0, UuidUtil_1.getUUID)(this.id.toString(), options.accountId.toString());
     this._vwo_sessionId = (0, FunctionUtil_1.getCurrentUnixTimestamp)();
     return this;
   };
@@ -4266,7 +4274,7 @@ exports.ContextModel = ContextModel;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4317,7 +4325,7 @@ exports.ContextVWOModel = ContextVWOModel;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4515,7 +4523,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Logger = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4551,7 +4559,7 @@ exports.Logger = Logger;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4627,34 +4635,23 @@ var LogManager = /** @class */function (_super) {
     _this.prefix = 'VWO-SDK'; // Default prefix for log messages
     _this.shouldLogToStandardOutput = false;
     _this.config = config;
-    if (config.isAlwaysNewInstance || !LogManager.instance) {
-      LogManager.instance = _this;
-      // Initialize configuration with defaults or provided values
-      _this.config.name = config.name || _this.name;
-      _this.config.requestId = config.requestId || _this.requestId;
-      _this.config.level = config.level || _this.level;
-      _this.config.prefix = config.prefix || _this.prefix;
-      _this.config.dateTimeFormat = config.dateTimeFormat || _this.dateTimeFormat;
-      _this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || _this.shouldLogToStandardOutput;
-      _this.transportManager = new TransportManager_1.LogTransportManager(_this.config);
-      _this.handleTransports();
-    }
-    return LogManager.instance;
+    // Initialize configuration with defaults or provided values
+    _this.config.name = config.name || _this.name;
+    _this.config.requestId = config.requestId || _this.requestId;
+    _this.config.level = config.level || _this.level;
+    _this.config.prefix = config.prefix || _this.prefix;
+    _this.config.dateTimeFormat = config.dateTimeFormat || _this.dateTimeFormat;
+    _this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || _this.shouldLogToStandardOutput;
+    _this.transportManager = new TransportManager_1.LogTransportManager(_this.config);
+    _this.handleTransports();
+    return _this;
   }
   LogManager.prototype.dateTimeFormat = function () {
     return new Date().toISOString(); // Default date-time format for log messages
   };
-  Object.defineProperty(LogManager, "Instance", {
-    /**
-     * Provides access to the singleton instance of LogManager.
-     * @returns {LogManager} The singleton instance.
-     */
-    get: function () {
-      return LogManager.instance;
-    },
-    enumerable: false,
-    configurable: true
-  });
+  LogManager.prototype.injectServiceContainer = function (serviceContainer) {
+    this.serviceContainer = serviceContainer;
+  };
   /**
    * Handles the initialization and setup of transports based on configuration.
    */
@@ -4743,7 +4740,7 @@ var LogManager = /** @class */function (_super) {
           cg: DebuggerCategoryEnum_1.DebuggerCategoryEnum.ERROR
         });
         // send debug event to VWO
-        (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+        (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(this.serviceContainer, debugEventProps);
       }
     } catch (err) {
       console.error('Got error while logging error' + (0, FunctionUtil_1.getFormattedErrorMessage)(err));
@@ -4765,7 +4762,7 @@ exports.LogManager = LogManager;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4910,7 +4907,7 @@ exports.LogTransportManager = LogTransportManager;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4953,7 +4950,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.LogLevelEnum = exports.LogManager = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4998,7 +4995,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ConsoleTransport = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5092,7 +5089,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NetworkBrowserClient = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5112,7 +5109,9 @@ var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dis
  * Implements the NetworkClientInterface to handle network requests.
  */
 var NetworkBrowserClient = /** @class */function () {
-  function NetworkBrowserClient() {}
+  function NetworkBrowserClient(logManager) {
+    this.logManager = logManager;
+  }
   /**
    * Performs a GET request using the provided RequestModel.
    * @param {RequestModel} requestModel - The model containing request options.
@@ -5128,7 +5127,7 @@ var NetworkBrowserClient = /** @class */function () {
       errorCallback: function (responseModel) {
         deferred.reject(responseModel);
       }
-    });
+    }, this.logManager);
     /*try {
       fetch(url)
           .then(res => {
@@ -5180,7 +5179,7 @@ var NetworkBrowserClient = /** @class */function () {
       errorCallback: function (responseModel) {
         deferred.reject(responseModel);
       }
-    });
+    }, this.logManager);
     /* try {
       const options: any = Object.assign(
         {},
@@ -5284,7 +5283,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NetworkClient = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5303,14 +5302,15 @@ var https = __importStar(__webpack_require__(/*! https */ "https"));
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./dist/server-unpacked/constants/Url.js");
 var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
-var logger_1 = __webpack_require__(/*! ../../../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var EventEnum_1 = __webpack_require__(/*! ../../../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
 var NetworkClient = /** @class */function () {
-  function NetworkClient() {}
+  function NetworkClient(logManager) {
+    this.logManager = logManager;
+  }
   /**
    * Performs a GET request using the provided RequestModel.
    * @param {RequestModel} requestModel - The model containing request options.
@@ -5468,7 +5468,7 @@ var NetworkClient = /** @class */function () {
     var endpoint = String(networkOptions.path).split('?')[0];
     var delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, attempt) * 1000;
     if (retryConfig.shouldRetry && attempt < retryConfig.maxRetries) {
-      logger_1.LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+      this.logManager.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
         endPoint: endpoint,
         err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
         delay: delay / 1000,
@@ -5481,7 +5481,7 @@ var NetworkClient = /** @class */function () {
       }, delay);
     } else {
       if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
-        logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+        this.logManager.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
           extraData: endpoint,
           attempts: attempt,
           err: (0, FunctionUtil_1.getFormattedErrorMessage)(error)
@@ -5512,7 +5512,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NetworkServerLessClient = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5532,7 +5532,9 @@ var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dis
  * Implements the NetworkClientInterface to handle network requests.
  */
 var NetworkServerLessClient = /** @class */function () {
-  function NetworkServerLessClient() {}
+  function NetworkServerLessClient(logManager) {
+    this.logManager = logManager;
+  }
   /**
    * Performs a GET request using the provided RequestModel.
    * @param {RequestModel} requestModel - The model containing request options.
@@ -5540,7 +5542,7 @@ var NetworkServerLessClient = /** @class */function () {
    */
   NetworkServerLessClient.prototype.GET = function (requestModel) {
     var deferred = new PromiseUtil_1.Deferred();
-    (0, FetchUtil_1.sendGetCall)(requestModel).then(function (data) {
+    (0, FetchUtil_1.sendGetCall)(requestModel, this.logManager).then(function (data) {
       deferred.resolve(data);
     }).catch(function (error) {
       deferred.reject(error);
@@ -5554,7 +5556,7 @@ var NetworkServerLessClient = /** @class */function () {
    */
   NetworkServerLessClient.prototype.POST = function (request) {
     var deferred = new PromiseUtil_1.Deferred();
-    (0, FetchUtil_1.sendPostCall)(request).then(function (data) {
+    (0, FetchUtil_1.sendPostCall)(request, this.logManager).then(function (data) {
       deferred.resolve(data);
     }).catch(function (error) {
       deferred.reject(error);
@@ -5637,7 +5639,7 @@ exports.RequestHandler = RequestHandler;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5710,7 +5712,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NetworkManager = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5729,61 +5731,17 @@ var RequestHandler_1 = __webpack_require__(/*! ../handlers/RequestHandler */ "./
 var GlobalRequestModel_1 = __webpack_require__(/*! ../models/GlobalRequestModel */ "./dist/server-unpacked/packages/network-layer/models/GlobalRequestModel.js");
 var constants_1 = __webpack_require__(/*! ../../../constants */ "./dist/server-unpacked/constants/index.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
-var LogManager_1 = __webpack_require__(/*! ../../logger/core/LogManager */ "./dist/server-unpacked/packages/logger/core/LogManager.js");
-var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var NetworkServerLessClient_1 = __webpack_require__(/*! ../client/NetworkServerLessClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkServerLessClient.js");
 var NetworkBrowserClient_1 = __webpack_require__(/*! ../client/NetworkBrowserClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkBrowserClient.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./dist/server-unpacked/constants/Url.js");
 var NetworkManager = /** @class */function () {
-  function NetworkManager() {}
-  /**
-   * Validates the retry configuration parameters
-   * @param {IRetryConfig} retryConfig - The retry configuration to validate
-   * @returns {IRetryConfig} The validated retry configuration with corrected values
-   */
-  NetworkManager.prototype.validateRetryConfig = function (retryConfig) {
-    var validatedConfig = __assign({}, retryConfig);
-    var isInvalidConfig = false;
-    // Validate shouldRetry: should be a boolean value
-    if (!(0, DataTypeUtil_1.isBoolean)(validatedConfig.shouldRetry)) {
-      validatedConfig.shouldRetry = constants_1.Constants.DEFAULT_RETRY_CONFIG.shouldRetry;
-      isInvalidConfig = true;
-    }
-    // Validate maxRetries: should be a non-negative integer and should not be less than 1
-    if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.maxRetries) || !Number.isInteger(validatedConfig.maxRetries) || validatedConfig.maxRetries < 1) {
-      validatedConfig.maxRetries = constants_1.Constants.DEFAULT_RETRY_CONFIG.maxRetries;
-      isInvalidConfig = true;
-    }
-    // Validate initialDelay: should be a non-negative integer and should not be less than 1
-    if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.initialDelay) || !Number.isInteger(validatedConfig.initialDelay) || validatedConfig.initialDelay < 1) {
-      validatedConfig.initialDelay = constants_1.Constants.DEFAULT_RETRY_CONFIG.initialDelay;
-      isInvalidConfig = true;
-    }
-    // Validate backoffMultiplier: should be a non-negative integer and should not be less than 2
-    if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.backoffMultiplier) || !Number.isInteger(validatedConfig.backoffMultiplier) || validatedConfig.backoffMultiplier < 2) {
-      validatedConfig.backoffMultiplier = constants_1.Constants.DEFAULT_RETRY_CONFIG.backoffMultiplier;
-      isInvalidConfig = true;
-    }
-    if (isInvalidConfig) {
-      LogManager_1.LogManager.Instance.errorLog('INVALID_RETRY_CONFIG', {
-        retryConfig: JSON.stringify(validatedConfig)
-      }, {
-        an: ApiEnum_1.ApiEnum.INIT
-      });
-    }
-    return isInvalidConfig ? constants_1.Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
-  };
-  /**
-   * Attaches a network client to the manager, or uses a default if none provided.
-   * @param {NetworkClientInterface} client - The client to attach, optional.
-   * @param {IRetryConfig} retryConfig - The retry configuration, optional.
-   */
-  NetworkManager.prototype.attachClient = function (client, retryConfig, shouldWaitForTrackingCalls) {
+  function NetworkManager(logManager, client, retryConfig, shouldWaitForTrackingCalls) {
     if (shouldWaitForTrackingCalls === void 0) {
       shouldWaitForTrackingCalls = false;
     }
+    this.logManager = logManager;
     // Only set retry configuration if it's not already initialized or if a new config is provided
     if (!this.retryConfig || retryConfig) {
       // Define default retry configuration
@@ -5802,29 +5760,65 @@ var NetworkManager = /** @class */function () {
     if (typeof process === 'undefined') {
       // if XMLHttpRequest is undefined, we are in serverless
       if (typeof XMLHttpRequest === 'undefined') {
-        this.client = client || new NetworkServerLessClient_1.NetworkServerLessClient();
+        this.client = client || new NetworkServerLessClient_1.NetworkServerLessClient(this.logManager);
       } else {
-        LogManager_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+        this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
           api: 'xhr',
           process: 'undefined'
         }));
         // if XMLHttpRequest is defined, we are in browser
-        this.client = client || new NetworkBrowserClient_1.NetworkBrowserClient(); // Use provided client or default to NetworkClient
+        this.client = client || new NetworkBrowserClient_1.NetworkBrowserClient(this.logManager); // Use provided client or default to NetworkClient
       }
     } else {
       // if env is defined, we expect to be in Node
       // In CommonJS builds `require` exists; in pure ESM it does not.
       if (true) {
-        LogManager_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+        this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
           api: Url_1.HTTPS_PROTOCOL,
           process: 'defined'
         }));
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         var NetworkClient = (__webpack_require__(/*! ../client/NetworkClient */ "./dist/server-unpacked/packages/network-layer/client/NetworkClient.js").NetworkClient);
-        this.client = client || new NetworkClient(); // Use provided client or default to NetworkClient
+        this.client = client || new NetworkClient(this.logManager); // Use provided client or default to NetworkClient
       } else {}
     }
     this.config = new GlobalRequestModel_1.GlobalRequestModel(null, null, null, null); // Initialize with default config
+  }
+  /**
+   * Validates the retry configuration parameters
+   * @param {IRetryConfig} retryConfig - The retry configuration to validate
+   * @returns {IRetryConfig} The validated retry configuration with corrected values
+   */
+  NetworkManager.prototype.validateRetryConfig = function (retryConfig) {
+    var validatedConfig = __assign({}, retryConfig);
+    // Validate shouldRetry: should be a boolean value
+    if (!(0, DataTypeUtil_1.isBoolean)(validatedConfig.shouldRetry)) {
+      validatedConfig.shouldRetry = constants_1.Constants.DEFAULT_RETRY_CONFIG.shouldRetry;
+      this.isInvalidRetryConfig = true;
+    }
+    // Validate maxRetries: should be a non-negative integer and should not be less than 1
+    if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.maxRetries) || !Number.isInteger(validatedConfig.maxRetries) || validatedConfig.maxRetries < 1) {
+      validatedConfig.maxRetries = constants_1.Constants.DEFAULT_RETRY_CONFIG.maxRetries;
+      this.isInvalidRetryConfig = true;
+    }
+    // Validate initialDelay: should be a non-negative integer and should not be less than 1
+    if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.initialDelay) || !Number.isInteger(validatedConfig.initialDelay) || validatedConfig.initialDelay < 1) {
+      validatedConfig.initialDelay = constants_1.Constants.DEFAULT_RETRY_CONFIG.initialDelay;
+      this.isInvalidRetryConfig = true;
+    }
+    // Validate backoffMultiplier: should be a non-negative integer and should not be less than 2
+    if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.backoffMultiplier) || !Number.isInteger(validatedConfig.backoffMultiplier) || validatedConfig.backoffMultiplier < 2) {
+      validatedConfig.backoffMultiplier = constants_1.Constants.DEFAULT_RETRY_CONFIG.backoffMultiplier;
+      this.isInvalidRetryConfig = true;
+    }
+    return this.isInvalidRetryConfig ? constants_1.Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
+  };
+  /**
+   * Retrieves the current retry configuration.
+   * @returns {boolean} Whether the retry configuration is invalid.
+   */
+  NetworkManager.prototype.getIsInvalidRetryConfig = function () {
+    return this.isInvalidRetryConfig;
   };
   /**
    * Retrieves the current retry configuration.
@@ -5833,18 +5827,13 @@ var NetworkManager = /** @class */function () {
   NetworkManager.prototype.getRetryConfig = function () {
     return __assign({}, this.retryConfig);
   };
-  Object.defineProperty(NetworkManager, "Instance", {
-    /**
-     * Singleton accessor for the NetworkManager instance.
-     * @returns {NetworkManager} The singleton instance.
-     */
-    get: function () {
-      this.instance = this.instance || new NetworkManager(); // Create instance if it doesn't exist
-      return this.instance;
-    },
-    enumerable: false,
-    configurable: true
-  });
+  /**
+   * Injects the service container into the network manager.
+   * @param {ServiceContainer} serviceContainer - The service container to inject.
+   */
+  NetworkManager.prototype.injectServiceContainer = function (serviceContainer) {
+    this.serviceContainer = serviceContainer;
+  };
   /**
    * Sets the global configuration for network requests.
    * @param {GlobalRequestModel} config - The configuration to set.
@@ -6060,7 +6049,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RequestModel = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6643,7 +6632,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentationManager = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6660,55 +6649,40 @@ exports.SegmentationManager = void 0;
 var SegmentEvaluator_1 = __webpack_require__(/*! ../evaluators/SegmentEvaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SegmentEvaluator.js");
 var GatewayServiceUtil_1 = __webpack_require__(/*! ../../../utils/GatewayServiceUtil */ "./dist/server-unpacked/utils/GatewayServiceUtil.js");
 var UrlEnum_1 = __webpack_require__(/*! ../../../enums/UrlEnum */ "./dist/server-unpacked/enums/UrlEnum.js");
-var logger_1 = __webpack_require__(/*! ../../logger */ "./dist/server-unpacked/packages/logger/index.js");
 var ContextVWOModel_1 = __webpack_require__(/*! ../../../models/user/ContextVWOModel */ "./dist/server-unpacked/models/user/ContextVWOModel.js");
-var SettingsService_1 = __webpack_require__(/*! ../../../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
+var SegmentOperandEvaluator_1 = __webpack_require__(/*! ../evaluators/SegmentOperandEvaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SegmentOperandEvaluator.js");
 var SegmentationManager = /** @class */function () {
-  function SegmentationManager() {}
-  Object.defineProperty(SegmentationManager, "Instance", {
-    /**
-     * Singleton pattern implementation for getting the instance of SegmentationManager.
-     * @returns {SegmentationManager} The singleton instance.
-     */
-    get: function () {
-      this.instance = this.instance || new SegmentationManager(); // Create new instance if it doesn't exist
-      return this.instance;
-    },
-    enumerable: false,
-    configurable: true
-  });
   /**
-   * Attaches an evaluator to the manager, or creates a new one if none is provided.
-   * @param {SegmentEvaluator} evaluator - Optional evaluator to attach.
+   * Constructor for SegmentationManager.
    */
-  SegmentationManager.prototype.attachEvaluator = function (evaluator) {
-    this.evaluator = evaluator || new SegmentEvaluator_1.SegmentEvaluator(); // Use provided evaluator or create new one
-  };
+  function SegmentationManager() {
+    this.evaluator = new SegmentEvaluator_1.SegmentEvaluator();
+  }
   /**
    * Sets the contextual data for the segmentation process.
    * @param {any} settings - The settings data.
    * @param {any} feature - The feature data including segmentation needs.
    * @param {any} context - The context data for the evaluation.
    */
-  SegmentationManager.prototype.setContextualData = function (settings, feature, context) {
+  SegmentationManager.prototype.setContextualData = function (serviceContainer, feature, context) {
     return __awaiter(this, void 0, void 0, function () {
       var queryParams, params, _vwo, err_1;
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
-            this.attachEvaluator(); // Ensure a fresh evaluator instance
-            this.evaluator.settings = settings; // Set settings in evaluator
+            this.evaluator.serviceContainer = serviceContainer; // Set settings in evaluator
             this.evaluator.context = context; // Set context in evaluator
             this.evaluator.feature = feature; // Set feature in evaluator
+            this.evaluator.segmentOperandEvaluator = new SegmentOperandEvaluator_1.SegmentOperandEvaluator(serviceContainer);
             // if both user agent and ip is null then we should not get data from gateway service
             if ((context === null || context === void 0 ? void 0 : context.getUserAgent()) === null && (context === null || context === void 0 ? void 0 : context.getIpAddress()) === null) {
               return [2 /*return*/];
             }
             if (!(feature.getIsGatewayServiceRequired() === true)) return [3 /*break*/, 4];
-            if (!(SettingsService_1.SettingsService.Instance.isGatewayServiceProvided && ((0, DataTypeUtil_1.isUndefined)(context.getVwo()) || context.getVwo() === null))) return [3 /*break*/, 4];
+            if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && ((0, DataTypeUtil_1.isUndefined)(context.getVwo()) || context.getVwo() === null))) return [3 /*break*/, 4];
             queryParams = {};
             if (context === null || context === void 0 ? void 0 : context.getUserAgent()) {
               queryParams['userAgent'] = context.getUserAgent();
@@ -6720,7 +6694,7 @@ var SegmentationManager = /** @class */function () {
           case 1:
             _a.trys.push([1, 3,, 4]);
             params = (0, GatewayServiceUtil_1.getQueryParams)(queryParams);
-            return [4 /*yield*/, (0, GatewayServiceUtil_1.getFromGatewayService)(params, UrlEnum_1.UrlEnum.GET_USER_DATA, context)];
+            return [4 /*yield*/, (0, GatewayServiceUtil_1.getFromGatewayService)(serviceContainer, params, UrlEnum_1.UrlEnum.GET_USER_DATA, context)];
           case 2:
             _vwo = _a.sent();
             context.setVwo(new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(_vwo));
@@ -6728,7 +6702,7 @@ var SegmentationManager = /** @class */function () {
             return [3 /*break*/, 4];
           case 3:
             err_1 = _a.sent();
-            logger_1.LogManager.Instance.errorLog('ERROR_SETTING_SEGMENTATION_CONTEXT', {
+            serviceContainer.getLogManager().errorLog('ERROR_SETTING_SEGMENTATION_CONTEXT', {
               err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_1)
             }, {
               an: ApiEnum_1.ApiEnum.GET_FLAG,
@@ -6783,7 +6757,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperandRegexEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6829,7 +6803,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperandValueEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6873,7 +6847,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperatorValueEnum = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7035,7 +7009,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentEvaluator = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7050,12 +7024,10 @@ exports.SegmentEvaluator = void 0;
  * limitations under the License.
  */
 var StorageDecorator_1 = __webpack_require__(/*! ../../../decorators/StorageDecorator */ "./dist/server-unpacked/decorators/StorageDecorator.js");
-var logger_1 = __webpack_require__(/*! ../../logger */ "./dist/server-unpacked/packages/logger/index.js");
 var StorageService_1 = __webpack_require__(/*! ../../../services/StorageService */ "./dist/server-unpacked/services/StorageService.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var SegmentOperatorValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperatorValueEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SegmentOperatorValueEnum.js");
 var SegmentUtil_1 = __webpack_require__(/*! ../utils/SegmentUtil */ "./dist/server-unpacked/packages/segmentation-evaluator/utils/SegmentUtil.js");
-var SegmentOperandEvaluator_1 = __webpack_require__(/*! ./SegmentOperandEvaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SegmentOperandEvaluator.js");
 var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var SegmentEvaluator = /** @class */function () {
@@ -7110,19 +7082,19 @@ var SegmentEvaluator = /** @class */function () {
           case 6:
             return [2 /*return*/, _c.sent()];
           case 7:
-            return [4 /*yield*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateCustomVariableDSL(subDsl, properties, this.context)];
+            return [4 /*yield*/, this.segmentOperandEvaluator.evaluateCustomVariableDSL(subDsl, properties, this.context)];
           case 8:
             return [2 /*return*/, _c.sent()];
           case 9:
-            return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties)];
+            return [2 /*return*/, this.segmentOperandEvaluator.evaluateUserDSL(subDsl, properties)];
           case 10:
-            return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context)];
+            return [2 /*return*/, this.segmentOperandEvaluator.evaluateUserAgentDSL(subDsl, this.context)];
           case 11:
-            return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP)];
+            return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP)];
           case 12:
-            return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION)];
+            return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION)];
           case 13:
-            return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION)];
+            return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION)];
           case 14:
             return [2 /*return*/, false];
         }
@@ -7174,13 +7146,13 @@ var SegmentEvaluator = /** @class */function () {
                     featureIdKey_1 = Object.keys(featureIdObject)[0];
                     featureIdValue = featureIdObject[featureIdKey_1];
                     if (!(featureIdValue === 'on' || featureIdValue === 'off')) return [3 /*break*/, 3];
-                    features = this_1.settings.getFeatures();
+                    features = this_1.serviceContainer.getSettings().getFeatures();
                     feature = features.find(function (feature) {
                       return feature.getId() === parseInt(featureIdKey_1);
                     });
                     if (!feature) return [3 /*break*/, 2];
                     featureKey = feature.getKey();
-                    return [4 /*yield*/, this_1.checkInUserStorage(this_1.settings, featureKey, this_1.context)];
+                    return [4 /*yield*/, this_1.checkInUserStorage(this_1.serviceContainer.getSettings(), featureKey, this_1.context)];
                   case 1:
                     result = _f.sent();
                     // if the result is false, then we need to return true as feature is not present in the user storage
@@ -7193,7 +7165,7 @@ var SegmentEvaluator = /** @class */function () {
                       value: result
                     }];
                   case 2:
-                    logger_1.LogManager.Instance.errorLog('FEATURE_NOT_FOUND_WITH_ID', {
+                    this_1.serviceContainer.getLogManager().errorLog('FEATURE_NOT_FOUND_WITH_ID', {
                       featureId: featureIdKey_1
                     }, {
                       an: ApiEnum_1.ApiEnum.GET_FLAG,
@@ -7238,7 +7210,7 @@ var SegmentEvaluator = /** @class */function () {
             return [2 /*return*/, uaParserResult];
           case 8:
             err_1 = _e.sent();
-            logger_1.LogManager.Instance.errorLog('USER_AGENT_VALIDATION_ERROR', {
+            this.serviceContainer.getLogManager().errorLog('USER_AGENT_VALIDATION_ERROR', {
               err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_1)
             }, {
               an: ApiEnum_1.ApiEnum.GET_FLAG,
@@ -7335,7 +7307,7 @@ var SegmentEvaluator = /** @class */function () {
       return __generator(this, function (_k) {
         // Ensure user's IP address is available
         if (((_a = this.context) === null || _a === void 0 ? void 0 : _a.getIpAddress()) === undefined && typeof process !== 'undefined') {
-          logger_1.LogManager.Instance.errorLog('INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, {
+          this.serviceContainer.getLogManager().errorLog('INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, {
             an: ApiEnum_1.ApiEnum.GET_FLAG,
             uuid: this.context.getUuid(),
             sId: this.context.getSessionId()
@@ -7361,7 +7333,7 @@ var SegmentEvaluator = /** @class */function () {
       return __generator(this, function (_j) {
         // Ensure user's user agent is available
         if (!((_a = this.context) === null || _a === void 0 ? void 0 : _a.getUserAgent()) || ((_b = this.context) === null || _b === void 0 ? void 0 : _b.getUserAgent()) === undefined) {
-          logger_1.LogManager.Instance.errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, {
+          this.serviceContainer.getLogManager().errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, {
             an: ApiEnum_1.ApiEnum.GET_FLAG,
             uuid: this.context.getUuid(),
             sId: this.context.getSessionId()
@@ -7389,8 +7361,8 @@ var SegmentEvaluator = /** @class */function () {
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
-            storageService = new StorageService_1.StorageService();
-            return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService)];
+            storageService = new StorageService_1.StorageService(this.serviceContainer);
+            return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, this.serviceContainer)];
           case 1:
             storedData = _a.sent();
             // Check if the stored data is an object and not empty
@@ -7624,7 +7596,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.SegmentOperandEvaluator = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7645,7 +7617,6 @@ var SegmentOperatorValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperato
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var GatewayServiceUtil_1 = __webpack_require__(/*! ../../../utils/GatewayServiceUtil */ "./dist/server-unpacked/utils/GatewayServiceUtil.js");
 var UrlEnum_1 = __webpack_require__(/*! ../../../enums/UrlEnum */ "./dist/server-unpacked/enums/UrlEnum.js");
-var logger_1 = __webpack_require__(/*! ../../logger */ "./dist/server-unpacked/packages/logger/index.js");
 var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 /**
@@ -7653,7 +7624,9 @@ var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./d
  * expressions based on the segment conditions defined for custom variables, user IDs, and user agents.
  */
 var SegmentOperandEvaluator = /** @class */function () {
-  function SegmentOperandEvaluator() {}
+  function SegmentOperandEvaluator(serviceContainer) {
+    this.serviceContainer = serviceContainer;
+  }
   /**
    * Evaluates a custom variable DSL expression.
    * @param {Record<string, dynamic>} dslOperandValue - The DSL expression for the custom variable.
@@ -7677,7 +7650,7 @@ var SegmentOperandEvaluator = /** @class */function () {
             listIdRegex = /inlist\(([^)]+)\)/;
             match = operand.match(listIdRegex);
             if (!match || match.length < 2) {
-              logger_1.LogManager.Instance.errorLog('INVALID_ATTRIBUTE_LIST_FORMAT', {}, {
+              this.serviceContainer.getLogManager().errorLog('INVALID_ATTRIBUTE_LIST_FORMAT', {}, {
                 an: ApiEnum_1.ApiEnum.GET_FLAG,
                 uuid: context.getUuid(),
                 sId: context.getSessionId()
@@ -7694,7 +7667,7 @@ var SegmentOperandEvaluator = /** @class */function () {
             _c.label = 1;
           case 1:
             _c.trys.push([1, 3,, 4]);
-            return [4 /*yield*/, (0, GatewayServiceUtil_1.getFromGatewayService)(queryParamsObj, UrlEnum_1.UrlEnum.ATTRIBUTE_CHECK, context)];
+            return [4 /*yield*/, (0, GatewayServiceUtil_1.getFromGatewayService)(this.serviceContainer, queryParamsObj, UrlEnum_1.UrlEnum.ATTRIBUTE_CHECK, context)];
           case 2:
             res = _c.sent();
             if (!res || res === undefined || res === 'false' || res.status === 0) {
@@ -7703,7 +7676,7 @@ var SegmentOperandEvaluator = /** @class */function () {
             return [2 /*return*/, res];
           case 3:
             error_1 = _c.sent();
-            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_DATA_FROM_GATEWAY', {
+            this.serviceContainer.getLogManager().errorLog('ERROR_FETCHING_DATA_FROM_GATEWAY', {
               err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1)
             }, {
               an: ApiEnum_1.ApiEnum.GET_FLAG,
@@ -7750,7 +7723,7 @@ var SegmentOperandEvaluator = /** @class */function () {
   SegmentOperandEvaluator.prototype.evaluateUserAgentDSL = function (dslOperandValue, context) {
     var operand = dslOperandValue;
     if (!context.getUserAgent() || context.getUserAgent() === undefined) {
-      logger_1.LogManager.Instance.errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, {
+      this.serviceContainer.getLogManager().errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, {
         an: ApiEnum_1.ApiEnum.GET_FLAG,
         uuid: context.getUuid(),
         sId: context.getSessionId()
@@ -8027,11 +8000,11 @@ var SegmentOperandEvaluator = /** @class */function () {
    */
   SegmentOperandEvaluator.prototype.logMissingContextError = function (operandType) {
     if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP) {
-      logger_1.LogManager.Instance.info('To evaluate IP segmentation, please provide ipAddress in context');
+      this.serviceContainer.getLogManager().info('To evaluate IP segmentation, please provide ipAddress in context');
     } else if (operandType === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION) {
-      logger_1.LogManager.Instance.info('To evaluate browser version segmentation, please provide userAgent in context');
+      this.serviceContainer.getLogManager().info('To evaluate browser version segmentation, please provide userAgent in context');
     } else {
-      logger_1.LogManager.Instance.info('To evaluate OS version segmentation, please provide userAgent in context');
+      this.serviceContainer.getLogManager().info('To evaluate OS version segmentation, please provide userAgent in context');
     }
   };
   /**
@@ -8078,51 +8051,6 @@ exports.SegmentOperandEvaluator = SegmentOperandEvaluator;
 
 /***/ }),
 
-/***/ "./dist/server-unpacked/packages/segmentation-evaluator/index.js":
-/*!***********************************************************************!*\
-  !*** ./dist/server-unpacked/packages/segmentation-evaluator/index.js ***!
-  \***********************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.SegmentEvaluator = exports.SegmentationManager = void 0;
-/**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var SegmentationManger_1 = __webpack_require__(/*! ./core/SegmentationManger */ "./dist/server-unpacked/packages/segmentation-evaluator/core/SegmentationManger.js");
-Object.defineProperty(exports, "SegmentationManager", ({
-  enumerable: true,
-  get: function () {
-    return SegmentationManger_1.SegmentationManager;
-  }
-}));
-var SegmentEvaluator_1 = __webpack_require__(/*! ./evaluators/SegmentEvaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SegmentEvaluator.js");
-Object.defineProperty(exports, "SegmentEvaluator", ({
-  enumerable: true,
-  get: function () {
-    return SegmentEvaluator_1.SegmentEvaluator;
-  }
-}));
-
-/***/ }),
-
 /***/ "./dist/server-unpacked/packages/segmentation-evaluator/utils/SegmentUtil.js":
 /*!***********************************************************************************!*\
   !*** ./dist/server-unpacked/packages/segmentation-evaluator/utils/SegmentUtil.js ***!
@@ -8138,7 +8066,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.getKeyValue = getKeyValue;
 exports.matchWithRegex = matchWithRegex;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8231,25 +8159,15 @@ exports.Storage = void 0;
 //   REDIS = 'redis'
 // }
 var Storage = /** @class */function () {
-  function Storage() {}
   // public storageType: dynamic;
-  Storage.prototype.attachConnector = function (connector) {
+  function Storage(connector) {
     var _a, _b, _c, _d;
     if (((_d = (_c = (_b = (_a = connector === null || connector === void 0 ? void 0 : connector.prototype) === null || _a === void 0 ? void 0 : _a.constructor) === null || _b === void 0 ? void 0 : _b.toString()) === null || _c === void 0 ? void 0 : _c.trim()) === null || _d === void 0 ? void 0 : _d.substring(0, 5)) === 'class') {
       this.connector = new connector();
     } else {
       this.connector = connector;
     }
-    return this.connector;
-  };
-  Object.defineProperty(Storage, "Instance", {
-    get: function () {
-      this.instance = this.instance || new Storage();
-      return this.instance;
-    },
-    enumerable: false,
-    configurable: true
-  });
+  }
   Storage.prototype.getConnector = function () {
     return this.connector;
   };
@@ -8293,7 +8211,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BrowserStorageConnector = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8309,7 +8227,6 @@ exports.BrowserStorageConnector = void 0;
  */
 var constants_1 = __webpack_require__(/*! ../../../constants */ "./dist/server-unpacked/constants/index.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
-var logger_1 = __webpack_require__(/*! ../../logger */ "./dist/server-unpacked/packages/logger/index.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var Connector_1 = __webpack_require__(/*! ../Connector */ "./dist/server-unpacked/packages/storage/Connector.js");
@@ -8322,28 +8239,29 @@ var BrowserStorageConnector = /** @class */function (_super) {
   /**
    * Creates an instance of BrowserStorageConnector
    * @param {ClientStorageOptions} [options] - Configuration options for the storage connector
-   * @param {string} [options.key] - Custom key for storage (defaults to Constants.DEFAULT_LOCAL_STORAGE_KEY)
+   * @param {string} defaultStorageKey - Default key for storage
    * @param {Storage} [options.provider] - Storage provider (defaults to window.localStorage)
    * @param {boolean} [options.isDisabled] - Whether storage operations should be disabled
    * @param {boolean} [options.alwaysUseCachedSettings] - Whether to always use cached settings
    * @param {number} [options.ttl] - Custom TTL in milliseconds (defaults to Constants.SETTINGS_TTL)
    */
-  function BrowserStorageConnector(options) {
+  function BrowserStorageConnector(options, defaultStorageKey, logManager) {
     var _this = _super.call(this) || this;
     _this.SETTINGS_KEY = constants_1.Constants.DEFAULT_SETTINGS_STORAGE_KEY;
-    _this.storageKey = (options === null || options === void 0 ? void 0 : options.key) || constants_1.Constants.DEFAULT_LOCAL_STORAGE_KEY;
+    _this.storageKey = (options === null || options === void 0 ? void 0 : options.key) || defaultStorageKey;
+    _this.logManager = logManager;
     _this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
     _this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
     _this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
     //options.ttl should be greater than 1 minute
     if (!(0, DataTypeUtil_1.isNumber)(options === null || options === void 0 ? void 0 : options.ttl) || options.ttl < constants_1.Constants.MIN_TTL_MS) {
-      logger_1.LogManager.Instance.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
+      _this.logManager.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
       _this.ttl = constants_1.Constants.SETTINGS_TTL;
     } else {
       _this.ttl = (options === null || options === void 0 ? void 0 : options.ttl) || constants_1.Constants.SETTINGS_TTL;
     }
     if (!(0, DataTypeUtil_1.isBoolean)(options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings)) {
-      logger_1.LogManager.Instance.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
+      _this.logManager.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
       _this.alwaysUseCachedSettings = false;
     } else {
       _this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
@@ -8361,7 +8279,7 @@ var BrowserStorageConnector = /** @class */function (_super) {
       var data = this.storage.getItem(this.storageKey);
       return data ? JSON.parse(data) : {};
     } catch (error) {
-      logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
+      this.logManager.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
         err: (0, FunctionUtil_1.getFormattedErrorMessage)(error)
       }, {
         an: constants_1.Constants.STORAGE
@@ -8380,7 +8298,7 @@ var BrowserStorageConnector = /** @class */function (_super) {
       var serializedData = JSON.stringify(data);
       this.storage.setItem(this.storageKey, serializedData);
     } catch (error) {
-      logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
+      this.logManager.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
         err: (0, FunctionUtil_1.getFormattedErrorMessage)(error)
       }, {
         an: constants_1.Constants.STORAGE
@@ -8403,10 +8321,10 @@ var BrowserStorageConnector = /** @class */function (_super) {
         var key = "".concat(data.featureKey, "_").concat(data.userId);
         storedData[key] = data;
         this.storeData(storedData);
-        logger_1.LogManager.Instance.info("Stored data in storage for key: ".concat(key));
+        this.logManager.info("Stored data in storage for key: ".concat(key));
         deferredObject.resolve();
       } catch (error) {
-        logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
+        this.logManager.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
           err: (0, FunctionUtil_1.getFormattedErrorMessage)(error)
         }, {
           an: constants_1.Constants.STORAGE
@@ -8433,10 +8351,10 @@ var BrowserStorageConnector = /** @class */function (_super) {
         var storedData = this.getStoredData();
         var key = "".concat(featureKey, "_").concat(userId);
         var dataToReturn = (_a = storedData[key]) !== null && _a !== void 0 ? _a : {};
-        logger_1.LogManager.Instance.info("Retrieved data from storage for key: ".concat(key));
+        this.logManager.info("Retrieved data from storage for key: ".concat(key));
         deferredObject.resolve(dataToReturn);
       } catch (error) {
-        logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
+        this.logManager.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
           err: (0, FunctionUtil_1.getFormattedErrorMessage)(error)
         }, {
           an: constants_1.Constants.STORAGE
@@ -8467,7 +8385,7 @@ var BrowserStorageConnector = /** @class */function (_super) {
           try {
             settingsData.settings.sdkKey = atob(settingsData.settings.sdkKey);
           } catch (e) {
-            logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
+            this.logManager.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
               err: (0, FunctionUtil_1.getFormattedErrorMessage)(e)
             }, {
               an: constants_1.Constants.STORAGE
@@ -8526,7 +8444,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Storage = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8560,7 +8478,7 @@ Object.defineProperty(exports, "Storage", ({
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8685,28 +8603,33 @@ var __generator = this && this.__generator || function (thisArg, body) {
     };
   }
 };
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BatchEventsQueue = void 0;
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
-var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
+var BatchEventsDispatcher_1 = __importDefault(__webpack_require__(/*! ../utils/BatchEventsDispatcher */ "./dist/server-unpacked/utils/BatchEventsDispatcher.js"));
 var BatchEventsQueue = /** @class */function () {
   /**
    * Constructor for the BatchEventsQueue
    * @param config - The configuration for the batch events queue
    */
-  function BatchEventsQueue(config) {
+  function BatchEventsQueue(config, logManager) {
     if (config === void 0) {
       config = {};
     }
     this.queue = [];
     this.timer = null;
     this.isEdgeEnvironment = false;
+    this.logManager = logManager;
     if ((0, DataTypeUtil_1.isBoolean)(config.isEdgeEnvironment)) {
       this.isEdgeEnvironment = config.isEdgeEnvironment;
     }
@@ -8715,7 +8638,7 @@ var BatchEventsQueue = /** @class */function () {
     } else {
       this.requestTimeInterval = constants_1.Constants.DEFAULT_REQUEST_TIME_INTERVAL;
       if (!this.isEdgeEnvironment) {
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
+        this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
           parameter: 'requestTimeInterval',
           minLimit: 0,
           defaultValue: this.requestTimeInterval.toString()
@@ -8726,39 +8649,29 @@ var BatchEventsQueue = /** @class */function () {
       this.eventsPerRequest = config.eventsPerRequest;
     } else if (config.eventsPerRequest > constants_1.Constants.MAX_EVENTS_PER_REQUEST) {
       this.eventsPerRequest = constants_1.Constants.MAX_EVENTS_PER_REQUEST;
-      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_MAX_LIMIT, {
+      this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_MAX_LIMIT, {
         parameter: 'eventsPerRequest',
         maxLimit: constants_1.Constants.MAX_EVENTS_PER_REQUEST.toString()
       }));
     } else {
       this.eventsPerRequest = constants_1.Constants.DEFAULT_EVENTS_PER_REQUEST;
-      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
+      this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
         parameter: 'eventsPerRequest',
         minLimit: 0,
         defaultValue: this.eventsPerRequest.toString()
       }));
     }
     this.flushCallback = (0, DataTypeUtil_1.isFunction)(config.flushCallback) ? config.flushCallback : function () {};
-    this.dispatcher = config.dispatcher;
-    this.accountId = SettingsService_1.SettingsService.Instance.accountId;
+    this.accountId = config.accountId;
     // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
     if (!this.isEdgeEnvironment) {
       this.createNewBatchTimer();
     }
-    BatchEventsQueue.instance = this;
     return this;
   }
-  Object.defineProperty(BatchEventsQueue, "Instance", {
-    /**
-     * Gets the instance of the BatchEventsQueue
-     * @returns The instance of the BatchEventsQueue
-     */
-    get: function () {
-      return BatchEventsQueue.instance;
-    },
-    enumerable: false,
-    configurable: true
-  });
+  BatchEventsQueue.prototype.injectServiceContainer = function (serviceContainer) {
+    this.serviceContainer = serviceContainer;
+  };
   /**
    * Enqueues an event
    * @param payload - The event to enqueue
@@ -8766,7 +8679,7 @@ var BatchEventsQueue = /** @class */function () {
   BatchEventsQueue.prototype.enqueue = function (payload) {
     // Enqueue the event in the queue
     this.queue.push(payload);
-    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_QUEUE, {
+    this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_QUEUE, {
       queueType: 'batch',
       event: JSON.stringify(payload)
     }));
@@ -8786,7 +8699,7 @@ var BatchEventsQueue = /** @class */function () {
     }
     // If the queue is not empty, flush the queue
     if (this.queue.length) {
-      logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
+      this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
         manually: manual ? 'manually' : '',
         length: this.queue.length,
         accountId: this.accountId,
@@ -8794,10 +8707,17 @@ var BatchEventsQueue = /** @class */function () {
       }));
       var tempQueue_1 = this.queue;
       this.queue = [];
-      return this.dispatcher(tempQueue_1, this.flushCallback).then(function (result) {
+      return BatchEventsDispatcher_1.default.dispatch(this.serviceContainer, {
+        ev: tempQueue_1
+      }, this.flushCallback, Object.assign({}, {
+        a: this.accountId,
+        env: this.serviceContainer.getSettingsService().sdkKey,
+        sn: constants_1.Constants.SDK_NAME,
+        sv: constants_1.Constants.SDK_VERSION
+      })).then(function (result) {
         var _a;
         if (result.status === 'success') {
-          logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_After_FLUSHING, {
+          _this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_After_FLUSHING, {
             manually: manual ? 'manually' : '',
             length: tempQueue_1.length
           }));
@@ -8815,7 +8735,7 @@ var BatchEventsQueue = /** @class */function () {
         };
       });
     } else {
-      logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
+      this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
       return new Promise(function (resolve) {
         resolve({
           status: 'success',
@@ -8989,7 +8909,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.CampaignDecisionService = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9004,8 +8924,6 @@ exports.CampaignDecisionService = void 0;
  * limitations under the License.
  */
 var decision_maker_1 = __webpack_require__(/*! ../packages/decision-maker */ "./dist/server-unpacked/packages/decision-maker/index.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
-var segmentation_evaluator_1 = __webpack_require__(/*! ../packages/segmentation-evaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/index.js");
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
 var CampaignTypeEnum_1 = __webpack_require__(/*! ../enums/CampaignTypeEnum */ "./dist/server-unpacked/enums/CampaignTypeEnum.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
@@ -9021,7 +8939,7 @@ var CampaignDecisionService = /** @class */function () {
    *
    * @return {Boolean} if User is a part of Campaign or not
    */
-  CampaignDecisionService.prototype.isUserPartOfCampaign = function (userId, campaign) {
+  CampaignDecisionService.prototype.isUserPartOfCampaign = function (userId, campaign, serviceContainer) {
     // if (!ValidateUtil.isValidValue(userId) || !campaign) {
     //   return false;
     // }
@@ -9040,7 +8958,7 @@ var CampaignDecisionService = /** @class */function () {
     var valueAssignedToUser = new decision_maker_1.DecisionMaker().getBucketValueForUser(bucketKey);
     // check if user is part of campaign
     var isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
-    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
+    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
       userId: userId,
       notPart: isUserPart ? '' : 'not',
       campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey()
@@ -9077,7 +8995,7 @@ var CampaignDecisionService = /** @class */function () {
    *
    * @return {Object|null} variation data into which user is bucketed in or null if not
    */
-  CampaignDecisionService.prototype.bucketUserToVariation = function (userId, accountId, campaign) {
+  CampaignDecisionService.prototype.bucketUserToVariation = function (userId, accountId, campaign, serviceContainer) {
     var multiplier;
     if (!campaign || !userId) {
       return null;
@@ -9093,7 +9011,7 @@ var CampaignDecisionService = /** @class */function () {
     // get hash value
     var hashValue = new decision_maker_1.DecisionMaker().generateHashValue(bucketKey);
     var bucketValue = new decision_maker_1.DecisionMaker().generateBucketValue(hashValue, constants_1.Constants.MAX_TRAFFIC_VALUE, multiplier);
-    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
+    serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
       userId: userId,
       campaignKey: campaign.getKey(),
       percentTraffic: percentTraffic,
@@ -9102,7 +9020,7 @@ var CampaignDecisionService = /** @class */function () {
     }));
     return this.getVariation(campaign.getVariations(), bucketValue);
   };
-  CampaignDecisionService.prototype.getPreSegmentationDecision = function (campaign, context) {
+  CampaignDecisionService.prototype.getPreSegmentationDecision = function (campaign, context, serviceContainer) {
     return __awaiter(this, void 0, void 0, function () {
       var campaignType, segments, preSegmentationResult;
       return __generator(this, function (_a) {
@@ -9116,24 +9034,24 @@ var CampaignDecisionService = /** @class */function () {
               segments = campaign.getSegments();
             }
             if (!((0, DataTypeUtil_1.isObject)(segments) && !Object.keys(segments).length)) return [3 /*break*/, 1];
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_SKIP, {
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_SKIP, {
               userId: context.getId(),
               campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey()
             }));
             return [2 /*return*/, true];
           case 1:
-            return [4 /*yield*/, segmentation_evaluator_1.SegmentationManager.Instance.validateSegmentation(segments, context.getCustomVariables())];
+            return [4 /*yield*/, serviceContainer.getSegmentationManager().validateSegmentation(segments, context.getCustomVariables())];
           case 2:
             preSegmentationResult = _a.sent();
             if (!preSegmentationResult) {
-              logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
+              serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
                 userId: context.getId(),
                 campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
                 status: 'failed'
               }));
               return [2 /*return*/, false];
             }
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SEGMENTATION_STATUS, {
               userId: context.getId(),
               campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
               status: 'passed'
@@ -9143,8 +9061,8 @@ var CampaignDecisionService = /** @class */function () {
       });
     });
   };
-  CampaignDecisionService.prototype.getVariationAlloted = function (userId, accountId, campaign) {
-    var isUserPart = this.isUserPartOfCampaign(userId, campaign);
+  CampaignDecisionService.prototype.getVariationAlloted = function (userId, accountId, campaign, serviceContainer) {
+    var isUserPart = this.isUserPartOfCampaign(userId, campaign, serviceContainer);
     if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
       if (isUserPart) {
         return campaign.getVariations()[0];
@@ -9153,7 +9071,7 @@ var CampaignDecisionService = /** @class */function () {
       }
     } else {
       if (isUserPart) {
-        return this.bucketUserToVariation(userId, accountId, campaign);
+        return this.bucketUserToVariation(userId, accountId, campaign, serviceContainer);
       } else {
         return null;
       }
@@ -9213,6 +9131,210 @@ var HooksService = /** @class */function () {
   return HooksService;
 }();
 exports["default"] = HooksService;
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/services/ServiceContainer.js":
+/*!***********************************************************!*\
+  !*** ./dist/server-unpacked/services/ServiceContainer.js ***!
+  \***********************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ServiceContainer = void 0;
+var SegmentationManger_1 = __webpack_require__(/*! ../packages/segmentation-evaluator/core/SegmentationManger */ "./dist/server-unpacked/packages/segmentation-evaluator/core/SegmentationManger.js");
+var HooksService_1 = __importDefault(__webpack_require__(/*! ./HooksService */ "./dist/server-unpacked/services/HooksService.js"));
+var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+/**
+ * ServiceContainer is a class that contains all the services that are used in the SDK.
+ */
+var ServiceContainer = /** @class */function () {
+  function ServiceContainer(options) {
+    this.vwoOptions = options;
+    this.HooksService = new HooksService_1.default(this.vwoOptions);
+    this.SegmentationManager = new SegmentationManger_1.SegmentationManager();
+  }
+  /**
+   *
+   * @returns ILogManager
+   */
+  ServiceContainer.prototype.getLogManager = function () {
+    return this.logManager;
+  };
+  /**
+   * Sets the log manager.
+   * @param logManager - The log manager to set.
+   */
+  ServiceContainer.prototype.setLogManager = function (logManager) {
+    this.logManager = logManager;
+  };
+  /**
+   *
+   * @returns SettingsService
+   */
+  ServiceContainer.prototype.getSettingsService = function () {
+    return this.SettingsService;
+  };
+  /**
+   * Sets the settings service.
+   * @param settingsService - The settings service to set.
+   */
+  ServiceContainer.prototype.setSettingsService = function (settingsService) {
+    this.SettingsService = settingsService;
+  };
+  /**
+   *
+   * @returns HooksService
+   */
+  ServiceContainer.prototype.getHooksService = function () {
+    return this.HooksService;
+  };
+  /**
+   *
+   * @returns IVWOOptions
+   */
+  ServiceContainer.prototype.getVWOOptions = function () {
+    return this.vwoOptions;
+  };
+  /**
+   *
+   * @returns BatchEventsQueue
+   */
+  ServiceContainer.prototype.getBatchEventsQueue = function () {
+    return this.BatchEventsQueue;
+  };
+  /**
+   * Sets the batch events queue.
+   * @param batchEventsQueue - The batch events queue to set.
+   */
+  ServiceContainer.prototype.setBatchEventsQueue = function (batchEventsQueue) {
+    this.BatchEventsQueue = batchEventsQueue;
+  };
+  /**
+   *
+   * @returns SegmentationManager
+   */
+  ServiceContainer.prototype.getSegmentationManager = function () {
+    return this.SegmentationManager;
+  };
+  /**
+   *
+   * @returns SettingsModel
+   */
+  ServiceContainer.prototype.getSettings = function () {
+    return this.SettingsModel;
+  };
+  /**
+   * Sets the settings model.
+   * @param settings - The settings model to set.
+   */
+  ServiceContainer.prototype.setSettings = function (settings) {
+    this.SettingsModel = settings;
+  };
+  /**
+   * Updates the endpoint with the collection prefix.
+   * @param endpoint - The endpoint to update.
+   * @returns The updated endpoint with the collection prefix.
+   */
+  ServiceContainer.prototype.getUpdatedEndpointWithCollectionPrefix = function (endpoint) {
+    if (this.SettingsModel) {
+      if (endpoint && this.SettingsModel.getCollectionPrefix() && (0, DataTypeUtil_1.isString)(this.SettingsModel.getCollectionPrefix())) {
+        return "/".concat(this.SettingsModel.getCollectionPrefix()).concat(endpoint);
+      }
+    }
+    return endpoint;
+  };
+  /**
+   *
+   * @returns NetworkManager
+   */
+  ServiceContainer.prototype.getNetworkManager = function () {
+    return this.NetworkManager;
+  };
+  /**
+   * Sets the network manager.
+   * @param networkManager - The network manager to set.
+   */
+  ServiceContainer.prototype.setNetworkManager = function (networkManager) {
+    this.NetworkManager = networkManager;
+  };
+  /**
+   *
+   * @returns Storage
+   */
+  ServiceContainer.prototype.getStorageConnector = function () {
+    if (this.Storage) {
+      return this.Storage.getConnector();
+    }
+    return null;
+  };
+  /**
+   * Sets the storage.
+   * @param storage - The storage to set.
+   */
+  ServiceContainer.prototype.setStorage = function (storage) {
+    this.Storage = storage;
+  };
+  /**
+   * Injects the service container into the services.
+   * @param serviceContainer - The service container to inject.
+   */
+  ServiceContainer.prototype.injectServiceContainer = function (serviceContainer) {
+    if (this.SettingsService) {
+      this.SettingsService.injectServiceContainer(serviceContainer);
+    }
+    if (this.NetworkManager) {
+      this.NetworkManager.injectServiceContainer(serviceContainer);
+    }
+    if (this.BatchEventsQueue) {
+      this.BatchEventsQueue.injectServiceContainer(serviceContainer);
+    }
+    if (this.logManager) {
+      this.logManager.injectServiceContainer(serviceContainer);
+    }
+  };
+  /**
+   * Sets the value to determine if the SDK should wait for a network response.
+   * @param value - The value to set.
+   */
+  ServiceContainer.prototype.setShouldWaitForTrackingCalls = function (value) {
+    this.shouldWaitForTrackingCalls = value;
+  };
+  /**
+   * Gets the value to determine if the SDK should wait for a network response.
+   * @returns The value to determine if the SDK should wait for a network response.
+   */
+  ServiceContainer.prototype.getShouldWaitForTrackingCalls = function () {
+    return this.shouldWaitForTrackingCalls;
+  };
+  return ServiceContainer;
+}();
+exports.ServiceContainer = ServiceContainer;
 
 /***/ }),
 
@@ -9350,7 +9472,6 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.SettingsService = void 0;
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var network_layer_1 = __webpack_require__(/*! ../packages/network-layer */ "./dist/server-unpacked/packages/network-layer/index.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
@@ -9366,7 +9487,7 @@ var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./dist/server-unpac
 var StorageService_1 = __webpack_require__(/*! ./StorageService */ "./dist/server-unpacked/services/StorageService.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var SettingsService = /** @class */function () {
-  function SettingsService(options) {
+  function SettingsService(options, logManager) {
     var _a, _b, _c, _d, _e, _f;
     this.isGatewayServiceProvided = false;
     this.settingsFetchTime = undefined; //time taken to fetch the settings
@@ -9374,11 +9495,14 @@ var SettingsService = /** @class */function () {
     this.proxyProvided = false;
     this.isStorageServiceProvided = false;
     this.isEdgeEnvironment = false;
+    this.isSettingsProvidedInInit = false;
+    this.startTimeForInit = undefined;
     this.gatewayServiceConfig = {
       hostname: null,
       protocol: null,
       port: null
     };
+    this.logManager = logManager;
     this.sdkKey = options.sdkKey;
     this.accountId = options.accountId;
     this.expiry = ((_a = options === null || options === void 0 ? void 0 : options.settings) === null || _a === void 0 ? void 0 : _a.expiry) || constants_1.Constants.SETTINGS_EXPIRY;
@@ -9392,20 +9516,20 @@ var SettingsService = /** @class */function () {
     // Check if sdk running in browser and not in edge/serverless environment
     if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.isGatewayServiceProvided = true;
-      // Handle proxyUrl for browser environment
-      if (options === null || options === void 0 ? void 0 : options.proxyUrl) {
-        this.proxyProvided = true;
-        var parsedUrl = void 0;
-        if (options.proxyUrl.startsWith(Url_1.HTTP_PROTOCOL) || options.proxyUrl.startsWith(Url_1.HTTPS_PROTOCOL)) {
-          parsedUrl = new URL("".concat(options.proxyUrl));
-        } else {
-          parsedUrl = new URL("".concat(Url_1.HTTPS_PROTOCOL).concat(options.proxyUrl));
-        }
-        this.hostname = parsedUrl.hostname;
-        this.protocol = parsedUrl.protocol.replace(':', '');
-        if (parsedUrl.port) {
-          this.port = parseInt(parsedUrl.port);
-        }
+    }
+    // Handle proxyUrl config
+    if (options === null || options === void 0 ? void 0 : options.proxyUrl) {
+      this.proxyProvided = true;
+      var parsedUrl = void 0;
+      if (options.proxyUrl.startsWith(Url_1.HTTP_PROTOCOL) || options.proxyUrl.startsWith(Url_1.HTTPS_PROTOCOL)) {
+        parsedUrl = new URL("".concat(options.proxyUrl));
+      } else {
+        parsedUrl = new URL("".concat(Url_1.HTTPS_PROTOCOL).concat(options.proxyUrl));
+      }
+      this.hostname = parsedUrl.hostname;
+      this.protocol = parsedUrl.protocol.replace(':', '');
+      if (parsedUrl.port) {
+        this.port = parseInt(parsedUrl.port);
       }
     }
     //if gateway is provided and proxy is not provided then only we will replace the hostname, protocol and port
@@ -9445,32 +9569,38 @@ var SettingsService = /** @class */function () {
     // if (this.expiry > 0) {
     //   this.setSettingsExpiry();
     // }
-    logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+    this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
       service: 'Settings Manager'
     }));
-    SettingsService.instance = this;
   }
-  Object.defineProperty(SettingsService, "Instance", {
-    get: function () {
-      return SettingsService.instance;
-    },
-    enumerable: false,
-    configurable: true
-  });
+  /**
+   * Injects the service container into the settings service.
+   * @param {ServiceContainer} serviceContainer - The service container to inject.
+   */
+  SettingsService.prototype.injectServiceContainer = function (serviceContainer) {
+    this.serviceContainer = serviceContainer;
+  };
+  /**
+   * Check if proxy is provided
+   * @returns {boolean} - True if proxy is provided, false otherwise
+   */
+  SettingsService.prototype.isProxyProvided = function () {
+    return this.proxyProvided;
+  };
+  /**
+   * Normalize the settings
+   * @param settings - The settings to normalize
+   * @returns {Record<any, any>} - The normalized settings
+   */
   SettingsService.prototype.normalizeSettings = function (settings) {
-    return __awaiter(this, void 0, void 0, function () {
-      var normalizedSettings;
-      return __generator(this, function (_a) {
-        normalizedSettings = __assign({}, settings);
-        if (!normalizedSettings.features || Object.keys(normalizedSettings.features).length === 0) {
-          normalizedSettings.features = [];
-        }
-        if (!normalizedSettings.campaigns || Object.keys(normalizedSettings.campaigns).length === 0) {
-          normalizedSettings.campaigns = [];
-        }
-        return [2 /*return*/, normalizedSettings];
-      });
-    });
+    var normalizedSettings = __assign({}, settings);
+    if (!normalizedSettings.features || Object.keys(normalizedSettings.features).length === 0) {
+      normalizedSettings.features = [];
+    }
+    if (!normalizedSettings.campaigns || Object.keys(normalizedSettings.campaigns).length === 0) {
+      normalizedSettings.campaigns = [];
+    }
+    return normalizedSettings;
   };
   SettingsService.prototype.fetchSettings = function (isViaWebhook, apiName) {
     var _this = this;
@@ -9484,14 +9614,13 @@ var SettingsService = /** @class */function () {
     if (!this.sdkKey || !this.accountId) {
       deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
     }
-    var networkInstance = network_layer_1.NetworkManager.Instance;
     var options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
-    var retryConfig = networkInstance.getRetryConfig();
+    var retryConfig = this.serviceContainer.getNetworkManager().getRetryConfig();
     options.platform = constants_1.Constants.PLATFORM;
     options.sn = constants_1.Constants.SDK_NAME;
     options.sv = constants_1.Constants.SDK_VERSION;
     options['api-version'] = constants_1.Constants.API_VERSION;
-    if (!networkInstance.getConfig().getDevelopmentMode()) {
+    if (!this.serviceContainer.getNetworkManager().getConfig().getDevelopmentMode()) {
       options.s = 'prod';
     }
     var path = constants_1.Constants.SETTINGS_ENDPOINT;
@@ -9503,25 +9632,25 @@ var SettingsService = /** @class */function () {
       var startTime_1 = Date.now();
       var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
       request.setTimeout(this.networkTimeout);
-      networkInstance.get(request).then(function (response) {
+      this.serviceContainer.getNetworkManager().get(request).then(function (response) {
         //record the timestamp when the response is received
         _this.settingsFetchTime = Date.now() - startTime_1;
         // if attempt is more than 0
         if (response.getTotalAttempts() > 0) {
           var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
           // send debug event
-          (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+          (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(_this.serviceContainer, debugEventProps);
         }
         deferredObject.resolve(response.getData());
       }).catch(function (err) {
         var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(err, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
         // send debug event
-        (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+        (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(_this.serviceContainer, debugEventProps);
         deferredObject.reject(err);
       });
       return deferredObject.promise;
     } catch (err) {
-      logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+      this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
         err: (0, FunctionUtil_1.getFormattedErrorMessage)(err)
       }, {
         an: isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName
@@ -9545,17 +9674,17 @@ var SettingsService = /** @class */function () {
           case 1:
             _a.trys.push([1, 13,, 14]);
             if (!this.isStorageServiceProvided) return [3 /*break*/, 9];
-            storageService = new StorageService_1.StorageService();
+            storageService = new StorageService_1.StorageService(this.serviceContainer);
             return [4 /*yield*/, storageService.getSettingsFromStorage(this.accountId, this.sdkKey, !this.isEdgeEnvironment)];
           case 2:
             cachedSettings = _a.sent();
             if (!(cachedSettings && !(0, DataTypeUtil_1.isEmptyObject)(cachedSettings))) return [3 /*break*/, 3];
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
+            this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
             deferredObject.resolve(cachedSettings);
             return [3 /*break*/, 8];
           case 3:
             // if no cached settings are found, fetch fresh settings from server
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
+            this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
             return [4 /*yield*/, this.fetchSettings()];
           case 4:
             freshSettings = _a.sent();
@@ -9566,14 +9695,14 @@ var SettingsService = /** @class */function () {
             this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
             if (!this.isSettingsValid) return [3 /*break*/, 7];
             // if settings are valid, set the settings in storage
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
+            this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
             return [4 /*yield*/, storageService.setSettingsInStorage(this.accountId, this.sdkKey, normalizedSettings)];
           case 6:
             _a.sent();
             deferredObject.resolve(normalizedSettings);
             return [3 /*break*/, 8];
           case 7:
-            logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, {
+            this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, {
               an: ApiEnum_1.ApiEnum.INIT
             }, false);
             deferredObject.resolve({});
@@ -9589,10 +9718,10 @@ var SettingsService = /** @class */function () {
             normalizedSettings = _a.sent();
             this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
             if (this.isSettingsValid) {
-              logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+              this.logManager.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
               deferredObject.resolve(normalizedSettings);
             } else {
-              logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, {
+              this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, {
                 an: ApiEnum_1.ApiEnum.INIT
               }, false);
               deferredObject.resolve({});
@@ -9602,7 +9731,7 @@ var SettingsService = /** @class */function () {
             return [3 /*break*/, 14];
           case 13:
             error_1 = _a.sent();
-            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+            this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
               err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1)
             }, {
               an: ApiEnum_1.ApiEnum.INIT
@@ -9756,7 +9885,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StorageService = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9771,20 +9900,18 @@ exports.StorageService = void 0;
  * limitations under the License.
  */
 var StorageEnum_1 = __webpack_require__(/*! ../enums/StorageEnum */ "./dist/server-unpacked/enums/StorageEnum.js");
-var storage_1 = __webpack_require__(/*! ../packages/storage */ "./dist/server-unpacked/packages/storage/index.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
-var SettingsService_1 = __webpack_require__(/*! ./SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 var SettingsSchemaValidation_1 = __webpack_require__(/*! ../models/schemas/SettingsSchemaValidation */ "./dist/server-unpacked/models/schemas/SettingsSchemaValidation.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var StorageService = /** @class */function () {
-  function StorageService() {
+  function StorageService(serviceContainer) {
     this.storageData = {};
+    this.serviceContainer = serviceContainer;
   }
   /**
    * Retrieves data from storage based on the feature key and user ID.
@@ -9794,18 +9921,18 @@ var StorageService = /** @class */function () {
    */
   StorageService.prototype.getDataInStorage = function (featureKey, context) {
     return __awaiter(this, void 0, void 0, function () {
-      var deferredObject, storageInstance;
+      var deferredObject;
+      var _this = this;
       return __generator(this, function (_a) {
         deferredObject = new PromiseUtil_1.Deferred();
-        storageInstance = storage_1.Storage.Instance.getConnector();
         // Check if the storage instance is available
-        if ((0, DataTypeUtil_1.isNull)(storageInstance) || (0, DataTypeUtil_1.isUndefined)(storageInstance)) {
+        if ((0, DataTypeUtil_1.isNull)(this.serviceContainer.getStorageConnector()) || (0, DataTypeUtil_1.isUndefined)(this.serviceContainer.getStorageConnector())) {
           deferredObject.resolve(StorageEnum_1.StorageEnum.STORAGE_UNDEFINED);
         } else {
-          storageInstance.get(featureKey, context.getId()).then(function (data) {
+          this.serviceContainer.getStorageConnector().get(featureKey, context.getId()).then(function (data) {
             deferredObject.resolve(data);
           }).catch(function (err) {
-            logger_1.LogManager.Instance.errorLog('ERROR_READING_STORED_DATA_IN_STORAGE', {
+            _this.serviceContainer.getLogManager().errorLog('ERROR_READING_STORED_DATA_IN_STORAGE', {
               err: err
             }, {
               an: ApiEnum_1.ApiEnum.GET_FLAG,
@@ -9826,15 +9953,14 @@ var StorageService = /** @class */function () {
    */
   StorageService.prototype.setDataInStorage = function (data) {
     return __awaiter(this, void 0, void 0, function () {
-      var deferredObject, storageInstance;
+      var deferredObject;
       return __generator(this, function (_a) {
         deferredObject = new PromiseUtil_1.Deferred();
-        storageInstance = storage_1.Storage.Instance.getConnector();
         // Check if the storage instance is available
-        if (storageInstance === null || storageInstance === undefined) {
+        if (this.serviceContainer.getStorageConnector() === null || this.serviceContainer.getStorageConnector() === undefined) {
           deferredObject.resolve(false);
         } else {
-          storageInstance.set(data).then(function () {
+          this.serviceContainer.getStorageConnector().set(data).then(function () {
             deferredObject.resolve(true);
           }).catch(function () {
             deferredObject.resolve(false);
@@ -9852,7 +9978,7 @@ var StorageService = /** @class */function () {
    */
   StorageService.prototype.getSettingsFromStorage = function (accountId_1, sdkKey_1) {
     return __awaiter(this, arguments, void 0, function (accountId, sdkKey, shouldFetchFreshSettings) {
-      var deferredObject, storageInstance, settingsData, settings, timestamp, shouldUseCachedSettings, currentTime, settingsTTL, error_1;
+      var deferredObject, settingsData, settings, timestamp, shouldUseCachedSettings, currentTime, settingsTTL, error_1;
       var _a;
       if (shouldFetchFreshSettings === void 0) {
         shouldFetchFreshSettings = true;
@@ -9864,9 +9990,8 @@ var StorageService = /** @class */function () {
             _b.label = 1;
           case 1:
             _b.trys.push([1, 5,, 6]);
-            storageInstance = storage_1.Storage.Instance.getConnector();
-            if (!(storageInstance && typeof storageInstance.getSettings === 'function')) return [3 /*break*/, 3];
-            return [4 /*yield*/, storageInstance.getSettings(accountId, sdkKey)];
+            if (!(this.serviceContainer.getStorageConnector() && typeof this.serviceContainer.getStorageConnector().getSettings === 'function')) return [3 /*break*/, 3];
+            return [4 /*yield*/, this.serviceContainer.getStorageConnector().getSettings(accountId, sdkKey)];
           case 2:
             settingsData = _b.sent();
             if (!settingsData || (0, DataTypeUtil_1.isEmptyObject)(settingsData)) {
@@ -9877,25 +10002,25 @@ var StorageService = /** @class */function () {
             settings = settingsData.settings, timestamp = settingsData.timestamp;
             // Check for sdkKey and accountId match
             if (!settings || settings.sdkKey !== sdkKey || String((_a = settings.accountId) !== null && _a !== void 0 ? _a : settings.a) !== String(accountId)) {
-              logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH));
+              this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH));
               deferredObject.resolve({});
               return [2 /*return*/, deferredObject.promise];
             }
-            shouldUseCachedSettings = storageInstance.alwaysUseCachedSettings || constants_1.Constants.ALWAYS_USE_CACHED_SETTINGS;
+            shouldUseCachedSettings = this.serviceContainer.getStorageConnector().alwaysUseCachedSettings || constants_1.Constants.ALWAYS_USE_CACHED_SETTINGS;
             if (shouldUseCachedSettings) {
-              logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_USING_CACHED_SETTINGS));
+              this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_USING_CACHED_SETTINGS));
               deferredObject.resolve(settings);
               return [2 /*return*/, deferredObject.promise];
             }
             currentTime = Date.now();
-            settingsTTL = storageInstance.ttl || constants_1.Constants.SETTINGS_TTL;
+            settingsTTL = this.serviceContainer.getStorageConnector().ttl || constants_1.Constants.SETTINGS_TTL;
             // check if the settings are expired based on the last updated timestamp
             if (currentTime - timestamp > settingsTTL) {
-              logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_EXPIRED));
+              this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_EXPIRED));
               deferredObject.resolve({});
             } else {
               // if settings are not expired, then return the existing settings and update the settings in storage with new timestamp
-              logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_RETRIEVED_FROM_STORAGE));
+              this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_RETRIEVED_FROM_STORAGE));
               if (shouldFetchFreshSettings) {
                 // if shouldFetchFreshSettings is true, then fetch fresh settings asynchronously and update the storage with new timestamp
                 this.setFreshSettingsInStorage(accountId, sdkKey);
@@ -9905,7 +10030,7 @@ var StorageService = /** @class */function () {
                 try {
                   settings.sdkKey = atob(settings.sdkKey);
                 } catch (e) {
-                  logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
+                  this.serviceContainer.getLogManager().errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
                     err: (0, FunctionUtil_1.getFormattedErrorMessage)(e)
                   }, {
                     an: constants_1.Constants.STORAGE
@@ -9922,7 +10047,7 @@ var StorageService = /** @class */function () {
             return [3 /*break*/, 6];
           case 5:
             error_1 = _b.sent();
-            logger_1.LogManager.Instance.errorLog('ERROR_READING_SETTINGS_FROM_STORAGE', {
+            this.serviceContainer.getLogManager().errorLog('ERROR_READING_SETTINGS_FROM_STORAGE', {
               err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1)
             }, {
               an: constants_1.Constants.STORAGE
@@ -9944,7 +10069,7 @@ var StorageService = /** @class */function () {
    */
   StorageService.prototype.setSettingsInStorage = function (accountId, sdkKey, settings) {
     return __awaiter(this, void 0, void 0, function () {
-      var deferredObject, storageInstance, clonedSettings, settingsToStore, error_2;
+      var deferredObject, clonedSettings, settingsToStore, error_2;
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
@@ -9952,19 +10077,18 @@ var StorageService = /** @class */function () {
             _a.label = 1;
           case 1:
             _a.trys.push([1, 5,, 6]);
-            storageInstance = storage_1.Storage.Instance.getConnector();
-            if (!(storageInstance && typeof storageInstance.setSettings === 'function')) return [3 /*break*/, 3];
+            if (!(this.serviceContainer.getStorageConnector() && typeof this.serviceContainer.getStorageConnector().setSettings === 'function')) return [3 /*break*/, 3];
             clonedSettings = __assign({}, settings);
             settingsToStore = {
               settings: clonedSettings,
               timestamp: Date.now()
             };
             // set the settings in storage
-            return [4 /*yield*/, storageInstance.setSettings(settingsToStore)];
+            return [4 /*yield*/, this.serviceContainer.getStorageConnector().setSettings(settingsToStore)];
           case 2:
             // set the settings in storage
             _a.sent();
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_SUCCESSFULLY_STORED));
+            this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_SUCCESSFULLY_STORED));
             deferredObject.resolve();
             return [3 /*break*/, 4];
           case 3:
@@ -9974,7 +10098,7 @@ var StorageService = /** @class */function () {
             return [3 /*break*/, 6];
           case 5:
             error_2 = _a.sent();
-            logger_1.LogManager.Instance.errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', {
+            this.serviceContainer.getLogManager().errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', {
               err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_2)
             }, {
               an: constants_1.Constants.STORAGE
@@ -9992,14 +10116,13 @@ var StorageService = /** @class */function () {
    */
   StorageService.prototype.setFreshSettingsInStorage = function (accountId, sdkKey) {
     return __awaiter(this, void 0, void 0, function () {
-      var deferredObject, settingsService, storageInstance;
+      var deferredObject;
       var _this = this;
       return __generator(this, function (_a) {
         deferredObject = new PromiseUtil_1.Deferred();
-        settingsService = SettingsService_1.SettingsService.Instance;
-        storageInstance = storage_1.Storage.Instance.getConnector();
-        if (settingsService && storageInstance && typeof storageInstance.setSettings === 'function') {
-          settingsService.fetchSettings().then(function (freshSettings) {
+        // Fetch fresh settings asynchronously and update storage
+        if (this.serviceContainer.getSettingsService() && this.serviceContainer.getStorageConnector() && typeof this.serviceContainer.getStorageConnector().setSettings === 'function') {
+          this.serviceContainer.getSettingsService().fetchSettings().then(function (freshSettings) {
             return __awaiter(_this, void 0, void 0, function () {
               var isSettingsValid;
               return __generator(this, function (_a) {
@@ -10011,7 +10134,7 @@ var StorageService = /** @class */function () {
                     return [4 /*yield*/, this.setSettingsInStorage(accountId, sdkKey, freshSettings)];
                   case 1:
                     _a.sent();
-                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED_WITH_FRESH_DATA));
+                    this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED_WITH_FRESH_DATA));
                     _a.label = 2;
                   case 2:
                     deferredObject.resolve();
@@ -10020,7 +10143,7 @@ var StorageService = /** @class */function () {
               });
             });
           }).catch(function (error) {
-            logger_1.LogManager.Instance.errorLog('ERROR_STORING_FRESH_SETTINGS_IN_STORAGE', {
+            _this.serviceContainer.getLogManager().errorLog('ERROR_STORING_FRESH_SETTINGS_IN_STORAGE', {
               err: (0, FunctionUtil_1.getFormattedErrorMessage)(error)
             }, {
               an: constants_1.Constants.STORAGE
@@ -10067,7 +10190,7 @@ module.exports = webpackEmptyContext;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10197,7 +10320,6 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.AliasingUtil = void 0;
 var network_layer_1 = __webpack_require__(/*! ../packages/network-layer */ "./dist/server-unpacked/packages/network-layer/index.js");
-var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
 var UrlEnum_1 = __webpack_require__(/*! ../enums/UrlEnum */ "./dist/server-unpacked/enums/UrlEnum.js");
 var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
@@ -10211,34 +10333,33 @@ var AliasingUtil = /** @class */function () {
    * @param userId - The user identifier
    * @returns Promise<any | null> - The response from the gateway
    */
-  AliasingUtil.getAlias = function (userId) {
+  AliasingUtil.getAlias = function (userId, serviceContainer) {
     return __awaiter(this, void 0, void 0, function () {
       var deferredObject, gatewayServiceUrl, gatewayServicePort, gatewayServiceProtocol, retryConfig, queryParams, request;
-      var _a, _b;
-      return __generator(this, function (_c) {
+      return __generator(this, function (_a) {
         deferredObject = new PromiseUtil_1.Deferred();
         try {
           gatewayServiceUrl = null;
           gatewayServicePort = null;
           gatewayServiceProtocol = null;
-          retryConfig = network_layer_1.NetworkManager.Instance.getRetryConfig();
-          if (SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname != null) {
-            gatewayServiceUrl = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname;
-            gatewayServicePort = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.port;
-            gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.protocol;
+          retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
+          if (serviceContainer.getSettingsService().gatewayServiceConfig.hostname != null) {
+            gatewayServiceUrl = serviceContainer.getSettingsService().gatewayServiceConfig.hostname;
+            gatewayServicePort = serviceContainer.getSettingsService().gatewayServiceConfig.port;
+            gatewayServiceProtocol = serviceContainer.getSettingsService().gatewayServiceConfig.protocol;
           } else {
-            gatewayServiceUrl = SettingsService_1.SettingsService.Instance.hostname;
-            gatewayServicePort = SettingsService_1.SettingsService.Instance.port;
-            gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.protocol;
+            gatewayServiceUrl = serviceContainer.getSettingsService().hostname;
+            gatewayServicePort = serviceContainer.getSettingsService().port;
+            gatewayServiceProtocol = serviceContainer.getSettingsService().protocol;
           }
           queryParams = {};
-          queryParams['accountId'] = (_a = SettingsService_1.SettingsService.Instance) === null || _a === void 0 ? void 0 : _a.accountId;
-          queryParams['sdkKey'] = (_b = SettingsService_1.SettingsService.Instance) === null || _b === void 0 ? void 0 : _b.sdkKey;
+          queryParams['accountId'] = serviceContainer.getSettingsService().accountId;
+          queryParams['sdkKey'] = serviceContainer.getSettingsService().sdkKey;
           // Backend expects userId as JSON array
           queryParams[this.KEY_USER_ID] = JSON.stringify([userId]);
           request = new network_layer_1.RequestModel(gatewayServiceUrl, HttpMethodEnum_1.HttpMethodEnum.GET, this.GET_ALIAS_URL, queryParams, null, null, gatewayServiceProtocol, gatewayServicePort, retryConfig);
           // Perform the network GET request
-          network_layer_1.NetworkManager.Instance.get(request).then(function (response) {
+          serviceContainer.getNetworkManager().get(request).then(function (response) {
             // Resolve the deferred object with the response
             deferredObject.resolve(response.getData());
           }).catch(function (err) {
@@ -10261,36 +10382,35 @@ var AliasingUtil = /** @class */function () {
    * @param aliasId - The alias identifier to set
    * @returns Promise<ResponseModel | null> - The response from the gateway
    */
-  AliasingUtil.setAlias = function (userId, aliasId) {
+  AliasingUtil.setAlias = function (userId, aliasId, serviceContainer) {
     return __awaiter(this, void 0, void 0, function () {
       var deferredObject, gatewayServiceUrl, gatewayServicePort, gatewayServiceProtocol, retryConfig, queryParams, requestBody, request;
       var _a;
-      var _b, _c;
-      return __generator(this, function (_d) {
+      return __generator(this, function (_b) {
         deferredObject = new PromiseUtil_1.Deferred();
         try {
           gatewayServiceUrl = null;
           gatewayServicePort = null;
           gatewayServiceProtocol = null;
-          retryConfig = network_layer_1.NetworkManager.Instance.getRetryConfig();
-          if (SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname != null) {
-            gatewayServiceUrl = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname;
-            gatewayServicePort = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.port;
-            gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.protocol;
+          retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
+          if (serviceContainer.getSettingsService().gatewayServiceConfig.hostname != null) {
+            gatewayServiceUrl = serviceContainer.getSettingsService().gatewayServiceConfig.hostname;
+            gatewayServicePort = serviceContainer.getSettingsService().gatewayServiceConfig.port;
+            gatewayServiceProtocol = serviceContainer.getSettingsService().gatewayServiceConfig.protocol;
           } else {
-            gatewayServiceUrl = SettingsService_1.SettingsService.Instance.hostname;
-            gatewayServicePort = SettingsService_1.SettingsService.Instance.port;
-            gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.protocol;
+            gatewayServiceUrl = serviceContainer.getSettingsService().hostname;
+            gatewayServicePort = serviceContainer.getSettingsService().port;
+            gatewayServiceProtocol = serviceContainer.getSettingsService().protocol;
           }
           queryParams = {};
-          queryParams['accountId'] = (_b = SettingsService_1.SettingsService.Instance) === null || _b === void 0 ? void 0 : _b.accountId;
-          queryParams['sdkKey'] = (_c = SettingsService_1.SettingsService.Instance) === null || _c === void 0 ? void 0 : _c.sdkKey;
+          queryParams['accountId'] = serviceContainer.getSettingsService().accountId;
+          queryParams['sdkKey'] = serviceContainer.getSettingsService().sdkKey;
           queryParams[this.KEY_USER_ID] = userId;
           queryParams[this.KEY_ALIAS_ID] = aliasId;
           requestBody = (_a = {}, _a[this.KEY_USER_ID] = userId, _a[this.KEY_ALIAS_ID] = aliasId, _a);
           request = new network_layer_1.RequestModel(gatewayServiceUrl, HttpMethodEnum_1.HttpMethodEnum.POST, this.SET_ALIAS_URL, queryParams, requestBody, null, gatewayServiceProtocol, gatewayServicePort, retryConfig);
           // Perform the network POST request
-          network_layer_1.NetworkManager.Instance.post(request).then(function (response) {
+          serviceContainer.getNetworkManager().post(request).then(function (response) {
             // Resolve the deferred object with the response
             deferredObject.resolve(response.getData());
           }).catch(function (err) {
@@ -10328,7 +10448,7 @@ exports.AliasingUtil = AliasingUtil;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10458,12 +10578,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BatchEventsDispatcher = void 0;
 var network_layer_1 = __webpack_require__(/*! ../packages/network-layer */ "./dist/server-unpacked/packages/network-layer/index.js");
-var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./dist/server-unpacked/utils/UrlUtil.js");
-var network_layer_2 = __webpack_require__(/*! ../packages/network-layer */ "./dist/server-unpacked/packages/network-layer/index.js");
 var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
 var UrlEnum_1 = __webpack_require__(/*! ../enums/UrlEnum */ "./dist/server-unpacked/enums/UrlEnum.js");
-var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
@@ -10475,12 +10591,12 @@ var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpa
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 var BatchEventsDispatcher = /** @class */function () {
   function BatchEventsDispatcher() {}
-  BatchEventsDispatcher.dispatch = function (payload, flushCallback, queryParams) {
+  BatchEventsDispatcher.dispatch = function (serviceContainer, payload, flushCallback, queryParams) {
     return __awaiter(this, void 0, void 0, function () {
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
-            return [4 /*yield*/, this.sendPostApiRequest(queryParams, payload, flushCallback)];
+            return [4 /*yield*/, this.sendPostApiRequest(serviceContainer, queryParams, payload, flushCallback)];
           case 1:
             return [2 /*return*/, _a.sent()];
         }
@@ -10493,19 +10609,16 @@ var BatchEventsDispatcher = /** @class */function () {
    * @param payload - The payload of the request.
    * @returns A promise that resolves to a void.
    */
-  BatchEventsDispatcher.sendPostApiRequest = function (properties, payload, flushCallback) {
+  BatchEventsDispatcher.sendPostApiRequest = function (serviceContainer, properties, payload, flushCallback) {
     return __awaiter(this, void 0, void 0, function () {
-      var deferred, networkManager, retryConfig, headers, baseUrl, request, _a, variationShownCount, setAttributeCount, customEventCount, extraData;
+      var deferred, retryConfig, headers, request, _a, variationShownCount, setAttributeCount, customEventCount, extraData;
       var _this = this;
       return __generator(this, function (_b) {
         deferred = new PromiseUtil_1.Deferred();
-        networkManager = network_layer_2.NetworkManager.Instance;
-        retryConfig = networkManager.getRetryConfig();
+        retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
         headers = {};
-        headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
-        baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
-        baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
-        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
+        headers['Authorization'] = serviceContainer.getSettingsService().sdkKey;
+        request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.BATCH_EVENTS), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
         _a = this.extractEventCounts(payload), variationShownCount = _a.variationShownCount, setAttributeCount = _a.setAttributeCount, customEventCount = _a.customEventCount;
         extraData = "".concat(constants_1.Constants.BATCH_EVENTS, " having ");
         if (variationShownCount > 0) {
@@ -10518,24 +10631,24 @@ var BatchEventsDispatcher = /** @class */function () {
           extraData += "setAttribute events: ".concat(setAttributeCount, ", ");
         }
         try {
-          network_layer_2.NetworkManager.Instance.post(request).then(function (response) {
+          serviceContainer.getNetworkManager().post(request).then(function (response) {
             if (response.getTotalAttempts() > 0) {
               var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', constants_1.Constants.BATCH_EVENTS, extraData);
               // send debug event
-              (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+              (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
             }
-            var batchApiResult = _this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
+            var batchApiResult = _this.handleBatchResponse(serviceContainer.getLogManager(), UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
             deferred.resolve(batchApiResult);
           }).catch(function (err) {
             var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(err, '', constants_1.Constants.BATCH_EVENTS, extraData);
             // send debug event
-            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
-            var batchApiResult = _this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, err, flushCallback);
+            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
+            var batchApiResult = _this.handleBatchResponse(serviceContainer.getLogManager(), UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, err, flushCallback);
             deferred.resolve(batchApiResult);
           });
           return [2 /*return*/, deferred.promise];
         } catch (error) {
-          logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+          serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
             apiName: constants_1.Constants.BATCH_EVENTS,
             err: (0, FunctionUtil_1.getFormattedErrorMessage)(error)
           }, {
@@ -10560,7 +10673,7 @@ var BatchEventsDispatcher = /** @class */function () {
    * @param rawData - Raw response data
    * @param callback - Callback function to handle the result
    */
-  BatchEventsDispatcher.handleBatchResponse = function (endPoint, payload, queryParams, err, res, callback) {
+  BatchEventsDispatcher.handleBatchResponse = function (logManager, endPoint, payload, queryParams, err, res, callback) {
     var eventsPerRequest = payload.ev.length;
     var accountId = queryParams.a;
     var error = err ? err : res === null || res === void 0 ? void 0 : res.getError();
@@ -10572,8 +10685,8 @@ var BatchEventsDispatcher = /** @class */function () {
       }
     }
     if (error) {
-      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
-      logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
+      logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
+      logManager.errorLog('NETWORK_CALL_FAILED', {
         method: HttpMethodEnum_1.HttpMethodEnum.POST,
         err: error.message
       }, {}, false);
@@ -10585,7 +10698,7 @@ var BatchEventsDispatcher = /** @class */function () {
     }
     var statusCode = res === null || res === void 0 ? void 0 : res.getStatusCode();
     if (statusCode === 200) {
-      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_SUCCESS, {
+      logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_SUCCESS, {
         accountId: accountId,
         endPoint: endPoint
       }));
@@ -10596,12 +10709,12 @@ var BatchEventsDispatcher = /** @class */function () {
       };
     }
     if (statusCode === 413) {
-      logger_1.LogManager.Instance.errorLog('CONFIG_BATCH_EVENT_LIMIT_EXCEEDED', {
+      logManager.errorLog('CONFIG_BATCH_EVENT_LIMIT_EXCEEDED', {
         accountId: accountId,
         endPoint: endPoint,
         eventsPerRequest: eventsPerRequest
       }, {}, false);
-      logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
+      logManager.errorLog('NETWORK_CALL_FAILED', {
         method: HttpMethodEnum_1.HttpMethodEnum.POST,
         err: error.message
       }, {}, false);
@@ -10611,8 +10724,8 @@ var BatchEventsDispatcher = /** @class */function () {
         events: payload
       };
     }
-    logger_1.LogManager.Instance.errorLog('IMPRESSION_BATCH_FAILED', {}, {}, false);
-    logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
+    logManager.errorLog('IMPRESSION_BATCH_FAILED', {}, {}, false);
+    logManager.errorLog('NETWORK_CALL_FAILED', {
       method: HttpMethodEnum_1.HttpMethodEnum.POST,
       err: error.message
     }, {}, false);
@@ -10678,6 +10791,7 @@ exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
 exports.getCampaignKeyFromCampaignId = getCampaignKeyFromCampaignId;
 exports.getVariationNameFromCampaignIdAndVariationId = getVariationNameFromCampaignIdAndVariationId;
 exports.getCampaignTypeFromCampaignId = getCampaignTypeFromCampaignId;
+exports.isFeatureIdPresentInSettings = isFeatureIdPresentInSettings;
 exports.setCampaignAllocation = setCampaignAllocation;
 exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
 exports.getCampaignsByGroupId = getCampaignsByGroupId;
@@ -10685,7 +10799,7 @@ exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 exports.assignRangeValuesMEG = assignRangeValuesMEG;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10703,18 +10817,18 @@ var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacke
 var CampaignTypeEnum_1 = __webpack_require__(/*! ../enums/CampaignTypeEnum */ "./dist/server-unpacked/enums/CampaignTypeEnum.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var VariationModel_1 = __webpack_require__(/*! ../models/campaign/VariationModel */ "./dist/server-unpacked/models/campaign/VariationModel.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 /**
  * Sets the variation allocation for a given campaign based on its type.
  * If the campaign type is ROLLOUT or PERSONALIZE, it handles the campaign using `_handleRolloutCampaign`.
  * Otherwise, it assigns range values to each variation in the campaign.
  * @param {CampaignModel} campaign - The campaign for which to set the variation allocation.
+ * @param {LogManager} logManager - The log manager instance.
  */
-function setVariationAllocation(campaign) {
+function setVariationAllocation(campaign, logManager) {
   // Check if the campaign type is ROLLOUT or PERSONALIZE
   if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
-    _handleRolloutCampaign(campaign);
+    _handleRolloutCampaign(campaign, logManager);
   } else {
     var currentAllocation_1 = 0;
     // Iterate over each variation in the campaign
@@ -10723,7 +10837,7 @@ function setVariationAllocation(campaign) {
       var stepFactor = assignRangeValues(variation, currentAllocation_1);
       currentAllocation_1 += stepFactor;
       // Log the range allocation for debugging
-      logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+      logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
         variationKey: variation.getKey(),
         campaignKey: campaign.getKey(),
         variationWeight: variation.getWeight(),
@@ -10868,6 +10982,17 @@ function getCampaignTypeFromCampaignId(settings, campaignId) {
     return campaign.getType();
   }
   return null;
+}
+/**
+ * Checks if a feature ID is present in the settings.
+ * @param {SettingsModel} settings - The settings model containing all features.
+ * @param {number} featureId - The ID of the feature to check.
+ * @returns {boolean} True if the feature ID is present, false otherwise.
+ */
+function isFeatureIdPresentInSettings(settings, featureId) {
+  return settings.getFeatures().some(function (feature) {
+    return feature.getId() === featureId;
+  });
 }
 /**
  * Sets the allocation ranges for a list of campaigns.
@@ -11015,15 +11140,16 @@ function _getVariationBucketRange(variationWeight) {
 /**
  * Handles the rollout campaign by setting start and end ranges for all variations.
  * @param {CampaignModel} campaign - The campaign to handle.
+ * @param {LogManager} logManager - The log manager instance.
  */
-function _handleRolloutCampaign(campaign) {
+function _handleRolloutCampaign(campaign, logManager) {
   // Set start and end ranges for all variations in the campaign
   for (var i = 0; i < campaign.getVariations().length; i++) {
     var variation = campaign.getVariations()[i];
     var endRange = campaign.getVariations()[i].getWeight() * 100;
     variation.setStartRange(1);
     variation.setEndRange(endRange);
-    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+    logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
       variationKey: variation.getKey(),
       campaignKey: campaign.getKey(),
       variationWeight: variation.getWeight(),
@@ -11180,7 +11306,7 @@ function getType(val) {
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11312,7 +11438,6 @@ exports.extractDecisionKeys = extractDecisionKeys;
 exports.sendDebugEventToVWO = sendDebugEventToVWO;
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
-var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 /**
  * Utility functions for handling debugger service operations including
  * filtering sensitive properties and extracting decision keys.
@@ -11350,8 +11475,8 @@ function extractDecisionKeys(decisionObj) {
  * @param eventProps - The properties for the event.
  * @returns A promise that resolves when the event is sent.
  */
-function sendDebugEventToVWO() {
-  return __awaiter(this, arguments, void 0, function (eventProps) {
+function sendDebugEventToVWO(serviceContainer_1) {
+  return __awaiter(this, arguments, void 0, function (serviceContainer, eventProps) {
     var properties, payload;
     if (eventProps === void 0) {
       eventProps = {};
@@ -11359,13 +11484,13 @@ function sendDebugEventToVWO() {
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, null, null);
-          payload = (0, NetworkUtil_1.getDebuggerEventPayload)(eventProps);
-          if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
-          BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+          properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, null, null);
+          payload = (0, NetworkUtil_1.getDebuggerEventPayload)(serviceContainer.getSettingsService(), eventProps);
+          if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
+          serviceContainer.getBatchEventsQueue().enqueue(payload);
           return [3 /*break*/, 3];
         case 1:
-          return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT).catch(function () {})];
+          return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT).catch(function () {})];
         case 2:
           _a.sent();
           _a.label = 3;
@@ -11503,7 +11628,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.evaluateTrafficAndGetVariation = exports.checkWhitelistingAndPreSeg = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11522,8 +11647,6 @@ var CampaignTypeEnum_1 = __webpack_require__(/*! ../enums/CampaignTypeEnum */ ".
 var StatusEnum_1 = __webpack_require__(/*! ../enums/StatusEnum */ "./dist/server-unpacked/enums/StatusEnum.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var decision_maker_1 = __webpack_require__(/*! ../packages/decision-maker */ "./dist/server-unpacked/packages/decision-maker/index.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
-var segmentation_evaluator_1 = __webpack_require__(/*! ../packages/segmentation-evaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/index.js");
 var CampaignDecisionService_1 = __webpack_require__(/*! ../services/CampaignDecisionService */ "./dist/server-unpacked/services/CampaignDecisionService.js");
 var DataTypeUtil_2 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
@@ -11533,13 +11656,13 @@ var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/serve
 var MegUtil_1 = __webpack_require__(/*! ./MegUtil */ "./dist/server-unpacked/utils/MegUtil.js");
 var UuidUtil_1 = __webpack_require__(/*! ./UuidUtil */ "./dist/server-unpacked/utils/UuidUtil.js");
 var StorageDecorator_1 = __webpack_require__(/*! ../decorators/StorageDecorator */ "./dist/server-unpacked/decorators/StorageDecorator.js");
-var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) {
+var checkWhitelistingAndPreSeg = function (serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) {
   return __awaiter(void 0, void 0, void 0, function () {
     var vwoUserId, campaignId, whitelistedVariation, groupId, groupWinnerCampaignId, storedData, isPreSegmentationPassed, winnerCampaign;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          vwoUserId = (0, UuidUtil_1.getUUID)(context.getId(), settings.getAccountId());
+          vwoUserId = (0, UuidUtil_1.getUUID)(context.getId(), serviceContainer.getSettings().getAccountId());
           campaignId = campaign.getId();
           if (!(campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB)) return [3 /*break*/, 3];
           // set _vwoUserId for variation targeting variables
@@ -11550,7 +11673,7 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
             variationTargetingVariables: context.getVariationTargetingVariables()
           }); // for integration
           if (!campaign.getIsForcedVariationEnabled()) return [3 /*break*/, 2];
-          return [4 /*yield*/, _checkCampaignWhitelisting(campaign, context)];
+          return [4 /*yield*/, _checkCampaignWhitelisting(campaign, context, serviceContainer)];
         case 1:
           whitelistedVariation = _a.sent();
           if (whitelistedVariation && Object.keys(whitelistedVariation).length > 0) {
@@ -11558,7 +11681,7 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
           }
           return [3 /*break*/, 3];
         case 2:
-          logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
+          serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
             campaignKey: campaign.getRuleKey(),
             userId: context.getId()
           }));
@@ -11571,7 +11694,7 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
           Object.assign(decision, {
             customVariables: context.getCustomVariables()
           }); // for integeration
-          groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(settings, campaign.getId(), campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null).groupId;
+          groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(serviceContainer.getSettings(), campaign.getId(), campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null).groupId;
           groupWinnerCampaignId = megGroupWinnerCampaigns === null || megGroupWinnerCampaigns === void 0 ? void 0 : megGroupWinnerCampaigns.get(groupId);
           if (!groupWinnerCampaignId) return [3 /*break*/, 4];
           if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
@@ -11589,11 +11712,11 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
           return [2 /*return*/, [false, null]];
         case 4:
           if (!groupId) return [3 /*break*/, 6];
-          return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService)];
+          return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService, serviceContainer)];
         case 5:
           storedData = _a.sent();
           if (storedData && storedData.experimentKey && storedData.experimentId) {
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
               campaignKey: storedData.experimentKey,
               userId: context.getId()
             }));
@@ -11621,11 +11744,11 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
           }
           _a.label = 6;
         case 6:
-          return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(campaign, context)];
+          return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(campaign, context, serviceContainer)];
         case 7:
           isPreSegmentationPassed = _a.sent();
           if (!(isPreSegmentationPassed && groupId)) return [3 /*break*/, 9];
-          return [4 /*yield*/, (0, MegUtil_1.evaluateGroups)(settings, feature, groupId, evaluatedFeatureMap, context, storageService)];
+          return [4 /*yield*/, (0, MegUtil_1.evaluateGroups)(serviceContainer, feature, groupId, evaluatedFeatureMap, context, storageService)];
         case 8:
           winnerCampaign = _a.sent();
           if (winnerCampaign && winnerCampaign.id === campaignId) {
@@ -11657,17 +11780,17 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
   });
 };
 exports.checkWhitelistingAndPreSeg = checkWhitelistingAndPreSeg;
-var evaluateTrafficAndGetVariation = function (settings, campaign, userId) {
-  var variation = new CampaignDecisionService_1.CampaignDecisionService().getVariationAlloted(userId, settings.getAccountId(), campaign);
+var evaluateTrafficAndGetVariation = function (serviceContainer, campaign, userId) {
+  var variation = new CampaignDecisionService_1.CampaignDecisionService().getVariationAlloted(userId, serviceContainer.getSettings().getAccountId(), campaign, serviceContainer);
   if (!variation) {
-    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
+    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
       campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
       userId: userId,
       status: 'did not get any variation'
     }));
     return null;
   }
-  logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
+  serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
     campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
     userId: userId,
     status: "got variation:".concat(variation.getKey())
@@ -11685,18 +11808,18 @@ exports.evaluateTrafficAndGetVariation = evaluateTrafficAndGetVariation;
  * @param variationTargetingVariables   Variation targeting variables
  * @returns
  */
-var _checkCampaignWhitelisting = function (campaign, context) {
+var _checkCampaignWhitelisting = function (campaign, context, serviceContainer) {
   return __awaiter(void 0, void 0, void 0, function () {
     var whitelistingResult, status, variationString;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          return [4 /*yield*/, _evaluateWhitelisting(campaign, context)];
+          return [4 /*yield*/, _evaluateWhitelisting(campaign, context, serviceContainer)];
         case 1:
           whitelistingResult = _a.sent();
           status = whitelistingResult ? StatusEnum_1.StatusEnum.PASSED : StatusEnum_1.StatusEnum.FAILED;
           variationString = whitelistingResult ? whitelistingResult.variation.key : '';
-          logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_STATUS, {
+          serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_STATUS, {
             userId: context.getId(),
             campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
             status: status,
@@ -11707,7 +11830,7 @@ var _checkCampaignWhitelisting = function (campaign, context) {
     });
   });
 };
-var _evaluateWhitelisting = function (campaign, context) {
+var _evaluateWhitelisting = function (campaign, context, serviceContainer) {
   return __awaiter(void 0, void 0, void 0, function () {
     var targetedVariations, promises, whitelistedVariation, i, currentAllocation, stepFactor;
     return __generator(this, function (_a) {
@@ -11717,7 +11840,7 @@ var _evaluateWhitelisting = function (campaign, context) {
           promises = [];
           campaign.getVariations().forEach(function (variation) {
             if ((0, DataTypeUtil_2.isObject)(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
-              logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
+              serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
                 campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
                 userId: context.getId(),
                 variation: variation.getKey() ? "for variation: ".concat(variation.getKey()) : ''
@@ -11726,7 +11849,7 @@ var _evaluateWhitelisting = function (campaign, context) {
             }
             // check for segmentation and evaluate
             if ((0, DataTypeUtil_2.isObject)(variation.getSegments())) {
-              var SegmentEvaluatorResult = segmentation_evaluator_1.SegmentationManager.Instance.validateSegmentation(variation.getSegments(), context.getVariationTargetingVariables());
+              var SegmentEvaluatorResult = serviceContainer.getSegmentationManager().validateSegmentation(variation.getSegments(), context.getVariationTargetingVariables());
               SegmentEvaluatorResult = (0, DataTypeUtil_1.isPromise)(SegmentEvaluatorResult) ? SegmentEvaluatorResult : Promise.resolve(SegmentEvaluatorResult);
               SegmentEvaluatorResult.then(function (evaluationResult) {
                 if (evaluationResult) {
@@ -11776,7 +11899,7 @@ var _evaluateWhitelisting = function (campaign, context) {
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11949,7 +12072,6 @@ exports.sendGetCall = sendGetCall;
 exports.sendPostCall = sendPostCall;
 var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
@@ -11961,7 +12083,7 @@ var fetchPromise = null;
  * Gets the fetch function to use, checking for global fetch first, then falling back to node-fetch.
  * @returns The fetch function to use
  */
-function getFetch() {
+function getFetch(logManager) {
   return __awaiter(this, void 0, void 0, function () {
     var _this = this;
     return __generator(this, function (_a) {
@@ -11982,7 +12104,7 @@ function getFetch() {
               case 0:
                 // Check if fetch is available globally (Node.js 18+, browsers, etc.)
                 if (typeof fetch !== 'undefined') {
-                  logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                  logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
                     api: 'Global fetch',
                     process: typeof process === 'undefined' ? 'undefined' : 'defined'
                   }));
@@ -11992,7 +12114,7 @@ function getFetch() {
                 _a.label = 1;
               case 1:
                 _a.trys.push([1, 3,, 4]);
-                logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
                   api: 'Node-fetch',
                   process: typeof process === 'undefined' ? 'undefined' : 'defined'
                 }));
@@ -12007,7 +12129,7 @@ function getFetch() {
                 return [2 /*return*/, fetchFn];
               case 3:
                 error_1 = _a.sent();
-                logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.ERROR_INITIALIZING_FETCH, {
+                logManager.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.ERROR_INITIALIZING_FETCH, {
                   error: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1)
                 }));
                 return [3 /*break*/, 4];
@@ -12021,11 +12143,11 @@ function getFetch() {
     });
   });
 }
-function sendGetCall(request) {
-  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, request);
+function sendGetCall(request, logManager) {
+  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, request, logManager);
 }
-function sendPostCall(request) {
-  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, request);
+function sendPostCall(request, logManager) {
+  return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, request, logManager);
 }
 /**
  * Sends a request to the server using the Fetch API.
@@ -12033,7 +12155,7 @@ function sendPostCall(request) {
  * @param request - The request model.
  * @returns A Promise that resolves to the response data.
  */
-function sendRequest(method, request) {
+function sendRequest(method, request, logManager) {
   return __awaiter(this, void 0, void 0, function () {
     var responseModel, networkOptions, url, retryCount, fetchFn_1, retryConfig_1, shouldRetry_1, maxRetries_1, executeRequest_1, handleError_1, err_1;
     return __generator(this, function (_a) {
@@ -12049,7 +12171,7 @@ function sendRequest(method, request) {
           _a.label = 1;
         case 1:
           _a.trys.push([1, 3,, 4]);
-          return [4 /*yield*/, getFetch()];
+          return [4 /*yield*/, getFetch(logManager)];
         case 2:
           fetchFn_1 = _a.sent();
           retryConfig_1 = request.getRetryConfig();
@@ -12104,7 +12226,7 @@ function sendRequest(method, request) {
             if (shouldRetry_1 && retryCount < maxRetries_1) {
               var delay = retryConfig_1.initialDelay * Math.pow(retryConfig_1.backoffMultiplier, retryCount) * 1000; // Exponential backoff
               retryCount++;
-              logger_1.LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+              logManager.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
                 endPoint: endpoint,
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
                 delay: delay / 1000,
@@ -12117,7 +12239,7 @@ function sendRequest(method, request) {
               }, delay);
             } else {
               if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
-                logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+                logManager.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
                   extraData: endpoint,
                   attempts: retryCount,
                   err: (0, FunctionUtil_1.getFormattedErrorMessage)(error)
@@ -12177,7 +12299,7 @@ exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
 exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 exports.getFormattedErrorMessage = getFormattedErrorMessage;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12492,7 +12614,7 @@ exports.getFromGatewayService = getFromGatewayService;
 exports.getQueryParams = getQueryParams;
 exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12509,27 +12631,26 @@ exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var CampaignTypeEnum_1 = __webpack_require__(/*! ../enums/CampaignTypeEnum */ "./dist/server-unpacked/enums/CampaignTypeEnum.js");
 var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var network_layer_1 = __webpack_require__(/*! ../packages/network-layer */ "./dist/server-unpacked/packages/network-layer/index.js");
-var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 /**
  * Asynchronously retrieves data from a web service using the specified query parameters and endpoint.
+ * @param serviceContainer - The service container instance.
  * @param queryParams - The parameters to be used in the query string of the request.
  * @param endpoint - The endpoint URL to which the request is sent.
  * @returns A promise that resolves to the response data or false if an error occurs.
  */
-function getFromGatewayService(queryParams, endpoint, context) {
+function getFromGatewayService(serviceContainer, queryParams, endpoint, context) {
   return __awaiter(this, void 0, void 0, function () {
     var deferredObject, networkInstance, retryConfig, gatewayServiceUrl, gatewayServicePort, gatewayServiceProtocol, request;
     return __generator(this, function (_a) {
       deferredObject = new PromiseUtil_1.Deferred();
-      networkInstance = network_layer_1.NetworkManager.Instance;
+      networkInstance = serviceContainer.getNetworkManager();
       retryConfig = networkInstance.getRetryConfig();
       // Check if the base URL is not set correctly
-      if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
+      if (!serviceContainer.getSettingsService().isGatewayServiceProvided) {
         // Log an informational message about the invalid URL
-        logger_1.LogManager.Instance.errorLog('INVALID_GATEWAY_URL', {}, {
+        serviceContainer.getLogManager().errorLog('INVALID_GATEWAY_URL', {}, {
           an: ApiEnum_1.ApiEnum.GET_FLAG,
           uuid: context.getUuid(),
           sId: context.getSessionId()
@@ -12540,18 +12661,18 @@ function getFromGatewayService(queryParams, endpoint, context) {
       }
       // required if sdk is running in browser environment
       // using dacdn where accountid is required
-      queryParams['accountId'] = SettingsService_1.SettingsService.Instance.accountId;
+      queryParams['accountId'] = serviceContainer.getSettingsService().accountId;
       gatewayServiceUrl = null;
       gatewayServicePort = null;
       gatewayServiceProtocol = null;
-      if (SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname != null) {
-        gatewayServiceUrl = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname;
-        gatewayServicePort = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.port;
-        gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.protocol;
+      if (serviceContainer.getSettingsService().gatewayServiceConfig.hostname != null) {
+        gatewayServiceUrl = serviceContainer.getSettingsService().gatewayServiceConfig.hostname;
+        gatewayServicePort = serviceContainer.getSettingsService().gatewayServiceConfig.port;
+        gatewayServiceProtocol = serviceContainer.getSettingsService().gatewayServiceConfig.protocol;
       } else {
-        gatewayServiceUrl = SettingsService_1.SettingsService.Instance.hostname;
-        gatewayServicePort = SettingsService_1.SettingsService.Instance.port;
-        gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.protocol;
+        gatewayServiceUrl = serviceContainer.getSettingsService().hostname;
+        gatewayServicePort = serviceContainer.getSettingsService().port;
+        gatewayServiceProtocol = serviceContainer.getSettingsService().protocol;
       }
       try {
         request = new network_layer_1.RequestModel(gatewayServiceUrl, HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, gatewayServiceProtocol, gatewayServicePort, retryConfig);
@@ -12634,7 +12755,7 @@ function addIsGatewayServiceRequiredFlag(settings) {
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12765,7 +12886,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.createAndSendImpressionForVariationShown = void 0;
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
-var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var CampaignUtil_2 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
@@ -12774,36 +12894,36 @@ var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacke
  * This function constructs the necessary properties and payload for the event
  * and uses the NetworkUtil to send a POST API request.
  *
- * @param {SettingsModel} settings - The settings model containing configuration.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {number} campaignId - The ID of the campaign.
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-var createAndSendImpressionForVariationShown = function (settings, campaignId, variationId, context, featureKey) {
+var createAndSendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey) {
   return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()),
+          properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()),
           // Encode user agent to ensure URL safety
           context.getIpAddress());
-          payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
-          campaignKeyWithFeatureName = (0, CampaignUtil_1.getCampaignKeyFromCampaignId)(settings, campaignId);
-          variationName = (0, CampaignUtil_2.getVariationNameFromCampaignIdAndVariationId)(settings, campaignId, variationId);
+          payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
+          campaignKeyWithFeatureName = (0, CampaignUtil_1.getCampaignKeyFromCampaignId)(serviceContainer.getSettings(), campaignId);
+          variationName = (0, CampaignUtil_2.getVariationNameFromCampaignIdAndVariationId)(serviceContainer.getSettings(), campaignId, variationId);
           campaignKey = '';
           if (featureKey === campaignKeyWithFeatureName) {
             campaignKey = constants_1.Constants.IMPACT_ANALYSIS;
           } else {
             campaignKey = campaignKeyWithFeatureName === null || campaignKeyWithFeatureName === void 0 ? void 0 : campaignKeyWithFeatureName.split("".concat(featureKey, "_"))[1];
           }
-          campaignType = (0, CampaignUtil_1.getCampaignTypeFromCampaignId)(settings, campaignId);
-          if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
-          BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+          campaignType = (0, CampaignUtil_1.getCampaignTypeFromCampaignId)(serviceContainer.getSettings(), campaignId);
+          if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
+          serviceContainer.getBatchEventsQueue().enqueue(payload);
           return [3 /*break*/, 3];
         case 1:
           // Send the constructed properties and payload as a POST request
-          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId(), {}, {
+          return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId(), {}, {
             campaignKey: campaignKey,
             variationName: variationName,
             featureKey: featureKey,
@@ -12836,9 +12956,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.buildMessage = buildMessage;
-exports.sendLogToVWO = sendLogToVWO;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12852,12 +12971,8 @@ exports.sendLogToVWO = sendLogToVWO;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
-var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
-var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var nargs = /\{([0-9a-zA-Z_]+)\}/g;
-var storedMessages = new Set();
 /**
  * Constructs a message by replacing placeholders in a template with corresponding values from a data object.
  *
@@ -12889,36 +13004,6 @@ function buildMessage(template, data) {
     });
   } catch (err) {
     return template; // Return the original template in case of an error
-  }
-}
-/**
- * Sends a log message to VWO.
- * @param {string} message - The message to log.
- * @param {string} messageType - The type of message to log.
- * @param {string} eventName - The name of the event to log.
- */
-function sendLogToVWO(message, messageType, extraData) {
-  if (extraData === void 0) {
-    extraData = {};
-  }
-  if (typeof process != 'undefined' && process.env.TEST_ENV === 'true') {
-    return;
-  }
-  var messageToSend = message;
-  messageToSend = messageToSend + '-' + constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION;
-  if (Object.keys(extraData).length > 0) {
-    messageToSend = messageToSend + ' ' + JSON.stringify(extraData);
-  }
-  if (!storedMessages.has(messageToSend)) {
-    // add the message to the set
-    storedMessages.add(messageToSend);
-    // create the query parameters
-    var properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_LOG_EVENT);
-    // create the payload
-    var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT, extraData);
-    // Send the constructed payload via POST request
-    // send eventName in parameters so that we can disable retry for this event
-    (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_LOG_EVENT).catch(function () {});
   }
 }
 
@@ -13050,7 +13135,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.evaluateGroups = void 0;
 exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13071,7 +13156,6 @@ var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/se
 var CampaignModel_1 = __webpack_require__(/*! ../models/campaign/CampaignModel */ "./dist/server-unpacked/models/campaign/CampaignModel.js");
 var VariationModel_1 = __webpack_require__(/*! ../models/campaign/VariationModel */ "./dist/server-unpacked/models/campaign/VariationModel.js");
 var decision_maker_1 = __webpack_require__(/*! ../packages/decision-maker */ "./dist/server-unpacked/packages/decision-maker/index.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var CampaignDecisionService_1 = __webpack_require__(/*! ../services/CampaignDecisionService */ "./dist/server-unpacked/services/CampaignDecisionService.js");
 var RuleEvaluationUtil_1 = __webpack_require__(/*! ../utils/RuleEvaluationUtil */ "./dist/server-unpacked/utils/RuleEvaluationUtil.js");
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
@@ -13082,7 +13166,7 @@ var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/serve
 /**
  * Evaluates groups for a given feature and group ID.
  *
- * @param settings - The settings model.
+ * @param serviceContainer - The service container instance.
  * @param feature - The feature model to evaluate.
  * @param groupId - The ID of the group.
  * @param evaluatedFeatureMap - A map containing evaluated features.
@@ -13090,7 +13174,7 @@ var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/serve
  * @param storageService - The storage service.
  * @returns A promise that resolves to the evaluation result.
  */
-var evaluateGroups = function (settings, feature, groupId, evaluatedFeatureMap, context, storageService) {
+var evaluateGroups = function (serviceContainer, feature, groupId, evaluatedFeatureMap, context, storageService) {
   return __awaiter(void 0, void 0, void 0, function () {
     var featureToSkip, campaignMap, _a, featureKeys, groupCampaignIds, _loop_1, _i, featureKeys_1, featureKey, _b, eligibleCampaigns, eligibleCampaignsWithStorage;
     return __generator(this, function (_c) {
@@ -13098,22 +13182,22 @@ var evaluateGroups = function (settings, feature, groupId, evaluatedFeatureMap, 
         case 0:
           featureToSkip = [];
           campaignMap = new Map();
-          _a = getFeatureKeysFromGroup(settings, groupId), featureKeys = _a.featureKeys, groupCampaignIds = _a.groupCampaignIds;
+          _a = getFeatureKeysFromGroup(serviceContainer.getSettings(), groupId), featureKeys = _a.featureKeys, groupCampaignIds = _a.groupCampaignIds;
           _loop_1 = function (featureKey) {
             var feature_1, isRolloutRulePassed;
             return __generator(this, function (_d) {
               switch (_d.label) {
                 case 0:
-                  feature_1 = (0, FunctionUtil_1.getFeatureFromKey)(settings, featureKey);
+                  feature_1 = (0, FunctionUtil_1.getFeatureFromKey)(serviceContainer.getSettings(), featureKey);
                   // check if the feature is already evaluated
                   if (featureToSkip.includes(featureKey)) {
                     return [2 /*return*/, "continue"];
                   }
-                  return [4 /*yield*/, _isRolloutRuleForFeaturePassed(settings, feature_1, evaluatedFeatureMap, featureToSkip, storageService, context)];
+                  return [4 /*yield*/, _isRolloutRuleForFeaturePassed(serviceContainer, feature_1, evaluatedFeatureMap, featureToSkip, storageService, context)];
                 case 1:
                   isRolloutRulePassed = _d.sent();
                   if (isRolloutRulePassed) {
-                    settings.getFeatures().forEach(function (feature) {
+                    serviceContainer.getSettings().getFeatures().forEach(function (feature) {
                       if (feature.getKey() === featureKey) {
                         feature.getRulesLinkedCampaign().forEach(function (rule) {
                           if (groupCampaignIds.includes(rule.getId().toString()) || groupCampaignIds.includes("".concat(rule.getId(), "_").concat(rule.getVariations()[0].getId()).toString())) {
@@ -13148,10 +13232,10 @@ var evaluateGroups = function (settings, feature, groupId, evaluatedFeatureMap, 
           _i++;
           return [3 /*break*/, 1];
         case 4:
-          return [4 /*yield*/, _getEligbleCampaigns(settings, campaignMap, context, storageService)];
+          return [4 /*yield*/, _getEligbleCampaigns(serviceContainer, campaignMap, context, storageService)];
         case 5:
           _b = _c.sent(), eligibleCampaigns = _b.eligibleCampaigns, eligibleCampaignsWithStorage = _b.eligibleCampaignsWithStorage;
-          return [4 /*yield*/, _findWinnerCampaignAmongEligibleCampaigns(settings, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService)];
+          return [4 /*yield*/, _findWinnerCampaignAmongEligibleCampaigns(serviceContainer, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService)];
         case 6:
           return [2 /*return*/, _c.sent()];
       }
@@ -13180,7 +13264,7 @@ function getFeatureKeysFromGroup(settings, groupId) {
 /**
  * Evaluates the feature rollout rules for a given feature.
  *
- * @param settings - The settings model.
+ * @param serviceContainer - The service container instance.
  * @param feature - The feature model to evaluate.
  * @param evaluatedFeatureMap - A map containing evaluated features.
  * @param featureToSkip - An array of features to skip during evaluation.
@@ -13188,7 +13272,7 @@ function getFeatureKeysFromGroup(settings, groupId) {
  * @param context - The context model.
  * @returns A promise that resolves to true if the feature passes the rollout rules, false otherwise.
  */
-var _isRolloutRuleForFeaturePassed = function (settings, feature, evaluatedFeatureMap, featureToSkip, storageService, context) {
+var _isRolloutRuleForFeaturePassed = function (serviceContainer, feature, evaluatedFeatureMap, featureToSkip, storageService, context) {
   return __awaiter(void 0, void 0, void 0, function () {
     var rollOutRules, ruleToTestForTraffic, _i, rollOutRules_1, rule, preSegmentationResult, campaign, variation;
     return __generator(this, function (_a) {
@@ -13205,7 +13289,7 @@ var _isRolloutRuleForFeaturePassed = function (settings, feature, evaluatedFeatu
         case 1:
           if (!(_i < rollOutRules_1.length)) return [3 /*break*/, 4];
           rule = rollOutRules_1[_i];
-          return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, {})];
+          return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, {})];
         case 2:
           preSegmentationResult = _a.sent().preSegmentationResult;
           if (preSegmentationResult) {
@@ -13219,7 +13303,7 @@ var _isRolloutRuleForFeaturePassed = function (settings, feature, evaluatedFeatu
         case 4:
           if (ruleToTestForTraffic !== null) {
             campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(ruleToTestForTraffic);
-            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(settings, campaign, context.getId());
+            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context.getId());
             if ((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0) {
               evaluatedFeatureMap.set(feature.getKey(), {
                 rolloutId: ruleToTestForTraffic.id,
@@ -13234,7 +13318,7 @@ var _isRolloutRuleForFeaturePassed = function (settings, feature, evaluatedFeatu
           return [2 /*return*/, false];
         case 5:
           // no rollout rule, evaluate experiments
-          logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS, {
+          serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS, {
             featureKey: feature.getKey()
           }));
           return [2 /*return*/, true];
@@ -13245,13 +13329,13 @@ var _isRolloutRuleForFeaturePassed = function (settings, feature, evaluatedFeatu
 /**
  * Retrieves eligible campaigns based on the provided campaign map and context.
  *
- * @param settings - The settings model.
+ * @param serviceContainer - The service container instance.
  * @param campaignMap - A map containing feature keys and corresponding campaigns.
  * @param context - The context model.
  * @param storageService - The storage service.
  * @returns A promise that resolves to an object containing eligible campaigns, campaigns with storage, and ineligible campaigns.
  */
-var _getEligbleCampaigns = function (settings, campaignMap, context, storageService) {
+var _getEligbleCampaigns = function (serviceContainer, campaignMap, context, storageService) {
   return __awaiter(void 0, void 0, void 0, function () {
     var eligibleCampaigns, eligibleCampaignsWithStorage, inEligibleCampaigns, campaignMapArray, _i, campaignMapArray_1, _a, featureKey, campaigns, _loop_2, _b, campaigns_1, campaign;
     return __generator(this, function (_c) {
@@ -13271,15 +13355,15 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
             return __generator(this, function (_d) {
               switch (_d.label) {
                 case 0:
-                  return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService)];
+                  return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer)];
                 case 1:
                   storedData = _d.sent();
                   // Check if campaign is stored in storage
                   if (storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId) {
                     if (storedData.experimentKey && storedData.experimentKey === campaign.getKey()) {
-                      variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.experimentKey, storedData.experimentVariationId);
+                      variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.experimentKey, storedData.experimentVariationId);
                       if (variation) {
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
                           campaignKey: storedData.experimentKey,
                           userId: context.getId()
                         }));
@@ -13292,11 +13376,11 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
                       }
                     }
                   }
-                  return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(new CampaignModel_1.CampaignModel().modelFromDictionary(campaign), context)];
+                  return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(new CampaignModel_1.CampaignModel().modelFromDictionary(campaign), context, serviceContainer)];
                 case 2:
                   // Check if user is eligible for the campaign
-                  if (_d.sent() && new CampaignDecisionService_1.CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign)) {
-                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_ELIGIBLE, {
+                  if (_d.sent() && new CampaignDecisionService_1.CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign, serviceContainer)) {
+                    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_ELIGIBLE, {
                       campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
                       userId: context.getId()
                     }));
@@ -13336,7 +13420,7 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
 /**
  * Evaluates the eligible campaigns and determines the winner campaign based on the provided settings, feature key, eligible campaigns, eligible campaigns with storage, group ID, and context.
  *
- * @param settings - The settings model.
+ * @param serviceContainer - The service container instance.
  * @param featureKey - The key of the feature.
  * @param eligibleCampaigns - An array of eligible campaigns.
  * @param eligibleCampaignsWithStorage - An array of eligible campaigns with storage.
@@ -13344,18 +13428,18 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
  * @param context - The context model.
  * @returns A promise that resolves to the winner campaign.
  */
-var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService) {
+var _findWinnerCampaignAmongEligibleCampaigns = function (serviceContainer, featureKey, eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService) {
   return __awaiter(void 0, void 0, void 0, function () {
     var winnerCampaign, campaignIds, megAlgoNumber;
-    var _a;
-    return __generator(this, function (_b) {
+    var _a, _b;
+    return __generator(this, function (_c) {
       winnerCampaign = null;
-      campaignIds = (0, CampaignUtil_1.getCampaignIdsFromFeatureKey)(settings, featureKey);
-      megAlgoNumber = !(0, DataTypeUtil_1.isUndefined)((_a = settings === null || settings === void 0 ? void 0 : settings.getGroups()[groupId]) === null || _a === void 0 ? void 0 : _a.et) ? settings.getGroups()[groupId].et : constants_1.Constants.RANDOM_ALGO;
+      campaignIds = (0, CampaignUtil_1.getCampaignIdsFromFeatureKey)(serviceContainer.getSettings(), featureKey);
+      megAlgoNumber = !(0, DataTypeUtil_1.isUndefined)((_b = (_a = serviceContainer.getSettings()) === null || _a === void 0 ? void 0 : _a.getGroups()[groupId]) === null || _b === void 0 ? void 0 : _b.et) ? serviceContainer.getSettings().getGroups()[groupId].et : constants_1.Constants.RANDOM_ALGO;
       // if eligibleCampaignsWithStorage has only one campaign, then that campaign is the winner
       if (eligibleCampaignsWithStorage.length === 1) {
         winnerCampaign = eligibleCampaignsWithStorage[0];
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
           campaignKey: eligibleCampaignsWithStorage[0].getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? eligibleCampaignsWithStorage[0].getKey() : eligibleCampaignsWithStorage[0].getName() + '_' + eligibleCampaignsWithStorage[0].getRuleKey(),
           groupId: groupId,
           userId: context.getId(),
@@ -13363,24 +13447,24 @@ var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, 
         }));
       } else if (eligibleCampaignsWithStorage.length > 1 && megAlgoNumber === constants_1.Constants.RANDOM_ALGO) {
         // if eligibleCampaignsWithStorage has more than one campaign and algo is random, then find the winner using random algo
-        winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
+        winnerCampaign = _normalizeWeightsAndFindWinningCampaign(serviceContainer, eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
       } else if (eligibleCampaignsWithStorage.length > 1) {
         // if eligibleCampaignsWithStorage has more than one campaign and algo is not random, then find the winner using advanced algo
-        winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
+        winnerCampaign = _getCampaignUsingAdvancedAlgo(serviceContainer, eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
       }
       if (eligibleCampaignsWithStorage.length === 0) {
         if (eligibleCampaigns.length === 1) {
           winnerCampaign = eligibleCampaigns[0];
-          logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+          serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
             campaignKey: eligibleCampaigns[0].getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? eligibleCampaigns[0].getKey() : eligibleCampaigns[0].getName() + '_' + eligibleCampaigns[0].getRuleKey(),
             groupId: groupId,
             userId: context.getId(),
             algo: ''
           }));
         } else if (eligibleCampaigns.length > 1 && megAlgoNumber === constants_1.Constants.RANDOM_ALGO) {
-          winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaigns, context, campaignIds, groupId, storageService);
+          winnerCampaign = _normalizeWeightsAndFindWinningCampaign(serviceContainer, eligibleCampaigns, context, campaignIds, groupId, storageService);
         } else if (eligibleCampaigns.length > 1) {
-          winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaigns, context, campaignIds, groupId, storageService);
+          winnerCampaign = _getCampaignUsingAdvancedAlgo(serviceContainer, eligibleCampaigns, context, campaignIds, groupId, storageService);
         }
       }
       return [2 /*return*/, winnerCampaign];
@@ -13390,13 +13474,15 @@ var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, 
 /**
  * Normalizes the weights of shortlisted campaigns and determines the winning campaign using random allocation.
  *
+ * @param serviceContainer - The service container instance.
  * @param shortlistedCampaigns - An array of shortlisted campaigns.
  * @param context - The context model.
  * @param calledCampaignIds - An array of campaign IDs that have been called.
  * @param groupId - The ID of the group.
+ * @param storageService - The storage service.
  * @returns The winning campaign or null if none is found.
  */
-var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
+var _normalizeWeightsAndFindWinningCampaign = function (serviceContainer, shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
   // Normalize the weights of all the shortlisted campaigns
   shortlistedCampaigns.forEach(function (campaign) {
     campaign.weight = Math.round(100 / shortlistedCampaigns.length * 10000) / 10000;
@@ -13408,7 +13494,7 @@ var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, co
   // re-distribute the traffic for each camapign
   (0, CampaignUtil_1.setCampaignAllocation)(shortlistedCampaigns);
   var winnerCampaign = new CampaignDecisionService_1.CampaignDecisionService().getVariation(shortlistedCampaigns, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getId(), undefined, groupId)));
-  logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+  serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
     campaignKey: winnerCampaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? winnerCampaign.getKey() : winnerCampaign.getKey() + '_' + winnerCampaign.getRuleKey(),
     groupId: groupId,
     userId: context.getId(),
@@ -13421,7 +13507,7 @@ var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, co
       experimentId: winnerCampaign.getId(),
       experimentKey: winnerCampaign.getKey(),
       experimentVariationId: winnerCampaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? winnerCampaign.getVariations()[0].getId() : -1
-    }, storageService);
+    }, storageService, serviceContainer);
     if (calledCampaignIds.includes(winnerCampaign.getId())) {
       return winnerCampaign;
     }
@@ -13431,18 +13517,19 @@ var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, co
 /**
  * Advanced algorithm to find the winning campaign based on priority order and weighted random distribution.
  *
- * @param settings - The settings model.
+ * @param serviceContainer - The service container instance.
  * @param shortlistedCampaigns - An array of shortlisted campaigns.
  * @param context - The context model.
  * @param calledCampaignIds - An array of campaign IDs that have been called.
  * @param groupId - The ID of the group.
+ * @param storageService - The storage service.
  * @returns The winning campaign or null if none is found.
  */
-var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
+var _getCampaignUsingAdvancedAlgo = function (serviceContainer, shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
   var winnerCampaign = null;
   var found = false; // flag to check whether winnerCampaign has been found or not and helps to break from the outer loop
-  var priorityOrder = !(0, DataTypeUtil_1.isUndefined)(settings.getGroups()[groupId].p) ? settings.getGroups()[groupId].p : {};
-  var wt = !(0, DataTypeUtil_1.isUndefined)(settings.getGroups()[groupId].wt) ? settings.getGroups()[groupId].wt : {};
+  var priorityOrder = !(0, DataTypeUtil_1.isUndefined)(serviceContainer.getSettings().getGroups()[groupId].p) ? serviceContainer.getSettings().getGroups()[groupId].p : {};
+  var wt = !(0, DataTypeUtil_1.isUndefined)(serviceContainer.getSettings().getGroups()[groupId].wt) ? serviceContainer.getSettings().getGroups()[groupId].wt : {};
   for (var i = 0; i < priorityOrder.length; i++) {
     for (var j = 0; j < shortlistedCampaigns.length; j++) {
       if (shortlistedCampaigns[j].id == priorityOrder[i]) {
@@ -13489,7 +13576,7 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
   // also shortlistedCampaigns and wt array does not have a single campaign id in common
   if (winnerCampaign) {
-    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
       campaignKey: winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB ? winnerCampaign.key : winnerCampaign.key + '_' + winnerCampaign.ruleKey,
       groupId: groupId,
       userId: context.getId(),
@@ -13503,7 +13590,7 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
     //     userId: context.getId(),
     //   }),
     // );
-    logger_1.LogManager.Instance.info("No winner campaign found for MEG group: ".concat(groupId));
+    serviceContainer.getLogManager().info("No winner campaign found for MEG group: ".concat(groupId));
   }
   if (winnerCampaign) {
     new StorageDecorator_1.StorageDecorator().setDataInStorage({
@@ -13512,7 +13599,7 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
       experimentId: winnerCampaign.id,
       experimentKey: winnerCampaign.key,
       experimentVariationId: winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? winnerCampaign.variations[0].id : -1
-    }, storageService);
+    }, storageService, serviceContainer);
     if (calledCampaignIds.includes(winnerCampaign.id)) {
       return winnerCampaign;
     }
@@ -13663,8 +13750,6 @@ exports.getTrackUserPayloadData = getTrackUserPayloadData;
 exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 exports.getAttributePayloadData = getAttributePayloadData;
 exports.sendPostApiRequest = sendPostApiRequest;
-exports.getShouldWaitForTrackingCalls = getShouldWaitForTrackingCalls;
-exports.setShouldWaitForTrackingCalls = setShouldWaitForTrackingCalls;
 exports.getMessagingEventPayload = getMessagingEventPayload;
 exports.getSDKInitEventPayload = getSDKInitEventPayload;
 exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
@@ -13672,7 +13757,7 @@ exports.getDebuggerEventPayload = getDebuggerEventPayload;
 exports.sendEvent = sendEvent;
 exports.createNetWorkAndRetryDebugEvent = createNetWorkAndRetryDebugEvent;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13695,12 +13780,9 @@ var UrlEnum_1 = __webpack_require__(/*! ../enums/UrlEnum */ "./dist/server-unpac
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var network_layer_1 = __webpack_require__(/*! ../packages/network-layer */ "./dist/server-unpacked/packages/network-layer/index.js");
-var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
-var UrlUtil_1 = __webpack_require__(/*! ./UrlUtil */ "./dist/server-unpacked/utils/UrlUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ./PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
-var UsageStatsUtil_1 = __webpack_require__(/*! ./UsageStatsUtil */ "./dist/server-unpacked/utils/UsageStatsUtil.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 var DebuggerCategoryEnum_1 = __webpack_require__(/*! ../enums/DebuggerCategoryEnum */ "./dist/server-unpacked/enums/DebuggerCategoryEnum.js");
 var DebuggerServiceUtil_1 = __webpack_require__(/*! ./DebuggerServiceUtil */ "./dist/server-unpacked/utils/DebuggerServiceUtil.js");
@@ -13757,11 +13839,15 @@ function getTrackEventPath(event, accountId, userId) {
 }
 /**
  * Builds generic properties for different tracking calls required by VWO servers.
- * @param {Object} configObj
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param {String} eventName
- * @returns properties
+ * @param {String} visitorUserAgent - The visitor user agent.
+ * @param {String} ipAddress - The visitor IP address.
+ * @param {Boolean} isUsageStatsEvent - Whether the event is a usage stats event.
+ * @param {Number} usageStatsAccountId - The usage stats account ID.
+ * @returns {Record<string, any>} - The properties for the event.
  */
-function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress, isUsageStatsEvent, usageStatsAccountId) {
+function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, ipAddress, isUsageStatsEvent, usageStatsAccountId) {
   if (visitorUserAgent === void 0) {
     visitorUserAgent = '';
   }
@@ -13776,7 +13862,7 @@ function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress, isUsage
   }
   var properties = Object.assign({
     en: eventName,
-    a: SettingsService_1.SettingsService.Instance.accountId,
+    a: settingsService.accountId.toString(),
     eTime: (0, FunctionUtil_1.getCurrentUnixTimestampInMillis)(),
     random: (0, FunctionUtil_1.getRandomNumber)(),
     p: 'FS',
@@ -13787,22 +13873,26 @@ function getEventsBaseProperties(eventName, visitorUserAgent, ipAddress, isUsage
   });
   if (!isUsageStatsEvent) {
     // set env key for standard sdk events
-    properties.env = SettingsService_1.SettingsService.Instance.sdkKey;
+    properties.env = settingsService.sdkKey;
   } else {
     // set account id for internal usage stats event
     properties.a = usageStatsAccountId;
   }
-  properties.url = constants_1.Constants.HTTPS_PROTOCOL + UrlUtil_1.UrlUtil.getBaseUrl() + UrlEnum_1.UrlEnum.EVENTS;
   return properties;
 }
 /**
  * Builds generic payload required by all the different tracking calls.
- * @param {Object} settings   settings file
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param {String} userId     user id
  * @param {String} eventName  event name
- * @returns properties
+ * @param {String} visitorUserAgent - The visitor user agent.
+ * @param {String} ipAddress - The visitor IP address.
+ * @param {Boolean} isUsageStatsEvent - Whether the event is a usage stats event.
+ * @param {Number} usageStatsAccountId - The usage stats account ID.
+ * @param {Boolean} shouldGenerateUUID - Whether to generate a UUID.
+ * @returns {Record<string, any>} - The payload for the event.
  */
-function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress, isUsageStatsEvent, usageStatsAccountId, shouldGenerateUUID) {
+function _getEventBasePayload(settingsService, userId, eventName, visitorUserAgent, ipAddress, isUsageStatsEvent, usageStatsAccountId, shouldGenerateUUID) {
   if (visitorUserAgent === void 0) {
     visitorUserAgent = '';
   }
@@ -13818,7 +13908,7 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipA
   if (shouldGenerateUUID === void 0) {
     shouldGenerateUUID = true;
   }
-  var accountId = SettingsService_1.SettingsService.Instance.accountId;
+  var accountId = settingsService.accountId;
   if (isUsageStatsEvent) {
     // set account id for internal usage stats event
     accountId = usageStatsAccountId;
@@ -13835,7 +13925,7 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipA
   };
   if (!isUsageStatsEvent) {
     // set env key for standard sdk events
-    props.vwo_envKey = SettingsService_1.SettingsService.Instance.sdkKey;
+    props.vwo_envKey = settingsService.sdkKey;
   }
   var properties = {
     d: {
@@ -13855,7 +13945,7 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipA
     // set visitor props for standard sdk events
     properties.d.visitor = {
       props: {
-        vwo_fs_environment: SettingsService_1.SettingsService.Instance.sdkKey
+        vwo_fs_environment: settingsService.sdkKey
       }
     };
   }
@@ -13863,20 +13953,20 @@ function _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipA
 }
 /**
  * Builds payload to track the visitor.
- * @param {Object} configObj
- * @param {String} userId
- * @param {String} eventName
- * @param {String} campaignId
- * @param {Number} variationId
- * @returns track-user payload
+ * @param {ServiceContainer} serviceContainer - The service container instance.
+ * @param {String} eventName - The name of the event.
+ * @param {Number} campaignId - The campaign ID.
+ * @param {Number} variationId - The variation ID.
+ * @param {ContextModel} context - The context model instance.
+ * @returns {Record<string, any>} - The payload for the event.
  */
-function getTrackUserPayloadData(settings, eventName, campaignId, variationId, context) {
+function getTrackUserPayloadData(serviceContainer, eventName, campaignId, variationId, context) {
   var userId = context.getId();
   var visitorUserAgent = context.getUserAgent();
   var ipAddress = context.getIpAddress();
   var customVariables = context.getCustomVariables();
   var postSegmentationVariables = context.getPostSegmentationVariables();
-  var properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
+  var properties = _getEventBasePayload(serviceContainer.getSettingsService(), userId, eventName, visitorUserAgent, ipAddress);
   if (context.getSessionId() !== 0) {
     properties.d.sessionId = context.getSessionId();
   }
@@ -13896,8 +13986,8 @@ function getTrackUserPayloadData(settings, eventName, campaignId, variationId, c
   if (ipAddress) {
     properties.d.visitor.props.ip = ipAddress;
   }
-  logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
-    accountId: settings.getAccountId(),
+  serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
+    accountId: serviceContainer.getSettingsService().accountId.toString(),
     userId: userId,
     campaignId: campaignId
   }));
@@ -13905,7 +13995,7 @@ function getTrackUserPayloadData(settings, eventName, campaignId, variationId, c
 }
 /**
  * Constructs the payload data for tracking goals with custom event properties.
- * @param {any} settings - Configuration settings.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {any} userId - User identifier.
  * @param {string} eventName - Name of the event.
  * @param {any} eventProperties - Custom properties for the event.
@@ -13913,7 +14003,7 @@ function getTrackUserPayloadData(settings, eventName, campaignId, variationId, c
  * @param {string} [ipAddress=''] - Visitor's IP address.
  * @returns {any} - The constructed payload data.
  */
-function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, visitorUserAgent, ipAddress, sessionId) {
+function getTrackGoalPayloadData(serviceContainer, userId, eventName, eventProperties, visitorUserAgent, ipAddress, sessionId) {
   if (visitorUserAgent === void 0) {
     visitorUserAgent = '';
   }
@@ -13923,7 +14013,7 @@ function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, v
   if (sessionId === void 0) {
     sessionId = 0;
   }
-  var properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
+  var properties = _getEventBasePayload(serviceContainer.getSettingsService(), userId, eventName, visitorUserAgent, ipAddress);
   if (sessionId !== 0) {
     properties.d.sessionId = sessionId;
   }
@@ -13936,16 +14026,16 @@ function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, v
       properties.d.event.props[prop] = eventProperties[prop];
     }
   }
-  logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_GOAL, {
+  serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_GOAL, {
     eventName: eventName,
-    accountId: settings.getAccountId(),
+    accountId: serviceContainer.getSettingsService().accountId.toString(),
     userId: userId
   }));
   return properties;
 }
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
- * @param {SettingsModel} settings - Configuration settings.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {string | number} userId - User ID.
  * @param {string} eventName - Event name.
  * @param {Record<string, any>} attributes - Key-value map of attributes.
@@ -13953,7 +14043,7 @@ function getTrackGoalPayloadData(settings, userId, eventName, eventProperties, v
  * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
  * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
-function getAttributePayloadData(settings, userId, eventName, attributes, visitorUserAgent, ipAddress, sessionId) {
+function getAttributePayloadData(serviceContainer, userId, eventName, attributes, visitorUserAgent, ipAddress, sessionId) {
   if (visitorUserAgent === void 0) {
     visitorUserAgent = '';
   }
@@ -13963,12 +14053,12 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
   if (sessionId === void 0) {
     sessionId = 0;
   }
-  var properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
+  var properties = _getEventBasePayload(serviceContainer.getSettingsService(), userId, eventName, visitorUserAgent, ipAddress);
   if (sessionId !== 0) {
     properties.d.sessionId = sessionId;
   }
   properties.d.event.props.isCustomEvent = true; // Mark as a custom event
-  properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
+  properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = serviceContainer.getSettingsService().sdkKey; // Set environment key
   // Iterate over the attributes map and append to the visitor properties
   for (var _i = 0, _a = Object.entries(attributes); _i < _a.length; _i++) {
     var _b = _a[_i],
@@ -13976,22 +14066,23 @@ function getAttributePayloadData(settings, userId, eventName, attributes, visito
       value = _b[1];
     properties.d.visitor.props[key] = value;
   }
-  logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
+  serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
     eventName: eventName,
-    accountId: settings.getAccountId(),
+    accountId: serviceContainer.getSettingsService().accountId.toString(),
     userId: userId
   }));
   return properties;
 }
 /**
  * Sends a POST API request with the specified properties and payload.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
  * @param {string} userId - User ID.
  */
-function sendPostApiRequest(properties_1, payload_1, userId_1) {
-  return __awaiter(this, arguments, void 0, function (properties, payload, userId, eventProperties, campaignInfo) {
-    var networkManager, retryConfig, headers, userAgent, ipAddress, baseUrl, request, apiName, extraDataForMessage;
+function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_1) {
+  return __awaiter(this, arguments, void 0, function (serviceContainer, properties, payload, userId, eventProperties, campaignInfo) {
+    var retryConfig, headers, userAgent, ipAddress, request, apiName, extraDataForMessage;
     if (eventProperties === void 0) {
       eventProperties = {};
     }
@@ -14001,17 +14092,14 @@ function sendPostApiRequest(properties_1, payload_1, userId_1) {
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          networkManager = network_layer_1.NetworkManager.Instance;
-          retryConfig = networkManager.getRetryConfig();
+          retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
           headers = {};
           userAgent = payload.d.visitor_ua;
           ipAddress = payload.d.visitor_ip;
           // Set headers if available
           if (userAgent) headers[HeadersEnum_1.HeadersEnum.USER_AGENT] = userAgent;
           if (ipAddress) headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
-          baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
-          baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
-          request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
+          request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.EVENTS), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
           request.setEventName(properties.en);
           request.setUuid(payload.d.visId);
           if (properties.en === EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
@@ -14034,30 +14122,26 @@ function sendPostApiRequest(properties_1, payload_1, userId_1) {
               request.setEventProperties(eventProperties);
             }
           }
-          return [4 /*yield*/, network_layer_1.NetworkManager.Instance.post(request).then(function (response) {
+          return [4 /*yield*/, serviceContainer.getNetworkManager().post(request).then(function (response) {
             // if attempt is more than 0
             if (response.getTotalAttempts() > 0) {
               var debugEventProps = createNetWorkAndRetryDebugEvent(response, payload, apiName, extraDataForMessage);
               debugEventProps.uuid = request.getUuid();
               // send debug event
-              (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+              (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
             }
-            // clear usage stats only if network call is successful
-            if (Object.keys(UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
-              UsageStatsUtil_1.UsageStatsUtil.getInstance().clearUsageStats();
-            }
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
               event: properties.en,
               endPoint: UrlEnum_1.UrlEnum.EVENTS,
-              accountId: SettingsService_1.SettingsService.Instance.accountId,
+              accountId: serviceContainer.getSettingsService().accountId.toString(),
               userId: userId,
               uuid: payload.d.visId
             }));
           }).catch(function (err) {
             var debugEventProps = createNetWorkAndRetryDebugEvent(err, payload, apiName, extraDataForMessage);
             debugEventProps.uuid = request.getUuid();
-            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
-            logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
+            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
+            serviceContainer.getLogManager().errorLog('NETWORK_CALL_FAILED', {
               method: HttpMethodEnum_1.HttpMethodEnum.POST,
               err: (0, FunctionUtil_1.getFormattedErrorMessage)(err)
             }, {}, false);
@@ -14069,36 +14153,21 @@ function sendPostApiRequest(properties_1, payload_1, userId_1) {
     });
   });
 }
-// Flag to determine if the SDK should wait for a network response.
-var shouldWaitForTrackingCalls = false;
-/**
- * Checks if the SDK should wait for a network response.
- * @returns {boolean} - True if the SDK should wait for a network response, false otherwise.
- */
-function getShouldWaitForTrackingCalls() {
-  return shouldWaitForTrackingCalls;
-}
-/**
- * Sets the value to determine if the SDK should wait for a network response.
- * @param value - The value to set.
- */
-function setShouldWaitForTrackingCalls(value) {
-  shouldWaitForTrackingCalls = value;
-}
 /**
  * Constructs the payload for a messaging event.
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param messageType - The type of the message.
  * @param message - The message to send.
  * @param eventName - The name of the event.
  * @returns The constructed payload.
  */
-function getMessagingEventPayload(messageType, message, eventName, extraData) {
+function getMessagingEventPayload(settingsService, messageType, message, eventName, extraData) {
   if (extraData === void 0) {
     extraData = {};
   }
-  var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
-  var properties = _getEventBasePayload(null, userId, eventName);
-  properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey; // Set environment key
+  var userId = settingsService.accountId + '_' + settingsService.sdkKey;
+  var properties = _getEventBasePayload(settingsService, userId, eventName);
+  properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = settingsService.sdkKey; // Set environment key
   properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
   var data = {
     type: messageType,
@@ -14113,16 +14182,17 @@ function getMessagingEventPayload(messageType, message, eventName, extraData) {
 }
 /**
  * Constructs the payload for init called event.
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param eventName - The name of the event.
  * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
  * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
-function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
-  var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
-  var properties = _getEventBasePayload(null, userId, eventName);
+function getSDKInitEventPayload(settingsService, eventName, settingsFetchTime, sdkInitTime) {
+  var userId = settingsService.accountId + '_' + settingsService.sdkKey;
+  var properties = _getEventBasePayload(settingsService, userId, eventName);
   // Set the required fields as specified
-  properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = SettingsService_1.SettingsService.Instance.sdkKey;
+  properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = settingsService.sdkKey;
   properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
   var data = {
     isSDKInitialized: true,
@@ -14134,31 +14204,33 @@ function getSDKInitEventPayload(eventName, settingsFetchTime, sdkInitTime) {
 }
 /**
  * Constructs the payload for sdk usage stats event.
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param eventName - The name of the event.
  * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
  * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
-function getSDKUsageStatsEventPayload(eventName, usageStatsAccountId) {
-  var userId = SettingsService_1.SettingsService.Instance.accountId + '_' + SettingsService_1.SettingsService.Instance.sdkKey;
-  var properties = _getEventBasePayload(null, userId, eventName, '', '', true, usageStatsAccountId);
+function getSDKUsageStatsEventPayload(settingsService, eventName, usageStatsAccountId, usageStatsUtil) {
+  var userId = settingsService.accountId + '_' + settingsService.sdkKey;
+  var properties = _getEventBasePayload(settingsService, userId, eventName, '', '', true, usageStatsAccountId);
   // Set the required fields as specified
   properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
-  properties.d.event.props.vwoMeta = UsageStatsUtil_1.UsageStatsUtil.getInstance().getUsageStats();
+  properties.d.event.props.vwoMeta = usageStatsUtil.getUsageStats();
   return properties;
 }
 /**
  * Constructs the payload for debugger event.
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param eventProps - The properties for the event.
  * @returns The constructed payload.
  */
-function getDebuggerEventPayload(eventProps) {
+function getDebuggerEventPayload(settingsService, eventProps) {
   if (eventProps === void 0) {
     eventProps = {};
   }
   var uuid;
-  var accountId = SettingsService_1.SettingsService.Instance.accountId.toString();
-  var sdkKey = SettingsService_1.SettingsService.Instance.sdkKey;
+  var accountId = settingsService.accountId.toString();
+  var sdkKey = settingsService.sdkKey;
   // generate uuid if not present
   if (!eventProps.uuid) {
     uuid = (0, UuidUtil_1.getUUID)(accountId + '_' + sdkKey, accountId);
@@ -14167,7 +14239,7 @@ function getDebuggerEventPayload(eventProps) {
     uuid = eventProps.uuid;
   }
   // create standard event payload
-  var properties = _getEventBasePayload(null, uuid, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, '', '', false, null, false);
+  var properties = _getEventBasePayload(settingsService, uuid, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, '', '', false, null, false);
   properties.d.event.props = {};
   // add session id to the event props if not present
   if (eventProps.sId) {
@@ -14181,44 +14253,36 @@ function getDebuggerEventPayload(eventProps) {
   }
   // add all debugger props inside vwoMeta
   properties.d.event.props.vwoMeta = __assign(__assign({}, eventProps), {
-    a: SettingsService_1.SettingsService.Instance.accountId,
+    a: settingsService.accountId.toString(),
     product: constants_1.Constants.PRODUCT_NAME,
     sn: constants_1.Constants.SDK_NAME,
     sv: constants_1.Constants.SDK_VERSION,
-    eventId: (0, UuidUtil_1.getRandomUUID)(SettingsService_1.SettingsService.Instance.sdkKey)
+    eventId: (0, UuidUtil_1.getRandomUUID)(settingsService.sdkKey)
   });
   return properties;
 }
 /**
  * Sends an event to VWO (generic event sender).
+ * @param {NetworkManager} networkManager - The network manager instance.
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param properties - Query parameters for the request.
  * @param payload - The payload for the request.
  * @param eventName - The name of the event to send.
  * @returns A promise that resolves to the response from the server.
  */
-function sendEvent(properties, payload, eventName) {
+function sendEvent(serviceContainer, properties, payload, eventName) {
   return __awaiter(this, void 0, void 0, function () {
-    var deferredObject, networkInstance, retryConfig, baseUrl, protocol, port, request;
+    var deferredObject, retryConfig, request;
     return __generator(this, function (_a) {
       deferredObject = new PromiseUtil_1.Deferred();
-      networkInstance = network_layer_1.NetworkManager.Instance;
-      retryConfig = networkInstance.getRetryConfig();
+      retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
       // disable retry for event (no retry for generic events)
       if (eventName === EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT) retryConfig.shouldRetry = false;
-      baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
-      protocol = SettingsService_1.SettingsService.Instance.protocol;
-      port = SettingsService_1.SettingsService.Instance.port;
-      if (eventName === EventEnum_1.EventEnum.VWO_LOG_EVENT || eventName === EventEnum_1.EventEnum.VWO_USAGE_STATS || eventName === EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT) {
-        baseUrl = constants_1.Constants.HOST_NAME;
-        protocol = constants_1.Constants.HTTPS_PROTOCOL;
-        port = 443;
-      }
-      baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
       try {
-        request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.EVENTS, properties, payload, null, protocol, port, retryConfig);
+        request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.EVENTS), properties, payload, null, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
         request.setEventName(properties.en);
         // Perform the network POST request
-        networkInstance.post(request).then(function (response) {
+        serviceContainer.getNetworkManager().post(request).then(function (response) {
           // Resolve the deferred object with the data from the response
           deferredObject.resolve(response.getData());
         }).catch(function (err) {
@@ -14454,14 +14518,13 @@ Object.defineProperty(exports, "__esModule", ({
 exports.evaluateRule = void 0;
 var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var DecisionUtil_1 = __webpack_require__(/*! ./DecisionUtil */ "./dist/server-unpacked/utils/DecisionUtil.js");
-var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var ImpressionUtil_1 = __webpack_require__(/*! ./ImpressionUtil */ "./dist/server-unpacked/utils/ImpressionUtil.js");
 /**
  * Evaluates the rules for a given campaign and feature based on the provided context.
  * This function checks for whitelisting and pre-segmentation conditions, and if applicable,
  * sends an impression for the variation shown.
  *
- * @param {SettingsModel} settings - The settings configuration for the evaluation.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {FeatureModel} feature - The feature being evaluated.
  * @param {CampaignModel} campaign - The campaign associated with the feature.
  * @param {ContextModel} context - The user context for evaluation.
@@ -14472,13 +14535,13 @@ var ImpressionUtil_1 = __webpack_require__(/*! ./ImpressionUtil */ "./dist/serve
  * @returns {Promise<[boolean, any]>} A promise that resolves to a tuple containing the result of the pre-segmentation
  * and the whitelisted object, if any.
  */
-var evaluateRule = function (settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) {
+var evaluateRule = function (serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) {
   return __awaiter(void 0, void 0, void 0, function () {
     var _a, preSegmentationResult, whitelistedObject;
     return __generator(this, function (_b) {
       switch (_b.label) {
         case 0:
-          return [4 /*yield*/, (0, DecisionUtil_1.checkWhitelistingAndPreSeg)(settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
+          return [4 /*yield*/, (0, DecisionUtil_1.checkWhitelistingAndPreSeg)(serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
         case 1:
           _a = _b.sent(), preSegmentationResult = _a[0], whitelistedObject = _a[1];
           if (!(preSegmentationResult && (0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0)) return [3 /*break*/, 4];
@@ -14488,13 +14551,13 @@ var evaluateRule = function (settings, feature, campaign, context, evaluatedFeat
             experimentKey: campaign.getKey(),
             experimentVariationId: whitelistedObject.variationId
           });
-          if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 3];
-          return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey())];
+          if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+          return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey())];
         case 2:
           _b.sent();
           return [3 /*break*/, 4];
         case 3:
-          (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(settings, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
+          (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
           _b.label = 4;
         case 4:
           // Return the results of the evaluation
@@ -14637,7 +14700,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.sendSdkInitEvent = sendSdkInitEvent;
 exports.sendSDKUsageStatsEvent = sendSDKUsageStatsEvent;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14653,28 +14716,28 @@ exports.sendSDKUsageStatsEvent = sendSDKUsageStatsEvent;
  */
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
-var BatchEventsQueue_1 = __webpack_require__(/*! ../services/BatchEventsQueue */ "./dist/server-unpacked/services/BatchEventsQueue.js");
 /**
  * Sends an init called event to VWO.
  * This event is triggered when the init function is called.
  * @param {number} settingsFetchTime - Time taken to fetch settings in milliseconds.
  * @param {number} sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  */
-function sendSdkInitEvent(settingsFetchTime, sdkInitTime) {
+function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceContainer) {
   return __awaiter(this, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_INIT_CALLED);
-          payload = (0, NetworkUtil_1.getSDKInitEventPayload)(EventEnum_1.EventEnum.VWO_INIT_CALLED, settingsFetchTime, sdkInitTime);
-          if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
-          BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+          properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_INIT_CALLED);
+          payload = (0, NetworkUtil_1.getSDKInitEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_INIT_CALLED, settingsFetchTime, sdkInitTime);
+          if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
+          serviceContainer.getBatchEventsQueue().enqueue(payload);
           return [3 /*break*/, 3];
         case 1:
           // Send the constructed properties and payload as a POST request
           //send eventName in parameters so that we can enable retry for this event
-          return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_INIT_CALLED).catch(function () {})];
+          return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.VWO_INIT_CALLED).catch(function () {})];
         case 2:
           // Send the constructed properties and payload as a POST request
           //send eventName in parameters so that we can enable retry for this event
@@ -14691,21 +14754,21 @@ function sendSdkInitEvent(settingsFetchTime, sdkInitTime) {
  * This event is triggered when the SDK is initialized.
  * @returns A promise that resolves to the response from the server.
  */
-function sendSDKUsageStatsEvent(usageStatsAccountId) {
+function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStatsUtil) {
   return __awaiter(this, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
-          payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(EventEnum_1.EventEnum.VWO_USAGE_STATS, usageStatsAccountId);
-          if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
-          BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+          properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
+          payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_USAGE_STATS, usageStatsAccountId, usageStatsUtil);
+          if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
+          serviceContainer.getBatchEventsQueue().enqueue(payload);
           return [3 /*break*/, 3];
         case 1:
           // Send the constructed properties and payload as a POST request
           //send eventName in parameters so that we can enable retry for this event
-          return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_USAGE_STATS).catch(function () {})];
+          return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.VWO_USAGE_STATS).catch(function () {})];
         case 2:
           // Send the constructed properties and payload as a POST request
           //send eventName in parameters so that we can enable retry for this event
@@ -14741,93 +14804,21 @@ var GatewayServiceUtil_1 = __webpack_require__(/*! ./GatewayServiceUtil */ "./di
  * Sets settings and adds campaigns to rules
  * @param settings settings
  * @param vwoClientInstance VWOClient instance
+ * @param logManager Log manager instance
  */
-function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance) {
+function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance, logManager) {
   // create settings model and set it to vwoClientInstance
   vwoClientInstance.settings = new SettingsModel_1.SettingsModel(settings);
   vwoClientInstance.originalSettings = settings;
   // Optimize loop by avoiding multiple calls to `getCampaigns()`
   var campaigns = vwoClientInstance.settings.getCampaigns();
   campaigns.forEach(function (campaign, index) {
-    (0, CampaignUtil_1.setVariationAllocation)(campaign);
+    (0, CampaignUtil_1.setVariationAllocation)(campaign, logManager);
     campaigns[index] = campaign;
   });
   (0, FunctionUtil_1.addLinkedCampaignsToSettings)(vwoClientInstance.settings);
   (0, GatewayServiceUtil_1.addIsGatewayServiceRequiredFlag)(vwoClientInstance.settings);
 }
-
-/***/ }),
-
-/***/ "./dist/server-unpacked/utils/UrlUtil.js":
-/*!***********************************************!*\
-  !*** ./dist/server-unpacked/utils/UrlUtil.js ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.UrlUtil = void 0;
-/**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
-var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
-var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
-exports.UrlUtil = {
-  /**
-   * Initializes the UrlUtil with optional collectionPrefix and gatewayServiceUrl.
-   * If provided, these values are set after validation.
-   * @param {string} [collectionPrefix] - Optional prefix for URL collections.
-   * @returns {IUrlUtil} The instance of UrlUtil with updated properties.
-   */
-  init: function (_a) {
-    var _b = _a === void 0 ? {} : _a,
-      collectionPrefix = _b.collectionPrefix;
-    // Set collectionPrefix if it is a valid string
-    if (collectionPrefix && (0, DataTypeUtil_1.isString)(collectionPrefix)) {
-      exports.UrlUtil.collectionPrefix = collectionPrefix;
-    }
-    return exports.UrlUtil;
-  },
-  /**
-   * Retrieves the base URL.
-   * If gatewayServiceUrl is set, it returns that; otherwise, it constructs the URL using baseUrl and collectionPrefix.
-   * @returns {string} The base URL.
-   */
-  getBaseUrl: function () {
-    var baseUrl = SettingsService_1.SettingsService.Instance.hostname;
-    // Return the default baseUrl if no specific URL components are set
-    return baseUrl;
-  },
-  /**
-   * Updates the base URL by adding collection prefix if conditions are met.
-   * @param {string} baseUrl - The original base URL to transform.
-   * @returns {string} The transformed base URL.
-   */
-  getUpdatedBaseUrl: function (baseUrl) {
-    // If collection prefix is set and the base URL is the default host name, return the base URL with the collection prefix.
-    if (exports.UrlUtil.collectionPrefix && baseUrl === constants_1.Constants.HOST_NAME) {
-      return "".concat(baseUrl, "/").concat(exports.UrlUtil.collectionPrefix);
-    }
-    return baseUrl;
-  }
-};
 
 /***/ }),
 
@@ -14841,7 +14832,7 @@ exports.UrlUtil = {
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14860,29 +14851,17 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.UsageStatsUtil = void 0;
 var TransportManager_1 = __webpack_require__(/*! ../packages/logger/core/TransportManager */ "./dist/server-unpacked/packages/logger/core/TransportManager.js");
-var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 /**
  * Manages usage statistics for the SDK.
  * Tracks various features and configurations being used by the client.
  * Implements Singleton pattern to ensure a single instance.
  */
 var UsageStatsUtil = /** @class */function () {
-  /** Private constructor to prevent direct instantiation */
-  function UsageStatsUtil() {
+  function UsageStatsUtil(options) {
     /** Internal storage for usage statistics data */
     this.usageStatsData = {};
+    this.setUsageStats(options);
   }
-  /**
-   * Provides access to the singleton instance of UsageStatsUtil.
-   *
-   * @returns The single instance of UsageStatsUtil
-   */
-  UsageStatsUtil.getInstance = function () {
-    if (!UsageStatsUtil.instance) {
-      UsageStatsUtil.instance = new UsageStatsUtil();
-    }
-    return UsageStatsUtil.instance;
-  };
   /**
    * Sets usage statistics based on provided options.
    * Maps various SDK features and configurations to boolean flags.
@@ -14906,8 +14885,8 @@ var UsageStatsUtil = /** @class */function () {
       _vwo_meta = options._vwo_meta,
       shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
     var data = {};
-    data.a = SettingsService_1.SettingsService.Instance.accountId;
-    data.env = SettingsService_1.SettingsService.Instance.sdkKey;
+    data.a = options.accountId;
+    data.env = options.sdkKey;
     // Map configuration options to usage stats flags
     if (integrations) data.ig = 1; // Integration enabled
     if (batchEventData) data.eb = 1; // Event batching enabled
@@ -14958,7 +14937,7 @@ exports.UsageStatsUtil = UsageStatsUtil;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15088,30 +15067,28 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.getUserId = getUserId;
 var AliasingUtil_1 = __webpack_require__(/*! ./AliasingUtil */ "./dist/server-unpacked/utils/AliasingUtil.js");
-var SettingsService_1 = __webpack_require__(/*! ../services/SettingsService */ "./dist/server-unpacked/services/SettingsService.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
-function getUserId(userId, isAliasingEnabled) {
+function getUserId(userId, isAliasingEnabled, serviceContainer) {
   return __awaiter(this, void 0, void 0, function () {
     var alias, result;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
           if (!isAliasingEnabled) return [3 /*break*/, 4];
-          if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) return [3 /*break*/, 2];
-          return [4 /*yield*/, AliasingUtil_1.AliasingUtil.getAlias(userId)];
+          if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 2];
+          return [4 /*yield*/, AliasingUtil_1.AliasingUtil.getAlias(userId, serviceContainer)];
         case 1:
           alias = _a.sent();
           result = alias.find(function (item) {
             return item.aliasId === userId;
           });
-          logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.ALIAS_ENABLED, {
+          serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.ALIAS_ENABLED, {
             userId: result === null || result === void 0 ? void 0 : result.userId
           }));
           return [2 /*return*/, (result === null || result === void 0 ? void 0 : result.userId) || userId];
         case 2:
-          logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_GATEWAY_URL));
+          serviceContainer.getLogManager().error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_GATEWAY_URL));
           return [2 /*return*/, userId];
         case 3:
           return [3 /*break*/, 5];
@@ -15142,7 +15119,7 @@ exports.getRandomUUID = getRandomUUID;
 exports.getUUID = getUUID;
 exports.generateUUID = generateUUID;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15222,7 +15199,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.sendGetCall = sendGetCall;
 exports.sendPostCall = sendPostCall;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15237,18 +15214,17 @@ exports.sendPostCall = sendPostCall;
  * limitations under the License.
  */
 var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
-var logger_1 = __webpack_require__(/*! ../packages/logger */ "./dist/server-unpacked/packages/logger/index.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 var ResponseModel_1 = __webpack_require__(/*! ../packages/network-layer/models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var noop = function () {};
-function sendGetCall(options) {
-  sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options);
+function sendGetCall(options, logManager) {
+  sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options, logManager);
 }
-function sendPostCall(options) {
-  sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options);
+function sendPostCall(options, logManager) {
+  sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options, logManager);
 }
-function sendRequest(method, options) {
+function sendRequest(method, options, logManager) {
   var requestModel = options.requestModel,
     _a = options.successCallback,
     successCallback = _a === void 0 ? noop : _a,
@@ -15309,7 +15285,7 @@ function sendRequest(method, options) {
       if (shouldRetry && retryCount < maxRetries) {
         var delay = networkOptions.retryConfig.initialDelay * Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) * 1000; // Exponential backoff
         retryCount++;
-        logger_1.LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+        logManager.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
           endPoint: url.split('?')[0],
           err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
           delay: delay / 1000,
@@ -15320,7 +15296,7 @@ function sendRequest(method, options) {
         setTimeout(executeRequest, delay);
       } else {
         if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
-          logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+          logManager.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
             extraData: url.split('?')[0],
             attempts: retryCount,
             err: (0, FunctionUtil_1.getFormattedErrorMessage)(error)
@@ -15462,7 +15438,7 @@ var exports = __webpack_exports__;
 
 
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

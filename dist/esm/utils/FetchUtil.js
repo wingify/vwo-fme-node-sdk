@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 import { HttpMethodEnum } from '../enums/HttpMethodEnum.js';
 import { getFormattedErrorMessage } from './FunctionUtil.js';
-import { LogManager } from '../packages/logger/index.js';
 import { buildMessage } from './LogMessageUtil.js';
 import { DebugLogMessagesEnum, ErrorLogMessagesEnum } from '../enums/log-messages/index.js';
 import { EventEnum } from '../enums/EventEnum.js';
@@ -27,7 +26,7 @@ let fetchPromise = null;
  * Gets the fetch function to use, checking for global fetch first, then falling back to node-fetch.
  * @returns The fetch function to use
  */
-async function getFetch() {
+async function getFetch(logManager) {
     // Return cached fetch if available
     if (cachedFetch) {
         return cachedFetch;
@@ -40,7 +39,7 @@ async function getFetch() {
     fetchPromise = (async () => {
         // Check if fetch is available globally (Node.js 18+, browsers, etc.)
         if (typeof fetch !== 'undefined') {
-            LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+            logManager.debug(buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
                 api: 'Global fetch',
                 process: typeof process === 'undefined' ? 'undefined' : 'defined',
             }));
@@ -49,7 +48,7 @@ async function getFetch() {
         }
         // Fallback to node-fetch for older Node.js versions
         try {
-            LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+            logManager.debug(buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
                 api: 'Node-fetch',
                 process: typeof process === 'undefined' ? 'undefined' : 'defined',
             }));
@@ -62,18 +61,18 @@ async function getFetch() {
             return fetchFn;
         }
         catch (error) {
-            LogManager.Instance.error(buildMessage(ErrorLogMessagesEnum.ERROR_INITIALIZING_FETCH, {
+            logManager.error(buildMessage(ErrorLogMessagesEnum.ERROR_INITIALIZING_FETCH, {
                 error: getFormattedErrorMessage(error),
             }));
         }
     })();
     return fetchPromise;
 }
-export function sendGetCall(request) {
-    return sendRequest(HttpMethodEnum.GET, request);
+export function sendGetCall(request, logManager) {
+    return sendRequest(HttpMethodEnum.GET, request, logManager);
 }
-export function sendPostCall(request) {
-    return sendRequest(HttpMethodEnum.POST, request);
+export function sendPostCall(request, logManager) {
+    return sendRequest(HttpMethodEnum.POST, request, logManager);
 }
 /**
  * Sends a request to the server using the Fetch API.
@@ -81,7 +80,7 @@ export function sendPostCall(request) {
  * @param request - The request model.
  * @returns A Promise that resolves to the response data.
  */
-async function sendRequest(method, request) {
+async function sendRequest(method, request, logManager) {
     const responseModel = new ResponseModel();
     const networkOptions = request.getOptions();
     let url = `${networkOptions.scheme}://${networkOptions.hostname}${networkOptions.path}`;
@@ -90,7 +89,7 @@ async function sendRequest(method, request) {
     }
     let retryCount = 0;
     try {
-        const fetchFn = await getFetch();
+        const fetchFn = await getFetch(logManager);
         const retryConfig = request.getRetryConfig();
         const shouldRetry = retryConfig.shouldRetry;
         const maxRetries = retryConfig.maxRetries;
@@ -149,7 +148,7 @@ async function sendRequest(method, request) {
             if (shouldRetry && retryCount < maxRetries) {
                 const delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, retryCount) * 1000; // Exponential backoff
                 retryCount++;
-                LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+                logManager.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
                     endPoint: endpoint,
                     err: getFormattedErrorMessage(error),
                     delay: delay / 1000,
@@ -163,7 +162,7 @@ async function sendRequest(method, request) {
             }
             else {
                 if (!String(networkOptions.path).includes(EventEnum.VWO_DEBUGGER_EVENT)) {
-                    LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+                    logManager.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
                         extraData: endpoint,
                         attempts: retryCount,
                         err: getFormattedErrorMessage(error),

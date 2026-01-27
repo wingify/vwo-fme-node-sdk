@@ -1,13 +1,12 @@
 import { isObject } from './DataTypeUtil.js';
 import { checkWhitelistingAndPreSeg } from './DecisionUtil.js';
-import { getShouldWaitForTrackingCalls } from './NetworkUtil.js';
 import { createAndSendImpressionForVariationShown } from './ImpressionUtil.js';
 /**
  * Evaluates the rules for a given campaign and feature based on the provided context.
  * This function checks for whitelisting and pre-segmentation conditions, and if applicable,
  * sends an impression for the variation shown.
  *
- * @param {SettingsModel} settings - The settings configuration for the evaluation.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {FeatureModel} feature - The feature being evaluated.
  * @param {CampaignModel} campaign - The campaign associated with the feature.
  * @param {ContextModel} context - The user context for evaluation.
@@ -18,9 +17,9 @@ import { createAndSendImpressionForVariationShown } from './ImpressionUtil.js';
  * @returns {Promise<[boolean, any]>} A promise that resolves to a tuple containing the result of the pre-segmentation
  * and the whitelisted object, if any.
  */
-export const evaluateRule = async (settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) => {
+export const evaluateRule = async (serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) => {
     // Perform whitelisting and pre-segmentation checks
-    const [preSegmentationResult, whitelistedObject] = await checkWhitelistingAndPreSeg(settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision);
+    const [preSegmentationResult, whitelistedObject] = await checkWhitelistingAndPreSeg(serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision);
     // If pre-segmentation is successful and a whitelisted object exists, proceed to send an impression
     if (preSegmentationResult && isObject(whitelistedObject) && Object.keys(whitelistedObject).length > 0) {
         // Update the decision object with campaign and variation details
@@ -30,11 +29,11 @@ export const evaluateRule = async (settings, feature, campaign, context, evaluat
             experimentVariationId: whitelistedObject.variationId,
         });
         // Send an impression for the variation shown
-        if (getShouldWaitForTrackingCalls()) {
-            await createAndSendImpressionForVariationShown(settings, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
+        if (serviceContainer.getShouldWaitForTrackingCalls()) {
+            await createAndSendImpressionForVariationShown(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
         }
         else {
-            createAndSendImpressionForVariationShown(settings, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
+            createAndSendImpressionForVariationShown(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
         }
     }
     // Return the results of the evaluation

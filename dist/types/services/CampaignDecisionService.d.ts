@@ -1,13 +1,28 @@
 import { VariationModel } from '../models/campaign/VariationModel';
 import { CampaignModel } from '../models/campaign/CampaignModel';
 import { ContextModel } from '../models/user/ContextModel';
+import { ServiceContainer } from './ServiceContainer';
 interface ICampaignDecisionService {
-  isUserPartOfCampaign(userId: any, campaign: CampaignModel): boolean;
+  isUserPartOfCampaign(userId: any, campaign: CampaignModel, serviceContainer: ServiceContainer): boolean;
   getVariation(variations: Array<VariationModel>, bucketValue: number): VariationModel;
   checkInRange(variation: VariationModel, bucketValue: number): VariationModel;
-  bucketUserToVariation(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
-  getPreSegmentationDecision(campaign: CampaignModel, context: ContextModel): Promise<any>;
-  getVariationAlloted(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
+  bucketUserToVariation(
+    userId: any,
+    accountId: any,
+    campaign: CampaignModel,
+    serviceContainer: ServiceContainer,
+  ): VariationModel;
+  getPreSegmentationDecision(
+    campaign: CampaignModel,
+    context: ContextModel,
+    serviceContainer: ServiceContainer,
+  ): Promise<any>;
+  getVariationAlloted(
+    userId: any,
+    accountId: any,
+    campaign: CampaignModel,
+    serviceContainer: ServiceContainer,
+  ): VariationModel;
 }
 export declare class CampaignDecisionService implements ICampaignDecisionService {
   /**
@@ -18,7 +33,7 @@ export declare class CampaignDecisionService implements ICampaignDecisionService
    *
    * @return {Boolean} if User is a part of Campaign or not
    */
-  isUserPartOfCampaign(userId: any, campaign: CampaignModel): boolean;
+  isUserPartOfCampaign(userId: any, campaign: CampaignModel, serviceContainer: ServiceContainer): boolean;
   /**
    * Returns the Variation by checking the Start and End Bucket Allocations of each Variation
    *
@@ -37,8 +52,22 @@ export declare class CampaignDecisionService implements ICampaignDecisionService
    *
    * @return {Object|null} variation data into which user is bucketed in or null if not
    */
-  bucketUserToVariation(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
-  getPreSegmentationDecision(campaign: CampaignModel, context: ContextModel): Promise<boolean>;
-  getVariationAlloted(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
+  bucketUserToVariation(
+    userId: any,
+    accountId: any,
+    campaign: CampaignModel,
+    serviceContainer: ServiceContainer,
+  ): VariationModel;
+  getPreSegmentationDecision(
+    campaign: CampaignModel,
+    context: ContextModel,
+    serviceContainer: ServiceContainer,
+  ): Promise<boolean>;
+  getVariationAlloted(
+    userId: any,
+    accountId: any,
+    campaign: CampaignModel,
+    serviceContainer: ServiceContainer,
+  ): VariationModel;
 }
 export {};

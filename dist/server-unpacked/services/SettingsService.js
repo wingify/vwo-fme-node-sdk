@@ -48,7 +48,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingsService = void 0;
-var logger_1 = require("../packages/logger");
 var network_layer_1 = require("../packages/network-layer");
 var PromiseUtil_1 = require("../utils/PromiseUtil");
 var constants_1 = require("../constants");
@@ -64,7 +63,7 @@ var ApiEnum_1 = require("../enums/ApiEnum");
 var StorageService_1 = require("./StorageService");
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
 var SettingsService = /** @class */ (function () {
-    function SettingsService(options) {
+    function SettingsService(options, logManager) {
         var _a, _b, _c, _d, _e, _f;
         this.isGatewayServiceProvided = false;
         this.settingsFetchTime = undefined; //time taken to fetch the settings
@@ -72,11 +71,14 @@ var SettingsService = /** @class */ (function () {
         this.proxyProvided = false;
         this.isStorageServiceProvided = false;
         this.isEdgeEnvironment = false;
+        this.isSettingsProvidedInInit = false;
+        this.startTimeForInit = undefined;
         this.gatewayServiceConfig = {
             hostname: null,
             protocol: null,
             port: null,
         };
+        this.logManager = logManager;
         this.sdkKey = options.sdkKey;
         this.accountId = options.accountId;
         this.expiry = ((_a = options === null || options === void 0 ? void 0 : options.settings) === null || _a === void 0 ? void 0 : _a.expiry) || constants_1.Constants.SETTINGS_EXPIRY;
@@ -90,21 +92,21 @@ var SettingsService = /** @class */ (function () {
         // Check if sdk running in browser and not in edge/serverless environment
         if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
             this.isGatewayServiceProvided = true;
-            // Handle proxyUrl for browser environment
-            if (options === null || options === void 0 ? void 0 : options.proxyUrl) {
-                this.proxyProvided = true;
-                var parsedUrl = void 0;
-                if (options.proxyUrl.startsWith(Url_1.HTTP_PROTOCOL) || options.proxyUrl.startsWith(Url_1.HTTPS_PROTOCOL)) {
-                    parsedUrl = new URL("".concat(options.proxyUrl));
-                }
-                else {
-                    parsedUrl = new URL("".concat(Url_1.HTTPS_PROTOCOL).concat(options.proxyUrl));
-                }
-                this.hostname = parsedUrl.hostname;
-                this.protocol = parsedUrl.protocol.replace(':', '');
-                if (parsedUrl.port) {
-                    this.port = parseInt(parsedUrl.port);
-                }
+        }
+        // Handle proxyUrl config
+        if (options === null || options === void 0 ? void 0 : options.proxyUrl) {
+            this.proxyProvided = true;
+            var parsedUrl = void 0;
+            if (options.proxyUrl.startsWith(Url_1.HTTP_PROTOCOL) || options.proxyUrl.startsWith(Url_1.HTTPS_PROTOCOL)) {
+                parsedUrl = new URL("".concat(options.proxyUrl));
+            }
+            else {
+                parsedUrl = new URL("".concat(Url_1.HTTPS_PROTOCOL).concat(options.proxyUrl));
+            }
+            this.hostname = parsedUrl.hostname;
+            this.protocol = parsedUrl.protocol.replace(':', '');
+            if (parsedUrl.port) {
+                this.port = parseInt(parsedUrl.port);
             }
         }
         //if gateway is provided and proxy is not provided then only we will replace the hostname, protocol and port
@@ -151,32 +153,38 @@ var SettingsService = /** @class */ (function () {
         // if (this.expiry > 0) {
         //   this.setSettingsExpiry();
         // }
-        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+        this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: 'Settings Manager',
         }));
-        SettingsService.instance = this;
     }
-    Object.defineProperty(SettingsService, "Instance", {
-        get: function () {
-            return SettingsService.instance;
-        },
-        enumerable: false,
-        configurable: true
-    });
+    /**
+     * Injects the service container into the settings service.
+     * @param {ServiceContainer} serviceContainer - The service container to inject.
+     */
+    SettingsService.prototype.injectServiceContainer = function (serviceContainer) {
+        this.serviceContainer = serviceContainer;
+    };
+    /**
+     * Check if proxy is provided
+     * @returns {boolean} - True if proxy is provided, false otherwise
+     */
+    SettingsService.prototype.isProxyProvided = function () {
+        return this.proxyProvided;
+    };
+    /**
+     * Normalize the settings
+     * @param settings - The settings to normalize
+     * @returns {Record<any, any>} - The normalized settings
+     */
     SettingsService.prototype.normalizeSettings = function (settings) {
-        return __awaiter(this, void 0, void 0, function () {
-            var normalizedSettings;
-            return __generator(this, function (_a) {
-                normalizedSettings = __assign({}, settings);
-                if (!normalizedSettings.features || Object.keys(normalizedSettings.features).length === 0) {
-                    normalizedSettings.features = [];
-                }
-                if (!normalizedSettings.campaigns || Object.keys(normalizedSettings.campaigns).length === 0) {
-                    normalizedSettings.campaigns = [];
-                }
-                return [2 /*return*/, normalizedSettings];
-            });
-        });
+        var normalizedSettings = __assign({}, settings);
+        if (!normalizedSettings.features || Object.keys(normalizedSettings.features).length === 0) {
+            normalizedSettings.features = [];
+        }
+        if (!normalizedSettings.campaigns || Object.keys(normalizedSettings.campaigns).length === 0) {
+            normalizedSettings.campaigns = [];
+        }
+        return normalizedSettings;
     };
     SettingsService.prototype.fetchSettings = function (isViaWebhook, apiName) {
         var _this = this;
@@ -186,14 +194,13 @@ var SettingsService = /** @class */ (function () {
         if (!this.sdkKey || !this.accountId) {
             deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
         }
-        var networkInstance = network_layer_1.NetworkManager.Instance;
         var options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
-        var retryConfig = networkInstance.getRetryConfig();
+        var retryConfig = this.serviceContainer.getNetworkManager().getRetryConfig();
         options.platform = constants_1.Constants.PLATFORM;
         options.sn = constants_1.Constants.SDK_NAME;
         options.sv = constants_1.Constants.SDK_VERSION;
         options['api-version'] = constants_1.Constants.API_VERSION;
-        if (!networkInstance.getConfig().getDevelopmentMode()) {
+        if (!this.serviceContainer.getNetworkManager().getConfig().getDevelopmentMode()) {
             options.s = 'prod';
         }
         var path = constants_1.Constants.SETTINGS_ENDPOINT;
@@ -205,7 +212,8 @@ var SettingsService = /** @class */ (function () {
             var startTime_1 = Date.now();
             var request = new network_layer_1.RequestModel(this.hostname, HttpMethodEnum_1.HttpMethodEnum.GET, path, options, null, null, this.protocol, this.port, retryConfig);
             request.setTimeout(this.networkTimeout);
-            networkInstance
+            this.serviceContainer
+                .getNetworkManager()
                 .get(request)
                 .then(function (response) {
                 //record the timestamp when the response is received
@@ -214,20 +222,20 @@ var SettingsService = /** @class */ (function () {
                 if (response.getTotalAttempts() > 0) {
                     var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
                     // send debug event
-                    (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                    (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(_this.serviceContainer, debugEventProps);
                 }
                 deferredObject.resolve(response.getData());
             })
                 .catch(function (err) {
                 var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(err, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
                 // send debug event
-                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(_this.serviceContainer, debugEventProps);
                 deferredObject.reject(err);
             });
             return deferredObject.promise;
         }
         catch (err) {
-            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+            this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
             }, { an: isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName }, false);
             deferredObject.reject(err);
@@ -249,17 +257,17 @@ var SettingsService = /** @class */ (function () {
                     case 1:
                         _a.trys.push([1, 13, , 14]);
                         if (!this.isStorageServiceProvided) return [3 /*break*/, 9];
-                        storageService = new StorageService_1.StorageService();
+                        storageService = new StorageService_1.StorageService(this.serviceContainer);
                         return [4 /*yield*/, storageService.getSettingsFromStorage(this.accountId, this.sdkKey, !this.isEdgeEnvironment)];
                     case 2:
                         cachedSettings = _a.sent();
                         if (!(cachedSettings && !(0, DataTypeUtil_1.isEmptyObject)(cachedSettings))) return [3 /*break*/, 3];
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
+                        this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
                         deferredObject.resolve(cachedSettings);
                         return [3 /*break*/, 8];
                     case 3:
                         // if no cached settings are found, fetch fresh settings from server
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
+                        this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
                         return [4 /*yield*/, this.fetchSettings()];
                     case 4:
                         freshSettings = _a.sent();
@@ -270,14 +278,14 @@ var SettingsService = /** @class */ (function () {
                         this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
                         if (!this.isSettingsValid) return [3 /*break*/, 7];
                         // if settings are valid, set the settings in storage
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
+                        this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
                         return [4 /*yield*/, storageService.setSettingsInStorage(this.accountId, this.sdkKey, normalizedSettings)];
                     case 6:
                         _a.sent();
                         deferredObject.resolve(normalizedSettings);
                         return [3 /*break*/, 8];
                     case 7:
-                        logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                        this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
                         deferredObject.resolve({});
                         _a.label = 8;
                     case 8: return [3 /*break*/, 12];
@@ -289,18 +297,18 @@ var SettingsService = /** @class */ (function () {
                         normalizedSettings = _a.sent();
                         this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
                         if (this.isSettingsValid) {
-                            logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+                            this.logManager.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
                             deferredObject.resolve(normalizedSettings);
                         }
                         else {
-                            logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                            this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
                             deferredObject.resolve({});
                         }
                         _a.label = 12;
                     case 12: return [3 /*break*/, 14];
                     case 13:
                         error_1 = _a.sent();
-                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+                        this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1),
                         }, { an: ApiEnum_1.ApiEnum.INIT }, false);
                         deferredObject.resolve({});

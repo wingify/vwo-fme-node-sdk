@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ import { CampaignTypeEnum } from '../enums/CampaignTypeEnum.js';
 import { StatusEnum } from '../enums/StatusEnum.js';
 import { InfoLogMessagesEnum } from '../enums/log-messages/index.js';
 import { DecisionMaker } from '../packages/decision-maker/index.js';
-import { LogManager } from '../packages/logger/index.js';
-import { SegmentationManager } from '../packages/segmentation-evaluator/index.js';
 import { CampaignDecisionService } from '../services/CampaignDecisionService.js';
 import { isObject } from '../utils/DataTypeUtil.js';
 import { Constants } from '../constants/index.js';
@@ -29,8 +27,8 @@ import { buildMessage } from './LogMessageUtil.js';
 import { evaluateGroups } from './MegUtil.js';
 import { getUUID } from './UuidUtil.js';
 import { StorageDecorator } from '../decorators/StorageDecorator.js';
-export const checkWhitelistingAndPreSeg = async (settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) => {
-    const vwoUserId = getUUID(context.getId(), settings.getAccountId());
+export const checkWhitelistingAndPreSeg = async (serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) => {
+    const vwoUserId = getUUID(context.getId(), serviceContainer.getSettings().getAccountId());
     const campaignId = campaign.getId();
     if (campaign.getType() === CampaignTypeEnum.AB) {
         // set _vwoUserId for variation targeting variables
@@ -40,13 +38,13 @@ export const checkWhitelistingAndPreSeg = async (settings, feature, campaign, co
         Object.assign(decision, { variationTargetingVariables: context.getVariationTargetingVariables() }); // for integration
         // check if the campaign satisfies the whitelisting
         if (campaign.getIsForcedVariationEnabled()) {
-            const whitelistedVariation = await _checkCampaignWhitelisting(campaign, context);
+            const whitelistedVariation = await _checkCampaignWhitelisting(campaign, context, serviceContainer);
             if (whitelistedVariation && Object.keys(whitelistedVariation).length > 0) {
                 return [true, whitelistedVariation];
             }
         }
         else {
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
+            serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
                 campaignKey: campaign.getRuleKey(),
                 userId: context.getId(),
             }));
@@ -58,7 +56,7 @@ export const checkWhitelistingAndPreSeg = async (settings, feature, campaign, co
     }));
     Object.assign(decision, { customVariables: context.getCustomVariables() }); // for integeration
     // Check if RUle being evaluated is part of Mutually Exclusive Group
-    const { groupId } = getGroupDetailsIfCampaignPartOfIt(settings, campaign.getId(), campaign.getType() === CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null);
+    const { groupId } = getGroupDetailsIfCampaignPartOfIt(serviceContainer.getSettings(), campaign.getId(), campaign.getType() === CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null);
     // Check if group is already evaluated and we have eligible winner campaigns
     const groupWinnerCampaignId = megGroupWinnerCampaigns?.get(groupId);
     if (groupWinnerCampaignId) {
@@ -79,9 +77,9 @@ export const checkWhitelistingAndPreSeg = async (settings, feature, campaign, co
     }
     else if (groupId) {
         // check in storage if the group is already evaluated for the user
-        const storedData = await new StorageDecorator().getFeatureFromStorage(`${Constants.VWO_META_MEG_KEY}${groupId}`, context, storageService);
+        const storedData = await new StorageDecorator().getFeatureFromStorage(`${Constants.VWO_META_MEG_KEY}${groupId}`, context, storageService, serviceContainer);
         if (storedData && storedData.experimentKey && storedData.experimentId) {
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+            serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
                 campaignKey: storedData.experimentKey,
                 userId: context.getId(),
             }));
@@ -113,9 +111,9 @@ export const checkWhitelistingAndPreSeg = async (settings, feature, campaign, co
     }
     // If Whitelisting is skipped/failed and campaign not part of any MEG Groups
     // Check campaign's pre-segmentation
-    const isPreSegmentationPassed = await new CampaignDecisionService().getPreSegmentationDecision(campaign, context);
+    const isPreSegmentationPassed = await new CampaignDecisionService().getPreSegmentationDecision(campaign, context, serviceContainer);
     if (isPreSegmentationPassed && groupId) {
-        const winnerCampaign = await evaluateGroups(settings, feature, groupId, evaluatedFeatureMap, context, storageService);
+        const winnerCampaign = await evaluateGroups(serviceContainer, feature, groupId, evaluatedFeatureMap, context, storageService);
         if (winnerCampaign && winnerCampaign.id === campaignId) {
             if (winnerCampaign.type === CampaignTypeEnum.AB) {
                 return [true, null];
@@ -145,10 +143,10 @@ export const checkWhitelistingAndPreSeg = async (settings, feature, campaign, co
     }
     return [isPreSegmentationPassed, null];
 };
-export const evaluateTrafficAndGetVariation = (settings, campaign, userId) => {
-    const variation = new CampaignDecisionService().getVariationAlloted(userId, settings.getAccountId(), campaign);
+export const evaluateTrafficAndGetVariation = (serviceContainer, campaign, userId) => {
+    const variation = new CampaignDecisionService().getVariationAlloted(userId, serviceContainer.getSettings().getAccountId(), campaign, serviceContainer);
     if (!variation) {
-        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
+        serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
             campaignKey: campaign.getType() === CampaignTypeEnum.AB
                 ? campaign.getKey()
                 : campaign.getName() + '_' + campaign.getRuleKey(),
@@ -157,7 +155,7 @@ export const evaluateTrafficAndGetVariation = (settings, campaign, userId) => {
         }));
         return null;
     }
-    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
+    serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
         campaignKey: campaign.getType() === CampaignTypeEnum.AB
             ? campaign.getKey()
             : campaign.getName() + '_' + campaign.getRuleKey(),
@@ -176,12 +174,12 @@ export const evaluateTrafficAndGetVariation = (settings, campaign, userId) => {
  * @param variationTargetingVariables   Variation targeting variables
  * @returns
  */
-const _checkCampaignWhitelisting = async (campaign, context) => {
+const _checkCampaignWhitelisting = async (campaign, context, serviceContainer) => {
     // check if the campaign satisfies the whitelisting
-    const whitelistingResult = await _evaluateWhitelisting(campaign, context);
+    const whitelistingResult = await _evaluateWhitelisting(campaign, context, serviceContainer);
     const status = whitelistingResult ? StatusEnum.PASSED : StatusEnum.FAILED;
     const variationString = whitelistingResult ? whitelistingResult.variation.key : '';
-    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.WHITELISTING_STATUS, {
+    serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.WHITELISTING_STATUS, {
         userId: context.getId(),
         campaignKey: campaign.getType() === CampaignTypeEnum.AB
             ? campaign.getKey()
@@ -191,13 +189,13 @@ const _checkCampaignWhitelisting = async (campaign, context) => {
     }));
     return whitelistingResult;
 };
-const _evaluateWhitelisting = async (campaign, context) => {
+const _evaluateWhitelisting = async (campaign, context, serviceContainer) => {
     const targetedVariations = [];
     const promises = [];
     let whitelistedVariation;
     campaign.getVariations().forEach((variation) => {
         if (isObject(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
+            serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
                 campaignKey: campaign.getType() === CampaignTypeEnum.AB
                     ? campaign.getKey()
                     : campaign.getName() + '_' + campaign.getRuleKey(),
@@ -208,7 +206,9 @@ const _evaluateWhitelisting = async (campaign, context) => {
         }
         // check for segmentation and evaluate
         if (isObject(variation.getSegments())) {
-            let SegmentEvaluatorResult = SegmentationManager.Instance.validateSegmentation(variation.getSegments(), context.getVariationTargetingVariables());
+            let SegmentEvaluatorResult = serviceContainer
+                .getSegmentationManager()
+                .validateSegmentation(variation.getSegments(), context.getVariationTargetingVariables());
             SegmentEvaluatorResult = isPromise(SegmentEvaluatorResult)
                 ? SegmentEvaluatorResult
                 : Promise.resolve(SegmentEvaluatorResult);

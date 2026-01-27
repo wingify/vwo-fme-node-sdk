@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 import { SettingsService } from '../../../lib/services/SettingsService';
 import { SettingsSchema } from '../../../lib/models/schemas/SettingsSchemaValidation';
-import { LogManager } from '../../../lib/packages/logger';
+import { LogManager } from '../../../lib/packages/logger/core/LogManager';
 
 import {
   SETTINGS_WITH_NO_FEATURE_AND_CAMPAIGN,
@@ -47,10 +47,13 @@ fdescribe('SettingsSchemaValidation', () => {
 
     settingsSchemaValidation = new SettingsSchema();
 
-    settingsService = new SettingsService({
-      accountId: 123,
-      sdkKey: '123',
-    });
+    settingsService = new SettingsService(
+      {
+        accountId: 123,
+        sdkKey: '123',
+      },
+      new LogManager({}),
+    );
   });
 
   describe('Settings with wrong type for values', () => {

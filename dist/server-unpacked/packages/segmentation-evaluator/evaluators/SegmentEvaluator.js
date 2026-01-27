@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SegmentEvaluator = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,12 +53,10 @@ exports.SegmentEvaluator = void 0;
  * limitations under the License.
  */
 var StorageDecorator_1 = require("../../../decorators/StorageDecorator");
-var logger_1 = require("../../logger");
 var StorageService_1 = require("../../../services/StorageService");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var SegmentOperatorValueEnum_1 = require("../enums/SegmentOperatorValueEnum");
 var SegmentUtil_1 = require("../utils/SegmentUtil");
-var SegmentOperandEvaluator_1 = require("./SegmentOperandEvaluator");
 var ApiEnum_1 = require("../../../enums/ApiEnum");
 var FunctionUtil_1 = require("../../../utils/FunctionUtil");
 var SegmentEvaluator = /** @class */ (function () {
@@ -98,13 +96,13 @@ var SegmentEvaluator = /** @class */ (function () {
                     case 4: return [2 /*return*/, _c.sent()];
                     case 5: return [4 /*yield*/, this.some(subDsl, properties)];
                     case 6: return [2 /*return*/, _c.sent()];
-                    case 7: return [4 /*yield*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateCustomVariableDSL(subDsl, properties, this.context)];
+                    case 7: return [4 /*yield*/, this.segmentOperandEvaluator.evaluateCustomVariableDSL(subDsl, properties, this.context)];
                     case 8: return [2 /*return*/, _c.sent()];
-                    case 9: return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties)];
-                    case 10: return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context)];
-                    case 11: return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP)];
-                    case 12: return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION)];
-                    case 13: return [2 /*return*/, new SegmentOperandEvaluator_1.SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION)];
+                    case 9: return [2 /*return*/, this.segmentOperandEvaluator.evaluateUserDSL(subDsl, properties)];
+                    case 10: return [2 /*return*/, this.segmentOperandEvaluator.evaluateUserAgentDSL(subDsl, this.context)];
+                    case 11: return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP)];
+                    case 12: return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION)];
+                    case 13: return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION)];
                     case 14: return [2 /*return*/, false];
                 }
             });
@@ -158,11 +156,11 @@ var SegmentEvaluator = /** @class */ (function () {
                                         featureIdKey_1 = Object.keys(featureIdObject)[0];
                                         featureIdValue = featureIdObject[featureIdKey_1];
                                         if (!(featureIdValue === 'on' || featureIdValue === 'off')) return [3 /*break*/, 3];
-                                        features = this_1.settings.getFeatures();
+                                        features = this_1.serviceContainer.getSettings().getFeatures();
                                         feature = features.find(function (feature) { return feature.getId() === parseInt(featureIdKey_1); });
                                         if (!feature) return [3 /*break*/, 2];
                                         featureKey = feature.getKey();
-                                        return [4 /*yield*/, this_1.checkInUserStorage(this_1.settings, featureKey, this_1.context)];
+                                        return [4 /*yield*/, this_1.checkInUserStorage(this_1.serviceContainer.getSettings(), featureKey, this_1.context)];
                                     case 1:
                                         result = _f.sent();
                                         // if the result is false, then we need to return true as feature is not present in the user storage
@@ -171,7 +169,7 @@ var SegmentEvaluator = /** @class */ (function () {
                                         }
                                         return [2 /*return*/, { value: result }];
                                     case 2:
-                                        logger_1.LogManager.Instance.errorLog('FEATURE_NOT_FOUND_WITH_ID', {
+                                        this_1.serviceContainer.getLogManager().errorLog('FEATURE_NOT_FOUND_WITH_ID', {
                                             featureId: featureIdKey_1,
                                         }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this_1.context.getUuid(), sId: this_1.context.getSessionId() });
                                         return [2 /*return*/, { value: null }];
@@ -211,7 +209,7 @@ var SegmentEvaluator = /** @class */ (function () {
                         return [2 /*return*/, uaParserResult];
                     case 8:
                         err_1 = _e.sent();
-                        logger_1.LogManager.Instance.errorLog('USER_AGENT_VALIDATION_ERROR', {
+                        this.serviceContainer.getLogManager().errorLog('USER_AGENT_VALIDATION_ERROR', {
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_1),
                         }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
                         return [3 /*break*/, 9];
@@ -301,7 +299,9 @@ var SegmentEvaluator = /** @class */ (function () {
             return __generator(this, function (_k) {
                 // Ensure user's IP address is available
                 if (((_a = this.context) === null || _a === void 0 ? void 0 : _a.getIpAddress()) === undefined && typeof process !== 'undefined') {
-                    logger_1.LogManager.Instance.errorLog('INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
+                    this.serviceContainer
+                        .getLogManager()
+                        .errorLog('INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
                     return [2 /*return*/, false];
                 }
                 // Check if location data is available and matches the expected values
@@ -325,7 +325,9 @@ var SegmentEvaluator = /** @class */ (function () {
             return __generator(this, function (_j) {
                 // Ensure user's user agent is available
                 if (!((_a = this.context) === null || _a === void 0 ? void 0 : _a.getUserAgent()) || ((_b = this.context) === null || _b === void 0 ? void 0 : _b.getUserAgent()) === undefined) {
-                    logger_1.LogManager.Instance.errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
+                    this.serviceContainer
+                        .getLogManager()
+                        .errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
                     return [2 /*return*/, false];
                 }
                 // Check if user agent data is available and matches the expected values
@@ -349,8 +351,8 @@ var SegmentEvaluator = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        storageService = new StorageService_1.StorageService();
-                        return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService)];
+                        storageService = new StorageService_1.StorageService(this.serviceContainer);
+                        return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, this.serviceContainer)];
                     case 1:
                         storedData = _a.sent();
                         // Check if the stored data is an object and not empty

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@ import { isBoolean } from '../../../utils/DataTypeUtil';
 import { dynamic } from '../../../types/Common';
 import { getFromGatewayService } from '../../../utils/GatewayServiceUtil';
 import { UrlEnum } from '../../../enums/UrlEnum';
-import { LogManager } from '../../logger';
 import { ContextModel } from '../../../models/user/ContextModel';
 import { ApiEnum } from '../../../enums/ApiEnum';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
+import { ServiceContainer } from '../../../services/ServiceContainer';
 
 /**
  * SegmentOperandEvaluator class provides methods to evaluate different types of DSL (Domain Specific Language)
@@ -33,6 +33,13 @@ import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 export class SegmentOperandEvaluator {
   // Regex pattern to check if a string contains non-numeric characters (except decimal point)
   private static readonly NON_NUMERIC_PATTERN = /[^0-9.]/;
+
+  private serviceContainer: ServiceContainer;
+
+  constructor(serviceContainer: ServiceContainer) {
+    this.serviceContainer = serviceContainer;
+  }
+
   /**
    * Evaluates a custom variable DSL expression.
    * @param {Record<string, dynamic>} dslOperandValue - The DSL expression for the custom variable.
@@ -59,11 +66,13 @@ export class SegmentOperandEvaluator {
       const listIdRegex = /inlist\(([^)]+)\)/;
       const match = operand.match(listIdRegex);
       if (!match || match.length < 2) {
-        LogManager.Instance.errorLog(
-          'INVALID_ATTRIBUTE_LIST_FORMAT',
-          {},
-          { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
-        );
+        this.serviceContainer
+          .getLogManager()
+          .errorLog(
+            'INVALID_ATTRIBUTE_LIST_FORMAT',
+            {},
+            { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
+          );
         return false;
       }
 
@@ -78,13 +87,18 @@ export class SegmentOperandEvaluator {
 
       // Make a web service call to check the attribute against the list
       try {
-        const res = await getFromGatewayService(queryParamsObj, UrlEnum.ATTRIBUTE_CHECK, context);
+        const res = await getFromGatewayService(
+          this.serviceContainer,
+          queryParamsObj,
+          UrlEnum.ATTRIBUTE_CHECK,
+          context,
+        );
         if (!res || res === undefined || res === 'false' || res.status === 0) {
           return false;
         }
         return res;
       } catch (error) {
-        LogManager.Instance.errorLog(
+        this.serviceContainer.getLogManager().errorLog(
           'ERROR_FETCHING_DATA_FROM_GATEWAY',
           {
             err: getFormattedErrorMessage(error),
@@ -129,11 +143,13 @@ export class SegmentOperandEvaluator {
   evaluateUserAgentDSL(dslOperandValue: Record<string, any>, context: ContextModel): boolean {
     const operand = dslOperandValue;
     if (!context.getUserAgent() || context.getUserAgent() === undefined) {
-      LogManager.Instance.errorLog(
-        'INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION',
-        {},
-        { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
-      );
+      this.serviceContainer
+        .getLogManager()
+        .errorLog(
+          'INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION',
+          {},
+          { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
+        );
       return false;
     }
     let tagValue = decodeURIComponent(context.getUserAgent());
@@ -438,11 +454,15 @@ export class SegmentOperandEvaluator {
    */
   logMissingContextError(operandType: SegmentOperatorValueEnum): void {
     if (operandType === SegmentOperatorValueEnum.IP) {
-      LogManager.Instance.info('To evaluate IP segmentation, please provide ipAddress in context');
+      this.serviceContainer.getLogManager().info('To evaluate IP segmentation, please provide ipAddress in context');
     } else if (operandType === SegmentOperatorValueEnum.BROWSER_VERSION) {
-      LogManager.Instance.info('To evaluate browser version segmentation, please provide userAgent in context');
+      this.serviceContainer
+        .getLogManager()
+        .info('To evaluate browser version segmentation, please provide userAgent in context');
     } else {
-      LogManager.Instance.info('To evaluate OS version segmentation, please provide userAgent in context');
+      this.serviceContainer
+        .getLogManager()
+        .info('To evaluate OS version segmentation, please provide userAgent in context');
     }
   }
 

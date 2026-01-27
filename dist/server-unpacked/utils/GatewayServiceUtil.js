@@ -40,7 +40,7 @@ exports.getFromGatewayService = getFromGatewayService;
 exports.getQueryParams = getQueryParams;
 exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,46 +57,47 @@ exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 var ApiEnum_1 = require("../enums/ApiEnum");
 var CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
 var HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
-var logger_1 = require("../packages/logger");
 var network_layer_1 = require("../packages/network-layer");
-var SettingsService_1 = require("../services/SettingsService");
 var PromiseUtil_1 = require("./PromiseUtil");
 /**
  * Asynchronously retrieves data from a web service using the specified query parameters and endpoint.
+ * @param serviceContainer - The service container instance.
  * @param queryParams - The parameters to be used in the query string of the request.
  * @param endpoint - The endpoint URL to which the request is sent.
  * @returns A promise that resolves to the response data or false if an error occurs.
  */
-function getFromGatewayService(queryParams, endpoint, context) {
+function getFromGatewayService(serviceContainer, queryParams, endpoint, context) {
     return __awaiter(this, void 0, void 0, function () {
         var deferredObject, networkInstance, retryConfig, gatewayServiceUrl, gatewayServicePort, gatewayServiceProtocol, request;
         return __generator(this, function (_a) {
             deferredObject = new PromiseUtil_1.Deferred();
-            networkInstance = network_layer_1.NetworkManager.Instance;
+            networkInstance = serviceContainer.getNetworkManager();
             retryConfig = networkInstance.getRetryConfig();
             // Check if the base URL is not set correctly
-            if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
+            if (!serviceContainer.getSettingsService().isGatewayServiceProvided) {
                 // Log an informational message about the invalid URL
-                logger_1.LogManager.Instance.errorLog('INVALID_GATEWAY_URL', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+                serviceContainer
+                    .getLogManager()
+                    .errorLog('INVALID_GATEWAY_URL', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                 // Resolve the promise with false indicating an error or invalid state
                 deferredObject.resolve(false);
                 return [2 /*return*/, deferredObject.promise];
             }
             // required if sdk is running in browser environment
             // using dacdn where accountid is required
-            queryParams['accountId'] = SettingsService_1.SettingsService.Instance.accountId;
+            queryParams['accountId'] = serviceContainer.getSettingsService().accountId;
             gatewayServiceUrl = null;
             gatewayServicePort = null;
             gatewayServiceProtocol = null;
-            if (SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname != null) {
-                gatewayServiceUrl = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname;
-                gatewayServicePort = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.port;
-                gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.protocol;
+            if (serviceContainer.getSettingsService().gatewayServiceConfig.hostname != null) {
+                gatewayServiceUrl = serviceContainer.getSettingsService().gatewayServiceConfig.hostname;
+                gatewayServicePort = serviceContainer.getSettingsService().gatewayServiceConfig.port;
+                gatewayServiceProtocol = serviceContainer.getSettingsService().gatewayServiceConfig.protocol;
             }
             else {
-                gatewayServiceUrl = SettingsService_1.SettingsService.Instance.hostname;
-                gatewayServicePort = SettingsService_1.SettingsService.Instance.port;
-                gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.protocol;
+                gatewayServiceUrl = serviceContainer.getSettingsService().hostname;
+                gatewayServicePort = serviceContainer.getSettingsService().port;
+                gatewayServiceProtocol = serviceContainer.getSettingsService().protocol;
             }
             try {
                 request = new network_layer_1.RequestModel(gatewayServiceUrl, HttpMethodEnum_1.HttpMethodEnum.GET, endpoint, queryParams, null, null, gatewayServiceProtocol, gatewayServicePort, retryConfig);

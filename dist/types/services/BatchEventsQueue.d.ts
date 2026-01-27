@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { LogManager } from '../packages/logger';
+import { ServiceContainer } from './ServiceContainer';
 export interface BatchConfig {
   isEdgeEnvironment?: boolean;
   requestTimeInterval?: number;
   eventsPerRequest?: number;
   flushCallback?: (error: Error | null, data: Record<string, any>) => void;
-  dispatcher?: (
-    queue: Record<string, any>[],
-    flushCallback: (error: Error | null, data: Record<string, any>) => void,
-  ) => Promise<Record<string, any>>;
+  accountId?: number;
 }
 export declare class BatchEventsQueue {
-  private static instance;
   private queue;
   private timer;
   private requestTimeInterval;
@@ -32,17 +30,14 @@ export declare class BatchEventsQueue {
   private flushCallback;
   private accountId;
   private isEdgeEnvironment;
-  private dispatcher;
+  private logManager;
+  private serviceContainer;
   /**
    * Constructor for the BatchEventsQueue
    * @param config - The configuration for the batch events queue
    */
-  constructor(config?: BatchConfig);
-  /**
-   * Gets the instance of the BatchEventsQueue
-   * @returns The instance of the BatchEventsQueue
-   */
-  static get Instance(): BatchEventsQueue;
+  constructor(config: BatchConfig, logManager: LogManager);
+  injectServiceContainer(serviceContainer: ServiceContainer): void;
   /**
    * Enqueues an event
    * @param payload - The event to enqueue

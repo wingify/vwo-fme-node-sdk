@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
-import { SettingsService } from '../services/SettingsService';
+import { RequestModel, ResponseModel } from '../packages/network-layer';
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 import { UrlEnum } from '../enums/UrlEnum';
 import { Deferred } from './PromiseUtil';
+import { ServiceContainer } from '../services/ServiceContainer';
 
 /**
  * Utility class for handling alias operations through network calls to gateway
@@ -36,28 +36,28 @@ export class AliasingUtil {
    * @param userId - The user identifier
    * @returns Promise<any | null> - The response from the gateway
    */
-  public static async getAlias(userId: string): Promise<any | null> {
+  public static async getAlias(userId: string, serviceContainer: ServiceContainer): Promise<any | null> {
     // Create a deferred object for proper promise handling
     const deferredObject = new Deferred();
     try {
       let gatewayServiceUrl = null;
       let gatewayServicePort = null;
       let gatewayServiceProtocol = null;
-      const retryConfig = NetworkManager.Instance.getRetryConfig();
+      const retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
 
-      if (SettingsService.Instance.gatewayServiceConfig.hostname != null) {
-        gatewayServiceUrl = SettingsService.Instance.gatewayServiceConfig.hostname;
-        gatewayServicePort = SettingsService.Instance.gatewayServiceConfig.port;
-        gatewayServiceProtocol = SettingsService.Instance.gatewayServiceConfig.protocol;
+      if (serviceContainer.getSettingsService().gatewayServiceConfig.hostname != null) {
+        gatewayServiceUrl = serviceContainer.getSettingsService().gatewayServiceConfig.hostname;
+        gatewayServicePort = serviceContainer.getSettingsService().gatewayServiceConfig.port;
+        gatewayServiceProtocol = serviceContainer.getSettingsService().gatewayServiceConfig.protocol;
       } else {
-        gatewayServiceUrl = SettingsService.Instance.hostname;
-        gatewayServicePort = SettingsService.Instance.port;
-        gatewayServiceProtocol = SettingsService.Instance.protocol;
+        gatewayServiceUrl = serviceContainer.getSettingsService().hostname;
+        gatewayServicePort = serviceContainer.getSettingsService().port;
+        gatewayServiceProtocol = serviceContainer.getSettingsService().protocol;
       }
 
       const queryParams = {};
-      queryParams['accountId'] = SettingsService.Instance?.accountId;
-      queryParams['sdkKey'] = SettingsService.Instance?.sdkKey;
+      queryParams['accountId'] = serviceContainer.getSettingsService().accountId;
+      queryParams['sdkKey'] = serviceContainer.getSettingsService().sdkKey;
       // Backend expects userId as JSON array
       queryParams[this.KEY_USER_ID] = JSON.stringify([userId]);
 
@@ -74,7 +74,9 @@ export class AliasingUtil {
       );
 
       // Perform the network GET request
-      NetworkManager.Instance.get(request)
+      serviceContainer
+        .getNetworkManager()
+        .get(request)
         .then((response: ResponseModel) => {
           // Resolve the deferred object with the response
           deferredObject.resolve(response.getData());
@@ -98,7 +100,11 @@ export class AliasingUtil {
    * @param aliasId - The alias identifier to set
    * @returns Promise<ResponseModel | null> - The response from the gateway
    */
-  public static async setAlias(userId: string, aliasId: string): Promise<any | null> {
+  public static async setAlias(
+    userId: string,
+    aliasId: string,
+    serviceContainer: ServiceContainer,
+  ): Promise<any | null> {
     // Create a deferred object for proper promise handling
     const deferredObject = new Deferred();
 
@@ -106,21 +112,21 @@ export class AliasingUtil {
       let gatewayServiceUrl = null;
       let gatewayServicePort = null;
       let gatewayServiceProtocol = null;
-      const retryConfig = NetworkManager.Instance.getRetryConfig();
+      const retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
 
-      if (SettingsService.Instance.gatewayServiceConfig.hostname != null) {
-        gatewayServiceUrl = SettingsService.Instance.gatewayServiceConfig.hostname;
-        gatewayServicePort = SettingsService.Instance.gatewayServiceConfig.port;
-        gatewayServiceProtocol = SettingsService.Instance.gatewayServiceConfig.protocol;
+      if (serviceContainer.getSettingsService().gatewayServiceConfig.hostname != null) {
+        gatewayServiceUrl = serviceContainer.getSettingsService().gatewayServiceConfig.hostname;
+        gatewayServicePort = serviceContainer.getSettingsService().gatewayServiceConfig.port;
+        gatewayServiceProtocol = serviceContainer.getSettingsService().gatewayServiceConfig.protocol;
       } else {
-        gatewayServiceUrl = SettingsService.Instance.hostname;
-        gatewayServicePort = SettingsService.Instance.port;
-        gatewayServiceProtocol = SettingsService.Instance.protocol;
+        gatewayServiceUrl = serviceContainer.getSettingsService().hostname;
+        gatewayServicePort = serviceContainer.getSettingsService().port;
+        gatewayServiceProtocol = serviceContainer.getSettingsService().protocol;
       }
 
       const queryParams = {};
-      queryParams['accountId'] = SettingsService.Instance?.accountId;
-      queryParams['sdkKey'] = SettingsService.Instance?.sdkKey;
+      queryParams['accountId'] = serviceContainer.getSettingsService().accountId;
+      queryParams['sdkKey'] = serviceContainer.getSettingsService().sdkKey;
       queryParams[this.KEY_USER_ID] = userId;
       queryParams[this.KEY_ALIAS_ID] = aliasId;
 
@@ -142,7 +148,9 @@ export class AliasingUtil {
       );
 
       // Perform the network POST request
-      NetworkManager.Instance.post(request)
+      serviceContainer
+        .getNetworkManager()
+        .post(request)
         .then((response: ResponseModel) => {
           // Resolve the deferred object with the response
           deferredObject.resolve(response.getData());

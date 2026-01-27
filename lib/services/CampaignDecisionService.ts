@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 import { DecisionMaker } from '../packages/decision-maker';
-import { LogManager } from '../packages/logger';
-import { SegmentationManager } from '../packages/segmentation-evaluator';
 
 import { Constants } from '../constants';
 import { VariationModel } from '../models/campaign/VariationModel';
@@ -26,14 +24,29 @@ import { CampaignModel } from '../models/campaign/CampaignModel';
 import { ContextModel } from '../models/user/ContextModel';
 import { isObject } from '../utils/DataTypeUtil';
 import { buildMessage } from '../utils/LogMessageUtil';
+import { ServiceContainer } from './ServiceContainer';
 
 interface ICampaignDecisionService {
-  isUserPartOfCampaign(userId: any, campaign: CampaignModel): boolean;
+  isUserPartOfCampaign(userId: any, campaign: CampaignModel, serviceContainer: ServiceContainer): boolean;
   getVariation(variations: Array<VariationModel>, bucketValue: number): VariationModel;
   checkInRange(variation: VariationModel, bucketValue: number): VariationModel;
-  bucketUserToVariation(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
-  getPreSegmentationDecision(campaign: CampaignModel, context: ContextModel): Promise<any>;
-  getVariationAlloted(userId: any, accountId: any, campaign: CampaignModel): VariationModel;
+  bucketUserToVariation(
+    userId: any,
+    accountId: any,
+    campaign: CampaignModel,
+    serviceContainer: ServiceContainer,
+  ): VariationModel;
+  getPreSegmentationDecision(
+    campaign: CampaignModel,
+    context: ContextModel,
+    serviceContainer: ServiceContainer,
+  ): Promise<any>;
+  getVariationAlloted(
+    userId: any,
+    accountId: any,
+    campaign: CampaignModel,
+    serviceContainer: ServiceContainer,
+  ): VariationModel;
 }
 
 export class CampaignDecisionService implements ICampaignDecisionService {
@@ -45,7 +58,7 @@ export class CampaignDecisionService implements ICampaignDecisionService {
    *
    * @return {Boolean} if User is a part of Campaign or not
    */
-  isUserPartOfCampaign(userId: any, campaign: CampaignModel): boolean {
+  isUserPartOfCampaign(userId: any, campaign: CampaignModel, serviceContainer: ServiceContainer): boolean {
     // if (!ValidateUtil.isValidValue(userId) || !campaign) {
     //   return false;
     // }
@@ -68,7 +81,7 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     // check if user is part of campaign
     const isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
 
-    LogManager.Instance.info(
+    serviceContainer.getLogManager().info(
       buildMessage(InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
         userId,
         notPart: isUserPart ? '' : 'not',
@@ -115,7 +128,12 @@ export class CampaignDecisionService implements ICampaignDecisionService {
    *
    * @return {Object|null} variation data into which user is bucketed in or null if not
    */
-  bucketUserToVariation(userId: any, accountId: any, campaign: CampaignModel): VariationModel {
+  bucketUserToVariation(
+    userId: any,
+    accountId: any,
+    campaign: CampaignModel,
+    serviceContainer: ServiceContainer,
+  ): VariationModel {
     let multiplier;
 
     if (!campaign || !userId) {
@@ -135,7 +153,7 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     const hashValue = new DecisionMaker().generateHashValue(bucketKey);
     const bucketValue = new DecisionMaker().generateBucketValue(hashValue, Constants.MAX_TRAFFIC_VALUE, multiplier);
 
-    LogManager.Instance.debug(
+    serviceContainer.getLogManager().debug(
       buildMessage(DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
         userId,
         campaignKey: campaign.getKey(),
@@ -148,7 +166,11 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     return this.getVariation(campaign.getVariations(), bucketValue);
   }
 
-  async getPreSegmentationDecision(campaign: CampaignModel, context: ContextModel): Promise<boolean> {
+  async getPreSegmentationDecision(
+    campaign: CampaignModel,
+    context: ContextModel,
+    serviceContainer: ServiceContainer,
+  ): Promise<boolean> {
     // validate segmentation
     const campaignType = campaign.getType();
     let segments = {};
@@ -159,7 +181,7 @@ export class CampaignDecisionService implements ICampaignDecisionService {
       segments = campaign.getSegments();
     }
     if (isObject(segments) && !Object.keys(segments).length) {
-      LogManager.Instance.info(
+      serviceContainer.getLogManager().info(
         buildMessage(InfoLogMessagesEnum.SEGMENTATION_SKIP, {
           userId: context.getId(),
           campaignKey:
@@ -171,13 +193,12 @@ export class CampaignDecisionService implements ICampaignDecisionService {
 
       return true;
     } else {
-      const preSegmentationResult = await SegmentationManager.Instance.validateSegmentation(
-        segments,
-        context.getCustomVariables(),
-      );
+      const preSegmentationResult = await serviceContainer
+        .getSegmentationManager()
+        .validateSegmentation(segments, context.getCustomVariables());
 
       if (!preSegmentationResult) {
-        LogManager.Instance.info(
+        serviceContainer.getLogManager().info(
           buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
             userId: context.getId(),
             campaignKey:
@@ -191,7 +212,7 @@ export class CampaignDecisionService implements ICampaignDecisionService {
         return false;
       }
 
-      LogManager.Instance.info(
+      serviceContainer.getLogManager().info(
         buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
           userId: context.getId(),
           campaignKey:
@@ -206,8 +227,13 @@ export class CampaignDecisionService implements ICampaignDecisionService {
     }
   }
 
-  getVariationAlloted(userId: any, accountId: any, campaign: CampaignModel): VariationModel {
-    const isUserPart = this.isUserPartOfCampaign(userId, campaign);
+  getVariationAlloted(
+    userId: any,
+    accountId: any,
+    campaign: CampaignModel,
+    serviceContainer: ServiceContainer,
+  ): VariationModel {
+    const isUserPart = this.isUserPartOfCampaign(userId, campaign, serviceContainer);
     if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
       if (isUserPart) {
         return campaign.getVariations()[0];
@@ -216,7 +242,7 @@ export class CampaignDecisionService implements ICampaignDecisionService {
       }
     } else {
       if (isUserPart) {
-        return this.bucketUserToVariation(userId, accountId, campaign);
+        return this.bucketUserToVariation(userId, accountId, campaign, serviceContainer);
       } else {
         return null;
       }

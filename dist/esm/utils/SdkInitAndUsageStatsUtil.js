@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,25 @@
  */
 import { getEventsBaseProperties, getSDKInitEventPayload, getSDKUsageStatsEventPayload, sendEvent, } from './NetworkUtil.js';
 import { EventEnum } from '../enums/EventEnum.js';
-import { BatchEventsQueue } from '../services/BatchEventsQueue.js';
 /**
  * Sends an init called event to VWO.
  * This event is triggered when the init function is called.
  * @param {number} settingsFetchTime - Time taken to fetch settings in milliseconds.
  * @param {number} sdkInitTime - Time taken to initialize the SDK in milliseconds.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  */
-export async function sendSdkInitEvent(settingsFetchTime, sdkInitTime) {
+export async function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceContainer) {
     // create the query parameters
-    const properties = getEventsBaseProperties(EventEnum.VWO_INIT_CALLED);
+    const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.VWO_INIT_CALLED);
     // create the payload with required fields
-    const payload = getSDKInitEventPayload(EventEnum.VWO_INIT_CALLED, settingsFetchTime, sdkInitTime);
-    if (BatchEventsQueue.Instance) {
-        BatchEventsQueue.Instance.enqueue(payload);
+    const payload = getSDKInitEventPayload(serviceContainer.getSettingsService(), EventEnum.VWO_INIT_CALLED, settingsFetchTime, sdkInitTime);
+    if (serviceContainer.getBatchEventsQueue()) {
+        serviceContainer.getBatchEventsQueue().enqueue(payload);
     }
     else {
         // Send the constructed properties and payload as a POST request
         //send eventName in parameters so that we can enable retry for this event
-        await sendEvent(properties, payload, EventEnum.VWO_INIT_CALLED).catch(() => { });
+        await sendEvent(serviceContainer, properties, payload, EventEnum.VWO_INIT_CALLED).catch(() => { });
     }
 }
 /**
@@ -41,18 +41,18 @@ export async function sendSdkInitEvent(settingsFetchTime, sdkInitTime) {
  * This event is triggered when the SDK is initialized.
  * @returns A promise that resolves to the response from the server.
  */
-export async function sendSDKUsageStatsEvent(usageStatsAccountId) {
+export async function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStatsUtil) {
     // create the query parameters
-    const properties = getEventsBaseProperties(EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
+    const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
     // create the payload with required fields
-    const payload = getSDKUsageStatsEventPayload(EventEnum.VWO_USAGE_STATS, usageStatsAccountId);
-    if (BatchEventsQueue.Instance) {
-        BatchEventsQueue.Instance.enqueue(payload);
+    const payload = getSDKUsageStatsEventPayload(serviceContainer.getSettingsService(), EventEnum.VWO_USAGE_STATS, usageStatsAccountId, usageStatsUtil);
+    if (serviceContainer.getBatchEventsQueue()) {
+        serviceContainer.getBatchEventsQueue().enqueue(payload);
     }
     else {
         // Send the constructed properties and payload as a POST request
         //send eventName in parameters so that we can enable retry for this event
-        await sendEvent(properties, payload, EventEnum.VWO_USAGE_STATS).catch(() => { });
+        await sendEvent(serviceContainer, properties, payload, EventEnum.VWO_USAGE_STATS).catch(() => { });
     }
 }
 //# sourceMappingURL=SdkInitAndUsageStatsUtil.js.map

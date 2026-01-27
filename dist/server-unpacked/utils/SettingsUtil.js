@@ -9,15 +9,16 @@ var GatewayServiceUtil_1 = require("./GatewayServiceUtil");
  * Sets settings and adds campaigns to rules
  * @param settings settings
  * @param vwoClientInstance VWOClient instance
+ * @param logManager Log manager instance
  */
-function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance) {
+function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance, logManager) {
     // create settings model and set it to vwoClientInstance
     vwoClientInstance.settings = new SettingsModel_1.SettingsModel(settings);
     vwoClientInstance.originalSettings = settings;
     // Optimize loop by avoiding multiple calls to `getCampaigns()`
     var campaigns = vwoClientInstance.settings.getCampaigns();
     campaigns.forEach(function (campaign, index) {
-        (0, CampaignUtil_1.setVariationAllocation)(campaign);
+        (0, CampaignUtil_1.setVariationAllocation)(campaign, logManager);
         campaigns[index] = campaign;
     });
     (0, FunctionUtil_1.addLinkedCampaignsToSettings)(vwoClientInstance.settings);

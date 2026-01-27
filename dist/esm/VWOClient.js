@@ -1,53 +1,103 @@
-/**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-import { LogManager } from './packages/logger/index.js';
 import { Flag, FlagApi } from './api/GetFlag.js';
 import { SetAttributeApi } from './api/SetAttribute.js';
 import { TrackApi } from './api/TrackEvent.js';
-import { DebugLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages/index.js';
-import { BatchEventsQueue } from './services/BatchEventsQueue.js';
+import { DebugLogMessagesEnum, InfoLogMessagesEnum, ErrorLogMessagesEnum } from './enums/log-messages/index.js';
 import { SettingsSchema } from './models/schemas/SettingsSchemaValidation.js';
 import { ContextModel } from './models/user/ContextModel.js';
-import HooksService from './services/HooksService.js';
-import { UrlUtil } from './utils/UrlUtil.js';
 import { getType, isObject, isString, isBoolean, isNumber } from './utils/DataTypeUtil.js';
 import { buildMessage } from './utils/LogMessageUtil.js';
 import { Deferred } from './utils/PromiseUtil.js';
 import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil.js';
 import { VariationModel } from './models/campaign/VariationModel.js';
-import { setShouldWaitForTrackingCalls } from './utils/NetworkUtil.js';
-import { SettingsService } from './services/SettingsService.js';
-import { StorageService } from './services/StorageService.js';
 import { ApiEnum } from './enums/ApiEnum.js';
 import { AliasingUtil } from './utils/AliasingUtil.js';
 import { getUserId } from './utils/UserIdUtil.js';
 import { isArray } from './utils/DataTypeUtil.js';
 import { getFormattedErrorMessage } from './utils/FunctionUtil.js';
+import { sendSdkInitEvent, sendSDKUsageStatsEvent } from './utils/SdkInitAndUsageStatsUtil.js';
+import { UsageStatsUtil } from './utils/UsageStatsUtil.js';
+import { StorageService } from './services/StorageService.js';
 export class VWOClient {
-    constructor(settings, options) {
-        this.options = options;
-        setSettingsAndAddCampaignsToRules(settings, this);
-        UrlUtil.init({
-            collectionPrefix: this.settings.getCollectionPrefix(),
-        });
-        setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
-        LogManager.Instance.info(InfoLogMessagesEnum.CLIENT_INITIALIZED);
-        this.vwoClientInstance = this;
-        this.isAliasingEnabled = options.isAliasingEnabled || false;
-        return this;
+    /**
+     * Constructor for the VWOClient class.
+     * @param settings - The settings to initialize the client with.
+     * @param options - The options to initialize the client with.
+     * @param logManager - The log manager to use for logging.
+     * @param settingsService - The settings service to use for fetching settings.
+     * @param networkManager - The network manager to use for making network requests.
+     * @param storage - The storage to use for storing data.
+     * @param batchEventsQueue - The batch events queue to use for batching events.
+     */
+    constructor(settings, options, serviceContainer) {
+        try {
+            this.options = options;
+            this.serviceContainer = serviceContainer;
+            this.isSettingsValid = new SettingsSchema().isSettingsValid(settings);
+            this.isAliasingEnabled = options.isAliasingEnabled || false;
+            if (this.isSettingsValid && !this.serviceContainer.getSettingsService().isSettingsProvidedInInit) {
+                this.serviceContainer.getLogManager().info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+            }
+            else if (!this.isSettingsValid && this.options.settings) {
+                this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
+            }
+            setSettingsAndAddCampaignsToRules(settings, this, this.serviceContainer.getLogManager());
+            this.serviceContainer.setSettings(this.settings);
+            this.serviceContainer.injectServiceContainer(this.serviceContainer);
+            this.serviceContainer.setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
+            this.serviceContainer.getLogManager().info(InfoLogMessagesEnum.CLIENT_INITIALIZED);
+            this.vwoClientInstance = this;
+            const usageStatsUtil = new UsageStatsUtil(this.options);
+            this.sendSdkInitAndUsageStatsEvents(usageStatsUtil);
+            return this;
+        }
+        catch (err) {
+            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
+                apiName: ApiEnum.INIT,
+                err: getFormattedErrorMessage(err),
+            }, { an: ApiEnum.INIT }, false);
+        }
+    }
+    /**
+     * Sends the SDK init event and usage stats event
+     * @param usageStatsUtil - The usage stats util to use for sending the usage stats event
+     */
+    async sendSdkInitAndUsageStatsEvents(usageStatsUtil) {
+        try {
+            // get settings fetch time
+            let settingsFetchTime = this.serviceContainer.getSettingsService().settingsFetchTime;
+            if (this.serviceContainer.getSettingsService().isSettingsProvidedInInit) {
+                // if settings are provided in init, then settings fetch time is 0
+                settingsFetchTime = 0;
+            }
+            // get sdk init time
+            const sdkInitTime = Date.now() - this.serviceContainer.getSettingsService().startTimeForInit;
+            // if settings are valid and was initialized earlier is false, then send sdk init event
+            if (this.isSettingsValid && !this.originalSettings?.sdkMetaInfo?.wasInitializedEarlier) {
+                // if shouldWaitForTrackingCalls is true, then wait for sendSdkInitEvent to complete
+                if (this.options.shouldWaitForTrackingCalls) {
+                    await sendSdkInitEvent(settingsFetchTime, sdkInitTime, this.serviceContainer);
+                }
+                else {
+                    // send sdk init event
+                    sendSdkInitEvent(settingsFetchTime, sdkInitTime, this.serviceContainer);
+                }
+            }
+            // send sdk usage stats event
+            const usageStatsAccountId = this.originalSettings?.usageStatsAccountId;
+            if (usageStatsAccountId) {
+                if (this.options.shouldWaitForTrackingCalls) {
+                    await sendSDKUsageStatsEvent(usageStatsAccountId, this.serviceContainer, usageStatsUtil);
+                }
+                else {
+                    sendSDKUsageStatsEvent(usageStatsAccountId, this.serviceContainer, usageStatsUtil);
+                }
+            }
+        }
+        catch (err) {
+            this.serviceContainer
+                .getLogManager()
+                .error(buildMessage(ErrorLogMessagesEnum.SDK_INIT_EVENT_FAILED, { err: getFormattedErrorMessage(err) }));
+        }
     }
     /**
      * Retrieves the value of a feature flag for a given feature key and context.
@@ -62,13 +112,12 @@ export class VWOClient {
         const deferredObject = new Deferred();
         const errorReturnSchema = new Flag(false, new VariationModel());
         try {
-            const hooksService = new HooksService(this.options);
-            LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
+            this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
                 apiName,
             }));
             // Validate featureKey is a string
             if (!isString(featureKey)) {
-                LogManager.Instance.errorLog('INVALID_PARAM', {
+                this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
                     apiName,
                     key: 'featureKey',
                     type: getType(featureKey),
@@ -77,20 +126,22 @@ export class VWOClient {
                 throw new TypeError('TypeError: featureKey should be a string, got ' + getType(featureKey));
             }
             // Validate settings are loaded and valid
-            if (!new SettingsSchema().isSettingsValid(this.originalSettings)) {
-                LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.GET_FLAG }, false);
+            if (!this.isSettingsValid) {
+                this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.GET_FLAG }, false);
                 throw new Error('TypeError: Invalid Settings');
             }
             // Validate user ID is present in context
             if (!context || !context.id) {
-                LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.GET_FLAG }, false);
+                this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.GET_FLAG }, false);
                 throw new TypeError('TypeError: Invalid context');
             }
             //getUserId from gateway service
-            const userId = await getUserId(context.id, this.isAliasingEnabled);
-            context.id = userId;
-            const contextModel = new ContextModel().modelFromDictionary(context);
-            FlagApi.get(featureKey, this.settings, contextModel, hooksService)
+            const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
+            // Create a copy of context to avoid modifying the original
+            const contextCopy = { ...context };
+            contextCopy.id = userId;
+            const contextModel = new ContextModel().modelFromDictionary(contextCopy, this.options);
+            FlagApi.get(featureKey, contextModel, this.serviceContainer)
                 .then((data) => {
                 deferredObject.resolve(data);
             })
@@ -99,7 +150,7 @@ export class VWOClient {
             });
         }
         catch (err) {
-            LogManager.Instance.errorLog('EXECUTION_FAILED', {
+            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                 apiName,
                 err: getFormattedErrorMessage(err),
             }, { an: ApiEnum.GET_FLAG });
@@ -120,14 +171,13 @@ export class VWOClient {
         const apiName = ApiEnum.TRACK_EVENT;
         const deferredObject = new Deferred();
         try {
-            const hooksService = new HooksService(this.options);
             // Log the API call
-            LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
+            this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
                 apiName,
             }));
             // Validate eventName is a string
             if (!isString(eventName)) {
-                LogManager.Instance.errorLog('INVALID_PARAM', {
+                this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
                     apiName,
                     key: 'eventName',
                     type: getType(eventName),
@@ -137,7 +187,7 @@ export class VWOClient {
             }
             // Validate eventProperties is an object
             if (!isObject(eventProperties)) {
-                LogManager.Instance.errorLog('INVALID_PARAM', {
+                this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
                     apiName,
                     key: 'eventProperties',
                     type: getType(eventProperties),
@@ -146,22 +196,28 @@ export class VWOClient {
                 throw new TypeError('TypeError: eventProperties should be an object, got ' + getType(eventProperties));
             }
             // Validate settings are loaded and valid
-            if (!new SettingsSchema().isSettingsValid(this.originalSettings)) {
-                LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.TRACK_EVENT }, false);
+            if (!this.isSettingsValid) {
+                this.serviceContainer
+                    .getLogManager()
+                    .errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.TRACK_EVENT }, false);
                 throw new Error('TypeError: Invalid Settings');
             }
             // Validate user ID is present in context
             if (!context || !context.id) {
-                LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.TRACK_EVENT }, false);
+                this.serviceContainer
+                    .getLogManager()
+                    .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.TRACK_EVENT }, false);
                 throw new TypeError('TypeError: Invalid context');
             }
             //getUserId from gateway service
-            const userId = await getUserId(context.id, this.isAliasingEnabled);
-            context.id = userId;
-            const contextModel = new ContextModel().modelFromDictionary(context);
+            const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
+            // Create a copy of context to avoid modifying the original
+            const contextCopy = { ...context };
+            contextCopy.id = userId;
+            const contextModel = new ContextModel().modelFromDictionary(contextCopy, this.options);
             // Proceed with tracking the event
             new TrackApi()
-                .track(this.settings, eventName, contextModel, eventProperties, hooksService)
+                .track(this.serviceContainer, eventName, contextModel, eventProperties)
                 .then((data) => {
                 deferredObject.resolve(data);
             })
@@ -171,7 +227,7 @@ export class VWOClient {
         }
         catch (err) {
             // Log any errors encountered during the operation
-            LogManager.Instance.errorLog('EXECUTION_FAILED', {
+            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                 apiName,
                 err: getFormattedErrorMessage(err),
             }, { an: ApiEnum.TRACK_EVENT });
@@ -196,7 +252,7 @@ export class VWOClient {
         try {
             if (isObject(attributeOrAttributes)) {
                 // Log the API call
-                LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
+                this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
                     apiName,
                 }));
                 if (Object.entries(attributeOrAttributes).length < 1) {
@@ -224,15 +280,19 @@ export class VWOClient {
                 }
                 // Validate user ID is present in context
                 if (!context || !context.id) {
-                    LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.SET_ATTRIBUTE }, false);
+                    this.serviceContainer
+                        .getLogManager()
+                        .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.SET_ATTRIBUTE }, false);
                     throw new TypeError('TypeError: Invalid context');
                 }
                 //getUserId from gateway service
-                const userId = await getUserId(context.id, this.isAliasingEnabled);
-                context.id = userId;
-                const contextModel = new ContextModel().modelFromDictionary(context);
+                const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
+                // Create a copy of context to avoid modifying the original
+                const contextCopy = { ...context };
+                contextCopy.id = userId;
+                const contextModel = new ContextModel().modelFromDictionary(contextCopy, this.options);
                 // Proceed with setting the attributes if validation is successful
-                await new SetAttributeApi().setAttribute(this.settings, attributes, contextModel);
+                await new SetAttributeApi().setAttribute(this.serviceContainer, attributes, contextModel);
             }
             else {
                 // Case where a single attribute (key-value) is passed
@@ -251,17 +311,19 @@ export class VWOClient {
                     throw new TypeError('Invalid context');
                 }
                 //getUserId from gateway service
-                const userId = await getUserId(context.id, this.isAliasingEnabled);
-                context.id = userId;
-                const contextModel = new ContextModel().modelFromDictionary(context);
+                const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
+                // Create a copy of context to avoid modifying the original
+                const contextCopy = { ...context };
+                contextCopy.id = userId;
+                const contextModel = new ContextModel().modelFromDictionary(contextCopy, this.options);
                 // Create a map from the single attribute key-value pair
                 const attributeMap = { [attributeKey]: attributeValue };
                 // Proceed with setting the attribute map if validation is successful
-                await new SetAttributeApi().setAttribute(this.settings, attributeMap, contextModel);
+                await new SetAttributeApi().setAttribute(this.serviceContainer, attributeMap, contextModel);
             }
         }
         catch (err) {
-            LogManager.Instance.errorLog('EXECUTION_FAILED', {
+            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                 apiName,
                 err: getFormattedErrorMessage(err),
             }, { an: ApiEnum.SET_ATTRIBUTE });
@@ -276,21 +338,26 @@ export class VWOClient {
     async updateSettings(settings, isViaWebhook = true) {
         const apiName = ApiEnum.UPDATE_SETTINGS;
         try {
-            LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName }));
+            this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName }));
             // fetch settings from the server or use the provided settings file if it's not empty
             const settingsToUpdate = !settings || Object.keys(settings).length === 0
-                ? await SettingsService.Instance.fetchSettings(isViaWebhook, apiName)
+                ? await this.serviceContainer.getSettingsService().fetchSettings(isViaWebhook, apiName)
                 : settings;
+            const normalizedSettings = this.serviceContainer.getSettingsService().normalizeSettings(settingsToUpdate);
             // validate settings schema
-            if (!new SettingsSchema().isSettingsValid(settingsToUpdate)) {
+            if (!new SettingsSchema().isSettingsValid(normalizedSettings)) {
                 throw new Error('TypeError: Invalid Settings schema');
             }
             // set the settings on the client instance
-            setSettingsAndAddCampaignsToRules(settingsToUpdate, this.vwoClientInstance);
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName, isViaWebhook }));
+            setSettingsAndAddCampaignsToRules(normalizedSettings, this.vwoClientInstance, this.serviceContainer.getLogManager());
+            this.serviceContainer.setSettings(this.vwoClientInstance.settings);
+            this.serviceContainer.injectServiceContainer(this.serviceContainer);
+            this.serviceContainer
+                .getLogManager()
+                .info(buildMessage(InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName, isViaWebhook }));
         }
         catch (err) {
-            LogManager.Instance.errorLog('UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED', {
+            this.serviceContainer.getLogManager().errorLog('UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED', {
                 apiName,
                 isViaWebhook,
                 err: getFormattedErrorMessage(err),
@@ -303,21 +370,23 @@ export class VWOClient {
     async flushEvents() {
         const apiName = ApiEnum.FLUSH_EVENTS;
         try {
-            LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName }));
-            if (!BatchEventsQueue.Instance) {
-                LogManager.Instance.errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum.FLUSH_EVENTS });
+            this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName }));
+            if (!this.serviceContainer.getBatchEventsQueue()) {
+                this.serviceContainer.getLogManager().errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum.FLUSH_EVENTS });
                 return { status: 'error', events: [] };
             }
-            const promises = [BatchEventsQueue.Instance.flushAndClearTimer()];
+            const promises = [this.serviceContainer.getBatchEventsQueue().flushAndClearTimer()];
             if (this.options?.edgeConfig &&
                 Object.keys(this.options.edgeConfig).length > 0 &&
                 this.options?.accountId &&
                 this.options?.sdkKey) {
-                const storageService = new StorageService();
+                const storageService = new StorageService(this.serviceContainer);
                 promises.push(storageService
                     .setFreshSettingsInStorage(parseInt(this.options.accountId), this.options.sdkKey)
                     .catch((error) => {
-                    LogManager.Instance.errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: getFormattedErrorMessage(error) }, { an: ApiEnum.FLUSH_EVENTS });
+                    this.serviceContainer
+                        .getLogManager()
+                        .errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: getFormattedErrorMessage(error) }, { an: ApiEnum.FLUSH_EVENTS });
                     // by returning undefined, we are swallowing the error intentionally to avoid the promise from rejecting
                     return undefined;
                 }));
@@ -326,7 +395,9 @@ export class VWOClient {
             return flushResult;
         }
         catch (err) {
-            LogManager.Instance.errorLog('EXECUTION_FAILED', { apiName, err: getFormattedErrorMessage(err) }, { an: ApiEnum.FLUSH_EVENTS });
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('EXECUTION_FAILED', { apiName, err: getFormattedErrorMessage(err) }, { an: ApiEnum.FLUSH_EVENTS });
             return { status: 'error', events: [] };
         }
     }
@@ -339,15 +410,15 @@ export class VWOClient {
     async setAlias(contextOrUserId, aliasId) {
         const apiName = ApiEnum.SET_ALIAS;
         try {
-            LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
+            this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
                 apiName,
             }));
             if (!this.isAliasingEnabled) {
-                LogManager.Instance.errorLog('ALIAS_CALLED_BUT_NOT_PASSED', {}, { an: ApiEnum.SET_ALIAS });
+                this.serviceContainer.getLogManager().errorLog('ALIAS_CALLED_BUT_NOT_PASSED', {}, { an: ApiEnum.SET_ALIAS });
                 return false;
             }
-            if (!SettingsService.Instance.isGatewayServiceProvided) {
-                LogManager.Instance.errorLog('INVALID_GATEWAY_URL', {}, { an: ApiEnum.SET_ALIAS });
+            if (!this.serviceContainer.getSettingsService().isGatewayServiceProvided) {
+                this.serviceContainer.getLogManager().errorLog('INVALID_GATEWAY_URL', {}, { an: ApiEnum.SET_ALIAS });
                 return false;
             }
             if (!aliasId) {
@@ -389,11 +460,13 @@ export class VWOClient {
                 }
                 userId = contextOrUserId.id;
             }
-            await AliasingUtil.setAlias(userId, aliasId);
+            await AliasingUtil.setAlias(userId, aliasId, this.serviceContainer);
             return true;
         }
         catch (error) {
-            LogManager.Instance.errorLog('EXECUTION_FAILED', { apiName, err: getFormattedErrorMessage(error) }, { an: ApiEnum.SET_ALIAS });
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('EXECUTION_FAILED', { apiName, err: getFormattedErrorMessage(error) }, { an: ApiEnum.SET_ALIAS });
             return false;
         }
     }

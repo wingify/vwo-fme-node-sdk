@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,15 @@ import { IVWOOptions } from './models/VWOOptionsModel';
 import { dynamic } from './types/Common';
 import { isObject, isString } from './utils/DataTypeUtil';
 import { Deferred } from './utils/PromiseUtil';
-import { sendSdkInitEvent, sendSDKUsageStatsEvent } from './utils/SdkInitAndUsageStatsUtil';
 import { InfoLogMessagesEnum, ErrorLogMessagesEnum } from './enums/log-messages';
 import { buildMessage } from './utils/LogMessageUtil';
 import { PlatformEnum } from './enums/PlatformEnum';
 import { ApiEnum } from './enums/ApiEnum';
-import { LogManager } from './packages/logger';
-import { SettingsSchema } from './models/schemas/SettingsSchemaValidation';
+import { getFormattedErrorMessage } from './utils/FunctionUtil';
 
 export class VWO {
   private static vwoBuilder: VWOBuilder;
   private static instance: dynamic;
-  private static settings: Record<any, any>;
 
   /**
    * Constructor for the VWO class.
@@ -49,6 +46,7 @@ export class VWO {
    * @returns A Promise resolving to the configured VWO instance.
    */
   private static setInstance(options: IVWOOptions): Promise<IVWOClient> {
+    const startTimeForInit = Date.now();
     const optionsVWOBuilder: any = options?.vwoBuilder;
     this.vwoBuilder = optionsVWOBuilder || new VWOBuilder(options);
 
@@ -57,38 +55,19 @@ export class VWO {
       .setSettingsService() // Sets the settings service for configuration management.
       .setStorage() // Configures storage for data persistence.
       .setNetworkManager() // Configures network management for API communication.
-      .setSegmentation() // Sets up segmentation for targeted functionality.
       // .initBatching()        // Initializes batching for bulk data processing.
       .initPolling() // Starts polling mechanism for regular updates.
-      .initBatching()
-      .initUsageStats(); // Initializes usage statistics for the SDK.
+      .initBatching(); // Initializes usage statistics for the SDK.
     // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
 
+    this.vwoBuilder.getSettingsService().startTimeForInit = startTimeForInit;
     if (options?.settings) {
-      const isSettingsValid = new SettingsSchema().isSettingsValid(options.settings);
-
-      if (isSettingsValid) {
-        LogManager.Instance.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
-        const vwoClient = this.vwoBuilder.build(options.settings);
-        vwoClient.isSettingsValid = true;
-        vwoClient.settingsFetchTime = 0;
-        return Promise.resolve(vwoClient);
-      } else {
-        LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT });
-        const vwoClient = this.vwoBuilder.build({});
-        vwoClient.isSettingsValid = false;
-        vwoClient.settingsFetchTime = 0;
-        return Promise.resolve(vwoClient);
-      }
+      this.vwoBuilder.getSettingsService().isSettingsProvidedInInit = true;
+      return Promise.resolve(this.vwoBuilder.build(options.settings));
     }
 
     return this.vwoBuilder.getSettings().then((settings: Record<any, any>) => {
-      const vwoClient = this.vwoBuilder.build(settings);
-      // Attach to instance for logging
-      vwoClient.isSettingsValid = this.vwoBuilder.isSettingsValid;
-      vwoClient.settingsFetchTime = this.vwoBuilder.settingsFetchTime;
-      this.settings = settings;
-      return vwoClient;
+      return this.vwoBuilder.build(settings); // Builds the VWO instance with the fetched settings.
     });
   }
 
@@ -150,8 +129,6 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
       options.platform = PlatformEnum.SERVER;
     }
 
-    let startTimeForInit: number | undefined = undefined;
-    startTimeForInit = Date.now();
     const instance: any = new VWO(options); // Creates a new VWO instance with the validated options.
 
     _global = {
@@ -160,29 +137,7 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
       instance: null,
     };
 
-    return instance.then(async (_vwoInstance) => {
-      const sdkInitTime = Date.now() - startTimeForInit;
-
-      // send sdk init event
-      if (_vwoInstance.isSettingsValid && !_vwoInstance.originalSettings?.sdkMetaInfo?.wasInitializedEarlier) {
-        if (_vwoInstance.options?.shouldWaitForTrackingCalls) {
-          await sendSdkInitEvent(_vwoInstance.settingsFetchTime, sdkInitTime);
-        } else {
-          sendSdkInitEvent(_vwoInstance.settingsFetchTime, sdkInitTime);
-        }
-      }
-
-      // send sdk usage stats event
-      // get usage stats account id from settings
-      const usageStatsAccountId = _vwoInstance.originalSettings?.usageStatsAccountId;
-      if (usageStatsAccountId) {
-        if (_vwoInstance.options?.shouldWaitForTrackingCalls) {
-          await sendSDKUsageStatsEvent(usageStatsAccountId);
-        } else {
-          sendSDKUsageStatsEvent(usageStatsAccountId);
-        }
-      }
-
+    return instance.then((_vwoInstance) => {
       _global.isSettingsFetched = true;
       _global.instance = _vwoInstance;
       _global.vwoInitDeferred.resolve(_vwoInstance);
@@ -192,7 +147,7 @@ export async function init(options: IVWOOptions): Promise<IVWOClient> {
   } catch (err) {
     const msg = buildMessage(ErrorLogMessagesEnum.EXECUTION_FAILED, {
       apiName,
-      err,
+      err: getFormattedErrorMessage(err),
     });
 
     console.info(`[INFO]: VWO-SDK ${new Date().toISOString()} ${msg}`);
@@ -235,7 +190,7 @@ export async function onInit() {
   } catch (err) {
     const msg = buildMessage(ErrorLogMessagesEnum.EXECUTION_FAILED, {
       apiName,
-      err,
+      err: getFormattedErrorMessage(err),
     });
 
     console.info(`[INFO]: VWO-SDK ${new Date().toISOString()} ${msg}`);

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 import { DecisionMaker } from '../packages/decision-maker/index.js';
-import { LogManager } from '../packages/logger/index.js';
-import { SegmentationManager } from '../packages/segmentation-evaluator/index.js';
 import { Constants } from '../constants/index.js';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum.js';
 import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages/index.js';
@@ -30,7 +28,7 @@ export class CampaignDecisionService {
      *
      * @return {Boolean} if User is a part of Campaign or not
      */
-    isUserPartOfCampaign(userId, campaign) {
+    isUserPartOfCampaign(userId, campaign, serviceContainer) {
         // if (!ValidateUtil.isValidValue(userId) || !campaign) {
         //   return false;
         // }
@@ -49,7 +47,7 @@ export class CampaignDecisionService {
         const valueAssignedToUser = new DecisionMaker().getBucketValueForUser(bucketKey);
         // check if user is part of campaign
         const isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
-        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
+        serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
             userId,
             notPart: isUserPart ? '' : 'not',
             campaignKey: campaign.getType() === CampaignTypeEnum.AB
@@ -88,7 +86,7 @@ export class CampaignDecisionService {
      *
      * @return {Object|null} variation data into which user is bucketed in or null if not
      */
-    bucketUserToVariation(userId, accountId, campaign) {
+    bucketUserToVariation(userId, accountId, campaign, serviceContainer) {
         let multiplier;
         if (!campaign || !userId) {
             return null;
@@ -104,7 +102,7 @@ export class CampaignDecisionService {
         // get hash value
         const hashValue = new DecisionMaker().generateHashValue(bucketKey);
         const bucketValue = new DecisionMaker().generateBucketValue(hashValue, Constants.MAX_TRAFFIC_VALUE, multiplier);
-        LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
+        serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
             userId,
             campaignKey: campaign.getKey(),
             percentTraffic,
@@ -113,7 +111,7 @@ export class CampaignDecisionService {
         }));
         return this.getVariation(campaign.getVariations(), bucketValue);
     }
-    async getPreSegmentationDecision(campaign, context) {
+    async getPreSegmentationDecision(campaign, context, serviceContainer) {
         // validate segmentation
         const campaignType = campaign.getType();
         let segments = {};
@@ -124,7 +122,7 @@ export class CampaignDecisionService {
             segments = campaign.getSegments();
         }
         if (isObject(segments) && !Object.keys(segments).length) {
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_SKIP, {
+            serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_SKIP, {
                 userId: context.getId(),
                 campaignKey: campaign.getType() === CampaignTypeEnum.AB
                     ? campaign.getKey()
@@ -133,9 +131,11 @@ export class CampaignDecisionService {
             return true;
         }
         else {
-            const preSegmentationResult = await SegmentationManager.Instance.validateSegmentation(segments, context.getCustomVariables());
+            const preSegmentationResult = await serviceContainer
+                .getSegmentationManager()
+                .validateSegmentation(segments, context.getCustomVariables());
             if (!preSegmentationResult) {
-                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
+                serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
                     userId: context.getId(),
                     campaignKey: campaign.getType() === CampaignTypeEnum.AB
                         ? campaign.getKey()
@@ -144,7 +144,7 @@ export class CampaignDecisionService {
                 }));
                 return false;
             }
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
+            serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.SEGMENTATION_STATUS, {
                 userId: context.getId(),
                 campaignKey: campaign.getType() === CampaignTypeEnum.AB
                     ? campaign.getKey()
@@ -154,8 +154,8 @@ export class CampaignDecisionService {
             return true;
         }
     }
-    getVariationAlloted(userId, accountId, campaign) {
-        const isUserPart = this.isUserPartOfCampaign(userId, campaign);
+    getVariationAlloted(userId, accountId, campaign, serviceContainer) {
+        const isUserPart = this.isUserPartOfCampaign(userId, campaign, serviceContainer);
         if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
             if (isUserPart) {
                 return campaign.getVariations()[0];
@@ -166,7 +166,7 @@ export class CampaignDecisionService {
         }
         else {
             if (isUserPart) {
-                return this.bucketUserToVariation(userId, accountId, campaign);
+                return this.bucketUserToVariation(userId, accountId, campaign, serviceContainer);
             }
             else {
                 return null;

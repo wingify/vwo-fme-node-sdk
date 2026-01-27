@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  */
 import { CampaignModel } from '../models/campaign/CampaignModel';
 import { FeatureModel } from '../models/campaign/FeatureModel';
-import { SettingsModel } from '../models/settings/SettingsModel';
 import { ContextModel } from '../models/user/ContextModel';
 import { IStorageService } from '../services/StorageService';
+import { ServiceContainer } from '../services/ServiceContainer';
 /**
  * Evaluates the rules for a given campaign and feature based on the provided context.
  * This function checks for whitelisting and pre-segmentation conditions, and if applicable,
  * sends an impression for the variation shown.
  *
- * @param {SettingsModel} settings - The settings configuration for the evaluation.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {FeatureModel} feature - The feature being evaluated.
  * @param {CampaignModel} campaign - The campaign associated with the feature.
  * @param {ContextModel} context - The user context for evaluation.
@@ -35,7 +35,7 @@ import { IStorageService } from '../services/StorageService';
  * and the whitelisted object, if any.
  */
 export declare const evaluateRule: (
-  settings: SettingsModel,
+  serviceContainer: ServiceContainer,
   feature: FeatureModel,
   campaign: CampaignModel,
   context: ContextModel,

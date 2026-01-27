@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 import { dynamic } from '../../types/Common';
 import { ContextVWOModel } from './ContextVWOModel';
 import { getUUID } from '../../utils/UuidUtil';
-import { SettingsService } from '../../services/SettingsService';
 import { getCurrentUnixTimestamp } from '../../utils/FunctionUtil';
+import { IVWOOptions } from '../VWOOptionsModel';
 
 export interface IVWOContextModel {
   id: string | number;
@@ -37,7 +37,7 @@ export class ContextModel implements IVWOContextModel {
   _vwo_sessionId?: number;
   _vwo?: ContextVWOModel;
 
-  modelFromDictionary(context: Record<string, any>): this {
+  modelFromDictionary(context: Record<string, any>, options: IVWOOptions): this {
     this.id = context.id;
     this.userAgent = context.userAgent;
     this.ipAddress = context.ipAddress;
@@ -60,7 +60,7 @@ export class ContextModel implements IVWOContextModel {
       this.postSegmentationVariables = context.postSegmentationVariables;
     }
 
-    this._vwo_uuid = getUUID(this.id.toString(), SettingsService.Instance.accountId.toString());
+    this._vwo_uuid = getUUID(this.id.toString(), options.accountId.toString());
     this._vwo_sessionId = getCurrentUnixTimestamp();
     return this;
   }

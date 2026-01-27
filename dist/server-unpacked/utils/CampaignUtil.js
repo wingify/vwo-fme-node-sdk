@@ -8,6 +8,7 @@ exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
 exports.getCampaignKeyFromCampaignId = getCampaignKeyFromCampaignId;
 exports.getVariationNameFromCampaignIdAndVariationId = getVariationNameFromCampaignIdAndVariationId;
 exports.getCampaignTypeFromCampaignId = getCampaignTypeFromCampaignId;
+exports.isFeatureIdPresentInSettings = isFeatureIdPresentInSettings;
 exports.setCampaignAllocation = setCampaignAllocation;
 exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
 exports.getCampaignsByGroupId = getCampaignsByGroupId;
@@ -15,7 +16,7 @@ exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 exports.assignRangeValuesMEG = assignRangeValuesMEG;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,18 +34,18 @@ var constants_1 = require("../constants");
 var CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
 var log_messages_1 = require("../enums/log-messages");
 var VariationModel_1 = require("../models/campaign/VariationModel");
-var logger_1 = require("../packages/logger");
 var LogMessageUtil_1 = require("./LogMessageUtil");
 /**
  * Sets the variation allocation for a given campaign based on its type.
  * If the campaign type is ROLLOUT or PERSONALIZE, it handles the campaign using `_handleRolloutCampaign`.
  * Otherwise, it assigns range values to each variation in the campaign.
  * @param {CampaignModel} campaign - The campaign for which to set the variation allocation.
+ * @param {LogManager} logManager - The log manager instance.
  */
-function setVariationAllocation(campaign) {
+function setVariationAllocation(campaign, logManager) {
     // Check if the campaign type is ROLLOUT or PERSONALIZE
     if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
-        _handleRolloutCampaign(campaign);
+        _handleRolloutCampaign(campaign, logManager);
     }
     else {
         var currentAllocation_1 = 0;
@@ -54,7 +55,7 @@ function setVariationAllocation(campaign) {
             var stepFactor = assignRangeValues(variation, currentAllocation_1);
             currentAllocation_1 += stepFactor;
             // Log the range allocation for debugging
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+            logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
                 variationKey: variation.getKey(),
                 campaignKey: campaign.getKey(),
                 variationWeight: variation.getWeight(),
@@ -197,6 +198,17 @@ function getCampaignTypeFromCampaignId(settings, campaignId) {
         return campaign.getType();
     }
     return null;
+}
+/**
+ * Checks if a feature ID is present in the settings.
+ * @param {SettingsModel} settings - The settings model containing all features.
+ * @param {number} featureId - The ID of the feature to check.
+ * @returns {boolean} True if the feature ID is present, false otherwise.
+ */
+function isFeatureIdPresentInSettings(settings, featureId) {
+    return settings.getFeatures().some(function (feature) {
+        return feature.getId() === featureId;
+    });
 }
 /**
  * Sets the allocation ranges for a list of campaigns.
@@ -344,15 +356,16 @@ function _getVariationBucketRange(variationWeight) {
 /**
  * Handles the rollout campaign by setting start and end ranges for all variations.
  * @param {CampaignModel} campaign - The campaign to handle.
+ * @param {LogManager} logManager - The log manager instance.
  */
-function _handleRolloutCampaign(campaign) {
+function _handleRolloutCampaign(campaign, logManager) {
     // Set start and end ranges for all variations in the campaign
     for (var i = 0; i < campaign.getVariations().length; i++) {
         var variation = campaign.getVariations()[i];
         var endRange = campaign.getVariations()[i].getWeight() * 100;
         variation.setStartRange(1);
         variation.setEndRange(endRange);
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+        logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
             variationKey: variation.getKey(),
             campaignKey: campaign.getKey(),
             variationWeight: variation.getWeight(),

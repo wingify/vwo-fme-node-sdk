@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NetworkServerLessClient = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ var PromiseUtil_1 = require("../../../utils/PromiseUtil");
  * Implements the NetworkClientInterface to handle network requests.
  */
 var NetworkServerLessClient = /** @class */ (function () {
-    function NetworkServerLessClient() {
+    function NetworkServerLessClient(logManager) {
+        this.logManager = logManager;
     }
     /**
      * Performs a GET request using the provided RequestModel.
@@ -31,7 +32,7 @@ var NetworkServerLessClient = /** @class */ (function () {
      */
     NetworkServerLessClient.prototype.GET = function (requestModel) {
         var deferred = new PromiseUtil_1.Deferred();
-        (0, FetchUtil_1.sendGetCall)(requestModel)
+        (0, FetchUtil_1.sendGetCall)(requestModel, this.logManager)
             .then(function (data) {
             deferred.resolve(data);
         })
@@ -47,7 +48,7 @@ var NetworkServerLessClient = /** @class */ (function () {
      */
     NetworkServerLessClient.prototype.POST = function (request) {
         var deferred = new PromiseUtil_1.Deferred();
-        (0, FetchUtil_1.sendPostCall)(request)
+        (0, FetchUtil_1.sendPostCall)(request, this.logManager)
             .then(function (data) {
             deferred.resolve(data);
         })

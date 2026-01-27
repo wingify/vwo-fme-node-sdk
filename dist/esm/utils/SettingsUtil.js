@@ -6,15 +6,16 @@ import { addIsGatewayServiceRequiredFlag } from './GatewayServiceUtil.js';
  * Sets settings and adds campaigns to rules
  * @param settings settings
  * @param vwoClientInstance VWOClient instance
+ * @param logManager Log manager instance
  */
-export function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance) {
+export function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance, logManager) {
     // create settings model and set it to vwoClientInstance
     vwoClientInstance.settings = new SettingsModel(settings);
     vwoClientInstance.originalSettings = settings;
     // Optimize loop by avoiding multiple calls to `getCampaigns()`
     const campaigns = vwoClientInstance.settings.getCampaigns();
     campaigns.forEach((campaign, index) => {
-        setVariationAllocation(campaign);
+        setVariationAllocation(campaign, logManager);
         campaigns[index] = campaign;
     });
     addLinkedCampaignsToSettings(vwoClientInstance.settings);

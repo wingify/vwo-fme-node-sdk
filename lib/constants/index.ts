@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,6 @@ export const Constants = {
     backoffMultiplier: 2,
   },
 
-  DEFAULT_LOCAL_STORAGE_KEY: 'vwo_fme_data',
   DEFAULT_SETTINGS_STORAGE_KEY: 'vwo_fme_settings',
   POLLING_INTERVAL: 600000,
   PRODUCT_NAME: 'fme',

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ const checkLicenseUtil = require('./utils/CheckLicenseUtil');
 
 console.time('Execution time for License and Copyright');
 const isSuccess = checkLicenseUtil.checkLicenseAndCopyright({
-  year: '2024-2025',
+  year: '2024-2026',
   author: 'Wingify Software Pvt. Ltd.',
   paths: 'lib,test,scripts',
   stoppingCriteria: '\\*\\/',

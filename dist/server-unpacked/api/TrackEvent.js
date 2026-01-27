@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TrackApi = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,9 +53,7 @@ exports.TrackApi = void 0;
  * limitations under the License.
  */
 var ApiEnum_1 = require("../enums/ApiEnum");
-var logger_1 = require("../packages/logger");
 var FunctionUtil_1 = require("../utils/FunctionUtil");
-var BatchEventsQueue_1 = require("../services/BatchEventsQueue");
 var NetworkUtil_1 = require("../utils/NetworkUtil");
 var TrackApi = /** @class */ (function () {
     function TrackApi() {
@@ -64,29 +62,29 @@ var TrackApi = /** @class */ (function () {
      * Implementation of the track method to handle event tracking.
      * Checks if the event exists, creates an impression, and executes hooks.
      */
-    TrackApi.prototype.track = function (settings, eventName, context, eventProperties, hooksService) {
+    TrackApi.prototype.track = function (serviceContainer, eventName, context, eventProperties) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        if (!(0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, settings)) return [3 /*break*/, 4];
-                        if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 2];
-                        return [4 /*yield*/, createImpressionForTrack(settings, eventName, context, eventProperties)];
+                        if (!(0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, serviceContainer.getSettings())) return [3 /*break*/, 4];
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 2];
+                        return [4 /*yield*/, createImpressionForTrack(serviceContainer, eventName, context, eventProperties)];
                     case 1:
                         _c.sent();
                         return [3 /*break*/, 3];
                     case 2:
-                        createImpressionForTrack(settings, eventName, context, eventProperties);
+                        createImpressionForTrack(serviceContainer, eventName, context, eventProperties);
                         _c.label = 3;
                     case 3:
                         // Set and execute integration callback for the track event
-                        hooksService.set({ eventName: eventName, api: ApiEnum_1.ApiEnum.TRACK_EVENT });
-                        hooksService.execute(hooksService.get());
+                        serviceContainer.getHooksService().set({ eventName: eventName, api: ApiEnum_1.ApiEnum.TRACK_EVENT });
+                        serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
                         return [2 /*return*/, (_a = {}, _a[eventName] = true, _a)];
                     case 4:
                         // Log an error if the event does not exist
-                        logger_1.LogManager.Instance.errorLog('EVENT_NOT_FOUND', {
+                        serviceContainer.getLogManager().errorLog('EVENT_NOT_FOUND', {
                             eventName: eventName,
                         }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT, uuid: context.getUuid(), sId: context.getSessionId() });
                         return [2 /*return*/, (_b = {}, _b[eventName] = false, _b)];
@@ -99,24 +97,24 @@ var TrackApi = /** @class */ (function () {
 exports.TrackApi = TrackApi;
 /**
  * Creates an impression for a track event and sends it via a POST API request.
- * @param settings Configuration settings for the tracking.
+ * @param serviceContainer Service container.
  * @param eventName Name of the event to track.
  * @param user User details.
  * @param eventProperties Properties associated with the event.
  */
-var createImpressionForTrack = function (settings, eventName, context, eventProperties) { return __awaiter(void 0, void 0, void 0, function () {
+var createImpressionForTrack = function (serviceContainer, eventName, context, eventProperties) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                properties = (0, NetworkUtil_1.getEventsBaseProperties)(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-                payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(settings, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress(), context.getSessionId());
-                if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
-                BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+                payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(serviceContainer, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress(), context.getSessionId());
+                if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
+                serviceContainer.getBatchEventsQueue().enqueue(payload);
                 return [3 /*break*/, 3];
             case 1: 
             // Send the constructed payload via POST request
-            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId(), eventProperties)];
+            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId(), eventProperties)];
             case 2:
                 // Send the constructed payload via POST request
                 _a.sent();

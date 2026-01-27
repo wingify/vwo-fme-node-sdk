@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,37 +15,25 @@
  */
 import { SegmentEvaluator } from '../evaluators/SegmentEvaluator';
 import { dynamic } from '../../../types/Common';
-import { SettingsModel } from '../../../models/settings/SettingsModel';
 import { getFromGatewayService, getQueryParams } from '../../../utils/GatewayServiceUtil';
 import { UrlEnum } from '../../../enums/UrlEnum';
-import { LogManager } from '../../logger';
 import { ContextModel } from '../../../models/user/ContextModel';
 import { FeatureModel } from '../../../models/campaign/FeatureModel';
 import { ContextVWOModel } from '../../../models/user/ContextVWOModel';
-import { SettingsService } from '../../../services/SettingsService';
 import { isUndefined } from '../../../utils/DataTypeUtil';
 import { ApiEnum } from '../../../enums/ApiEnum';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
+import { ServiceContainer } from '../../../services/ServiceContainer';
+import { SegmentOperandEvaluator } from '../evaluators/SegmentOperandEvaluator';
 
 export class SegmentationManager {
-  private static instance: SegmentationManager; // Singleton instance of SegmentationManager
   evaluator: SegmentEvaluator; // Holds the instance of SegmentEvaluator
 
   /**
-   * Singleton pattern implementation for getting the instance of SegmentationManager.
-   * @returns {SegmentationManager} The singleton instance.
+   * Constructor for SegmentationManager.
    */
-  static get Instance(): SegmentationManager {
-    this.instance = this.instance || new SegmentationManager(); // Create new instance if it doesn't exist
-    return this.instance;
-  }
-
-  /**
-   * Attaches an evaluator to the manager, or creates a new one if none is provided.
-   * @param {SegmentEvaluator} evaluator - Optional evaluator to attach.
-   */
-  attachEvaluator(evaluator?: SegmentEvaluator): void {
-    this.evaluator = evaluator || new SegmentEvaluator(); // Use provided evaluator or create new one
+  constructor() {
+    this.evaluator = new SegmentEvaluator();
   }
 
   /**
@@ -54,11 +42,11 @@ export class SegmentationManager {
    * @param {any} feature - The feature data including segmentation needs.
    * @param {any} context - The context data for the evaluation.
    */
-  async setContextualData(settings: SettingsModel, feature: FeatureModel, context: ContextModel) {
-    this.attachEvaluator(); // Ensure a fresh evaluator instance
-    this.evaluator.settings = settings; // Set settings in evaluator
+  async setContextualData(serviceContainer: ServiceContainer, feature: FeatureModel, context: ContextModel) {
+    this.evaluator.serviceContainer = serviceContainer; // Set settings in evaluator
     this.evaluator.context = context; // Set context in evaluator
     this.evaluator.feature = feature; // Set feature in evaluator
+    this.evaluator.segmentOperandEvaluator = new SegmentOperandEvaluator(serviceContainer);
 
     // if both user agent and ip is null then we should not get data from gateway service
     if (context?.getUserAgent() === null && context?.getIpAddress() === null) {
@@ -67,7 +55,7 @@ export class SegmentationManager {
 
     if (feature.getIsGatewayServiceRequired() === true) {
       if (
-        SettingsService.Instance.isGatewayServiceProvided &&
+        serviceContainer.getSettingsService().isGatewayServiceProvided &&
         (isUndefined(context.getVwo()) || context.getVwo() === null)
       ) {
         const queryParams = {};
@@ -80,11 +68,11 @@ export class SegmentationManager {
         }
         try {
           const params = getQueryParams(queryParams);
-          const _vwo = await getFromGatewayService(params, UrlEnum.GET_USER_DATA, context);
+          const _vwo = await getFromGatewayService(serviceContainer, params, UrlEnum.GET_USER_DATA, context);
           context.setVwo(new ContextVWOModel().modelFromDictionary(_vwo));
           this.evaluator.context = context;
         } catch (err) {
-          LogManager.Instance.errorLog(
+          serviceContainer.getLogManager().errorLog(
             'ERROR_SETTING_SEGMENTATION_CONTEXT',
             {
               err: getFormattedErrorMessage(err),

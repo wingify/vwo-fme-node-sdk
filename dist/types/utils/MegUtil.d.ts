@@ -2,10 +2,11 @@ import { FeatureModel } from '../models/campaign/FeatureModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { ContextModel } from '../models/user/ContextModel';
 import { IStorageService } from '../services/StorageService';
+import { ServiceContainer } from '../services/ServiceContainer';
 /**
  * Evaluates groups for a given feature and group ID.
  *
- * @param settings - The settings model.
+ * @param serviceContainer - The service container instance.
  * @param feature - The feature model to evaluate.
  * @param groupId - The ID of the group.
  * @param evaluatedFeatureMap - A map containing evaluated features.
@@ -14,7 +15,7 @@ import { IStorageService } from '../services/StorageService';
  * @returns A promise that resolves to the evaluation result.
  */
 export declare const evaluateGroups: (
-  settings: SettingsModel,
+  serviceContainer: ServiceContainer,
   feature: FeatureModel,
   groupId: number,
   evaluatedFeatureMap: Map<string, any>,

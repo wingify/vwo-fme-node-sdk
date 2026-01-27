@@ -1,4 +1,19 @@
 "use strict";
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -37,22 +52,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StorageDecorator = void 0;
-/**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var logger_1 = require("../packages/logger");
 var StorageEnum_1 = require("../enums/StorageEnum");
 var PromiseUtil_1 = require("../utils/PromiseUtil");
 var ApiEnum_1 = require("../enums/ApiEnum");
@@ -66,12 +65,14 @@ var StorageDecorator = /** @class */ (function () {
      * @param storageService The storage service instance.
      * @returns A promise that resolves to the retrieved feature or relevant status.
      */
-    StorageDecorator.prototype.getFeatureFromStorage = function (featureKey, context, storageService) {
+    StorageDecorator.prototype.getFeatureFromStorage = function (featureKey, context, storageService, serviceContainer) {
         return __awaiter(this, void 0, void 0, function () {
             var deferredObject;
             return __generator(this, function (_a) {
                 deferredObject = new PromiseUtil_1.Deferred();
-                storageService.getDataInStorage(featureKey, context).then(function (campaignMap) {
+                storageService
+                    .getDataInStorage(featureKey, context, serviceContainer)
+                    .then(function (campaignMap) {
                     switch (campaignMap) {
                         case StorageEnum_1.StorageEnum.STORAGE_UNDEFINED:
                             deferredObject.resolve(null); // No storage defined
@@ -105,32 +106,32 @@ var StorageDecorator = /** @class */ (function () {
      * @param storageService The storage service instance.
      * @returns A promise that resolves when the data is successfully stored.
      */
-    StorageDecorator.prototype.setDataInStorage = function (data, storageService) {
+    StorageDecorator.prototype.setDataInStorage = function (data, storageService, serviceContainer) {
         var deferredObject = new PromiseUtil_1.Deferred();
-        var featureKey = data.featureKey, context = data.context, rolloutId = data.rolloutId, rolloutKey = data.rolloutKey, rolloutVariationId = data.rolloutVariationId, experimentId = data.experimentId, experimentKey = data.experimentKey, experimentVariationId = data.experimentVariationId;
+        var featureKey = data.featureKey, featureId = data.featureId, context = data.context, rolloutId = data.rolloutId, rolloutKey = data.rolloutKey, rolloutVariationId = data.rolloutVariationId, experimentId = data.experimentId, experimentKey = data.experimentKey, experimentVariationId = data.experimentVariationId;
         if (!featureKey) {
-            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+            serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'featureKey',
             }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if feature key is invalid
             return;
         }
         if (!context.id) {
-            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+            serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'Context or Context.id',
             }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if user ID is invalid
             return;
         }
         if (rolloutKey && !experimentKey && !rolloutVariationId) {
-            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+            serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'Variation:(rolloutKey, experimentKey or rolloutVariationId)',
             }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if rollout variation is invalid
             return;
         }
         if (experimentKey && !experimentVariationId) {
-            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_STORAGE', {
+            serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'Variation:(experimentKey or rolloutVariationId)',
             }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId });
             deferredObject.reject(); // Reject promise if experiment variation is invalid
@@ -138,6 +139,7 @@ var StorageDecorator = /** @class */ (function () {
         }
         storageService.setDataInStorage({
             featureKey: featureKey,
+            featureId: featureId,
             userId: context.id,
             rolloutId: rolloutId,
             rolloutKey: rolloutKey,
@@ -145,7 +147,7 @@ var StorageDecorator = /** @class */ (function () {
             experimentId: experimentId,
             experimentKey: experimentKey,
             experimentVariationId: experimentVariationId,
-        });
+        }, serviceContainer);
         deferredObject.resolve(); // Resolve promise when data is successfully set
         return deferredObject.promise;
     };

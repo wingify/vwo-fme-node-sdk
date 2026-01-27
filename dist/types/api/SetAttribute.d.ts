@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 import { ContextModel } from '../models/user/ContextModel';
-import { SettingsModel } from '../models/settings/SettingsModel';
+import { ServiceContainer } from '../services/ServiceContainer';
 interface ISetAttribute {
   /**
    * Sets multiple attributes for a user in a single network call.
-   * @param settings Configuration settings.
+   * @param serviceContainer Service container.
    * @param attributes Key-value map of attributes.
    * @param context Context containing user information.
    */
   setAttribute(
-    settings: SettingsModel,
+    serviceContainer: ServiceContainer,
     attributes: Record<string, boolean | string | number>,
     context: ContextModel,
   ): Promise<void>;
@@ -31,12 +31,12 @@ interface ISetAttribute {
 export declare class SetAttributeApi implements ISetAttribute {
   /**
    * Implementation of setAttributes to create an impression for multiple user attributes.
-   * @param settings Configuration settings.
+   * @param serviceContainer Service container.
    * @param attributes Key-value map of attributes.
    * @param context Context containing user information.
    */
   setAttribute(
-    settings: SettingsModel,
+    serviceContainer: ServiceContainer,
     attributes: Record<string, boolean | string | number>,
     context: ContextModel,
   ): Promise<void>;

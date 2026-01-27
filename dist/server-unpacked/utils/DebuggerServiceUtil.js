@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@ exports.extractDecisionKeys = extractDecisionKeys;
 exports.sendDebugEventToVWO = sendDebugEventToVWO;
 var NetworkUtil_1 = require("./NetworkUtil");
 var EventEnum_1 = require("../enums/EventEnum");
-var BatchEventsQueue_1 = require("../services/BatchEventsQueue");
 /**
  * Utility functions for handling debugger service operations including
  * filtering sensitive properties and extracting decision keys.
@@ -91,19 +90,19 @@ function extractDecisionKeys(decisionObj) {
  * @param eventProps - The properties for the event.
  * @returns A promise that resolves when the event is sent.
  */
-function sendDebugEventToVWO() {
-    return __awaiter(this, arguments, void 0, function (eventProps) {
+function sendDebugEventToVWO(serviceContainer_1) {
+    return __awaiter(this, arguments, void 0, function (serviceContainer, eventProps) {
         var properties, payload;
         if (eventProps === void 0) { eventProps = {}; }
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, null, null);
-                    payload = (0, NetworkUtil_1.getDebuggerEventPayload)(eventProps);
-                    if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
-                    BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, null, null);
+                    payload = (0, NetworkUtil_1.getDebuggerEventPayload)(serviceContainer.getSettingsService(), eventProps);
+                    if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
+                    serviceContainer.getBatchEventsQueue().enqueue(payload);
                     return [3 /*break*/, 3];
-                case 1: return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT).catch(function () { })];
+                case 1: return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT).catch(function () { })];
                 case 2:
                     _a.sent();
                     _a.label = 3;

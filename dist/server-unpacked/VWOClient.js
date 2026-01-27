@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -35,62 +46,118 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VWOClient = void 0;
-/**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var logger_1 = require("./packages/logger");
 var GetFlag_1 = require("./api/GetFlag");
 var SetAttribute_1 = require("./api/SetAttribute");
 var TrackEvent_1 = require("./api/TrackEvent");
 var log_messages_1 = require("./enums/log-messages");
-var BatchEventsQueue_1 = require("./services/BatchEventsQueue");
 var SettingsSchemaValidation_1 = require("./models/schemas/SettingsSchemaValidation");
 var ContextModel_1 = require("./models/user/ContextModel");
-var HooksService_1 = __importDefault(require("./services/HooksService"));
-var UrlUtil_1 = require("./utils/UrlUtil");
 var DataTypeUtil_1 = require("./utils/DataTypeUtil");
 var LogMessageUtil_1 = require("./utils/LogMessageUtil");
 var PromiseUtil_1 = require("./utils/PromiseUtil");
 var SettingsUtil_1 = require("./utils/SettingsUtil");
 var VariationModel_1 = require("./models/campaign/VariationModel");
-var NetworkUtil_1 = require("./utils/NetworkUtil");
-var SettingsService_1 = require("./services/SettingsService");
-var StorageService_1 = require("./services/StorageService");
 var ApiEnum_1 = require("./enums/ApiEnum");
 var AliasingUtil_1 = require("./utils/AliasingUtil");
 var UserIdUtil_1 = require("./utils/UserIdUtil");
 var DataTypeUtil_2 = require("./utils/DataTypeUtil");
 var FunctionUtil_1 = require("./utils/FunctionUtil");
+var SdkInitAndUsageStatsUtil_1 = require("./utils/SdkInitAndUsageStatsUtil");
+var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
+var StorageService_1 = require("./services/StorageService");
 var VWOClient = /** @class */ (function () {
-    function VWOClient(settings, options) {
-        this.options = options;
-        (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settings, this);
-        UrlUtil_1.UrlUtil.init({
-            collectionPrefix: this.settings.getCollectionPrefix(),
-        });
-        (0, NetworkUtil_1.setShouldWaitForTrackingCalls)(this.options.shouldWaitForTrackingCalls || false);
-        logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.CLIENT_INITIALIZED);
-        this.vwoClientInstance = this;
-        this.isAliasingEnabled = options.isAliasingEnabled || false;
-        return this;
+    /**
+     * Constructor for the VWOClient class.
+     * @param settings - The settings to initialize the client with.
+     * @param options - The options to initialize the client with.
+     * @param logManager - The log manager to use for logging.
+     * @param settingsService - The settings service to use for fetching settings.
+     * @param networkManager - The network manager to use for making network requests.
+     * @param storage - The storage to use for storing data.
+     * @param batchEventsQueue - The batch events queue to use for batching events.
+     */
+    function VWOClient(settings, options, serviceContainer) {
+        try {
+            this.options = options;
+            this.serviceContainer = serviceContainer;
+            this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(settings);
+            this.isAliasingEnabled = options.isAliasingEnabled || false;
+            if (this.isSettingsValid && !this.serviceContainer.getSettingsService().isSettingsProvidedInInit) {
+                this.serviceContainer.getLogManager().info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+            }
+            else if (!this.isSettingsValid && this.options.settings) {
+                this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+            }
+            (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settings, this, this.serviceContainer.getLogManager());
+            this.serviceContainer.setSettings(this.settings);
+            this.serviceContainer.injectServiceContainer(this.serviceContainer);
+            this.serviceContainer.setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
+            this.serviceContainer.getLogManager().info(log_messages_1.InfoLogMessagesEnum.CLIENT_INITIALIZED);
+            this.vwoClientInstance = this;
+            var usageStatsUtil = new UsageStatsUtil_1.UsageStatsUtil(this.options);
+            this.sendSdkInitAndUsageStatsEvents(usageStatsUtil);
+            return this;
+        }
+        catch (err) {
+            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
+                apiName: ApiEnum_1.ApiEnum.INIT,
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+            }, { an: ApiEnum_1.ApiEnum.INIT }, false);
+        }
     }
+    /**
+     * Sends the SDK init event and usage stats event
+     * @param usageStatsUtil - The usage stats util to use for sending the usage stats event
+     */
+    VWOClient.prototype.sendSdkInitAndUsageStatsEvents = function (usageStatsUtil) {
+        return __awaiter(this, void 0, void 0, function () {
+            var settingsFetchTime, sdkInitTime, usageStatsAccountId, err_1;
+            var _a, _b, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        _d.trys.push([0, 7, , 8]);
+                        settingsFetchTime = this.serviceContainer.getSettingsService().settingsFetchTime;
+                        if (this.serviceContainer.getSettingsService().isSettingsProvidedInInit) {
+                            // if settings are provided in init, then settings fetch time is 0
+                            settingsFetchTime = 0;
+                        }
+                        sdkInitTime = Date.now() - this.serviceContainer.getSettingsService().startTimeForInit;
+                        if (!(this.isSettingsValid && !((_b = (_a = this.originalSettings) === null || _a === void 0 ? void 0 : _a.sdkMetaInfo) === null || _b === void 0 ? void 0 : _b.wasInitializedEarlier))) return [3 /*break*/, 3];
+                        if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 2];
+                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(settingsFetchTime, sdkInitTime, this.serviceContainer)];
+                    case 1:
+                        _d.sent();
+                        return [3 /*break*/, 3];
+                    case 2:
+                        // send sdk init event
+                        (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(settingsFetchTime, sdkInitTime, this.serviceContainer);
+                        _d.label = 3;
+                    case 3:
+                        usageStatsAccountId = (_c = this.originalSettings) === null || _c === void 0 ? void 0 : _c.usageStatsAccountId;
+                        if (!usageStatsAccountId) return [3 /*break*/, 6];
+                        if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 5];
+                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil)];
+                    case 4:
+                        _d.sent();
+                        return [3 /*break*/, 6];
+                    case 5:
+                        (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil);
+                        _d.label = 6;
+                    case 6: return [3 /*break*/, 8];
+                    case 7:
+                        err_1 = _d.sent();
+                        this.serviceContainer
+                            .getLogManager()
+                            .error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SDK_INIT_EVENT_FAILED, { err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_1) }));
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/];
+                }
+            });
+        });
+    };
     /**
      * Retrieves the value of a feature flag for a given feature key and context.
      * This method validates the feature key and context, ensures the settings are valid, and then uses the FlagApi to get the flag value.
@@ -101,7 +168,7 @@ var VWOClient = /** @class */ (function () {
      */
     VWOClient.prototype.getFlag = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, deferredObject, errorReturnSchema, hooksService, userId, contextModel, err_1;
+            var apiName, deferredObject, errorReturnSchema, userId, contextCopy, contextModel, err_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -111,13 +178,12 @@ var VWOClient = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        hooksService = new HooksService_1.default(this.options);
-                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+                        this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
                         // Validate featureKey is a string
                         if (!(0, DataTypeUtil_1.isString)(featureKey)) {
-                            logger_1.LogManager.Instance.errorLog('INVALID_PARAM', {
+                            this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
                                 apiName: apiName,
                                 key: 'featureKey',
                                 type: (0, DataTypeUtil_1.getType)(featureKey),
@@ -126,21 +192,22 @@ var VWOClient = /** @class */ (function () {
                             throw new TypeError('TypeError: featureKey should be a string, got ' + (0, DataTypeUtil_1.getType)(featureKey));
                         }
                         // Validate settings are loaded and valid
-                        if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(this.originalSettings)) {
-                            logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
+                        if (!this.isSettingsValid) {
+                            this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
                             throw new Error('TypeError: Invalid Settings');
                         }
                         // Validate user ID is present in context
                         if (!context || !context.id) {
-                            logger_1.LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
+                            this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 2:
                         userId = _a.sent();
-                        context.id = userId;
-                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
-                        GetFlag_1.FlagApi.get(featureKey, this.settings, contextModel, hooksService)
+                        contextCopy = __assign({}, context);
+                        contextCopy.id = userId;
+                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
+                        GetFlag_1.FlagApi.get(featureKey, contextModel, this.serviceContainer)
                             .then(function (data) {
                             deferredObject.resolve(data);
                         })
@@ -149,10 +216,10 @@ var VWOClient = /** @class */ (function () {
                         });
                         return [3 /*break*/, 4];
                     case 3:
-                        err_1 = _a.sent();
-                        logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+                        err_2 = _a.sent();
+                        this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_1),
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_2),
                         }, { an: ApiEnum_1.ApiEnum.GET_FLAG });
                         deferredObject.resolve(errorReturnSchema);
                         return [3 /*break*/, 4];
@@ -172,7 +239,7 @@ var VWOClient = /** @class */ (function () {
      */
     VWOClient.prototype.trackEvent = function (eventName_1, context_1) {
         return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
-            var apiName, deferredObject, hooksService, userId, contextModel, err_2;
+            var apiName, deferredObject, userId, contextCopy, contextModel, err_3;
             var _a;
             if (eventProperties === void 0) { eventProperties = {}; }
             return __generator(this, function (_b) {
@@ -183,14 +250,13 @@ var VWOClient = /** @class */ (function () {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 3, , 4]);
-                        hooksService = new HooksService_1.default(this.options);
                         // Log the API call
-                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+                        this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
                         // Validate eventName is a string
                         if (!(0, DataTypeUtil_1.isString)(eventName)) {
-                            logger_1.LogManager.Instance.errorLog('INVALID_PARAM', {
+                            this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
                                 apiName: apiName,
                                 key: 'eventName',
                                 type: (0, DataTypeUtil_1.getType)(eventName),
@@ -200,7 +266,7 @@ var VWOClient = /** @class */ (function () {
                         }
                         // Validate eventProperties is an object
                         if (!(0, DataTypeUtil_1.isObject)(eventProperties)) {
-                            logger_1.LogManager.Instance.errorLog('INVALID_PARAM', {
+                            this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
                                 apiName: apiName,
                                 key: 'eventProperties',
                                 type: (0, DataTypeUtil_1.getType)(eventProperties),
@@ -209,23 +275,28 @@ var VWOClient = /** @class */ (function () {
                             throw new TypeError('TypeError: eventProperties should be an object, got ' + (0, DataTypeUtil_1.getType)(eventProperties));
                         }
                         // Validate settings are loaded and valid
-                        if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(this.originalSettings)) {
-                            logger_1.LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
+                        if (!this.isSettingsValid) {
+                            this.serviceContainer
+                                .getLogManager()
+                                .errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
                             throw new Error('TypeError: Invalid Settings');
                         }
                         // Validate user ID is present in context
                         if (!context || !context.id) {
-                            logger_1.LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
+                            this.serviceContainer
+                                .getLogManager()
+                                .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 2:
                         userId = _b.sent();
-                        context.id = userId;
-                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+                        contextCopy = __assign({}, context);
+                        contextCopy.id = userId;
+                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         // Proceed with tracking the event
                         new TrackEvent_1.TrackApi()
-                            .track(this.settings, eventName, contextModel, eventProperties, hooksService)
+                            .track(this.serviceContainer, eventName, contextModel, eventProperties)
                             .then(function (data) {
                             deferredObject.resolve(data);
                         })
@@ -235,11 +306,11 @@ var VWOClient = /** @class */ (function () {
                         });
                         return [3 /*break*/, 4];
                     case 3:
-                        err_2 = _b.sent();
+                        err_3 = _b.sent();
                         // Log any errors encountered during the operation
-                        logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+                        this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_2),
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3),
                         }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT });
                         deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
                         return [3 /*break*/, 4];
@@ -262,7 +333,7 @@ var VWOClient = /** @class */ (function () {
      */
     VWOClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, attributes, userId, contextModel, attributeKey, attributeValue, userId, contextModel, attributeMap, err_3;
+            var apiName, attributes, userId, contextCopy, contextModel, attributeKey, attributeValue, userId, contextCopy, contextModel, attributeMap, err_4;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -273,7 +344,7 @@ var VWOClient = /** @class */ (function () {
                         _b.trys.push([1, 8, , 9]);
                         if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 4];
                         // Log the API call
-                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+                        this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
                         if (Object.entries(attributeOrAttributes).length < 1) {
@@ -301,16 +372,19 @@ var VWOClient = /** @class */ (function () {
                         }
                         // Validate user ID is present in context
                         if (!context || !context.id) {
-                            logger_1.LogManager.Instance.errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE }, false);
+                            this.serviceContainer
+                                .getLogManager()
+                                .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 2:
                         userId = _b.sent();
-                        context.id = userId;
-                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+                        contextCopy = __assign({}, context);
+                        contextCopy.id = userId;
+                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         // Proceed with setting the attributes if validation is successful
-                        return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributes, contextModel)];
+                        return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.serviceContainer, attributes, contextModel)];
                     case 3:
                         // Proceed with setting the attributes if validation is successful
                         _b.sent();
@@ -330,24 +404,25 @@ var VWOClient = /** @class */ (function () {
                         if (!context || !context.id) {
                             throw new TypeError('Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled)];
+                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 5:
                         userId = _b.sent();
-                        context.id = userId;
-                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(context);
+                        contextCopy = __assign({}, context);
+                        contextCopy.id = userId;
+                        contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         attributeMap = (_a = {}, _a[attributeKey] = attributeValue, _a);
                         // Proceed with setting the attribute map if validation is successful
-                        return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.settings, attributeMap, contextModel)];
+                        return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.serviceContainer, attributeMap, contextModel)];
                     case 6:
                         // Proceed with setting the attribute map if validation is successful
                         _b.sent();
                         _b.label = 7;
                     case 7: return [3 /*break*/, 9];
                     case 8:
-                        err_3 = _b.sent();
-                        logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+                        err_4 = _b.sent();
+                        this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3),
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4),
                         }, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE });
                         return [3 /*break*/, 9];
                     case 9: return [2 /*return*/];
@@ -363,7 +438,7 @@ var VWOClient = /** @class */ (function () {
      */
     VWOClient.prototype.updateSettings = function (settings_1) {
         return __awaiter(this, arguments, void 0, function (settings, isViaWebhook) {
-            var apiName, settingsToUpdate, _a, err_4;
+            var apiName, settingsToUpdate, _a, normalizedSettings, err_5;
             if (isViaWebhook === void 0) { isViaWebhook = true; }
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -372,9 +447,9 @@ var VWOClient = /** @class */ (function () {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 5, , 6]);
-                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
+                        this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
                         if (!(!settings || Object.keys(settings).length === 0)) return [3 /*break*/, 3];
-                        return [4 /*yield*/, SettingsService_1.SettingsService.Instance.fetchSettings(isViaWebhook, apiName)];
+                        return [4 /*yield*/, this.serviceContainer.getSettingsService().fetchSettings(isViaWebhook, apiName)];
                     case 2:
                         _a = _b.sent();
                         return [3 /*break*/, 4];
@@ -383,20 +458,25 @@ var VWOClient = /** @class */ (function () {
                         _b.label = 4;
                     case 4:
                         settingsToUpdate = _a;
+                        normalizedSettings = this.serviceContainer.getSettingsService().normalizeSettings(settingsToUpdate);
                         // validate settings schema
-                        if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(settingsToUpdate)) {
+                        if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings)) {
                             throw new Error('TypeError: Invalid Settings schema');
                         }
                         // set the settings on the client instance
-                        (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settingsToUpdate, this.vwoClientInstance);
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName: apiName, isViaWebhook: isViaWebhook }));
+                        (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(normalizedSettings, this.vwoClientInstance, this.serviceContainer.getLogManager());
+                        this.serviceContainer.setSettings(this.vwoClientInstance.settings);
+                        this.serviceContainer.injectServiceContainer(this.serviceContainer);
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName: apiName, isViaWebhook: isViaWebhook }));
                         return [3 /*break*/, 6];
                     case 5:
-                        err_4 = _b.sent();
-                        logger_1.LogManager.Instance.errorLog('UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED', {
+                        err_5 = _b.sent();
+                        this.serviceContainer.getLogManager().errorLog('UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED', {
                             apiName: apiName,
                             isViaWebhook: isViaWebhook,
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4),
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5),
                         }, { an: ApiEnum_1.ApiEnum.UPDATE_SETTINGS });
                         return [3 /*break*/, 6];
                     case 6: return [2 /*return*/];
@@ -409,7 +489,8 @@ var VWOClient = /** @class */ (function () {
      */
     VWOClient.prototype.flushEvents = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, promises, storageService, flushResult, err_5;
+            var apiName, promises, storageService, flushResult, err_6;
+            var _this = this;
             var _a, _b, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
@@ -418,21 +499,23 @@ var VWOClient = /** @class */ (function () {
                         _d.label = 1;
                     case 1:
                         _d.trys.push([1, 3, , 4]);
-                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
-                        if (!BatchEventsQueue_1.BatchEventsQueue.Instance) {
-                            logger_1.LogManager.Instance.errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
+                        this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
+                        if (!this.serviceContainer.getBatchEventsQueue()) {
+                            this.serviceContainer.getLogManager().errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
                             return [2 /*return*/, { status: 'error', events: [] }];
                         }
-                        promises = [BatchEventsQueue_1.BatchEventsQueue.Instance.flushAndClearTimer()];
+                        promises = [this.serviceContainer.getBatchEventsQueue().flushAndClearTimer()];
                         if (((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig) &&
                             Object.keys(this.options.edgeConfig).length > 0 &&
                             ((_b = this.options) === null || _b === void 0 ? void 0 : _b.accountId) &&
                             ((_c = this.options) === null || _c === void 0 ? void 0 : _c.sdkKey)) {
-                            storageService = new StorageService_1.StorageService();
+                            storageService = new StorageService_1.StorageService(this.serviceContainer);
                             promises.push(storageService
                                 .setFreshSettingsInStorage(parseInt(this.options.accountId), this.options.sdkKey)
                                 .catch(function (error) {
-                                logger_1.LogManager.Instance.errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
+                                _this.serviceContainer
+                                    .getLogManager()
+                                    .errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
                                 // by returning undefined, we are swallowing the error intentionally to avoid the promise from rejecting
                                 return undefined;
                             }));
@@ -442,8 +525,10 @@ var VWOClient = /** @class */ (function () {
                         flushResult = (_d.sent())[0];
                         return [2 /*return*/, flushResult];
                     case 3:
-                        err_5 = _d.sent();
-                        logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
+                        err_6 = _d.sent();
+                        this.serviceContainer
+                            .getLogManager()
+                            .errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_6) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
                         return [2 /*return*/, { status: 'error', events: [] }];
                     case 4: return [2 /*return*/];
                 }
@@ -466,15 +551,15 @@ var VWOClient = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+                        this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
                         if (!this.isAliasingEnabled) {
-                            logger_1.LogManager.Instance.errorLog('ALIAS_CALLED_BUT_NOT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
+                            this.serviceContainer.getLogManager().errorLog('ALIAS_CALLED_BUT_NOT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
                             return [2 /*return*/, false];
                         }
-                        if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) {
-                            logger_1.LogManager.Instance.errorLog('INVALID_GATEWAY_URL', {}, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
+                        if (!this.serviceContainer.getSettingsService().isGatewayServiceProvided) {
+                            this.serviceContainer.getLogManager().errorLog('INVALID_GATEWAY_URL', {}, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
                             return [2 /*return*/, false];
                         }
                         if (!aliasId) {
@@ -516,13 +601,15 @@ var VWOClient = /** @class */ (function () {
                             }
                             userId = contextOrUserId.id;
                         }
-                        return [4 /*yield*/, AliasingUtil_1.AliasingUtil.setAlias(userId, aliasId)];
+                        return [4 /*yield*/, AliasingUtil_1.AliasingUtil.setAlias(userId, aliasId, this.serviceContainer)];
                     case 2:
                         _a.sent();
                         return [2 /*return*/, true];
                     case 3:
                         error_1 = _a.sent();
-                        logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1) }, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
+                        this.serviceContainer
+                            .getLogManager()
+                            .errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1) }, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
                         return [2 /*return*/, false];
                     case 4: return [2 /*return*/];
                 }

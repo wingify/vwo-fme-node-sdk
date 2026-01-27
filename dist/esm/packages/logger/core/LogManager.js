@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,26 +43,18 @@ export class LogManager extends Logger {
         this.prefix = 'VWO-SDK'; // Default prefix for log messages
         this.shouldLogToStandardOutput = false;
         this.config = config;
-        if (config.isAlwaysNewInstance || !LogManager.instance) {
-            LogManager.instance = this;
-            // Initialize configuration with defaults or provided values
-            this.config.name = config.name || this.name;
-            this.config.requestId = config.requestId || this.requestId;
-            this.config.level = config.level || this.level;
-            this.config.prefix = config.prefix || this.prefix;
-            this.config.dateTimeFormat = config.dateTimeFormat || this.dateTimeFormat;
-            this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || this.shouldLogToStandardOutput;
-            this.transportManager = new LogTransportManager(this.config);
-            this.handleTransports();
-        }
-        return LogManager.instance;
+        // Initialize configuration with defaults or provided values
+        this.config.name = config.name || this.name;
+        this.config.requestId = config.requestId || this.requestId;
+        this.config.level = config.level || this.level;
+        this.config.prefix = config.prefix || this.prefix;
+        this.config.dateTimeFormat = config.dateTimeFormat || this.dateTimeFormat;
+        this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || this.shouldLogToStandardOutput;
+        this.transportManager = new LogTransportManager(this.config);
+        this.handleTransports();
     }
-    /**
-     * Provides access to the singleton instance of LogManager.
-     * @returns {LogManager} The singleton instance.
-     */
-    static get Instance() {
-        return LogManager.instance;
+    injectServiceContainer(serviceContainer) {
+        this.serviceContainer = serviceContainer;
     }
     /**
      * Handles the initialization and setup of transports based on configuration.
@@ -146,7 +138,7 @@ export class LogManager extends Logger {
                     cg: DebuggerCategoryEnum.ERROR,
                 };
                 // send debug event to VWO
-                sendDebugEventToVWO(debugEventProps);
+                sendDebugEventToVWO(this.serviceContainer, debugEventProps);
             }
         }
         catch (err) {

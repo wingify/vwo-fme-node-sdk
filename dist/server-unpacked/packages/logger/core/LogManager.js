@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,34 +70,23 @@ var LogManager = /** @class */ (function (_super) {
         _this.prefix = 'VWO-SDK'; // Default prefix for log messages
         _this.shouldLogToStandardOutput = false;
         _this.config = config;
-        if (config.isAlwaysNewInstance || !LogManager.instance) {
-            LogManager.instance = _this;
-            // Initialize configuration with defaults or provided values
-            _this.config.name = config.name || _this.name;
-            _this.config.requestId = config.requestId || _this.requestId;
-            _this.config.level = config.level || _this.level;
-            _this.config.prefix = config.prefix || _this.prefix;
-            _this.config.dateTimeFormat = config.dateTimeFormat || _this.dateTimeFormat;
-            _this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || _this.shouldLogToStandardOutput;
-            _this.transportManager = new TransportManager_1.LogTransportManager(_this.config);
-            _this.handleTransports();
-        }
-        return LogManager.instance;
+        // Initialize configuration with defaults or provided values
+        _this.config.name = config.name || _this.name;
+        _this.config.requestId = config.requestId || _this.requestId;
+        _this.config.level = config.level || _this.level;
+        _this.config.prefix = config.prefix || _this.prefix;
+        _this.config.dateTimeFormat = config.dateTimeFormat || _this.dateTimeFormat;
+        _this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || _this.shouldLogToStandardOutput;
+        _this.transportManager = new TransportManager_1.LogTransportManager(_this.config);
+        _this.handleTransports();
+        return _this;
     }
     LogManager.prototype.dateTimeFormat = function () {
         return new Date().toISOString(); // Default date-time format for log messages
     };
-    Object.defineProperty(LogManager, "Instance", {
-        /**
-         * Provides access to the singleton instance of LogManager.
-         * @returns {LogManager} The singleton instance.
-         */
-        get: function () {
-            return LogManager.instance;
-        },
-        enumerable: false,
-        configurable: true
-    });
+    LogManager.prototype.injectServiceContainer = function (serviceContainer) {
+        this.serviceContainer = serviceContainer;
+    };
     /**
      * Handles the initialization and setup of transports based on configuration.
      */
@@ -176,7 +165,7 @@ var LogManager = /** @class */ (function (_super) {
             if (shouldSendToVWO) {
                 var debugEventProps = __assign(__assign(__assign({}, debugData), data), { msg_t: template, msg: message, lt: LogLevelEnum_1.LogLevelEnum.ERROR.toString(), cg: DebuggerCategoryEnum_1.DebuggerCategoryEnum.ERROR });
                 // send debug event to VWO
-                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(this.serviceContainer, debugEventProps);
             }
         }
         catch (err) {

@@ -2,12 +2,15 @@ import { SegmentOperandValueEnum } from '../enums/SegmentOperandValueEnum';
 import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum';
 import { dynamic } from '../../../types/Common';
 import { ContextModel } from '../../../models/user/ContextModel';
+import { ServiceContainer } from '../../../services/ServiceContainer';
 /**
  * SegmentOperandEvaluator class provides methods to evaluate different types of DSL (Domain Specific Language)
  * expressions based on the segment conditions defined for custom variables, user IDs, and user agents.
  */
 export declare class SegmentOperandEvaluator {
   private static readonly NON_NUMERIC_PATTERN;
+  private serviceContainer;
+  constructor(serviceContainer: ServiceContainer);
   /**
    * Evaluates a custom variable DSL expression.
    * @param {Record<string, dynamic>} dslOperandValue - The DSL expression for the custom variable.

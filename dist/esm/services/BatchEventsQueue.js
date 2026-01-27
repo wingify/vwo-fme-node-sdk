@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,19 @@
  */
 import { Constants } from '../constants/index.js';
 import { isNumber, isFunction, isBoolean } from '../utils/DataTypeUtil.js';
-import { LogManager } from '../packages/logger/index.js';
 import { buildMessage } from '../utils/LogMessageUtil.js';
 import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages/index.js';
-import { SettingsService } from '../services/SettingsService.js';
+import BatchEventsDispatcher from '../utils/BatchEventsDispatcher.js';
 export class BatchEventsQueue {
     /**
      * Constructor for the BatchEventsQueue
      * @param config - The configuration for the batch events queue
      */
-    constructor(config = {}) {
+    constructor(config = {}, logManager) {
         this.queue = [];
         this.timer = null;
         this.isEdgeEnvironment = false;
+        this.logManager = logManager;
         if (isBoolean(config.isEdgeEnvironment)) {
             this.isEdgeEnvironment = config.isEdgeEnvironment;
         }
@@ -37,7 +37,7 @@ export class BatchEventsQueue {
         else {
             this.requestTimeInterval = Constants.DEFAULT_REQUEST_TIME_INTERVAL;
             if (!this.isEdgeEnvironment) {
-                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
+                this.logManager.info(buildMessage(InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
                     parameter: 'requestTimeInterval',
                     minLimit: 0,
                     defaultValue: this.requestTimeInterval.toString(),
@@ -51,35 +51,29 @@ export class BatchEventsQueue {
         }
         else if (config.eventsPerRequest > Constants.MAX_EVENTS_PER_REQUEST) {
             this.eventsPerRequest = Constants.MAX_EVENTS_PER_REQUEST;
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.EVENT_BATCH_MAX_LIMIT, {
+            this.logManager.info(buildMessage(InfoLogMessagesEnum.EVENT_BATCH_MAX_LIMIT, {
                 parameter: 'eventsPerRequest',
                 maxLimit: Constants.MAX_EVENTS_PER_REQUEST.toString(),
             }));
         }
         else {
             this.eventsPerRequest = Constants.DEFAULT_EVENTS_PER_REQUEST;
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
+            this.logManager.info(buildMessage(InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
                 parameter: 'eventsPerRequest',
                 minLimit: 0,
                 defaultValue: this.eventsPerRequest.toString(),
             }));
         }
         this.flushCallback = isFunction(config.flushCallback) ? config.flushCallback : () => { };
-        this.dispatcher = config.dispatcher;
-        this.accountId = SettingsService.Instance.accountId;
+        this.accountId = config.accountId;
         // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
         if (!this.isEdgeEnvironment) {
             this.createNewBatchTimer();
         }
-        BatchEventsQueue.instance = this;
         return this;
     }
-    /**
-     * Gets the instance of the BatchEventsQueue
-     * @returns The instance of the BatchEventsQueue
-     */
-    static get Instance() {
-        return BatchEventsQueue.instance;
+    injectServiceContainer(serviceContainer) {
+        this.serviceContainer = serviceContainer;
     }
     /**
      * Enqueues an event
@@ -88,7 +82,7 @@ export class BatchEventsQueue {
     enqueue(payload) {
         // Enqueue the event in the queue
         this.queue.push(payload);
-        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.EVENT_QUEUE, {
+        this.logManager.info(buildMessage(InfoLogMessagesEnum.EVENT_QUEUE, {
             queueType: 'batch',
             event: JSON.stringify(payload),
         }));
@@ -104,7 +98,7 @@ export class BatchEventsQueue {
     flush(manual = false) {
         // If the queue is not empty, flush the queue
         if (this.queue.length) {
-            LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
+            this.logManager.debug(buildMessage(DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
                 manually: manual ? 'manually' : '',
                 length: this.queue.length,
                 accountId: this.accountId,
@@ -112,10 +106,17 @@ export class BatchEventsQueue {
             }));
             const tempQueue = this.queue;
             this.queue = [];
-            return this.dispatcher(tempQueue, this.flushCallback)
+            return BatchEventsDispatcher.dispatch(this.serviceContainer, {
+                ev: tempQueue,
+            }, this.flushCallback, Object.assign({}, {
+                a: this.accountId,
+                env: this.serviceContainer.getSettingsService().sdkKey,
+                sn: Constants.SDK_NAME,
+                sv: Constants.SDK_VERSION,
+            }))
                 .then((result) => {
                 if (result.status === 'success') {
-                    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.EVENT_BATCH_After_FLUSHING, {
+                    this.logManager.info(buildMessage(InfoLogMessagesEnum.EVENT_BATCH_After_FLUSHING, {
                         manually: manual ? 'manually' : '',
                         length: tempQueue.length,
                     }));
@@ -132,7 +133,7 @@ export class BatchEventsQueue {
             });
         }
         else {
-            LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
+            this.logManager.debug(buildMessage(DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
             return new Promise((resolve) => {
                 resolve({ status: 'success', events: [] });
             });

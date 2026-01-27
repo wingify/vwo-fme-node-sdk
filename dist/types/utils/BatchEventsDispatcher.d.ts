@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 import { dynamic } from '../types/Common';
+import { ServiceContainer } from '../services/ServiceContainer';
 export declare class BatchEventsDispatcher {
   static dispatch(
+    serviceContainer: ServiceContainer,
     payload: Record<string, any>,
     flushCallback: (error: Error | null, data: Record<string, any>) => void,
     queryParams: Record<string, dynamic>,

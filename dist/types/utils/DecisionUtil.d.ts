@@ -1,11 +1,11 @@
 import { CampaignModel } from '../models/campaign/CampaignModel';
 import { FeatureModel } from '../models/campaign/FeatureModel';
 import { VariationModel } from '../models/campaign/VariationModel';
-import { SettingsModel } from '../models/settings/SettingsModel';
 import { ContextModel } from '../models/user/ContextModel';
 import { IStorageService } from '../services/StorageService';
+import { ServiceContainer } from '../services/ServiceContainer';
 export declare const checkWhitelistingAndPreSeg: (
-  settings: SettingsModel,
+  serviceContainer: ServiceContainer,
   feature: FeatureModel,
   campaign: CampaignModel,
   context: ContextModel,
@@ -15,7 +15,7 @@ export declare const checkWhitelistingAndPreSeg: (
   decision: any,
 ) => Promise<[boolean, any]>;
 export declare const evaluateTrafficAndGetVariation: (
-  settings: SettingsModel,
+  serviceContainer: ServiceContainer,
   campaign: CampaignModel,
   userId: string | number,
 ) => VariationModel;

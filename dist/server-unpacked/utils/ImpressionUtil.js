@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAndSendImpressionForVariationShown = void 0;
 var NetworkUtil_1 = require("./NetworkUtil");
 var EventEnum_1 = require("../enums/EventEnum");
-var BatchEventsQueue_1 = require("../services/BatchEventsQueue");
 var CampaignUtil_1 = require("./CampaignUtil");
 var CampaignUtil_2 = require("./CampaignUtil");
 var constants_1 = require("../constants");
@@ -63,21 +62,21 @@ var constants_1 = require("../constants");
  * This function constructs the necessary properties and payload for the event
  * and uses the NetworkUtil to send a POST API request.
  *
- * @param {SettingsModel} settings - The settings model containing configuration.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {number} campaignId - The ID of the campaign.
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-var createAndSendImpressionForVariationShown = function (settings, campaignId, variationId, context, featureKey) { return __awaiter(void 0, void 0, void 0, function () {
+var createAndSendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
+                properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
                 context.getIpAddress());
-                payload = (0, NetworkUtil_1.getTrackUserPayloadData)(settings, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
-                campaignKeyWithFeatureName = (0, CampaignUtil_1.getCampaignKeyFromCampaignId)(settings, campaignId);
-                variationName = (0, CampaignUtil_2.getVariationNameFromCampaignIdAndVariationId)(settings, campaignId, variationId);
+                payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
+                campaignKeyWithFeatureName = (0, CampaignUtil_1.getCampaignKeyFromCampaignId)(serviceContainer.getSettings(), campaignId);
+                variationName = (0, CampaignUtil_2.getVariationNameFromCampaignIdAndVariationId)(serviceContainer.getSettings(), campaignId, variationId);
                 campaignKey = '';
                 if (featureKey === campaignKeyWithFeatureName) {
                     campaignKey = constants_1.Constants.IMPACT_ANALYSIS;
@@ -85,13 +84,13 @@ var createAndSendImpressionForVariationShown = function (settings, campaignId, v
                 else {
                     campaignKey = campaignKeyWithFeatureName === null || campaignKeyWithFeatureName === void 0 ? void 0 : campaignKeyWithFeatureName.split("".concat(featureKey, "_"))[1];
                 }
-                campaignType = (0, CampaignUtil_1.getCampaignTypeFromCampaignId)(settings, campaignId);
-                if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
-                BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                campaignType = (0, CampaignUtil_1.getCampaignTypeFromCampaignId)(serviceContainer.getSettings(), campaignId);
+                if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
+                serviceContainer.getBatchEventsQueue().enqueue(payload);
                 return [3 /*break*/, 3];
             case 1: 
             // Send the constructed properties and payload as a POST request
-            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId(), {}, { campaignKey: campaignKey, variationName: variationName, featureKey: featureKey, campaignType: campaignType })];
+            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId(), {}, { campaignKey: campaignKey, variationName: variationName, featureKey: featureKey, campaignType: campaignType })];
             case 2:
                 // Send the constructed properties and payload as a POST request
                 _a.sent();

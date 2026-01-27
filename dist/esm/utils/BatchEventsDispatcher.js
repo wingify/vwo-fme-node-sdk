@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 import { RequestModel } from '../packages/network-layer/index.js';
-import { UrlUtil } from './UrlUtil.js';
-import { NetworkManager } from '../packages/network-layer/index.js';
 import { HttpMethodEnum } from '../enums/HttpMethodEnum.js';
 import { UrlEnum } from '../enums/UrlEnum.js';
-import { SettingsService } from '../services/SettingsService.js';
-import { LogManager } from '../packages/logger/index.js';
 import { buildMessage } from '../utils/LogMessageUtil.js';
 import { InfoLogMessagesEnum } from '../enums/log-messages/index.js';
 import { isString } from '../utils/DataTypeUtil.js';
@@ -30,8 +26,8 @@ import { sendDebugEventToVWO } from './DebuggerServiceUtil.js';
 import { createNetWorkAndRetryDebugEvent } from './NetworkUtil.js';
 import { EventEnum } from '../enums/EventEnum.js';
 export class BatchEventsDispatcher {
-    static async dispatch(payload, flushCallback, queryParams) {
-        return await this.sendPostApiRequest(queryParams, payload, flushCallback);
+    static async dispatch(serviceContainer, payload, flushCallback, queryParams) {
+        return await this.sendPostApiRequest(serviceContainer, queryParams, payload, flushCallback);
     }
     /**
      * Sends a POST request to the server.
@@ -39,15 +35,12 @@ export class BatchEventsDispatcher {
      * @param payload - The payload of the request.
      * @returns A promise that resolves to a void.
      */
-    static async sendPostApiRequest(properties, payload, flushCallback) {
+    static async sendPostApiRequest(serviceContainer, properties, payload, flushCallback) {
         const deferred = new Deferred();
-        const networkManager = NetworkManager.Instance;
-        const retryConfig = networkManager.getRetryConfig();
+        const retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
         const headers = {};
-        headers['Authorization'] = SettingsService.Instance.sdkKey;
-        let baseUrl = UrlUtil.getBaseUrl();
-        baseUrl = UrlUtil.getUpdatedBaseUrl(baseUrl);
-        const request = new RequestModel(baseUrl, HttpMethodEnum.POST, UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService.Instance.protocol, SettingsService.Instance.port, retryConfig);
+        headers['Authorization'] = serviceContainer.getSettingsService().sdkKey;
+        const request = new RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.BATCH_EVENTS), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
         const { variationShownCount, setAttributeCount, customEventCount } = this.extractEventCounts(payload);
         let extraData = `${Constants.BATCH_EVENTS} having `;
         if (variationShownCount > 0) {
@@ -60,27 +53,29 @@ export class BatchEventsDispatcher {
             extraData += `setAttribute events: ${setAttributeCount}, `;
         }
         try {
-            NetworkManager.Instance.post(request)
+            serviceContainer
+                .getNetworkManager()
+                .post(request)
                 .then((response) => {
                 if (response.getTotalAttempts() > 0) {
                     const debugEventProps = createNetWorkAndRetryDebugEvent(response, '', Constants.BATCH_EVENTS, extraData);
                     // send debug event
-                    sendDebugEventToVWO(debugEventProps);
+                    sendDebugEventToVWO(serviceContainer, debugEventProps);
                 }
-                const batchApiResult = this.handleBatchResponse(UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
+                const batchApiResult = this.handleBatchResponse(serviceContainer.getLogManager(), UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
                 deferred.resolve(batchApiResult);
             })
                 .catch((err) => {
                 const debugEventProps = createNetWorkAndRetryDebugEvent(err, '', Constants.BATCH_EVENTS, extraData);
                 // send debug event
-                sendDebugEventToVWO(debugEventProps);
-                const batchApiResult = this.handleBatchResponse(UrlEnum.BATCH_EVENTS, payload, properties, null, err, flushCallback);
+                sendDebugEventToVWO(serviceContainer, debugEventProps);
+                const batchApiResult = this.handleBatchResponse(serviceContainer.getLogManager(), UrlEnum.BATCH_EVENTS, payload, properties, null, err, flushCallback);
                 deferred.resolve(batchApiResult);
             });
             return deferred.promise;
         }
         catch (error) {
-            LogManager.Instance.errorLog('EXECUTION_FAILED', {
+            serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                 apiName: Constants.BATCH_EVENTS,
                 err: getFormattedErrorMessage(error),
             }, { an: Constants.BATCH_EVENTS });
@@ -97,7 +92,7 @@ export class BatchEventsDispatcher {
      * @param rawData - Raw response data
      * @param callback - Callback function to handle the result
      */
-    static handleBatchResponse(endPoint, payload, queryParams, err, res, callback) {
+    static handleBatchResponse(logManager, endPoint, payload, queryParams, err, res, callback) {
         const eventsPerRequest = payload.ev.length;
         const accountId = queryParams.a;
         let error = err ? err : res?.getError();
@@ -110,8 +105,8 @@ export class BatchEventsDispatcher {
             }
         }
         if (error) {
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
-            LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
+            logManager.info(buildMessage(InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
+            logManager.errorLog('NETWORK_CALL_FAILED', {
                 method: HttpMethodEnum.POST,
                 err: error.message,
             }, {}, false);
@@ -120,7 +115,7 @@ export class BatchEventsDispatcher {
         }
         const statusCode = res?.getStatusCode();
         if (statusCode === 200) {
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.IMPRESSION_BATCH_SUCCESS, {
+            logManager.info(buildMessage(InfoLogMessagesEnum.IMPRESSION_BATCH_SUCCESS, {
                 accountId,
                 endPoint,
             }));
@@ -128,20 +123,20 @@ export class BatchEventsDispatcher {
             return { status: 'success', events: payload };
         }
         if (statusCode === 413) {
-            LogManager.Instance.errorLog('CONFIG_BATCH_EVENT_LIMIT_EXCEEDED', {
+            logManager.errorLog('CONFIG_BATCH_EVENT_LIMIT_EXCEEDED', {
                 accountId,
                 endPoint,
                 eventsPerRequest,
             }, {}, false);
-            LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
+            logManager.errorLog('NETWORK_CALL_FAILED', {
                 method: HttpMethodEnum.POST,
                 err: error.message,
             }, {}, false);
             callback(error, payload);
             return { status: 'error', events: payload };
         }
-        LogManager.Instance.errorLog('IMPRESSION_BATCH_FAILED', {}, {}, false);
-        LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
+        logManager.errorLog('IMPRESSION_BATCH_FAILED', {}, {}, false);
+        logManager.errorLog('NETWORK_CALL_FAILED', {
             method: HttpMethodEnum.POST,
             err: error.message,
         }, {}, false);

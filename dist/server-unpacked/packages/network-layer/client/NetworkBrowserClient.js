@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NetworkBrowserClient = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ var PromiseUtil_1 = require("../../../utils/PromiseUtil");
  * Implements the NetworkClientInterface to handle network requests.
  */
 var NetworkBrowserClient = /** @class */ (function () {
-    function NetworkBrowserClient() {
+    function NetworkBrowserClient(logManager) {
+        this.logManager = logManager;
     }
     /**
      * Performs a GET request using the provided RequestModel.
@@ -39,7 +40,7 @@ var NetworkBrowserClient = /** @class */ (function () {
             errorCallback: function (responseModel) {
                 deferred.reject(responseModel);
             },
-        });
+        }, this.logManager);
         /*try {
           fetch(url)
               .then(res => {
@@ -93,7 +94,7 @@ var NetworkBrowserClient = /** @class */ (function () {
             errorCallback: function (responseModel) {
                 deferred.reject(responseModel);
             },
-        });
+        }, this.logManager);
         /* try {
           const options: any = Object.assign(
             {},

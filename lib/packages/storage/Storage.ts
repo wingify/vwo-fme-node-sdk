@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,24 +22,15 @@ import { Connector } from './Connector';
 // }
 
 export class Storage {
-  public static instance: Storage;
   public connector: Connector | Record<any, any>; // RedisConnector |
   // public storageType: dynamic;
 
-  public attachConnector(connector: any): any {
+  constructor(connector: any) {
     if (connector?.prototype?.constructor?.toString()?.trim()?.substring(0, 5) === 'class') {
       this.connector = new connector();
     } else {
       this.connector = connector;
     }
-
-    return this.connector;
-  }
-
-  public static get Instance(): Storage {
-    this.instance = this.instance || new Storage();
-
-    return this.instance;
   }
 
   public getConnector(): any {

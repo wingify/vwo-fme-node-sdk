@@ -1,9 +1,8 @@
 import { ContextVWOModel } from './ContextVWOModel.js';
 import { getUUID } from '../../utils/UuidUtil.js';
-import { SettingsService } from '../../services/SettingsService.js';
 import { getCurrentUnixTimestamp } from '../../utils/FunctionUtil.js';
 export class ContextModel {
-    modelFromDictionary(context) {
+    modelFromDictionary(context, options) {
         this.id = context.id;
         this.userAgent = context.userAgent;
         this.ipAddress = context.ipAddress;
@@ -24,7 +23,7 @@ export class ContextModel {
         if (context?.postSegmentationVariables) {
             this.postSegmentationVariables = context.postSegmentationVariables;
         }
-        this._vwo_uuid = getUUID(this.id.toString(), SettingsService.Instance.accountId.toString());
+        this._vwo_uuid = getUUID(this.id.toString(), options.accountId.toString());
         this._vwo_sessionId = getCurrentUnixTimestamp();
         return this;
     }

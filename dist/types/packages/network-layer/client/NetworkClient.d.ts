@@ -1,6 +1,7 @@
 import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { NetworkClientInterface } from './NetworkClientInterface';
+import { LogManager } from '../../../packages/logger';
 export interface IRetryConfig {
   shouldRetry?: boolean;
   initialDelay?: number;
@@ -11,6 +12,8 @@ export interface IRetryConfig {
  * Implements the NetworkClientInterface to handle network requests.
  */
 export declare class NetworkClient implements NetworkClientInterface {
+  private logManager;
+  constructor(logManager: LogManager);
   /**
    * Performs a GET request using the provided RequestModel.
    * @param {RequestModel} requestModel - The model containing request options.

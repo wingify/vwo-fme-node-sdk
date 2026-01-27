@@ -1,8 +1,24 @@
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { Storage } from './packages/storage';
 import { Flag } from './api/GetFlag';
 import { SettingsModel } from './models/settings/SettingsModel';
 import { dynamic } from './types/Common';
 import { IVWOOptions } from './models/VWOOptionsModel';
+import { ServiceContainer } from './services/ServiceContainer';
 export interface IVWOClient {
   readonly options?: IVWOOptions;
   settings: SettingsModel;
@@ -34,8 +50,24 @@ export declare class VWOClient implements IVWOClient {
   isSettingsValid: boolean;
   settingsFetchTime: number | undefined;
   isAliasingEnabled: boolean;
-  constructor(settings: Record<any, any>, options: IVWOOptions);
+  serviceContainer: ServiceContainer;
   options?: IVWOOptions;
+  /**
+   * Constructor for the VWOClient class.
+   * @param settings - The settings to initialize the client with.
+   * @param options - The options to initialize the client with.
+   * @param logManager - The log manager to use for logging.
+   * @param settingsService - The settings service to use for fetching settings.
+   * @param networkManager - The network manager to use for making network requests.
+   * @param storage - The storage to use for storing data.
+   * @param batchEventsQueue - The batch events queue to use for batching events.
+   */
+  constructor(settings: Record<any, any>, options: IVWOOptions, serviceContainer: ServiceContainer);
+  /**
+   * Sends the SDK init event and usage stats event
+   * @param usageStatsUtil - The usage stats util to use for sending the usage stats event
+   */
+  private sendSdkInitAndUsageStatsEvents;
   /**
    * Retrieves the value of a feature flag for a given feature key and context.
    * This method validates the feature key and context, ensures the settings are valid, and then uses the FlagApi to get the flag value.

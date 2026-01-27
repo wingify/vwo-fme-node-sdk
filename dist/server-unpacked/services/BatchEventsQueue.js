@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,24 +50,27 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BatchEventsQueue = void 0;
 var constants_1 = require("../constants");
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
-var logger_1 = require("../packages/logger");
 var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 var log_messages_1 = require("../enums/log-messages");
-var SettingsService_1 = require("../services/SettingsService");
+var BatchEventsDispatcher_1 = __importDefault(require("../utils/BatchEventsDispatcher"));
 var BatchEventsQueue = /** @class */ (function () {
     /**
      * Constructor for the BatchEventsQueue
      * @param config - The configuration for the batch events queue
      */
-    function BatchEventsQueue(config) {
+    function BatchEventsQueue(config, logManager) {
         if (config === void 0) { config = {}; }
         this.queue = [];
         this.timer = null;
         this.isEdgeEnvironment = false;
+        this.logManager = logManager;
         if ((0, DataTypeUtil_1.isBoolean)(config.isEdgeEnvironment)) {
             this.isEdgeEnvironment = config.isEdgeEnvironment;
         }
@@ -77,7 +80,7 @@ var BatchEventsQueue = /** @class */ (function () {
         else {
             this.requestTimeInterval = constants_1.Constants.DEFAULT_REQUEST_TIME_INTERVAL;
             if (!this.isEdgeEnvironment) {
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
+                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
                     parameter: 'requestTimeInterval',
                     minLimit: 0,
                     defaultValue: this.requestTimeInterval.toString(),
@@ -91,40 +94,30 @@ var BatchEventsQueue = /** @class */ (function () {
         }
         else if (config.eventsPerRequest > constants_1.Constants.MAX_EVENTS_PER_REQUEST) {
             this.eventsPerRequest = constants_1.Constants.MAX_EVENTS_PER_REQUEST;
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_MAX_LIMIT, {
+            this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_MAX_LIMIT, {
                 parameter: 'eventsPerRequest',
                 maxLimit: constants_1.Constants.MAX_EVENTS_PER_REQUEST.toString(),
             }));
         }
         else {
             this.eventsPerRequest = constants_1.Constants.DEFAULT_EVENTS_PER_REQUEST;
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
+            this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
                 parameter: 'eventsPerRequest',
                 minLimit: 0,
                 defaultValue: this.eventsPerRequest.toString(),
             }));
         }
         this.flushCallback = (0, DataTypeUtil_1.isFunction)(config.flushCallback) ? config.flushCallback : function () { };
-        this.dispatcher = config.dispatcher;
-        this.accountId = SettingsService_1.SettingsService.Instance.accountId;
+        this.accountId = config.accountId;
         // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
         if (!this.isEdgeEnvironment) {
             this.createNewBatchTimer();
         }
-        BatchEventsQueue.instance = this;
         return this;
     }
-    Object.defineProperty(BatchEventsQueue, "Instance", {
-        /**
-         * Gets the instance of the BatchEventsQueue
-         * @returns The instance of the BatchEventsQueue
-         */
-        get: function () {
-            return BatchEventsQueue.instance;
-        },
-        enumerable: false,
-        configurable: true
-    });
+    BatchEventsQueue.prototype.injectServiceContainer = function (serviceContainer) {
+        this.serviceContainer = serviceContainer;
+    };
     /**
      * Enqueues an event
      * @param payload - The event to enqueue
@@ -132,7 +125,7 @@ var BatchEventsQueue = /** @class */ (function () {
     BatchEventsQueue.prototype.enqueue = function (payload) {
         // Enqueue the event in the queue
         this.queue.push(payload);
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_QUEUE, {
+        this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_QUEUE, {
             queueType: 'batch',
             event: JSON.stringify(payload),
         }));
@@ -150,7 +143,7 @@ var BatchEventsQueue = /** @class */ (function () {
         if (manual === void 0) { manual = false; }
         // If the queue is not empty, flush the queue
         if (this.queue.length) {
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
+            this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
                 manually: manual ? 'manually' : '',
                 length: this.queue.length,
                 accountId: this.accountId,
@@ -158,11 +151,18 @@ var BatchEventsQueue = /** @class */ (function () {
             }));
             var tempQueue_1 = this.queue;
             this.queue = [];
-            return this.dispatcher(tempQueue_1, this.flushCallback)
+            return BatchEventsDispatcher_1.default.dispatch(this.serviceContainer, {
+                ev: tempQueue_1,
+            }, this.flushCallback, Object.assign({}, {
+                a: this.accountId,
+                env: this.serviceContainer.getSettingsService().sdkKey,
+                sn: constants_1.Constants.SDK_NAME,
+                sv: constants_1.Constants.SDK_VERSION,
+            }))
                 .then(function (result) {
                 var _a;
                 if (result.status === 'success') {
-                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_After_FLUSHING, {
+                    _this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_After_FLUSHING, {
                         manually: manual ? 'manually' : '',
                         length: tempQueue_1.length,
                     }));
@@ -180,7 +180,7 @@ var BatchEventsQueue = /** @class */ (function () {
             });
         }
         else {
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
+            this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
             return new Promise(function (resolve) {
                 resolve({ status: 'success', events: [] });
             });

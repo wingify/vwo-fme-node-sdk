@@ -49,7 +49,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StorageService = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,20 +64,18 @@ exports.StorageService = void 0;
  * limitations under the License.
  */
 var StorageEnum_1 = require("../enums/StorageEnum");
-var storage_1 = require("../packages/storage");
-var logger_1 = require("../packages/logger");
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
 var PromiseUtil_1 = require("../utils/PromiseUtil");
 var ApiEnum_1 = require("../enums/ApiEnum");
 var FunctionUtil_1 = require("../utils/FunctionUtil");
 var constants_1 = require("../constants");
-var SettingsService_1 = require("./SettingsService");
 var SettingsSchemaValidation_1 = require("../models/schemas/SettingsSchemaValidation");
 var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 var log_messages_1 = require("../enums/log-messages");
 var StorageService = /** @class */ (function () {
-    function StorageService() {
+    function StorageService(serviceContainer) {
         this.storageData = {};
+        this.serviceContainer = serviceContainer;
     }
     /**
      * Retrieves data from storage based on the feature key and user ID.
@@ -87,22 +85,26 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.getDataInStorage = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var deferredObject, storageInstance;
+            var deferredObject;
+            var _this = this;
             return __generator(this, function (_a) {
                 deferredObject = new PromiseUtil_1.Deferred();
-                storageInstance = storage_1.Storage.Instance.getConnector();
                 // Check if the storage instance is available
-                if ((0, DataTypeUtil_1.isNull)(storageInstance) || (0, DataTypeUtil_1.isUndefined)(storageInstance)) {
+                if ((0, DataTypeUtil_1.isNull)(this.serviceContainer.getStorageConnector()) ||
+                    (0, DataTypeUtil_1.isUndefined)(this.serviceContainer.getStorageConnector())) {
                     deferredObject.resolve(StorageEnum_1.StorageEnum.STORAGE_UNDEFINED);
                 }
                 else {
-                    storageInstance
+                    this.serviceContainer
+                        .getStorageConnector()
                         .get(featureKey, context.getId())
                         .then(function (data) {
                         deferredObject.resolve(data);
                     })
                         .catch(function (err) {
-                        logger_1.LogManager.Instance.errorLog('ERROR_READING_STORED_DATA_IN_STORAGE', { err: err }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+                        _this.serviceContainer
+                            .getLogManager()
+                            .errorLog('ERROR_READING_STORED_DATA_IN_STORAGE', { err: err }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                         deferredObject.resolve(StorageEnum_1.StorageEnum.NO_DATA_FOUND);
                     });
                 }
@@ -117,16 +119,17 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.setDataInStorage = function (data) {
         return __awaiter(this, void 0, void 0, function () {
-            var deferredObject, storageInstance;
+            var deferredObject;
             return __generator(this, function (_a) {
                 deferredObject = new PromiseUtil_1.Deferred();
-                storageInstance = storage_1.Storage.Instance.getConnector();
                 // Check if the storage instance is available
-                if (storageInstance === null || storageInstance === undefined) {
+                if (this.serviceContainer.getStorageConnector() === null ||
+                    this.serviceContainer.getStorageConnector() === undefined) {
                     deferredObject.resolve(false);
                 }
                 else {
-                    storageInstance
+                    this.serviceContainer
+                        .getStorageConnector()
                         .set(data)
                         .then(function () {
                         deferredObject.resolve(true);
@@ -147,7 +150,7 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.getSettingsFromStorage = function (accountId_1, sdkKey_1) {
         return __awaiter(this, arguments, void 0, function (accountId, sdkKey, shouldFetchFreshSettings) {
-            var deferredObject, storageInstance, settingsData, settings, timestamp, shouldUseCachedSettings, currentTime, settingsTTL, error_1;
+            var deferredObject, settingsData, settings, timestamp, shouldUseCachedSettings, currentTime, settingsTTL, error_1;
             var _a;
             if (shouldFetchFreshSettings === void 0) { shouldFetchFreshSettings = true; }
             return __generator(this, function (_b) {
@@ -157,9 +160,9 @@ var StorageService = /** @class */ (function () {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 5, , 6]);
-                        storageInstance = storage_1.Storage.Instance.getConnector();
-                        if (!(storageInstance && typeof storageInstance.getSettings === 'function')) return [3 /*break*/, 3];
-                        return [4 /*yield*/, storageInstance.getSettings(accountId, sdkKey)];
+                        if (!(this.serviceContainer.getStorageConnector() &&
+                            typeof this.serviceContainer.getStorageConnector().getSettings === 'function')) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this.serviceContainer.getStorageConnector().getSettings(accountId, sdkKey)];
                     case 2:
                         settingsData = _b.sent();
                         if (!settingsData || (0, DataTypeUtil_1.isEmptyObject)(settingsData)) {
@@ -170,26 +173,28 @@ var StorageService = /** @class */ (function () {
                         settings = settingsData.settings, timestamp = settingsData.timestamp;
                         // Check for sdkKey and accountId match
                         if (!settings || settings.sdkKey !== sdkKey || String((_a = settings.accountId) !== null && _a !== void 0 ? _a : settings.a) !== String(accountId)) {
-                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH));
+                            this.serviceContainer
+                                .getLogManager()
+                                .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH));
                             deferredObject.resolve({});
                             return [2 /*return*/, deferredObject.promise];
                         }
-                        shouldUseCachedSettings = storageInstance.alwaysUseCachedSettings || constants_1.Constants.ALWAYS_USE_CACHED_SETTINGS;
+                        shouldUseCachedSettings = this.serviceContainer.getStorageConnector().alwaysUseCachedSettings || constants_1.Constants.ALWAYS_USE_CACHED_SETTINGS;
                         if (shouldUseCachedSettings) {
-                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_USING_CACHED_SETTINGS));
+                            this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_USING_CACHED_SETTINGS));
                             deferredObject.resolve(settings);
                             return [2 /*return*/, deferredObject.promise];
                         }
                         currentTime = Date.now();
-                        settingsTTL = storageInstance.ttl || constants_1.Constants.SETTINGS_TTL;
+                        settingsTTL = this.serviceContainer.getStorageConnector().ttl || constants_1.Constants.SETTINGS_TTL;
                         // check if the settings are expired based on the last updated timestamp
                         if (currentTime - timestamp > settingsTTL) {
-                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_EXPIRED));
+                            this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_EXPIRED));
                             deferredObject.resolve({});
                         }
                         else {
                             // if settings are not expired, then return the existing settings and update the settings in storage with new timestamp
-                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_RETRIEVED_FROM_STORAGE));
+                            this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_RETRIEVED_FROM_STORAGE));
                             if (shouldFetchFreshSettings) {
                                 // if shouldFetchFreshSettings is true, then fetch fresh settings asynchronously and update the storage with new timestamp
                                 this.setFreshSettingsInStorage(accountId, sdkKey);
@@ -200,7 +205,7 @@ var StorageService = /** @class */ (function () {
                                     settings.sdkKey = atob(settings.sdkKey);
                                 }
                                 catch (e) {
-                                    logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
+                                    this.serviceContainer.getLogManager().errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
                                         err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
                                     }, { an: constants_1.Constants.STORAGE });
                                 }
@@ -214,7 +219,9 @@ var StorageService = /** @class */ (function () {
                     case 4: return [3 /*break*/, 6];
                     case 5:
                         error_1 = _b.sent();
-                        logger_1.LogManager.Instance.errorLog('ERROR_READING_SETTINGS_FROM_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1) }, { an: constants_1.Constants.STORAGE });
+                        this.serviceContainer
+                            .getLogManager()
+                            .errorLog('ERROR_READING_SETTINGS_FROM_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1) }, { an: constants_1.Constants.STORAGE });
                         deferredObject.resolve({});
                         return [3 /*break*/, 6];
                     case 6: return [2 /*return*/, deferredObject.promise];
@@ -231,7 +238,7 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.setSettingsInStorage = function (accountId, sdkKey, settings) {
         return __awaiter(this, void 0, void 0, function () {
-            var deferredObject, storageInstance, clonedSettings, settingsToStore, error_2;
+            var deferredObject, clonedSettings, settingsToStore, error_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -239,16 +246,16 @@ var StorageService = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 5, , 6]);
-                        storageInstance = storage_1.Storage.Instance.getConnector();
-                        if (!(storageInstance && typeof storageInstance.setSettings === 'function')) return [3 /*break*/, 3];
+                        if (!(this.serviceContainer.getStorageConnector() &&
+                            typeof this.serviceContainer.getStorageConnector().setSettings === 'function')) return [3 /*break*/, 3];
                         clonedSettings = __assign({}, settings);
                         settingsToStore = { settings: clonedSettings, timestamp: Date.now() };
                         // set the settings in storage
-                        return [4 /*yield*/, storageInstance.setSettings(settingsToStore)];
+                        return [4 /*yield*/, this.serviceContainer.getStorageConnector().setSettings(settingsToStore)];
                     case 2:
                         // set the settings in storage
                         _a.sent();
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_SUCCESSFULLY_STORED));
+                        this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_SUCCESSFULLY_STORED));
                         deferredObject.resolve();
                         return [3 /*break*/, 4];
                     case 3:
@@ -257,7 +264,9 @@ var StorageService = /** @class */ (function () {
                     case 4: return [3 /*break*/, 6];
                     case 5:
                         error_2 = _a.sent();
-                        logger_1.LogManager.Instance.errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_2) }, { an: constants_1.Constants.STORAGE });
+                        this.serviceContainer
+                            .getLogManager()
+                            .errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_2) }, { an: constants_1.Constants.STORAGE });
                         deferredObject.resolve();
                         return [3 /*break*/, 6];
                     case 6: return [2 /*return*/, deferredObject.promise];
@@ -270,14 +279,16 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.setFreshSettingsInStorage = function (accountId, sdkKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var deferredObject, settingsService, storageInstance;
+            var deferredObject;
             var _this = this;
             return __generator(this, function (_a) {
                 deferredObject = new PromiseUtil_1.Deferred();
-                settingsService = SettingsService_1.SettingsService.Instance;
-                storageInstance = storage_1.Storage.Instance.getConnector();
-                if (settingsService && storageInstance && typeof storageInstance.setSettings === 'function') {
-                    settingsService
+                // Fetch fresh settings asynchronously and update storage
+                if (this.serviceContainer.getSettingsService() &&
+                    this.serviceContainer.getStorageConnector() &&
+                    typeof this.serviceContainer.getStorageConnector().setSettings === 'function') {
+                    this.serviceContainer
+                        .getSettingsService()
                         .fetchSettings()
                         .then(function (freshSettings) { return __awaiter(_this, void 0, void 0, function () {
                         var isSettingsValid;
@@ -290,7 +301,9 @@ var StorageService = /** @class */ (function () {
                                     return [4 /*yield*/, this.setSettingsInStorage(accountId, sdkKey, freshSettings)];
                                 case 1:
                                     _a.sent();
-                                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED_WITH_FRESH_DATA));
+                                    this.serviceContainer
+                                        .getLogManager()
+                                        .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED_WITH_FRESH_DATA));
                                     _a.label = 2;
                                 case 2:
                                     deferredObject.resolve();
@@ -299,7 +312,7 @@ var StorageService = /** @class */ (function () {
                         });
                     }); })
                         .catch(function (error) {
-                        logger_1.LogManager.Instance.errorLog('ERROR_STORING_FRESH_SETTINGS_IN_STORAGE', {
+                        _this.serviceContainer.getLogManager().errorLog('ERROR_STORING_FRESH_SETTINGS_IN_STORAGE', {
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
                         }, { an: constants_1.Constants.STORAGE });
                         deferredObject.resolve();

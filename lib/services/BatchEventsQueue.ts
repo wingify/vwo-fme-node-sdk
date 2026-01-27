@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,18 @@ import { isNumber, isFunction, isBoolean } from '../utils/DataTypeUtil';
 import { LogManager } from '../packages/logger';
 import { buildMessage } from '../utils/LogMessageUtil';
 import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
-import { SettingsService } from '../services/SettingsService';
+import BatchEventsDispatcher from '../utils/BatchEventsDispatcher';
+import { ServiceContainer } from './ServiceContainer';
 
 export interface BatchConfig {
   isEdgeEnvironment?: boolean;
   requestTimeInterval?: number;
   eventsPerRequest?: number;
   flushCallback?: (error: Error | null, data: Record<string, any>) => void;
-  dispatcher?: (
-    queue: Record<string, any>[],
-    flushCallback: (error: Error | null, data: Record<string, any>) => void,
-  ) => Promise<Record<string, any>>;
+  accountId?: number;
 }
 
 export class BatchEventsQueue {
-  private static instance: BatchEventsQueue;
   private queue: Record<string, any>[] = [];
   private timer: NodeJS.Timeout | null = null;
   private requestTimeInterval: number;
@@ -41,16 +38,15 @@ export class BatchEventsQueue {
   private flushCallback: (error: Error | null, data: Record<string, any>) => void;
   private accountId: number;
   private isEdgeEnvironment: boolean = false;
-  private dispatcher: (
-    queue: Record<string, any>[],
-    flushCallback: (error: Error | null, data: Record<string, any>) => void,
-  ) => Promise<Record<string, any>>;
+  private logManager: LogManager;
+  private serviceContainer: ServiceContainer;
 
   /**
    * Constructor for the BatchEventsQueue
    * @param config - The configuration for the batch events queue
    */
-  constructor(config: BatchConfig = {}) {
+  constructor(config: BatchConfig = {}, logManager: LogManager) {
+    this.logManager = logManager;
     if (isBoolean(config.isEdgeEnvironment)) {
       this.isEdgeEnvironment = config.isEdgeEnvironment;
     }
@@ -59,7 +55,7 @@ export class BatchEventsQueue {
     } else {
       this.requestTimeInterval = Constants.DEFAULT_REQUEST_TIME_INTERVAL;
       if (!this.isEdgeEnvironment) {
-        LogManager.Instance.info(
+        this.logManager.info(
           buildMessage(InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
             parameter: 'requestTimeInterval',
             minLimit: 0,
@@ -77,7 +73,7 @@ export class BatchEventsQueue {
       this.eventsPerRequest = config.eventsPerRequest;
     } else if (config.eventsPerRequest > Constants.MAX_EVENTS_PER_REQUEST) {
       this.eventsPerRequest = Constants.MAX_EVENTS_PER_REQUEST;
-      LogManager.Instance.info(
+      this.logManager.info(
         buildMessage(InfoLogMessagesEnum.EVENT_BATCH_MAX_LIMIT, {
           parameter: 'eventsPerRequest',
           maxLimit: Constants.MAX_EVENTS_PER_REQUEST.toString(),
@@ -85,7 +81,7 @@ export class BatchEventsQueue {
       );
     } else {
       this.eventsPerRequest = Constants.DEFAULT_EVENTS_PER_REQUEST;
-      LogManager.Instance.info(
+      this.logManager.info(
         buildMessage(InfoLogMessagesEnum.EVENT_BATCH_DEFAULTS, {
           parameter: 'eventsPerRequest',
           minLimit: 0,
@@ -95,25 +91,18 @@ export class BatchEventsQueue {
     }
 
     this.flushCallback = isFunction(config.flushCallback) ? config.flushCallback : () => {};
-    this.dispatcher = config.dispatcher;
-    this.accountId = SettingsService.Instance.accountId;
+    this.accountId = config.accountId;
 
     // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
     if (!this.isEdgeEnvironment) {
       this.createNewBatchTimer();
     }
-    BatchEventsQueue.instance = this;
     return this;
   }
 
-  /**
-   * Gets the instance of the BatchEventsQueue
-   * @returns The instance of the BatchEventsQueue
-   */
-  public static get Instance(): BatchEventsQueue {
-    return BatchEventsQueue.instance;
+  injectServiceContainer(serviceContainer: ServiceContainer): void {
+    this.serviceContainer = serviceContainer;
   }
-
   /**
    * Enqueues an event
    * @param payload - The event to enqueue
@@ -121,7 +110,7 @@ export class BatchEventsQueue {
   public enqueue(payload: Record<string, any>): void {
     // Enqueue the event in the queue
     this.queue.push(payload);
-    LogManager.Instance.info(
+    this.logManager.info(
       buildMessage(InfoLogMessagesEnum.EVENT_QUEUE, {
         queueType: 'batch',
         event: JSON.stringify(payload),
@@ -141,7 +130,7 @@ export class BatchEventsQueue {
   public flush(manual: boolean = false): Promise<Record<string, any>> {
     // If the queue is not empty, flush the queue
     if (this.queue.length) {
-      LogManager.Instance.debug(
+      this.logManager.debug(
         buildMessage(DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
           manually: manual ? 'manually' : '',
           length: this.queue.length,
@@ -151,10 +140,25 @@ export class BatchEventsQueue {
       );
       const tempQueue = this.queue;
       this.queue = [];
-      return this.dispatcher(tempQueue, this.flushCallback)
+      return BatchEventsDispatcher.dispatch(
+        this.serviceContainer,
+        {
+          ev: tempQueue,
+        },
+        this.flushCallback,
+        Object.assign(
+          {},
+          {
+            a: this.accountId,
+            env: this.serviceContainer.getSettingsService().sdkKey,
+            sn: Constants.SDK_NAME,
+            sv: Constants.SDK_VERSION,
+          },
+        ),
+      )
         .then((result) => {
           if (result.status === 'success') {
-            LogManager.Instance.info(
+            this.logManager.info(
               buildMessage(InfoLogMessagesEnum.EVENT_BATCH_After_FLUSHING, {
                 manually: manual ? 'manually' : '',
                 length: tempQueue.length,
@@ -171,7 +175,7 @@ export class BatchEventsQueue {
           return { status: 'error', events: tempQueue };
         });
     } else {
-      LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
+      this.logManager.debug(buildMessage(DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
 
       return new Promise((resolve) => {
         resolve({ status: 'success', events: [] });

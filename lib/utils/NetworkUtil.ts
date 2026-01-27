@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,12 @@ import { HeadersEnum } from '../enums/HeadersEnum';
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 import { UrlEnum } from '../enums/UrlEnum';
 import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
-import { SettingsModel } from '../models/settings/SettingsModel';
-import { LogLevelEnum, LogManager } from '../packages/logger';
-import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
+import { LogLevelEnum } from '../packages/logger';
+import { RequestModel, ResponseModel } from '../packages/network-layer';
 import { SettingsService } from '../services/SettingsService';
 import { dynamic } from '../types/Common';
 import { isObject } from './DataTypeUtil';
 import { buildMessage } from './LogMessageUtil';
-import { UrlUtil } from './UrlUtil';
 import { Deferred } from './PromiseUtil';
 import { UsageStatsUtil } from './UsageStatsUtil';
 import { IRetryConfig } from '../packages/network-layer/client/NetworkClient';
@@ -43,6 +41,7 @@ import { DebuggerCategoryEnum } from '../enums/DebuggerCategoryEnum';
 import { sendDebugEventToVWO } from './DebuggerServiceUtil';
 import { ApiEnum } from '../enums/ApiEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
+import { ServiceContainer } from '../services/ServiceContainer';
 
 /**
  * Constructs the settings path with API key and account ID.
@@ -85,11 +84,16 @@ export function getTrackEventPath(event: string, accountId: string, userId: stri
 
 /**
  * Builds generic properties for different tracking calls required by VWO servers.
- * @param {Object} configObj
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param {String} eventName
- * @returns properties
+ * @param {String} visitorUserAgent - The visitor user agent.
+ * @param {String} ipAddress - The visitor IP address.
+ * @param {Boolean} isUsageStatsEvent - Whether the event is a usage stats event.
+ * @param {Number} usageStatsAccountId - The usage stats account ID.
+ * @returns {Record<string, any>} - The properties for the event.
  */
 export function getEventsBaseProperties(
+  settingsService: SettingsService,
   eventName: string,
   visitorUserAgent: string = '',
   ipAddress: string = '',
@@ -98,7 +102,7 @@ export function getEventsBaseProperties(
 ): Record<string, any> {
   const properties = Object.assign({
     en: eventName,
-    a: SettingsService.Instance.accountId,
+    a: settingsService.accountId.toString(),
     eTime: getCurrentUnixTimestampInMillis(),
     random: getRandomNumber(),
     p: 'FS',
@@ -110,25 +114,29 @@ export function getEventsBaseProperties(
 
   if (!isUsageStatsEvent) {
     // set env key for standard sdk events
-    properties.env = SettingsService.Instance.sdkKey;
+    properties.env = settingsService.sdkKey;
   } else {
     // set account id for internal usage stats event
     properties.a = usageStatsAccountId;
   }
 
-  properties.url = Constants.HTTPS_PROTOCOL + UrlUtil.getBaseUrl() + UrlEnum.EVENTS;
   return properties;
 }
 
 /**
  * Builds generic payload required by all the different tracking calls.
- * @param {Object} settings   settings file
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param {String} userId     user id
  * @param {String} eventName  event name
- * @returns properties
+ * @param {String} visitorUserAgent - The visitor user agent.
+ * @param {String} ipAddress - The visitor IP address.
+ * @param {Boolean} isUsageStatsEvent - Whether the event is a usage stats event.
+ * @param {Number} usageStatsAccountId - The usage stats account ID.
+ * @param {Boolean} shouldGenerateUUID - Whether to generate a UUID.
+ * @returns {Record<string, any>} - The payload for the event.
  */
 export function _getEventBasePayload(
-  settings: SettingsModel,
+  settingsService: SettingsService,
   userId: string | number,
   eventName: string,
   visitorUserAgent = '',
@@ -137,7 +145,7 @@ export function _getEventBasePayload(
   usageStatsAccountId: number = null,
   shouldGenerateUUID = true,
 ): Record<string, any> {
-  let accountId = SettingsService.Instance.accountId;
+  let accountId = settingsService.accountId;
   if (isUsageStatsEvent) {
     // set account id for internal usage stats event
     accountId = usageStatsAccountId;
@@ -167,7 +175,7 @@ export function _getEventBasePayload(
 
   if (!isUsageStatsEvent) {
     // set env key for standard sdk events
-    props.vwo_envKey = SettingsService.Instance.sdkKey;
+    props.vwo_envKey = settingsService.sdkKey;
   }
 
   const properties: Record<string, any> = {
@@ -189,7 +197,7 @@ export function _getEventBasePayload(
     // set visitor props for standard sdk events
     properties.d.visitor = {
       props: {
-        vwo_fs_environment: SettingsService.Instance.sdkKey,
+        vwo_fs_environment: settingsService.sdkKey,
       },
     };
   }
@@ -199,15 +207,15 @@ export function _getEventBasePayload(
 
 /**
  * Builds payload to track the visitor.
- * @param {Object} configObj
- * @param {String} userId
- * @param {String} eventName
- * @param {String} campaignId
- * @param {Number} variationId
- * @returns track-user payload
+ * @param {ServiceContainer} serviceContainer - The service container instance.
+ * @param {String} eventName - The name of the event.
+ * @param {Number} campaignId - The campaign ID.
+ * @param {Number} variationId - The variation ID.
+ * @param {ContextModel} context - The context model instance.
+ * @returns {Record<string, any>} - The payload for the event.
  */
 export function getTrackUserPayloadData(
-  settings: SettingsModel,
+  serviceContainer: ServiceContainer,
   eventName: string,
   campaignId: number,
   variationId: number,
@@ -218,7 +226,13 @@ export function getTrackUserPayloadData(
   const ipAddress = context.getIpAddress();
   const customVariables = context.getCustomVariables();
   const postSegmentationVariables = context.getPostSegmentationVariables();
-  const properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
+  const properties = _getEventBasePayload(
+    serviceContainer.getSettingsService(),
+    userId,
+    eventName,
+    visitorUserAgent,
+    ipAddress,
+  );
 
   if (context.getSessionId() !== 0) {
     properties.d.sessionId = context.getSessionId();
@@ -246,9 +260,9 @@ export function getTrackUserPayloadData(
     properties.d.visitor.props.ip = ipAddress;
   }
 
-  LogManager.Instance.debug(
+  serviceContainer.getLogManager().debug(
     buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_USER, {
-      accountId: settings.getAccountId(),
+      accountId: serviceContainer.getSettingsService().accountId.toString(),
       userId,
       campaignId,
     }),
@@ -259,7 +273,7 @@ export function getTrackUserPayloadData(
 
 /**
  * Constructs the payload data for tracking goals with custom event properties.
- * @param {any} settings - Configuration settings.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {any} userId - User identifier.
  * @param {string} eventName - Name of the event.
  * @param {any} eventProperties - Custom properties for the event.
@@ -268,7 +282,7 @@ export function getTrackUserPayloadData(
  * @returns {any} - The constructed payload data.
  */
 export function getTrackGoalPayloadData(
-  settings: SettingsModel,
+  serviceContainer: ServiceContainer,
   userId: string | number,
   eventName: string,
   eventProperties: Record<string, any>,
@@ -276,7 +290,13 @@ export function getTrackGoalPayloadData(
   ipAddress: string = '',
   sessionId: number = 0,
 ): Record<string, any> {
-  const properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
+  const properties = _getEventBasePayload(
+    serviceContainer.getSettingsService(),
+    userId,
+    eventName,
+    visitorUserAgent,
+    ipAddress,
+  );
   if (sessionId !== 0) {
     properties.d.sessionId = sessionId;
   }
@@ -291,10 +311,10 @@ export function getTrackGoalPayloadData(
     }
   }
 
-  LogManager.Instance.debug(
+  serviceContainer.getLogManager().debug(
     buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_GOAL, {
       eventName,
-      accountId: settings.getAccountId(),
+      accountId: serviceContainer.getSettingsService().accountId.toString(),
       userId,
     }),
   );
@@ -304,7 +324,7 @@ export function getTrackGoalPayloadData(
 
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
- * @param {SettingsModel} settings - Configuration settings.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {string | number} userId - User ID.
  * @param {string} eventName - Event name.
  * @param {Record<string, any>} attributes - Key-value map of attributes.
@@ -313,7 +333,7 @@ export function getTrackGoalPayloadData(
  * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
 export function getAttributePayloadData(
-  settings: SettingsModel,
+  serviceContainer: ServiceContainer,
   userId: string | number,
   eventName: string,
   attributes: Record<string, any>,
@@ -321,24 +341,30 @@ export function getAttributePayloadData(
   ipAddress: string = '',
   sessionId: number = 0,
 ): Record<string, any> {
-  const properties = _getEventBasePayload(settings, userId, eventName, visitorUserAgent, ipAddress);
+  const properties = _getEventBasePayload(
+    serviceContainer.getSettingsService(),
+    userId,
+    eventName,
+    visitorUserAgent,
+    ipAddress,
+  );
 
   if (sessionId !== 0) {
     properties.d.sessionId = sessionId;
   }
 
   properties.d.event.props.isCustomEvent = true; // Mark as a custom event
-  properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settings.getSdkkey(); // Set environment key
+  properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = serviceContainer.getSettingsService().sdkKey; // Set environment key
 
   // Iterate over the attributes map and append to the visitor properties
   for (const [key, value] of Object.entries(attributes)) {
     properties.d.visitor.props[key] = value;
   }
 
-  LogManager.Instance.debug(
+  serviceContainer.getLogManager().debug(
     buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
       eventName,
-      accountId: settings.getAccountId(),
+      accountId: serviceContainer.getSettingsService().accountId.toString(),
       userId,
     }),
   );
@@ -348,19 +374,20 @@ export function getAttributePayloadData(
 
 /**
  * Sends a POST API request with the specified properties and payload.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {any} properties - Properties for the request.
  * @param {any} payload - Payload for the request.
  * @param {string} userId - User ID.
  */
 export async function sendPostApiRequest(
+  serviceContainer: ServiceContainer,
   properties: any,
   payload: any,
   userId: string,
   eventProperties: any = {},
   campaignInfo: any = {},
 ): Promise<void> {
-  const networkManager = NetworkManager.Instance;
-  const retryConfig: IRetryConfig = networkManager.getRetryConfig();
+  const retryConfig: IRetryConfig = serviceContainer.getNetworkManager().getRetryConfig();
 
   const headers: Record<string, string> = {};
 
@@ -371,18 +398,15 @@ export async function sendPostApiRequest(
   if (userAgent) headers[HeadersEnum.USER_AGENT] = userAgent;
   if (ipAddress) headers[HeadersEnum.IP] = ipAddress;
 
-  let baseUrl = UrlUtil.getBaseUrl();
-  baseUrl = UrlUtil.getUpdatedBaseUrl(baseUrl);
-
   const request: RequestModel = new RequestModel(
-    baseUrl,
+    serviceContainer.getSettingsService().hostname,
     HttpMethodEnum.POST,
-    UrlEnum.EVENTS,
+    serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.EVENTS),
     properties,
     payload,
     headers,
-    SettingsService.Instance.protocol,
-    SettingsService.Instance.port,
+    serviceContainer.getSettingsService().protocol,
+    serviceContainer.getSettingsService().port,
     retryConfig,
   );
 
@@ -418,25 +442,23 @@ export async function sendPostApiRequest(
     }
   }
 
-  await NetworkManager.Instance.post(request)
+  await serviceContainer
+    .getNetworkManager()
+    .post(request)
     .then((response: ResponseModel) => {
       // if attempt is more than 0
       if (response.getTotalAttempts() > 0) {
         const debugEventProps = createNetWorkAndRetryDebugEvent(response, payload, apiName, extraDataForMessage);
         debugEventProps.uuid = request.getUuid();
         // send debug event
-        sendDebugEventToVWO(debugEventProps);
+        sendDebugEventToVWO(serviceContainer, debugEventProps);
       }
 
-      // clear usage stats only if network call is successful
-      if (Object.keys(UsageStatsUtil.getInstance().getUsageStats()).length > 0) {
-        UsageStatsUtil.getInstance().clearUsageStats();
-      }
-      LogManager.Instance.info(
+      serviceContainer.getLogManager().info(
         buildMessage(InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
           event: properties.en,
           endPoint: UrlEnum.EVENTS,
-          accountId: SettingsService.Instance.accountId,
+          accountId: serviceContainer.getSettingsService().accountId.toString(),
           userId: userId,
           uuid: payload.d.visId,
         }),
@@ -445,8 +467,8 @@ export async function sendPostApiRequest(
     .catch((err: ResponseModel) => {
       const debugEventProps = createNetWorkAndRetryDebugEvent(err, payload, apiName, extraDataForMessage);
       debugEventProps.uuid = request.getUuid();
-      sendDebugEventToVWO(debugEventProps);
-      LogManager.Instance.errorLog(
+      sendDebugEventToVWO(serviceContainer, debugEventProps);
+      serviceContainer.getLogManager().errorLog(
         'NETWORK_CALL_FAILED',
         {
           method: HttpMethodEnum.POST,
@@ -458,42 +480,25 @@ export async function sendPostApiRequest(
     });
 }
 
-// Flag to determine if the SDK should wait for a network response.
-let shouldWaitForTrackingCalls = false;
-
-/**
- * Checks if the SDK should wait for a network response.
- * @returns {boolean} - True if the SDK should wait for a network response, false otherwise.
- */
-export function getShouldWaitForTrackingCalls(): boolean {
-  return shouldWaitForTrackingCalls;
-}
-
-/**
- * Sets the value to determine if the SDK should wait for a network response.
- * @param value - The value to set.
- */
-export function setShouldWaitForTrackingCalls(value: boolean): void {
-  shouldWaitForTrackingCalls = value;
-}
-
 /**
  * Constructs the payload for a messaging event.
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param messageType - The type of the message.
  * @param message - The message to send.
  * @param eventName - The name of the event.
  * @returns The constructed payload.
  */
 export function getMessagingEventPayload(
+  settingsService: SettingsService,
   messageType: string,
   message: string,
   eventName: string,
   extraData: any = {},
 ): Record<string, any> {
-  const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
-  const properties = _getEventBasePayload(null, userId, eventName);
+  const userId = settingsService.accountId + '_' + settingsService.sdkKey;
+  const properties = _getEventBasePayload(settingsService, userId, eventName);
 
-  properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = SettingsService.Instance.sdkKey; // Set environment key
+  properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settingsService.sdkKey; // Set environment key
   properties.d.event.props.product = Constants.PRODUCT_NAME;
   const data = {
     type: messageType,
@@ -509,21 +514,23 @@ export function getMessagingEventPayload(
 
 /**
  * Constructs the payload for init called event.
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param eventName - The name of the event.
  * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
  * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
 export function getSDKInitEventPayload(
+  settingsService: SettingsService,
   eventName: string,
   settingsFetchTime?: number,
   sdkInitTime?: number,
 ): Record<string, any> {
-  const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
-  const properties = _getEventBasePayload(null, userId, eventName);
+  const userId = settingsService.accountId + '_' + settingsService.sdkKey;
+  const properties = _getEventBasePayload(settingsService, userId, eventName);
 
   // Set the required fields as specified
-  properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = SettingsService.Instance.sdkKey;
+  properties.d.event.props[Constants.VWO_FS_ENVIRONMENT] = settingsService.sdkKey;
   properties.d.event.props.product = Constants.PRODUCT_NAME;
   const data = {
     isSDKInitialized: true,
@@ -537,31 +544,41 @@ export function getSDKInitEventPayload(
 
 /**
  * Constructs the payload for sdk usage stats event.
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param eventName - The name of the event.
  * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
  * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
-export function getSDKUsageStatsEventPayload(eventName: string, usageStatsAccountId: number): Record<string, any> {
-  const userId = SettingsService.Instance.accountId + '_' + SettingsService.Instance.sdkKey;
-  const properties = _getEventBasePayload(null, userId, eventName, '', '', true, usageStatsAccountId);
+export function getSDKUsageStatsEventPayload(
+  settingsService: SettingsService,
+  eventName: string,
+  usageStatsAccountId: number,
+  usageStatsUtil: UsageStatsUtil,
+): Record<string, any> {
+  const userId = settingsService.accountId + '_' + settingsService.sdkKey;
+  const properties = _getEventBasePayload(settingsService, userId, eventName, '', '', true, usageStatsAccountId);
 
   // Set the required fields as specified
   properties.d.event.props.product = Constants.PRODUCT_NAME;
-  properties.d.event.props.vwoMeta = UsageStatsUtil.getInstance().getUsageStats();
+  properties.d.event.props.vwoMeta = usageStatsUtil.getUsageStats();
 
   return properties;
 }
 
 /**
  * Constructs the payload for debugger event.
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param eventProps - The properties for the event.
  * @returns The constructed payload.
  */
-export function getDebuggerEventPayload(eventProps: Record<string, any> = {}): Record<string, any> {
+export function getDebuggerEventPayload(
+  settingsService: SettingsService,
+  eventProps: Record<string, any> = {},
+): Record<string, any> {
   let uuid: string;
-  const accountId = SettingsService.Instance.accountId.toString();
-  const sdkKey = SettingsService.Instance.sdkKey;
+  const accountId = settingsService.accountId.toString();
+  const sdkKey = settingsService.sdkKey;
 
   // generate uuid if not present
   if (!eventProps.uuid) {
@@ -571,7 +588,16 @@ export function getDebuggerEventPayload(eventProps: Record<string, any> = {}): R
     uuid = eventProps.uuid;
   }
   // create standard event payload
-  const properties = _getEventBasePayload(null, uuid, EventEnum.VWO_DEBUGGER_EVENT, '', '', false, null, false);
+  const properties = _getEventBasePayload(
+    settingsService,
+    uuid,
+    EventEnum.VWO_DEBUGGER_EVENT,
+    '',
+    '',
+    false,
+    null,
+    false,
+  );
 
   properties.d.event.props = {};
   // add session id to the event props if not present
@@ -589,11 +615,11 @@ export function getDebuggerEventPayload(eventProps: Record<string, any> = {}): R
   // add all debugger props inside vwoMeta
   properties.d.event.props.vwoMeta = {
     ...eventProps,
-    a: SettingsService.Instance.accountId,
+    a: settingsService.accountId.toString(),
     product: Constants.PRODUCT_NAME,
     sn: Constants.SDK_NAME,
     sv: Constants.SDK_VERSION,
-    eventId: getRandomUUID(SettingsService.Instance.sdkKey),
+    eventId: getRandomUUID(settingsService.sdkKey),
   };
 
   return properties;
@@ -601,57 +627,44 @@ export function getDebuggerEventPayload(eventProps: Record<string, any> = {}): R
 
 /**
  * Sends an event to VWO (generic event sender).
+ * @param {NetworkManager} networkManager - The network manager instance.
+ * @param {SettingsService} settingsService - The settings service instance.
  * @param properties - Query parameters for the request.
  * @param payload - The payload for the request.
  * @param eventName - The name of the event to send.
  * @returns A promise that resolves to the response from the server.
  */
 export async function sendEvent(
+  serviceContainer: ServiceContainer,
   properties: Record<string, any>,
   payload: Record<string, any>,
   eventName: string,
 ): Promise<any> {
   // Create a new deferred object to manage promise resolution
   const deferredObject = new Deferred();
-  // Singleton instance of the network manager
-  const networkInstance = NetworkManager.Instance;
-  const retryConfig: IRetryConfig = networkInstance.getRetryConfig();
+
+  const retryConfig: IRetryConfig = serviceContainer.getNetworkManager().getRetryConfig();
+
   // disable retry for event (no retry for generic events)
   if (eventName === EventEnum.VWO_DEBUGGER_EVENT) retryConfig.shouldRetry = false;
-
-  let baseUrl = UrlUtil.getBaseUrl();
-
-  let protocol = SettingsService.Instance.protocol;
-  let port = SettingsService.Instance.port;
-
-  if (
-    eventName === EventEnum.VWO_LOG_EVENT ||
-    eventName === EventEnum.VWO_USAGE_STATS ||
-    eventName === EventEnum.VWO_DEBUGGER_EVENT
-  ) {
-    baseUrl = Constants.HOST_NAME;
-    protocol = Constants.HTTPS_PROTOCOL;
-    port = 443;
-  }
-  baseUrl = UrlUtil.getUpdatedBaseUrl(baseUrl);
-
   try {
     // Create a new request model instance with the provided parameters
     const request: RequestModel = new RequestModel(
-      baseUrl,
+      serviceContainer.getSettingsService().hostname,
       HttpMethodEnum.POST,
-      UrlEnum.EVENTS,
+      serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.EVENTS),
       properties,
       payload,
       null,
-      protocol,
-      port,
+      serviceContainer.getSettingsService().protocol,
+      serviceContainer.getSettingsService().port,
       retryConfig,
     );
     request.setEventName(properties.en);
 
     // Perform the network POST request
-    networkInstance
+    serviceContainer
+      .getNetworkManager()
       .post(request)
       .then((response: ResponseModel) => {
         // Resolve the deferred object with the data from the response

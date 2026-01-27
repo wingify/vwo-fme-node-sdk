@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,34 @@
 import { NetworkManager } from '../../../../lib/packages/network-layer/manager/NetworkManager';
 import { NetworkClientInterface } from '../../../../lib/packages/network-layer/client/NetworkClientInterface';
 import { GlobalRequestModel, RequestModel, ResponseModel } from '../../../../lib/packages/network-layer';
+import { LogManager } from '../../../../lib/packages/logger';
+import { LogLevelEnum } from '../../../../lib/enums/LogLevelEnum';
+import { HttpMethodEnum } from '../../../../lib/enums/HttpMethodEnum';
 
 jest.mock('../../../../lib/packages/network-layer/client/NetworkClient'); // Mock the NetworkClient if it's used as a default client
 
-// Mock LogManager
-jest.mock('../../../../lib/packages/logger/core/LogManager', () => ({
-  LogManager: {
-    Instance: {
-      debug: jest.fn(),
-      errorLog: jest.fn(),
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-      trace: jest.fn(),
-    },
-  },
-}));
+// Create mock LogManager
+const createMockLogManager = (): LogManager => {
+  return new LogManager({
+    isAlwaysNewInstance: true,
+    level: LogLevelEnum.ERROR, // Set to ERROR to minimize console output during tests
+  });
+};
 
 describe('NetworkManager', () => {
   let networkManager: NetworkManager;
   let mockClient: jest.Mocked<NetworkClientInterface>;
+  let mockLogManager: LogManager;
 
   beforeEach(() => {
     mockClient = {
       GET: jest.fn(),
       POST: jest.fn(),
     };
-    networkManager = NetworkManager.Instance;
-    networkManager.attachClient(mockClient);
+
+    mockLogManager = createMockLogManager();
+
+    networkManager = new NetworkManager(mockLogManager, mockClient);
   });
 
   afterEach(() => {
@@ -52,12 +52,13 @@ describe('NetworkManager', () => {
 
   describe('attachClient', () => {
     it('should attach a provided client', () => {
+      // NetworkManager doesn't have attachClient method, so we'll test client assignment through constructor
       expect(networkManager['client']).toBe(mockClient);
     });
 
     it('should use a default client if none provided', () => {
-      networkManager.attachClient();
-      expect(networkManager['client']).toBeDefined();
+      const networkManagerWithoutClient = new NetworkManager(mockLogManager);
+      expect(networkManagerWithoutClient['client']).toBeDefined();
     });
   });
 
@@ -71,7 +72,7 @@ describe('NetworkManager', () => {
 
   describe('createRequest', () => {
     it('should merge specific request data with global config', () => {
-      const request = new RequestModel('endpoint', 'GET', '/path', {}, {}, {});
+      const request = new RequestModel('endpoint', HttpMethodEnum.GET, '/path', {}, {}, {}, 'https', 443);
       const config = new GlobalRequestModel('api.example.com', {}, {}, {});
       networkManager.setConfig(config);
       const mergedRequest: RequestModel = networkManager.createRequest(request);
@@ -81,7 +82,7 @@ describe('NetworkManager', () => {
 
   describe('get', () => {
     it('should perform a GET request and resolve with response', async () => {
-      const request = new RequestModel('endpoint', 'GET', '/path', {}, {}, {});
+      const request = new RequestModel('endpoint', HttpMethodEnum.GET, '/path', {}, {}, {}, 'https', 443);
       const response = new ResponseModel();
       mockClient.GET.mockResolvedValue(response);
 
@@ -92,14 +93,14 @@ describe('NetworkManager', () => {
     });
 
     it('should reject if no URL is found', async () => {
-      const request = new RequestModel('', 'GET', '/path', {}, {}, {});
+      const request = new RequestModel('', HttpMethodEnum.GET, '/path', {}, {}, {}, 'https', 443);
       await expect(networkManager.get(request)).rejects.toThrow('no url found');
     });
   });
 
   describe('post', () => {
     it('should perform a POST request and resolve with response', async () => {
-      const request = new RequestModel('endpoint', 'POST', '/path', {}, {}, {});
+      const request = new RequestModel('endpoint', HttpMethodEnum.POST, '/path', {}, {}, {}, 'https', 443);
       const response = new ResponseModel();
       mockClient.POST.mockResolvedValue(response);
 
@@ -109,7 +110,7 @@ describe('NetworkManager', () => {
     });
 
     it('should reject if no URL is found', async () => {
-      const request = new RequestModel('', 'POST', '/path', {}, {}, {});
+      const request = new RequestModel('', HttpMethodEnum.POST, '/path', {}, {}, {}, 'https', 443);
       await expect(networkManager.post(request)).rejects.toThrow('no url found');
     });
   });

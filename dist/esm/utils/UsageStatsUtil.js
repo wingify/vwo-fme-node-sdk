@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,16 @@
  * limitations under the License.
  */
 import { LogLevelNumberEnum } from '../packages/logger/core/TransportManager.js';
-import { SettingsService } from '../services/SettingsService.js';
 /**
  * Manages usage statistics for the SDK.
  * Tracks various features and configurations being used by the client.
  * Implements Singleton pattern to ensure a single instance.
  */
 export class UsageStatsUtil {
-    /** Private constructor to prevent direct instantiation */
-    constructor() {
+    constructor(options) {
         /** Internal storage for usage statistics data */
         this.usageStatsData = {};
-    }
-    /**
-     * Provides access to the singleton instance of UsageStatsUtil.
-     *
-     * @returns The single instance of UsageStatsUtil
-     */
-    static getInstance() {
-        if (!UsageStatsUtil.instance) {
-            UsageStatsUtil.instance = new UsageStatsUtil();
-        }
-        return UsageStatsUtil.instance;
+        this.setUsageStats(options);
     }
     /**
      * Sets usage statistics based on provided options.
@@ -52,8 +40,8 @@ export class UsageStatsUtil {
     setUsageStats(options) {
         const { storage, logger, batchEventData, gatewayService, integrations, pollInterval, _vwo_meta, shouldWaitForTrackingCalls, } = options;
         const data = {};
-        data.a = SettingsService.Instance.accountId;
-        data.env = SettingsService.Instance.sdkKey;
+        data.a = options.accountId;
+        data.env = options.sdkKey;
         // Map configuration options to usage stats flags
         if (integrations)
             data.ig = 1; // Integration enabled

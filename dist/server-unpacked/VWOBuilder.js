@@ -50,7 +50,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.VWOBuilder = void 0;
 var logger_1 = require("./packages/logger");
 var network_layer_1 = require("./packages/network-layer");
-var segmentation_evaluator_1 = require("./packages/segmentation-evaluator");
 var storage_1 = require("./packages/storage");
 var VWOClient_1 = require("./VWOClient");
 var SettingsService_1 = require("./services/SettingsService");
@@ -59,14 +58,12 @@ var DataTypeUtil_1 = require("./utils/DataTypeUtil");
 var FunctionUtil_1 = require("./utils/FunctionUtil");
 var LogMessageUtil_1 = require("./utils/LogMessageUtil");
 var PromiseUtil_1 = require("./utils/PromiseUtil");
-var SettingsUtil_1 = require("./utils/SettingsUtil");
 var UuidUtil_1 = require("./utils/UuidUtil");
 var BatchEventsQueue_1 = require("./services/BatchEventsQueue");
-var BatchEventsDispatcher_1 = require("./utils/BatchEventsDispatcher");
-var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
 var constants_1 = require("./constants");
 var ApiEnum_1 = require("./enums/ApiEnum");
 var EdgeConfigModel_1 = require("./models/edge/EdgeConfigModel");
+var ServiceContainer_1 = require("./services/ServiceContainer");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.originalSettings = {};
@@ -74,28 +71,25 @@ var VWOBuilder = /** @class */ (function () {
         this.isSettingsValid = false;
         this.settingsFetchTime = undefined;
         this.options = options;
+        this.defaultServiceContainer = new ServiceContainer_1.ServiceContainer(this.options);
     }
     /**
      * Sets the network manager with the provided client and development mode options.
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d;
         if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
             this.options.shouldWaitForTrackingCalls = true;
         }
-        var networkInstance = network_layer_1.NetworkManager.Instance;
-        // Attach the network client from options
-        networkInstance.attachClient((_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.network) === null || _c === void 0 ? void 0 : _c.client, (_d = this.options) === null || _d === void 0 ? void 0 : _d.retryConfig, ((_e = this.options) === null || _e === void 0 ? void 0 : _e.shouldWaitForTrackingCalls) ? true : false);
-        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+        this.networkManager = new network_layer_1.NetworkManager(this.logManager, (_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.network) === null || _c === void 0 ? void 0 : _c.client, (_d = this.options) === null || _d === void 0 ? void 0 : _d.retryConfig);
+        this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: "Network Layer",
         }));
-        // Set the development mode based on options
-        networkInstance.getConfig().setDevelopmentMode((_f = this.options) === null || _f === void 0 ? void 0 : _f.isDevelopmentMode);
+        this.defaultServiceContainer.setNetworkManager(this.networkManager);
         return this;
     };
     VWOBuilder.prototype.initBatching = function () {
-        var _this = this;
         var _a;
         // If edge config is provided, set the batch event data to the default values
         if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
@@ -107,42 +101,24 @@ var VWOBuilder = /** @class */ (function () {
         }
         if (this.options.batchEventData) {
             if (this.settingFileManager.isGatewayServiceProvided) {
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
-                return this;
+                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
             }
-            if ((!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.eventsPerRequest) ||
-                this.options.batchEventData.eventsPerRequest <= 0) &&
-                (!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.requestTimeInterval) ||
-                    this.options.batchEventData.requestTimeInterval <= 0)) {
-                logger_1.LogManager.Instance.errorLog('INVALID_BATCH_EVENTS_CONFIG', {}, { an: ApiEnum_1.ApiEnum.INIT });
-                return this;
+            else {
+                if ((!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.eventsPerRequest) ||
+                    this.options.batchEventData.eventsPerRequest <= 0) &&
+                    (!(0, DataTypeUtil_1.isNumber)(this.options.batchEventData.requestTimeInterval) ||
+                        this.options.batchEventData.requestTimeInterval <= 0)) {
+                    this.logManager.errorLog('INVALID_BATCH_EVENTS_CONFIG', {}, { an: ApiEnum_1.ApiEnum.INIT });
+                }
+                else {
+                    this.options.batchEventData.accountId = parseInt(this.options.accountId);
+                    this.batchEventsQueue = new BatchEventsQueue_1.BatchEventsQueue(Object.assign({}, this.options.batchEventData), this.logManager);
+                    this.batchEventsQueue.flushAndClearTimer.bind(this.batchEventsQueue);
+                }
             }
-            this.batchEventsQueue = new BatchEventsQueue_1.BatchEventsQueue(Object.assign({}, this.options.batchEventData, {
-                dispatcher: function (events, callback) {
-                    return BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch({
-                        ev: events,
-                    }, callback, Object.assign({}, {
-                        a: _this.options.accountId,
-                        env: _this.options.sdkKey,
-                        sn: constants_1.Constants.SDK_NAME,
-                        sv: constants_1.Constants.SDK_VERSION,
-                    }));
-                },
-            }));
-            this.batchEventsQueue.flushAndClearTimer.bind(this.batchEventsQueue);
         }
-        return this;
-    };
-    /**
-     * Sets the segmentation evaluator with the provided segmentation options.
-     * @returns {this} The instance of this builder.
-     */
-    VWOBuilder.prototype.setSegmentation = function () {
-        var _a;
-        segmentation_evaluator_1.SegmentationManager.Instance.attachEvaluator((_a = this.options) === null || _a === void 0 ? void 0 : _a.segmentation);
-        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-            service: "Segmentation Evaluator",
-        }));
+        this.defaultServiceContainer.setBatchEventsQueue(this.batchEventsQueue);
+        this.defaultServiceContainer.injectServiceContainer(this.defaultServiceContainer);
         return this;
     };
     /**
@@ -158,7 +134,6 @@ var VWOBuilder = /** @class */ (function () {
             this.settingFileManager.getSettings().then(function (settings) {
                 _this.isSettingsValid = _this.settingFileManager.isSettingsValid;
                 _this.settingsFetchTime = _this.settingFileManager.settingsFetchTime;
-                _this.originalSettings = settings;
                 _this.isSettingsFetchInProgress = false;
                 deferredObject.resolve(settings);
             });
@@ -178,7 +153,7 @@ var VWOBuilder = /** @class */ (function () {
         try {
             // Use cached settings if available and not forced to fetch
             if (this.settings) {
-                logger_1.LogManager.Instance.info('Using already fetched and cached settings');
+                this.logManager.info('Using already fetched and cached settings');
                 deferredObject.resolve(this.settings);
             }
             else {
@@ -189,7 +164,7 @@ var VWOBuilder = /** @class */ (function () {
             }
         }
         catch (err) {
-            logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS', {
+            this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
             }, { an: ApiEnum_1.ApiEnum.INIT }, false);
             deferredObject.resolve({});
@@ -204,15 +179,18 @@ var VWOBuilder = /** @class */ (function () {
         var _a, _b, _c, _d;
         if (this.options.storage) {
             // Attach the storage connector from options
-            this.storage = storage_1.Storage.Instance.attachConnector(this.options.storage);
+            this.storage = new storage_1.Storage(this.options.storage);
             this.settingFileManager.isStorageServiceProvided = true;
         }
         else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             var BrowserStorageConnector = require('./packages/storage/connectors/BrowserStorageConnector').BrowserStorageConnector;
+            // create accountId and sdkKey hash and use it as key for storage
+            var encodedSdkKey = btoa(this.options.sdkKey);
+            var defaultStorageKey = "".concat(constants_1.Constants.PRODUCT_NAME, "_").concat(this.options.accountId, "_").concat(encodedSdkKey);
             // Pass clientStorage config to BrowserStorageConnector
-            this.storage = storage_1.Storage.Instance.attachConnector(new BrowserStorageConnector(__assign(__assign({}, this.options.clientStorage), { alwaysUseCachedSettings: (_a = this.options.clientStorage) === null || _a === void 0 ? void 0 : _a.alwaysUseCachedSettings, ttl: (_b = this.options.clientStorage) === null || _b === void 0 ? void 0 : _b.ttl })));
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+            this.storage = new storage_1.Storage(new BrowserStorageConnector(__assign(__assign({}, this.options.clientStorage), { alwaysUseCachedSettings: (_a = this.options.clientStorage) === null || _a === void 0 ? void 0 : _a.alwaysUseCachedSettings, ttl: (_b = this.options.clientStorage) === null || _b === void 0 ? void 0 : _b.ttl }), defaultStorageKey, this.logManager));
+            this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
                 service: ((_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.clientStorage) === null || _d === void 0 ? void 0 : _d.provider) === sessionStorage ? "Session Storage" : "Local Storage",
             }));
             this.settingFileManager.isStorageServiceProvided = true;
@@ -221,6 +199,7 @@ var VWOBuilder = /** @class */ (function () {
             // Set storage to null if no storage options provided
             this.storage = null;
         }
+        this.defaultServiceContainer.setStorage(this.storage);
         return this;
     };
     /**
@@ -228,8 +207,30 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setSettingsService = function () {
-        this.settingFileManager = new SettingsService_1.SettingsService(this.options);
+        this.settingFileManager = new SettingsService_1.SettingsService(this.options, this.logManager);
+        this.defaultServiceContainer.setSettingsService(this.settingFileManager);
         return this;
+    };
+    /**
+     * Returns the logger.
+     * @returns {LogManager} The logger.
+     */
+    VWOBuilder.prototype.getLogger = function () {
+        return this.logManager;
+    };
+    /**
+     * Returns the settings manager.
+     * @returns {SettingsService} The settings manager.
+     */
+    VWOBuilder.prototype.getSettingsService = function () {
+        return this.settingFileManager;
+    };
+    /**
+     * Returns the storage.
+     * @returns {Storage} The storage.
+     */
+    VWOBuilder.prototype.getStorage = function () {
+        return this.storage;
     };
     /**
      * Sets the logger with the provided logger options.
@@ -237,9 +238,10 @@ var VWOBuilder = /** @class */ (function () {
      */
     VWOBuilder.prototype.setLogger = function () {
         this.logManager = new logger_1.LogManager(this.options.logger || {});
-        logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+        this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: "Logger",
         }));
+        this.defaultServiceContainer.setLogManager(this.logManager);
         return this;
     };
     /**
@@ -278,13 +280,13 @@ var VWOBuilder = /** @class */ (function () {
     VWOBuilder.prototype.getRandomUserId = function () {
         var apiName = 'getRandomUserId';
         try {
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+            this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                 apiName: apiName,
             }));
             return (0, UuidUtil_1.getRandomUUID)(this.options.sdkKey);
         }
         catch (err) {
-            logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+            this.logManager.errorLog('EXECUTION_FAILED', {
                 apiName: apiName,
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
             });
@@ -330,22 +332,11 @@ var VWOBuilder = /** @class */ (function () {
             this.checkAndPoll();
         }
         else if (pollInterval != null) {
-            logger_1.LogManager.Instance.errorLog('INVALID_POLLING_CONFIGURATION', {
+            this.logManager.errorLog('INVALID_POLLING_CONFIGURATION', {
                 key: 'pollInterval',
                 correctType: 'number >= 1000',
             }, { an: ApiEnum_1.ApiEnum.INIT });
         }
-        return this;
-    };
-    /**
-     * Initializes usage statistics for the SDK.
-     * @returns {this} The instance of this builder.
-     */
-    VWOBuilder.prototype.initUsageStats = function () {
-        if (this.options.isUsageStatsDisabled) {
-            return this;
-        }
-        UsageStatsUtil_1.UsageStatsUtil.getInstance().setUsageStats(this.options);
         return this;
     };
     /**
@@ -354,7 +345,8 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {VWOClient} The new VWOClient instance.
      */
     VWOBuilder.prototype.build = function (settings) {
-        this.vwoInstance = new VWOClient_1.VWOClient(settings, this.options);
+        this.originalSettings = settings;
+        this.vwoInstance = new VWOClient_1.VWOClient(settings, this.options, this.defaultServiceContainer);
         this.updatePollIntervalAndCheckAndPoll(settings, true);
         return this.vwoInstance;
     };
@@ -379,18 +371,18 @@ var VWOBuilder = /** @class */ (function () {
                             JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
                             this.originalSettings = latestSettings;
                             clonedSettings = (0, FunctionUtil_1.cloneObject)(latestSettings);
-                            logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS);
-                            (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(clonedSettings, this.vwoInstance);
+                            this.logManager.info(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS);
+                            this.vwoInstance.updateSettings(clonedSettings, false);
                             // Reinitialize the poll_interval value if there is a change in settings
                             this.updatePollIntervalAndCheckAndPoll(latestSettings, false);
                         }
                         else if (latestSettings) {
-                            logger_1.LogManager.Instance.info(log_messages_1.InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
+                            this.logManager.info(log_messages_1.InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
                         }
                         return [3 /*break*/, 4];
                     case 2:
                         ex_1 = _b.sent();
-                        logger_1.LogManager.Instance.errorLog('ERROR_FETCHING_SETTINGS_WITH_POLLING', {
+                        this.logManager.errorLog('ERROR_FETCHING_SETTINGS_WITH_POLLING', {
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(ex_1),
                         }, { an: constants_1.Constants.POLLING });
                         return [3 /*break*/, 4];
@@ -410,7 +402,7 @@ var VWOBuilder = /** @class */ (function () {
         var _a;
         if (!this.isValidPollIntervalPassedFromInit) {
             var pollInterval = (_a = settings === null || settings === void 0 ? void 0 : settings.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
-            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_POLL_INTERVAL_FROM_SETTINGS, {
+            this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_POLL_INTERVAL_FROM_SETTINGS, {
                 source: (settings === null || settings === void 0 ? void 0 : settings.pollInterval) ? 'settings' : 'default',
                 pollInterval: pollInterval.toString(),
             }));

@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.36.0] - 2026-01-28
+
+### Added
+
+- Refactored the SDK to provide support for multiple instances. Previously, the SDK was singleton-based, which caused state to be shared across multiple SDK instances. Now, you can create any number of SDK instances, each with its own isolated utils, services, and associated state.
+
+  ```javascript
+  const { init } = require('vwo-fme-node-sdk');
+
+  // Initialize multiple VWO clients with different account IDs and SDK keys
+  (async function () {
+    // First instance for production environment
+    const vwoClientProd = await init({
+      accountId: '123456',
+      sdkKey: '32-alpha-numeric-sdk-key-prod',
+    });
+
+    // Second instance for staging environment
+    const vwoClientStaging = await init({
+      accountId: '789012',
+      sdkKey: '32-alpha-numeric-sdk-key-staging',
+    });
+
+    // Each instance operates independently with its own settings and state
+    const userContext = { id: 'unique_user_id' };
+
+    // Use production client
+    const prodFeature = await vwoClientProd.getFlag('feature_key', userContext);
+    console.log('Production feature enabled:', prodFeature.isEnabled());
+
+    // Use staging client
+    const stagingFeature = await vwoClientStaging.getFlag('feature_key', userContext);
+    console.log('Staging feature enabled:', stagingFeature.isEnabled());
+  })();
+  ```
+
+  Each SDK instance maintains its own:
+
+  - Settings and configuration
+  - Services (storage, logger, network layer, etc.)
+  - Utils and helper functions
+  - State and cached data
+
+  This ensures complete isolation between instances, allowing you to safely use multiple VWO accounts or environments in the same application without any interference.
+
 ## [1.35.0] - 2025-12-27
 
 ### Added
@@ -15,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 class StorageConnector extends StorageConnector {
   protected ttl = 7200000; // 2 hours in milliseconds
   protected alwaysUseCachedSettings = false;
-  
+
   constructor() {
     super();
   }
@@ -38,7 +83,7 @@ class StorageConnector extends StorageConnector {
     // Set data corresponding to a featureKey and user ID
     // Use data.featureKey and data.userId to store the above data for a specific feature and a user
   }
-  
+
   /**
    * Get settingsData from storage
    * @param {number} accountId

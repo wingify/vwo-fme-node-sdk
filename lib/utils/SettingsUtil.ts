@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,26 @@ import { SettingsModel } from '../models/settings/SettingsModel';
 import { setVariationAllocation } from './CampaignUtil';
 import { addLinkedCampaignsToSettings } from './FunctionUtil';
 import { addIsGatewayServiceRequiredFlag } from './GatewayServiceUtil';
+import { LogManager } from '../packages/logger';
 
 /**
  * Sets settings and adds campaigns to rules
  * @param settings settings
  * @param vwoClientInstance VWOClient instance
+ * @param logManager Log manager instance
  */
-export function setSettingsAndAddCampaignsToRules(settings: any, vwoClientInstance: IVWOClient) {
+export function setSettingsAndAddCampaignsToRules(
+  settings: any,
+  vwoClientInstance: IVWOClient,
+  logManager: LogManager,
+) {
   // create settings model and set it to vwoClientInstance
   vwoClientInstance.settings = new SettingsModel(settings);
   vwoClientInstance.originalSettings = settings;
   // Optimize loop by avoiding multiple calls to `getCampaigns()`
   const campaigns = vwoClientInstance.settings.getCampaigns();
   campaigns.forEach((campaign, index) => {
-    setVariationAllocation(campaign);
+    setVariationAllocation(campaign, logManager);
     campaigns[index] = campaign;
   });
   addLinkedCampaignsToSettings(vwoClientInstance.settings);

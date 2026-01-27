@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { LogManager } from '../packages/logger';
 
 import { StorageEnum } from '../enums/StorageEnum';
 import { FeatureModel } from '../models/campaign/FeatureModel';
@@ -23,6 +22,7 @@ import { IStorageService } from '../services/StorageService';
 import { ContextModel } from '../models/user/ContextModel';
 import { Deferred } from '../utils/PromiseUtil';
 import { ApiEnum } from '../enums/ApiEnum';
+import { ServiceContainer } from '../services/ServiceContainer';
 
 interface IStorageDecorator {
   /**
@@ -31,7 +31,11 @@ interface IStorageDecorator {
    * @param storageService The storage service instance.
    * @returns A promise that resolves to a VariationModel.
    */
-  setDataInStorage(data: Record<any, any>, storageService: IStorageService): Promise<VariationModel>;
+  setDataInStorage(
+    data: Record<any, any>,
+    storageService: IStorageService,
+    serviceContainer: ServiceContainer,
+  ): Promise<VariationModel>;
 
   /**
    * Retrieves a feature from storage.
@@ -40,7 +44,12 @@ interface IStorageDecorator {
    * @param storageService The storage service instance.
    * @returns A promise that resolves to the retrieved feature or relevant status.
    */
-  getFeatureFromStorage(featureKey: FeatureModel, context: ContextModel, storageService: IStorageService): Promise<any>;
+  getFeatureFromStorage(
+    featureKey: FeatureModel,
+    context: ContextModel,
+    storageService: IStorageService,
+    serviceContainer: ServiceContainer,
+  ): Promise<any>;
 }
 
 export class StorageDecorator implements IStorageDecorator {
@@ -51,32 +60,39 @@ export class StorageDecorator implements IStorageDecorator {
    * @param storageService The storage service instance.
    * @returns A promise that resolves to the retrieved feature or relevant status.
    */
-  async getFeatureFromStorage(featureKey: any, context: ContextModel, storageService: IStorageService): Promise<any> {
+  async getFeatureFromStorage(
+    featureKey: any,
+    context: ContextModel,
+    storageService: IStorageService,
+    serviceContainer: ServiceContainer,
+  ): Promise<any> {
     const deferredObject = new Deferred();
-    storageService.getDataInStorage(featureKey, context).then((campaignMap: Record<any, any> | StorageEnum) => {
-      switch (campaignMap) {
-        case StorageEnum.STORAGE_UNDEFINED:
-          deferredObject.resolve(null); // No storage defined
-          break;
-        case StorageEnum.NO_DATA_FOUND:
-          deferredObject.resolve(null); // No data found in storage
-          break;
-        case StorageEnum.INCORRECT_DATA:
-          deferredObject.resolve(StorageEnum.INCORRECT_DATA); // Incorrect data found
-          break;
-        case StorageEnum.CAMPAIGN_PAUSED:
-          deferredObject.resolve(null); // Campaign is paused
-          break;
-        case StorageEnum.VARIATION_NOT_FOUND:
-          deferredObject.resolve(StorageEnum.VARIATION_NOT_FOUND); // No variation found
-          break;
-        case StorageEnum.WHITELISTED_VARIATION:
-          deferredObject.resolve(null); // Whitelisted variation, handle accordingly
-          break;
-        default:
-          deferredObject.resolve(campaignMap); // Valid data found, resolve with it
-      }
-    });
+    storageService
+      .getDataInStorage(featureKey, context, serviceContainer)
+      .then((campaignMap: Record<any, any> | StorageEnum) => {
+        switch (campaignMap) {
+          case StorageEnum.STORAGE_UNDEFINED:
+            deferredObject.resolve(null); // No storage defined
+            break;
+          case StorageEnum.NO_DATA_FOUND:
+            deferredObject.resolve(null); // No data found in storage
+            break;
+          case StorageEnum.INCORRECT_DATA:
+            deferredObject.resolve(StorageEnum.INCORRECT_DATA); // Incorrect data found
+            break;
+          case StorageEnum.CAMPAIGN_PAUSED:
+            deferredObject.resolve(null); // Campaign is paused
+            break;
+          case StorageEnum.VARIATION_NOT_FOUND:
+            deferredObject.resolve(StorageEnum.VARIATION_NOT_FOUND); // No variation found
+            break;
+          case StorageEnum.WHITELISTED_VARIATION:
+            deferredObject.resolve(null); // Whitelisted variation, handle accordingly
+            break;
+          default:
+            deferredObject.resolve(campaignMap); // Valid data found, resolve with it
+        }
+      });
 
     return deferredObject.promise;
   }
@@ -87,10 +103,15 @@ export class StorageDecorator implements IStorageDecorator {
    * @param storageService The storage service instance.
    * @returns A promise that resolves when the data is successfully stored.
    */
-  setDataInStorage(data: Record<any, any>, storageService: IStorageService): Promise<VariationModel> {
+  setDataInStorage(
+    data: Record<any, any>,
+    storageService: IStorageService,
+    serviceContainer: ServiceContainer,
+  ): Promise<VariationModel> {
     const deferredObject = new Deferred();
     const {
       featureKey,
+      featureId,
       context,
       rolloutId,
       rolloutKey,
@@ -101,7 +122,7 @@ export class StorageDecorator implements IStorageDecorator {
     } = data;
 
     if (!featureKey) {
-      LogManager.Instance.errorLog(
+      serviceContainer.getLogManager().errorLog(
         'ERROR_STORING_DATA_IN_STORAGE',
         {
           key: 'featureKey',
@@ -113,7 +134,7 @@ export class StorageDecorator implements IStorageDecorator {
       return;
     }
     if (!context.id) {
-      LogManager.Instance.errorLog(
+      serviceContainer.getLogManager().errorLog(
         'ERROR_STORING_DATA_IN_STORAGE',
         {
           key: 'Context or Context.id',
@@ -125,7 +146,7 @@ export class StorageDecorator implements IStorageDecorator {
       return;
     }
     if (rolloutKey && !experimentKey && !rolloutVariationId) {
-      LogManager.Instance.errorLog(
+      serviceContainer.getLogManager().errorLog(
         'ERROR_STORING_DATA_IN_STORAGE',
         {
           key: 'Variation:(rolloutKey, experimentKey or rolloutVariationId)',
@@ -137,7 +158,7 @@ export class StorageDecorator implements IStorageDecorator {
       return;
     }
     if (experimentKey && !experimentVariationId) {
-      LogManager.Instance.errorLog(
+      serviceContainer.getLogManager().errorLog(
         'ERROR_STORING_DATA_IN_STORAGE',
         {
           key: 'Variation:(experimentKey or rolloutVariationId)',
@@ -149,16 +170,20 @@ export class StorageDecorator implements IStorageDecorator {
       return;
     }
 
-    storageService.setDataInStorage({
-      featureKey,
-      userId: context.id,
-      rolloutId,
-      rolloutKey,
-      rolloutVariationId,
-      experimentId,
-      experimentKey,
-      experimentVariationId,
-    });
+    storageService.setDataInStorage(
+      {
+        featureKey,
+        featureId,
+        userId: context.id,
+        rolloutId,
+        rolloutKey,
+        rolloutVariationId,
+        experimentId,
+        experimentKey,
+        experimentVariationId,
+      },
+      serviceContainer,
+    );
 
     deferredObject.resolve(); // Resolve promise when data is successfully set
 

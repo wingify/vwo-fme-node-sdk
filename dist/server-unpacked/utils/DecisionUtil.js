@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.evaluateTrafficAndGetVariation = exports.checkWhitelistingAndPreSeg = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,8 +57,6 @@ var CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
 var StatusEnum_1 = require("../enums/StatusEnum");
 var log_messages_1 = require("../enums/log-messages");
 var decision_maker_1 = require("../packages/decision-maker");
-var logger_1 = require("../packages/logger");
-var segmentation_evaluator_1 = require("../packages/segmentation-evaluator");
 var CampaignDecisionService_1 = require("../services/CampaignDecisionService");
 var DataTypeUtil_2 = require("../utils/DataTypeUtil");
 var constants_1 = require("../constants");
@@ -68,12 +66,12 @@ var LogMessageUtil_1 = require("./LogMessageUtil");
 var MegUtil_1 = require("./MegUtil");
 var UuidUtil_1 = require("./UuidUtil");
 var StorageDecorator_1 = require("../decorators/StorageDecorator");
-var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) { return __awaiter(void 0, void 0, void 0, function () {
+var checkWhitelistingAndPreSeg = function (serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) { return __awaiter(void 0, void 0, void 0, function () {
     var vwoUserId, campaignId, whitelistedVariation, groupId, groupWinnerCampaignId, storedData, isPreSegmentationPassed, winnerCampaign;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                vwoUserId = (0, UuidUtil_1.getUUID)(context.getId(), settings.getAccountId());
+                vwoUserId = (0, UuidUtil_1.getUUID)(context.getId(), serviceContainer.getSettings().getAccountId());
                 campaignId = campaign.getId();
                 if (!(campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB)) return [3 /*break*/, 3];
                 // set _vwoUserId for variation targeting variables
@@ -82,7 +80,7 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
                 }));
                 Object.assign(decision, { variationTargetingVariables: context.getVariationTargetingVariables() }); // for integration
                 if (!campaign.getIsForcedVariationEnabled()) return [3 /*break*/, 2];
-                return [4 /*yield*/, _checkCampaignWhitelisting(campaign, context)];
+                return [4 /*yield*/, _checkCampaignWhitelisting(campaign, context, serviceContainer)];
             case 1:
                 whitelistedVariation = _a.sent();
                 if (whitelistedVariation && Object.keys(whitelistedVariation).length > 0) {
@@ -90,7 +88,7 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
                 }
                 return [3 /*break*/, 3];
             case 2:
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
+                serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
                     campaignKey: campaign.getRuleKey(),
                     userId: context.getId(),
                 }));
@@ -101,7 +99,7 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
                     _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
                 }));
                 Object.assign(decision, { customVariables: context.getCustomVariables() }); // for integeration
-                groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(settings, campaign.getId(), campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null).groupId;
+                groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(serviceContainer.getSettings(), campaign.getId(), campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null).groupId;
                 groupWinnerCampaignId = megGroupWinnerCampaigns === null || megGroupWinnerCampaigns === void 0 ? void 0 : megGroupWinnerCampaigns.get(groupId);
                 if (!groupWinnerCampaignId) return [3 /*break*/, 4];
                 if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
@@ -120,11 +118,11 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
                 return [2 /*return*/, [false, null]];
             case 4:
                 if (!groupId) return [3 /*break*/, 6];
-                return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService)];
+                return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService, serviceContainer)];
             case 5:
                 storedData = _a.sent();
                 if (storedData && storedData.experimentKey && storedData.experimentId) {
-                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+                    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
                         campaignKey: storedData.experimentKey,
                         userId: context.getId(),
                     }));
@@ -154,11 +152,11 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
                     return [2 /*return*/, [false, null]];
                 }
                 _a.label = 6;
-            case 6: return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(campaign, context)];
+            case 6: return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(campaign, context, serviceContainer)];
             case 7:
                 isPreSegmentationPassed = _a.sent();
                 if (!(isPreSegmentationPassed && groupId)) return [3 /*break*/, 9];
-                return [4 /*yield*/, (0, MegUtil_1.evaluateGroups)(settings, feature, groupId, evaluatedFeatureMap, context, storageService)];
+                return [4 /*yield*/, (0, MegUtil_1.evaluateGroups)(serviceContainer, feature, groupId, evaluatedFeatureMap, context, storageService)];
             case 8:
                 winnerCampaign = _a.sent();
                 if (winnerCampaign && winnerCampaign.id === campaignId) {
@@ -192,10 +190,10 @@ var checkWhitelistingAndPreSeg = function (settings, feature, campaign, context,
     });
 }); };
 exports.checkWhitelistingAndPreSeg = checkWhitelistingAndPreSeg;
-var evaluateTrafficAndGetVariation = function (settings, campaign, userId) {
-    var variation = new CampaignDecisionService_1.CampaignDecisionService().getVariationAlloted(userId, settings.getAccountId(), campaign);
+var evaluateTrafficAndGetVariation = function (serviceContainer, campaign, userId) {
+    var variation = new CampaignDecisionService_1.CampaignDecisionService().getVariationAlloted(userId, serviceContainer.getSettings().getAccountId(), campaign, serviceContainer);
     if (!variation) {
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
+        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
             campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
                 ? campaign.getKey()
                 : campaign.getName() + '_' + campaign.getRuleKey(),
@@ -204,7 +202,7 @@ var evaluateTrafficAndGetVariation = function (settings, campaign, userId) {
         }));
         return null;
     }
-    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
+    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
         campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
             ? campaign.getKey()
             : campaign.getName() + '_' + campaign.getRuleKey(),
@@ -224,16 +222,16 @@ exports.evaluateTrafficAndGetVariation = evaluateTrafficAndGetVariation;
  * @param variationTargetingVariables   Variation targeting variables
  * @returns
  */
-var _checkCampaignWhitelisting = function (campaign, context) { return __awaiter(void 0, void 0, void 0, function () {
+var _checkCampaignWhitelisting = function (campaign, context, serviceContainer) { return __awaiter(void 0, void 0, void 0, function () {
     var whitelistingResult, status, variationString;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, _evaluateWhitelisting(campaign, context)];
+            case 0: return [4 /*yield*/, _evaluateWhitelisting(campaign, context, serviceContainer)];
             case 1:
                 whitelistingResult = _a.sent();
                 status = whitelistingResult ? StatusEnum_1.StatusEnum.PASSED : StatusEnum_1.StatusEnum.FAILED;
                 variationString = whitelistingResult ? whitelistingResult.variation.key : '';
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_STATUS, {
+                serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_STATUS, {
                     userId: context.getId(),
                     campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
                         ? campaign.getKey()
@@ -245,7 +243,7 @@ var _checkCampaignWhitelisting = function (campaign, context) { return __awaiter
         }
     });
 }); };
-var _evaluateWhitelisting = function (campaign, context) { return __awaiter(void 0, void 0, void 0, function () {
+var _evaluateWhitelisting = function (campaign, context, serviceContainer) { return __awaiter(void 0, void 0, void 0, function () {
     var targetedVariations, promises, whitelistedVariation, i, currentAllocation, stepFactor;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -254,7 +252,7 @@ var _evaluateWhitelisting = function (campaign, context) { return __awaiter(void
                 promises = [];
                 campaign.getVariations().forEach(function (variation) {
                     if ((0, DataTypeUtil_2.isObject)(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
-                        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
+                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
                             campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
                                 ? campaign.getKey()
                                 : campaign.getName() + '_' + campaign.getRuleKey(),
@@ -265,7 +263,9 @@ var _evaluateWhitelisting = function (campaign, context) { return __awaiter(void
                     }
                     // check for segmentation and evaluate
                     if ((0, DataTypeUtil_2.isObject)(variation.getSegments())) {
-                        var SegmentEvaluatorResult = segmentation_evaluator_1.SegmentationManager.Instance.validateSegmentation(variation.getSegments(), context.getVariationTargetingVariables());
+                        var SegmentEvaluatorResult = serviceContainer
+                            .getSegmentationManager()
+                            .validateSegmentation(variation.getSegments(), context.getVariationTargetingVariables());
                         SegmentEvaluatorResult = (0, DataTypeUtil_1.isPromise)(SegmentEvaluatorResult)
                             ? SegmentEvaluatorResult
                             : Promise.resolve(SegmentEvaluatorResult);

@@ -39,7 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.evaluateGroups = void 0;
 exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,6 @@ var log_messages_1 = require("../enums/log-messages");
 var CampaignModel_1 = require("../models/campaign/CampaignModel");
 var VariationModel_1 = require("../models/campaign/VariationModel");
 var decision_maker_1 = require("../packages/decision-maker");
-var logger_1 = require("../packages/logger");
 var CampaignDecisionService_1 = require("../services/CampaignDecisionService");
 var RuleEvaluationUtil_1 = require("../utils/RuleEvaluationUtil");
 var CampaignUtil_1 = require("./CampaignUtil");
@@ -71,7 +70,7 @@ var LogMessageUtil_1 = require("./LogMessageUtil");
 /**
  * Evaluates groups for a given feature and group ID.
  *
- * @param settings - The settings model.
+ * @param serviceContainer - The service container instance.
  * @param feature - The feature model to evaluate.
  * @param groupId - The ID of the group.
  * @param evaluatedFeatureMap - A map containing evaluated features.
@@ -79,29 +78,32 @@ var LogMessageUtil_1 = require("./LogMessageUtil");
  * @param storageService - The storage service.
  * @returns A promise that resolves to the evaluation result.
  */
-var evaluateGroups = function (settings, feature, groupId, evaluatedFeatureMap, context, storageService) { return __awaiter(void 0, void 0, void 0, function () {
+var evaluateGroups = function (serviceContainer, feature, groupId, evaluatedFeatureMap, context, storageService) { return __awaiter(void 0, void 0, void 0, function () {
     var featureToSkip, campaignMap, _a, featureKeys, groupCampaignIds, _loop_1, _i, featureKeys_1, featureKey, _b, eligibleCampaigns, eligibleCampaignsWithStorage;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
                 featureToSkip = [];
                 campaignMap = new Map();
-                _a = getFeatureKeysFromGroup(settings, groupId), featureKeys = _a.featureKeys, groupCampaignIds = _a.groupCampaignIds;
+                _a = getFeatureKeysFromGroup(serviceContainer.getSettings(), groupId), featureKeys = _a.featureKeys, groupCampaignIds = _a.groupCampaignIds;
                 _loop_1 = function (featureKey) {
                     var feature_1, isRolloutRulePassed;
                     return __generator(this, function (_d) {
                         switch (_d.label) {
                             case 0:
-                                feature_1 = (0, FunctionUtil_1.getFeatureFromKey)(settings, featureKey);
+                                feature_1 = (0, FunctionUtil_1.getFeatureFromKey)(serviceContainer.getSettings(), featureKey);
                                 // check if the feature is already evaluated
                                 if (featureToSkip.includes(featureKey)) {
                                     return [2 /*return*/, "continue"];
                                 }
-                                return [4 /*yield*/, _isRolloutRuleForFeaturePassed(settings, feature_1, evaluatedFeatureMap, featureToSkip, storageService, context)];
+                                return [4 /*yield*/, _isRolloutRuleForFeaturePassed(serviceContainer, feature_1, evaluatedFeatureMap, featureToSkip, storageService, context)];
                             case 1:
                                 isRolloutRulePassed = _d.sent();
                                 if (isRolloutRulePassed) {
-                                    settings.getFeatures().forEach(function (feature) {
+                                    serviceContainer
+                                        .getSettings()
+                                        .getFeatures()
+                                        .forEach(function (feature) {
                                         if (feature.getKey() === featureKey) {
                                             feature.getRulesLinkedCampaign().forEach(function (rule) {
                                                 if (groupCampaignIds.includes(rule.getId().toString()) ||
@@ -134,10 +136,10 @@ var evaluateGroups = function (settings, feature, groupId, evaluatedFeatureMap, 
             case 3:
                 _i++;
                 return [3 /*break*/, 1];
-            case 4: return [4 /*yield*/, _getEligbleCampaigns(settings, campaignMap, context, storageService)];
+            case 4: return [4 /*yield*/, _getEligbleCampaigns(serviceContainer, campaignMap, context, storageService)];
             case 5:
                 _b = _c.sent(), eligibleCampaigns = _b.eligibleCampaigns, eligibleCampaignsWithStorage = _b.eligibleCampaignsWithStorage;
-                return [4 /*yield*/, _findWinnerCampaignAmongEligibleCampaigns(settings, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService)];
+                return [4 /*yield*/, _findWinnerCampaignAmongEligibleCampaigns(serviceContainer, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService)];
             case 6: return [2 /*return*/, _c.sent()];
         }
     });
@@ -161,7 +163,7 @@ function getFeatureKeysFromGroup(settings, groupId) {
 /**
  * Evaluates the feature rollout rules for a given feature.
  *
- * @param settings - The settings model.
+ * @param serviceContainer - The service container instance.
  * @param feature - The feature model to evaluate.
  * @param evaluatedFeatureMap - A map containing evaluated features.
  * @param featureToSkip - An array of features to skip during evaluation.
@@ -169,7 +171,7 @@ function getFeatureKeysFromGroup(settings, groupId) {
  * @param context - The context model.
  * @returns A promise that resolves to true if the feature passes the rollout rules, false otherwise.
  */
-var _isRolloutRuleForFeaturePassed = function (settings, feature, evaluatedFeatureMap, featureToSkip, storageService, context) { return __awaiter(void 0, void 0, void 0, function () {
+var _isRolloutRuleForFeaturePassed = function (serviceContainer, feature, evaluatedFeatureMap, featureToSkip, storageService, context) { return __awaiter(void 0, void 0, void 0, function () {
     var rollOutRules, ruleToTestForTraffic, _i, rollOutRules_1, rule, preSegmentationResult, campaign, variation;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -185,7 +187,7 @@ var _isRolloutRuleForFeaturePassed = function (settings, feature, evaluatedFeatu
             case 1:
                 if (!(_i < rollOutRules_1.length)) return [3 /*break*/, 4];
                 rule = rollOutRules_1[_i];
-                return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, {})];
+                return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, {})];
             case 2:
                 preSegmentationResult = (_a.sent()).preSegmentationResult;
                 if (preSegmentationResult) {
@@ -199,7 +201,7 @@ var _isRolloutRuleForFeaturePassed = function (settings, feature, evaluatedFeatu
             case 4:
                 if (ruleToTestForTraffic !== null) {
                     campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(ruleToTestForTraffic);
-                    variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(settings, campaign, context.getId());
+                    variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context.getId());
                     if ((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0) {
                         evaluatedFeatureMap.set(feature.getKey(), {
                             rolloutId: ruleToTestForTraffic.id,
@@ -214,7 +216,7 @@ var _isRolloutRuleForFeaturePassed = function (settings, feature, evaluatedFeatu
                 return [2 /*return*/, false];
             case 5:
                 // no rollout rule, evaluate experiments
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS, {
+                serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS, {
                     featureKey: feature.getKey(),
                 }));
                 return [2 /*return*/, true];
@@ -224,13 +226,13 @@ var _isRolloutRuleForFeaturePassed = function (settings, feature, evaluatedFeatu
 /**
  * Retrieves eligible campaigns based on the provided campaign map and context.
  *
- * @param settings - The settings model.
+ * @param serviceContainer - The service container instance.
  * @param campaignMap - A map containing feature keys and corresponding campaigns.
  * @param context - The context model.
  * @param storageService - The storage service.
  * @returns A promise that resolves to an object containing eligible campaigns, campaigns with storage, and ineligible campaigns.
  */
-var _getEligbleCampaigns = function (settings, campaignMap, context, storageService) { return __awaiter(void 0, void 0, void 0, function () {
+var _getEligbleCampaigns = function (serviceContainer, campaignMap, context, storageService) { return __awaiter(void 0, void 0, void 0, function () {
     var eligibleCampaigns, eligibleCampaignsWithStorage, inEligibleCampaigns, campaignMapArray, _i, campaignMapArray_1, _a, featureKey, campaigns, _loop_2, _b, campaigns_1, campaign;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -248,15 +250,15 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
                     var storedData, variation;
                     return __generator(this, function (_d) {
                         switch (_d.label) {
-                            case 0: return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService)];
+                            case 0: return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer)];
                             case 1:
                                 storedData = _d.sent();
                                 // Check if campaign is stored in storage
                                 if (storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId) {
                                     if (storedData.experimentKey && storedData.experimentKey === campaign.getKey()) {
-                                        variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(settings, storedData.experimentKey, storedData.experimentVariationId);
+                                        variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.experimentKey, storedData.experimentVariationId);
                                         if (variation) {
-                                            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
+                                            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
                                                 campaignKey: storedData.experimentKey,
                                                 userId: context.getId(),
                                             }));
@@ -267,12 +269,12 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
                                         }
                                     }
                                 }
-                                return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(new CampaignModel_1.CampaignModel().modelFromDictionary(campaign), context)];
+                                return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(new CampaignModel_1.CampaignModel().modelFromDictionary(campaign), context, serviceContainer)];
                             case 2:
                                 // Check if user is eligible for the campaign
                                 if ((_d.sent()) &&
-                                    new CampaignDecisionService_1.CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign)) {
-                                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_ELIGIBLE, {
+                                    new CampaignDecisionService_1.CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign, serviceContainer)) {
+                                    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_ELIGIBLE, {
                                         campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
                                             ? campaign.getKey()
                                             : campaign.getName() + '_' + campaign.getRuleKey(),
@@ -312,7 +314,7 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
 /**
  * Evaluates the eligible campaigns and determines the winner campaign based on the provided settings, feature key, eligible campaigns, eligible campaigns with storage, group ID, and context.
  *
- * @param settings - The settings model.
+ * @param serviceContainer - The service container instance.
  * @param featureKey - The key of the feature.
  * @param eligibleCampaigns - An array of eligible campaigns.
  * @param eligibleCampaignsWithStorage - An array of eligible campaigns with storage.
@@ -320,19 +322,19 @@ var _getEligbleCampaigns = function (settings, campaignMap, context, storageServ
  * @param context - The context model.
  * @returns A promise that resolves to the winner campaign.
  */
-var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService) { return __awaiter(void 0, void 0, void 0, function () {
+var _findWinnerCampaignAmongEligibleCampaigns = function (serviceContainer, featureKey, eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService) { return __awaiter(void 0, void 0, void 0, function () {
     var winnerCampaign, campaignIds, megAlgoNumber;
-    var _a;
-    return __generator(this, function (_b) {
+    var _a, _b;
+    return __generator(this, function (_c) {
         winnerCampaign = null;
-        campaignIds = (0, CampaignUtil_1.getCampaignIdsFromFeatureKey)(settings, featureKey);
-        megAlgoNumber = !(0, DataTypeUtil_1.isUndefined)((_a = settings === null || settings === void 0 ? void 0 : settings.getGroups()[groupId]) === null || _a === void 0 ? void 0 : _a.et)
-            ? settings.getGroups()[groupId].et
+        campaignIds = (0, CampaignUtil_1.getCampaignIdsFromFeatureKey)(serviceContainer.getSettings(), featureKey);
+        megAlgoNumber = !(0, DataTypeUtil_1.isUndefined)((_b = (_a = serviceContainer.getSettings()) === null || _a === void 0 ? void 0 : _a.getGroups()[groupId]) === null || _b === void 0 ? void 0 : _b.et)
+            ? serviceContainer.getSettings().getGroups()[groupId].et
             : constants_1.Constants.RANDOM_ALGO;
         // if eligibleCampaignsWithStorage has only one campaign, then that campaign is the winner
         if (eligibleCampaignsWithStorage.length === 1) {
             winnerCampaign = eligibleCampaignsWithStorage[0];
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
                 campaignKey: eligibleCampaignsWithStorage[0].getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
                     ? eligibleCampaignsWithStorage[0].getKey()
                     : eligibleCampaignsWithStorage[0].getName() + '_' + eligibleCampaignsWithStorage[0].getRuleKey(),
@@ -343,16 +345,16 @@ var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, 
         }
         else if (eligibleCampaignsWithStorage.length > 1 && megAlgoNumber === constants_1.Constants.RANDOM_ALGO) {
             // if eligibleCampaignsWithStorage has more than one campaign and algo is random, then find the winner using random algo
-            winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
+            winnerCampaign = _normalizeWeightsAndFindWinningCampaign(serviceContainer, eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
         }
         else if (eligibleCampaignsWithStorage.length > 1) {
             // if eligibleCampaignsWithStorage has more than one campaign and algo is not random, then find the winner using advanced algo
-            winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
+            winnerCampaign = _getCampaignUsingAdvancedAlgo(serviceContainer, eligibleCampaignsWithStorage, context, campaignIds, groupId, storageService);
         }
         if (eligibleCampaignsWithStorage.length === 0) {
             if (eligibleCampaigns.length === 1) {
                 winnerCampaign = eligibleCampaigns[0];
-                logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+                serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
                     campaignKey: eligibleCampaigns[0].getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
                         ? eligibleCampaigns[0].getKey()
                         : eligibleCampaigns[0].getName() + '_' + eligibleCampaigns[0].getRuleKey(),
@@ -362,10 +364,10 @@ var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, 
                 }));
             }
             else if (eligibleCampaigns.length > 1 && megAlgoNumber === constants_1.Constants.RANDOM_ALGO) {
-                winnerCampaign = _normalizeWeightsAndFindWinningCampaign(eligibleCampaigns, context, campaignIds, groupId, storageService);
+                winnerCampaign = _normalizeWeightsAndFindWinningCampaign(serviceContainer, eligibleCampaigns, context, campaignIds, groupId, storageService);
             }
             else if (eligibleCampaigns.length > 1) {
-                winnerCampaign = _getCampaignUsingAdvancedAlgo(settings, eligibleCampaigns, context, campaignIds, groupId, storageService);
+                winnerCampaign = _getCampaignUsingAdvancedAlgo(serviceContainer, eligibleCampaigns, context, campaignIds, groupId, storageService);
             }
         }
         return [2 /*return*/, winnerCampaign];
@@ -374,13 +376,15 @@ var _findWinnerCampaignAmongEligibleCampaigns = function (settings, featureKey, 
 /**
  * Normalizes the weights of shortlisted campaigns and determines the winning campaign using random allocation.
  *
+ * @param serviceContainer - The service container instance.
  * @param shortlistedCampaigns - An array of shortlisted campaigns.
  * @param context - The context model.
  * @param calledCampaignIds - An array of campaign IDs that have been called.
  * @param groupId - The ID of the group.
+ * @param storageService - The storage service.
  * @returns The winning campaign or null if none is found.
  */
-var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
+var _normalizeWeightsAndFindWinningCampaign = function (serviceContainer, shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
     // Normalize the weights of all the shortlisted campaigns
     shortlistedCampaigns.forEach(function (campaign) {
         campaign.weight = Math.round((100 / shortlistedCampaigns.length) * 10000) / 10000;
@@ -390,7 +394,7 @@ var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, co
     // re-distribute the traffic for each camapign
     (0, CampaignUtil_1.setCampaignAllocation)(shortlistedCampaigns);
     var winnerCampaign = new CampaignDecisionService_1.CampaignDecisionService().getVariation(shortlistedCampaigns, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getId(), undefined, groupId)));
-    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
         campaignKey: winnerCampaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
             ? winnerCampaign.getKey()
             : winnerCampaign.getKey() + '_' + winnerCampaign.getRuleKey(),
@@ -405,7 +409,7 @@ var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, co
             experimentId: winnerCampaign.getId(),
             experimentKey: winnerCampaign.getKey(),
             experimentVariationId: winnerCampaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? winnerCampaign.getVariations()[0].getId() : -1,
-        }, storageService);
+        }, storageService, serviceContainer);
         if (calledCampaignIds.includes(winnerCampaign.getId())) {
             return winnerCampaign;
         }
@@ -415,18 +419,23 @@ var _normalizeWeightsAndFindWinningCampaign = function (shortlistedCampaigns, co
 /**
  * Advanced algorithm to find the winning campaign based on priority order and weighted random distribution.
  *
- * @param settings - The settings model.
+ * @param serviceContainer - The service container instance.
  * @param shortlistedCampaigns - An array of shortlisted campaigns.
  * @param context - The context model.
  * @param calledCampaignIds - An array of campaign IDs that have been called.
  * @param groupId - The ID of the group.
+ * @param storageService - The storage service.
  * @returns The winning campaign or null if none is found.
  */
-var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
+var _getCampaignUsingAdvancedAlgo = function (serviceContainer, shortlistedCampaigns, context, calledCampaignIds, groupId, storageService) {
     var winnerCampaign = null;
     var found = false; // flag to check whether winnerCampaign has been found or not and helps to break from the outer loop
-    var priorityOrder = !(0, DataTypeUtil_1.isUndefined)(settings.getGroups()[groupId].p) ? settings.getGroups()[groupId].p : {};
-    var wt = !(0, DataTypeUtil_1.isUndefined)(settings.getGroups()[groupId].wt) ? settings.getGroups()[groupId].wt : {};
+    var priorityOrder = !(0, DataTypeUtil_1.isUndefined)(serviceContainer.getSettings().getGroups()[groupId].p)
+        ? serviceContainer.getSettings().getGroups()[groupId].p
+        : {};
+    var wt = !(0, DataTypeUtil_1.isUndefined)(serviceContainer.getSettings().getGroups()[groupId].wt)
+        ? serviceContainer.getSettings().getGroups()[groupId].wt
+        : {};
     for (var i = 0; i < priorityOrder.length; i++) {
         for (var j = 0; j < shortlistedCampaigns.length; j++) {
             if (shortlistedCampaigns[j].id == priorityOrder[i]) {
@@ -476,7 +485,7 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
     // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
     // also shortlistedCampaigns and wt array does not have a single campaign id in common
     if (winnerCampaign) {
-        logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
+        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
             campaignKey: winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB
                 ? winnerCampaign.key
                 : winnerCampaign.key + '_' + winnerCampaign.ruleKey,
@@ -493,7 +502,7 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
         //     userId: context.getId(),
         //   }),
         // );
-        logger_1.LogManager.Instance.info("No winner campaign found for MEG group: ".concat(groupId));
+        serviceContainer.getLogManager().info("No winner campaign found for MEG group: ".concat(groupId));
     }
     if (winnerCampaign) {
         new StorageDecorator_1.StorageDecorator().setDataInStorage({
@@ -502,7 +511,7 @@ var _getCampaignUsingAdvancedAlgo = function (settings, shortlistedCampaigns, co
             experimentId: winnerCampaign.id,
             experimentKey: winnerCampaign.key,
             experimentVariationId: winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? winnerCampaign.variations[0].id : -1,
-        }, storageService);
+        }, storageService, serviceContainer);
         if (calledCampaignIds.includes(winnerCampaign.id)) {
             return winnerCampaign;
         }

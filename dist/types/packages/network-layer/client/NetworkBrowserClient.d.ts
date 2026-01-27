@@ -1,10 +1,13 @@
 import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { NetworkClientInterface } from './NetworkClientInterface';
+import { LogManager } from '../../logger';
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
 export declare class NetworkBrowserClient implements NetworkClientInterface {
+  private logManager;
+  constructor(logManager: LogManager);
   /**
    * Performs a GET request using the provided RequestModel.
    * @param {RequestModel} requestModel - The model containing request options.

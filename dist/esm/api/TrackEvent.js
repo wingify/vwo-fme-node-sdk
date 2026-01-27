@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,29 @@
  * limitations under the License.
  */
 import { ApiEnum } from '../enums/ApiEnum.js';
-import { LogManager } from '../packages/logger/index.js';
 import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil.js';
-import { BatchEventsQueue } from '../services/BatchEventsQueue.js';
-import { getEventsBaseProperties, getTrackGoalPayloadData, sendPostApiRequest, getShouldWaitForTrackingCalls, } from '../utils/NetworkUtil.js';
+import { getEventsBaseProperties, getTrackGoalPayloadData, sendPostApiRequest } from '../utils/NetworkUtil.js';
 export class TrackApi {
     /**
      * Implementation of the track method to handle event tracking.
      * Checks if the event exists, creates an impression, and executes hooks.
      */
-    async track(settings, eventName, context, eventProperties, hooksService) {
-        if (doesEventBelongToAnyFeature(eventName, settings)) {
+    async track(serviceContainer, eventName, context, eventProperties) {
+        if (doesEventBelongToAnyFeature(eventName, serviceContainer.getSettings())) {
             // Create an impression for the track event
-            if (getShouldWaitForTrackingCalls()) {
-                await createImpressionForTrack(settings, eventName, context, eventProperties);
+            if (serviceContainer.getShouldWaitForTrackingCalls()) {
+                await createImpressionForTrack(serviceContainer, eventName, context, eventProperties);
             }
             else {
-                createImpressionForTrack(settings, eventName, context, eventProperties);
+                createImpressionForTrack(serviceContainer, eventName, context, eventProperties);
             }
             // Set and execute integration callback for the track event
-            hooksService.set({ eventName: eventName, api: ApiEnum.TRACK_EVENT });
-            hooksService.execute(hooksService.get());
+            serviceContainer.getHooksService().set({ eventName: eventName, api: ApiEnum.TRACK_EVENT });
+            serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
             return { [eventName]: true };
         }
         // Log an error if the event does not exist
-        LogManager.Instance.errorLog('EVENT_NOT_FOUND', {
+        serviceContainer.getLogManager().errorLog('EVENT_NOT_FOUND', {
             eventName,
         }, { an: ApiEnum.TRACK_EVENT, uuid: context.getUuid(), sId: context.getSessionId() });
         return { [eventName]: false };
@@ -46,23 +44,23 @@ export class TrackApi {
 }
 /**
  * Creates an impression for a track event and sends it via a POST API request.
- * @param settings Configuration settings for the tracking.
+ * @param serviceContainer Service container.
  * @param eventName Name of the event to track.
  * @param user User details.
  * @param eventProperties Properties associated with the event.
  */
-const createImpressionForTrack = async (settings, eventName, context, eventProperties) => {
+const createImpressionForTrack = async (serviceContainer, eventName, context, eventProperties) => {
     // Get base properties for the event
-    const properties = getEventsBaseProperties(eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+    const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
     // Prepare the payload for the track goal
-    const payload = getTrackGoalPayloadData(settings, context.getId(), eventName, eventProperties, context?.getUserAgent(), context?.getIpAddress(), context.getSessionId());
+    const payload = getTrackGoalPayloadData(serviceContainer, context.getId(), eventName, eventProperties, context?.getUserAgent(), context?.getIpAddress(), context.getSessionId());
     // Send the prepared payload via POST API request
-    if (BatchEventsQueue.Instance) {
-        BatchEventsQueue.Instance.enqueue(payload);
+    if (serviceContainer.getBatchEventsQueue()) {
+        serviceContainer.getBatchEventsQueue().enqueue(payload);
     }
     else {
         // Send the constructed payload via POST request
-        await sendPostApiRequest(properties, payload, context.getId(), eventProperties);
+        await sendPostApiRequest(serviceContainer, properties, payload, context.getId(), eventProperties);
     }
 };
 //# sourceMappingURL=TrackEvent.js.map

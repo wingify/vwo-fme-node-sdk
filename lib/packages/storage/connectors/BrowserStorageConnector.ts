@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,33 +57,35 @@ export class BrowserStorageConnector extends Connector {
   protected alwaysUseCachedSettings: boolean;
   protected ttl: number;
   private readonly SETTINGS_KEY: string = Constants.DEFAULT_SETTINGS_STORAGE_KEY;
+  private logManager: LogManager;
 
   /**
    * Creates an instance of BrowserStorageConnector
    * @param {ClientStorageOptions} [options] - Configuration options for the storage connector
-   * @param {string} [options.key] - Custom key for storage (defaults to Constants.DEFAULT_LOCAL_STORAGE_KEY)
+   * @param {string} defaultStorageKey - Default key for storage
    * @param {Storage} [options.provider] - Storage provider (defaults to window.localStorage)
    * @param {boolean} [options.isDisabled] - Whether storage operations should be disabled
    * @param {boolean} [options.alwaysUseCachedSettings] - Whether to always use cached settings
    * @param {number} [options.ttl] - Custom TTL in milliseconds (defaults to Constants.SETTINGS_TTL)
    */
-  constructor(options?: ClientStorageOptions) {
+  constructor(options: ClientStorageOptions, defaultStorageKey: string, logManager: LogManager) {
     super();
-    this.storageKey = options?.key || Constants.DEFAULT_LOCAL_STORAGE_KEY;
+    this.storageKey = options?.key || defaultStorageKey;
+    this.logManager = logManager;
     this.storage = options?.provider || window.localStorage;
     this.isDisabled = options?.isDisabled || false;
     this.alwaysUseCachedSettings = options?.alwaysUseCachedSettings || false;
 
     //options.ttl should be greater than 1 minute
     if (!isNumber(options?.ttl) || options.ttl < Constants.MIN_TTL_MS) {
-      LogManager.Instance.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
+      this.logManager.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
       this.ttl = Constants.SETTINGS_TTL;
     } else {
       this.ttl = options?.ttl || Constants.SETTINGS_TTL;
     }
 
     if (!isBoolean(options?.alwaysUseCachedSettings)) {
-      LogManager.Instance.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
+      this.logManager.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
       this.alwaysUseCachedSettings = false;
     } else {
       this.alwaysUseCachedSettings = options?.alwaysUseCachedSettings || false;
@@ -101,7 +103,7 @@ export class BrowserStorageConnector extends Connector {
       const data = this.storage.getItem(this.storageKey);
       return data ? JSON.parse(data) : {};
     } catch (error) {
-      LogManager.Instance.errorLog(
+      this.logManager.errorLog(
         'ERROR_READING_DATA_FROM_BROWSER_STORAGE',
         {
           err: getFormattedErrorMessage(error),
@@ -123,7 +125,7 @@ export class BrowserStorageConnector extends Connector {
       const serializedData = JSON.stringify(data);
       this.storage.setItem(this.storageKey, serializedData);
     } catch (error) {
-      LogManager.Instance.errorLog(
+      this.logManager.errorLog(
         'ERROR_STORING_DATA_IN_BROWSER_STORAGE',
         {
           err: getFormattedErrorMessage(error),
@@ -149,10 +151,10 @@ export class BrowserStorageConnector extends Connector {
         const key = `${data.featureKey}_${data.userId}`;
         storedData[key] = data;
         this.storeData(storedData);
-        LogManager.Instance.info(`Stored data in storage for key: ${key}`);
+        this.logManager.info(`Stored data in storage for key: ${key}`);
         deferredObject.resolve();
       } catch (error) {
-        LogManager.Instance.errorLog(
+        this.logManager.errorLog(
           'ERROR_STORING_DATA_IN_BROWSER_STORAGE',
           {
             err: getFormattedErrorMessage(error),
@@ -182,10 +184,10 @@ export class BrowserStorageConnector extends Connector {
         const storedData = this.getStoredData();
         const key = `${featureKey}_${userId}`;
         const dataToReturn = storedData[key] ?? {};
-        LogManager.Instance.info(`Retrieved data from storage for key: ${key}`);
+        this.logManager.info(`Retrieved data from storage for key: ${key}`);
         deferredObject.resolve(dataToReturn);
       } catch (error) {
-        LogManager.Instance.errorLog(
+        this.logManager.errorLog(
           'ERROR_READING_DATA_FROM_BROWSER_STORAGE',
           {
             err: getFormattedErrorMessage(error),
@@ -220,7 +222,7 @@ export class BrowserStorageConnector extends Connector {
           try {
             settingsData.settings.sdkKey = atob(settingsData.settings.sdkKey);
           } catch (e) {
-            LogManager.Instance.errorLog(
+            this.logManager.errorLog(
               'ERROR_DECODING_SDK_KEY_FROM_STORAGE',
               {
                 err: getFormattedErrorMessage(e),

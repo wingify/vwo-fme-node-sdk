@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,33 +17,40 @@ import { ApiEnum } from '../enums/ApiEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { HttpMethodEnum } from '../enums/HttpMethodEnum';
 import { SettingsModel } from '../models/settings/SettingsModel';
-import { LogManager } from '../packages/logger';
-import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
-import { SettingsService } from '../services/SettingsService';
+import { RequestModel, ResponseModel } from '../packages/network-layer';
 import { Deferred } from './PromiseUtil';
 import { ContextModel } from '../models/user/ContextModel';
+import { ServiceContainer } from '../services/ServiceContainer';
 
 /**
  * Asynchronously retrieves data from a web service using the specified query parameters and endpoint.
+ * @param serviceContainer - The service container instance.
  * @param queryParams - The parameters to be used in the query string of the request.
  * @param endpoint - The endpoint URL to which the request is sent.
  * @returns A promise that resolves to the response data or false if an error occurs.
  */
-export async function getFromGatewayService(queryParams: any, endpoint: any, context: ContextModel): Promise<any> {
+export async function getFromGatewayService(
+  serviceContainer: ServiceContainer,
+  queryParams: any,
+  endpoint: any,
+  context: ContextModel,
+): Promise<any> {
   // Create a new deferred object to manage promise resolution
   const deferredObject = new Deferred();
   // Singleton instance of the network manager
-  const networkInstance = NetworkManager.Instance;
+  const networkInstance = serviceContainer.getNetworkManager();
   const retryConfig = networkInstance.getRetryConfig();
 
   // Check if the base URL is not set correctly
-  if (!SettingsService.Instance.isGatewayServiceProvided) {
+  if (!serviceContainer.getSettingsService().isGatewayServiceProvided) {
     // Log an informational message about the invalid URL
-    LogManager.Instance.errorLog(
-      'INVALID_GATEWAY_URL',
-      {},
-      { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
-    );
+    serviceContainer
+      .getLogManager()
+      .errorLog(
+        'INVALID_GATEWAY_URL',
+        {},
+        { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
+      );
     // Resolve the promise with false indicating an error or invalid state
     deferredObject.resolve(false);
     return deferredObject.promise;
@@ -51,19 +58,19 @@ export async function getFromGatewayService(queryParams: any, endpoint: any, con
 
   // required if sdk is running in browser environment
   // using dacdn where accountid is required
-  queryParams['accountId'] = SettingsService.Instance.accountId;
+  queryParams['accountId'] = serviceContainer.getSettingsService().accountId;
   let gatewayServiceUrl = null;
   let gatewayServicePort = null;
   let gatewayServiceProtocol = null;
 
-  if (SettingsService.Instance.gatewayServiceConfig.hostname != null) {
-    gatewayServiceUrl = SettingsService.Instance.gatewayServiceConfig.hostname;
-    gatewayServicePort = SettingsService.Instance.gatewayServiceConfig.port;
-    gatewayServiceProtocol = SettingsService.Instance.gatewayServiceConfig.protocol;
+  if (serviceContainer.getSettingsService().gatewayServiceConfig.hostname != null) {
+    gatewayServiceUrl = serviceContainer.getSettingsService().gatewayServiceConfig.hostname;
+    gatewayServicePort = serviceContainer.getSettingsService().gatewayServiceConfig.port;
+    gatewayServiceProtocol = serviceContainer.getSettingsService().gatewayServiceConfig.protocol;
   } else {
-    gatewayServiceUrl = SettingsService.Instance.hostname;
-    gatewayServicePort = SettingsService.Instance.port;
-    gatewayServiceProtocol = SettingsService.Instance.protocol;
+    gatewayServiceUrl = serviceContainer.getSettingsService().hostname;
+    gatewayServicePort = serviceContainer.getSettingsService().port;
+    gatewayServiceProtocol = serviceContainer.getSettingsService().protocol;
   }
 
   try {

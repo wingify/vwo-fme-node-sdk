@@ -1,12 +1,15 @@
 import { SettingsModel } from '../../../models/settings/SettingsModel';
 import { dynamic } from '../../../types/Common';
 import { Segmentation } from '../Segmentation';
+import { SegmentOperandEvaluator } from './SegmentOperandEvaluator';
 import { ContextModel } from '../../../models/user/ContextModel';
 import { FeatureModel } from '../../../models/campaign/FeatureModel';
+import { ServiceContainer } from '../../../services/ServiceContainer';
 export declare class SegmentEvaluator implements Segmentation {
   context: ContextModel;
-  settings: SettingsModel;
+  serviceContainer: ServiceContainer;
   feature: FeatureModel;
+  segmentOperandEvaluator: SegmentOperandEvaluator;
   /**
    * Validates if the segmentation defined in the DSL is applicable based on the provided properties.
    * @param dsl The domain-specific language defining the segmentation rules.

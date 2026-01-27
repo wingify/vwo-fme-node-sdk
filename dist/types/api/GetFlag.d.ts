@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SettingsModel } from '../models/settings/SettingsModel';
 import { VariationModel } from '../models/campaign/VariationModel';
 import { ContextModel } from '../models/user/ContextModel';
-import IHooksService from '../services/HooksService';
+import { ServiceContainer } from '../services/ServiceContainer';
 export declare class Flag {
   private readonly enabled;
   private variation;
@@ -27,10 +26,5 @@ export declare class Flag {
   getVariable<T = unknown>(key: string, defaultValue: T): T;
 }
 export declare class FlagApi {
-  static get(
-    featureKey: string,
-    settings: SettingsModel,
-    context: ContextModel,
-    hooksService: IHooksService,
-  ): Promise<Flag>;
+  static get(featureKey: string, context: ContextModel, serviceContainer: ServiceContainer): Promise<Flag>;
 }

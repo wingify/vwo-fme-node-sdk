@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NetworkClient = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,14 +54,14 @@ var https = __importStar(require("https"));
 var PromiseUtil_1 = require("../../../utils/PromiseUtil");
 var Url_1 = require("../../../constants/Url");
 var ResponseModel_1 = require("../models/ResponseModel");
-var logger_1 = require("../../../packages/logger");
 var EventEnum_1 = require("../../../enums/EventEnum");
 var FunctionUtil_1 = require("../../../utils/FunctionUtil");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
 var NetworkClient = /** @class */ (function () {
-    function NetworkClient() {
+    function NetworkClient(logManager) {
+        this.logManager = logManager;
     }
     /**
      * Performs a GET request using the provided RequestModel.
@@ -225,7 +225,7 @@ var NetworkClient = /** @class */ (function () {
         var endpoint = String(networkOptions.path).split('?')[0];
         var delay = retryConfig.initialDelay * Math.pow(retryConfig.backoffMultiplier, attempt) * 1000;
         if (retryConfig.shouldRetry && attempt < retryConfig.maxRetries) {
-            logger_1.LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+            this.logManager.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
                 endPoint: endpoint,
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
                 delay: delay / 1000,
@@ -241,7 +241,7 @@ var NetworkClient = /** @class */ (function () {
         }
         else {
             if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
-                logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+                this.logManager.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
                     extraData: endpoint,
                     attempts: attempt,
                     err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),

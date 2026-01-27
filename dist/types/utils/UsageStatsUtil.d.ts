@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IVWOOptions } from '../models/VWOOptionsModel';
 /**
  * Manages usage statistics for the SDK.
  * Tracks various features and configurations being used by the client.
  * Implements Singleton pattern to ensure a single instance.
  */
 export declare class UsageStatsUtil {
-  /** Singleton instance */
-  private static instance;
   /** Internal storage for usage statistics data */
   private usageStatsData;
-  /** Private constructor to prevent direct instantiation */
-  private constructor();
-  /**
-   * Provides access to the singleton instance of UsageStatsUtil.
-   *
-   * @returns The single instance of UsageStatsUtil
-   */
-  static getInstance(): UsageStatsUtil;
+  constructor(options: IVWOOptions);
   /**
    * Sets usage statistics based on provided options.
    * Maps various SDK features and configurations to boolean flags.
@@ -43,7 +35,7 @@ export declare class UsageStatsUtil {
    * @param options.pollingInterval - Polling interval configuration
    * @param options.sdkName - SDK name configuration
    */
-  setUsageStats(options: any): void;
+  setUsageStats(options: IVWOOptions): void;
   /**
    * Retrieves the current usage statistics.
    *

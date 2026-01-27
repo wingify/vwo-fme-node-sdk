@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 import { getEventsBaseProperties, getTrackUserPayloadData, sendPostApiRequest } from './NetworkUtil.js';
 import { EventEnum } from '../enums/EventEnum.js';
-import { BatchEventsQueue } from '../services/BatchEventsQueue.js';
 import { getCampaignKeyFromCampaignId, getCampaignTypeFromCampaignId } from './CampaignUtil.js';
 import { getVariationNameFromCampaignIdAndVariationId } from './CampaignUtil.js';
 import { Constants } from '../constants/index.js';
@@ -24,19 +23,19 @@ import { Constants } from '../constants/index.js';
  * This function constructs the necessary properties and payload for the event
  * and uses the NetworkUtil to send a POST API request.
  *
- * @param {SettingsModel} settings - The settings model containing configuration.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {number} campaignId - The ID of the campaign.
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-export const createAndSendImpressionForVariationShown = async (settings, campaignId, variationId, context, featureKey) => {
+export const createAndSendImpressionForVariationShown = async (serviceContainer, campaignId, variationId, context, featureKey) => {
     // Get base properties for the event
-    const properties = getEventsBaseProperties(EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
+    const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
     context.getIpAddress());
     // Construct payload data for tracking the user
-    const payload = getTrackUserPayloadData(settings, EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
-    const campaignKeyWithFeatureName = getCampaignKeyFromCampaignId(settings, campaignId);
-    const variationName = getVariationNameFromCampaignIdAndVariationId(settings, campaignId, variationId);
+    const payload = getTrackUserPayloadData(serviceContainer, EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
+    const campaignKeyWithFeatureName = getCampaignKeyFromCampaignId(serviceContainer.getSettings(), campaignId);
+    const variationName = getVariationNameFromCampaignIdAndVariationId(serviceContainer.getSettings(), campaignId, variationId);
     let campaignKey = '';
     if (featureKey === campaignKeyWithFeatureName) {
         campaignKey = Constants.IMPACT_ANALYSIS;
@@ -44,13 +43,13 @@ export const createAndSendImpressionForVariationShown = async (settings, campaig
     else {
         campaignKey = campaignKeyWithFeatureName?.split(`${featureKey}_`)[1];
     }
-    const campaignType = getCampaignTypeFromCampaignId(settings, campaignId);
-    if (BatchEventsQueue.Instance) {
-        BatchEventsQueue.Instance.enqueue(payload);
+    const campaignType = getCampaignTypeFromCampaignId(serviceContainer.getSettings(), campaignId);
+    if (serviceContainer.getBatchEventsQueue()) {
+        serviceContainer.getBatchEventsQueue().enqueue(payload);
     }
     else {
         // Send the constructed properties and payload as a POST request
-        await sendPostApiRequest(properties, payload, context.getId(), {}, { campaignKey, variationName, featureKey, campaignType });
+        await sendPostApiRequest(serviceContainer, properties, payload, context.getId(), {}, { campaignKey, variationName, featureKey, campaignType });
     }
 };
 //# sourceMappingURL=ImpressionUtil.js.map

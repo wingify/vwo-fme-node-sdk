@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,26 +53,26 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserId = getUserId;
 var AliasingUtil_1 = require("./AliasingUtil");
-var SettingsService_1 = require("../services/SettingsService");
 var log_messages_1 = require("../enums/log-messages");
-var logger_1 = require("../packages/logger");
 var LogMessageUtil_1 = require("./LogMessageUtil");
-function getUserId(userId, isAliasingEnabled) {
+function getUserId(userId, isAliasingEnabled, serviceContainer) {
     return __awaiter(this, void 0, void 0, function () {
         var alias, result;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     if (!isAliasingEnabled) return [3 /*break*/, 4];
-                    if (!SettingsService_1.SettingsService.Instance.isGatewayServiceProvided) return [3 /*break*/, 2];
-                    return [4 /*yield*/, AliasingUtil_1.AliasingUtil.getAlias(userId)];
+                    if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 2];
+                    return [4 /*yield*/, AliasingUtil_1.AliasingUtil.getAlias(userId, serviceContainer)];
                 case 1:
                     alias = _a.sent();
                     result = alias.find(function (item) { return item.aliasId === userId; });
-                    logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.ALIAS_ENABLED, { userId: result === null || result === void 0 ? void 0 : result.userId }));
+                    serviceContainer
+                        .getLogManager()
+                        .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.ALIAS_ENABLED, { userId: result === null || result === void 0 ? void 0 : result.userId }));
                     return [2 /*return*/, (result === null || result === void 0 ? void 0 : result.userId) || userId];
                 case 2:
-                    logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_GATEWAY_URL));
+                    serviceContainer.getLogManager().error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_GATEWAY_URL));
                     return [2 /*return*/, userId];
                 case 3: return [3 /*break*/, 5];
                 case 4: return [2 /*return*/, userId];

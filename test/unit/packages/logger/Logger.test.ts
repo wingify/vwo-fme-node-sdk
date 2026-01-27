@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ describe('End-to-End Tests for Logger Module', () => {
   });
 
   it('should log messages at different levels', () => {
-    new LogManager({
+    const logManager = new LogManager({
       isAlwaysNewInstance: true,
       level: LogLevelEnum.DEBUG,
     });
@@ -38,11 +38,11 @@ describe('End-to-End Tests for Logger Module', () => {
     // const spyTrace = jest.spyOn(console, 'trace');
     const spyError = jest.spyOn(console, 'error');
 
-    LogManager.Instance.debug('This is a debug message');
-    LogManager.Instance.info('This is an info message');
-    LogManager.Instance.warn('This is a warn message');
+    logManager.debug('This is a debug message');
+    logManager.info('This is an info message');
+    logManager.warn('This is a warn message');
     // LogManager.Instance.trace('This is a trace message');
-    LogManager.Instance.error('This is an error message');
+    logManager.error('This is an error message');
 
     expect(spyDebug).toHaveBeenCalledWith(expect.stringContaining('This is a debug message'));
     expect(spyInfo).toHaveBeenCalledWith(expect.stringContaining('This is an info message'));
@@ -52,7 +52,7 @@ describe('End-to-End Tests for Logger Module', () => {
   });
 
   it('should check for prefix and datetime in log messages, if passed', () => {
-    new LogManager({
+    const logManager = new LogManager({
       prefix: 'Test Prefix',
       isAlwaysNewInstance: true,
       dateTimeFormat: () => {
@@ -67,11 +67,11 @@ describe('End-to-End Tests for Logger Module', () => {
     // const spyTrace = jest.spyOn(console, 'trace');
     const spyError = jest.spyOn(console, 'error');
 
-    LogManager.Instance.debug('This is a debug message');
-    LogManager.Instance.info('This is an info message');
-    LogManager.Instance.warn('This is a warn message');
+    logManager.debug('This is a debug message');
+    logManager.info('This is an info message');
+    logManager.warn('This is a warn message');
     // LogManager.Instance.trace('This is a trace message');
-    LogManager.Instance.error('This is an error message');
+    logManager.error('This is an error message');
 
     expect(spyDebug).toHaveBeenCalledWith(expect.stringContaining('Test Prefix 123456789 This is a debug message'));
     expect(spyInfo).toHaveBeenCalledWith(expect.stringContaining('Test Prefix 123456789 This is an info message'));
@@ -81,7 +81,7 @@ describe('End-to-End Tests for Logger Module', () => {
   });
 
   it('should log messages of the transport instead of default transport i.e. console', () => {
-    new LogManager({
+    const logManager = new LogManager({
       // isAnsiColorEnabled: false,
       isAlwaysNewInstance: true,
       level: LogLevelEnum.DEBUG,
@@ -92,10 +92,10 @@ describe('End-to-End Tests for Logger Module', () => {
 
     const spyLog = jest.spyOn(console, 'log');
 
-    LogManager.Instance.debug('This is a debug message');
-    LogManager.Instance.info('This is an info message');
-    LogManager.Instance.warn('This is a warn message');
-    LogManager.Instance.error('This is an error message');
+    logManager.debug('This is a debug message');
+    logManager.info('This is an info message');
+    logManager.warn('This is a warn message');
+    logManager.error('This is an error message');
 
     expect(spyLog).toHaveBeenCalledWith(expect.stringContaining('This is a debug message'));
     expect(spyLog).toHaveBeenCalledWith(expect.stringContaining('This is an info message'));
@@ -104,7 +104,7 @@ describe('End-to-End Tests for Logger Module', () => {
   });
 
   it('should handle multiple transports', () => {
-    new LogManager({
+    const logManager = new LogManager({
       // isAnsiColorEnabled: false,
       isAlwaysNewInstance: true,
       transports: [
@@ -122,10 +122,10 @@ describe('End-to-End Tests for Logger Module', () => {
     const spyLog = jest.spyOn(console, 'log');
     const spyConsoleCount = jest.spyOn(console, 'count');
 
-    LogManager.Instance.debug('This is a debug message');
-    LogManager.Instance.info('This is an info message');
-    LogManager.Instance.warn('This is a warn message');
-    LogManager.Instance.error('This is an error message');
+    logManager.debug('This is a debug message');
+    logManager.info('This is an info message');
+    logManager.warn('This is a warn message');
+    logManager.error('This is an error message');
 
     expect(spyLog).toHaveBeenCalledWith(expect.stringContaining('This is a debug message'));
     expect(spyLog).toHaveBeenCalledWith(expect.stringContaining('This is an info message'));
@@ -139,7 +139,7 @@ describe('End-to-End Tests for Logger Module', () => {
   });
 
   it('should handle logHandler inside transport', () => {
-    new LogManager({
+    const logManager = new LogManager({
       // isAnsiColorEnabled: false,
       isAlwaysNewInstance: true,
       level: LogLevelEnum.DEBUG,
@@ -150,10 +150,10 @@ describe('End-to-End Tests for Logger Module', () => {
 
     const spyLog = jest.spyOn(console, 'log');
 
-    LogManager.Instance.debug('This is a debug message');
-    LogManager.Instance.info('This is an info message');
-    LogManager.Instance.warn('This is a warn message');
-    LogManager.Instance.error('This is an error message');
+    logManager.debug('This is a debug message');
+    logManager.info('This is an info message');
+    logManager.warn('This is a warn message');
+    logManager.error('This is an error message');
 
     expect(spyLog).toHaveBeenCalledWith('debug', 'This is a debug message');
     expect(spyLog).toHaveBeenCalledWith('info', 'This is an info message');

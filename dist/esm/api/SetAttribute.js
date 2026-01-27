@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,41 +14,40 @@
  * limitations under the License.
  */
 import { EventEnum } from '../enums/EventEnum.js';
-import { getEventsBaseProperties, getAttributePayloadData, sendPostApiRequest, getShouldWaitForTrackingCalls, } from '../utils/NetworkUtil.js';
-import { BatchEventsQueue } from '../services/BatchEventsQueue.js';
+import { getEventsBaseProperties, getAttributePayloadData, sendPostApiRequest } from '../utils/NetworkUtil.js';
 export class SetAttributeApi {
     /**
      * Implementation of setAttributes to create an impression for multiple user attributes.
-     * @param settings Configuration settings.
+     * @param serviceContainer Service container.
      * @param attributes Key-value map of attributes.
      * @param context Context containing user information.
      */
-    async setAttribute(settings, attributes, context) {
-        if (getShouldWaitForTrackingCalls()) {
-            await createImpressionForAttributes(settings, attributes, context);
+    async setAttribute(serviceContainer, attributes, context) {
+        if (serviceContainer.getShouldWaitForTrackingCalls()) {
+            await createImpressionForAttributes(serviceContainer, attributes, context);
         }
         else {
-            createImpressionForAttributes(settings, attributes, context);
+            createImpressionForAttributes(serviceContainer, attributes, context);
         }
     }
 }
 /**
  * Creates an impression for multiple user attributes and sends it to the server.
- * @param settings Configuration settings.
+ * @param serviceContainer Service container.
  * @param attributes Key-value map of attributes.
  * @param context Context containing user information.
  */
-const createImpressionForAttributes = async (settings, attributes, context) => {
+const createImpressionForAttributes = async (serviceContainer, attributes, context) => {
     // Retrieve base properties for the event
-    const properties = getEventsBaseProperties(EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+    const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
     // Construct payload data for multiple attributes
-    const payload = getAttributePayloadData(settings, context.getId(), EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress(), context.getSessionId());
-    if (BatchEventsQueue.Instance) {
-        BatchEventsQueue.Instance.enqueue(payload);
+    const payload = getAttributePayloadData(serviceContainer, context.getId(), EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress(), context.getSessionId());
+    if (serviceContainer.getBatchEventsQueue()) {
+        serviceContainer.getBatchEventsQueue().enqueue(payload);
     }
     else {
         // Send the constructed payload via POST request
-        await sendPostApiRequest(properties, payload, context.getId());
+        await sendPostApiRequest(serviceContainer, properties, payload, context.getId());
     }
 };
 //# sourceMappingURL=SetAttribute.js.map

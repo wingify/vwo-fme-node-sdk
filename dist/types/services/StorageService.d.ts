@@ -1,10 +1,17 @@
 import { ContextModel } from '../models/user/ContextModel';
+import { ServiceContainer } from './ServiceContainer';
 export interface IStorageService {
-  getDataInStorage(featureKey: any, context: ContextModel): Promise<Record<any, any>>;
-  setDataInStorage(data: Record<any, any>): Promise<void>;
+  getDataInStorage(
+    featureKey: any,
+    context: ContextModel,
+    serviceContainer: ServiceContainer,
+  ): Promise<Record<any, any>>;
+  setDataInStorage(data: Record<any, any>, serviceContainer: ServiceContainer): Promise<void>;
 }
 export declare class StorageService implements IStorageService {
   private storageData;
+  private serviceContainer;
+  constructor(serviceContainer: ServiceContainer);
   /**
    * Retrieves data from storage based on the feature key and user ID.
    * @param featureKey The key to identify the feature data.

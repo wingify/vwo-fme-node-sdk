@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,12 +53,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BatchEventsDispatcher = void 0;
 var network_layer_1 = require("../packages/network-layer");
-var UrlUtil_1 = require("./UrlUtil");
-var network_layer_2 = require("../packages/network-layer");
 var HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
 var UrlEnum_1 = require("../enums/UrlEnum");
-var SettingsService_1 = require("../services/SettingsService");
-var logger_1 = require("../packages/logger");
 var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 var log_messages_1 = require("../enums/log-messages");
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
@@ -71,11 +67,11 @@ var EventEnum_1 = require("../enums/EventEnum");
 var BatchEventsDispatcher = /** @class */ (function () {
     function BatchEventsDispatcher() {
     }
-    BatchEventsDispatcher.dispatch = function (payload, flushCallback, queryParams) {
+    BatchEventsDispatcher.dispatch = function (serviceContainer, payload, flushCallback, queryParams) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.sendPostApiRequest(queryParams, payload, flushCallback)];
+                    case 0: return [4 /*yield*/, this.sendPostApiRequest(serviceContainer, queryParams, payload, flushCallback)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -87,19 +83,16 @@ var BatchEventsDispatcher = /** @class */ (function () {
      * @param payload - The payload of the request.
      * @returns A promise that resolves to a void.
      */
-    BatchEventsDispatcher.sendPostApiRequest = function (properties, payload, flushCallback) {
+    BatchEventsDispatcher.sendPostApiRequest = function (serviceContainer, properties, payload, flushCallback) {
         return __awaiter(this, void 0, void 0, function () {
-            var deferred, networkManager, retryConfig, headers, baseUrl, request, _a, variationShownCount, setAttributeCount, customEventCount, extraData;
+            var deferred, retryConfig, headers, request, _a, variationShownCount, setAttributeCount, customEventCount, extraData;
             var _this = this;
             return __generator(this, function (_b) {
                 deferred = new PromiseUtil_1.Deferred();
-                networkManager = network_layer_2.NetworkManager.Instance;
-                retryConfig = networkManager.getRetryConfig();
+                retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
                 headers = {};
-                headers['Authorization'] = SettingsService_1.SettingsService.Instance.sdkKey;
-                baseUrl = UrlUtil_1.UrlUtil.getBaseUrl();
-                baseUrl = UrlUtil_1.UrlUtil.getUpdatedBaseUrl(baseUrl);
-                request = new network_layer_1.RequestModel(baseUrl, HttpMethodEnum_1.HttpMethodEnum.POST, UrlEnum_1.UrlEnum.BATCH_EVENTS, properties, payload, headers, SettingsService_1.SettingsService.Instance.protocol, SettingsService_1.SettingsService.Instance.port, retryConfig);
+                headers['Authorization'] = serviceContainer.getSettingsService().sdkKey;
+                request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.BATCH_EVENTS), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
                 _a = this.extractEventCounts(payload), variationShownCount = _a.variationShownCount, setAttributeCount = _a.setAttributeCount, customEventCount = _a.customEventCount;
                 extraData = "".concat(constants_1.Constants.BATCH_EVENTS, " having ");
                 if (variationShownCount > 0) {
@@ -112,27 +105,29 @@ var BatchEventsDispatcher = /** @class */ (function () {
                     extraData += "setAttribute events: ".concat(setAttributeCount, ", ");
                 }
                 try {
-                    network_layer_2.NetworkManager.Instance.post(request)
+                    serviceContainer
+                        .getNetworkManager()
+                        .post(request)
                         .then(function (response) {
                         if (response.getTotalAttempts() > 0) {
                             var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', constants_1.Constants.BATCH_EVENTS, extraData);
                             // send debug event
-                            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
+                            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
                         }
-                        var batchApiResult = _this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
+                        var batchApiResult = _this.handleBatchResponse(serviceContainer.getLogManager(), UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
                         deferred.resolve(batchApiResult);
                     })
                         .catch(function (err) {
                         var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(err, '', constants_1.Constants.BATCH_EVENTS, extraData);
                         // send debug event
-                        (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(debugEventProps);
-                        var batchApiResult = _this.handleBatchResponse(UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, err, flushCallback);
+                        (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
+                        var batchApiResult = _this.handleBatchResponse(serviceContainer.getLogManager(), UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, err, flushCallback);
                         deferred.resolve(batchApiResult);
                     });
                     return [2 /*return*/, deferred.promise];
                 }
                 catch (error) {
-                    logger_1.LogManager.Instance.errorLog('EXECUTION_FAILED', {
+                    serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                         apiName: constants_1.Constants.BATCH_EVENTS,
                         err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
                     }, { an: constants_1.Constants.BATCH_EVENTS });
@@ -152,7 +147,7 @@ var BatchEventsDispatcher = /** @class */ (function () {
      * @param rawData - Raw response data
      * @param callback - Callback function to handle the result
      */
-    BatchEventsDispatcher.handleBatchResponse = function (endPoint, payload, queryParams, err, res, callback) {
+    BatchEventsDispatcher.handleBatchResponse = function (logManager, endPoint, payload, queryParams, err, res, callback) {
         var eventsPerRequest = payload.ev.length;
         var accountId = queryParams.a;
         var error = err ? err : res === null || res === void 0 ? void 0 : res.getError();
@@ -165,8 +160,8 @@ var BatchEventsDispatcher = /** @class */ (function () {
             }
         }
         if (error) {
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
-            logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
+            logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_FAILED));
+            logManager.errorLog('NETWORK_CALL_FAILED', {
                 method: HttpMethodEnum_1.HttpMethodEnum.POST,
                 err: error.message,
             }, {}, false);
@@ -175,7 +170,7 @@ var BatchEventsDispatcher = /** @class */ (function () {
         }
         var statusCode = res === null || res === void 0 ? void 0 : res.getStatusCode();
         if (statusCode === 200) {
-            logger_1.LogManager.Instance.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_SUCCESS, {
+            logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPRESSION_BATCH_SUCCESS, {
                 accountId: accountId,
                 endPoint: endPoint,
             }));
@@ -183,20 +178,20 @@ var BatchEventsDispatcher = /** @class */ (function () {
             return { status: 'success', events: payload };
         }
         if (statusCode === 413) {
-            logger_1.LogManager.Instance.errorLog('CONFIG_BATCH_EVENT_LIMIT_EXCEEDED', {
+            logManager.errorLog('CONFIG_BATCH_EVENT_LIMIT_EXCEEDED', {
                 accountId: accountId,
                 endPoint: endPoint,
                 eventsPerRequest: eventsPerRequest,
             }, {}, false);
-            logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
+            logManager.errorLog('NETWORK_CALL_FAILED', {
                 method: HttpMethodEnum_1.HttpMethodEnum.POST,
                 err: error.message,
             }, {}, false);
             callback(error, payload);
             return { status: 'error', events: payload };
         }
-        logger_1.LogManager.Instance.errorLog('IMPRESSION_BATCH_FAILED', {}, {}, false);
-        logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILED', {
+        logManager.errorLog('IMPRESSION_BATCH_FAILED', {}, {}, false);
+        logManager.errorLog('NETWORK_CALL_FAILED', {
             method: HttpMethodEnum_1.HttpMethodEnum.POST,
             err: error.message,
         }, {}, false);

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+import { IVWOOptions } from '../models/VWOOptionsModel';
 import { LogLevelNumberEnum } from '../packages/logger/core/TransportManager';
-import { SettingsService } from '../services/SettingsService';
 
 /**
  * Manages usage statistics for the SDK.
@@ -23,25 +23,11 @@ import { SettingsService } from '../services/SettingsService';
  * Implements Singleton pattern to ensure a single instance.
  */
 export class UsageStatsUtil {
-  /** Singleton instance */
-  private static instance: UsageStatsUtil;
-
   /** Internal storage for usage statistics data */
   private usageStatsData: Record<string, string | number> = {};
 
-  /** Private constructor to prevent direct instantiation */
-  private constructor() {}
-
-  /**
-   * Provides access to the singleton instance of UsageStatsUtil.
-   *
-   * @returns The single instance of UsageStatsUtil
-   */
-  public static getInstance(): UsageStatsUtil {
-    if (!UsageStatsUtil.instance) {
-      UsageStatsUtil.instance = new UsageStatsUtil();
-    }
-    return UsageStatsUtil.instance;
+  constructor(options: IVWOOptions) {
+    this.setUsageStats(options);
   }
 
   /**
@@ -56,7 +42,7 @@ export class UsageStatsUtil {
    * @param options.pollingInterval - Polling interval configuration
    * @param options.sdkName - SDK name configuration
    */
-  setUsageStats(options: any): void {
+  setUsageStats(options: IVWOOptions): void {
     const {
       storage,
       logger,
@@ -69,8 +55,8 @@ export class UsageStatsUtil {
     } = options;
 
     const data: Record<string, string | number> = {};
-    data.a = SettingsService.Instance.accountId;
-    data.env = SettingsService.Instance.sdkKey;
+    data.a = options.accountId;
+    data.env = options.sdkKey;
 
     // Map configuration options to usage stats flags
     if (integrations) data.ig = 1; // Integration enabled

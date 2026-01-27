@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,6 @@ exports.sendGetCall = sendGetCall;
 exports.sendPostCall = sendPostCall;
 var HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
 var FunctionUtil_1 = require("./FunctionUtil");
-var logger_1 = require("../packages/logger");
 var LogMessageUtil_1 = require("./LogMessageUtil");
 var log_messages_1 = require("../enums/log-messages");
 var EventEnum_1 = require("../enums/EventEnum");
@@ -100,7 +99,7 @@ var fetchPromise = null;
  * Gets the fetch function to use, checking for global fetch first, then falling back to node-fetch.
  * @returns The fetch function to use
  */
-function getFetch() {
+function getFetch(logManager) {
     return __awaiter(this, void 0, void 0, function () {
         var _this = this;
         return __generator(this, function (_a) {
@@ -120,7 +119,7 @@ function getFetch() {
                         case 0:
                             // Check if fetch is available globally (Node.js 18+, browsers, etc.)
                             if (typeof fetch !== 'undefined') {
-                                logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                                logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
                                     api: 'Global fetch',
                                     process: typeof process === 'undefined' ? 'undefined' : 'defined',
                                 }));
@@ -130,7 +129,7 @@ function getFetch() {
                             _a.label = 1;
                         case 1:
                             _a.trys.push([1, 3, , 4]);
-                            logger_1.LogManager.Instance.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                            logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
                                 api: 'Node-fetch',
                                 process: typeof process === 'undefined' ? 'undefined' : 'defined',
                             }));
@@ -143,7 +142,7 @@ function getFetch() {
                             return [2 /*return*/, fetchFn];
                         case 3:
                             error_1 = _a.sent();
-                            logger_1.LogManager.Instance.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.ERROR_INITIALIZING_FETCH, {
+                            logManager.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.ERROR_INITIALIZING_FETCH, {
                                 error: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1),
                             }));
                             return [3 /*break*/, 4];
@@ -155,11 +154,11 @@ function getFetch() {
         });
     });
 }
-function sendGetCall(request) {
-    return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, request);
+function sendGetCall(request, logManager) {
+    return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, request, logManager);
 }
-function sendPostCall(request) {
-    return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, request);
+function sendPostCall(request, logManager) {
+    return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, request, logManager);
 }
 /**
  * Sends a request to the server using the Fetch API.
@@ -167,7 +166,7 @@ function sendPostCall(request) {
  * @param request - The request model.
  * @returns A Promise that resolves to the response data.
  */
-function sendRequest(method, request) {
+function sendRequest(method, request, logManager) {
     return __awaiter(this, void 0, void 0, function () {
         var responseModel, networkOptions, url, retryCount, fetchFn_1, retryConfig_1, shouldRetry_1, maxRetries_1, executeRequest_1, handleError_1, err_1;
         return __generator(this, function (_a) {
@@ -183,7 +182,7 @@ function sendRequest(method, request) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, getFetch()];
+                    return [4 /*yield*/, getFetch(logManager)];
                 case 2:
                     fetchFn_1 = _a.sent();
                     retryConfig_1 = request.getRetryConfig();
@@ -244,7 +243,7 @@ function sendRequest(method, request) {
                         if (shouldRetry_1 && retryCount < maxRetries_1) {
                             var delay = retryConfig_1.initialDelay * Math.pow(retryConfig_1.backoffMultiplier, retryCount) * 1000; // Exponential backoff
                             retryCount++;
-                            logger_1.LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+                            logManager.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
                                 endPoint: endpoint,
                                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
                                 delay: delay / 1000,
@@ -258,7 +257,7 @@ function sendRequest(method, request) {
                         }
                         else {
                             if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
-                                logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+                                logManager.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
                                     extraData: endpoint,
                                     attempts: retryCount,
                                     err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),

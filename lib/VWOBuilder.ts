@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 import { dynamic } from './types/Common';
 
-import { ILogManager, LogManager } from './packages/logger';
+import { LogManager } from './packages/logger';
 import { NetworkManager } from './packages/network-layer';
-import { SegmentationManager } from './packages/segmentation-evaluator';
 
 import { Storage } from './packages/storage';
 
@@ -30,19 +29,17 @@ import { isEmptyObject, isNumber } from './utils/DataTypeUtil';
 import { cloneObject, getFormattedErrorMessage } from './utils/FunctionUtil';
 import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
-import { setSettingsAndAddCampaignsToRules } from './utils/SettingsUtil';
 import { getRandomUUID } from './utils/UuidUtil';
 import { BatchEventsQueue } from './services/BatchEventsQueue';
-import { BatchEventsDispatcher } from './utils/BatchEventsDispatcher';
-import { UsageStatsUtil } from './utils/UsageStatsUtil';
 import { Constants } from './constants';
 import { ApiEnum } from './enums/ApiEnum';
 import { EdgeConfigModel } from './models/edge/EdgeConfigModel';
+import { ServiceContainer } from './services/ServiceContainer';
 
 export interface IVWOBuilder {
   settings: Record<any, any>; // Holds the configuration settings for the VWO client
   storage: Storage; // Interface for storage management
-  logManager: ILogManager; // Manages logging across the VWO SDK
+  logManager: LogManager; // Manages logging across the VWO SDK
   isSettingsFetchInProgress: boolean; // Flag to check if settings fetch is in progress
   vwoInstance: IVWOClient;
 
@@ -57,8 +54,6 @@ export interface IVWOBuilder {
   // setAnalyticsCallback(): this; // Configures the analytics callback based on provided options
   initPolling(): this; // Sets up polling for settings at a specified interval
   setLogger(): this; // Sets up the logger with specified options
-  setSegmentation(): this; // Configures the segmentation evaluator with provided options
-  initUsageStats(): this; // Initializes usage statistics for the SDK
 }
 
 export class VWOBuilder implements IVWOBuilder {
@@ -69,7 +64,7 @@ export class VWOBuilder implements IVWOBuilder {
 
   settings: Record<any, any>;
   storage: Storage;
-  logManager: ILogManager;
+  logManager: LogManager;
   originalSettings: dynamic = {};
   isSettingsFetchInProgress: boolean;
   vwoInstance: IVWOClient;
@@ -77,9 +72,12 @@ export class VWOBuilder implements IVWOBuilder {
   private isValidPollIntervalPassedFromInit: boolean = false;
   isSettingsValid: boolean = false;
   settingsFetchTime: number | undefined = undefined;
+  networkManager: NetworkManager;
+  defaultServiceContainer: ServiceContainer;
 
   constructor(options: IVWOOptions) {
     this.options = options;
+    this.defaultServiceContainer = new ServiceContainer(this.options);
   }
 
   /**
@@ -90,22 +88,14 @@ export class VWOBuilder implements IVWOBuilder {
     if (this.options.edgeConfig && !isEmptyObject(this.options?.edgeConfig)) {
       this.options.shouldWaitForTrackingCalls = true;
     }
-    const networkInstance = NetworkManager.Instance;
-    // Attach the network client from options
-    networkInstance.attachClient(
-      this.options?.network?.client,
-      this.options?.retryConfig,
-      this.options?.shouldWaitForTrackingCalls ? true : false,
-    );
+    this.networkManager = new NetworkManager(this.logManager, this.options?.network?.client, this.options?.retryConfig);
 
-    LogManager.Instance.debug(
+    this.logManager.debug(
       buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
         service: `Network Layer`,
       }),
     );
-    // Set the development mode based on options
-    networkInstance.getConfig().setDevelopmentMode(this.options?.isDevelopmentMode);
-
+    this.defaultServiceContainer.setNetworkManager(this.networkManager);
     return this;
   }
 
@@ -120,57 +110,24 @@ export class VWOBuilder implements IVWOBuilder {
     }
     if (this.options.batchEventData) {
       if (this.settingFileManager.isGatewayServiceProvided) {
-        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
-        return this;
+        this.logManager.info(buildMessage(InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
+      } else {
+        if (
+          (!isNumber(this.options.batchEventData.eventsPerRequest) ||
+            this.options.batchEventData.eventsPerRequest <= 0) &&
+          (!isNumber(this.options.batchEventData.requestTimeInterval) ||
+            this.options.batchEventData.requestTimeInterval <= 0)
+        ) {
+          this.logManager.errorLog('INVALID_BATCH_EVENTS_CONFIG', {}, { an: ApiEnum.INIT });
+        } else {
+          this.options.batchEventData.accountId = parseInt(this.options.accountId);
+          this.batchEventsQueue = new BatchEventsQueue(Object.assign({}, this.options.batchEventData), this.logManager);
+          this.batchEventsQueue.flushAndClearTimer.bind(this.batchEventsQueue);
+        }
       }
-      if (
-        (!isNumber(this.options.batchEventData.eventsPerRequest) ||
-          this.options.batchEventData.eventsPerRequest <= 0) &&
-        (!isNumber(this.options.batchEventData.requestTimeInterval) ||
-          this.options.batchEventData.requestTimeInterval <= 0)
-      ) {
-        LogManager.Instance.errorLog('INVALID_BATCH_EVENTS_CONFIG', {}, { an: ApiEnum.INIT });
-        return this;
-      }
-      this.batchEventsQueue = new BatchEventsQueue(
-        Object.assign({}, this.options.batchEventData, {
-          dispatcher: (
-            events: Record<string, any>[],
-            callback: (error: Error | null, data: Record<string, any>) => void,
-          ) =>
-            BatchEventsDispatcher.dispatch(
-              {
-                ev: events,
-              },
-              callback,
-              Object.assign(
-                {},
-                {
-                  a: this.options.accountId,
-                  env: this.options.sdkKey,
-                  sn: Constants.SDK_NAME,
-                  sv: Constants.SDK_VERSION,
-                },
-              ),
-            ),
-        }),
-      );
-      this.batchEventsQueue.flushAndClearTimer.bind(this.batchEventsQueue);
     }
-    return this;
-  }
-
-  /**
-   * Sets the segmentation evaluator with the provided segmentation options.
-   * @returns {this} The instance of this builder.
-   */
-  setSegmentation(): this {
-    SegmentationManager.Instance.attachEvaluator(this.options?.segmentation);
-    LogManager.Instance.debug(
-      buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-        service: `Segmentation Evaluator`,
-      }),
-    );
+    this.defaultServiceContainer.setBatchEventsQueue(this.batchEventsQueue);
+    this.defaultServiceContainer.injectServiceContainer(this.defaultServiceContainer);
     return this;
   }
 
@@ -187,8 +144,6 @@ export class VWOBuilder implements IVWOBuilder {
       this.settingFileManager.getSettings().then((settings: Record<any, any>) => {
         this.isSettingsValid = this.settingFileManager.isSettingsValid;
         this.settingsFetchTime = this.settingFileManager.settingsFetchTime;
-        this.originalSettings = settings;
-
         this.isSettingsFetchInProgress = false;
         deferredObject.resolve(settings);
       });
@@ -210,7 +165,7 @@ export class VWOBuilder implements IVWOBuilder {
     try {
       // Use cached settings if available and not forced to fetch
       if (this.settings) {
-        LogManager.Instance.info('Using already fetched and cached settings');
+        this.logManager.info('Using already fetched and cached settings');
         deferredObject.resolve(this.settings);
       } else {
         // Fetch settings if not cached
@@ -219,7 +174,7 @@ export class VWOBuilder implements IVWOBuilder {
         });
       }
     } catch (err) {
-      LogManager.Instance.errorLog(
+      this.logManager.errorLog(
         'ERROR_FETCHING_SETTINGS',
         {
           err: getFormattedErrorMessage(err),
@@ -239,20 +194,27 @@ export class VWOBuilder implements IVWOBuilder {
   setStorage(): this {
     if (this.options.storage) {
       // Attach the storage connector from options
-      this.storage = Storage.Instance.attachConnector(this.options.storage);
+      this.storage = new Storage(this.options.storage);
       this.settingFileManager.isStorageServiceProvided = true;
     } else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { BrowserStorageConnector } = require('./packages/storage/connectors/BrowserStorageConnector');
+      // create accountId and sdkKey hash and use it as key for storage
+      const encodedSdkKey = btoa(this.options.sdkKey);
+      const defaultStorageKey = `${Constants.PRODUCT_NAME}_${this.options.accountId}_${encodedSdkKey}`;
       // Pass clientStorage config to BrowserStorageConnector
-      this.storage = Storage.Instance.attachConnector(
-        new BrowserStorageConnector({
-          ...this.options.clientStorage,
-          alwaysUseCachedSettings: this.options.clientStorage?.alwaysUseCachedSettings,
-          ttl: this.options.clientStorage?.ttl,
-        }),
+      this.storage = new Storage(
+        new BrowserStorageConnector(
+          {
+            ...this.options.clientStorage,
+            alwaysUseCachedSettings: this.options.clientStorage?.alwaysUseCachedSettings,
+            ttl: this.options.clientStorage?.ttl,
+          },
+          defaultStorageKey,
+          this.logManager,
+        ),
       );
-      LogManager.Instance.debug(
+      this.logManager.debug(
         buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
           service: this.options?.clientStorage?.provider === sessionStorage ? `Session Storage` : `Local Storage`,
         }),
@@ -262,7 +224,7 @@ export class VWOBuilder implements IVWOBuilder {
       // Set storage to null if no storage options provided
       this.storage = null;
     }
-
+    this.defaultServiceContainer.setStorage(this.storage);
     return this;
   }
 
@@ -271,9 +233,33 @@ export class VWOBuilder implements IVWOBuilder {
    * @returns {this} The instance of this builder.
    */
   setSettingsService(): this {
-    this.settingFileManager = new SettingsService(this.options);
-
+    this.settingFileManager = new SettingsService(this.options, this.logManager);
+    this.defaultServiceContainer.setSettingsService(this.settingFileManager);
     return this;
+  }
+
+  /**
+   * Returns the logger.
+   * @returns {LogManager} The logger.
+   */
+  getLogger(): LogManager {
+    return this.logManager;
+  }
+
+  /**
+   * Returns the settings manager.
+   * @returns {SettingsService} The settings manager.
+   */
+  getSettingsService(): SettingsService {
+    return this.settingFileManager;
+  }
+
+  /**
+   * Returns the storage.
+   * @returns {Storage} The storage.
+   */
+  getStorage(): Storage {
+    return this.storage;
   }
 
   /**
@@ -283,11 +269,12 @@ export class VWOBuilder implements IVWOBuilder {
   setLogger(): this {
     this.logManager = new LogManager(this.options.logger || {});
 
-    LogManager.Instance.debug(
+    this.logManager.debug(
       buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
         service: `Logger`,
       }),
     );
+    this.defaultServiceContainer.setLogManager(this.logManager);
     return this;
   }
 
@@ -328,7 +315,7 @@ export class VWOBuilder implements IVWOBuilder {
   getRandomUserId(): string {
     const apiName = 'getRandomUserId';
     try {
-      LogManager.Instance.debug(
+      this.logManager.debug(
         buildMessage(DebugLogMessagesEnum.API_CALLED, {
           apiName,
         }),
@@ -336,7 +323,7 @@ export class VWOBuilder implements IVWOBuilder {
 
       return getRandomUUID(this.options.sdkKey);
     } catch (err) {
-      LogManager.Instance.errorLog('EXECUTION_FAILED', {
+      this.logManager.errorLog('EXECUTION_FAILED', {
         apiName,
         err: getFormattedErrorMessage(err),
       });
@@ -384,7 +371,7 @@ export class VWOBuilder implements IVWOBuilder {
       this.isValidPollIntervalPassedFromInit = true;
       this.checkAndPoll();
     } else if (pollInterval != null) {
-      LogManager.Instance.errorLog(
+      this.logManager.errorLog(
         'INVALID_POLLING_CONFIGURATION',
         {
           key: 'pollInterval',
@@ -395,17 +382,6 @@ export class VWOBuilder implements IVWOBuilder {
     }
     return this;
   }
-  /**
-   * Initializes usage statistics for the SDK.
-   * @returns {this} The instance of this builder.
-   */
-  initUsageStats(): this {
-    if (this.options.isUsageStatsDisabled) {
-      return this;
-    }
-    UsageStatsUtil.getInstance().setUsageStats(this.options);
-    return this;
-  }
 
   /**
    * Builds a new VWOClient instance with the provided settings.
@@ -413,7 +389,8 @@ export class VWOBuilder implements IVWOBuilder {
    * @returns {VWOClient} The new VWOClient instance.
    */
   build(settings: Record<any, any>): IVWOClient {
-    this.vwoInstance = new VWOClient(settings, this.options);
+    this.originalSettings = settings;
+    this.vwoInstance = new VWOClient(settings, this.options, this.defaultServiceContainer);
     this.updatePollIntervalAndCheckAndPoll(settings, true);
     return this.vwoInstance;
   }
@@ -433,16 +410,16 @@ export class VWOBuilder implements IVWOBuilder {
           this.originalSettings = latestSettings;
           const clonedSettings = cloneObject(latestSettings);
 
-          LogManager.Instance.info(InfoLogMessagesEnum.POLLING_SET_SETTINGS);
-          setSettingsAndAddCampaignsToRules(clonedSettings, this.vwoInstance);
+          this.logManager.info(InfoLogMessagesEnum.POLLING_SET_SETTINGS);
+          this.vwoInstance.updateSettings(clonedSettings, false);
 
           // Reinitialize the poll_interval value if there is a change in settings
           this.updatePollIntervalAndCheckAndPoll(latestSettings, false);
         } else if (latestSettings) {
-          LogManager.Instance.info(InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
+          this.logManager.info(InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS);
         }
       } catch (ex) {
-        LogManager.Instance.errorLog(
+        this.logManager.errorLog(
           'ERROR_FETCHING_SETTINGS_WITH_POLLING',
           {
             err: getFormattedErrorMessage(ex),
@@ -464,7 +441,7 @@ export class VWOBuilder implements IVWOBuilder {
   private updatePollIntervalAndCheckAndPoll(settings: Record<any, any>, shouldCheckAndPoll: boolean) {
     if (!this.isValidPollIntervalPassedFromInit) {
       const pollInterval = settings?.pollInterval ?? Constants.POLLING_INTERVAL;
-      LogManager.Instance.debug(
+      this.logManager.debug(
         buildMessage(DebugLogMessagesEnum.USING_POLL_INTERVAL_FROM_SETTINGS, {
           source: settings?.pollInterval ? 'settings' : 'default',
           pollInterval: pollInterval.toString(),

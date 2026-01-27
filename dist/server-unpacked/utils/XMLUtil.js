@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendGetCall = sendGetCall;
 exports.sendPostCall = sendPostCall;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,17 @@ exports.sendPostCall = sendPostCall;
  * limitations under the License.
  */
 var HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
-var logger_1 = require("../packages/logger");
 var EventEnum_1 = require("../enums/EventEnum");
 var ResponseModel_1 = require("../packages/network-layer/models/ResponseModel");
 var FunctionUtil_1 = require("./FunctionUtil");
 var noop = function () { };
-function sendGetCall(options) {
-    sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options);
+function sendGetCall(options, logManager) {
+    sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options, logManager);
 }
-function sendPostCall(options) {
-    sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options);
+function sendPostCall(options, logManager) {
+    sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options, logManager);
 }
-function sendRequest(method, options) {
+function sendRequest(method, options, logManager) {
     var requestModel = options.requestModel, _a = options.successCallback, successCallback = _a === void 0 ? noop : _a, _b = options.errorCallback, errorCallback = _b === void 0 ? noop : _b;
     var networkOptions = requestModel.getOptions();
     var retryCount = 0;
@@ -91,7 +90,7 @@ function sendRequest(method, options) {
                     Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) *
                     1000; // Exponential backoff
                 retryCount++;
-                logger_1.LogManager.Instance.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
+                logManager.errorLog('ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL', {
                     endPoint: url.split('?')[0],
                     err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
                     delay: delay / 1000,
@@ -103,7 +102,7 @@ function sendRequest(method, options) {
             }
             else {
                 if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
-                    logger_1.LogManager.Instance.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
+                    logManager.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
                         extraData: url.split('?')[0],
                         attempts: retryCount,
                         err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),

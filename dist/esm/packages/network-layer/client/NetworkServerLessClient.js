@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ import { Deferred } from '../../../utils/PromiseUtil.js';
  * Implements the NetworkClientInterface to handle network requests.
  */
 export class NetworkServerLessClient {
+    constructor(logManager) {
+        this.logManager = logManager;
+    }
     /**
      * Performs a GET request using the provided RequestModel.
      * @param {RequestModel} requestModel - The model containing request options.
@@ -26,7 +29,7 @@ export class NetworkServerLessClient {
      */
     GET(requestModel) {
         const deferred = new Deferred();
-        sendGetCall(requestModel)
+        sendGetCall(requestModel, this.logManager)
             .then((data) => {
             deferred.resolve(data);
         })
@@ -42,7 +45,7 @@ export class NetworkServerLessClient {
      */
     POST(request) {
         const deferred = new Deferred();
-        sendPostCall(request)
+        sendPostCall(request, this.logManager)
             .then((data) => {
             deferred.resolve(data);
         })

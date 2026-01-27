@@ -17,7 +17,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BrowserStorageConnector = void 0;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ exports.BrowserStorageConnector = void 0;
  */
 var constants_1 = require("../../../constants");
 var PromiseUtil_1 = require("../../../utils/PromiseUtil");
-var logger_1 = require("../../logger");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var FunctionUtil_1 = require("../../../utils/FunctionUtil");
 var Connector_1 = require("../Connector");
@@ -46,29 +45,30 @@ var BrowserStorageConnector = /** @class */ (function (_super) {
     /**
      * Creates an instance of BrowserStorageConnector
      * @param {ClientStorageOptions} [options] - Configuration options for the storage connector
-     * @param {string} [options.key] - Custom key for storage (defaults to Constants.DEFAULT_LOCAL_STORAGE_KEY)
+     * @param {string} defaultStorageKey - Default key for storage
      * @param {Storage} [options.provider] - Storage provider (defaults to window.localStorage)
      * @param {boolean} [options.isDisabled] - Whether storage operations should be disabled
      * @param {boolean} [options.alwaysUseCachedSettings] - Whether to always use cached settings
      * @param {number} [options.ttl] - Custom TTL in milliseconds (defaults to Constants.SETTINGS_TTL)
      */
-    function BrowserStorageConnector(options) {
+    function BrowserStorageConnector(options, defaultStorageKey, logManager) {
         var _this = _super.call(this) || this;
         _this.SETTINGS_KEY = constants_1.Constants.DEFAULT_SETTINGS_STORAGE_KEY;
-        _this.storageKey = (options === null || options === void 0 ? void 0 : options.key) || constants_1.Constants.DEFAULT_LOCAL_STORAGE_KEY;
+        _this.storageKey = (options === null || options === void 0 ? void 0 : options.key) || defaultStorageKey;
+        _this.logManager = logManager;
         _this.storage = (options === null || options === void 0 ? void 0 : options.provider) || window.localStorage;
         _this.isDisabled = (options === null || options === void 0 ? void 0 : options.isDisabled) || false;
         _this.alwaysUseCachedSettings = (options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings) || false;
         //options.ttl should be greater than 1 minute
         if (!(0, DataTypeUtil_1.isNumber)(options === null || options === void 0 ? void 0 : options.ttl) || options.ttl < constants_1.Constants.MIN_TTL_MS) {
-            logger_1.LogManager.Instance.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
+            _this.logManager.debug('TTL is not passed or invalid (less than 1 minute), using default value of 2 hours');
             _this.ttl = constants_1.Constants.SETTINGS_TTL;
         }
         else {
             _this.ttl = (options === null || options === void 0 ? void 0 : options.ttl) || constants_1.Constants.SETTINGS_TTL;
         }
         if (!(0, DataTypeUtil_1.isBoolean)(options === null || options === void 0 ? void 0 : options.alwaysUseCachedSettings)) {
-            logger_1.LogManager.Instance.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
+            _this.logManager.debug('AlwaysUseCachedSettings is not passed or invalid, using default value of false');
             _this.alwaysUseCachedSettings = false;
         }
         else {
@@ -89,7 +89,7 @@ var BrowserStorageConnector = /** @class */ (function (_super) {
             return data ? JSON.parse(data) : {};
         }
         catch (error) {
-            logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
+            this.logManager.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
             }, { an: constants_1.Constants.STORAGE });
             return {};
@@ -108,7 +108,7 @@ var BrowserStorageConnector = /** @class */ (function (_super) {
             this.storage.setItem(this.storageKey, serializedData);
         }
         catch (error) {
-            logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
+            this.logManager.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
             }, { an: constants_1.Constants.STORAGE });
         }
@@ -130,11 +130,11 @@ var BrowserStorageConnector = /** @class */ (function (_super) {
                 var key = "".concat(data.featureKey, "_").concat(data.userId);
                 storedData[key] = data;
                 this.storeData(storedData);
-                logger_1.LogManager.Instance.info("Stored data in storage for key: ".concat(key));
+                this.logManager.info("Stored data in storage for key: ".concat(key));
                 deferredObject.resolve();
             }
             catch (error) {
-                logger_1.LogManager.Instance.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
+                this.logManager.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
                     err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
                 }, { an: constants_1.Constants.STORAGE });
                 deferredObject.reject(error);
@@ -160,11 +160,11 @@ var BrowserStorageConnector = /** @class */ (function (_super) {
                 var storedData = this.getStoredData();
                 var key = "".concat(featureKey, "_").concat(userId);
                 var dataToReturn = (_a = storedData[key]) !== null && _a !== void 0 ? _a : {};
-                logger_1.LogManager.Instance.info("Retrieved data from storage for key: ".concat(key));
+                this.logManager.info("Retrieved data from storage for key: ".concat(key));
                 deferredObject.resolve(dataToReturn);
             }
             catch (error) {
-                logger_1.LogManager.Instance.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
+                this.logManager.errorLog('ERROR_READING_DATA_FROM_BROWSER_STORAGE', {
                     err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
                 }, { an: constants_1.Constants.STORAGE });
                 deferredObject.resolve({});
@@ -195,7 +195,7 @@ var BrowserStorageConnector = /** @class */ (function (_super) {
                         settingsData.settings.sdkKey = atob(settingsData.settings.sdkKey);
                     }
                     catch (e) {
-                        logger_1.LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
+                        this.logManager.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(e),
                         }, { an: constants_1.Constants.STORAGE });
                     }

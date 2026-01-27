@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,36 +14,26 @@
  * limitations under the License.
  */
 import { ApiEnum } from '../enums/ApiEnum';
-import { SettingsModel } from '../models/settings/SettingsModel';
 import { ContextModel } from '../models/user/ContextModel';
-import { LogManager } from '../packages/logger';
-import IHooksService from '../services/HooksService';
 import { dynamic } from '../types/Common';
 import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
-import { BatchEventsQueue } from '../services/BatchEventsQueue';
-import {
-  getEventsBaseProperties,
-  getTrackGoalPayloadData,
-  sendPostApiRequest,
-  getShouldWaitForTrackingCalls,
-} from '../utils/NetworkUtil';
+import { getEventsBaseProperties, getTrackGoalPayloadData, sendPostApiRequest } from '../utils/NetworkUtil';
+import { ServiceContainer } from '../services/ServiceContainer';
 
 interface ITrack {
   /**
    * Tracks an event with given properties and context.
-   * @param settings Configuration settings for the tracking.
+   * @param serviceContainer Service container.
    * @param eventName Name of the event to track.
    * @param context Contextual information like user details.
    * @param eventProperties Properties associated with the event.
-   * @param hooksService Manager for handling hooks and callbacks.
    * @returns A promise that resolves to a record indicating the success or failure of the event tracking.
    */
   track(
-    settings: SettingsModel,
+    serviceContainer: ServiceContainer,
     eventName: string,
     context: ContextModel,
     eventProperties: Record<string, dynamic>,
-    hooksService: IHooksService,
   ): Promise<Record<string, boolean>>;
 }
 
@@ -53,27 +43,26 @@ export class TrackApi implements ITrack {
    * Checks if the event exists, creates an impression, and executes hooks.
    */
   async track(
-    settings: SettingsModel,
+    serviceContainer: ServiceContainer,
     eventName: string,
     context: ContextModel,
     eventProperties: Record<string, dynamic>,
-    hooksService: IHooksService,
   ): Promise<Record<string, boolean>> {
-    if (doesEventBelongToAnyFeature(eventName, settings)) {
+    if (doesEventBelongToAnyFeature(eventName, serviceContainer.getSettings())) {
       // Create an impression for the track event
-      if (getShouldWaitForTrackingCalls()) {
-        await createImpressionForTrack(settings, eventName, context, eventProperties);
+      if (serviceContainer.getShouldWaitForTrackingCalls()) {
+        await createImpressionForTrack(serviceContainer, eventName, context, eventProperties);
       } else {
-        createImpressionForTrack(settings, eventName, context, eventProperties);
+        createImpressionForTrack(serviceContainer, eventName, context, eventProperties);
       }
       // Set and execute integration callback for the track event
-      hooksService.set({ eventName: eventName, api: ApiEnum.TRACK_EVENT });
-      hooksService.execute(hooksService.get());
+      serviceContainer.getHooksService().set({ eventName: eventName, api: ApiEnum.TRACK_EVENT });
+      serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
 
       return { [eventName]: true };
     }
     // Log an error if the event does not exist
-    LogManager.Instance.errorLog(
+    serviceContainer.getLogManager().errorLog(
       'EVENT_NOT_FOUND',
       {
         eventName,
@@ -87,26 +76,27 @@ export class TrackApi implements ITrack {
 
 /**
  * Creates an impression for a track event and sends it via a POST API request.
- * @param settings Configuration settings for the tracking.
+ * @param serviceContainer Service container.
  * @param eventName Name of the event to track.
  * @param user User details.
  * @param eventProperties Properties associated with the event.
  */
 const createImpressionForTrack = async (
-  settings: SettingsModel,
+  serviceContainer: ServiceContainer,
   eventName: string,
   context: ContextModel,
   eventProperties: any,
 ) => {
   // Get base properties for the event
   const properties = getEventsBaseProperties(
+    serviceContainer.getSettingsService(),
     eventName,
     encodeURIComponent(context.getUserAgent()),
     context.getIpAddress(),
   );
   // Prepare the payload for the track goal
   const payload = getTrackGoalPayloadData(
-    settings,
+    serviceContainer,
     context.getId(),
     eventName,
     eventProperties,
@@ -115,10 +105,10 @@ const createImpressionForTrack = async (
     context.getSessionId(),
   );
   // Send the prepared payload via POST API request
-  if (BatchEventsQueue.Instance) {
-    BatchEventsQueue.Instance.enqueue(payload);
+  if (serviceContainer.getBatchEventsQueue()) {
+    serviceContainer.getBatchEventsQueue().enqueue(payload);
   } else {
     // Send the constructed payload via POST request
-    await sendPostApiRequest(properties, payload, context.getId(), eventProperties);
+    await sendPostApiRequest(serviceContainer, properties, payload, context.getId(), eventProperties);
   }
 };

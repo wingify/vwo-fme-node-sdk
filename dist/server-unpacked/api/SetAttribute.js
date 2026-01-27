@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,28 +54,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SetAttributeApi = void 0;
 var EventEnum_1 = require("../enums/EventEnum");
 var NetworkUtil_1 = require("../utils/NetworkUtil");
-var BatchEventsQueue_1 = require("../services/BatchEventsQueue");
 var SetAttributeApi = /** @class */ (function () {
     function SetAttributeApi() {
     }
     /**
      * Implementation of setAttributes to create an impression for multiple user attributes.
-     * @param settings Configuration settings.
+     * @param serviceContainer Service container.
      * @param attributes Key-value map of attributes.
      * @param context Context containing user information.
      */
-    SetAttributeApi.prototype.setAttribute = function (settings, attributes, context) {
+    SetAttributeApi.prototype.setAttribute = function (serviceContainer, attributes, context) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(0, NetworkUtil_1.getShouldWaitForTrackingCalls)()) return [3 /*break*/, 2];
-                        return [4 /*yield*/, createImpressionForAttributes(settings, attributes, context)];
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 2];
+                        return [4 /*yield*/, createImpressionForAttributes(serviceContainer, attributes, context)];
                     case 1:
                         _a.sent();
                         return [3 /*break*/, 3];
                     case 2:
-                        createImpressionForAttributes(settings, attributes, context);
+                        createImpressionForAttributes(serviceContainer, attributes, context);
                         _a.label = 3;
                     case 3: return [2 /*return*/];
                 }
@@ -87,23 +86,23 @@ var SetAttributeApi = /** @class */ (function () {
 exports.SetAttributeApi = SetAttributeApi;
 /**
  * Creates an impression for multiple user attributes and sends it to the server.
- * @param settings Configuration settings.
+ * @param serviceContainer Service container.
  * @param attributes Key-value map of attributes.
  * @param context Context containing user information.
  */
-var createImpressionForAttributes = function (settings, attributes, context) { return __awaiter(void 0, void 0, void 0, function () {
+var createImpressionForAttributes = function (serviceContainer, attributes, context) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-                payload = (0, NetworkUtil_1.getAttributePayloadData)(settings, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress(), context.getSessionId());
-                if (!BatchEventsQueue_1.BatchEventsQueue.Instance) return [3 /*break*/, 1];
-                BatchEventsQueue_1.BatchEventsQueue.Instance.enqueue(payload);
+                properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+                payload = (0, NetworkUtil_1.getAttributePayloadData)(serviceContainer, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress(), context.getSessionId());
+                if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
+                serviceContainer.getBatchEventsQueue().enqueue(payload);
                 return [3 /*break*/, 3];
             case 1: 
             // Send the constructed payload via POST request
-            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(properties, payload, context.getId())];
+            return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId())];
             case 2:
                 // Send the constructed payload via POST request
                 _a.sent();

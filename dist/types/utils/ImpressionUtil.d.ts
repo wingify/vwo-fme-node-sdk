@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SettingsModel } from '../models/settings/SettingsModel';
 import { ContextModel } from '../models/user/ContextModel';
+import { ServiceContainer } from '../services/ServiceContainer';
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
  * and uses the NetworkUtil to send a POST API request.
  *
- * @param {SettingsModel} settings - The settings model containing configuration.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {number} campaignId - The ID of the campaign.
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
 export declare const createAndSendImpressionForVariationShown: (
-  settings: SettingsModel,
+  serviceContainer: ServiceContainer,
   campaignId: number,
   variationId: number,
   context: ContextModel,

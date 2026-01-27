@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,17 @@ import { Deferred } from '../../../utils/PromiseUtil';
 import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { NetworkClientInterface } from './NetworkClientInterface';
+import { LogManager } from '../../logger';
 
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
 export class NetworkBrowserClient implements NetworkClientInterface {
+  private logManager: LogManager;
+
+  constructor(logManager: LogManager) {
+    this.logManager = logManager;
+  }
   /**
    * Performs a GET request using the provided RequestModel.
    * @param {RequestModel} requestModel - The model containing request options.
@@ -32,15 +38,18 @@ export class NetworkBrowserClient implements NetworkClientInterface {
   GET(requestModel: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
 
-    sendGetCall({
-      requestModel,
-      successCallback: (responseModel: ResponseModel) => {
-        deferred.resolve(responseModel);
+    sendGetCall(
+      {
+        requestModel,
+        successCallback: (responseModel: ResponseModel) => {
+          deferred.resolve(responseModel);
+        },
+        errorCallback: (responseModel: ResponseModel) => {
+          deferred.reject(responseModel);
+        },
       },
-      errorCallback: (responseModel: ResponseModel) => {
-        deferred.reject(responseModel);
-      },
-    });
+      this.logManager,
+    );
 
     /*try {
       fetch(url)
@@ -89,15 +98,18 @@ export class NetworkBrowserClient implements NetworkClientInterface {
   POST(requestModel: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
 
-    sendPostCall({
-      requestModel,
-      successCallback: (responseModel: ResponseModel) => {
-        deferred.resolve(responseModel);
+    sendPostCall(
+      {
+        requestModel,
+        successCallback: (responseModel: ResponseModel) => {
+          deferred.resolve(responseModel);
+        },
+        errorCallback: (responseModel: ResponseModel) => {
+          deferred.reject(responseModel);
+        },
       },
-      errorCallback: (responseModel: ResponseModel) => {
-        deferred.reject(responseModel);
-      },
-    });
+      this.logManager,
+    );
 
     /* try {
       const options: any = Object.assign(

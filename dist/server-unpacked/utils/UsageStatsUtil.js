@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,29 +17,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsageStatsUtil = void 0;
 var TransportManager_1 = require("../packages/logger/core/TransportManager");
-var SettingsService_1 = require("../services/SettingsService");
 /**
  * Manages usage statistics for the SDK.
  * Tracks various features and configurations being used by the client.
  * Implements Singleton pattern to ensure a single instance.
  */
 var UsageStatsUtil = /** @class */ (function () {
-    /** Private constructor to prevent direct instantiation */
-    function UsageStatsUtil() {
+    function UsageStatsUtil(options) {
         /** Internal storage for usage statistics data */
         this.usageStatsData = {};
+        this.setUsageStats(options);
     }
-    /**
-     * Provides access to the singleton instance of UsageStatsUtil.
-     *
-     * @returns The single instance of UsageStatsUtil
-     */
-    UsageStatsUtil.getInstance = function () {
-        if (!UsageStatsUtil.instance) {
-            UsageStatsUtil.instance = new UsageStatsUtil();
-        }
-        return UsageStatsUtil.instance;
-    };
     /**
      * Sets usage statistics based on provided options.
      * Maps various SDK features and configurations to boolean flags.
@@ -56,8 +44,8 @@ var UsageStatsUtil = /** @class */ (function () {
         var _a;
         var storage = options.storage, logger = options.logger, batchEventData = options.batchEventData, gatewayService = options.gatewayService, integrations = options.integrations, pollInterval = options.pollInterval, _vwo_meta = options._vwo_meta, shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
         var data = {};
-        data.a = SettingsService_1.SettingsService.Instance.accountId;
-        data.env = SettingsService_1.SettingsService.Instance.sdkKey;
+        data.a = options.accountId;
+        data.env = options.sdkKey;
         // Map configuration options to usage stats flags
         if (integrations)
             data.ig = 1; // Integration enabled

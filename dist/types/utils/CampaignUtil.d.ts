@@ -1,13 +1,15 @@
 import { CampaignModel } from '../models/campaign/CampaignModel';
 import { VariationModel } from '../models/campaign/VariationModel';
 import { SettingsModel } from '../models/settings/SettingsModel';
+import { LogManager } from '../packages/logger';
 /**
  * Sets the variation allocation for a given campaign based on its type.
  * If the campaign type is ROLLOUT or PERSONALIZE, it handles the campaign using `_handleRolloutCampaign`.
  * Otherwise, it assigns range values to each variation in the campaign.
  * @param {CampaignModel} campaign - The campaign for which to set the variation allocation.
+ * @param {LogManager} logManager - The log manager instance.
  */
-export declare function setVariationAllocation(campaign: CampaignModel): void;
+export declare function setVariationAllocation(campaign: CampaignModel, logManager: LogManager): void;
 /**
  * Assigns start and end range values to a variation based on its weight.
  * @param {VariationModel} data - The variation model to assign range values.
@@ -66,6 +68,13 @@ export declare function getVariationNameFromCampaignIdAndVariationId(
  * @returns {string | null} The type of the campaign or null if not found.
  */
 export declare function getCampaignTypeFromCampaignId(settings: SettingsModel, campaignId: number): string | null;
+/**
+ * Checks if a feature ID is present in the settings.
+ * @param {SettingsModel} settings - The settings model containing all features.
+ * @param {number} featureId - The ID of the feature to check.
+ * @returns {boolean} True if the feature ID is present, false otherwise.
+ */
+export declare function isFeatureIdPresentInSettings(settings: SettingsModel, featureId: number): boolean;
 /**
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 import { dynamic } from '../types/Common';
 import { LogManager } from '../packages/logger';
-import { NetworkManager, RequestModel, ResponseModel } from '../packages/network-layer';
+import { RequestModel, ResponseModel } from '../packages/network-layer';
 
 import { Deferred } from '../utils/PromiseUtil';
 
@@ -31,6 +31,7 @@ import { getFormattedErrorMessage } from '../utils/FunctionUtil';
 import { ApiEnum } from '../enums/ApiEnum';
 import { StorageService } from './StorageService';
 import { isEmptyObject } from '../utils/DataTypeUtil';
+import { ServiceContainer } from './ServiceContainer';
 
 interface ISettingsService {
   sdkKey: string;
@@ -50,11 +51,13 @@ export class SettingsService implements ISettingsService {
   protocol: string;
   isGatewayServiceProvided: boolean = false;
   settingsFetchTime: number | undefined = undefined; //time taken to fetch the settings
-  private static instance: SettingsService;
   isSettingsValid: boolean = false;
   proxyProvided: boolean = false;
   isStorageServiceProvided: boolean = false;
   isEdgeEnvironment: boolean = false;
+  isSettingsProvidedInInit: boolean = false;
+  startTimeForInit: number | undefined = undefined;
+  logManager: LogManager;
   gatewayServiceConfig: {
     hostname: string | null;
     protocol: string | null;
@@ -64,8 +67,10 @@ export class SettingsService implements ISettingsService {
     protocol: null,
     port: null,
   };
+  private serviceContainer: ServiceContainer;
 
-  constructor(options: Record<string, any>) {
+  constructor(options: Record<string, any>, logManager: LogManager) {
+    this.logManager = logManager;
     this.sdkKey = options.sdkKey;
     this.accountId = options.accountId;
     this.expiry = options?.settings?.expiry || Constants.SETTINGS_EXPIRY;
@@ -79,20 +84,21 @@ export class SettingsService implements ISettingsService {
     // Check if sdk running in browser and not in edge/serverless environment
     if (typeof process === 'undefined' && typeof XMLHttpRequest !== 'undefined') {
       this.isGatewayServiceProvided = true;
-      // Handle proxyUrl for browser environment
-      if (options?.proxyUrl) {
-        this.proxyProvided = true;
-        let parsedUrl;
-        if (options.proxyUrl.startsWith(HTTP_PROTOCOL) || options.proxyUrl.startsWith(HTTPS_PROTOCOL)) {
-          parsedUrl = new URL(`${options.proxyUrl}`);
-        } else {
-          parsedUrl = new URL(`${HTTPS_PROTOCOL}${options.proxyUrl}`);
-        }
-        this.hostname = parsedUrl.hostname;
-        this.protocol = parsedUrl.protocol.replace(':', '');
-        if (parsedUrl.port) {
-          this.port = parseInt(parsedUrl.port);
-        }
+    }
+
+    // Handle proxyUrl config
+    if (options?.proxyUrl) {
+      this.proxyProvided = true;
+      let parsedUrl;
+      if (options.proxyUrl.startsWith(HTTP_PROTOCOL) || options.proxyUrl.startsWith(HTTPS_PROTOCOL)) {
+        parsedUrl = new URL(`${options.proxyUrl}`);
+      } else {
+        parsedUrl = new URL(`${HTTPS_PROTOCOL}${options.proxyUrl}`);
+      }
+      this.hostname = parsedUrl.hostname;
+      this.protocol = parsedUrl.protocol.replace(':', '');
+      if (parsedUrl.port) {
+        this.port = parseInt(parsedUrl.port);
       }
     }
     //if gateway is provided and proxy is not provided then only we will replace the hostname, protocol and port
@@ -137,19 +143,35 @@ export class SettingsService implements ISettingsService {
     // if (this.expiry > 0) {
     //   this.setSettingsExpiry();
     // }
-    LogManager.Instance.debug(
+    this.logManager.debug(
       buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
         service: 'Settings Manager',
       }),
     );
-    SettingsService.instance = this;
   }
 
-  static get Instance(): SettingsService {
-    return SettingsService.instance;
+  /**
+   * Injects the service container into the settings service.
+   * @param {ServiceContainer} serviceContainer - The service container to inject.
+   */
+  injectServiceContainer(serviceContainer: ServiceContainer): void {
+    this.serviceContainer = serviceContainer;
   }
 
-  async normalizeSettings(settings: Record<any, any>): Promise<Record<any, any>> {
+  /**
+   * Check if proxy is provided
+   * @returns {boolean} - True if proxy is provided, false otherwise
+   */
+  isProxyProvided(): boolean {
+    return this.proxyProvided;
+  }
+
+  /**
+   * Normalize the settings
+   * @param settings - The settings to normalize
+   * @returns {Record<any, any>} - The normalized settings
+   */
+  normalizeSettings(settings: Record<any, any>): Record<any, any> {
     const normalizedSettings = { ...settings };
     if (!normalizedSettings.features || Object.keys(normalizedSettings.features).length === 0) {
       normalizedSettings.features = [];
@@ -167,16 +189,15 @@ export class SettingsService implements ISettingsService {
       deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
     }
 
-    const networkInstance = NetworkManager.Instance;
     const options: Record<string, dynamic> = getSettingsPath(this.sdkKey, this.accountId);
-    const retryConfig = networkInstance.getRetryConfig();
+    const retryConfig = this.serviceContainer.getNetworkManager().getRetryConfig();
 
     options.platform = Constants.PLATFORM;
     options.sn = Constants.SDK_NAME;
     options.sv = Constants.SDK_VERSION;
     options['api-version'] = Constants.API_VERSION;
 
-    if (!networkInstance.getConfig().getDevelopmentMode()) {
+    if (!this.serviceContainer.getNetworkManager().getConfig().getDevelopmentMode()) {
       options.s = 'prod';
     }
 
@@ -201,7 +222,8 @@ export class SettingsService implements ISettingsService {
       );
       request.setTimeout(this.networkTimeout);
 
-      networkInstance
+      this.serviceContainer
+        .getNetworkManager()
         .get(request)
         .then((response: ResponseModel) => {
           //record the timestamp when the response is received
@@ -216,7 +238,7 @@ export class SettingsService implements ISettingsService {
               path,
             );
             // send debug event
-            sendDebugEventToVWO(debugEventProps);
+            sendDebugEventToVWO(this.serviceContainer, debugEventProps);
           }
           deferredObject.resolve(response.getData());
         })
@@ -228,14 +250,14 @@ export class SettingsService implements ISettingsService {
             path,
           );
           // send debug event
-          sendDebugEventToVWO(debugEventProps);
+          sendDebugEventToVWO(this.serviceContainer, debugEventProps);
 
           deferredObject.reject(err);
         });
 
       return deferredObject.promise;
     } catch (err) {
-      LogManager.Instance.errorLog(
+      this.logManager.errorLog(
         'ERROR_FETCHING_SETTINGS',
         {
           err: getFormattedErrorMessage(err),
@@ -258,7 +280,7 @@ export class SettingsService implements ISettingsService {
     try {
       // check if the storage service is provided
       if (this.isStorageServiceProvided) {
-        const storageService = new StorageService();
+        const storageService = new StorageService(this.serviceContainer);
         // get the cached settings from storage
         const cachedSettings = await storageService.getSettingsFromStorage(
           this.accountId,
@@ -267,22 +289,22 @@ export class SettingsService implements ISettingsService {
         );
         // if cached settings are found, return the cached settings
         if (cachedSettings && !isEmptyObject(cachedSettings)) {
-          LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
+          this.logManager.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_FROM_CACHE));
           deferredObject.resolve(cachedSettings);
         } else {
           // if no cached settings are found, fetch fresh settings from server
-          LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
+          this.logManager.info(buildMessage(InfoLogMessagesEnum.SETTINGS_CACHE_MISS));
           const freshSettings = await this.fetchSettings();
           const normalizedSettings = await this.normalizeSettings(freshSettings);
           // check if the settings are valid
           this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
           if (this.isSettingsValid) {
             // if settings are valid, set the settings in storage
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
+            this.logManager.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
             await storageService.setSettingsInStorage(this.accountId, this.sdkKey, normalizedSettings);
             deferredObject.resolve(normalizedSettings);
           } else {
-            LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
+            this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
             deferredObject.resolve({});
           }
         }
@@ -292,15 +314,15 @@ export class SettingsService implements ISettingsService {
         const normalizedSettings = await this.normalizeSettings(freshSettings);
         this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
         if (this.isSettingsValid) {
-          LogManager.Instance.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+          this.logManager.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
           deferredObject.resolve(normalizedSettings);
         } else {
-          LogManager.Instance.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
+          this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
           deferredObject.resolve({});
         }
       }
     } catch (error) {
-      LogManager.Instance.errorLog(
+      this.logManager.errorLog(
         'ERROR_FETCHING_SETTINGS',
         {
           err: getFormattedErrorMessage(error),

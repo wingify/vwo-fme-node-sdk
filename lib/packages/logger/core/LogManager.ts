@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import { DebuggerCategoryEnum } from '../../../enums/DebuggerCategoryEnum';
 import { sendDebugEventToVWO } from '../../../utils/DebuggerServiceUtil';
 import { ErrorLogMessagesEnum } from '../../../enums/log-messages';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
+import { ServiceContainer } from '../../../services/ServiceContainer';
 
 type LogTransport = {
   log: (level: string, message: string) => void;
@@ -63,7 +64,6 @@ export interface ILogManager {
  * It is designed as a singleton to ensure a single instance throughout the application.
  */
 export class LogManager extends Logger implements ILogManager {
-  private static instance: LogManager; // Singleton instance of LogManager
   transportManager: LogTransportManager;
   config: Record<string, any>;
   name = 'VWO Logger'; // Default logger name
@@ -76,7 +76,7 @@ export class LogManager extends Logger implements ILogManager {
   transport: LogTransport;
   transports: Array<LogTransport>;
   shouldLogToStandardOutput: boolean = false;
-
+  serviceContainer: ServiceContainer;
   /**
    * Constructor for LogManager.
    * @param {Record<string, any>} config - Configuration object for LogManager.
@@ -86,30 +86,20 @@ export class LogManager extends Logger implements ILogManager {
 
     this.config = config;
 
-    if (config.isAlwaysNewInstance || !LogManager.instance) {
-      LogManager.instance = this;
+    // Initialize configuration with defaults or provided values
+    this.config.name = config.name || this.name;
+    this.config.requestId = config.requestId || this.requestId;
+    this.config.level = config.level || this.level;
+    this.config.prefix = config.prefix || this.prefix;
+    this.config.dateTimeFormat = config.dateTimeFormat || this.dateTimeFormat;
+    this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || this.shouldLogToStandardOutput;
+    this.transportManager = new LogTransportManager(this.config);
 
-      // Initialize configuration with defaults or provided values
-      this.config.name = config.name || this.name;
-      this.config.requestId = config.requestId || this.requestId;
-      this.config.level = config.level || this.level;
-      this.config.prefix = config.prefix || this.prefix;
-      this.config.dateTimeFormat = config.dateTimeFormat || this.dateTimeFormat;
-      this.config.shouldLogToStandardOutput = config.shouldLogToStandardOutput || this.shouldLogToStandardOutput;
-      this.transportManager = new LogTransportManager(this.config);
-
-      this.handleTransports();
-    }
-
-    return LogManager.instance;
+    this.handleTransports();
   }
 
-  /**
-   * Provides access to the singleton instance of LogManager.
-   * @returns {LogManager} The singleton instance.
-   */
-  static get Instance(): LogManager {
-    return LogManager.instance;
+  injectServiceContainer(serviceContainer: ServiceContainer): void {
+    this.serviceContainer = serviceContainer;
   }
 
   /**
@@ -207,7 +197,7 @@ export class LogManager extends Logger implements ILogManager {
           cg: DebuggerCategoryEnum.ERROR,
         };
         // send debug event to VWO
-        sendDebugEventToVWO(debugEventProps);
+        sendDebugEventToVWO(this.serviceContainer, debugEventProps);
       }
     } catch (err) {
       console.error('Got error while logging error' + getFormattedErrorMessage(err));

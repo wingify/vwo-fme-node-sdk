@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 import { StorageEnum } from '../enums/StorageEnum.js';
-import { Storage } from '../packages/storage/index.js';
-import { LogManager } from '../packages/logger/index.js';
 import { isEmptyObject, isNull, isUndefined } from '../utils/DataTypeUtil.js';
 import { Deferred } from '../utils/PromiseUtil.js';
 import { ApiEnum } from '../enums/ApiEnum.js';
 import { getFormattedErrorMessage } from '../utils/FunctionUtil.js';
 import { Constants } from '../constants/index.js';
-import { SettingsService } from './SettingsService.js';
 import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation.js';
 import { buildMessage } from '../utils/LogMessageUtil.js';
 import { InfoLogMessagesEnum } from '../enums/log-messages/index.js';
 export class StorageService {
-    constructor() {
+    constructor(serviceContainer) {
         this.storageData = {};
+        this.serviceContainer = serviceContainer;
     }
     /**
      * Retrieves data from storage based on the feature key and user ID.
@@ -37,19 +35,22 @@ export class StorageService {
      */
     async getDataInStorage(featureKey, context) {
         const deferredObject = new Deferred();
-        const storageInstance = Storage.Instance.getConnector();
         // Check if the storage instance is available
-        if (isNull(storageInstance) || isUndefined(storageInstance)) {
+        if (isNull(this.serviceContainer.getStorageConnector()) ||
+            isUndefined(this.serviceContainer.getStorageConnector())) {
             deferredObject.resolve(StorageEnum.STORAGE_UNDEFINED);
         }
         else {
-            storageInstance
+            this.serviceContainer
+                .getStorageConnector()
                 .get(featureKey, context.getId())
                 .then((data) => {
                 deferredObject.resolve(data);
             })
                 .catch((err) => {
-                LogManager.Instance.errorLog('ERROR_READING_STORED_DATA_IN_STORAGE', { err }, { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+                this.serviceContainer
+                    .getLogManager()
+                    .errorLog('ERROR_READING_STORED_DATA_IN_STORAGE', { err }, { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
                 deferredObject.resolve(StorageEnum.NO_DATA_FOUND);
             });
         }
@@ -62,13 +63,14 @@ export class StorageService {
      */
     async setDataInStorage(data) {
         const deferredObject = new Deferred();
-        const storageInstance = Storage.Instance.getConnector();
         // Check if the storage instance is available
-        if (storageInstance === null || storageInstance === undefined) {
+        if (this.serviceContainer.getStorageConnector() === null ||
+            this.serviceContainer.getStorageConnector() === undefined) {
             deferredObject.resolve(false);
         }
         else {
-            storageInstance
+            this.serviceContainer
+                .getStorageConnector()
                 .set(data)
                 .then(() => {
                 deferredObject.resolve(true);
@@ -88,11 +90,11 @@ export class StorageService {
     async getSettingsFromStorage(accountId, sdkKey, shouldFetchFreshSettings = true) {
         const deferredObject = new Deferred();
         try {
-            const storageInstance = Storage.Instance.getConnector();
             // check if the storage instance is available and has the getSettings method
-            if (storageInstance && typeof storageInstance.getSettings === 'function') {
+            if (this.serviceContainer.getStorageConnector() &&
+                typeof this.serviceContainer.getStorageConnector().getSettings === 'function') {
                 // get the settingsData from storage
-                const settingsData = await storageInstance.getSettings(accountId, sdkKey);
+                const settingsData = await this.serviceContainer.getStorageConnector().getSettings(accountId, sdkKey);
                 if (!settingsData || isEmptyObject(settingsData)) {
                     // if no settings data is found, resolve the promise with empty object
                     deferredObject.resolve({});
@@ -102,27 +104,29 @@ export class StorageService {
                 const { settings, timestamp } = settingsData;
                 // Check for sdkKey and accountId match
                 if (!settings || settings.sdkKey !== sdkKey || String(settings.accountId ?? settings.a) !== String(accountId)) {
-                    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH));
+                    this.serviceContainer
+                        .getLogManager()
+                        .info(buildMessage(InfoLogMessagesEnum.SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH));
                     deferredObject.resolve({});
                     return deferredObject.promise;
                 }
-                const shouldUseCachedSettings = storageInstance.alwaysUseCachedSettings || Constants.ALWAYS_USE_CACHED_SETTINGS;
+                const shouldUseCachedSettings = this.serviceContainer.getStorageConnector().alwaysUseCachedSettings || Constants.ALWAYS_USE_CACHED_SETTINGS;
                 if (shouldUseCachedSettings) {
-                    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_USING_CACHED_SETTINGS));
+                    this.serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.SETTINGS_USING_CACHED_SETTINGS));
                     deferredObject.resolve(settings);
                     return deferredObject.promise;
                 }
                 // get the current time
                 const currentTime = Date.now();
-                const settingsTTL = storageInstance.ttl || Constants.SETTINGS_TTL;
+                const settingsTTL = this.serviceContainer.getStorageConnector().ttl || Constants.SETTINGS_TTL;
                 // check if the settings are expired based on the last updated timestamp
                 if (currentTime - timestamp > settingsTTL) {
-                    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_EXPIRED));
+                    this.serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.SETTINGS_EXPIRED));
                     deferredObject.resolve({});
                 }
                 else {
                     // if settings are not expired, then return the existing settings and update the settings in storage with new timestamp
-                    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_RETRIEVED_FROM_STORAGE));
+                    this.serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.SETTINGS_RETRIEVED_FROM_STORAGE));
                     if (shouldFetchFreshSettings) {
                         // if shouldFetchFreshSettings is true, then fetch fresh settings asynchronously and update the storage with new timestamp
                         this.setFreshSettingsInStorage(accountId, sdkKey);
@@ -133,7 +137,7 @@ export class StorageService {
                             settings.sdkKey = atob(settings.sdkKey);
                         }
                         catch (e) {
-                            LogManager.Instance.errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
+                            this.serviceContainer.getLogManager().errorLog('ERROR_DECODING_SDK_KEY_FROM_STORAGE', {
                                 err: getFormattedErrorMessage(e),
                             }, { an: Constants.STORAGE });
                         }
@@ -146,7 +150,9 @@ export class StorageService {
             }
         }
         catch (error) {
-            LogManager.Instance.errorLog('ERROR_READING_SETTINGS_FROM_STORAGE', { err: getFormattedErrorMessage(error) }, { an: Constants.STORAGE });
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('ERROR_READING_SETTINGS_FROM_STORAGE', { err: getFormattedErrorMessage(error) }, { an: Constants.STORAGE });
             deferredObject.resolve({});
         }
         return deferredObject.promise;
@@ -161,16 +167,16 @@ export class StorageService {
     async setSettingsInStorage(accountId, sdkKey, settings) {
         const deferredObject = new Deferred();
         try {
-            const storageInstance = Storage.Instance.getConnector();
             // check if the storage instance is available and has the setSettings method
-            if (storageInstance && typeof storageInstance.setSettings === 'function') {
+            if (this.serviceContainer.getStorageConnector() &&
+                typeof this.serviceContainer.getStorageConnector().setSettings === 'function') {
                 // clone the settings to avoid mutating the original object
                 const clonedSettings = { ...settings };
                 // create the settings to store object with the cloned settings and the current timestamp
                 const settingsToStore = { settings: clonedSettings, timestamp: Date.now() };
                 // set the settings in storage
-                await storageInstance.setSettings(settingsToStore);
-                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_SUCCESSFULLY_STORED));
+                await this.serviceContainer.getStorageConnector().setSettings(settingsToStore);
+                this.serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.SETTINGS_SUCCESSFULLY_STORED));
                 deferredObject.resolve();
             }
             else {
@@ -178,7 +184,9 @@ export class StorageService {
             }
         }
         catch (error) {
-            LogManager.Instance.errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: getFormattedErrorMessage(error) }, { an: Constants.STORAGE });
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('ERROR_STORING_SETTINGS_IN_STORAGE', { err: getFormattedErrorMessage(error) }, { an: Constants.STORAGE });
             deferredObject.resolve();
         }
         return deferredObject.promise;
@@ -189,23 +197,26 @@ export class StorageService {
     async setFreshSettingsInStorage(accountId, sdkKey) {
         const deferredObject = new Deferred();
         // Fetch fresh settings asynchronously and update storage
-        const settingsService = SettingsService.Instance;
-        const storageInstance = Storage.Instance.getConnector();
-        if (settingsService && storageInstance && typeof storageInstance.setSettings === 'function') {
-            settingsService
+        if (this.serviceContainer.getSettingsService() &&
+            this.serviceContainer.getStorageConnector() &&
+            typeof this.serviceContainer.getStorageConnector().setSettings === 'function') {
+            this.serviceContainer
+                .getSettingsService()
                 .fetchSettings()
                 .then(async (freshSettings) => {
                 if (freshSettings) {
                     const isSettingsValid = new SettingsSchema().isSettingsValid(freshSettings);
                     if (isSettingsValid) {
                         await this.setSettingsInStorage(accountId, sdkKey, freshSettings);
-                        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.SETTINGS_UPDATED_WITH_FRESH_DATA));
+                        this.serviceContainer
+                            .getLogManager()
+                            .info(buildMessage(InfoLogMessagesEnum.SETTINGS_UPDATED_WITH_FRESH_DATA));
                     }
                 }
                 deferredObject.resolve();
             })
                 .catch((error) => {
-                LogManager.Instance.errorLog('ERROR_STORING_FRESH_SETTINGS_IN_STORAGE', {
+                this.serviceContainer.getLogManager().errorLog('ERROR_STORING_FRESH_SETTINGS_IN_STORAGE', {
                     err: getFormattedErrorMessage(error),
                 }, { an: Constants.STORAGE });
                 deferredObject.resolve();

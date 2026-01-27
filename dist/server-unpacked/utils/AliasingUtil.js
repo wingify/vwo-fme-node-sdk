@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AliasingUtil = void 0;
 var network_layer_1 = require("../packages/network-layer");
-var SettingsService_1 = require("../services/SettingsService");
 var HttpMethodEnum_1 = require("../enums/HttpMethodEnum");
 var UrlEnum_1 = require("../enums/UrlEnum");
 var PromiseUtil_1 = require("./PromiseUtil");
@@ -68,35 +67,36 @@ var AliasingUtil = /** @class */ (function () {
      * @param userId - The user identifier
      * @returns Promise<any | null> - The response from the gateway
      */
-    AliasingUtil.getAlias = function (userId) {
+    AliasingUtil.getAlias = function (userId, serviceContainer) {
         return __awaiter(this, void 0, void 0, function () {
             var deferredObject, gatewayServiceUrl, gatewayServicePort, gatewayServiceProtocol, retryConfig, queryParams, request;
-            var _a, _b;
-            return __generator(this, function (_c) {
+            return __generator(this, function (_a) {
                 deferredObject = new PromiseUtil_1.Deferred();
                 try {
                     gatewayServiceUrl = null;
                     gatewayServicePort = null;
                     gatewayServiceProtocol = null;
-                    retryConfig = network_layer_1.NetworkManager.Instance.getRetryConfig();
-                    if (SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname != null) {
-                        gatewayServiceUrl = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname;
-                        gatewayServicePort = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.port;
-                        gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.protocol;
+                    retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
+                    if (serviceContainer.getSettingsService().gatewayServiceConfig.hostname != null) {
+                        gatewayServiceUrl = serviceContainer.getSettingsService().gatewayServiceConfig.hostname;
+                        gatewayServicePort = serviceContainer.getSettingsService().gatewayServiceConfig.port;
+                        gatewayServiceProtocol = serviceContainer.getSettingsService().gatewayServiceConfig.protocol;
                     }
                     else {
-                        gatewayServiceUrl = SettingsService_1.SettingsService.Instance.hostname;
-                        gatewayServicePort = SettingsService_1.SettingsService.Instance.port;
-                        gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.protocol;
+                        gatewayServiceUrl = serviceContainer.getSettingsService().hostname;
+                        gatewayServicePort = serviceContainer.getSettingsService().port;
+                        gatewayServiceProtocol = serviceContainer.getSettingsService().protocol;
                     }
                     queryParams = {};
-                    queryParams['accountId'] = (_a = SettingsService_1.SettingsService.Instance) === null || _a === void 0 ? void 0 : _a.accountId;
-                    queryParams['sdkKey'] = (_b = SettingsService_1.SettingsService.Instance) === null || _b === void 0 ? void 0 : _b.sdkKey;
+                    queryParams['accountId'] = serviceContainer.getSettingsService().accountId;
+                    queryParams['sdkKey'] = serviceContainer.getSettingsService().sdkKey;
                     // Backend expects userId as JSON array
                     queryParams[this.KEY_USER_ID] = JSON.stringify([userId]);
                     request = new network_layer_1.RequestModel(gatewayServiceUrl, HttpMethodEnum_1.HttpMethodEnum.GET, this.GET_ALIAS_URL, queryParams, null, null, gatewayServiceProtocol, gatewayServicePort, retryConfig);
                     // Perform the network GET request
-                    network_layer_1.NetworkManager.Instance.get(request)
+                    serviceContainer
+                        .getNetworkManager()
+                        .get(request)
                         .then(function (response) {
                         // Resolve the deferred object with the response
                         deferredObject.resolve(response.getData());
@@ -122,31 +122,30 @@ var AliasingUtil = /** @class */ (function () {
      * @param aliasId - The alias identifier to set
      * @returns Promise<ResponseModel | null> - The response from the gateway
      */
-    AliasingUtil.setAlias = function (userId, aliasId) {
+    AliasingUtil.setAlias = function (userId, aliasId, serviceContainer) {
         return __awaiter(this, void 0, void 0, function () {
             var deferredObject, gatewayServiceUrl, gatewayServicePort, gatewayServiceProtocol, retryConfig, queryParams, requestBody, request;
             var _a;
-            var _b, _c;
-            return __generator(this, function (_d) {
+            return __generator(this, function (_b) {
                 deferredObject = new PromiseUtil_1.Deferred();
                 try {
                     gatewayServiceUrl = null;
                     gatewayServicePort = null;
                     gatewayServiceProtocol = null;
-                    retryConfig = network_layer_1.NetworkManager.Instance.getRetryConfig();
-                    if (SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname != null) {
-                        gatewayServiceUrl = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.hostname;
-                        gatewayServicePort = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.port;
-                        gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.gatewayServiceConfig.protocol;
+                    retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
+                    if (serviceContainer.getSettingsService().gatewayServiceConfig.hostname != null) {
+                        gatewayServiceUrl = serviceContainer.getSettingsService().gatewayServiceConfig.hostname;
+                        gatewayServicePort = serviceContainer.getSettingsService().gatewayServiceConfig.port;
+                        gatewayServiceProtocol = serviceContainer.getSettingsService().gatewayServiceConfig.protocol;
                     }
                     else {
-                        gatewayServiceUrl = SettingsService_1.SettingsService.Instance.hostname;
-                        gatewayServicePort = SettingsService_1.SettingsService.Instance.port;
-                        gatewayServiceProtocol = SettingsService_1.SettingsService.Instance.protocol;
+                        gatewayServiceUrl = serviceContainer.getSettingsService().hostname;
+                        gatewayServicePort = serviceContainer.getSettingsService().port;
+                        gatewayServiceProtocol = serviceContainer.getSettingsService().protocol;
                     }
                     queryParams = {};
-                    queryParams['accountId'] = (_b = SettingsService_1.SettingsService.Instance) === null || _b === void 0 ? void 0 : _b.accountId;
-                    queryParams['sdkKey'] = (_c = SettingsService_1.SettingsService.Instance) === null || _c === void 0 ? void 0 : _c.sdkKey;
+                    queryParams['accountId'] = serviceContainer.getSettingsService().accountId;
+                    queryParams['sdkKey'] = serviceContainer.getSettingsService().sdkKey;
                     queryParams[this.KEY_USER_ID] = userId;
                     queryParams[this.KEY_ALIAS_ID] = aliasId;
                     requestBody = (_a = {},
@@ -155,7 +154,9 @@ var AliasingUtil = /** @class */ (function () {
                         _a);
                     request = new network_layer_1.RequestModel(gatewayServiceUrl, HttpMethodEnum_1.HttpMethodEnum.POST, this.SET_ALIAS_URL, queryParams, requestBody, null, gatewayServiceProtocol, gatewayServicePort, retryConfig);
                     // Perform the network POST request
-                    network_layer_1.NetworkManager.Instance.post(request)
+                    serviceContainer
+                        .getNetworkManager()
+                        .post(request)
                         .then(function (response) {
                         // Resolve the deferred object with the response
                         deferredObject.resolve(response.getData());

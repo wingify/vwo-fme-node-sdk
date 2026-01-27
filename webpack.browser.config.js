@@ -23,7 +23,7 @@ function addPlugins(argv) {
   libraryHeaderComment = `${libraryName} - v${version}
 URL - https://github.com/wingify/vwo-fme-javascript-sdk
 
-Copyright 2024-2025 Wingify Software Pvt. Ltd.
+Copyright 2024-2026 Wingify Software Pvt. Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

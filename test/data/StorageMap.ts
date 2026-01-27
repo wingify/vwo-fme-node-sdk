@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 type StorageData = {
+  featureId: number;
   rolloutKey: string;
   rolloutVariationId: string;
   experimentKey: string;
@@ -48,12 +49,7 @@ const storageMap: StorageMap = {
     const key = data.featureKey + '_' + data.userId;
 
     // Set the data in the storage
-    this.storage[key] = {
-      rolloutKey: data.rolloutKey,
-      rolloutVariationId: data.rolloutVariationId,
-      experimentKey: data.experimentKey,
-      experimentVariationId: data.experimentVariationId,
-    };
+    this.storage[key] = data;
   },
 };
 

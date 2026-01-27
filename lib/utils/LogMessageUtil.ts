@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Constants } from '../constants';
-import { EventEnum } from '../enums/EventEnum';
 import { isFunction } from '../utils/DataTypeUtil';
-import { getEventsBaseProperties, getMessagingEventPayload, sendEvent } from './NetworkUtil';
 
 const nargs = /\{([0-9a-zA-Z_]+)\}/g;
-const storedMessages = new Set<string>();
 
 /**
  * Constructs a message by replacing placeholders in a template with corresponding values from a data object.
@@ -49,39 +45,5 @@ export function buildMessage(template: string = '', data: Record<string, any> = 
     });
   } catch (err) {
     return template; // Return the original template in case of an error
-  }
-}
-
-/**
- * Sends a log message to VWO.
- * @param {string} message - The message to log.
- * @param {string} messageType - The type of message to log.
- * @param {string} eventName - The name of the event to log.
- */
-
-export function sendLogToVWO(message: string, messageType: string, extraData: any = {}) {
-  if (typeof process != 'undefined' && process.env.TEST_ENV === 'true') {
-    return;
-  }
-
-  let messageToSend = message;
-  messageToSend = messageToSend + '-' + Constants.SDK_NAME + '-' + Constants.SDK_VERSION;
-  if (Object.keys(extraData).length > 0) {
-    messageToSend = messageToSend + ' ' + JSON.stringify(extraData);
-  }
-
-  if (!storedMessages.has(messageToSend)) {
-    // add the message to the set
-    storedMessages.add(messageToSend);
-
-    // create the query parameters
-    const properties = getEventsBaseProperties(EventEnum.VWO_LOG_EVENT);
-
-    // create the payload
-    const payload = getMessagingEventPayload(messageType, message, EventEnum.VWO_LOG_EVENT, extraData);
-
-    // Send the constructed payload via POST request
-    // send eventName in parameters so that we can disable retry for this event
-    sendEvent(properties, payload, EventEnum.VWO_LOG_EVENT).catch(() => {});
   }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,18 @@ import { Constants } from '../constants/index.js';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum.js';
 import { InfoLogMessagesEnum } from '../enums/log-messages/index.js';
 import { VariationModel } from '../models/campaign/VariationModel.js';
-import { LogManager } from '../packages/logger/index.js';
 import { buildMessage } from './LogMessageUtil.js';
 /**
  * Sets the variation allocation for a given campaign based on its type.
  * If the campaign type is ROLLOUT or PERSONALIZE, it handles the campaign using `_handleRolloutCampaign`.
  * Otherwise, it assigns range values to each variation in the campaign.
  * @param {CampaignModel} campaign - The campaign for which to set the variation allocation.
+ * @param {LogManager} logManager - The log manager instance.
  */
-export function setVariationAllocation(campaign) {
+export function setVariationAllocation(campaign, logManager) {
     // Check if the campaign type is ROLLOUT or PERSONALIZE
     if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
-        _handleRolloutCampaign(campaign);
+        _handleRolloutCampaign(campaign, logManager);
     }
     else {
         let currentAllocation = 0;
@@ -38,7 +38,7 @@ export function setVariationAllocation(campaign) {
             const stepFactor = assignRangeValues(variation, currentAllocation);
             currentAllocation += stepFactor;
             // Log the range allocation for debugging
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+            logManager.info(buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
                 variationKey: variation.getKey(),
                 campaignKey: campaign.getKey(),
                 variationWeight: variation.getWeight(),
@@ -183,6 +183,17 @@ export function getCampaignTypeFromCampaignId(settings, campaignId) {
     return null;
 }
 /**
+ * Checks if a feature ID is present in the settings.
+ * @param {SettingsModel} settings - The settings model containing all features.
+ * @param {number} featureId - The ID of the feature to check.
+ * @returns {boolean} True if the feature ID is present, false otherwise.
+ */
+export function isFeatureIdPresentInSettings(settings, featureId) {
+    return settings.getFeatures().some((feature) => {
+        return feature.getId() === featureId;
+    });
+}
+/**
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.
  */
@@ -323,15 +334,16 @@ function _getVariationBucketRange(variationWeight) {
 /**
  * Handles the rollout campaign by setting start and end ranges for all variations.
  * @param {CampaignModel} campaign - The campaign to handle.
+ * @param {LogManager} logManager - The log manager instance.
  */
-function _handleRolloutCampaign(campaign) {
+function _handleRolloutCampaign(campaign, logManager) {
     // Set start and end ranges for all variations in the campaign
     for (let i = 0; i < campaign.getVariations().length; i++) {
         const variation = campaign.getVariations()[i];
         const endRange = campaign.getVariations()[i].getWeight() * 100;
         variation.setStartRange(1);
         variation.setEndRange(endRange);
-        LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
+        logManager.info(buildMessage(InfoLogMessagesEnum.VARIATION_RANGE_ALLOCATION, {
             variationKey: variation.getKey(),
             campaignKey: campaign.getKey(),
             variationWeight: variation.getWeight(),

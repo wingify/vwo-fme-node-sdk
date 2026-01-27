@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-import { SettingsModel } from '../models/settings/SettingsModel';
 import { getEventsBaseProperties, getTrackUserPayloadData, sendPostApiRequest } from './NetworkUtil';
 import { ContextModel } from '../models/user/ContextModel';
 import { EventEnum } from '../enums/EventEnum';
-import { BatchEventsQueue } from '../services/BatchEventsQueue';
 import { getCampaignKeyFromCampaignId, getCampaignTypeFromCampaignId } from './CampaignUtil';
 import { getVariationNameFromCampaignIdAndVariationId } from './CampaignUtil';
 import { Constants } from '../constants';
+import { ServiceContainer } from '../services/ServiceContainer';
 
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
  * and uses the NetworkUtil to send a POST API request.
  *
- * @param {SettingsModel} settings - The settings model containing configuration.
+ * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {number} campaignId - The ID of the campaign.
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
 export const createAndSendImpressionForVariationShown = async (
-  settings: SettingsModel,
+  serviceContainer: ServiceContainer,
   campaignId: number,
   variationId: number,
   context: ContextModel,
@@ -42,29 +41,41 @@ export const createAndSendImpressionForVariationShown = async (
 ) => {
   // Get base properties for the event
   const properties = getEventsBaseProperties(
+    serviceContainer.getSettingsService(),
     EventEnum.VWO_VARIATION_SHOWN,
     encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
     context.getIpAddress(),
   );
 
   // Construct payload data for tracking the user
-  const payload = getTrackUserPayloadData(settings, EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
+  const payload = getTrackUserPayloadData(
+    serviceContainer,
+    EventEnum.VWO_VARIATION_SHOWN,
+    campaignId,
+    variationId,
+    context,
+  );
 
-  const campaignKeyWithFeatureName = getCampaignKeyFromCampaignId(settings, campaignId);
-  const variationName = getVariationNameFromCampaignIdAndVariationId(settings, campaignId, variationId);
+  const campaignKeyWithFeatureName = getCampaignKeyFromCampaignId(serviceContainer.getSettings(), campaignId);
+  const variationName = getVariationNameFromCampaignIdAndVariationId(
+    serviceContainer.getSettings(),
+    campaignId,
+    variationId,
+  );
   let campaignKey = '';
   if (featureKey === campaignKeyWithFeatureName) {
     campaignKey = Constants.IMPACT_ANALYSIS;
   } else {
     campaignKey = campaignKeyWithFeatureName?.split(`${featureKey}_`)[1];
   }
-  const campaignType = getCampaignTypeFromCampaignId(settings, campaignId);
+  const campaignType = getCampaignTypeFromCampaignId(serviceContainer.getSettings(), campaignId);
 
-  if (BatchEventsQueue.Instance) {
-    BatchEventsQueue.Instance.enqueue(payload);
+  if (serviceContainer.getBatchEventsQueue()) {
+    serviceContainer.getBatchEventsQueue().enqueue(payload);
   } else {
     // Send the constructed properties and payload as a POST request
     await sendPostApiRequest(
+      serviceContainer,
       properties,
       payload,
       context.getId(),

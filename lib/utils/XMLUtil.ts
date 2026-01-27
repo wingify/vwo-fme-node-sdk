@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,15 @@ import { getFormattedErrorMessage } from './FunctionUtil';
 
 const noop = () => {};
 
-export function sendGetCall(options) {
-  sendRequest(HttpMethodEnum.GET, options);
+export function sendGetCall(options, logManager: LogManager) {
+  sendRequest(HttpMethodEnum.GET, options, logManager);
 }
 
-export function sendPostCall(options) {
-  sendRequest(HttpMethodEnum.POST, options);
+export function sendPostCall(options, logManager: LogManager) {
+  sendRequest(HttpMethodEnum.POST, options, logManager);
 }
 
-function sendRequest(method, options) {
+function sendRequest(method, options, logManager: LogManager) {
   const { requestModel, successCallback = noop, errorCallback = noop } = options;
   const networkOptions = requestModel.getOptions();
   let retryCount = 0;
@@ -98,7 +98,7 @@ function sendRequest(method, options) {
           Math.pow(networkOptions.retryConfig.backoffMultiplier, retryCount) *
           1000; // Exponential backoff
         retryCount++;
-        LogManager.Instance.errorLog(
+        logManager.errorLog(
           'ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL',
           {
             endPoint: url.split('?')[0],
@@ -114,7 +114,7 @@ function sendRequest(method, options) {
         setTimeout(executeRequest, delay);
       } else {
         if (!String(networkOptions.path).includes(EventEnum.VWO_DEBUGGER_EVENT)) {
-          LogManager.Instance.errorLog(
+          logManager.errorLog(
             'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
             {
               extraData: url.split('?')[0],

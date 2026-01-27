@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ import { dynamic } from '../../../types/Common';
 import { Logger } from '../Logger';
 import { LogTransportManager } from './TransportManager';
 import { LogLevelEnum } from '../enums/LogLevelEnum';
+import { ServiceContainer } from '../../../services/ServiceContainer';
 type LogTransport = {
   log: (level: string, message: string) => void;
 };
@@ -48,7 +49,6 @@ export interface ILogManager {
  * It is designed as a singleton to ensure a single instance throughout the application.
  */
 export declare class LogManager extends Logger implements ILogManager {
-  private static instance;
   transportManager: LogTransportManager;
   config: Record<string, any>;
   name: string;
@@ -59,16 +59,13 @@ export declare class LogManager extends Logger implements ILogManager {
   transport: LogTransport;
   transports: Array<LogTransport>;
   shouldLogToStandardOutput: boolean;
+  serviceContainer: ServiceContainer;
   /**
    * Constructor for LogManager.
    * @param {Record<string, any>} config - Configuration object for LogManager.
    */
   constructor(config?: Record<string, any>);
-  /**
-   * Provides access to the singleton instance of LogManager.
-   * @returns {LogManager} The singleton instance.
-   */
-  static get Instance(): LogManager;
+  injectServiceContainer(serviceContainer: ServiceContainer): void;
   /**
    * Handles the initialization and setup of transports based on configuration.
    */

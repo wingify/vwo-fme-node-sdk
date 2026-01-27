@@ -598,6 +598,49 @@ console.log('Generated UUID:', uuid);
 // Output: Generated UUID: CC25A368ADA0542699EAD62489811105
 ```
 
+### Multiple SDK Instances
+
+The SDK supports creating multiple instances, each with its own isolated configuration, services, and state. This is particularly useful when you need to work with multiple VWO accounts or environments simultaneously.
+
+```javascript
+const { init } = require('vwo-fme-node-sdk');
+
+// Initialize multiple VWO clients with different account IDs and SDK keys
+(async function () {
+  // First instance for production environment
+  const vwoClientProd = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key-prod',
+  });
+
+  // Second instance for staging environment
+  const vwoClientStaging = await init({
+    accountId: '789012',
+    sdkKey: '32-alpha-numeric-sdk-key-staging',
+  });
+
+  // Each instance operates independently with its own settings and state
+  const userContext = { id: 'unique_user_id' };
+
+  // Use production client
+  const prodFeature = await vwoClientProd.getFlag('feature_key', userContext);
+  console.log('Production feature enabled:', prodFeature.isEnabled());
+
+  // Use staging client
+  const stagingFeature = await vwoClientStaging.getFlag('feature_key', userContext);
+  console.log('Staging feature enabled:', stagingFeature.isEnabled());
+})();
+```
+
+Each SDK instance maintains its own:
+
+- Settings and configuration
+- Services (storage, logger, network layer, etc.)
+- Utils and helper functions
+- State and cached data
+
+This ensures complete isolation between instances, allowing you to safely use multiple VWO accounts or environments in the same application without any interference.
+
 ### Version History
 
 The version history tracks changes, improvements, and bug fixes in each version. For a full history, see the [CHANGELOG.md](https://github.com/wingify/vwo-fme-node-sdk/blob/master/CHANGELOG.md).
@@ -638,4 +681,4 @@ Our [Code of Conduct](https://github.com/wingify/vwo-fme-node-sdk/blob/master/CO
 
 [Apache License, Version 2.0](https://github.com/wingify/vwo-fme-node-sdk/blob/master/LICENSE)
 
-Copyright 2024-2025 Wingify Software Pvt. Ltd.
+Copyright 2024-2026 Wingify Software Pvt. Ltd.

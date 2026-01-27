@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ServiceContainer } from '../services/ServiceContainer';
 /**
  * Utility class for handling alias operations through network calls to gateway
  */
@@ -26,12 +27,12 @@ export declare class AliasingUtil {
    * @param userId - The user identifier
    * @returns Promise<any | null> - The response from the gateway
    */
-  static getAlias(userId: string): Promise<any | null>;
+  static getAlias(userId: string, serviceContainer: ServiceContainer): Promise<any | null>;
   /**
    * Sets alias for a given user ID
    * @param userId - The user identifier
    * @param aliasId - The alias identifier to set
    * @returns Promise<ResponseModel | null> - The response from the gateway
    */
-  static setAlias(userId: string, aliasId: string): Promise<any | null>;
+  static setAlias(userId: string, aliasId: string, serviceContainer: ServiceContainer): Promise<any | null>;
 }

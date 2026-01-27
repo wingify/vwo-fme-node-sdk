@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 import { dynamic } from './types/Common';
-import { ILogManager } from './packages/logger';
+import { LogManager } from './packages/logger';
+import { NetworkManager } from './packages/network-layer';
 import { Storage } from './packages/storage';
 import { IVWOClient } from './VWOClient';
+import { SettingsService } from './services/SettingsService';
 import { IVWOOptions } from './models/VWOOptionsModel';
 import { BatchEventsQueue } from './services/BatchEventsQueue';
+import { ServiceContainer } from './services/ServiceContainer';
 export interface IVWOBuilder {
   settings: Record<any, any>;
   storage: Storage;
-  logManager: ILogManager;
+  logManager: LogManager;
   isSettingsFetchInProgress: boolean;
   vwoInstance: IVWOClient;
   build(settings: Record<any, any>): IVWOClient;
@@ -33,8 +36,6 @@ export interface IVWOBuilder {
   setNetworkManager(): this;
   initPolling(): this;
   setLogger(): this;
-  setSegmentation(): this;
-  initUsageStats(): this;
 }
 export declare class VWOBuilder implements IVWOBuilder {
   readonly sdkKey: string;
@@ -42,7 +43,7 @@ export declare class VWOBuilder implements IVWOBuilder {
   private settingFileManager;
   settings: Record<any, any>;
   storage: Storage;
-  logManager: ILogManager;
+  logManager: LogManager;
   originalSettings: dynamic;
   isSettingsFetchInProgress: boolean;
   vwoInstance: IVWOClient;
@@ -50,6 +51,8 @@ export declare class VWOBuilder implements IVWOBuilder {
   private isValidPollIntervalPassedFromInit;
   isSettingsValid: boolean;
   settingsFetchTime: number | undefined;
+  networkManager: NetworkManager;
+  defaultServiceContainer: ServiceContainer;
   constructor(options: IVWOOptions);
   /**
    * Sets the network manager with the provided client and development mode options.
@@ -57,11 +60,6 @@ export declare class VWOBuilder implements IVWOBuilder {
    */
   setNetworkManager(): this;
   initBatching(): this;
-  /**
-   * Sets the segmentation evaluator with the provided segmentation options.
-   * @returns {this} The instance of this builder.
-   */
-  setSegmentation(): this;
   /**
    * Fetches settings asynchronously, ensuring no parallel fetches.
    * @returns {Promise<SettingsModel>} A promise that resolves to the fetched settings.
@@ -82,6 +80,21 @@ export declare class VWOBuilder implements IVWOBuilder {
    * @returns {this} The instance of this builder.
    */
   setSettingsService(): this;
+  /**
+   * Returns the logger.
+   * @returns {LogManager} The logger.
+   */
+  getLogger(): LogManager;
+  /**
+   * Returns the settings manager.
+   * @returns {SettingsService} The settings manager.
+   */
+  getSettingsService(): SettingsService;
+  /**
+   * Returns the storage.
+   * @returns {Storage} The storage.
+   */
+  getStorage(): Storage;
   /**
    * Sets the logger with the provided logger options.
    * @returns {this} The instance of this builder.
@@ -105,11 +118,6 @@ export declare class VWOBuilder implements IVWOBuilder {
    * @returns {this} The instance of this builder.
    */
   initPolling(): this;
-  /**
-   * Initializes usage statistics for the SDK.
-   * @returns {this} The instance of this builder.
-   */
-  initUsageStats(): this;
   /**
    * Builds a new VWOClient instance with the provided settings.
    * @param {SettingsModel} settings - The settings for the VWOClient.

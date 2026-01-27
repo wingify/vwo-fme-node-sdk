@@ -1,9 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildMessage = buildMessage;
-exports.sendLogToVWO = sendLogToVWO;
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +16,8 @@ exports.sendLogToVWO = sendLogToVWO;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var constants_1 = require("../constants");
-var EventEnum_1 = require("../enums/EventEnum");
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
-var NetworkUtil_1 = require("./NetworkUtil");
 var nargs = /\{([0-9a-zA-Z_]+)\}/g;
-var storedMessages = new Set();
 /**
  * Constructs a message by replacing placeholders in a template with corresponding values from a data object.
  *
@@ -51,34 +46,6 @@ function buildMessage(template, data) {
     }
     catch (err) {
         return template; // Return the original template in case of an error
-    }
-}
-/**
- * Sends a log message to VWO.
- * @param {string} message - The message to log.
- * @param {string} messageType - The type of message to log.
- * @param {string} eventName - The name of the event to log.
- */
-function sendLogToVWO(message, messageType, extraData) {
-    if (extraData === void 0) { extraData = {}; }
-    if (typeof process != 'undefined' && process.env.TEST_ENV === 'true') {
-        return;
-    }
-    var messageToSend = message;
-    messageToSend = messageToSend + '-' + constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION;
-    if (Object.keys(extraData).length > 0) {
-        messageToSend = messageToSend + ' ' + JSON.stringify(extraData);
-    }
-    if (!storedMessages.has(messageToSend)) {
-        // add the message to the set
-        storedMessages.add(messageToSend);
-        // create the query parameters
-        var properties = (0, NetworkUtil_1.getEventsBaseProperties)(EventEnum_1.EventEnum.VWO_LOG_EVENT);
-        // create the payload
-        var payload = (0, NetworkUtil_1.getMessagingEventPayload)(messageType, message, EventEnum_1.EventEnum.VWO_LOG_EVENT, extraData);
-        // Send the constructed payload via POST request
-        // send eventName in parameters so that we can disable retry for this event
-        (0, NetworkUtil_1.sendEvent)(properties, payload, EventEnum_1.EventEnum.VWO_LOG_EVENT).catch(function () { });
     }
 }
 //# sourceMappingURL=LogMessageUtil.js.map

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,17 @@ import { Deferred } from '../../../utils/PromiseUtil';
 import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { NetworkClientInterface } from './NetworkClientInterface';
+import { LogManager } from '../../logger';
 
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
 export class NetworkServerLessClient implements NetworkClientInterface {
+  private logManager: LogManager;
+
+  constructor(logManager: LogManager) {
+    this.logManager = logManager;
+  }
   /**
    * Performs a GET request using the provided RequestModel.
    * @param {RequestModel} requestModel - The model containing request options.
@@ -32,7 +38,7 @@ export class NetworkServerLessClient implements NetworkClientInterface {
   GET(requestModel: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
 
-    sendGetCall(requestModel)
+    sendGetCall(requestModel, this.logManager)
       .then((data: ResponseModel) => {
         deferred.resolve(data);
       })
@@ -51,7 +57,7 @@ export class NetworkServerLessClient implements NetworkClientInterface {
   POST(request: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
 
-    sendPostCall(request)
+    sendPostCall(request, this.logManager)
       .then((data: ResponseModel) => {
         deferred.resolve(data);
       })

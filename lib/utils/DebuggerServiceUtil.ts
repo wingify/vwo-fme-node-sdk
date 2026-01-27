@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import { getDebuggerEventPayload, getEventsBaseProperties, sendEvent } from './NetworkUtil';
 import { EventEnum } from '../enums/EventEnum';
-import { BatchEventsQueue } from '../services/BatchEventsQueue';
+import { ServiceContainer } from '../services/ServiceContainer';
 
 /**
  * Utility functions for handling debugger service operations including
@@ -59,16 +59,24 @@ export function extractDecisionKeys(decisionObj: Record<string, any> = {}): Reco
  * @param eventProps - The properties for the event.
  * @returns A promise that resolves when the event is sent.
  */
-export async function sendDebugEventToVWO(eventProps: Record<string, any> = {}): Promise<void> {
+export async function sendDebugEventToVWO(
+  serviceContainer: ServiceContainer,
+  eventProps: Record<string, any> = {},
+): Promise<void> {
   // create query parameters
-  const properties = getEventsBaseProperties(EventEnum.VWO_DEBUGGER_EVENT, null, null);
+  const properties = getEventsBaseProperties(
+    serviceContainer.getSettingsService(),
+    EventEnum.VWO_DEBUGGER_EVENT,
+    null,
+    null,
+  );
 
   // create payload
-  const payload = getDebuggerEventPayload(eventProps);
+  const payload = getDebuggerEventPayload(serviceContainer.getSettingsService(), eventProps);
 
-  if (BatchEventsQueue.Instance) {
-    BatchEventsQueue.Instance.enqueue(payload);
+  if (serviceContainer.getBatchEventsQueue()) {
+    serviceContainer.getBatchEventsQueue().enqueue(payload);
   } else {
-    await sendEvent(properties, payload, EventEnum.VWO_DEBUGGER_EVENT).catch(() => {});
+    await sendEvent(serviceContainer, properties, payload, EventEnum.VWO_DEBUGGER_EVENT).catch(() => {});
   }
 }

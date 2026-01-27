@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 import { StorageDecorator } from '../../../decorators/StorageDecorator.js';
-import { LogManager } from '../../logger/index.js';
 import { StorageService } from '../../../services/StorageService.js';
 import { isObject } from '../../../utils/DataTypeUtil.js';
 import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum.js';
 import { getKeyValue } from '../utils/SegmentUtil.js';
-import { SegmentOperandEvaluator } from './SegmentOperandEvaluator.js';
 import { ApiEnum } from '../../../enums/ApiEnum.js';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
 export class SegmentEvaluator {
@@ -42,17 +40,17 @@ export class SegmentEvaluator {
             case SegmentOperatorValueEnum.OR:
                 return await this.some(subDsl, properties);
             case SegmentOperatorValueEnum.CUSTOM_VARIABLE:
-                return await new SegmentOperandEvaluator().evaluateCustomVariableDSL(subDsl, properties, this.context);
+                return await this.segmentOperandEvaluator.evaluateCustomVariableDSL(subDsl, properties, this.context);
             case SegmentOperatorValueEnum.USER:
-                return new SegmentOperandEvaluator().evaluateUserDSL(subDsl, properties);
+                return this.segmentOperandEvaluator.evaluateUserDSL(subDsl, properties);
             case SegmentOperatorValueEnum.UA:
-                return new SegmentOperandEvaluator().evaluateUserAgentDSL(subDsl, this.context);
+                return this.segmentOperandEvaluator.evaluateUserAgentDSL(subDsl, this.context);
             case SegmentOperatorValueEnum.IP:
-                return new SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum.IP);
+                return this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum.IP);
             case SegmentOperatorValueEnum.BROWSER_VERSION:
-                return new SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum.BROWSER_VERSION);
+                return this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum.BROWSER_VERSION);
             case SegmentOperatorValueEnum.OS_VERSION:
-                return new SegmentOperandEvaluator().evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum.OS_VERSION);
+                return this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum.OS_VERSION);
             default:
                 return false;
         }
@@ -94,11 +92,11 @@ export class SegmentEvaluator {
                     const featureIdKey = Object.keys(featureIdObject)[0];
                     const featureIdValue = featureIdObject[featureIdKey];
                     if (featureIdValue === 'on' || featureIdValue === 'off') {
-                        const features = this.settings.getFeatures();
+                        const features = this.serviceContainer.getSettings().getFeatures();
                         const feature = features.find((feature) => feature.getId() === parseInt(featureIdKey));
                         if (feature) {
                             const featureKey = feature.getKey();
-                            const result = await this.checkInUserStorage(this.settings, featureKey, this.context);
+                            const result = await this.checkInUserStorage(this.serviceContainer.getSettings(), featureKey, this.context);
                             // if the result is false, then we need to return true as feature is not present in the user storage
                             if (featureIdValue === 'off') {
                                 return !result;
@@ -106,7 +104,7 @@ export class SegmentEvaluator {
                             return result;
                         }
                         else {
-                            LogManager.Instance.errorLog('FEATURE_NOT_FOUND_WITH_ID', {
+                            this.serviceContainer.getLogManager().errorLog('FEATURE_NOT_FOUND_WITH_ID', {
                                 featureId: featureIdKey,
                             }, { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
                             return null; // Handle the case when feature is not found
@@ -121,7 +119,7 @@ export class SegmentEvaluator {
                     return uaParserResult;
                 }
                 catch (err) {
-                    LogManager.Instance.errorLog('USER_AGENT_VALIDATION_ERROR', {
+                    this.serviceContainer.getLogManager().errorLog('USER_AGENT_VALIDATION_ERROR', {
                         err: getFormattedErrorMessage(err),
                     }, { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
                 }
@@ -186,7 +184,9 @@ export class SegmentEvaluator {
     async checkLocationPreSegmentation(locationMap) {
         // Ensure user's IP address is available
         if (this.context?.getIpAddress() === undefined && typeof process !== 'undefined') {
-            LogManager.Instance.errorLog('INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
             return false;
         }
         // Check if location data is available and matches the expected values
@@ -205,7 +205,9 @@ export class SegmentEvaluator {
     async checkUserAgentParser(uaParserMap) {
         // Ensure user's user agent is available
         if (!this.context?.getUserAgent() || this.context?.getUserAgent() === undefined) {
-            LogManager.Instance.errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION', {}, { an: ApiEnum.GET_FLAG, uuid: this.context.getUuid(), sId: this.context.getSessionId() });
             return false;
         }
         // Check if user agent data is available and matches the expected values
@@ -222,9 +224,9 @@ export class SegmentEvaluator {
      * @returns A Promise resolving to a boolean indicating if the feature is enabled for the user.
      */
     async checkInUserStorage(settings, featureKey, context) {
-        const storageService = new StorageService();
+        const storageService = new StorageService(this.serviceContainer);
         // Retrieve feature data from storage
-        const storedData = await new StorageDecorator().getFeatureFromStorage(featureKey, context, storageService);
+        const storedData = await new StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, this.serviceContainer);
         // Check if the stored data is an object and not empty
         if (isObject(storedData) && Object.keys(storedData).length > 0) {
             return true;

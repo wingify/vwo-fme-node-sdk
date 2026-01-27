@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025 Wingify Software Pvt. Ltd.
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@ import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages
 import { CampaignModel } from '../models/campaign/CampaignModel.js';
 import { VariableModel } from '../models/campaign/VariableModel.js';
 import { VariationModel } from '../models/campaign/VariationModel.js';
-import { LogLevelEnum, LogManager } from '../packages/logger/index.js';
-import { SegmentationManager } from '../packages/segmentation-evaluator/index.js';
+import { LogLevelEnum } from '../packages/logger/index.js';
 import { StorageService } from '../services/StorageService.js';
 import { getVariationFromCampaignKey } from '../utils/CampaignUtil.js';
 import { isObject } from '../utils/DataTypeUtil.js';
@@ -31,10 +30,10 @@ import { createAndSendImpressionForVariationShown } from '../utils/ImpressionUti
 import { buildMessage } from '../utils/LogMessageUtil.js';
 import { Deferred } from '../utils/PromiseUtil.js';
 import { evaluateRule } from '../utils/RuleEvaluationUtil.js';
-import { getShouldWaitForTrackingCalls } from '../utils/NetworkUtil.js';
 import { extractDecisionKeys, sendDebugEventToVWO } from '../utils/DebuggerServiceUtil.js';
 import { DebuggerCategoryEnum } from '../enums/DebuggerCategoryEnum.js';
 import { Constants } from '../constants/index.js';
+import { isFeatureIdPresentInSettings } from '../utils/CampaignUtil.js';
 export class Flag {
     constructor(isEnabled, variation) {
         this.enabled = isEnabled;
@@ -55,7 +54,7 @@ export class Flag {
     }
 }
 export class FlagApi {
-    static async get(featureKey, settings, context, hooksService) {
+    static async get(featureKey, context, serviceContainer) {
         let isEnabled = false;
         let rolloutVariationToReturn = null;
         let experimentVariationToReturn = null;
@@ -64,7 +63,7 @@ export class FlagApi {
         const deferredObject = new Deferred();
         const evaluatedFeatureMap = new Map();
         // get feature object from feature key
-        const feature = getFeatureFromKey(settings, featureKey);
+        const feature = getFeatureFromKey(serviceContainer.getSettings(), featureKey);
         const decision = {
             featureName: feature?.getName(),
             featureId: feature?.getId(),
@@ -79,61 +78,63 @@ export class FlagApi {
             fk: feature?.getKey(),
             sId: context.getSessionId(),
         };
-        const storageService = new StorageService();
-        const storedData = await new StorageDecorator().getFeatureFromStorage(featureKey, context, storageService);
-        if (storedData?.experimentVariationId) {
-            if (storedData.experimentKey) {
-                const variation = getVariationFromCampaignKey(settings, storedData.experimentKey, storedData.experimentVariationId);
+        const storageService = new StorageService(serviceContainer);
+        const storedData = await new StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer);
+        if (storedData?.featureId && isFeatureIdPresentInSettings(serviceContainer.getSettings(), storedData.featureId)) {
+            if (storedData?.experimentVariationId) {
+                if (storedData.experimentKey) {
+                    const variation = getVariationFromCampaignKey(serviceContainer.getSettings(), storedData.experimentKey, storedData.experimentVariationId);
+                    if (variation) {
+                        serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
+                            variationKey: variation.getKey(),
+                            userId: context.getId(),
+                            experimentType: 'experiment',
+                            experimentKey: storedData.experimentKey,
+                        }));
+                        deferredObject.resolve(new Flag(true, variation));
+                        return deferredObject.promise;
+                    }
+                }
+            }
+            else if (storedData?.rolloutKey && storedData?.rolloutId) {
+                const variation = getVariationFromCampaignKey(serviceContainer.getSettings(), storedData.rolloutKey, storedData.rolloutVariationId);
                 if (variation) {
-                    LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
+                    serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
                         variationKey: variation.getKey(),
                         userId: context.getId(),
-                        experimentType: 'experiment',
-                        experimentKey: storedData.experimentKey,
+                        experimentType: 'rollout',
+                        experimentKey: storedData.rolloutKey,
                     }));
-                    deferredObject.resolve(new Flag(true, variation));
-                    return deferredObject.promise;
+                    serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED, {
+                        userId: context.getId(),
+                    }));
+                    isEnabled = true;
+                    shouldCheckForExperimentsRules = true;
+                    rolloutVariationToReturn = variation;
+                    const featureInfo = {
+                        rolloutId: storedData.rolloutId,
+                        rolloutKey: storedData.rolloutKey,
+                        rolloutVariationId: storedData.rolloutVariationId,
+                    };
+                    evaluatedFeatureMap.set(featureKey, featureInfo);
+                    Object.assign(passedRulesInformation, featureInfo);
                 }
             }
         }
-        else if (storedData?.rolloutKey && storedData?.rolloutId) {
-            const variation = getVariationFromCampaignKey(settings, storedData.rolloutKey, storedData.rolloutVariationId);
-            if (variation) {
-                LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
-                    variationKey: variation.getKey(),
-                    userId: context.getId(),
-                    experimentType: 'rollout',
-                    experimentKey: storedData.rolloutKey,
-                }));
-                LogManager.Instance.debug(buildMessage(DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED, {
-                    userId: context.getId(),
-                }));
-                isEnabled = true;
-                shouldCheckForExperimentsRules = true;
-                rolloutVariationToReturn = variation;
-                const featureInfo = {
-                    rolloutId: storedData.rolloutId,
-                    rolloutKey: storedData.rolloutKey,
-                    rolloutVariationId: storedData.rolloutVariationId,
-                };
-                evaluatedFeatureMap.set(featureKey, featureInfo);
-                Object.assign(passedRulesInformation, featureInfo);
-            }
-        }
         if (!isObject(feature) || feature === undefined) {
-            LogManager.Instance.errorLog('FEATURE_NOT_FOUND', {
+            serviceContainer.getLogManager().errorLog('FEATURE_NOT_FOUND', {
                 featureKey,
             }, debugEventProps);
             deferredObject.reject({});
             return deferredObject.promise;
         }
         // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
-        await SegmentationManager.Instance.setContextualData(settings, feature, context);
+        await serviceContainer.getSegmentationManager().setContextualData(serviceContainer, feature, context);
         const rollOutRules = getSpecificRulesBasedOnType(feature, CampaignTypeEnum.ROLLOUT); // get all rollout rules
         if (rollOutRules.length > 0 && !isEnabled) {
             const rolloutRulesToEvaluate = [];
             for (const rule of rollOutRules) {
-                const { preSegmentationResult, updatedDecision } = await evaluateRule(settings, feature, rule, context, evaluatedFeatureMap, null, storageService, decision);
+                const { preSegmentationResult, updatedDecision } = await evaluateRule(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision);
                 Object.assign(decision, updatedDecision);
                 if (preSegmentationResult) {
                     // if pre segment passed, then break the loop and check the traffic allocation
@@ -149,23 +150,23 @@ export class FlagApi {
             }
             if (rolloutRulesToEvaluate.length > 0) {
                 const passedRolloutCampaign = new CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
-                const variation = evaluateTrafficAndGetVariation(settings, passedRolloutCampaign, context.getId());
+                const variation = evaluateTrafficAndGetVariation(serviceContainer, passedRolloutCampaign, context.getId());
                 if (isObject(variation) && Object.keys(variation).length > 0) {
                     isEnabled = true;
                     shouldCheckForExperimentsRules = true;
                     rolloutVariationToReturn = variation;
                     _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
-                    if (getShouldWaitForTrackingCalls()) {
-                        await createAndSendImpressionForVariationShown(settings, passedRolloutCampaign.getId(), variation.getId(), context, featureKey);
+                    if (serviceContainer.getShouldWaitForTrackingCalls()) {
+                        await createAndSendImpressionForVariationShown(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey);
                     }
                     else {
-                        createAndSendImpressionForVariationShown(settings, passedRolloutCampaign.getId(), variation.getId(), context, featureKey);
+                        createAndSendImpressionForVariationShown(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey);
                     }
                 }
             }
         }
         else if (rollOutRules.length === 0) {
-            LogManager.Instance.debug(DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
+            serviceContainer.getLogManager().debug(DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
             shouldCheckForExperimentsRules = true;
         }
         if (shouldCheckForExperimentsRules) {
@@ -174,7 +175,7 @@ export class FlagApi {
             const experimentRules = getAllExperimentRules(feature);
             const megGroupWinnerCampaigns = new Map();
             for (const rule of experimentRules) {
-                const { preSegmentationResult, whitelistedObject, updatedDecision } = await evaluateRule(settings, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision);
+                const { preSegmentationResult, whitelistedObject, updatedDecision } = await evaluateRule(serviceContainer, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision);
                 Object.assign(decision, updatedDecision);
                 if (preSegmentationResult) {
                     if (whitelistedObject === null) {
@@ -196,16 +197,16 @@ export class FlagApi {
             }
             if (experimentRulesToEvaluate.length > 0) {
                 const campaign = new CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
-                const variation = evaluateTrafficAndGetVariation(settings, campaign, context.getId());
+                const variation = evaluateTrafficAndGetVariation(serviceContainer, campaign, context.getId());
                 if (isObject(variation) && Object.keys(variation).length > 0) {
                     isEnabled = true;
                     experimentVariationToReturn = variation;
                     _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
-                    if (getShouldWaitForTrackingCalls()) {
-                        await createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context, featureKey);
+                    if (serviceContainer.getShouldWaitForTrackingCalls()) {
+                        await createAndSendImpressionForVariationShown(serviceContainer, campaign.getId(), variation.getId(), context, featureKey);
                     }
                     else {
-                        createAndSendImpressionForVariationShown(settings, campaign.getId(), variation.getId(), context, featureKey);
+                        createAndSendImpressionForVariationShown(serviceContainer, campaign.getId(), variation.getId(), context, featureKey);
                     }
                 }
             }
@@ -215,13 +216,14 @@ export class FlagApi {
             // set storage data
             new StorageDecorator().setDataInStorage({
                 featureKey,
+                featureId: feature.getId(),
                 context,
                 ...passedRulesInformation,
-            }, storageService);
+            }, storageService, serviceContainer);
         }
         // call integration callback, if defined
-        hooksService.set(decision);
-        hooksService.execute(hooksService.get());
+        serviceContainer.getHooksService().set(decision);
+        serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
         // send debug event, if debugger is enabled
         if (feature.getIsDebuggerEnabled()) {
             debugEventProps.cg = DebuggerCategoryEnum.DECISION;
@@ -230,21 +232,21 @@ export class FlagApi {
             // update debug event props with decision keys
             _updateDebugEventProps(debugEventProps, decision);
             // send debug event
-            sendDebugEventToVWO(debugEventProps);
+            sendDebugEventToVWO(serviceContainer, debugEventProps);
         }
         // Send data for Impact Campaign, if defined
         if (feature.getImpactCampaign()?.getCampaignId()) {
-            LogManager.Instance.info(buildMessage(InfoLogMessagesEnum.IMPACT_ANALYSIS, {
+            serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.IMPACT_ANALYSIS, {
                 userId: context.getId(),
                 featureKey,
                 status: isEnabled ? 'enabled' : 'disabled',
             }));
-            if (getShouldWaitForTrackingCalls()) {
-                await createAndSendImpressionForVariationShown(settings, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
+            if (serviceContainer.getShouldWaitForTrackingCalls()) {
+                await createAndSendImpressionForVariationShown(serviceContainer, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
                 context, featureKey);
             }
             else {
-                createAndSendImpressionForVariationShown(settings, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
+                createAndSendImpressionForVariationShown(serviceContainer, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
                 context, featureKey);
             }
         }

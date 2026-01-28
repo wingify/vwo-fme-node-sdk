@@ -34,7 +34,7 @@ export class ContextModel implements IVWOContextModel {
   variationTargetingVariables?: Record<string, dynamic>;
   postSegmentationVariables?: string[];
   _vwo_uuid?: string;
-  _vwo_sessionId?: number;
+  sessionId?: number;
   _vwo?: ContextVWOModel;
 
   modelFromDictionary(context: Record<string, any>, options: IVWOOptions): this {
@@ -61,7 +61,12 @@ export class ContextModel implements IVWOContextModel {
     }
 
     this._vwo_uuid = getUUID(this.id.toString(), options.accountId.toString());
-    this._vwo_sessionId = getCurrentUnixTimestamp();
+    // If sessionId is provided in the context, use it, otherwise generate a new one
+    if (context?.sessionId) {
+      this.sessionId = context.sessionId;
+    } else {
+      this.sessionId = getCurrentUnixTimestamp();
+    }
     return this;
   }
 
@@ -114,6 +119,6 @@ export class ContextModel implements IVWOContextModel {
   }
 
   getSessionId(): number {
-    return this._vwo_sessionId;
+    return this.sessionId;
   }
 }

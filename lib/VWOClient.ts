@@ -38,7 +38,7 @@ import { ApiEnum } from './enums/ApiEnum';
 import { AliasingUtil } from './utils/AliasingUtil';
 import { getUserId } from './utils/UserIdUtil';
 import { isArray } from './utils/DataTypeUtil';
-import { getFormattedErrorMessage } from './utils/FunctionUtil';
+import { getCurrentUnixTimestamp, getFormattedErrorMessage } from './utils/FunctionUtil';
 import { ServiceContainer } from './services/ServiceContainer';
 import { sendSdkInitEvent, sendSDKUsageStatsEvent } from './utils/SdkInitAndUsageStatsUtil';
 import { UsageStatsUtil } from './utils/UsageStatsUtil';
@@ -176,7 +176,7 @@ export class VWOClient implements IVWOClient {
   async getFlag(featureKey: string, context: Record<string, any>): Promise<Flag> {
     const apiName = ApiEnum.GET_FLAG;
     const deferredObject = new Deferred();
-    const errorReturnSchema = new Flag(false, new VariationModel());
+    const errorReturnSchema = new Flag(false, context?.sessionId ?? getCurrentUnixTimestamp(), new VariationModel());
 
     try {
       this.serviceContainer.getLogManager().debug(

@@ -40,14 +40,20 @@ import { isFeatureIdPresentInSettings } from '../utils/CampaignUtil';
 export class Flag {
   private readonly enabled: boolean;
   private variation: VariationModel | Record<string, any> | undefined;
+  private readonly sessionId: number;
 
-  constructor(isEnabled: boolean, variation?: VariationModel | Record<string, any> | undefined) {
+  constructor(isEnabled: boolean, sessionId: number, variation?: VariationModel | Record<string, any> | undefined) {
     this.enabled = isEnabled;
     this.variation = variation;
+    this.sessionId = sessionId;
   }
 
   isEnabled(): boolean {
     return this.enabled;
+  }
+
+  getSessionId(): number {
+    return this.sessionId;
   }
 
   getVariables(): Record<string, unknown>[] {
@@ -124,7 +130,7 @@ export class FlagApi {
               }),
             );
 
-            deferredObject.resolve(new Flag(true, variation));
+            deferredObject.resolve(new Flag(true, context.getSessionId(), variation));
             return deferredObject.promise;
           }
         }
@@ -383,6 +389,7 @@ export class FlagApi {
     deferredObject.resolve(
       new Flag(
         isEnabled,
+        context.getSessionId(),
         new VariationModel().modelFromDictionary(experimentVariationToReturn ?? rolloutVariationToReturn),
       ),
     );

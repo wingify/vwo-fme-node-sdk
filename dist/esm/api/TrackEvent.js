@@ -53,7 +53,7 @@ const createImpressionForTrack = async (serviceContainer, eventName, context, ev
     // Get base properties for the event
     const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
     // Prepare the payload for the track goal
-    const payload = getTrackGoalPayloadData(serviceContainer, context.getId(), eventName, eventProperties, context?.getUserAgent(), context?.getIpAddress(), context.getSessionId());
+    const payload = getTrackGoalPayloadData(serviceContainer, eventName, eventProperties, context);
     // Send the prepared payload via POST API request
     if (serviceContainer.getBatchEventsQueue()) {
         serviceContainer.getBatchEventsQueue().enqueue(payload);

@@ -24,7 +24,13 @@ export class ContextModel {
             this.postSegmentationVariables = context.postSegmentationVariables;
         }
         this._vwo_uuid = getUUID(this.id.toString(), options.accountId.toString());
-        this._vwo_sessionId = getCurrentUnixTimestamp();
+        // If sessionId is provided in the context, use it, otherwise generate a new one
+        if (context?.sessionId) {
+            this.sessionId = context.sessionId;
+        }
+        else {
+            this.sessionId = getCurrentUnixTimestamp();
+        }
         return this;
     }
     getId() {
@@ -64,7 +70,7 @@ export class ContextModel {
         return this._vwo_uuid;
     }
     getSessionId() {
-        return this._vwo_sessionId;
+        return this.sessionId;
     }
 }
 //# sourceMappingURL=ContextModel.js.map

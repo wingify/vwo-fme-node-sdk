@@ -19,8 +19,10 @@ import { ServiceContainer } from '../services/ServiceContainer';
 export declare class Flag {
   private readonly enabled;
   private variation;
-  constructor(isEnabled: boolean, variation?: VariationModel | Record<string, any> | undefined);
+  private readonly sessionId;
+  constructor(isEnabled: boolean, sessionId: number, variation?: VariationModel | Record<string, any> | undefined);
   isEnabled(): boolean;
+  getSessionId(): number;
   getVariables(): Record<string, unknown>[];
   getVariable<T = unknown>(key: string): T | undefined;
   getVariable<T = unknown>(key: string, defaultValue: T): T;

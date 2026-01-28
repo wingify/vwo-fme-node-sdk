@@ -13,7 +13,7 @@ import { ApiEnum } from './enums/ApiEnum.js';
 import { AliasingUtil } from './utils/AliasingUtil.js';
 import { getUserId } from './utils/UserIdUtil.js';
 import { isArray } from './utils/DataTypeUtil.js';
-import { getFormattedErrorMessage } from './utils/FunctionUtil.js';
+import { getCurrentUnixTimestamp, getFormattedErrorMessage } from './utils/FunctionUtil.js';
 import { sendSdkInitEvent, sendSDKUsageStatsEvent } from './utils/SdkInitAndUsageStatsUtil.js';
 import { UsageStatsUtil } from './utils/UsageStatsUtil.js';
 import { StorageService } from './services/StorageService.js';
@@ -110,7 +110,7 @@ export class VWOClient {
     async getFlag(featureKey, context) {
         const apiName = ApiEnum.GET_FLAG;
         const deferredObject = new Deferred();
-        const errorReturnSchema = new Flag(false, new VariationModel());
+        const errorReturnSchema = new Flag(false, context?.sessionId ?? getCurrentUnixTimestamp(), new VariationModel());
         try {
             this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
                 apiName,

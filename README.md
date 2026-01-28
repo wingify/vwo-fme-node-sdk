@@ -129,6 +129,45 @@ const userContext = {
 };
 ```
 
+### Session Management
+
+The SDK provides automatic session management capabilities to enable seamless integration with VWO's web client testing campaigns. Session IDs are automatically generated and managed to connect server-side feature flag decisions with client-side user sessions.
+
+#### Automatic Session ID Generation
+
+Session IDs are automatically generated using Unix timestamps when not explicitly provided in the context. This ensures consistent session tracking across all feature flag evaluations and event tracking.
+
+#### Session ID Access
+
+You can access and manage session IDs through the following methods:
+
+- **Get Session ID from Flag**: Use `flag.getSessionId()` to retrieve the session ID used for a specific feature flag evaluation
+- **Set Custom Session ID**: Include `sessionId` in your context object to use a custom session ID (useful for matching web client sessions)
+
+#### Example Usage
+
+```javascript
+// Session ID is automatically generated if not provided
+const context = { id: 'user-123' };
+const flag = await vwoClient.getFlag('feature-key', context);
+
+// Access the session ID to pass to web client for session recording
+const sessionId = flag.getSessionId();
+console.log('Session ID for web client:', sessionId);
+```
+
+You can also explicitly set a session ID to match web client session
+
+```javascript
+const context = {
+  id: 'user-123',
+  sessionId: 1697123456, // Custom session ID matching web client
+};
+const flag = await vwoClient.getFlag('feature-key', context);
+```
+
+This enhancement enables seamless integration between server-side feature flag decisions and client-side session recording, allowing for comprehensive user behavior analysis across both server and client environments.
+
 ### Basic Feature Flagging
 
 Feature Flags serve as the foundation for all testing, personalization, and rollout rules within FME.

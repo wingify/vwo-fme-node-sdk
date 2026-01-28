@@ -274,31 +274,26 @@ export function getTrackUserPayloadData(
 /**
  * Constructs the payload data for tracking goals with custom event properties.
  * @param {ServiceContainer} serviceContainer - The service container instance.
- * @param {any} userId - User identifier.
  * @param {string} eventName - Name of the event.
  * @param {any} eventProperties - Custom properties for the event.
- * @param {string} [visitorUserAgent=''] - Visitor's user agent.
- * @param {string} [ipAddress=''] - Visitor's IP address.
+ * @param {ContextModel} context - The context model instance.
  * @returns {any} - The constructed payload data.
  */
 export function getTrackGoalPayloadData(
   serviceContainer: ServiceContainer,
-  userId: string | number,
   eventName: string,
   eventProperties: Record<string, any>,
-  visitorUserAgent: string = '',
-  ipAddress: string = '',
-  sessionId: number = 0,
+  context: ContextModel,
 ): Record<string, any> {
   const properties = _getEventBasePayload(
     serviceContainer.getSettingsService(),
-    userId,
+    context.getId(),
     eventName,
-    visitorUserAgent,
-    ipAddress,
+    context.getUserAgent(),
+    context.getIpAddress(),
   );
-  if (sessionId !== 0) {
-    properties.d.sessionId = sessionId;
+  if (context.getSessionId() !== 0) {
+    properties.d.sessionId = context.getSessionId();
   }
   properties.d.event.props.isCustomEvent = true; // Mark as a custom event
   properties.d.event.props.variation = 1; // Temporary value for variation
@@ -315,7 +310,7 @@ export function getTrackGoalPayloadData(
     buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_GOAL, {
       eventName,
       accountId: serviceContainer.getSettingsService().accountId.toString(),
-      userId,
+      userId: context.getId(),
     }),
   );
 
@@ -325,32 +320,27 @@ export function getTrackGoalPayloadData(
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
  * @param {ServiceContainer} serviceContainer - The service container instance.
- * @param {string | number} userId - User ID.
  * @param {string} eventName - Event name.
  * @param {Record<string, any>} attributes - Key-value map of attributes.
- * @param {string} [visitorUserAgent=''] - Visitor's User-Agent (optional).
- * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
+ * @param {ContextModel} context - The context model instance.
  * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
 export function getAttributePayloadData(
   serviceContainer: ServiceContainer,
-  userId: string | number,
   eventName: string,
   attributes: Record<string, any>,
-  visitorUserAgent: string = '',
-  ipAddress: string = '',
-  sessionId: number = 0,
+  context: ContextModel,
 ): Record<string, any> {
   const properties = _getEventBasePayload(
     serviceContainer.getSettingsService(),
-    userId,
+    context.getId(),
     eventName,
-    visitorUserAgent,
-    ipAddress,
+    context.getUserAgent(),
+    context.getIpAddress(),
   );
 
-  if (sessionId !== 0) {
-    properties.d.sessionId = sessionId;
+  if (context.getSessionId() !== 0) {
+    properties.d.sessionId = context.getSessionId();
   }
 
   properties.d.event.props.isCustomEvent = true; // Mark as a custom event
@@ -365,7 +355,7 @@ export function getAttributePayloadData(
     buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
       eventName,
       accountId: serviceContainer.getSettingsService().accountId.toString(),
-      userId,
+      userId: context.getId(),
     }),
   );
 

@@ -169,15 +169,16 @@ var VWOClient = /** @class */ (function () {
     VWOClient.prototype.getFlag = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
             var apiName, deferredObject, errorReturnSchema, userId, contextCopy, contextModel, err_2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.GET_FLAG;
                         deferredObject = new PromiseUtil_1.Deferred();
-                        errorReturnSchema = new GetFlag_1.Flag(false, new VariationModel_1.VariationModel());
-                        _a.label = 1;
+                        errorReturnSchema = new GetFlag_1.Flag(false, (_a = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _a !== void 0 ? _a : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), new VariationModel_1.VariationModel());
+                        _b.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
+                        _b.trys.push([1, 3, , 4]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
@@ -203,7 +204,7 @@ var VWOClient = /** @class */ (function () {
                         }
                         return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 2:
-                        userId = _a.sent();
+                        userId = _b.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
@@ -216,7 +217,7 @@ var VWOClient = /** @class */ (function () {
                         });
                         return [3 /*break*/, 4];
                     case 3:
-                        err_2 = _a.sent();
+                        err_2 = _b.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_2),

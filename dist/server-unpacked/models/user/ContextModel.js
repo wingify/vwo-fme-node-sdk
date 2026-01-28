@@ -29,7 +29,13 @@ var ContextModel = /** @class */ (function () {
             this.postSegmentationVariables = context.postSegmentationVariables;
         }
         this._vwo_uuid = (0, UuidUtil_1.getUUID)(this.id.toString(), options.accountId.toString());
-        this._vwo_sessionId = (0, FunctionUtil_1.getCurrentUnixTimestamp)();
+        // If sessionId is provided in the context, use it, otherwise generate a new one
+        if (context === null || context === void 0 ? void 0 : context.sessionId) {
+            this.sessionId = context.sessionId;
+        }
+        else {
+            this.sessionId = (0, FunctionUtil_1.getCurrentUnixTimestamp)();
+        }
         return this;
     };
     ContextModel.prototype.getId = function () {
@@ -70,7 +76,7 @@ var ContextModel = /** @class */ (function () {
         return this._vwo_uuid;
     };
     ContextModel.prototype.getSessionId = function () {
-        return this._vwo_sessionId;
+        return this.sessionId;
     };
     return ContextModel;
 }());

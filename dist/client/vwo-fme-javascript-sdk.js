@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.36.0
+ * vwo-fme-javascript-sdk - v1.37.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.36.0"
+  version: "1.37.0"
 };
 
 /***/ }),
@@ -894,15 +894,16 @@ var VWOClient = /** @class */ (function () {
     VWOClient.prototype.getFlag = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
             var apiName, deferredObject, errorReturnSchema, userId, contextCopy, contextModel, err_2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.GET_FLAG;
                         deferredObject = new PromiseUtil_1.Deferred();
-                        errorReturnSchema = new GetFlag_1.Flag(false, new VariationModel_1.VariationModel());
-                        _a.label = 1;
+                        errorReturnSchema = new GetFlag_1.Flag(false, (_a = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _a !== void 0 ? _a : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), new VariationModel_1.VariationModel());
+                        _b.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
+                        _b.trys.push([1, 3, , 4]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
@@ -928,7 +929,7 @@ var VWOClient = /** @class */ (function () {
                         }
                         return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 2:
-                        userId = _a.sent();
+                        userId = _b.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
@@ -941,7 +942,7 @@ var VWOClient = /** @class */ (function () {
                         });
                         return [3 /*break*/, 4];
                     case 3:
-                        err_2 = _a.sent();
+                        err_2 = _b.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_2),
@@ -1442,12 +1443,16 @@ var DebuggerCategoryEnum_1 = __webpack_require__(/*! ../enums/DebuggerCategoryEn
 var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
 var CampaignUtil_2 = __webpack_require__(/*! ../utils/CampaignUtil */ "./lib/utils/CampaignUtil.ts");
 var Flag = /** @class */ (function () {
-    function Flag(isEnabled, variation) {
+    function Flag(isEnabled, sessionId, variation) {
         this.enabled = isEnabled;
         this.variation = variation;
+        this.sessionId = sessionId;
     }
     Flag.prototype.isEnabled = function () {
         return this.enabled;
+    };
+    Flag.prototype.getSessionId = function () {
+        return this.sessionId;
     };
     Flag.prototype.getVariables = function () {
         var _a;
@@ -1507,7 +1512,7 @@ var FlagApi = /** @class */ (function () {
                                             experimentType: 'experiment',
                                             experimentKey: storedData.experimentKey,
                                         }));
-                                        deferredObject.resolve(new Flag(true, variation));
+                                        deferredObject.resolve(new Flag(true, context.getSessionId(), variation));
                                         return [2 /*return*/, deferredObject.promise];
                                     }
                                 }
@@ -1685,7 +1690,7 @@ var FlagApi = /** @class */ (function () {
                         context, featureKey);
                         _h.label = 21;
                     case 21:
-                        deferredObject.resolve(new Flag(isEnabled, new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
+                        deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
                         return [2 /*return*/, deferredObject.promise];
                 }
             });
@@ -1838,7 +1843,7 @@ var createImpressionForAttributes = function (serviceContainer, attributes, cont
         switch (_a.label) {
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-                payload = (0, NetworkUtil_1.getAttributePayloadData)(serviceContainer, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress(), context.getSessionId());
+                payload = (0, NetworkUtil_1.getAttributePayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context);
                 if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
                 serviceContainer.getBatchEventsQueue().enqueue(payload);
                 return [3 /*break*/, 3];
@@ -1974,7 +1979,7 @@ var createImpressionForTrack = function (serviceContainer, eventName, context, e
         switch (_a.label) {
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-                payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(serviceContainer, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress(), context.getSessionId());
+                payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(serviceContainer, eventName, eventProperties, context);
                 if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
                 serviceContainer.getBatchEventsQueue().enqueue(payload);
                 return [3 /*break*/, 3];
@@ -3566,7 +3571,13 @@ var ContextModel = /** @class */ (function () {
             this.postSegmentationVariables = context.postSegmentationVariables;
         }
         this._vwo_uuid = (0, UuidUtil_1.getUUID)(this.id.toString(), options.accountId.toString());
-        this._vwo_sessionId = (0, FunctionUtil_1.getCurrentUnixTimestamp)();
+        // If sessionId is provided in the context, use it, otherwise generate a new one
+        if (context === null || context === void 0 ? void 0 : context.sessionId) {
+            this.sessionId = context.sessionId;
+        }
+        else {
+            this.sessionId = (0, FunctionUtil_1.getCurrentUnixTimestamp)();
+        }
         return this;
     };
     ContextModel.prototype.getId = function () {
@@ -3607,7 +3618,7 @@ var ContextModel = /** @class */ (function () {
         return this._vwo_uuid;
     };
     ContextModel.prototype.getSessionId = function () {
-        return this._vwo_sessionId;
+        return this.sessionId;
     };
     return ContextModel;
 }());
@@ -11681,20 +11692,15 @@ function getTrackUserPayloadData(serviceContainer, eventName, campaignId, variat
 /**
  * Constructs the payload data for tracking goals with custom event properties.
  * @param {ServiceContainer} serviceContainer - The service container instance.
- * @param {any} userId - User identifier.
  * @param {string} eventName - Name of the event.
  * @param {any} eventProperties - Custom properties for the event.
- * @param {string} [visitorUserAgent=''] - Visitor's user agent.
- * @param {string} [ipAddress=''] - Visitor's IP address.
+ * @param {ContextModel} context - The context model instance.
  * @returns {any} - The constructed payload data.
  */
-function getTrackGoalPayloadData(serviceContainer, userId, eventName, eventProperties, visitorUserAgent, ipAddress, sessionId) {
-    if (visitorUserAgent === void 0) { visitorUserAgent = ''; }
-    if (ipAddress === void 0) { ipAddress = ''; }
-    if (sessionId === void 0) { sessionId = 0; }
-    var properties = _getEventBasePayload(serviceContainer.getSettingsService(), userId, eventName, visitorUserAgent, ipAddress);
-    if (sessionId !== 0) {
-        properties.d.sessionId = sessionId;
+function getTrackGoalPayloadData(serviceContainer, eventName, eventProperties, context) {
+    var properties = _getEventBasePayload(serviceContainer.getSettingsService(), context.getId(), eventName, context.getUserAgent(), context.getIpAddress());
+    if (context.getSessionId() !== 0) {
+        properties.d.sessionId = context.getSessionId();
     }
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
     properties.d.event.props.variation = 1; // Temporary value for variation
@@ -11708,27 +11714,22 @@ function getTrackGoalPayloadData(serviceContainer, userId, eventName, eventPrope
     serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACK_GOAL, {
         eventName: eventName,
         accountId: serviceContainer.getSettingsService().accountId.toString(),
-        userId: userId,
+        userId: context.getId(),
     }));
     return properties;
 }
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
  * @param {ServiceContainer} serviceContainer - The service container instance.
- * @param {string | number} userId - User ID.
  * @param {string} eventName - Event name.
  * @param {Record<string, any>} attributes - Key-value map of attributes.
- * @param {string} [visitorUserAgent=''] - Visitor's User-Agent (optional).
- * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
+ * @param {ContextModel} context - The context model instance.
  * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
-function getAttributePayloadData(serviceContainer, userId, eventName, attributes, visitorUserAgent, ipAddress, sessionId) {
-    if (visitorUserAgent === void 0) { visitorUserAgent = ''; }
-    if (ipAddress === void 0) { ipAddress = ''; }
-    if (sessionId === void 0) { sessionId = 0; }
-    var properties = _getEventBasePayload(serviceContainer.getSettingsService(), userId, eventName, visitorUserAgent, ipAddress);
-    if (sessionId !== 0) {
-        properties.d.sessionId = sessionId;
+function getAttributePayloadData(serviceContainer, eventName, attributes, context) {
+    var properties = _getEventBasePayload(serviceContainer.getSettingsService(), context.getId(), eventName, context.getUserAgent(), context.getIpAddress());
+    if (context.getSessionId() !== 0) {
+        properties.d.sessionId = context.getSessionId();
     }
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = serviceContainer.getSettingsService().sdkKey; // Set environment key
@@ -11740,7 +11741,7 @@ function getAttributePayloadData(serviceContainer, userId, eventName, attributes
     serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_SYNC_VISITOR_PROP, {
         eventName: eventName,
         accountId: serviceContainer.getSettingsService().accountId.toString(),
-        userId: userId,
+        userId: context.getId(),
     }));
     return properties;
 }
@@ -15086,7 +15087,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty, nothing to flush","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty. Nothing to flush.","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}.","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}"}');
 
 /***/ }),
 
@@ -15097,7 +15098,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Failed to read data from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","ERROR_STORING_SETTINGS_IN_STORAGE":"Failed to store settings in storage. Error: {err}","ERROR_READING_SETTINGS_FROM_STORAGE":"Failed to read settings from storage. Error: {err}","ERROR_STORING_FRESH_SETTINGS_IN_STORAGE":"Failed to store latest settings in storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Failed to fetch data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API","ERROR_INITIALIZING_FETCH":"Failed to initialize the fetch API. Details: {error}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","ERROR_STORING_SETTINGS_IN_STORAGE":"Error while storing settings in storage. Error: {err}","ERROR_READING_SETTINGS_FROM_STORAGE":"Error while reading settings from storage. Error: {err}","ERROR_STORING_FRESH_SETTINGS_IN_STORAGE":"Error while storing fresh settings in storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Error while fetching data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API.","ERROR_INITIALIZING_FETCH":"Unable to initialize the fetch API. Details: {error}"}');
 
 /***/ }),
 
@@ -15119,7 +15120,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings not matches with the provided sdk-key/account-id. Fetching latest settings from the server","SETTINGS_EXPIRED":"Cached settings expired. Fetching latest settings from server","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings retrieved from storage","SETTINGS_SUCCESSFULLY_STORED":"Settings successfully stored in storage","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings updated with latest settings fetched from the server","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled in the init options","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings do not match the provided sdkKey or accountId. Fetching fresh settings from the server.","SETTINGS_EXPIRED":"Cached settings have expired. Initiating fetch for updated settings from server.","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings successfully retrieved from storage.","SETTINGS_SUCCESSFULLY_STORED":"Settings have been successfully stored in storage.","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings have been updated with the latest data fetched from the server.","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled.","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}"}');
 
 /***/ }),
 

@@ -41,7 +41,7 @@ const createImpressionForAttributes = async (serviceContainer, attributes, conte
     // Retrieve base properties for the event
     const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
     // Construct payload data for multiple attributes
-    const payload = getAttributePayloadData(serviceContainer, context.getId(), EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress(), context.getSessionId());
+    const payload = getAttributePayloadData(serviceContainer, EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context);
     if (serviceContainer.getBatchEventsQueue()) {
         serviceContainer.getBatchEventsQueue().enqueue(payload);
     }

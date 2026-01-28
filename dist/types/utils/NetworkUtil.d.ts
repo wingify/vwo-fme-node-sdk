@@ -78,40 +78,30 @@ export declare function getTrackUserPayloadData(
 /**
  * Constructs the payload data for tracking goals with custom event properties.
  * @param {ServiceContainer} serviceContainer - The service container instance.
- * @param {any} userId - User identifier.
  * @param {string} eventName - Name of the event.
  * @param {any} eventProperties - Custom properties for the event.
- * @param {string} [visitorUserAgent=''] - Visitor's user agent.
- * @param {string} [ipAddress=''] - Visitor's IP address.
+ * @param {ContextModel} context - The context model instance.
  * @returns {any} - The constructed payload data.
  */
 export declare function getTrackGoalPayloadData(
   serviceContainer: ServiceContainer,
-  userId: string | number,
   eventName: string,
   eventProperties: Record<string, any>,
-  visitorUserAgent?: string,
-  ipAddress?: string,
-  sessionId?: number,
+  context: ContextModel,
 ): Record<string, any>;
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
  * @param {ServiceContainer} serviceContainer - The service container instance.
- * @param {string | number} userId - User ID.
  * @param {string} eventName - Event name.
  * @param {Record<string, any>} attributes - Key-value map of attributes.
- * @param {string} [visitorUserAgent=''] - Visitor's User-Agent (optional).
- * @param {string} [ipAddress=''] - Visitor's IP Address (optional).
+ * @param {ContextModel} context - The context model instance.
  * @returns {Record<string, any>} - Payload object to be sent in the request.
  */
 export declare function getAttributePayloadData(
   serviceContainer: ServiceContainer,
-  userId: string | number,
   eventName: string,
   attributes: Record<string, any>,
-  visitorUserAgent?: string,
-  ipAddress?: string,
-  sessionId?: number,
+  context: ContextModel,
 ): Record<string, any>;
 /**
  * Sends a POST API request with the specified properties and payload.

@@ -108,7 +108,7 @@ var createImpressionForTrack = function (serviceContainer, eventName, context, e
         switch (_a.label) {
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-                payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(serviceContainer, context.getId(), eventName, eventProperties, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress(), context.getSessionId());
+                payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(serviceContainer, eventName, eventProperties, context);
                 if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
                 serviceContainer.getBatchEventsQueue().enqueue(payload);
                 return [3 /*break*/, 3];

@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.37.0] - 2026-01-28
+
+### Added
+
+- Added session management capabilities to enable integration with VWO's web client testing campaigns. The SDK now automatically generates and manages session IDs to connect server-side feature flag decisions with client-side user sessions.
+
+  Example usage:
+
+  ```javascript
+  const vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+  });
+
+  // Session ID is automatically generated if not provided
+  const context = { id: 'user-123' };
+  const flag = await vwoClient.getFlag('feature-key', context);
+
+  // Access the session ID to pass to web client for session recording
+  const sessionId = flag.getSessionId();
+  console.log('Session ID for web client:', sessionId);
+  ```
+
+  You can also explicitly set a session ID to match web client session
+
+  ```javascript
+  const context = {
+    id: 'user-123',
+    sessionId: 1697123456, // Custom session ID matching web client
+  };
+  const flag = await vwoClient.getFlag('feature-key', context);
+  ```
+
+  This enhancement enables seamless integration between server-side feature flag decisions and client-side session recording, allowing for comprehensive user behavior analysis across both server and client environments.
+
 ## [1.36.0] - 2026-01-28
 
 ### Added

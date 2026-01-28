@@ -96,7 +96,7 @@ var createImpressionForAttributes = function (serviceContainer, attributes, cont
         switch (_a.label) {
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-                payload = (0, NetworkUtil_1.getAttributePayloadData)(serviceContainer, context.getId(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context.getUserAgent(), context.getIpAddress(), context.getSessionId());
+                payload = (0, NetworkUtil_1.getAttributePayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context);
                 if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
                 serviceContainer.getBatchEventsQueue().enqueue(payload);
                 return [3 /*break*/, 3];

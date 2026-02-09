@@ -22,6 +22,8 @@ export interface IVWOContextModel {
   ipAddress?: string;
   customVariables?: Record<string, any>;
   variationTargetingVariables?: Record<string, dynamic>;
+  postSegmentationVariables?: string[];
+  sessionId?: number;
 }
 export declare class ContextModel implements IVWOContextModel {
   id: string | number;

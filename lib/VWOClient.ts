@@ -66,7 +66,7 @@ export interface IVWOClient {
   setAttribute(attributes: Record<string, boolean | string | number>, context: Record<string, any>): Promise<void>;
   updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
   flushEvents(): Promise<Record<string, any>>;
-  setAlias(context: Record<string, any>, aliasId: string): Promise<boolean>;
+  setAlias(context: Record<string, any> | string, aliasId: string): Promise<boolean>;
 }
 
 export class VWOClient implements IVWOClient {

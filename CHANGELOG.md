@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.37.1] - 2026-02-09
 
+### Fixed
+
 - Exposed `postSegmentationVariables` and `sessionId` in the `IVWOContextModel` TypeScript interface to enable direct access for SDK users.
 
 ## [1.37.0] - 2026-01-28

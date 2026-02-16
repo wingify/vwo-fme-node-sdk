@@ -246,6 +246,11 @@ function getTrackUserPayloadData(serviceContainer, eventName, campaignId, variat
     if (context.getSessionId() !== 0) {
         properties.d.sessionId = context.getSessionId();
     }
+    // if uuid is present in the context, use it, otherwise generate a new one
+    if (context.getUuid()) {
+        properties.d.msgId = "".concat(context.getUuid(), "-").concat((0, FunctionUtil_1.getCurrentUnixTimestampInMillis)());
+        properties.d.visId = context.getUuid();
+    }
     properties.d.event.props.id = campaignId;
     properties.d.event.props.variation = variationId;
     properties.d.event.props.isFirst = 1;
@@ -285,6 +290,11 @@ function getTrackGoalPayloadData(serviceContainer, eventName, eventProperties, c
     if (context.getSessionId() !== 0) {
         properties.d.sessionId = context.getSessionId();
     }
+    // if uuid is present in the context, use it, otherwise generate a new one
+    if (context.getUuid()) {
+        properties.d.msgId = "".concat(context.getUuid(), "-").concat((0, FunctionUtil_1.getCurrentUnixTimestampInMillis)());
+        properties.d.visId = context.getUuid();
+    }
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
     properties.d.event.props.variation = 1; // Temporary value for variation
     properties.d.event.props.id = 1; // Temporary value for ID
@@ -313,6 +323,11 @@ function getAttributePayloadData(serviceContainer, eventName, attributes, contex
     var properties = _getEventBasePayload(serviceContainer.getSettingsService(), context.getId(), eventName, context.getUserAgent(), context.getIpAddress());
     if (context.getSessionId() !== 0) {
         properties.d.sessionId = context.getSessionId();
+    }
+    // if uuid is present in the context, use it, otherwise generate a new one
+    if (context.getUuid()) {
+        properties.d.msgId = "".concat(context.getUuid(), "-").concat((0, FunctionUtil_1.getCurrentUnixTimestampInMillis)());
+        properties.d.visId = context.getUuid();
     }
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
     properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = serviceContainer.getSettingsService().sdkKey; // Set environment key

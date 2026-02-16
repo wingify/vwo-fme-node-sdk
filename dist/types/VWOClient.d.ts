@@ -126,4 +126,11 @@ export declare class VWOClient implements IVWOClient {
    * @returns Promise<boolean> - Returns true if successful, false otherwise
    */
   setAlias(contextOrUserId: Record<string, any> | string, aliasId: string): Promise<boolean>;
+  /**
+   * Generates a UUID from the context.id
+   * @param context - The context to generate the UUID from
+   * @param apiName - The name of the API calling this method
+   * @returns The UUID generated from the context.id
+   */
+  private getUUIDFromContext;
 }

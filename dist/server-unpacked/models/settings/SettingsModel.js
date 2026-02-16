@@ -57,6 +57,9 @@ var SettingsModel = /** @class */ (function () {
         if (settings.pollInterval) {
             this.pollInterval = settings.pollInterval;
         }
+        if (settings.isWebConnectivityEnabled) {
+            this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
+        }
         return this;
     }
     SettingsModel.prototype.getFeatures = function () {
@@ -91,6 +94,9 @@ var SettingsModel = /** @class */ (function () {
     };
     SettingsModel.prototype.getUsageStatsAccountId = function () {
         return this.usageStatsAccountId;
+    };
+    SettingsModel.prototype.getIsWebConnectivityEnabled = function () {
+        return this.isWebConnectivityEnabled;
     };
     return SettingsModel;
 }());

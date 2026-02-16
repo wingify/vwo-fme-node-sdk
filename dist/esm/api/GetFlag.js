@@ -35,16 +35,20 @@ import { DebuggerCategoryEnum } from '../enums/DebuggerCategoryEnum.js';
 import { Constants } from '../constants/index.js';
 import { isFeatureIdPresentInSettings } from '../utils/CampaignUtil.js';
 export class Flag {
-    constructor(isEnabled, sessionId, variation) {
+    constructor(isEnabled, sessionId, uuid, variation) {
         this.enabled = isEnabled;
         this.variation = variation;
         this.sessionId = sessionId;
+        this.uuid = uuid;
     }
     isEnabled() {
         return this.enabled;
     }
     getSessionId() {
         return this.sessionId;
+    }
+    getUUID() {
+        return this.uuid;
     }
     getVariables() {
         return this.variation?.getVariables() || [];
@@ -95,7 +99,7 @@ export class FlagApi {
                             experimentType: 'experiment',
                             experimentKey: storedData.experimentKey,
                         }));
-                        deferredObject.resolve(new Flag(true, context.getSessionId(), variation));
+                        deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
                         return deferredObject.promise;
                     }
                 }
@@ -254,7 +258,7 @@ export class FlagApi {
                 context, featureKey);
             }
         }
-        deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), new VariationModel().modelFromDictionary(experimentVariationToReturn ?? rolloutVariationToReturn)));
+        deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), context.getUuid(), new VariationModel().modelFromDictionary(experimentVariationToReturn ?? rolloutVariationToReturn)));
         return deferredObject.promise;
     }
 }

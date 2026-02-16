@@ -41,11 +41,18 @@ export class Flag {
   private readonly enabled: boolean;
   private variation: VariationModel | Record<string, any> | undefined;
   private readonly sessionId: number;
+  private readonly uuid: string;
 
-  constructor(isEnabled: boolean, sessionId: number, variation?: VariationModel | Record<string, any> | undefined) {
+  constructor(
+    isEnabled: boolean,
+    sessionId: number,
+    uuid: string,
+    variation?: VariationModel | Record<string, any> | undefined,
+  ) {
     this.enabled = isEnabled;
     this.variation = variation;
     this.sessionId = sessionId;
+    this.uuid = uuid;
   }
 
   isEnabled(): boolean {
@@ -54,6 +61,10 @@ export class Flag {
 
   getSessionId(): number {
     return this.sessionId;
+  }
+
+  getUUID(): string {
+    return this.uuid;
   }
 
   getVariables(): Record<string, unknown>[] {
@@ -130,7 +141,7 @@ export class FlagApi {
               }),
             );
 
-            deferredObject.resolve(new Flag(true, context.getSessionId(), variation));
+            deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
             return deferredObject.promise;
           }
         }
@@ -390,6 +401,7 @@ export class FlagApi {
       new Flag(
         isEnabled,
         context.getSessionId(),
+        context.getUuid(),
         new VariationModel().modelFromDictionary(experimentVariationToReturn ?? rolloutVariationToReturn),
       ),
     );

@@ -5295,10 +5295,10 @@ vwo-fme-sdk-e2e-test-settings-n-cases@^1.5.0:
   resolved "https://registry.npmjs.org/vwo-fme-sdk-e2e-test-settings-n-cases/-/vwo-fme-sdk-e2e-test-settings-n-cases-1.5.0.tgz#6f0db6a97faa2b653a0ebfec67662ca02d22b17a"
   integrity sha512-GRz2uHe7Oweoh9AAMlwRu9n1DqGQY/SmqT/3h1M3rdJ0sT00ULoPQlOVcCpUPN0OKmF8hsqxA7aTQ52Z6tSjYg==
 
-vwo-fme-sdk-log-messages@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.npmjs.org/vwo-fme-sdk-log-messages/-/vwo-fme-sdk-log-messages-1.3.0.tgz#9e7eabcf31c615a460a5fc5536e3ae239184a570"
-  integrity sha512-NQp6YfMdG/2E6BN41TrMfLLQKv3osnXLR/1FJMJIQbxCojm1Hqs6G3dsljJiI6yMQLLQyIRYGyBn5z28aGZ/Gg==
+vwo-fme-sdk-log-messages@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/vwo-fme-sdk-log-messages/-/vwo-fme-sdk-log-messages-1.4.0.tgz#7818e4a3f3d9c9314dca44c49b8f0a18a990bc85"
+  integrity sha512-1x/w5vjUBiTCl6EFzP01RaK3NdWObOjUJOmAxzsvjpCrH6ySHI4kZH2J9o/5ukoBx75GtA4rPBL9nQFw3yHnmw==
 
 walker@^1.0.8:
   version "1.0.8"

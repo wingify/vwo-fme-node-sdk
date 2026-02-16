@@ -85,16 +85,20 @@ var DebuggerCategoryEnum_1 = require("../enums/DebuggerCategoryEnum");
 var constants_1 = require("../constants");
 var CampaignUtil_2 = require("../utils/CampaignUtil");
 var Flag = /** @class */ (function () {
-    function Flag(isEnabled, sessionId, variation) {
+    function Flag(isEnabled, sessionId, uuid, variation) {
         this.enabled = isEnabled;
         this.variation = variation;
         this.sessionId = sessionId;
+        this.uuid = uuid;
     }
     Flag.prototype.isEnabled = function () {
         return this.enabled;
     };
     Flag.prototype.getSessionId = function () {
         return this.sessionId;
+    };
+    Flag.prototype.getUUID = function () {
+        return this.uuid;
     };
     Flag.prototype.getVariables = function () {
         var _a;
@@ -154,7 +158,7 @@ var FlagApi = /** @class */ (function () {
                                             experimentType: 'experiment',
                                             experimentKey: storedData.experimentKey,
                                         }));
-                                        deferredObject.resolve(new Flag(true, context.getSessionId(), variation));
+                                        deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
                                         return [2 /*return*/, deferredObject.promise];
                                     }
                                 }
@@ -332,7 +336,7 @@ var FlagApi = /** @class */ (function () {
                         context, featureKey);
                         _h.label = 21;
                     case 21:
-                        deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
+                        deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
                         return [2 /*return*/, deferredObject.promise];
                 }
             });

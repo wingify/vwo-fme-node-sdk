@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRandomUUID = getRandomUUID;
 exports.getUUID = getUUID;
 exports.generateUUID = generateUUID;
+exports.isWebUuid = isWebUuid;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -65,5 +66,19 @@ function generateUUID(name, namespace) {
     }
     // Generate and return the UUID v5
     return (0, uuid_2.v5)(name, namespace);
+}
+/**
+ * Validates whether the given string is an web-generated UUID.
+ * Performs a basic check that an incoming context.id looks like an web-generated ID:
+ *   D or J + 32 hex chars = 33 chars total.
+ *
+ * @param id - The context ID string to validate (e.g. from context.id).
+ * @returns True if id matches the web-generated UUID format (D or J followed by 32 hex chars); false otherwise.
+ */
+function isWebUuid(id) {
+    if (typeof id !== 'string') {
+        return false;
+    }
+    return /^[DJ][0-9A-Fa-f]{32}$/.test(id);
 }
 //# sourceMappingURL=UuidUtil.js.map

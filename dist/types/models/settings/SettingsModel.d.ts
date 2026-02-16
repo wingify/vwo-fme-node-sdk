@@ -33,6 +33,7 @@ export declare class SettingsModel {
   private collectionPrefix?;
   private pollInterval?;
   private usageStatsAccountId?;
+  private isWebConnectivityEnabled?;
   constructor(settings: SettingsModel);
   getFeatures(): Array<FeatureModel>;
   getCampaigns(): Array<CampaignModel>;
@@ -45,4 +46,5 @@ export declare class SettingsModel {
   setPollInterval(value: number): void;
   getPollInterval(): number;
   getUsageStatsAccountId(): number;
+  getIsWebConnectivityEnabled(): boolean;
 }

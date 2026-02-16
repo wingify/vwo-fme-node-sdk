@@ -23,7 +23,10 @@ export class ContextModel {
         if (context?.postSegmentationVariables) {
             this.postSegmentationVariables = context.postSegmentationVariables;
         }
-        this._vwo_uuid = getUUID(this.id.toString(), options.accountId.toString());
+        // if uuid is provided in the context, use it, otherwise generate a new uuid
+        this._vwo_uuid =
+            context?.uuid ??
+                getUUID(context?.id?.toString() ?? `${options?.accountId}_${options?.sdkKey}`, options?.accountId?.toString());
         // If sessionId is provided in the context, use it, otherwise generate a new one
         if (context?.sessionId) {
             this.sessionId = context.sessionId;

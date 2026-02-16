@@ -43,6 +43,7 @@ import { ServiceContainer } from './services/ServiceContainer';
 import { sendSdkInitEvent, sendSDKUsageStatsEvent } from './utils/SdkInitAndUsageStatsUtil';
 import { UsageStatsUtil } from './utils/UsageStatsUtil';
 import { StorageService } from './services/StorageService';
+import { getUUID, isWebUuid } from './utils/UuidUtil';
 
 export interface IVWOClient {
   readonly options?: IVWOOptions;
@@ -176,15 +177,38 @@ export class VWOClient implements IVWOClient {
   async getFlag(featureKey: string, context: Record<string, any>): Promise<Flag> {
     const apiName = ApiEnum.GET_FLAG;
     const deferredObject = new Deferred();
-    const errorReturnSchema = new Flag(false, context?.sessionId ?? getCurrentUnixTimestamp(), new VariationModel());
-
+    let uuid: string;
     try {
       this.serviceContainer.getLogManager().debug(
         buildMessage(DebugLogMessagesEnum.API_CALLED, {
           apiName,
         }),
       );
+      // get uuid from context
+      uuid = this.getUUIDFromContext(context, apiName);
+    } catch (err) {
+      this.serviceContainer.getLogManager().errorLog(
+        'EXECUTION_FAILED',
+        {
+          apiName,
+          err: getFormattedErrorMessage(err),
+        },
+        { an: ApiEnum.GET_FLAG },
+      );
+      // return error return schema with null uuid
+      deferredObject.resolve(
+        new Flag(false, context?.sessionId ?? getCurrentUnixTimestamp(), null, new VariationModel()),
+      );
+      return deferredObject.promise;
+    }
+    const errorReturnSchema = new Flag(
+      false,
+      context?.sessionId ?? getCurrentUnixTimestamp(),
+      uuid,
+      new VariationModel(),
+    );
 
+    try {
       // Validate featureKey is a string
       if (!isString(featureKey)) {
         this.serviceContainer.getLogManager().errorLog(
@@ -219,6 +243,8 @@ export class VWOClient implements IVWOClient {
       // Create a copy of context to avoid modifying the original
       const contextCopy = { ...context };
       contextCopy.id = userId;
+      // set uuid in the context copy
+      contextCopy.uuid = uuid;
 
       const contextModel = new ContextModel().modelFromDictionary(contextCopy, this.options);
 
@@ -325,6 +351,8 @@ export class VWOClient implements IVWOClient {
       // Create a copy of context to avoid modifying the original
       const contextCopy = { ...context };
       contextCopy.id = userId;
+      // set uuid in the context copy
+      contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
 
       const contextModel = new ContextModel().modelFromDictionary(contextCopy, this.options);
 
@@ -426,6 +454,8 @@ export class VWOClient implements IVWOClient {
         // Create a copy of context to avoid modifying the original
         const contextCopy = { ...context };
         contextCopy.id = userId;
+        // set uuid in the context copy
+        contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
 
         const contextModel = new ContextModel().modelFromDictionary(contextCopy, this.options);
         // Proceed with setting the attributes if validation is successful
@@ -654,6 +684,44 @@ export class VWOClient implements IVWOClient {
         .getLogManager()
         .errorLog('EXECUTION_FAILED', { apiName, err: getFormattedErrorMessage(error) }, { an: ApiEnum.SET_ALIAS });
       return false;
+    }
+  }
+
+  /**
+   * Generates a UUID from the context.id
+   * @param context - The context to generate the UUID from
+   * @param apiName - The name of the API calling this method
+   * @returns The UUID generated from the context.id
+   */
+  private getUUIDFromContext(context: Record<string, any>, apiName: string): string {
+    if (this.settings.getIsWebConnectivityEnabled() !== false) {
+      // if web connectivity is enabled, check if context.id is a valid web UUID
+      if (isWebUuid(context?.id)) {
+        // if context.id is a valid web UUID, set it as uuid
+        this.serviceContainer.getLogManager().debug(
+          buildMessage(DebugLogMessagesEnum.WEB_UUID_FOUND, {
+            apiName,
+            uuid: context.id,
+          }),
+        );
+        return context.id;
+      } else {
+        // if context?.useIdForWeb is true and context.id is not a valid web UUID, throw error
+        if (context?.useIdForWeb === true) {
+          throw new Error('UUID passed in context.id is not a valid UUID');
+        }
+        // if context?.useIdForWeb is false, fallback to server‑side UUID derivation
+        return getUUID(
+          context?.id?.toString() ?? `${this.options?.accountId}_${this.options?.sdkKey}`,
+          this.options?.accountId?.toString(),
+        );
+      }
+    } else {
+      // if web connectivity is disabled, fallback to server‑side UUID derivation
+      return getUUID(
+        context?.id?.toString() ?? `${this.options?.accountId}_${this.options?.sdkKey}`,
+        this.options?.accountId?.toString(),
+      );
     }
   }
 }

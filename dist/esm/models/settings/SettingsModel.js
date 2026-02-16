@@ -53,6 +53,9 @@ export class SettingsModel {
         if (settings.pollInterval) {
             this.pollInterval = settings.pollInterval;
         }
+        if (settings.isWebConnectivityEnabled) {
+            this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
+        }
         return this;
     }
     getFeatures() {
@@ -87,6 +90,9 @@ export class SettingsModel {
     }
     getUsageStatsAccountId() {
         return this.usageStatsAccountId;
+    }
+    getIsWebConnectivityEnabled() {
+        return this.isWebConnectivityEnabled;
     }
 }
 //# sourceMappingURL=SettingsModel.js.map

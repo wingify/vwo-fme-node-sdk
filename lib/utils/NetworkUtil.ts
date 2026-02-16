@@ -237,6 +237,11 @@ export function getTrackUserPayloadData(
   if (context.getSessionId() !== 0) {
     properties.d.sessionId = context.getSessionId();
   }
+  // if uuid is present in the context, use it, otherwise generate a new one
+  if (context.getUuid()) {
+    properties.d.msgId = `${context.getUuid()}-${getCurrentUnixTimestampInMillis()}`;
+    properties.d.visId = context.getUuid();
+  }
   properties.d.event.props.id = campaignId;
   properties.d.event.props.variation = variationId;
   properties.d.event.props.isFirst = 1;
@@ -295,6 +300,11 @@ export function getTrackGoalPayloadData(
   if (context.getSessionId() !== 0) {
     properties.d.sessionId = context.getSessionId();
   }
+  // if uuid is present in the context, use it, otherwise generate a new one
+  if (context.getUuid()) {
+    properties.d.msgId = `${context.getUuid()}-${getCurrentUnixTimestampInMillis()}`;
+    properties.d.visId = context.getUuid();
+  }
   properties.d.event.props.isCustomEvent = true; // Mark as a custom event
   properties.d.event.props.variation = 1; // Temporary value for variation
   properties.d.event.props.id = 1; // Temporary value for ID
@@ -341,6 +351,11 @@ export function getAttributePayloadData(
 
   if (context.getSessionId() !== 0) {
     properties.d.sessionId = context.getSessionId();
+  }
+  // if uuid is present in the context, use it, otherwise generate a new one
+  if (context.getUuid()) {
+    properties.d.msgId = `${context.getUuid()}-${getCurrentUnixTimestampInMillis()}`;
+    properties.d.visId = context.getUuid();
   }
 
   properties.d.event.props.isCustomEvent = true; // Mark as a custom event

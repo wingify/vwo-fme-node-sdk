@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.38.0] - 2026-02-16
+
+### Added
+
+- Added support to use the context `id` as the visitor UUID instead of auto-generating one. You can read the visitor UUID from the flag result via `flag.getUUID()` (e.g. to pass to the web client).
+
+  Example usage:
+
+  ```javascript
+  const vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+  });
+
+  // Default: SDK generates a UUID from id and account
+  const contextWithGeneratedUuid = { id: 'user-123' };
+  const flag1 = await vwoClient.getFlag('feature-key', contextWithGeneratedUuid);
+
+  // Use your own UUID (e.g. from web client) by disabling UUID generation
+  const contextWithCustomUuid = {
+    id: 'D7E2EAA667909A2DB8A6371FF0975C2A5', // your existing UUID
+  };
+  const flag2 = await vwoClient.getFlag('feature-key', contextWithCustomUuid);
+
+  // Get the UUID from the flag result (e.g. to pass to web client)
+  const uuid = flag1.getUUID();
+  console.log('Visitor UUID:', uuid);
+  ```
+
 ## [1.37.1] - 2026-02-09
 
 ### Fixed

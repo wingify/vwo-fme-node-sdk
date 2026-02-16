@@ -40,6 +40,7 @@ export class SettingsModel {
   private collectionPrefix?: string;
   private pollInterval?: number;
   private usageStatsAccountId?: number;
+  private isWebConnectivityEnabled?: boolean;
 
   constructor(settings: SettingsModel) {
     this.sdkKey = settings.sK || settings.sdkKey;
@@ -77,6 +78,10 @@ export class SettingsModel {
 
     if (settings.pollInterval) {
       this.pollInterval = settings.pollInterval;
+    }
+
+    if (settings.isWebConnectivityEnabled) {
+      this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
     }
 
     return this;
@@ -123,5 +128,9 @@ export class SettingsModel {
 
   getUsageStatsAccountId(): number {
     return this.usageStatsAccountId;
+  }
+
+  getIsWebConnectivityEnabled(): boolean {
+    return this.isWebConnectivityEnabled;
   }
 }

@@ -68,3 +68,18 @@ export function generateUUID(name: string, namespace: string) {
   // Generate and return the UUID v5
   return uuidv5(name, namespace);
 }
+
+/**
+ * Validates whether the given string is an web-generated UUID.
+ * Performs a basic check that an incoming context.id looks like an web-generated ID:
+ *   D or J + 32 hex chars = 33 chars total.
+ *
+ * @param id - The context ID string to validate (e.g. from context.id).
+ * @returns True if id matches the web-generated UUID format (D or J followed by 32 hex chars); false otherwise.
+ */
+export function isWebUuid(id: string): boolean {
+  if (typeof id !== 'string') {
+    return false;
+  }
+  return /^[DJ][0-9A-Fa-f]{32}$/.test(id);
+}

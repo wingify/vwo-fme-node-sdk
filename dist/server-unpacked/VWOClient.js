@@ -67,6 +67,7 @@ var FunctionUtil_1 = require("./utils/FunctionUtil");
 var SdkInitAndUsageStatsUtil_1 = require("./utils/SdkInitAndUsageStatsUtil");
 var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
 var StorageService_1 = require("./services/StorageService");
+var UuidUtil_1 = require("./utils/UuidUtil");
 var VWOClient = /** @class */ (function () {
     /**
      * Constructor for the VWOClient class.
@@ -168,20 +169,33 @@ var VWOClient = /** @class */ (function () {
      */
     VWOClient.prototype.getFlag = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, deferredObject, errorReturnSchema, userId, contextCopy, contextModel, err_2;
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var apiName, deferredObject, uuid, errorReturnSchema, userId, contextCopy, contextModel, err_2;
+            var _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.GET_FLAG;
                         deferredObject = new PromiseUtil_1.Deferred();
-                        errorReturnSchema = new GetFlag_1.Flag(false, (_a = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _a !== void 0 ? _a : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), new VariationModel_1.VariationModel());
-                        _b.label = 1;
+                        try {
+                            this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+                                apiName: apiName,
+                            }));
+                            // get uuid from context
+                            uuid = this.getUUIDFromContext(context, apiName);
+                        }
+                        catch (err) {
+                            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
+                                apiName: apiName,
+                                err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
+                            }, { an: ApiEnum_1.ApiEnum.GET_FLAG });
+                            // return error return schema with null uuid
+                            deferredObject.resolve(new GetFlag_1.Flag(false, (_a = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _a !== void 0 ? _a : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), null, new VariationModel_1.VariationModel()));
+                            return [2 /*return*/, deferredObject.promise];
+                        }
+                        errorReturnSchema = new GetFlag_1.Flag(false, (_b = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _b !== void 0 ? _b : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), uuid, new VariationModel_1.VariationModel());
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 3, , 4]);
-                        this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
-                            apiName: apiName,
-                        }));
+                        _c.trys.push([1, 3, , 4]);
                         // Validate featureKey is a string
                         if (!(0, DataTypeUtil_1.isString)(featureKey)) {
                             this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
@@ -204,9 +218,11 @@ var VWOClient = /** @class */ (function () {
                         }
                         return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 2:
-                        userId = _b.sent();
+                        userId = _c.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
+                        // set uuid in the context copy
+                        contextCopy.uuid = uuid;
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         GetFlag_1.FlagApi.get(featureKey, contextModel, this.serviceContainer)
                             .then(function (data) {
@@ -217,7 +233,7 @@ var VWOClient = /** @class */ (function () {
                         });
                         return [3 /*break*/, 4];
                     case 3:
-                        err_2 = _b.sent();
+                        err_2 = _c.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_2),
@@ -294,6 +310,8 @@ var VWOClient = /** @class */ (function () {
                         userId = _b.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
+                        // set uuid in the context copy
+                        contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         // Proceed with tracking the event
                         new TrackEvent_1.TrackApi()
@@ -383,6 +401,8 @@ var VWOClient = /** @class */ (function () {
                         userId = _b.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
+                        // set uuid in the context copy
+                        contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         // Proceed with setting the attributes if validation is successful
                         return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.serviceContainer, attributes, contextModel)];
@@ -616,6 +636,38 @@ var VWOClient = /** @class */ (function () {
                 }
             });
         });
+    };
+    /**
+     * Generates a UUID from the context.id
+     * @param context - The context to generate the UUID from
+     * @param apiName - The name of the API calling this method
+     * @returns The UUID generated from the context.id
+     */
+    VWOClient.prototype.getUUIDFromContext = function (context, apiName) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        if (this.settings.getIsWebConnectivityEnabled() !== false) {
+            // if web connectivity is enabled, check if context.id is a valid web UUID
+            if ((0, UuidUtil_1.isWebUuid)(context === null || context === void 0 ? void 0 : context.id)) {
+                // if context.id is a valid web UUID, set it as uuid
+                this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.WEB_UUID_FOUND, {
+                    apiName: apiName,
+                    uuid: context.id,
+                }));
+                return context.id;
+            }
+            else {
+                // if context?.useIdForWeb is true and context.id is not a valid web UUID, throw error
+                if ((context === null || context === void 0 ? void 0 : context.useIdForWeb) === true) {
+                    throw new Error('UUID passed in context.id is not a valid UUID');
+                }
+                // if context?.useIdForWeb is false, fallback to server‑side UUID derivation
+                return (0, UuidUtil_1.getUUID)((_b = (_a = context === null || context === void 0 ? void 0 : context.id) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "".concat((_c = this.options) === null || _c === void 0 ? void 0 : _c.accountId, "_").concat((_d = this.options) === null || _d === void 0 ? void 0 : _d.sdkKey), (_f = (_e = this.options) === null || _e === void 0 ? void 0 : _e.accountId) === null || _f === void 0 ? void 0 : _f.toString());
+            }
+        }
+        else {
+            // if web connectivity is disabled, fallback to server‑side UUID derivation
+            return (0, UuidUtil_1.getUUID)((_h = (_g = context === null || context === void 0 ? void 0 : context.id) === null || _g === void 0 ? void 0 : _g.toString()) !== null && _h !== void 0 ? _h : "".concat((_j = this.options) === null || _j === void 0 ? void 0 : _j.accountId, "_").concat((_k = this.options) === null || _k === void 0 ? void 0 : _k.sdkKey), (_m = (_l = this.options) === null || _l === void 0 ? void 0 : _l.accountId) === null || _m === void 0 ? void 0 : _m.toString());
+        }
     };
     return VWOClient;
 }());

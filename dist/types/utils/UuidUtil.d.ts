@@ -18,3 +18,12 @@ export declare function getUUID(userId: string, accountId: string): string;
  * @returns A UUID string or undefined if inputs are invalid.
  */
 export declare function generateUUID(name: string, namespace: string): any;
+/**
+ * Validates whether the given string is an web-generated UUID.
+ * Performs a basic check that an incoming context.id looks like an web-generated ID:
+ *   D or J + 32 hex chars = 33 chars total.
+ *
+ * @param id - The context ID string to validate (e.g. from context.id).
+ * @returns True if id matches the web-generated UUID format (D or J followed by 32 hex chars); false otherwise.
+ */
+export declare function isWebUuid(id: string): boolean;

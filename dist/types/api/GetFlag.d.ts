@@ -20,9 +20,16 @@ export declare class Flag {
   private readonly enabled;
   private variation;
   private readonly sessionId;
-  constructor(isEnabled: boolean, sessionId: number, variation?: VariationModel | Record<string, any> | undefined);
+  private readonly uuid;
+  constructor(
+    isEnabled: boolean,
+    sessionId: number,
+    uuid: string,
+    variation?: VariationModel | Record<string, any> | undefined,
+  );
   isEnabled(): boolean;
   getSessionId(): number;
+  getUUID(): string;
   getVariables(): Record<string, unknown>[];
   getVariable<T = unknown>(key: string): T | undefined;
   getVariable<T = unknown>(key: string, defaultValue: T): T;

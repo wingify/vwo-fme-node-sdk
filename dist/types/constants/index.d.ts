@@ -44,4 +44,6 @@ export declare const Constants: {
   NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES: string;
   NETWORK_CALL_SUCCESS_WITH_RETRIES: string;
   IMPACT_ANALYSIS: string;
+  VARIATION_IS_PART_OF_HOLDOUT: number;
+  VARIATION_NOT_PART_OF_HOLDOUT: number;
 };

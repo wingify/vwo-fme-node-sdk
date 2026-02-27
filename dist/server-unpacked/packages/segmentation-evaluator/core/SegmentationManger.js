@@ -75,7 +75,7 @@ var SegmentationManager = /** @class */ (function () {
      */
     SegmentationManager.prototype.setContextualData = function (serviceContainer, feature, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var queryParams, params, _vwo, err_1;
+            var settings, holdouts, isGatewayServiceRequiredForHoldouts, queryParams, params, _vwo, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -87,7 +87,10 @@ var SegmentationManager = /** @class */ (function () {
                         if ((context === null || context === void 0 ? void 0 : context.getUserAgent()) === null && (context === null || context === void 0 ? void 0 : context.getIpAddress()) === null) {
                             return [2 /*return*/];
                         }
-                        if (!(feature.getIsGatewayServiceRequired() === true)) return [3 /*break*/, 4];
+                        settings = serviceContainer.getSettings();
+                        holdouts = settings.getHoldouts() || [];
+                        isGatewayServiceRequiredForHoldouts = holdouts.filter(function (holdout) { return holdout.getIsGatewayServiceRequired() === true; }).length > 0;
+                        if (!(feature.getIsGatewayServiceRequired() === true || isGatewayServiceRequiredForHoldouts)) return [3 /*break*/, 4];
                         if (!(serviceContainer.getSettingsService().isGatewayServiceProvided &&
                             ((0, DataTypeUtil_1.isUndefined)(context.getVwo()) || context.getVwo() === null))) return [3 /*break*/, 4];
                         queryParams = {};

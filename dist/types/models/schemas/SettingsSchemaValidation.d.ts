@@ -7,6 +7,7 @@ export declare class SettingsSchema {
   private settingsSchema;
   private featureSchema;
   private ruleSchema;
+  private holdoutSchema;
   constructor();
   private initializeSchemas;
   isSettingsValid(settings: any | SettingsModel): boolean;

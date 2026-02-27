@@ -17,7 +17,9 @@ import { LogLevelEnum } from './packages/logger/enums/LogLevelEnum.js';
 import { Connector } from './packages/storage/Connector.js';
 import { Flag } from './api/GetFlag.js';
 import { getUUID } from './utils/UuidUtil.js';
+import { NetworkTransportModeEnum } from './enums/NetworkTransportModeEnum.js';
 export { init, onInit } from './VWO.js';
 export { LogLevelEnum, Connector as StorageConnector };
 export { Flag, getUUID };
+export { NetworkTransportModeEnum };
 //# sourceMappingURL=index.js.map

@@ -74,6 +74,9 @@ var VWOOptionsModel = /** @class */ (function () {
         if (options === null || options === void 0 ? void 0 : options.edgeConfig) {
             this.edgeConfig = options.edgeConfig;
         }
+        if (options === null || options === void 0 ? void 0 : options.browserConfig) {
+            this.browserConfig = options.browserConfig;
+        }
         return this;
     };
     VWOOptionsModel.prototype.getAccountId = function () {
@@ -129,6 +132,9 @@ var VWOOptionsModel = /** @class */ (function () {
     };
     VWOOptionsModel.prototype.getEdgeConfig = function () {
         return this.edgeConfig;
+    };
+    VWOOptionsModel.prototype.getBrowserConfig = function () {
+        return this.browserConfig;
     };
     return VWOOptionsModel;
 }());

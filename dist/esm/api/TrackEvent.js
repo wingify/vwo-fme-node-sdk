@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ApiEnum } from '../enums/ApiEnum.js';
-import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil.js';
+import { doesEventBelongToAnyFeature, doesEventBelongToAnyHoldout } from '../utils/FunctionUtil.js';
 import { getEventsBaseProperties, getTrackGoalPayloadData, sendPostApiRequest } from '../utils/NetworkUtil.js';
 export class TrackApi {
     /**
@@ -22,7 +22,8 @@ export class TrackApi {
      * Checks if the event exists, creates an impression, and executes hooks.
      */
     async track(serviceContainer, eventName, context, eventProperties) {
-        if (doesEventBelongToAnyFeature(eventName, serviceContainer.getSettings())) {
+        if (doesEventBelongToAnyFeature(eventName, serviceContainer.getSettings()) ||
+            doesEventBelongToAnyHoldout(eventName, serviceContainer.getSettings())) {
             // Create an impression for the track event
             if (serviceContainer.getShouldWaitForTrackingCalls()) {
                 await createImpressionForTrack(serviceContainer, eventName, context, eventProperties);

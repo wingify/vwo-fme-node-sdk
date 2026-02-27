@@ -39,7 +39,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.evaluateRule = void 0;
 var DataTypeUtil_1 = require("./DataTypeUtil");
 var DecisionUtil_1 = require("./DecisionUtil");
-var ImpressionUtil_1 = require("./ImpressionUtil");
+var NetworkUtil_1 = require("./NetworkUtil");
+var EventEnum_1 = require("../enums/EventEnum");
 /**
  * Evaluates the rules for a given campaign and feature based on the provided context.
  * This function checks for whitelisting and pre-segmentation conditions, and if applicable,
@@ -57,30 +58,27 @@ var ImpressionUtil_1 = require("./ImpressionUtil");
  * and the whitelisted object, if any.
  */
 var evaluateRule = function (serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, preSegmentationResult, whitelistedObject;
+    var payload, _a, preSegmentationResult, whitelistedObject;
     return __generator(this, function (_b) {
         switch (_b.label) {
-            case 0: return [4 /*yield*/, (0, DecisionUtil_1.checkWhitelistingAndPreSeg)(serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
+            case 0:
+                payload = null;
+                return [4 /*yield*/, (0, DecisionUtil_1.checkWhitelistingAndPreSeg)(serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
             case 1:
                 _a = _b.sent(), preSegmentationResult = _a[0], whitelistedObject = _a[1];
-                if (!(preSegmentationResult && (0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0)) return [3 /*break*/, 4];
-                // Update the decision object with campaign and variation details
-                Object.assign(decision, {
-                    experimentId: campaign.getId(),
-                    experimentKey: campaign.getKey(),
-                    experimentVariationId: whitelistedObject.variationId,
-                });
-                if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
-                return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey())];
-            case 2:
-                _b.sent();
-                return [3 /*break*/, 4];
-            case 3:
-                (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
-                _b.label = 4;
-            case 4: 
-            // Return the results of the evaluation
-            return [2 /*return*/, { preSegmentationResult: preSegmentationResult, whitelistedObject: whitelistedObject, updatedDecision: decision }];
+                // If pre-segmentation is successful and a whitelisted object exists, proceed to send an impression
+                if (preSegmentationResult && (0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0) {
+                    // Update the decision object with campaign and variation details
+                    Object.assign(decision, {
+                        experimentId: campaign.getId(),
+                        experimentKey: campaign.getKey(),
+                        experimentVariationId: whitelistedObject.variationId,
+                    });
+                    // Send an impression for the variation shown
+                    payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaign.getId(), whitelistedObject.variation.id, context);
+                }
+                // Return the results of the evaluation
+                return [2 /*return*/, { preSegmentationResult: preSegmentationResult, whitelistedObject: whitelistedObject, updatedDecision: decision, payload: payload }];
         }
     });
 }); };

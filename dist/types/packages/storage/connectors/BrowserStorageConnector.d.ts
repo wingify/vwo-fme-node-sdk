@@ -11,6 +11,8 @@ export interface StorageData {
   experimentKey?: string;
   experimentId?: string;
   experimentVariationId?: string;
+  isInHoldoutId?: string[];
+  notInHoldoutId?: string[];
   [key: string]: any;
 }
 /**

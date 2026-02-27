@@ -64,6 +64,7 @@ var constants_1 = require("./constants");
 var ApiEnum_1 = require("./enums/ApiEnum");
 var EdgeConfigModel_1 = require("./models/edge/EdgeConfigModel");
 var ServiceContainer_1 = require("./services/ServiceContainer");
+var NetworkTransportModeEnum_1 = require("./enums/NetworkTransportModeEnum");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.originalSettings = {};
@@ -78,11 +79,27 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
             this.options.shouldWaitForTrackingCalls = true;
         }
-        this.networkManager = new network_layer_1.NetworkManager(this.logManager, (_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.network) === null || _c === void 0 ? void 0 : _c.client, (_d = this.options) === null || _d === void 0 ? void 0 : _d.retryConfig);
+        // check if it is browser environment and network transport mode is provided
+        if (typeof window !== 'undefined' && ((_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.browserConfig) === null || _c === void 0 ? void 0 : _c.networkTransportMode)) {
+            var mode = (_e = (_d = this.options) === null || _d === void 0 ? void 0 : _d.browserConfig) === null || _e === void 0 ? void 0 : _e.networkTransportMode;
+            // check if network transport mode is invalid and use default mode
+            if (!(0, DataTypeUtil_1.isString)(mode) ||
+                (mode.toLowerCase() !== NetworkTransportModeEnum_1.NetworkTransportModeEnum.XHR.toLowerCase() &&
+                    mode.toLowerCase() !== NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON.toLowerCase())) {
+                this.logManager.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_NETWORK_TRANSPORT_MODE, {
+                    validModes: [NetworkTransportModeEnum_1.NetworkTransportModeEnum.XHR, NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON].join(', '),
+                    networkTransportMode: mode,
+                    defaultMode: NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON,
+                }));
+                // use default mode
+                this.options.browserConfig.networkTransportMode = NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON;
+            }
+        }
+        this.networkManager = new network_layer_1.NetworkManager(this.logManager, (_g = (_f = this.options) === null || _f === void 0 ? void 0 : _f.network) === null || _g === void 0 ? void 0 : _g.client, (_h = this.options) === null || _h === void 0 ? void 0 : _h.retryConfig, (_k = (_j = this.options) === null || _j === void 0 ? void 0 : _j.shouldWaitForTrackingCalls) !== null && _k !== void 0 ? _k : false, (_o = (_m = (_l = this.options) === null || _l === void 0 ? void 0 : _l.browserConfig) === null || _m === void 0 ? void 0 : _m.networkTransportMode) !== null && _o !== void 0 ? _o : NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON);
         this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: "Network Layer",
         }));
@@ -176,22 +193,23 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setStorage = function () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         if (this.options.storage) {
             // Attach the storage connector from options
             this.storage = new storage_1.Storage(this.options.storage);
             this.settingFileManager.isStorageServiceProvided = true;
         }
         else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
+            var browserStorageConfig = (_c = (_b = (_a = this.options.browserConfig) === null || _a === void 0 ? void 0 : _a.clientStorage) !== null && _b !== void 0 ? _b : this.options.clientStorage) !== null && _c !== void 0 ? _c : {};
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             var BrowserStorageConnector = require('./packages/storage/connectors/BrowserStorageConnector').BrowserStorageConnector;
             // create accountId and sdkKey hash and use it as key for storage
             var encodedSdkKey = btoa(this.options.sdkKey);
             var defaultStorageKey = "".concat(constants_1.Constants.PRODUCT_NAME, "_").concat(this.options.accountId, "_").concat(encodedSdkKey);
             // Pass clientStorage config to BrowserStorageConnector
-            this.storage = new storage_1.Storage(new BrowserStorageConnector(__assign(__assign({}, this.options.clientStorage), { alwaysUseCachedSettings: (_a = this.options.clientStorage) === null || _a === void 0 ? void 0 : _a.alwaysUseCachedSettings, ttl: (_b = this.options.clientStorage) === null || _b === void 0 ? void 0 : _b.ttl }), defaultStorageKey, this.logManager));
+            this.storage = new storage_1.Storage(new BrowserStorageConnector(__assign(__assign({}, browserStorageConfig), { alwaysUseCachedSettings: browserStorageConfig === null || browserStorageConfig === void 0 ? void 0 : browserStorageConfig.alwaysUseCachedSettings, ttl: browserStorageConfig === null || browserStorageConfig === void 0 ? void 0 : browserStorageConfig.ttl }), defaultStorageKey, this.logManager));
             this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-                service: ((_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.clientStorage) === null || _d === void 0 ? void 0 : _d.provider) === sessionStorage ? "Session Storage" : "Local Storage",
+                service: ((_e = (_d = this.options) === null || _d === void 0 ? void 0 : _d.clientStorage) === null || _e === void 0 ? void 0 : _e.provider) === sessionStorage ? "Session Storage" : "Local Storage",
             }));
             this.settingFileManager.isStorageServiceProvided = true;
         }

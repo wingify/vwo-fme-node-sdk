@@ -119,6 +119,8 @@ export class StorageDecorator implements IStorageDecorator {
       experimentId,
       experimentKey,
       experimentVariationId,
+      isInHoldoutId,
+      notInHoldoutId,
     } = data;
 
     if (!featureKey) {
@@ -181,6 +183,8 @@ export class StorageDecorator implements IStorageDecorator {
         experimentId,
         experimentKey,
         experimentVariationId,
+        isInHoldoutId,
+        notInHoldoutId,
       },
       serviceContainer,
     );

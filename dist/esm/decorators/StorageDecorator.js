@@ -62,7 +62,7 @@ export class StorageDecorator {
      */
     setDataInStorage(data, storageService, serviceContainer) {
         const deferredObject = new Deferred();
-        const { featureKey, featureId, context, rolloutId, rolloutKey, rolloutVariationId, experimentId, experimentKey, experimentVariationId, } = data;
+        const { featureKey, featureId, context, rolloutId, rolloutKey, rolloutVariationId, experimentId, experimentKey, experimentVariationId, isInHoldoutId, notInHoldoutId, } = data;
         if (!featureKey) {
             serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'featureKey',
@@ -101,6 +101,8 @@ export class StorageDecorator {
             experimentId,
             experimentKey,
             experimentVariationId,
+            isInHoldoutId,
+            notInHoldoutId,
         }, serviceContainer);
         deferredObject.resolve(); // Resolve promise when data is successfully set
         return deferredObject.promise;

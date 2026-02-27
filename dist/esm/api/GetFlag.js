@@ -22,18 +22,20 @@ import { VariableModel } from '../models/campaign/VariableModel.js';
 import { VariationModel } from '../models/campaign/VariationModel.js';
 import { LogLevelEnum } from '../packages/logger/index.js';
 import { StorageService } from '../services/StorageService.js';
-import { getVariationFromCampaignKey } from '../utils/CampaignUtil.js';
-import { isObject } from '../utils/DataTypeUtil.js';
+import { getVariationFromCampaignKey, isFeatureIdPresentInSettings } from '../utils/CampaignUtil.js';
+import { isObject, isArray } from '../utils/DataTypeUtil.js';
 import { evaluateTrafficAndGetVariation } from '../utils/DecisionUtil.js';
 import { getAllExperimentRules, getFeatureFromKey, getSpecificRulesBasedOnType } from '../utils/FunctionUtil.js';
-import { createAndSendImpressionForVariationShown } from '../utils/ImpressionUtil.js';
 import { buildMessage } from '../utils/LogMessageUtil.js';
 import { Deferred } from '../utils/PromiseUtil.js';
 import { evaluateRule } from '../utils/RuleEvaluationUtil.js';
 import { extractDecisionKeys, sendDebugEventToVWO } from '../utils/DebuggerServiceUtil.js';
 import { DebuggerCategoryEnum } from '../enums/DebuggerCategoryEnum.js';
 import { Constants } from '../constants/index.js';
-import { isFeatureIdPresentInSettings } from '../utils/CampaignUtil.js';
+import { getApplicableHoldouts, getMatchedHoldouts, sendNetworkCallsForNotInHoldouts } from '../utils/HoldoutUtil.js';
+import { sendImpressionForVariationShown, sendImpressionForVariationShownInBatch } from '../utils/ImpressionUtil.js';
+import { EventEnum } from '../enums/EventEnum.js';
+import { getTrackUserPayloadData } from '../utils/NetworkUtil.js';
 export class Flag {
     constructor(isEnabled, sessionId, uuid, variation) {
         this.enabled = isEnabled;
@@ -70,6 +72,8 @@ export class FlagApi {
         const passedRulesInformation = {}; // for storing and integration callback
         const deferredObject = new Deferred();
         const evaluatedFeatureMap = new Map();
+        const notInHoldoutIds = [];
+        const batchPayload = [];
         // get feature object from feature key
         const feature = getFeatureFromKey(serviceContainer.getSettings(), featureKey);
         const decision = {
@@ -78,6 +82,10 @@ export class FlagApi {
             featureKey: feature?.getKey(),
             userId: context?.getId(),
             api: ApiEnum.GET_FLAG,
+            holdoutIDs: [],
+            isPartOfHoldout: false,
+            isHoldoutPresent: false,
+            isUserPartOfCampaign: false,
         };
         // create debug event props
         const debugEventProps = {
@@ -88,6 +96,61 @@ export class FlagApi {
         };
         const storageService = new StorageService(serviceContainer);
         const storedData = await new StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer);
+        // if storedData has isInHoldoutId, then check if the settings stil contain atleast 1 holdoutGroup that is present in the storedData
+        const storedIsInHoldoutId = storedData?.isInHoldoutId ?? storedData?.holdoutGroupId;
+        const storedNotInHoldoutId = storedData?.notInHoldoutId ?? [];
+        if (storedIsInHoldoutId && (isArray(storedIsInHoldoutId) ? storedIsInHoldoutId.length > 0 : true)) {
+            // get all appicable holdouts for the feature
+            const applicableHoldouts = getApplicableHoldouts(serviceContainer.getSettings(), feature.getId());
+            if (applicableHoldouts.length > 0) {
+                for (const holdout of applicableHoldouts) {
+                    // if the holdout id is present in the storedData, then return the disabled flag
+                    if (storedIsInHoldoutId.includes(holdout.getId())) {
+                        serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.STORED_HOLDOUT_DECISION_FOUND, {
+                            featureKey,
+                            userId: context.getId(),
+                            holdoutId: storedIsInHoldoutId,
+                        }));
+                        // evaluate the new holdouts in settings file and send the impression for them
+                        const { matchedHoldouts, notMatchedHoldouts, holdoutPayloads } = await getMatchedHoldouts(serviceContainer, feature, context, storedData);
+                        // updatedHoldoutIds is the array of holdout ids for which user became part of the holdouts
+                        const updatedHoldoutIds = [...storedIsInHoldoutId, ...matchedHoldouts.map((holdout) => holdout.getId())];
+                        const updatedNotInHoldoutIds = [
+                            ...storedNotInHoldoutId,
+                            ...notMatchedHoldouts.map((holdout) => holdout.getId()),
+                        ];
+                        // store the updated holdout ids in storage and push the updated not in holdout ids to the notInHoldoutIds array
+                        new StorageDecorator().setDataInStorage({
+                            featureKey,
+                            context,
+                            isInHoldoutId: updatedHoldoutIds,
+                            notInHoldoutId: updatedNotInHoldoutIds,
+                        }, storageService, serviceContainer);
+                        // send the impression for the new holdouts
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
+                            for (const payload of holdoutPayloads) {
+                                sendImpressionForVariationShown(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
+                            }
+                        }
+                        else if (serviceContainer.getBatchEventsQueue()) {
+                            for (const payload of holdoutPayloads) {
+                                serviceContainer.getBatchEventsQueue().enqueue(payload);
+                            }
+                        }
+                        else {
+                            if (serviceContainer.getShouldWaitForTrackingCalls()) {
+                                await sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+                            }
+                            else {
+                                sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+                            }
+                        }
+                        deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel()));
+                        return deferredObject.promise;
+                    }
+                }
+            }
+        }
         if (storedData?.featureId && isFeatureIdPresentInSettings(serviceContainer.getSettings(), storedData.featureId)) {
             if (storedData?.experimentVariationId) {
                 if (storedData.experimentKey) {
@@ -99,6 +162,9 @@ export class FlagApi {
                             experimentType: 'experiment',
                             experimentKey: storedData.experimentKey,
                         }));
+                        decision.isUserPartOfCampaign = true;
+                        // network calls for holdouts that are newly added in settings and are not present in storage
+                        await sendNetworkCallsForNotInHoldouts(serviceContainer, feature, context, decision, storedData, storageService);
                         deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
                         return deferredObject.promise;
                     }
@@ -113,9 +179,15 @@ export class FlagApi {
                         experimentType: 'rollout',
                         experimentKey: storedData.rolloutKey,
                     }));
+                    decision.isUserPartOfCampaign = true;
                     serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED, {
                         userId: context.getId(),
                     }));
+                    // network calls for holdouts that are newly added in settings and are not present in storage
+                    // and return the updated not in holdout ids
+                    const updatedNotInHoldoutIds = await sendNetworkCallsForNotInHoldouts(serviceContainer, feature, context, decision, storedData, storageService);
+                    // push the updated not in holdout ids to the notInHoldoutIds array
+                    notInHoldoutIds.push(...updatedNotInHoldoutIds);
                     isEnabled = true;
                     shouldCheckForExperimentsRules = true;
                     rolloutVariationToReturn = variation;
@@ -136,17 +208,104 @@ export class FlagApi {
             deferredObject.reject({});
             return deferredObject.promise;
         }
-        // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
         await serviceContainer.getSegmentationManager().setContextualData(serviceContainer, feature, context);
+        if (!isEnabled) {
+            // Holdout group exclusion: if user falls into any holdout group for this feature, return disabled
+            const { matchedHoldouts, notMatchedHoldouts, holdoutPayloads } = await getMatchedHoldouts(serviceContainer, feature, context, storedData);
+            decision.isPartOfHoldout = matchedHoldouts !== null && matchedHoldouts.length > 0;
+            if ((matchedHoldouts !== null && matchedHoldouts.length > 0) ||
+                (notMatchedHoldouts !== null && notMatchedHoldouts.length > 0)) {
+                decision.isHoldoutPresent = true;
+            }
+            if (matchedHoldouts !== null && matchedHoldouts.length > 0) {
+                const qualifiedHoldoutNames = matchedHoldouts.map((holdout) => holdout.getName()).join(',');
+                decision.holdoutIDs = matchedHoldouts.map((holdout) => holdout.getId());
+                serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.USER_IN_HOLDOUT_GROUP, {
+                    userId: context.getId(),
+                    holdoutGroupName: qualifiedHoldoutNames,
+                    featureKey,
+                }));
+                // Store holdout decision in storage
+                new StorageDecorator().setDataInStorage({
+                    featureKey,
+                    context,
+                    isInHoldoutId: matchedHoldouts.map((holdout) => holdout.getId()),
+                    notInHoldoutId: notMatchedHoldouts.map((holdout) => holdout.getId()),
+                }, storageService, serviceContainer);
+                decision['isEnabled'] = false;
+                serviceContainer.getHooksService().set(decision);
+                serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
+                if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
+                    for (const payload of holdoutPayloads) {
+                        sendImpressionForVariationShown(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
+                    }
+                }
+                else if (serviceContainer.getBatchEventsQueue()) {
+                    for (const payload of holdoutPayloads) {
+                        serviceContainer.getBatchEventsQueue().enqueue(payload);
+                    }
+                }
+                else {
+                    if (serviceContainer.getShouldWaitForTrackingCalls()) {
+                        await sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+                    }
+                    else {
+                        sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+                    }
+                }
+                deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel()));
+                return deferredObject.promise;
+            }
+            else {
+                serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.USER_NOT_EXCLUDED_DUE_TO_HOLDOUT, {
+                    featureKey,
+                    userId: context.getId(),
+                }));
+                notInHoldoutIds.push(...notMatchedHoldouts.map((holdout) => holdout.getId()));
+                if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
+                    for (const payload of holdoutPayloads) {
+                        sendImpressionForVariationShown(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
+                    }
+                }
+                else if (serviceContainer.getBatchEventsQueue()) {
+                    for (const payload of holdoutPayloads) {
+                        serviceContainer.getBatchEventsQueue().enqueue(payload);
+                    }
+                }
+                else {
+                    batchPayload.push(...holdoutPayloads);
+                }
+            }
+        }
         const rollOutRules = getSpecificRulesBasedOnType(feature, CampaignTypeEnum.ROLLOUT); // get all rollout rules
         if (rollOutRules.length > 0 && !isEnabled) {
             const rolloutRulesToEvaluate = [];
             for (const rule of rollOutRules) {
-                const { preSegmentationResult, updatedDecision } = await evaluateRule(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision);
+                const { preSegmentationResult, updatedDecision, payload } = await evaluateRule(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision);
                 Object.assign(decision, updatedDecision);
                 if (preSegmentationResult) {
                     // if pre segment passed, then break the loop and check the traffic allocation
                     rolloutRulesToEvaluate.push(rule);
+                    if (serviceContainer.getShouldWaitForTrackingCalls()) {
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                            await sendImpressionForVariationShown(serviceContainer, rule.getId(), rule.getVariations()[0]?.getId(), context, featureKey, payload);
+                        }
+                        else {
+                            if (payload != null) {
+                                batchPayload.push(payload);
+                            }
+                        }
+                    }
+                    else {
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                            sendImpressionForVariationShown(serviceContainer, rule.getId(), rule.getVariations()[0]?.getId(), context, featureKey, payload);
+                        }
+                        else {
+                            if (payload != null) {
+                                batchPayload.push(payload);
+                            }
+                        }
+                    }
                     evaluatedFeatureMap.set(featureKey, {
                         rolloutId: rule.getId(),
                         rolloutKey: rule.getKey(),
@@ -163,12 +322,28 @@ export class FlagApi {
                     isEnabled = true;
                     shouldCheckForExperimentsRules = true;
                     rolloutVariationToReturn = variation;
+                    decision['isUserPartOfCampaign'] = true;
                     _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
+                    const payload = getTrackUserPayloadData(serviceContainer, EventEnum.VWO_VARIATION_SHOWN, passedRolloutCampaign.getId(), variation.getId(), context);
                     if (serviceContainer.getShouldWaitForTrackingCalls()) {
-                        await createAndSendImpressionForVariationShown(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey);
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                            await sendImpressionForVariationShown(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload);
+                        }
+                        else {
+                            if (payload != null) {
+                                batchPayload.push(payload);
+                            }
+                        }
                     }
                     else {
-                        createAndSendImpressionForVariationShown(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey);
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                            sendImpressionForVariationShown(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload);
+                        }
+                        else {
+                            if (payload != null) {
+                                batchPayload.push(payload);
+                            }
+                        }
                     }
                 }
             }
@@ -192,6 +367,7 @@ export class FlagApi {
                     }
                     else {
                         isEnabled = true;
+                        decision['isUserPartOfCampaign'] = true;
                         experimentVariationToReturn = whitelistedObject.variation;
                         Object.assign(passedRulesInformation, {
                             experimentId: rule.getId(),
@@ -208,13 +384,29 @@ export class FlagApi {
                 const variation = evaluateTrafficAndGetVariation(serviceContainer, campaign, context.getId());
                 if (isObject(variation) && Object.keys(variation).length > 0) {
                     isEnabled = true;
+                    decision['isUserPartOfCampaign'] = true;
                     experimentVariationToReturn = variation;
                     _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
+                    const payload = getTrackUserPayloadData(serviceContainer, EventEnum.VWO_VARIATION_SHOWN, campaign.getId(), variation.getId(), context);
                     if (serviceContainer.getShouldWaitForTrackingCalls()) {
-                        await createAndSendImpressionForVariationShown(serviceContainer, campaign.getId(), variation.getId(), context, featureKey);
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                            await sendImpressionForVariationShown(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload);
+                        }
+                        else {
+                            if (payload != null) {
+                                batchPayload.push(payload);
+                            }
+                        }
                     }
                     else {
-                        createAndSendImpressionForVariationShown(serviceContainer, campaign.getId(), variation.getId(), context, featureKey);
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                            sendImpressionForVariationShown(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload);
+                        }
+                        else {
+                            if (payload != null) {
+                                batchPayload.push(payload);
+                            }
+                        }
                     }
                 }
             }
@@ -227,6 +419,14 @@ export class FlagApi {
                 featureId: feature.getId(),
                 context,
                 ...passedRulesInformation,
+                notInHoldoutId: notInHoldoutIds,
+            }, storageService, serviceContainer);
+        }
+        else {
+            new StorageDecorator().setDataInStorage({
+                featureKey,
+                context,
+                notInHoldoutId: notInHoldoutIds,
             }, storageService, serviceContainer);
         }
         // call integration callback, if defined
@@ -249,16 +449,37 @@ export class FlagApi {
                 featureKey,
                 status: isEnabled ? 'enabled' : 'disabled',
             }));
+            const payload = getTrackUserPayloadData(serviceContainer, EventEnum.VWO_VARIATION_SHOWN, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, context);
             if (serviceContainer.getShouldWaitForTrackingCalls()) {
-                await createAndSendImpressionForVariationShown(serviceContainer, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-                context, featureKey);
+                if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                    await sendImpressionForVariationShown(serviceContainer, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload);
+                }
+                else {
+                    if (payload != null) {
+                        batchPayload.push(payload);
+                    }
+                }
             }
             else {
-                createAndSendImpressionForVariationShown(serviceContainer, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-                context, featureKey);
+                if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                    sendImpressionForVariationShown(serviceContainer, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload);
+                }
+                else {
+                    if (payload != null) {
+                        batchPayload.push(payload);
+                    }
+                }
             }
         }
         deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), context.getUuid(), new VariationModel().modelFromDictionary(experimentVariationToReturn ?? rolloutVariationToReturn)));
+        if (!serviceContainer.getSettingsService().isGatewayServiceProvided && batchPayload.length > 0) {
+            if (serviceContainer.getShouldWaitForTrackingCalls()) {
+                await sendImpressionForVariationShownInBatch(serviceContainer, batchPayload);
+            }
+            else {
+                sendImpressionForVariationShownInBatch(serviceContainer, batchPayload);
+            }
+        }
         return deferredObject.promise;
     }
 }

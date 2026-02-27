@@ -3,8 +3,8 @@ import { NetworkManager } from './packages/network-layer/index.js';
 import { Storage } from './packages/storage/index.js';
 import { VWOClient } from './VWOClient.js';
 import { SettingsService } from './services/SettingsService.js';
-import { DebugLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages/index.js';
-import { isEmptyObject, isNumber } from './utils/DataTypeUtil.js';
+import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages/index.js';
+import { isEmptyObject, isNumber, isString } from './utils/DataTypeUtil.js';
 import { cloneObject, getFormattedErrorMessage } from './utils/FunctionUtil.js';
 import { buildMessage } from './utils/LogMessageUtil.js';
 import { Deferred } from './utils/PromiseUtil.js';
@@ -14,6 +14,7 @@ import { Constants } from './constants/index.js';
 import { ApiEnum } from './enums/ApiEnum.js';
 import { EdgeConfigModel } from './models/edge/EdgeConfigModel.js';
 import { ServiceContainer } from './services/ServiceContainer.js';
+import { NetworkTransportModeEnum } from './enums/NetworkTransportModeEnum.js';
 export class VWOBuilder {
     constructor(options) {
         this.originalSettings = {};
@@ -31,7 +32,23 @@ export class VWOBuilder {
         if (this.options.edgeConfig && !isEmptyObject(this.options?.edgeConfig)) {
             this.options.shouldWaitForTrackingCalls = true;
         }
-        this.networkManager = new NetworkManager(this.logManager, this.options?.network?.client, this.options?.retryConfig);
+        // check if it is browser environment and network transport mode is provided
+        if (typeof window !== 'undefined' && this.options?.browserConfig?.networkTransportMode) {
+            const mode = this.options?.browserConfig?.networkTransportMode;
+            // check if network transport mode is invalid and use default mode
+            if (!isString(mode) ||
+                (mode.toLowerCase() !== NetworkTransportModeEnum.XHR.toLowerCase() &&
+                    mode.toLowerCase() !== NetworkTransportModeEnum.SEND_BEACON.toLowerCase())) {
+                this.logManager.error(buildMessage(ErrorLogMessagesEnum.INVALID_NETWORK_TRANSPORT_MODE, {
+                    validModes: [NetworkTransportModeEnum.XHR, NetworkTransportModeEnum.SEND_BEACON].join(', '),
+                    networkTransportMode: mode,
+                    defaultMode: NetworkTransportModeEnum.SEND_BEACON,
+                }));
+                // use default mode
+                this.options.browserConfig.networkTransportMode = NetworkTransportModeEnum.SEND_BEACON;
+            }
+        }
+        this.networkManager = new NetworkManager(this.logManager, this.options?.network?.client, this.options?.retryConfig, this.options?.shouldWaitForTrackingCalls ?? false, this.options?.browserConfig?.networkTransportMode ?? NetworkTransportModeEnum.SEND_BEACON);
         this.logManager.debug(buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: `Network Layer`,
         }));
@@ -129,6 +146,7 @@ export class VWOBuilder {
             this.settingFileManager.isStorageServiceProvided = true;
         }
         else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
+            const browserStorageConfig = this.options.browserConfig?.clientStorage ?? this.options.clientStorage ?? {};
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             const { BrowserStorageConnector } = require('./packages/storage/connectors/BrowserStorageConnector');
             // create accountId and sdkKey hash and use it as key for storage
@@ -136,9 +154,9 @@ export class VWOBuilder {
             const defaultStorageKey = `${Constants.PRODUCT_NAME}_${this.options.accountId}_${encodedSdkKey}`;
             // Pass clientStorage config to BrowserStorageConnector
             this.storage = new Storage(new BrowserStorageConnector({
-                ...this.options.clientStorage,
-                alwaysUseCachedSettings: this.options.clientStorage?.alwaysUseCachedSettings,
-                ttl: this.options.clientStorage?.ttl,
+                ...browserStorageConfig,
+                alwaysUseCachedSettings: browserStorageConfig?.alwaysUseCachedSettings,
+                ttl: browserStorageConfig?.ttl,
             }, defaultStorageKey, this.logManager));
             this.logManager.debug(buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
                 service: this.options?.clientStorage?.provider === sessionStorage ? `Session Storage` : `Local Storage`,

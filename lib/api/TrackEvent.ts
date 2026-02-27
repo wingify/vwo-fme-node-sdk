@@ -16,7 +16,7 @@
 import { ApiEnum } from '../enums/ApiEnum';
 import { ContextModel } from '../models/user/ContextModel';
 import { dynamic } from '../types/Common';
-import { doesEventBelongToAnyFeature } from '../utils/FunctionUtil';
+import { doesEventBelongToAnyFeature, doesEventBelongToAnyHoldout } from '../utils/FunctionUtil';
 import { getEventsBaseProperties, getTrackGoalPayloadData, sendPostApiRequest } from '../utils/NetworkUtil';
 import { ServiceContainer } from '../services/ServiceContainer';
 
@@ -48,7 +48,10 @@ export class TrackApi implements ITrack {
     context: ContextModel,
     eventProperties: Record<string, dynamic>,
   ): Promise<Record<string, boolean>> {
-    if (doesEventBelongToAnyFeature(eventName, serviceContainer.getSettings())) {
+    if (
+      doesEventBelongToAnyFeature(eventName, serviceContainer.getSettings()) ||
+      doesEventBelongToAnyHoldout(eventName, serviceContainer.getSettings())
+    ) {
       // Create an impression for the track event
       if (serviceContainer.getShouldWaitForTrackingCalls()) {
         await createImpressionForTrack(serviceContainer, eventName, context, eventProperties);
@@ -96,6 +99,7 @@ const createImpressionForTrack = async (
   );
   // Prepare the payload for the track goal
   const payload = getTrackGoalPayloadData(serviceContainer, eventName, eventProperties, context);
+
   // Send the prepared payload via POST API request
   if (serviceContainer.getBatchEventsQueue()) {
     serviceContainer.getBatchEventsQueue().enqueue(payload);

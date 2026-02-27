@@ -140,20 +140,26 @@ function getQueryParams(queryParams) {
     return encodedParams;
 }
 /**
- * Adds isGatewayServiceRequired flag to each feature in the settings based on pre segmentation.
- * @param {any} settings - The settings file to modify.
+ * Adds isGatewayServiceRequired flag to each feature and holdout in the settings based on pre segmentation.
+ * @param settings - The settings file to modify.
  */
 function addIsGatewayServiceRequiredFlag(settings) {
     var keywordPattern = /\b(country|region|city|os|device_type|browser_string|ua|browser_version|os_version)\b/g;
     var inlistPattern = /"custom_variable"\s*:\s*{[^}]*inlist\([^)]*\)/g;
+    // for FEATURE
     for (var _i = 0, _a = settings.getFeatures(); _i < _a.length; _i++) {
         var feature = _a[_i];
         var rules = feature.getRulesLinkedCampaign();
         for (var _b = 0, rules_1 = rules; _b < rules_1.length; _b++) {
             var rule = rules_1[_b];
-            var segments = {};
-            if (rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE || rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT) {
-                segments = rule.getVariations()[0].getSegments();
+            var isRollout = rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT;
+            var isPersonalize = rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+            var segments = null;
+            if (isRollout || isPersonalize) {
+                var variations = rule.getVariations();
+                if (variations && variations.length > 0) {
+                    segments = variations[0].getSegments();
+                }
             }
             else {
                 segments = rule.getSegments();
@@ -166,6 +172,20 @@ function addIsGatewayServiceRequiredFlag(settings) {
                     feature.setIsGatewayServiceRequired(true);
                     break;
                 }
+            }
+        }
+    }
+    // for Holdouts
+    for (var _c = 0, _d = settings.getHoldouts(); _c < _d.length; _c++) {
+        var holdout = _d[_c];
+        var segments = holdout.getSegments();
+        if (segments) {
+            var jsonSegments = JSON.stringify(segments);
+            var keywordMatches = jsonSegments.match(keywordPattern);
+            var inlistMatches = jsonSegments.match(inlistPattern);
+            if ((keywordMatches && keywordMatches.length > 0) || (inlistMatches && inlistMatches.length > 0)) {
+                holdout.setIsGatewayServiceRequired(true);
+                break;
             }
         }
     }

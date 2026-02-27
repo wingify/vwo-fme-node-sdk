@@ -52,8 +52,14 @@ export class SegmentationManager {
     if (context?.getUserAgent() === null && context?.getIpAddress() === null) {
       return;
     }
+    const settings = serviceContainer.getSettings();
 
-    if (feature.getIsGatewayServiceRequired() === true) {
+    // Check if any holdout requires gateway service
+    const holdouts = settings.getHoldouts() || [];
+    const isGatewayServiceRequiredForHoldouts =
+      holdouts.filter((holdout) => holdout.getIsGatewayServiceRequired() === true).length > 0;
+
+    if (feature.getIsGatewayServiceRequired() === true || isGatewayServiceRequiredForHoldouts) {
       if (
         serviceContainer.getSettingsService().isGatewayServiceProvided &&
         (isUndefined(context.getVwo()) || context.getVwo() === null)

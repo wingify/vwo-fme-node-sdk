@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUUID = exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
+exports.NetworkTransportModeEnum = exports.getUUID = exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
 var LogLevelEnum_1 = require("./packages/logger/enums/LogLevelEnum");
 Object.defineProperty(exports, "LogLevelEnum", { enumerable: true, get: function () { return LogLevelEnum_1.LogLevelEnum; } });
 var Connector_1 = require("./packages/storage/Connector");
@@ -24,6 +24,8 @@ var GetFlag_1 = require("./api/GetFlag");
 Object.defineProperty(exports, "Flag", { enumerable: true, get: function () { return GetFlag_1.Flag; } });
 var UuidUtil_1 = require("./utils/UuidUtil");
 Object.defineProperty(exports, "getUUID", { enumerable: true, get: function () { return UuidUtil_1.getUUID; } });
+var NetworkTransportModeEnum_1 = require("./enums/NetworkTransportModeEnum");
+Object.defineProperty(exports, "NetworkTransportModeEnum", { enumerable: true, get: function () { return NetworkTransportModeEnum_1.NetworkTransportModeEnum; } });
 var VWO_1 = require("./VWO");
 Object.defineProperty(exports, "init", { enumerable: true, get: function () { return VWO_1.init; } });
 Object.defineProperty(exports, "onInit", { enumerable: true, get: function () { return VWO_1.onInit; } });

@@ -13,6 +13,8 @@ var StorageDataModel = /** @class */ (function () {
         this.experimentId = storageData.experimentId;
         this.experimentKey = storageData.experimentKey;
         this.experimentVariationId = storageData.experimentVariationId;
+        this.isInHoldoutId = storageData.isInHoldoutId;
+        this.notInHoldoutId = storageData.notInHoldoutId;
         return this;
     };
     StorageDataModel.prototype.getFeatureKey = function () {
@@ -38,6 +40,12 @@ var StorageDataModel = /** @class */ (function () {
     };
     StorageDataModel.prototype.getExperimentVariationId = function () {
         return this.experimentVariationId;
+    };
+    StorageDataModel.prototype.getIsInHoldoutId = function () {
+        return this.isInHoldoutId;
+    };
+    StorageDataModel.prototype.getNotInHoldoutId = function () {
+        return this.notInHoldoutId;
     };
     StorageDataModel.prototype.setFeatureKey = function (featureKey) {
         this.featureKey = featureKey;

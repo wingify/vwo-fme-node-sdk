@@ -120,6 +120,14 @@ export function getEventsBaseProperties(
     properties.a = usageStatsAccountId;
   }
 
+  // if browser environment, then add the user agent and ip address to the properties
+  if (typeof window !== 'undefined') {
+    // use typeof check so referencing `window` stays safe in non-browser environments
+    // add the dh (default header) to the properties
+    // true means - ignore custom ua and ip address and fetch it from http request
+    properties.dh = 1;
+  }
+
   return properties;
 }
 
@@ -754,4 +762,40 @@ export function createNetWorkAndRetryDebugEvent(
       sId: getCurrentUnixTimestamp(),
     };
   }
+}
+
+/**
+ * Creates payload for holdout variation shown event.
+ * Similar to getTrackUserPayloadData but specifically for holdouts.
+ * @param {SettingsModel} settings - The settings model containing configuration.
+ * @param {string} eventName - The event name.
+ * @param {number} holdoutId - The holdout ID (used as campaignId).
+ * @param {number} variationId - The variation ID (1 if IN holdout, 2 if NOT IN holdout).
+ * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {number} featureId - The feature ID.
+ * @returns {Record<string, any>} - The holdout payload data.
+ */
+export function createHoldoutPayload(
+  serviceContainer,
+  eventName: string,
+  holdoutId: number,
+  variationId: number,
+  context: ContextModel,
+  featureId: number,
+): Record<string, any> {
+  const userId = context.getId();
+  const properties = _getEventBasePayload(
+    serviceContainer.getSettingsService(),
+    userId,
+    eventName,
+    context?.getUserAgent(),
+    context?.getIpAddress(),
+  );
+
+  properties.d.event.props.id = holdoutId;
+  properties.d.event.props.variation = variationId;
+  properties.d.event.props.isFirst = 1;
+  properties.d.event.props.fId = featureId;
+
+  return properties;
 }

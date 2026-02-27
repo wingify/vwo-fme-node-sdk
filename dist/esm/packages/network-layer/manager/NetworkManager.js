@@ -23,8 +23,9 @@ import { NetworkBrowserClient } from '../client/NetworkBrowserClient.js';
 import { buildMessage } from '../../../utils/LogMessageUtil.js';
 import { DebugLogMessagesEnum } from '../../../enums/log-messages/index.js';
 import { HTTPS_PROTOCOL } from '../../../constants/Url.js';
+import { NetworkTransportModeEnum } from '../../../enums/NetworkTransportModeEnum.js';
 export class NetworkManager {
-    constructor(logManager, client, retryConfig, shouldWaitForTrackingCalls = false) {
+    constructor(logManager, client, retryConfig, shouldWaitForTrackingCalls = false, networkTransportMode = NetworkTransportModeEnum.SEND_BEACON) {
         this.logManager = logManager;
         // Only set retry configuration if it's not already initialized or if a new config is provided
         if (!this.retryConfig || retryConfig) {
@@ -50,12 +51,8 @@ export class NetworkManager {
                 this.client = client || new NetworkServerLessClient(this.logManager);
             }
             else {
-                this.logManager.debug(buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
-                    api: 'xhr',
-                    process: 'undefined',
-                }));
                 // if XMLHttpRequest is defined, we are in browser
-                this.client = client || new NetworkBrowserClient(this.logManager); // Use provided client or default to NetworkClient
+                this.client = client || new NetworkBrowserClient(this.logManager, networkTransportMode); // Use provided client or default to NetworkBrowserClient
             }
         }
         else {

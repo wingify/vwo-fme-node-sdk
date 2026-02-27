@@ -20,6 +20,7 @@ export var EventEnum;
     EventEnum["VWO_LOG_EVENT"] = "vwo_log";
     EventEnum["VWO_INIT_CALLED"] = "vwo_fmeSdkInit";
     EventEnum["VWO_USAGE_STATS"] = "vwo_sdkUsageStats";
+    EventEnum["VWO_HOLDOUT"] = "vwo_holdout";
     EventEnum["VWO_DEBUGGER_EVENT"] = "vwo_sdkDebug";
 })(EventEnum || (EventEnum = {}));
 //# sourceMappingURL=EventEnum.js.map

@@ -51,12 +51,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAndSendImpressionForVariationShown = void 0;
+exports.sendImpressionForVariationShownInBatch = exports.sendImpressionForVariationShown = void 0;
 var NetworkUtil_1 = require("./NetworkUtil");
 var EventEnum_1 = require("../enums/EventEnum");
 var CampaignUtil_1 = require("./CampaignUtil");
 var CampaignUtil_2 = require("./CampaignUtil");
 var constants_1 = require("../constants");
+var BatchEventsDispatcher_1 = require("./BatchEventsDispatcher");
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -67,14 +68,13 @@ var constants_1 = require("../constants");
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-var createAndSendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey) { return __awaiter(void 0, void 0, void 0, function () {
-    var properties, payload, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
+var sendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey, payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var properties, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
                 context.getIpAddress());
-                payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
                 campaignKeyWithFeatureName = (0, CampaignUtil_1.getCampaignKeyFromCampaignId)(serviceContainer.getSettings(), campaignId);
                 variationName = (0, CampaignUtil_2.getVariationNameFromCampaignIdAndVariationId)(serviceContainer.getSettings(), campaignId, variationId);
                 campaignKey = '';
@@ -99,5 +99,35 @@ var createAndSendImpressionForVariationShown = function (serviceContainer, campa
         }
     });
 }); };
-exports.createAndSendImpressionForVariationShown = createAndSendImpressionForVariationShown;
+exports.sendImpressionForVariationShown = sendImpressionForVariationShown;
+/**
+ * Sends an impression for a variation shown event in batch.
+ * This function constructs the necessary properties and payload for the event
+ * and uses the NetworkUtil to send a POST API request.
+ *
+ * @param {any[]} payloads - The payloads to send.
+ * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {string} featureKey - The feature key.
+ */
+var sendImpressionForVariationShownInBatch = function (serviceContainer, payloads) { return __awaiter(void 0, void 0, void 0, function () {
+    var _i, payloads_1, payload;
+    return __generator(this, function (_a) {
+        if (serviceContainer.getBatchEventsQueue()) {
+            for (_i = 0, payloads_1 = payloads; _i < payloads_1.length; _i++) {
+                payload = payloads_1[_i];
+                serviceContainer.getBatchEventsQueue().enqueue(payload);
+            }
+        }
+        else {
+            BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch(serviceContainer, { ev: payloads }, function () { }, {
+                a: serviceContainer.getSettingsService().accountId,
+                env: serviceContainer.getSettingsService().sdkKey,
+                sn: constants_1.Constants.SDK_NAME,
+                sv: constants_1.Constants.SDK_VERSION,
+            });
+        }
+        return [2 /*return*/];
+    });
+}); };
+exports.sendImpressionForVariationShownInBatch = sendImpressionForVariationShownInBatch;
 //# sourceMappingURL=ImpressionUtil.js.map

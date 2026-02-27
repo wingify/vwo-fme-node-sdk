@@ -108,7 +108,7 @@ var StorageDecorator = /** @class */ (function () {
      */
     StorageDecorator.prototype.setDataInStorage = function (data, storageService, serviceContainer) {
         var deferredObject = new PromiseUtil_1.Deferred();
-        var featureKey = data.featureKey, featureId = data.featureId, context = data.context, rolloutId = data.rolloutId, rolloutKey = data.rolloutKey, rolloutVariationId = data.rolloutVariationId, experimentId = data.experimentId, experimentKey = data.experimentKey, experimentVariationId = data.experimentVariationId;
+        var featureKey = data.featureKey, featureId = data.featureId, context = data.context, rolloutId = data.rolloutId, rolloutKey = data.rolloutKey, rolloutVariationId = data.rolloutVariationId, experimentId = data.experimentId, experimentKey = data.experimentKey, experimentVariationId = data.experimentVariationId, isInHoldoutId = data.isInHoldoutId, notInHoldoutId = data.notInHoldoutId;
         if (!featureKey) {
             serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'featureKey',
@@ -147,6 +147,8 @@ var StorageDecorator = /** @class */ (function () {
             experimentId: experimentId,
             experimentKey: experimentKey,
             experimentVariationId: experimentVariationId,
+            isInHoldoutId: isInHoldoutId,
+            notInHoldoutId: notInHoldoutId,
         }, serviceContainer);
         deferredObject.resolve(); // Resolve promise when data is successfully set
         return deferredObject.promise;

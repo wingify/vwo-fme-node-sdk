@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.40.0] - 2026-02-26
+
+### Added
+
+- Enhanced browser tracking implementation: now uses `navigator.sendBeacon` by default for sending events, falling back to XHR when needed. This behavior is configurable via `browserConfig.networkTransportMode` (`'sendBeacon'` or `'xhr'`).
+- Added `browserConfig` for browser-specific configuration, including `networkTransportMode` and `clientStorage`. `browserConfig.clientStorage` is preferred over the top-level `clientStorage`, with a safe `{}` fallback when neither is provided.
+
+  Example usage:
+
+  ```javascript
+  // Default: use sendBeacon in browser (with XHR fallback)
+  const vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+    // browserConfig.networkTransportMode defaults to 'sendBeacon'
+  });
+
+  // Force XHR for all browser tracking requests
+  const vwoClientWithXHR = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+    browserConfig: {
+      networkTransportMode: NetworkTransportMode.XHR,
+    },
+  });
+  ```
+
+## [1.39.0] - 2025-02-26
+
+### Added
+
+- Added support for holdout groups to exclude users from features based on segmentation and traffic allocation.
+
 ## [1.38.0] - 2026-02-16
 
 ### Added

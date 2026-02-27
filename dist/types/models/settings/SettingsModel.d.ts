@@ -15,6 +15,7 @@
  */
 import { CampaignModel } from '../campaign/CampaignModel';
 import { FeatureModel } from '../campaign/FeatureModel';
+import { HoldoutModel } from '../campaign/HoldoutModel';
 export declare class SettingsModel {
   private sK?;
   private sdkKey;
@@ -34,6 +35,7 @@ export declare class SettingsModel {
   private pollInterval?;
   private usageStatsAccountId?;
   private isWebConnectivityEnabled?;
+  private holdouts?;
   constructor(settings: SettingsModel);
   getFeatures(): Array<FeatureModel>;
   getCampaigns(): Array<CampaignModel>;
@@ -47,4 +49,5 @@ export declare class SettingsModel {
   getPollInterval(): number;
   getUsageStatsAccountId(): number;
   getIsWebConnectivityEnabled(): boolean;
+  getHoldouts(): Array<HoldoutModel>;
 }

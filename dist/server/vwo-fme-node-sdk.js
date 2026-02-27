@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.38.0
+ * vwo-fme-node-sdk - v1.40.0
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -20,7 +20,7 @@
  *  1. murmurhash - ^2.0.1
  *  2. superstruct - ^0.14.x
  *  3. uuid - ^9.0.1
- *  4. vwo-fme-sdk-log-messages - ^1.4.0
+ *  4. vwo-fme-sdk-log-messages - ^1.5.0
  */
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
@@ -32,7 +32,7 @@
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.38.0"
+  version: "1.40.0"
 };
 
 /***/ }),
@@ -497,6 +497,7 @@ var constants_1 = __webpack_require__(/*! ./constants */ "./dist/server-unpacked
 var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var EdgeConfigModel_1 = __webpack_require__(/*! ./models/edge/EdgeConfigModel */ "./dist/server-unpacked/models/edge/EdgeConfigModel.js");
 var ServiceContainer_1 = __webpack_require__(/*! ./services/ServiceContainer */ "./dist/server-unpacked/services/ServiceContainer.js");
+var NetworkTransportModeEnum_1 = __webpack_require__(/*! ./enums/NetworkTransportModeEnum */ "./dist/server-unpacked/enums/NetworkTransportModeEnum.js");
 var VWOBuilder = /** @class */function () {
   function VWOBuilder(options) {
     this.originalSettings = {};
@@ -511,11 +512,25 @@ var VWOBuilder = /** @class */function () {
    * @returns {this} The instance of this builder.
    */
   VWOBuilder.prototype.setNetworkManager = function () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
     if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
       this.options.shouldWaitForTrackingCalls = true;
     }
-    this.networkManager = new network_layer_1.NetworkManager(this.logManager, (_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.network) === null || _c === void 0 ? void 0 : _c.client, (_d = this.options) === null || _d === void 0 ? void 0 : _d.retryConfig);
+    // check if it is browser environment and network transport mode is provided
+    if (typeof window !== 'undefined' && ((_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.browserConfig) === null || _c === void 0 ? void 0 : _c.networkTransportMode)) {
+      var mode = (_e = (_d = this.options) === null || _d === void 0 ? void 0 : _d.browserConfig) === null || _e === void 0 ? void 0 : _e.networkTransportMode;
+      // check if network transport mode is invalid and use default mode
+      if (!(0, DataTypeUtil_1.isString)(mode) || mode.toLowerCase() !== NetworkTransportModeEnum_1.NetworkTransportModeEnum.XHR.toLowerCase() && mode.toLowerCase() !== NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON.toLowerCase()) {
+        this.logManager.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_NETWORK_TRANSPORT_MODE, {
+          validModes: [NetworkTransportModeEnum_1.NetworkTransportModeEnum.XHR, NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON].join(', '),
+          networkTransportMode: mode,
+          defaultMode: NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON
+        }));
+        // use default mode
+        this.options.browserConfig.networkTransportMode = NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON;
+      }
+    }
+    this.networkManager = new network_layer_1.NetworkManager(this.logManager, (_g = (_f = this.options) === null || _f === void 0 ? void 0 : _f.network) === null || _g === void 0 ? void 0 : _g.client, (_h = this.options) === null || _h === void 0 ? void 0 : _h.retryConfig, (_k = (_j = this.options) === null || _j === void 0 ? void 0 : _j.shouldWaitForTrackingCalls) !== null && _k !== void 0 ? _k : false, (_o = (_m = (_l = this.options) === null || _l === void 0 ? void 0 : _l.browserConfig) === null || _m === void 0 ? void 0 : _m.networkTransportMode) !== null && _o !== void 0 ? _o : NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON);
     this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
       service: "Network Layer"
     }));
@@ -605,24 +620,25 @@ var VWOBuilder = /** @class */function () {
    * @returns {this} The instance of this builder.
    */
   VWOBuilder.prototype.setStorage = function () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     if (this.options.storage) {
       // Attach the storage connector from options
       this.storage = new storage_1.Storage(this.options.storage);
       this.settingFileManager.isStorageServiceProvided = true;
     } else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
+      var browserStorageConfig = (_c = (_b = (_a = this.options.browserConfig) === null || _a === void 0 ? void 0 : _a.clientStorage) !== null && _b !== void 0 ? _b : this.options.clientStorage) !== null && _c !== void 0 ? _c : {};
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       var BrowserStorageConnector = (__webpack_require__(/*! ./packages/storage/connectors/BrowserStorageConnector */ "./dist/server-unpacked/packages/storage/connectors/BrowserStorageConnector.js").BrowserStorageConnector);
       // create accountId and sdkKey hash and use it as key for storage
       var encodedSdkKey = btoa(this.options.sdkKey);
       var defaultStorageKey = "".concat(constants_1.Constants.PRODUCT_NAME, "_").concat(this.options.accountId, "_").concat(encodedSdkKey);
       // Pass clientStorage config to BrowserStorageConnector
-      this.storage = new storage_1.Storage(new BrowserStorageConnector(__assign(__assign({}, this.options.clientStorage), {
-        alwaysUseCachedSettings: (_a = this.options.clientStorage) === null || _a === void 0 ? void 0 : _a.alwaysUseCachedSettings,
-        ttl: (_b = this.options.clientStorage) === null || _b === void 0 ? void 0 : _b.ttl
+      this.storage = new storage_1.Storage(new BrowserStorageConnector(__assign(__assign({}, browserStorageConfig), {
+        alwaysUseCachedSettings: browserStorageConfig === null || browserStorageConfig === void 0 ? void 0 : browserStorageConfig.alwaysUseCachedSettings,
+        ttl: browserStorageConfig === null || browserStorageConfig === void 0 ? void 0 : browserStorageConfig.ttl
       }), defaultStorageKey, this.logManager));
       this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-        service: ((_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.clientStorage) === null || _d === void 0 ? void 0 : _d.provider) === sessionStorage ? "Session Storage" : "Local Storage"
+        service: ((_e = (_d = this.options) === null || _d === void 0 ? void 0 : _d.clientStorage) === null || _e === void 0 ? void 0 : _e.provider) === sessionStorage ? "Session Storage" : "Local Storage"
       }));
       this.settingFileManager.isStorageServiceProvided = true;
     } else {
@@ -1162,8 +1178,14 @@ var VWOClient = /** @class */function () {
             userId = _c.sent();
             contextCopy = __assign({}, context);
             contextCopy.id = userId;
-            // set uuid in the context copy
-            contextCopy.uuid = uuid;
+            // check if the userId changed after aliasing, by comparing the original userId with the new userId
+            if (contextCopy.id !== context.id) {
+              // if the userId changed, then we need to generate a new uuid
+              contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
+            } else {
+              // if the userId didn't change, then we can use the existing uuid
+              contextCopy.uuid = uuid;
+            }
             contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
             GetFlag_1.FlagApi.get(featureKey, contextModel, this.serviceContainer).then(function (data) {
               deferredObject.resolve(data);
@@ -1797,6 +1819,15 @@ var __generator = this && this.__generator || function (thisArg, body) {
     };
   }
 };
+var __spreadArray = this && this.__spreadArray || function (to, from, pack) {
+  if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+    if (ar || !(i in from)) {
+      if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+      ar[i] = from[i];
+    }
+  }
+  return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -1814,14 +1845,16 @@ var CampaignUtil_1 = __webpack_require__(/*! ../utils/CampaignUtil */ "./dist/se
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var DecisionUtil_1 = __webpack_require__(/*! ../utils/DecisionUtil */ "./dist/server-unpacked/utils/DecisionUtil.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
-var ImpressionUtil_1 = __webpack_require__(/*! ../utils/ImpressionUtil */ "./dist/server-unpacked/utils/ImpressionUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
 var RuleEvaluationUtil_1 = __webpack_require__(/*! ../utils/RuleEvaluationUtil */ "./dist/server-unpacked/utils/RuleEvaluationUtil.js");
 var DebuggerServiceUtil_1 = __webpack_require__(/*! ../utils/DebuggerServiceUtil */ "./dist/server-unpacked/utils/DebuggerServiceUtil.js");
 var DebuggerCategoryEnum_1 = __webpack_require__(/*! ../enums/DebuggerCategoryEnum */ "./dist/server-unpacked/enums/DebuggerCategoryEnum.js");
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
-var CampaignUtil_2 = __webpack_require__(/*! ../utils/CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
+var HoldoutUtil_1 = __webpack_require__(/*! ../utils/HoldoutUtil */ "./dist/server-unpacked/utils/HoldoutUtil.js");
+var ImpressionUtil_1 = __webpack_require__(/*! ../utils/ImpressionUtil */ "./dist/server-unpacked/utils/ImpressionUtil.js");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
+var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var Flag = /** @class */function () {
   function Flag(isEnabled, sessionId, uuid, variation) {
     this.enabled = isEnabled;
@@ -1856,10 +1889,10 @@ var FlagApi = /** @class */function () {
   function FlagApi() {}
   FlagApi.get = function (featureKey, context, serviceContainer) {
     return __awaiter(this, void 0, void 0, function () {
-      var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, debugEventProps, storageService, storedData, variation, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation;
-      var _d, _e, _f, _g;
-      return __generator(this, function (_h) {
-        switch (_h.label) {
+      var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, notInHoldoutIds, batchPayload, feature, decision, debugEventProps, storageService, storedData, storedIsInHoldoutId, storedNotInHoldoutId, applicableHoldouts, _i, applicableHoldouts_1, holdout, _a, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, updatedHoldoutIds, updatedNotInHoldoutIds, _b, holdoutPayloads_1, payload, _c, holdoutPayloads_2, payload, variation, variation, updatedNotInHoldoutIds, featureInfo, _d, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, qualifiedHoldoutNames, _e, holdoutPayloads_3, payload, _f, holdoutPayloads_4, payload, _g, holdoutPayloads_5, payload, _h, holdoutPayloads_6, payload, rollOutRules, rolloutRulesToEvaluate, _j, rollOutRules_1, rule, _k, preSegmentationResult, updatedDecision, payload, passedRolloutCampaign, variation, payload, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _l, experimentRules_1, rule, _m, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation, payload, payload;
+      var _o, _p, _q, _r, _s, _t, _u, _v, _w;
+      return __generator(this, function (_x) {
+        switch (_x.label) {
           case 0:
             isEnabled = false;
             rolloutVariationToReturn = null;
@@ -1868,13 +1901,19 @@ var FlagApi = /** @class */function () {
             passedRulesInformation = {};
             deferredObject = new PromiseUtil_1.Deferred();
             evaluatedFeatureMap = new Map();
+            notInHoldoutIds = [];
+            batchPayload = [];
             feature = (0, FunctionUtil_1.getFeatureFromKey)(serviceContainer.getSettings(), featureKey);
             decision = {
               featureName: feature === null || feature === void 0 ? void 0 : feature.getName(),
               featureId: feature === null || feature === void 0 ? void 0 : feature.getId(),
               featureKey: feature === null || feature === void 0 ? void 0 : feature.getKey(),
               userId: context === null || context === void 0 ? void 0 : context.getId(),
-              api: ApiEnum_1.ApiEnum.GET_FLAG
+              api: ApiEnum_1.ApiEnum.GET_FLAG,
+              holdoutIDs: [],
+              isPartOfHoldout: false,
+              isHoldoutPresent: false,
+              isUserPartOfCampaign: false
             };
             debugEventProps = {
               an: ApiEnum_1.ApiEnum.GET_FLAG,
@@ -1885,47 +1924,120 @@ var FlagApi = /** @class */function () {
             storageService = new StorageService_1.StorageService(serviceContainer);
             return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer)];
           case 1:
-            storedData = _h.sent();
-            if ((storedData === null || storedData === void 0 ? void 0 : storedData.featureId) && (0, CampaignUtil_2.isFeatureIdPresentInSettings)(serviceContainer.getSettings(), storedData.featureId)) {
-              if (storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId) {
-                if (storedData.experimentKey) {
-                  variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.experimentKey, storedData.experimentVariationId);
-                  if (variation) {
-                    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
-                      variationKey: variation.getKey(),
-                      userId: context.getId(),
-                      experimentType: 'experiment',
-                      experimentKey: storedData.experimentKey
-                    }));
-                    deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
-                    return [2 /*return*/, deferredObject.promise];
-                  }
-                }
-              } else if ((storedData === null || storedData === void 0 ? void 0 : storedData.rolloutKey) && (storedData === null || storedData === void 0 ? void 0 : storedData.rolloutId)) {
-                variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.rolloutKey, storedData.rolloutVariationId);
-                if (variation) {
-                  serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
-                    variationKey: variation.getKey(),
-                    userId: context.getId(),
-                    experimentType: 'rollout',
-                    experimentKey: storedData.rolloutKey
-                  }));
-                  serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED, {
-                    userId: context.getId()
-                  }));
-                  isEnabled = true;
-                  shouldCheckForExperimentsRules = true;
-                  rolloutVariationToReturn = variation;
-                  featureInfo = {
-                    rolloutId: storedData.rolloutId,
-                    rolloutKey: storedData.rolloutKey,
-                    rolloutVariationId: storedData.rolloutVariationId
-                  };
-                  evaluatedFeatureMap.set(featureKey, featureInfo);
-                  Object.assign(passedRulesInformation, featureInfo);
-                }
-              }
+            storedData = _x.sent();
+            storedIsInHoldoutId = (_o = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _o !== void 0 ? _o : storedData === null || storedData === void 0 ? void 0 : storedData.holdoutGroupId;
+            storedNotInHoldoutId = (_p = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _p !== void 0 ? _p : [];
+            if (!(storedIsInHoldoutId && ((0, DataTypeUtil_1.isArray)(storedIsInHoldoutId) ? storedIsInHoldoutId.length > 0 : true))) return [3 /*break*/, 10];
+            applicableHoldouts = (0, HoldoutUtil_1.getApplicableHoldouts)(serviceContainer.getSettings(), feature.getId());
+            if (!(applicableHoldouts.length > 0)) return [3 /*break*/, 10];
+            _i = 0, applicableHoldouts_1 = applicableHoldouts;
+            _x.label = 2;
+          case 2:
+            if (!(_i < applicableHoldouts_1.length)) return [3 /*break*/, 10];
+            holdout = applicableHoldouts_1[_i];
+            if (!storedIsInHoldoutId.includes(holdout.getId())) return [3 /*break*/, 9];
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_HOLDOUT_DECISION_FOUND, {
+              featureKey: featureKey,
+              userId: context.getId(),
+              holdoutId: storedIsInHoldoutId
+            }));
+            return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature, context, storedData)];
+          case 3:
+            _a = _x.sent(), matchedHoldouts = _a.matchedHoldouts, notMatchedHoldouts = _a.notMatchedHoldouts, holdoutPayloads = _a.holdoutPayloads;
+            updatedHoldoutIds = __spreadArray(__spreadArray([], storedIsInHoldoutId, true), matchedHoldouts.map(function (holdout) {
+              return holdout.getId();
+            }), true);
+            updatedNotInHoldoutIds = __spreadArray(__spreadArray([], storedNotInHoldoutId, true), notMatchedHoldouts.map(function (holdout) {
+              return holdout.getId();
+            }), true);
+            // store the updated holdout ids in storage and push the updated not in holdout ids to the notInHoldoutIds array
+            new StorageDecorator_1.StorageDecorator().setDataInStorage({
+              featureKey: featureKey,
+              context: context,
+              isInHoldoutId: updatedHoldoutIds,
+              notInHoldoutId: updatedNotInHoldoutIds
+            }, storageService, serviceContainer);
+            if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 4];
+            for (_b = 0, holdoutPayloads_1 = holdoutPayloads; _b < holdoutPayloads_1.length; _b++) {
+              payload = holdoutPayloads_1[_b];
+              (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
             }
+            return [3 /*break*/, 8];
+          case 4:
+            if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 5];
+            for (_c = 0, holdoutPayloads_2 = holdoutPayloads; _c < holdoutPayloads_2.length; _c++) {
+              payload = holdoutPayloads_2[_c];
+              serviceContainer.getBatchEventsQueue().enqueue(payload);
+            }
+            return [3 /*break*/, 8];
+          case 5:
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 7];
+            return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads)];
+          case 6:
+            _x.sent();
+            return [3 /*break*/, 8];
+          case 7:
+            (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads);
+            _x.label = 8;
+          case 8:
+            deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel()));
+            return [2 /*return*/, deferredObject.promise];
+          case 9:
+            _i++;
+            return [3 /*break*/, 2];
+          case 10:
+            if (!((storedData === null || storedData === void 0 ? void 0 : storedData.featureId) && (0, CampaignUtil_1.isFeatureIdPresentInSettings)(serviceContainer.getSettings(), storedData.featureId))) return [3 /*break*/, 15];
+            if (!(storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId)) return [3 /*break*/, 13];
+            if (!storedData.experimentKey) return [3 /*break*/, 12];
+            variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.experimentKey, storedData.experimentVariationId);
+            if (!variation) return [3 /*break*/, 12];
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
+              variationKey: variation.getKey(),
+              userId: context.getId(),
+              experimentType: 'experiment',
+              experimentKey: storedData.experimentKey
+            }));
+            decision.isUserPartOfCampaign = true;
+            // network calls for holdouts that are newly added in settings and are not present in storage
+            return [4 /*yield*/, (0, HoldoutUtil_1.sendNetworkCallsForNotInHoldouts)(serviceContainer, feature, context, decision, storedData, storageService)];
+          case 11:
+            // network calls for holdouts that are newly added in settings and are not present in storage
+            _x.sent();
+            deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
+            return [2 /*return*/, deferredObject.promise];
+          case 12:
+            return [3 /*break*/, 15];
+          case 13:
+            if (!((storedData === null || storedData === void 0 ? void 0 : storedData.rolloutKey) && (storedData === null || storedData === void 0 ? void 0 : storedData.rolloutId))) return [3 /*break*/, 15];
+            variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.rolloutKey, storedData.rolloutVariationId);
+            if (!variation) return [3 /*break*/, 15];
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
+              variationKey: variation.getKey(),
+              userId: context.getId(),
+              experimentType: 'rollout',
+              experimentKey: storedData.rolloutKey
+            }));
+            decision.isUserPartOfCampaign = true;
+            serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED, {
+              userId: context.getId()
+            }));
+            return [4 /*yield*/, (0, HoldoutUtil_1.sendNetworkCallsForNotInHoldouts)(serviceContainer, feature, context, decision, storedData, storageService)];
+          case 14:
+            updatedNotInHoldoutIds = _x.sent();
+            // push the updated not in holdout ids to the notInHoldoutIds array
+            notInHoldoutIds.push.apply(notInHoldoutIds, updatedNotInHoldoutIds);
+            isEnabled = true;
+            shouldCheckForExperimentsRules = true;
+            rolloutVariationToReturn = variation;
+            featureInfo = {
+              rolloutId: storedData.rolloutId,
+              rolloutKey: storedData.rolloutKey,
+              rolloutVariationId: storedData.rolloutVariationId
+            };
+            evaluatedFeatureMap.set(featureKey, featureInfo);
+            Object.assign(passedRulesInformation, featureInfo);
+            _x.label = 15;
+          case 15:
             if (!(0, DataTypeUtil_1.isObject)(feature) || feature === undefined) {
               serviceContainer.getLogManager().errorLog('FEATURE_NOT_FOUND', {
                 featureKey: featureKey
@@ -1933,76 +2045,195 @@ var FlagApi = /** @class */function () {
               deferredObject.reject({});
               return [2 /*return*/, deferredObject.promise];
             }
-            // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
             return [4 /*yield*/, serviceContainer.getSegmentationManager().setContextualData(serviceContainer, feature, context)];
-          case 2:
-            // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
-            _h.sent();
-            rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
-            if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 10];
-            rolloutRulesToEvaluate = [];
-            _i = 0, rollOutRules_1 = rollOutRules;
-            _h.label = 3;
-          case 3:
-            if (!(_i < rollOutRules_1.length)) return [3 /*break*/, 6];
-            rule = rollOutRules_1[_i];
-            return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
-          case 4:
-            _a = _h.sent(), preSegmentationResult = _a.preSegmentationResult, updatedDecision = _a.updatedDecision;
-            Object.assign(decision, updatedDecision);
-            if (preSegmentationResult) {
-              // if pre segment passed, then break the loop and check the traffic allocation
-              rolloutRulesToEvaluate.push(rule);
-              evaluatedFeatureMap.set(featureKey, {
-                rolloutId: rule.getId(),
-                rolloutKey: rule.getKey(),
-                rolloutVariationId: (_d = rule.getVariations()[0]) === null || _d === void 0 ? void 0 : _d.getId()
-              });
-              return [3 /*break*/, 6];
+          case 16:
+            _x.sent();
+            if (!!isEnabled) return [3 /*break*/, 24];
+            return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature, context, storedData)];
+          case 17:
+            _d = _x.sent(), matchedHoldouts = _d.matchedHoldouts, notMatchedHoldouts = _d.notMatchedHoldouts, holdoutPayloads = _d.holdoutPayloads;
+            decision.isPartOfHoldout = matchedHoldouts !== null && matchedHoldouts.length > 0;
+            if (matchedHoldouts !== null && matchedHoldouts.length > 0 || notMatchedHoldouts !== null && notMatchedHoldouts.length > 0) {
+              decision.isHoldoutPresent = true;
             }
-            return [3 /*break*/, 5];
+            if (!(matchedHoldouts !== null && matchedHoldouts.length > 0)) return [3 /*break*/, 23];
+            qualifiedHoldoutNames = matchedHoldouts.map(function (holdout) {
+              return holdout.getName();
+            }).join(',');
+            decision.holdoutIDs = matchedHoldouts.map(function (holdout) {
+              return holdout.getId();
+            });
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_IN_HOLDOUT_GROUP, {
+              userId: context.getId(),
+              holdoutGroupName: qualifiedHoldoutNames,
+              featureKey: featureKey
+            }));
+            // Store holdout decision in storage
+            new StorageDecorator_1.StorageDecorator().setDataInStorage({
+              featureKey: featureKey,
+              context: context,
+              isInHoldoutId: matchedHoldouts.map(function (holdout) {
+                return holdout.getId();
+              }),
+              notInHoldoutId: notMatchedHoldouts.map(function (holdout) {
+                return holdout.getId();
+              })
+            }, storageService, serviceContainer);
+            decision['isEnabled'] = false;
+            serviceContainer.getHooksService().set(decision);
+            serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
+            if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 18];
+            for (_e = 0, holdoutPayloads_3 = holdoutPayloads; _e < holdoutPayloads_3.length; _e++) {
+              payload = holdoutPayloads_3[_e];
+              (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
+            }
+            return [3 /*break*/, 22];
+          case 18:
+            if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 19];
+            for (_f = 0, holdoutPayloads_4 = holdoutPayloads; _f < holdoutPayloads_4.length; _f++) {
+              payload = holdoutPayloads_4[_f];
+              serviceContainer.getBatchEventsQueue().enqueue(payload);
+            }
+            return [3 /*break*/, 22];
+          case 19:
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 21];
+            return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads)];
+          case 20:
+            _x.sent();
+            return [3 /*break*/, 22];
+          case 21:
+            (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads);
+            _x.label = 22;
+          case 22:
+            deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel()));
+            return [2 /*return*/, deferredObject.promise];
+          case 23:
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_NOT_EXCLUDED_DUE_TO_HOLDOUT, {
+              featureKey: featureKey,
+              userId: context.getId()
+            }));
+            notInHoldoutIds.push.apply(notInHoldoutIds, notMatchedHoldouts.map(function (holdout) {
+              return holdout.getId();
+            }));
+            if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
+              for (_g = 0, holdoutPayloads_5 = holdoutPayloads; _g < holdoutPayloads_5.length; _g++) {
+                payload = holdoutPayloads_5[_g];
+                (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
+              }
+            } else if (serviceContainer.getBatchEventsQueue()) {
+              for (_h = 0, holdoutPayloads_6 = holdoutPayloads; _h < holdoutPayloads_6.length; _h++) {
+                payload = holdoutPayloads_6[_h];
+                serviceContainer.getBatchEventsQueue().enqueue(payload);
+              }
+            } else {
+              batchPayload.push.apply(batchPayload, holdoutPayloads);
+            }
+            _x.label = 24;
+          case 24:
+            rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
+            if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 40];
+            rolloutRulesToEvaluate = [];
+            _j = 0, rollOutRules_1 = rollOutRules;
+            _x.label = 25;
+          case 25:
+            if (!(_j < rollOutRules_1.length)) return [3 /*break*/, 34];
+            rule = rollOutRules_1[_j];
+            return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
+          case 26:
+            _k = _x.sent(), preSegmentationResult = _k.preSegmentationResult, updatedDecision = _k.updatedDecision, payload = _k.payload;
+            Object.assign(decision, updatedDecision);
+            if (!preSegmentationResult) return [3 /*break*/, 32];
+            // if pre segment passed, then break the loop and check the traffic allocation
+            rolloutRulesToEvaluate.push(rule);
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 30];
+            if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 28];
+            return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_q = rule.getVariations()[0]) === null || _q === void 0 ? void 0 : _q.getId(), context, featureKey, payload)];
+          case 27:
+            _x.sent();
+            return [3 /*break*/, 29];
+          case 28:
+            if (payload != null) {
+              batchPayload.push(payload);
+            }
+            _x.label = 29;
+          case 29:
+            return [3 /*break*/, 31];
+          case 30:
+            if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+              (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_r = rule.getVariations()[0]) === null || _r === void 0 ? void 0 : _r.getId(), context, featureKey, payload);
+            } else {
+              if (payload != null) {
+                batchPayload.push(payload);
+              }
+            }
+            _x.label = 31;
+          case 31:
+            evaluatedFeatureMap.set(featureKey, {
+              rolloutId: rule.getId(),
+              rolloutKey: rule.getKey(),
+              rolloutVariationId: (_s = rule.getVariations()[0]) === null || _s === void 0 ? void 0 : _s.getId()
+            });
+            return [3 /*break*/, 34];
+          case 32:
+            return [3 /*break*/, 33];
           // if rule does not satisfy, then check for other ROLLOUT rules
-          case 5:
-            _i++;
-            return [3 /*break*/, 3];
-          case 6:
-            if (!(rolloutRulesToEvaluate.length > 0)) return [3 /*break*/, 9];
+          case 33:
+            _j++;
+            return [3 /*break*/, 25];
+          case 34:
+            if (!(rolloutRulesToEvaluate.length > 0)) return [3 /*break*/, 39];
             passedRolloutCampaign = new CampaignModel_1.CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
             variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, passedRolloutCampaign, context.getId());
-            if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 9];
+            if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 39];
             isEnabled = true;
             shouldCheckForExperimentsRules = true;
             rolloutVariationToReturn = variation;
+            decision['isUserPartOfCampaign'] = true;
             _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
-            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 8];
-            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey)];
-          case 7:
-            _h.sent();
-            return [3 /*break*/, 9];
-          case 8:
-            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey);
-            _h.label = 9;
-          case 9:
-            return [3 /*break*/, 11];
-          case 10:
+            payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, passedRolloutCampaign.getId(), variation.getId(), context);
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 38];
+            if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 36];
+            return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload)];
+          case 35:
+            _x.sent();
+            return [3 /*break*/, 37];
+          case 36:
+            if (payload != null) {
+              batchPayload.push(payload);
+            }
+            _x.label = 37;
+          case 37:
+            return [3 /*break*/, 39];
+          case 38:
+            if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+              (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload);
+            } else {
+              if (payload != null) {
+                batchPayload.push(payload);
+              }
+            }
+            _x.label = 39;
+          case 39:
+            return [3 /*break*/, 41];
+          case 40:
             if (rollOutRules.length === 0) {
               serviceContainer.getLogManager().debug(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
               shouldCheckForExperimentsRules = true;
             }
-            _h.label = 11;
-          case 11:
-            if (!shouldCheckForExperimentsRules) return [3 /*break*/, 18];
+            _x.label = 41;
+          case 41:
+            if (!shouldCheckForExperimentsRules) return [3 /*break*/, 50];
             experimentRulesToEvaluate = [];
             experimentRules = (0, FunctionUtil_1.getAllExperimentRules)(feature);
             megGroupWinnerCampaigns = new Map();
-            _b = 0, experimentRules_1 = experimentRules;
-            _h.label = 12;
-          case 12:
-            if (!(_b < experimentRules_1.length)) return [3 /*break*/, 15];
-            rule = experimentRules_1[_b];
+            _l = 0, experimentRules_1 = experimentRules;
+            _x.label = 42;
+          case 42:
+            if (!(_l < experimentRules_1.length)) return [3 /*break*/, 45];
+            rule = experimentRules_1[_l];
             return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
-          case 13:
-            _c = _h.sent(), preSegmentationResult = _c.preSegmentationResult, whitelistedObject = _c.whitelistedObject, updatedDecision = _c.updatedDecision;
+          case 43:
+            _m = _x.sent(), preSegmentationResult = _m.preSegmentationResult, whitelistedObject = _m.whitelistedObject, updatedDecision = _m.updatedDecision;
             Object.assign(decision, updatedDecision);
             if (preSegmentationResult) {
               if (whitelistedObject === null) {
@@ -2010,6 +2241,7 @@ var FlagApi = /** @class */function () {
                 experimentRulesToEvaluate.push(rule);
               } else {
                 isEnabled = true;
+                decision['isUserPartOfCampaign'] = true;
                 experimentVariationToReturn = whitelistedObject.variation;
                 Object.assign(passedRulesInformation, {
                   experimentId: rule.getId(),
@@ -2017,37 +2249,61 @@ var FlagApi = /** @class */function () {
                   experimentVariationId: whitelistedObject.variationId
                 });
               }
-              return [3 /*break*/, 15];
+              return [3 /*break*/, 45];
             }
-            return [3 /*break*/, 14];
-          case 14:
-            _b++;
-            return [3 /*break*/, 12];
-          case 15:
-            if (!(experimentRulesToEvaluate.length > 0)) return [3 /*break*/, 18];
+            return [3 /*break*/, 44];
+          case 44:
+            _l++;
+            return [3 /*break*/, 42];
+          case 45:
+            if (!(experimentRulesToEvaluate.length > 0)) return [3 /*break*/, 50];
             campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
             variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context.getId());
-            if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 18];
+            if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 50];
             isEnabled = true;
+            decision['isUserPartOfCampaign'] = true;
             experimentVariationToReturn = variation;
             _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
-            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 17];
-            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey)];
-          case 16:
-            _h.sent();
-            return [3 /*break*/, 18];
-          case 17:
-            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey);
-            _h.label = 18;
-          case 18:
+            payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaign.getId(), variation.getId(), context);
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 49];
+            if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 47];
+            return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload)];
+          case 46:
+            _x.sent();
+            return [3 /*break*/, 48];
+          case 47:
+            if (payload != null) {
+              batchPayload.push(payload);
+            }
+            _x.label = 48;
+          case 48:
+            return [3 /*break*/, 50];
+          case 49:
+            if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+              (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload);
+            } else {
+              if (payload != null) {
+                batchPayload.push(payload);
+              }
+            }
+            _x.label = 50;
+          case 50:
             // If flag is enabled, store it in data
             if (isEnabled) {
               // set storage data
-              new StorageDecorator_1.StorageDecorator().setDataInStorage(__assign({
+              new StorageDecorator_1.StorageDecorator().setDataInStorage(__assign(__assign({
                 featureKey: featureKey,
                 featureId: feature.getId(),
                 context: context
-              }, passedRulesInformation), storageService, serviceContainer);
+              }, passedRulesInformation), {
+                notInHoldoutId: notInHoldoutIds
+              }), storageService, serviceContainer);
+            } else {
+              new StorageDecorator_1.StorageDecorator().setDataInStorage({
+                featureKey: featureKey,
+                context: context,
+                notInHoldoutId: notInHoldoutIds
+              }, storageService, serviceContainer);
             }
             // call integration callback, if defined
             serviceContainer.getHooksService().set(decision);
@@ -2062,26 +2318,47 @@ var FlagApi = /** @class */function () {
               // send debug event
               (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
             }
-            if (!((_e = feature.getImpactCampaign()) === null || _e === void 0 ? void 0 : _e.getCampaignId())) return [3 /*break*/, 21];
+            if (!((_t = feature.getImpactCampaign()) === null || _t === void 0 ? void 0 : _t.getCampaignId())) return [3 /*break*/, 55];
             serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
               userId: context.getId(),
               featureKey: featureKey,
               status: isEnabled ? 'enabled' : 'disabled'
             }));
-            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 20];
-            return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, (_f = feature.getImpactCampaign()) === null || _f === void 0 ? void 0 : _f.getCampaignId(), isEnabled ? 2 : 1,
-            // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-            context, featureKey)];
-          case 19:
-            _h.sent();
-            return [3 /*break*/, 21];
-          case 20:
-            (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, (_g = feature.getImpactCampaign()) === null || _g === void 0 ? void 0 : _g.getCampaignId(), isEnabled ? 2 : 1,
-            // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-            context, featureKey);
-            _h.label = 21;
-          case 21:
+            payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, (_u = feature.getImpactCampaign()) === null || _u === void 0 ? void 0 : _u.getCampaignId(), isEnabled ? 2 : 1, context);
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 54];
+            if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 52];
+            return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_v = feature.getImpactCampaign()) === null || _v === void 0 ? void 0 : _v.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload)];
+          case 51:
+            _x.sent();
+            return [3 /*break*/, 53];
+          case 52:
+            if (payload != null) {
+              batchPayload.push(payload);
+            }
+            _x.label = 53;
+          case 53:
+            return [3 /*break*/, 55];
+          case 54:
+            if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+              (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_w = feature.getImpactCampaign()) === null || _w === void 0 ? void 0 : _w.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload);
+            } else {
+              if (payload != null) {
+                batchPayload.push(payload);
+              }
+            }
+            _x.label = 55;
+          case 55:
             deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
+            if (!(!serviceContainer.getSettingsService().isGatewayServiceProvided && batchPayload.length > 0)) return [3 /*break*/, 58];
+            if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 57];
+            return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload)];
+          case 56:
+            _x.sent();
+            return [3 /*break*/, 58];
+          case 57:
+            (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload);
+            _x.label = 58;
+          case 58:
             return [2 /*return*/, deferredObject.promise];
         }
       });
@@ -2485,7 +2762,7 @@ var TrackApi = /** @class */function () {
       return __generator(this, function (_c) {
         switch (_c.label) {
           case 0:
-            if (!(0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, serviceContainer.getSettings())) return [3 /*break*/, 4];
+            if (!((0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, serviceContainer.getSettings()) || (0, FunctionUtil_1.doesEventBelongToAnyHoldout)(eventName, serviceContainer.getSettings()))) return [3 /*break*/, 4];
             if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 2];
             return [4 /*yield*/, createImpressionForTrack(serviceContainer, eventName, context, eventProperties)];
           case 1:
@@ -2692,7 +2969,9 @@ exports.Constants = {
   FLAG_DECISION_GIVEN: 'FLAG_DECISION_GIVEN',
   NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES: 'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
   NETWORK_CALL_SUCCESS_WITH_RETRIES: 'NETWORK_CALL_SUCCESS_WITH_RETRIES',
-  IMPACT_ANALYSIS: 'IMPACT_ANALYSIS'
+  IMPACT_ANALYSIS: 'IMPACT_ANALYSIS',
+  VARIATION_IS_PART_OF_HOLDOUT: 1,
+  VARIATION_NOT_PART_OF_HOLDOUT: 2
 };
 
 /***/ }),
@@ -2898,7 +3177,9 @@ var StorageDecorator = /** @class */function () {
       rolloutVariationId = data.rolloutVariationId,
       experimentId = data.experimentId,
       experimentKey = data.experimentKey,
-      experimentVariationId = data.experimentVariationId;
+      experimentVariationId = data.experimentVariationId,
+      isInHoldoutId = data.isInHoldoutId,
+      notInHoldoutId = data.notInHoldoutId;
     if (!featureKey) {
       serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
         key: 'featureKey'
@@ -2952,7 +3233,9 @@ var StorageDecorator = /** @class */function () {
       rolloutVariationId: rolloutVariationId,
       experimentId: experimentId,
       experimentKey: experimentKey,
-      experimentVariationId: experimentVariationId
+      experimentVariationId: experimentVariationId,
+      isInHoldoutId: isInHoldoutId,
+      notInHoldoutId: notInHoldoutId
     }, serviceContainer);
     deferredObject.resolve(); // Resolve promise when data is successfully set
     return deferredObject.promise;
@@ -3116,6 +3399,7 @@ var EventEnum;
   EventEnum["VWO_LOG_EVENT"] = "vwo_log";
   EventEnum["VWO_INIT_CALLED"] = "vwo_fmeSdkInit";
   EventEnum["VWO_USAGE_STATS"] = "vwo_sdkUsageStats";
+  EventEnum["VWO_HOLDOUT"] = "vwo_holdout";
   EventEnum["VWO_DEBUGGER_EVENT"] = "vwo_sdkDebug";
 })(EventEnum || (exports.EventEnum = EventEnum = {}));
 
@@ -3190,6 +3474,42 @@ var HttpMethodEnum;
   HttpMethodEnum["GET"] = "GET";
   HttpMethodEnum["POST"] = "POST";
 })(HttpMethodEnum || (exports.HttpMethodEnum = HttpMethodEnum = {}));
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/enums/NetworkTransportModeEnum.js":
+/*!****************************************************************!*\
+  !*** ./dist/server-unpacked/enums/NetworkTransportModeEnum.js ***!
+  \****************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.NetworkTransportModeEnum = void 0;
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var NetworkTransportModeEnum;
+(function (NetworkTransportModeEnum) {
+  NetworkTransportModeEnum["SEND_BEACON"] = "sendBeacon";
+  NetworkTransportModeEnum["XHR"] = "xhr";
+})(NetworkTransportModeEnum || (exports.NetworkTransportModeEnum = NetworkTransportModeEnum = {}));
 
 /***/ }),
 
@@ -3625,6 +3945,105 @@ var FeatureModel = /** @class */function () {
   return FeatureModel;
 }();
 exports.FeatureModel = FeatureModel;
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/models/campaign/HoldoutModel.js":
+/*!**************************************************************!*\
+  !*** ./dist/server-unpacked/models/campaign/HoldoutModel.js ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.HoldoutModel = void 0;
+var MetricModel_1 = __webpack_require__(/*! ./MetricModel */ "./dist/server-unpacked/models/campaign/MetricModel.js");
+var HoldoutModel = /** @class */function () {
+  function HoldoutModel() {
+    this.segments = {};
+    this.featureIds = [];
+    this.m = [];
+    this.metrics = [];
+    this.isGatewayServiceRequired = false;
+    this.name = '';
+  }
+  HoldoutModel.prototype.modelFromDictionary = function (data) {
+    var _this = this;
+    var _a;
+    if (!data) {
+      return this;
+    }
+    this.id = data.id;
+    this.segments = data.segments || {};
+    this.percentTraffic = data.percentTraffic || 0;
+    this.isGlobal = !!data.isGlobal;
+    this.featureIds = Array.isArray(data.featureIds) ? data.featureIds : [];
+    this.name = data.name || '';
+    if (data === null || data === void 0 ? void 0 : data.isGatewayServiceRequired) {
+      this.isGatewayServiceRequired = data.isGatewayServiceRequired;
+    }
+    if (data.m && data.m.constructor === {}.constructor || ((_a = data.metrics) === null || _a === void 0 ? void 0 : _a.constructor) === {}.constructor) {
+      this.metrics = [];
+    } else {
+      var metricList = data.m || data.metrics;
+      metricList === null || metricList === void 0 ? void 0 : metricList.forEach(function (metric) {
+        _this.metrics.push(new MetricModel_1.MetricModel().modelFromDictionary(metric));
+      });
+    }
+    return this;
+  };
+  HoldoutModel.prototype.getId = function () {
+    return this.id;
+  };
+  HoldoutModel.prototype.getSegments = function () {
+    return this.segments || {};
+  };
+  HoldoutModel.prototype.getPercentTraffic = function () {
+    return this.percentTraffic;
+  };
+  HoldoutModel.prototype.getIsGlobal = function () {
+    return this.isGlobal;
+  };
+  HoldoutModel.prototype.getFeatureIds = function () {
+    return this.featureIds;
+  };
+  HoldoutModel.prototype.getMetrics = function () {
+    return this.metrics;
+  };
+  HoldoutModel.prototype.getIsGatewayServiceRequired = function () {
+    return this.isGatewayServiceRequired;
+  };
+  HoldoutModel.prototype.setIsGatewayServiceRequired = function (isGatewayServiceRequired) {
+    this.isGatewayServiceRequired = isGatewayServiceRequired;
+  };
+  HoldoutModel.prototype.getName = function () {
+    return this.name;
+  };
+  HoldoutModel.prototype.setName = function (name) {
+    this.name = name;
+  };
+  return HoldoutModel;
+}();
+exports.HoldoutModel = HoldoutModel;
 
 /***/ }),
 
@@ -4098,12 +4517,27 @@ var SettingsSchema = /** @class */function () {
       rules: (0, superstruct_1.optional)((0, superstruct_1.array)(this.ruleSchema)),
       variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema))
     });
+    this.holdoutSchema = (0, superstruct_1.type)({
+      metrics: (0, superstruct_1.array)(this.campaignMetricSchema),
+      segments: (0, superstruct_1.object)(),
+      featureIds: (0, superstruct_1.array)((0, superstruct_1.number)()),
+      isGlobal: (0, superstruct_1.boolean)(),
+      name: (0, superstruct_1.string)(),
+      id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
+      percentTraffic: (0, superstruct_1.number)()
+    });
+    // holdouts: optional. Backend sends {} when no holdouts; [] or [holdout, ...] when 1+ present.
+    // Union: either an array (each item validated by holdoutSchema) or a strict empty object {}.
+    var holdoutsSchema = (0, superstruct_1.union)([(0, superstruct_1.array)(this.holdoutSchema), (0, superstruct_1.refine)((0, superstruct_1.object)(), 'EmptyObject', function (v) {
+      return Object.keys(v).length === 0;
+    })]);
     this.settingsSchema = (0, superstruct_1.type)({
       sdkKey: (0, superstruct_1.optional)((0, superstruct_1.string)()),
       version: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
       accountId: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
       usageStatsAccountId: (0, superstruct_1.optional)((0, superstruct_1.number)()),
       features: (0, superstruct_1.optional)((0, superstruct_1.array)(this.featureSchema)),
+      holdouts: (0, superstruct_1.optional)(holdoutsSchema),
       campaigns: (0, superstruct_1.array)(this.campaignObjectSchema),
       groups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
       campaignGroups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
@@ -4157,6 +4591,7 @@ exports.SettingsModel = void 0;
  */
 var CampaignModel_1 = __webpack_require__(/*! ../campaign/CampaignModel */ "./dist/server-unpacked/models/campaign/CampaignModel.js");
 var FeatureModel_1 = __webpack_require__(/*! ../campaign/FeatureModel */ "./dist/server-unpacked/models/campaign/FeatureModel.js");
+var HoldoutModel_1 = __webpack_require__(/*! ../campaign/HoldoutModel */ "./dist/server-unpacked/models/campaign/HoldoutModel.js");
 var SettingsModel = /** @class */function () {
   function SettingsModel(settings) {
     var _this = this;
@@ -4168,6 +4603,7 @@ var SettingsModel = /** @class */function () {
     this.cG = {};
     this.groups = {};
     this.g = {};
+    this.holdouts = [];
     this.sdkKey = settings.sK || settings.sdkKey;
     this.accountId = settings.a || settings.accountId;
     this.version = settings.v || settings.version;
@@ -4196,6 +4632,12 @@ var SettingsModel = /** @class */function () {
     }
     if (settings.isWebConnectivityEnabled) {
       this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
+    }
+    if (Array.isArray(settings.holdouts)) {
+      var holdoutsArray = settings.holdouts;
+      holdoutsArray.forEach(function (holdout) {
+        _this.holdouts.push(new HoldoutModel_1.HoldoutModel().modelFromDictionary(holdout));
+      });
     }
     return this;
   }
@@ -4234,6 +4676,9 @@ var SettingsModel = /** @class */function () {
   };
   SettingsModel.prototype.getIsWebConnectivityEnabled = function () {
     return this.isWebConnectivityEnabled;
+  };
+  SettingsModel.prototype.getHoldouts = function () {
+    return Array.isArray(this.holdouts) ? this.holdouts : [];
   };
   return SettingsModel;
 }();
@@ -5178,12 +5623,22 @@ exports.NetworkBrowserClient = void 0;
  */
 var XMLUtil_1 = __webpack_require__(/*! ../../../utils/XMLUtil */ "./dist/server-unpacked/utils/XMLUtil.js");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./dist/server-unpacked/utils/PromiseUtil.js");
+var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./dist/server-unpacked/packages/network-layer/models/ResponseModel.js");
+var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
+var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var NetworkTransportModeEnum_1 = __webpack_require__(/*! ../../../enums/NetworkTransportModeEnum */ "./dist/server-unpacked/enums/NetworkTransportModeEnum.js");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
 var NetworkBrowserClient = /** @class */function () {
-  function NetworkBrowserClient(logManager) {
+  function NetworkBrowserClient(logManager, networkTransportMode) {
+    if (networkTransportMode === void 0) {
+      networkTransportMode = NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON;
+    }
     this.logManager = logManager;
+    this.networkTransportMode = networkTransportMode;
   }
   /**
    * Performs a GET request using the provided RequestModel.
@@ -5201,48 +5656,70 @@ var NetworkBrowserClient = /** @class */function () {
         deferred.reject(responseModel);
       }
     }, this.logManager);
-    /*try {
-      fetch(url)
-          .then(res => {
-            // Some endpoints return empty strings as the response body; treat
-            // as raw text and handle potential JSON parsing errors below
-            return res.text().then(text => {
-              let jsonData = {};
-              try {
-                jsonData = JSON.parse(text);
-              } catch (err) {
-                console.info(
-                  `VWO-SDK - [INFO]: VWO didn't send JSON response which is expected: ${err}`
-                );
-              }
-                   if (res.status === 200) {
-                responseModel.setData(jsonData);
-                deferred.resolve(responseModel);
-              } else {
-                let error = `VWO-SDK - [ERROR]: Request failed for fetching account settings. Got Status Code: ${
-                  res.status
-                }`;
-                     responseModel.setError(error);
-                deferred.reject(responseModel);
-              }
-            });
-          })
-          .catch(err => {
-            responseModel.setError(err);
-            deferred.reject(responseModel);
-          });
-    } catch (err) {
-      responseModel.setError(err);
-      deferred.reject(responseModel);
-    } */
     return deferred.promise;
   };
   /**
-   * Performs a POST request using the provided RequestModel.
+   * Performs a POST request using navigator.sendBeacon. If the request is not queued, it will be performed using XHR.
    * @param {RequestModel} request - The model containing request options.
    * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
    */
   NetworkBrowserClient.prototype.POST = function (requestModel) {
+    var deferred = new PromiseUtil_1.Deferred();
+    // if networkTransportMode is SEND_BEACON, and navigator.sendBeacon is defined, use beacon
+    // sendBeacon can be undefined for internet explorer 11 - so we will fallback to XHR
+    if (this.networkTransportMode.toLowerCase() !== NetworkTransportModeEnum_1.NetworkTransportModeEnum.XHR.toLowerCase() && typeof navigator !== 'undefined' &&
+    // not using DataTypeUtil.isUndefined because we want to check for the existence of navigator object in non-browser environments
+    typeof navigator.sendBeacon === 'function') {
+      var responseModel = new ResponseModel_1.ResponseModel();
+      try {
+        this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+          api: NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON,
+          process: 'undefined'
+        }));
+        var networkOptions = requestModel.getOptions();
+        var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+        if (networkOptions.port) {
+          url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
+        }
+        var body = networkOptions.body;
+        var postBody = (0, DataTypeUtil_1.isString)(body) ? body : JSON.stringify(body || {});
+        // sendBeacon returns a boolean indicating if the request was queued
+        var queued = navigator.sendBeacon(url, postBody);
+        if (!queued) {
+          // if the request was not queued, fallback to XHR
+          return this.POST_XHR(requestModel);
+        } else {
+          // if the request was queued, resolve the promise with a success response
+          responseModel.setStatusCode(200);
+          responseModel.setData(undefined);
+          deferred.resolve(responseModel);
+          return deferred.promise;
+        }
+      } catch (error) {
+        var err = (0, FunctionUtil_1.getFormattedErrorMessage)(error);
+        this.logManager.errorLog('SEND_BEACON_ERROR', {
+          err: err
+        }, {}, false);
+        responseModel.setStatusCode(0);
+        responseModel.setError(err);
+        deferred.reject(responseModel);
+        return deferred.promise;
+      }
+    } else {
+      this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+        api: NetworkTransportModeEnum_1.NetworkTransportModeEnum.XHR,
+        process: 'undefined'
+      }));
+      // if networkTransportMode is not SEND_BEACON, fallback to XHR
+      return this.POST_XHR(requestModel);
+    }
+  };
+  /**
+   * Performs a POST request using XHR.
+   * @param {RequestModel} requestModel - The model containing request options.
+   * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
+   */
+  NetworkBrowserClient.prototype.POST_XHR = function (requestModel) {
     var deferred = new PromiseUtil_1.Deferred();
     (0, XMLUtil_1.sendPostCall)({
       requestModel: requestModel,
@@ -5253,46 +5730,6 @@ var NetworkBrowserClient = /** @class */function () {
         deferred.reject(responseModel);
       }
     }, this.logManager);
-    /* try {
-      const options: any = Object.assign(
-        {},
-        { method: HttpMethodEnum.POST },
-        { body: networkOptions.body },
-        { headers: networkOptions.headers }
-      );
-           fetch(url, options)
-          .then(res => {
-            // Some endpoints return empty strings as the response body; treat
-            // as raw text and handle potential JSON parsing errors below
-            return res.text().then(text => {
-              let jsonData = {};
-              try {
-                jsonData = JSON.parse(text);
-              } catch (err) {
-                console.info(
-                  `VWO-SDK - [INFO]: VWO didn't send JSON response which is expected: ${err}`
-                );
-              }
-                   if (res.status === 200) {
-                responseModel.setData(jsonData);
-                deferred.resolve(responseModel);
-              } else {
-                let error = `VWO-SDK - [ERROR]: Request failed for fetching account settings. Got Status Code: ${
-                  res.status
-                }`;
-                     responseModel.setError(error);
-                deferred.reject(responseModel);
-              }
-            });
-          })
-          .catch(err => {
-            responseModel.setError(err);
-            deferred.reject(responseModel);
-          });
-    } catch (err) {
-      responseModel.setError(err);
-      deferred.reject(responseModel);
-    } */
     return deferred.promise;
   };
   return NetworkBrowserClient;
@@ -5809,10 +6246,14 @@ var NetworkBrowserClient_1 = __webpack_require__(/*! ../client/NetworkBrowserCli
 var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./dist/server-unpacked/constants/Url.js");
+var NetworkTransportModeEnum_1 = __webpack_require__(/*! ../../../enums/NetworkTransportModeEnum */ "./dist/server-unpacked/enums/NetworkTransportModeEnum.js");
 var NetworkManager = /** @class */function () {
-  function NetworkManager(logManager, client, retryConfig, shouldWaitForTrackingCalls) {
+  function NetworkManager(logManager, client, retryConfig, shouldWaitForTrackingCalls, networkTransportMode) {
     if (shouldWaitForTrackingCalls === void 0) {
       shouldWaitForTrackingCalls = false;
+    }
+    if (networkTransportMode === void 0) {
+      networkTransportMode = NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON;
     }
     this.logManager = logManager;
     // Only set retry configuration if it's not already initialized or if a new config is provided
@@ -5835,12 +6276,8 @@ var NetworkManager = /** @class */function () {
       if (typeof XMLHttpRequest === 'undefined') {
         this.client = client || new NetworkServerLessClient_1.NetworkServerLessClient(this.logManager);
       } else {
-        this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
-          api: 'xhr',
-          process: 'undefined'
-        }));
         // if XMLHttpRequest is defined, we are in browser
-        this.client = client || new NetworkBrowserClient_1.NetworkBrowserClient(this.logManager); // Use provided client or default to NetworkClient
+        this.client = client || new NetworkBrowserClient_1.NetworkBrowserClient(this.logManager, networkTransportMode); // Use provided client or default to NetworkBrowserClient
       }
     } else {
       // if env is defined, we expect to be in Node
@@ -6742,7 +7179,7 @@ var SegmentationManager = /** @class */function () {
    */
   SegmentationManager.prototype.setContextualData = function (serviceContainer, feature, context) {
     return __awaiter(this, void 0, void 0, function () {
-      var queryParams, params, _vwo, err_1;
+      var settings, holdouts, isGatewayServiceRequiredForHoldouts, queryParams, params, _vwo, err_1;
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
@@ -6754,7 +7191,12 @@ var SegmentationManager = /** @class */function () {
             if ((context === null || context === void 0 ? void 0 : context.getUserAgent()) === null && (context === null || context === void 0 ? void 0 : context.getIpAddress()) === null) {
               return [2 /*return*/];
             }
-            if (!(feature.getIsGatewayServiceRequired() === true)) return [3 /*break*/, 4];
+            settings = serviceContainer.getSettings();
+            holdouts = settings.getHoldouts() || [];
+            isGatewayServiceRequiredForHoldouts = holdouts.filter(function (holdout) {
+              return holdout.getIsGatewayServiceRequired() === true;
+            }).length > 0;
+            if (!(feature.getIsGatewayServiceRequired() === true || isGatewayServiceRequiredForHoldouts)) return [3 /*break*/, 4];
             if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && ((0, DataTypeUtil_1.isUndefined)(context.getVwo()) || context.getVwo() === null))) return [3 /*break*/, 4];
             queryParams = {};
             if (context === null || context === void 0 ? void 0 : context.getUserAgent()) {
@@ -12369,6 +12811,7 @@ exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
 exports.getAllExperimentRules = getAllExperimentRules;
 exports.getFeatureFromKey = getFeatureFromKey;
 exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
+exports.doesEventBelongToAnyHoldout = doesEventBelongToAnyHoldout;
 exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 exports.getFormattedErrorMessage = getFormattedErrorMessage;
 /**
@@ -12494,6 +12937,20 @@ function doesEventBelongToAnyFeature(eventName, settings) {
   // Use the `some` method to check if any feature contains the event in its metrics
   return settings.getFeatures().some(function (feature) {
     return feature.getMetrics().some(function (metric) {
+      return metric.getIdentifier() === eventName;
+    });
+  });
+}
+/**
+ * Checks if an event exists within any holdout's metrics.
+ * @param {string} eventName - The name of the event to check.
+ * @param {any} settings - The settings containing holdouts.
+ * @returns {boolean} True if the event exists, otherwise false.
+ */
+function doesEventBelongToAnyHoldout(eventName, settings) {
+  // Use the `some` method to check if any holdout contains the event in its metrics
+  return settings.getHoldouts().some(function (holdout) {
+    return holdout.getMetrics().some(function (metric) {
       return metric.getIdentifier() === eventName;
     });
   });
@@ -12786,20 +13243,26 @@ function getQueryParams(queryParams) {
   return encodedParams;
 }
 /**
- * Adds isGatewayServiceRequired flag to each feature in the settings based on pre segmentation.
- * @param {any} settings - The settings file to modify.
+ * Adds isGatewayServiceRequired flag to each feature and holdout in the settings based on pre segmentation.
+ * @param settings - The settings file to modify.
  */
 function addIsGatewayServiceRequiredFlag(settings) {
   var keywordPattern = /\b(country|region|city|os|device_type|browser_string|ua|browser_version|os_version)\b/g;
   var inlistPattern = /"custom_variable"\s*:\s*{[^}]*inlist\([^)]*\)/g;
+  // for FEATURE
   for (var _i = 0, _a = settings.getFeatures(); _i < _a.length; _i++) {
     var feature = _a[_i];
     var rules = feature.getRulesLinkedCampaign();
     for (var _b = 0, rules_1 = rules; _b < rules_1.length; _b++) {
       var rule = rules_1[_b];
-      var segments = {};
-      if (rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE || rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT) {
-        segments = rule.getVariations()[0].getSegments();
+      var isRollout = rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT;
+      var isPersonalize = rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+      var segments = null;
+      if (isRollout || isPersonalize) {
+        var variations = rule.getVariations();
+        if (variations && variations.length > 0) {
+          segments = variations[0].getSegments();
+        }
       } else {
         segments = rule.getSegments();
       }
@@ -12814,6 +13277,379 @@ function addIsGatewayServiceRequiredFlag(settings) {
       }
     }
   }
+  // for Holdouts
+  for (var _c = 0, _d = settings.getHoldouts(); _c < _d.length; _c++) {
+    var holdout = _d[_c];
+    var segments = holdout.getSegments();
+    if (segments) {
+      var jsonSegments = JSON.stringify(segments);
+      var keywordMatches = jsonSegments.match(keywordPattern);
+      var inlistMatches = jsonSegments.match(inlistPattern);
+      if (keywordMatches && keywordMatches.length > 0 || inlistMatches && inlistMatches.length > 0) {
+        holdout.setIsGatewayServiceRequired(true);
+        break;
+      }
+    }
+  }
+}
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/utils/HoldoutUtil.js":
+/*!***************************************************!*\
+  !*** ./dist/server-unpacked/utils/HoldoutUtil.js ***!
+  \***************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function (resolve) {
+      resolve(value);
+    });
+  }
+  return new (P || (P = Promise))(function (resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator = this && this.__generator || function (thisArg, body) {
+  var _ = {
+      label: 0,
+      sent: function () {
+        if (t[0] & 1) throw t[1];
+        return t[1];
+      },
+      trys: [],
+      ops: []
+    },
+    f,
+    y,
+    t,
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    return this;
+  }), g;
+  function verb(n) {
+    return function (v) {
+      return step([n, v]);
+    };
+  }
+  function step(op) {
+    if (f) throw new TypeError("Generator is already executing.");
+    while (g && (g = 0, op[0] && (_ = 0)), _) try {
+      if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+      if (y = 0, t) op = [op[0] & 2, t.value];
+      switch (op[0]) {
+        case 0:
+        case 1:
+          t = op;
+          break;
+        case 4:
+          _.label++;
+          return {
+            value: op[1],
+            done: false
+          };
+        case 5:
+          _.label++;
+          y = op[1];
+          op = [0];
+          continue;
+        case 7:
+          op = _.ops.pop();
+          _.trys.pop();
+          continue;
+        default:
+          if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+            _ = 0;
+            continue;
+          }
+          if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+            _.label = op[1];
+            break;
+          }
+          if (op[0] === 6 && _.label < t[1]) {
+            _.label = t[1];
+            t = op;
+            break;
+          }
+          if (t && _.label < t[2]) {
+            _.label = t[2];
+            _.ops.push(op);
+            break;
+          }
+          if (t[2]) _.ops.pop();
+          _.trys.pop();
+          continue;
+      }
+      op = body.call(thisArg, _);
+    } catch (e) {
+      op = [6, e];
+      y = 0;
+    } finally {
+      f = t = 0;
+    }
+    if (op[0] & 5) throw op[1];
+    return {
+      value: op[0] ? op[1] : void 0,
+      done: true
+    };
+  }
+};
+var __spreadArray = this && this.__spreadArray || function (to, from, pack) {
+  if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+    if (ar || !(i in from)) {
+      if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+      ar[i] = from[i];
+    }
+  }
+  return to.concat(ar || Array.prototype.slice.call(from));
+};
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.getApplicableHoldouts = getApplicableHoldouts;
+exports.getMatchedHoldouts = getMatchedHoldouts;
+exports.sendNetworkCallsForNotInHoldouts = sendNetworkCallsForNotInHoldouts;
+var decision_maker_1 = __webpack_require__(/*! ../packages/decision-maker */ "./dist/server-unpacked/packages/decision-maker/index.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
+var ImpressionUtil_1 = __webpack_require__(/*! ./ImpressionUtil */ "./dist/server-unpacked/utils/ImpressionUtil.js");
+var index_1 = __webpack_require__(/*! ../constants/index */ "./dist/server-unpacked/constants/index.js");
+var StorageDecorator_1 = __webpack_require__(/*! ../decorators/StorageDecorator */ "./dist/server-unpacked/decorators/StorageDecorator.js");
+/**
+ * Gets the applicable holdouts for a given feature ID.
+ * @param settings - The settings object.
+ * @param featureId - The feature ID.
+ * @returns The applicable holdouts.
+ */
+function getApplicableHoldouts(settings, featureId) {
+  var holdouts = settings.getHoldouts() || [];
+  // filter the holdouts to only include global holdouts and holdouts that have the given feature ID
+  return holdouts.filter(function (holdout) {
+    return holdout.getIsGlobal() || holdout.getFeatureIds().includes(featureId);
+  });
+}
+/**
+ * Gets the matched holdout(s) for a given feature ID and context.
+ * Evaluates all applicable holdouts, creates batched impressions for all of them,
+ * and returns all matched holdouts (i.e. holdouts the user is part of).
+ * @param settings - The settings object.
+ * @param feature - The feature object.
+ * @param context - The context object.
+ * @returns The matched holdouts or null if no holdout is matched.
+ */
+function getMatchedHoldouts(serviceContainer, feature, context, storedData) {
+  return __awaiter(this, void 0, void 0, function () {
+    var settings, isInHoldoutIds, notInHoldoutIds, alreadyEvaluatedHoldoutIds, featureId, applicableHoldouts, notMatchedHoldouts, matchedHoldouts, holdoutPayloads, _i, applicableHoldouts_1, holdout, segments, segmentPass, variationId, isInHoldout, hashKey, bucket, payload;
+    var _a, _b;
+    return __generator(this, function (_c) {
+      switch (_c.label) {
+        case 0:
+          settings = serviceContainer.getSettings();
+          isInHoldoutIds = (_a = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _a !== void 0 ? _a : [];
+          notInHoldoutIds = (_b = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _b !== void 0 ? _b : [];
+          alreadyEvaluatedHoldoutIds = __spreadArray(__spreadArray([], isInHoldoutIds, true), notInHoldoutIds, true);
+          featureId = feature.getId();
+          applicableHoldouts = getApplicableHoldouts(settings, featureId);
+          notMatchedHoldouts = [];
+          // if there are no applicable holdouts, return null
+          if (!applicableHoldouts.length) return [2 /*return*/, {
+            matchedHoldouts: [],
+            notMatchedHoldouts: [],
+            holdoutPayloads: []
+          }];
+          matchedHoldouts = [];
+          holdoutPayloads = [];
+          _i = 0, applicableHoldouts_1 = applicableHoldouts;
+          _c.label = 1;
+        case 1:
+          if (!(_i < applicableHoldouts_1.length)) return [3 /*break*/, 6];
+          holdout = applicableHoldouts_1[_i];
+          if (alreadyEvaluatedHoldoutIds.includes(holdout.getId())) {
+            serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.HOLDOUT_SKIP_EVALUATION, {
+              holdoutId: holdout.getId(),
+              reason: "user ".concat(context.getId(), " was already evaluated for feature with id: ").concat(featureId, "; SKIP decision making altogether.")
+            }));
+            return [3 /*break*/, 5];
+          }
+          segments = holdout.getSegments() || {};
+          segmentPass = true;
+          if (!(segments && Object.keys(segments).length > 0)) return [3 /*break*/, 3];
+          return [4 /*yield*/, serviceContainer.getSegmentationManager().validateSegmentation(segments, context.getCustomVariables())];
+        case 2:
+          segmentPass = _c.sent();
+          return [3 /*break*/, 4];
+        case 3:
+          serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.HOLDOUT_SEGMENTATION_SKIP, {
+            holdoutId: holdout.getId(),
+            userId: context.getId()
+          }));
+          _c.label = 4;
+        case 4:
+          variationId = void 0;
+          isInHoldout = false;
+          // if the segmentation fails, user is NOT IN holdout (variationId = 2)
+          if (!segmentPass) {
+            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.HOLDOUT_SEGMENTATION_FAIL, {
+              userId: context.getId(),
+              holdoutGroupName: holdout.getName()
+            }));
+            variationId = index_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT; // NOT IN holdout
+            notMatchedHoldouts.push(holdout);
+          } else {
+            hashKey = "".concat(settings.getAccountId(), "_").concat(holdout.getId(), "_").concat(context.getId());
+            bucket = new decision_maker_1.DecisionMaker().getBucketValueForUser(hashKey, 100);
+            // If bucket is within percentTraffic, user is IN holdout (variationId = 1)
+            // Otherwise, user is NOT IN holdout (variationId = 2)
+            isInHoldout = bucket !== 0 && bucket <= holdout.getPercentTraffic();
+            variationId = isInHoldout ? index_1.Constants.VARIATION_IS_PART_OF_HOLDOUT : index_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT;
+            // Add all matched holdouts (user is IN)
+            if (isInHoldout) {
+              serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.HOLDOUT_SHOULD_EXCLUDE_USER, {
+                userId: context.getId(),
+                bucketValue: bucket,
+                holdoutGroupName: holdout.getName(),
+                percentTraffic: holdout.getPercentTraffic(),
+                featureId: featureId
+              }));
+              matchedHoldouts.push(holdout);
+            } else {
+              serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.HOLDOUT_SHOULD_NOT_EXCLUDE_USER, {
+                userId: context.getId(),
+                holdoutGroupName: holdout.getName(),
+                featureId: featureId
+              }));
+              notMatchedHoldouts.push(holdout);
+            }
+          }
+          payload = (0, NetworkUtil_1.createHoldoutPayload)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, holdout.getId(),
+          // campaignId is the holdoutId
+          variationId,
+          // 1 if IN holdout, 2 if NOT IN holdout
+          context, featureId);
+          holdoutPayloads.push(payload);
+          _c.label = 5;
+        case 5:
+          _i++;
+          return [3 /*break*/, 1];
+        case 6:
+          return [2 /*return*/, {
+            matchedHoldouts: matchedHoldouts,
+            notMatchedHoldouts: notMatchedHoldouts,
+            holdoutPayloads: holdoutPayloads
+          }];
+      }
+    });
+  });
+}
+/**
+ * Sends network calls for not in holdouts that are applicable but not stored in storage.
+ * @param serviceContainer - The service container.
+ * @param feature - The feature model.
+ * @param context - The context model.
+ * @param storedData - The stored data.
+ * @param storageService - The storage service.
+ */
+function sendNetworkCallsForNotInHoldouts(serviceContainer, feature, context, decision, storedData, storageService) {
+  return __awaiter(this, void 0, void 0, function () {
+    var applicableHoldouts, updatedNotInHoldoutIds, isInHoldoutIds, batchPayload, initialNotInHoldoutCount, _i, applicableHoldouts_2, holdout, payload, response;
+    var _a, _b;
+    return __generator(this, function (_c) {
+      switch (_c.label) {
+        case 0:
+          applicableHoldouts = getApplicableHoldouts(serviceContainer.getSettings(), feature.getId());
+          updatedNotInHoldoutIds = __spreadArray([], (_a = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _a !== void 0 ? _a : [], true);
+          isInHoldoutIds = __spreadArray([], (_b = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _b !== void 0 ? _b : [], true);
+          batchPayload = [];
+          initialNotInHoldoutCount = updatedNotInHoldoutIds.length;
+          if (applicableHoldouts.length > 0) {
+            decision.isHoldoutPresent = true;
+          }
+          _i = 0, applicableHoldouts_2 = applicableHoldouts;
+          _c.label = 1;
+        case 1:
+          if (!(_i < applicableHoldouts_2.length)) return [3 /*break*/, 6];
+          holdout = applicableHoldouts_2[_i];
+          if (!(!(updatedNotInHoldoutIds === null || updatedNotInHoldoutIds === void 0 ? void 0 : updatedNotInHoldoutIds.includes(holdout.getId())) && !(isInHoldoutIds === null || isInHoldoutIds === void 0 ? void 0 : isInHoldoutIds.includes(holdout.getId())))) return [3 /*break*/, 5];
+          //update the holdout ids in storage
+          updatedNotInHoldoutIds.push(holdout.getId());
+          payload = (0, NetworkUtil_1.createHoldoutPayload)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, holdout.getId(), index_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT, context, feature.getId());
+          if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 4];
+          response = (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, holdout.getId(), index_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT, context, feature.getKey(), payload);
+          if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+          return [4 /*yield*/, response];
+        case 2:
+          _c.sent();
+          _c.label = 3;
+        case 3:
+          return [3 /*break*/, 5];
+        case 4:
+          if (payload != null) {
+            batchPayload.push(payload);
+          }
+          _c.label = 5;
+        case 5:
+          _i++;
+          return [3 /*break*/, 1];
+        case 6:
+          if (updatedNotInHoldoutIds.length > initialNotInHoldoutCount) {
+            new StorageDecorator_1.StorageDecorator().setDataInStorage({
+              featureKey: feature.getKey(),
+              context: context,
+              notInHoldoutId: updatedNotInHoldoutIds
+            }, storageService, serviceContainer);
+          }
+          if (!(batchPayload.length > 0)) return [3 /*break*/, 9];
+          if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 8];
+          return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload)];
+        case 7:
+          _c.sent();
+          return [3 /*break*/, 9];
+        case 8:
+          (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload);
+          _c.label = 9;
+        case 9:
+          return [2 /*return*/, updatedNotInHoldoutIds];
+      }
+    });
+  });
 }
 
 /***/ }),
@@ -12956,12 +13792,13 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.createAndSendImpressionForVariationShown = void 0;
+exports.sendImpressionForVariationShownInBatch = exports.sendImpressionForVariationShown = void 0;
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var CampaignUtil_2 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
+var BatchEventsDispatcher_1 = __webpack_require__(/*! ./BatchEventsDispatcher */ "./dist/server-unpacked/utils/BatchEventsDispatcher.js");
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -12972,16 +13809,15 @@ var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacke
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-var createAndSendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey) {
+var sendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey, payload) {
   return __awaiter(void 0, void 0, void 0, function () {
-    var properties, payload, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
+    var properties, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
           properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()),
           // Encode user agent to ensure URL safety
           context.getIpAddress());
-          payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
           campaignKeyWithFeatureName = (0, CampaignUtil_1.getCampaignKeyFromCampaignId)(serviceContainer.getSettings(), campaignId);
           variationName = (0, CampaignUtil_2.getVariationNameFromCampaignIdAndVariationId)(serviceContainer.getSettings(), campaignId, variationId);
           campaignKey = '';
@@ -13012,7 +13848,40 @@ var createAndSendImpressionForVariationShown = function (serviceContainer, campa
     });
   });
 };
-exports.createAndSendImpressionForVariationShown = createAndSendImpressionForVariationShown;
+exports.sendImpressionForVariationShown = sendImpressionForVariationShown;
+/**
+ * Sends an impression for a variation shown event in batch.
+ * This function constructs the necessary properties and payload for the event
+ * and uses the NetworkUtil to send a POST API request.
+ *
+ * @param {any[]} payloads - The payloads to send.
+ * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {string} featureKey - The feature key.
+ */
+var sendImpressionForVariationShownInBatch = function (serviceContainer, payloads) {
+  return __awaiter(void 0, void 0, void 0, function () {
+    var _i, payloads_1, payload;
+    return __generator(this, function (_a) {
+      if (serviceContainer.getBatchEventsQueue()) {
+        for (_i = 0, payloads_1 = payloads; _i < payloads_1.length; _i++) {
+          payload = payloads_1[_i];
+          serviceContainer.getBatchEventsQueue().enqueue(payload);
+        }
+      } else {
+        BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch(serviceContainer, {
+          ev: payloads
+        }, function () {}, {
+          a: serviceContainer.getSettingsService().accountId,
+          env: serviceContainer.getSettingsService().sdkKey,
+          sn: constants_1.Constants.SDK_NAME,
+          sv: constants_1.Constants.SDK_VERSION
+        });
+      }
+      return [2 /*return*/];
+    });
+  });
+};
+exports.sendImpressionForVariationShownInBatch = sendImpressionForVariationShownInBatch;
 
 /***/ }),
 
@@ -13234,6 +14103,7 @@ var RuleEvaluationUtil_1 = __webpack_require__(/*! ../utils/RuleEvaluationUtil *
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var DecisionUtil_1 = __webpack_require__(/*! ./DecisionUtil */ "./dist/server-unpacked/utils/DecisionUtil.js");
+var HoldoutUtil_1 = __webpack_require__(/*! ./HoldoutUtil */ "./dist/server-unpacked/utils/HoldoutUtil.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 /**
@@ -13250,25 +14120,61 @@ var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/serve
 var evaluateGroups = function (serviceContainer, feature, groupId, evaluatedFeatureMap, context, storageService) {
   return __awaiter(void 0, void 0, void 0, function () {
     var featureToSkip, campaignMap, _a, featureKeys, groupCampaignIds, _loop_1, _i, featureKeys_1, featureKey, _b, eligibleCampaigns, eligibleCampaignsWithStorage;
-    return __generator(this, function (_c) {
-      switch (_c.label) {
+    var _c;
+    return __generator(this, function (_d) {
+      switch (_d.label) {
         case 0:
           featureToSkip = [];
           campaignMap = new Map();
           _a = getFeatureKeysFromGroup(serviceContainer.getSettings(), groupId), featureKeys = _a.featureKeys, groupCampaignIds = _a.groupCampaignIds;
           _loop_1 = function (featureKey) {
-            var feature_1, isRolloutRulePassed;
-            return __generator(this, function (_d) {
-              switch (_d.label) {
+            var feature_1, storedData, storedIsInHoldoutId, matchedHoldouts, qualifiedHoldoutIds, isRolloutRulePassed;
+            return __generator(this, function (_e) {
+              switch (_e.label) {
                 case 0:
                   feature_1 = (0, FunctionUtil_1.getFeatureFromKey)(serviceContainer.getSettings(), featureKey);
                   // check if the feature is already evaluated
                   if (featureToSkip.includes(featureKey)) {
                     return [2 /*return*/, "continue"];
                   }
-                  return [4 /*yield*/, _isRolloutRuleForFeaturePassed(serviceContainer, feature_1, evaluatedFeatureMap, featureToSkip, storageService, context)];
+                  return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer)];
                 case 1:
-                  isRolloutRulePassed = _d.sent();
+                  storedData = _e.sent();
+                  storedIsInHoldoutId = (_c = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _c !== void 0 ? _c : storedData === null || storedData === void 0 ? void 0 : storedData.holdoutGroupId;
+                  if (storedIsInHoldoutId && ((0, DataTypeUtil_1.isArray)(storedIsInHoldoutId) ? storedIsInHoldoutId.length > 0 : true)) {
+                    featureToSkip.push(featureKey);
+                    serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.PART_OF_HOLDOUT_IN_MEG, {
+                      featureKey: featureKey,
+                      holdoutId: storedIsInHoldoutId,
+                      userId: context.getId()
+                    }));
+                    return [2 /*return*/, "continue"];
+                  }
+                  return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature_1, context, storedData)];
+                case 2:
+                  matchedHoldouts = _e.sent().matchedHoldouts;
+                  if (!(matchedHoldouts !== null && matchedHoldouts.length > 0)) return [3 /*break*/, 3];
+                  featureToSkip.push(featureKey);
+                  qualifiedHoldoutIds = matchedHoldouts.map(function (holdout) {
+                    return holdout.getId();
+                  }).join(',');
+                  new StorageDecorator_1.StorageDecorator().setDataInStorage({
+                    featureKey: featureKey,
+                    context: context,
+                    isInHoldoutId: matchedHoldouts.map(function (holdout) {
+                      return holdout.getId();
+                    })
+                  }, storageService, serviceContainer);
+                  serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.PART_OF_HOLDOUT_IN_MEG, {
+                    featureKey: featureKey,
+                    holdoutId: qualifiedHoldoutIds,
+                    userId: context.getId()
+                  }));
+                  return [3 /*break*/, 5];
+                case 3:
+                  return [4 /*yield*/, _isRolloutRuleForFeaturePassed(serviceContainer, feature_1, evaluatedFeatureMap, featureToSkip, storageService, context)];
+                case 4:
+                  isRolloutRulePassed = _e.sent();
                   if (isRolloutRulePassed) {
                     serviceContainer.getSettings().getFeatures().forEach(function (feature) {
                       if (feature.getKey() === featureKey) {
@@ -13288,29 +14194,31 @@ var evaluateGroups = function (serviceContainer, feature, groupId, evaluatedFeat
                       }
                     });
                   }
+                  _e.label = 5;
+                case 5:
                   return [2 /*return*/];
               }
             });
           };
           _i = 0, featureKeys_1 = featureKeys;
-          _c.label = 1;
+          _d.label = 1;
         case 1:
           if (!(_i < featureKeys_1.length)) return [3 /*break*/, 4];
           featureKey = featureKeys_1[_i];
           return [5 /*yield**/, _loop_1(featureKey)];
         case 2:
-          _c.sent();
-          _c.label = 3;
+          _d.sent();
+          _d.label = 3;
         case 3:
           _i++;
           return [3 /*break*/, 1];
         case 4:
           return [4 /*yield*/, _getEligbleCampaigns(serviceContainer, campaignMap, context, storageService)];
         case 5:
-          _b = _c.sent(), eligibleCampaigns = _b.eligibleCampaigns, eligibleCampaignsWithStorage = _b.eligibleCampaignsWithStorage;
+          _b = _d.sent(), eligibleCampaigns = _b.eligibleCampaigns, eligibleCampaignsWithStorage = _b.eligibleCampaignsWithStorage;
           return [4 /*yield*/, _findWinnerCampaignAmongEligibleCampaigns(serviceContainer, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService)];
         case 6:
-          return [2 /*return*/, _c.sent()];
+          return [2 /*return*/, _d.sent()];
       }
     });
   });
@@ -13829,6 +14737,7 @@ exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
 exports.getDebuggerEventPayload = getDebuggerEventPayload;
 exports.sendEvent = sendEvent;
 exports.createNetWorkAndRetryDebugEvent = createNetWorkAndRetryDebugEvent;
+exports.createHoldoutPayload = createHoldoutPayload;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -13950,6 +14859,13 @@ function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, i
   } else {
     // set account id for internal usage stats event
     properties.a = usageStatsAccountId;
+  }
+  // if browser environment, then add the user agent and ip address to the properties
+  if (typeof window !== 'undefined') {
+    // use typeof check so referencing `window` stays safe in non-browser environments
+    // add the dh (default header) to the properties
+    // true means - ignore custom ua and ip address and fetch it from http request
+    properties.dh = 1;
   }
   return properties;
 }
@@ -14425,6 +15341,26 @@ function createNetWorkAndRetryDebugEvent(response, payload, apiName, extraData) 
     };
   }
 }
+/**
+ * Creates payload for holdout variation shown event.
+ * Similar to getTrackUserPayloadData but specifically for holdouts.
+ * @param {SettingsModel} settings - The settings model containing configuration.
+ * @param {string} eventName - The event name.
+ * @param {number} holdoutId - The holdout ID (used as campaignId).
+ * @param {number} variationId - The variation ID (1 if IN holdout, 2 if NOT IN holdout).
+ * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {number} featureId - The feature ID.
+ * @returns {Record<string, any>} - The holdout payload data.
+ */
+function createHoldoutPayload(serviceContainer, eventName, holdoutId, variationId, context, featureId) {
+  var userId = context.getId();
+  var properties = _getEventBasePayload(serviceContainer.getSettingsService(), userId, eventName, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
+  properties.d.event.props.id = holdoutId;
+  properties.d.event.props.variation = variationId;
+  properties.d.event.props.isFirst = 1;
+  properties.d.event.props.fId = featureId;
+  return properties;
+}
 
 /***/ }),
 
@@ -14584,7 +15520,8 @@ Object.defineProperty(exports, "__esModule", ({
 exports.evaluateRule = void 0;
 var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var DecisionUtil_1 = __webpack_require__(/*! ./DecisionUtil */ "./dist/server-unpacked/utils/DecisionUtil.js");
-var ImpressionUtil_1 = __webpack_require__(/*! ./ImpressionUtil */ "./dist/server-unpacked/utils/ImpressionUtil.js");
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 /**
  * Evaluates the rules for a given campaign and feature based on the provided context.
  * This function checks for whitelisting and pre-segmentation conditions, and if applicable,
@@ -14603,34 +15540,31 @@ var ImpressionUtil_1 = __webpack_require__(/*! ./ImpressionUtil */ "./dist/serve
  */
 var evaluateRule = function (serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) {
   return __awaiter(void 0, void 0, void 0, function () {
-    var _a, preSegmentationResult, whitelistedObject;
+    var payload, _a, preSegmentationResult, whitelistedObject;
     return __generator(this, function (_b) {
       switch (_b.label) {
         case 0:
+          payload = null;
           return [4 /*yield*/, (0, DecisionUtil_1.checkWhitelistingAndPreSeg)(serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
         case 1:
           _a = _b.sent(), preSegmentationResult = _a[0], whitelistedObject = _a[1];
-          if (!(preSegmentationResult && (0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0)) return [3 /*break*/, 4];
-          // Update the decision object with campaign and variation details
-          Object.assign(decision, {
-            experimentId: campaign.getId(),
-            experimentKey: campaign.getKey(),
-            experimentVariationId: whitelistedObject.variationId
-          });
-          if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
-          return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey())];
-        case 2:
-          _b.sent();
-          return [3 /*break*/, 4];
-        case 3:
-          (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
-          _b.label = 4;
-        case 4:
+          // If pre-segmentation is successful and a whitelisted object exists, proceed to send an impression
+          if (preSegmentationResult && (0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0) {
+            // Update the decision object with campaign and variation details
+            Object.assign(decision, {
+              experimentId: campaign.getId(),
+              experimentKey: campaign.getKey(),
+              experimentVariationId: whitelistedObject.variationId
+            });
+            // Send an impression for the variation shown
+            payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaign.getId(), whitelistedObject.variation.id, context);
+          }
           // Return the results of the evaluation
           return [2 /*return*/, {
             preSegmentationResult: preSegmentationResult,
             whitelistedObject: whitelistedObject,
-            updatedDecision: decision
+            updatedDecision: decision,
+            payload: payload
           }];
       }
     });
@@ -15536,7 +16470,7 @@ var exports = __webpack_exports__;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getUUID = exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
+exports.NetworkTransportModeEnum = exports.getUUID = exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
 var LogLevelEnum_1 = __webpack_require__(/*! ./packages/logger/enums/LogLevelEnum */ "./dist/server-unpacked/packages/logger/enums/LogLevelEnum.js");
 Object.defineProperty(exports, "LogLevelEnum", ({
   enumerable: true,
@@ -15563,6 +16497,13 @@ Object.defineProperty(exports, "getUUID", ({
   enumerable: true,
   get: function () {
     return UuidUtil_1.getUUID;
+  }
+}));
+var NetworkTransportModeEnum_1 = __webpack_require__(/*! ./enums/NetworkTransportModeEnum */ "./dist/server-unpacked/enums/NetworkTransportModeEnum.js");
+Object.defineProperty(exports, "NetworkTransportModeEnum", ({
+  enumerable: true,
+  get: function () {
+    return NetworkTransportModeEnum_1.NetworkTransportModeEnum;
   }
 }));
 var VWO_1 = __webpack_require__(/*! ./VWO */ "./dist/server-unpacked/VWO.js");

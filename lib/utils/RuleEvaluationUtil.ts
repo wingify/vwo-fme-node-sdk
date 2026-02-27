@@ -19,8 +19,9 @@ import { ContextModel } from '../models/user/ContextModel';
 import { IStorageService } from '../services/StorageService';
 import { isObject } from './DataTypeUtil';
 import { checkWhitelistingAndPreSeg } from './DecisionUtil';
-import { createAndSendImpressionForVariationShown } from './ImpressionUtil';
 import { ServiceContainer } from '../services/ServiceContainer';
+import { getTrackUserPayloadData } from './NetworkUtil';
+import { EventEnum } from '../enums/EventEnum';
 
 /**
  * Evaluates the rules for a given campaign and feature based on the provided context.
@@ -48,6 +49,7 @@ export const evaluateRule = async (
   storageService: IStorageService,
   decision: any,
 ): Promise<Record<string, any>> => {
+  let payload: any = null;
   // Perform whitelisting and pre-segmentation checks
   const [preSegmentationResult, whitelistedObject] = await checkWhitelistingAndPreSeg(
     serviceContainer,
@@ -70,25 +72,15 @@ export const evaluateRule = async (
     });
 
     // Send an impression for the variation shown
-    if (serviceContainer.getShouldWaitForTrackingCalls()) {
-      await createAndSendImpressionForVariationShown(
-        serviceContainer,
-        campaign.getId(),
-        whitelistedObject.variation.id,
-        context,
-        feature.getKey(),
-      );
-    } else {
-      createAndSendImpressionForVariationShown(
-        serviceContainer,
-        campaign.getId(),
-        whitelistedObject.variation.id,
-        context,
-        feature.getKey(),
-      );
-    }
+    payload = getTrackUserPayloadData(
+      serviceContainer,
+      EventEnum.VWO_VARIATION_SHOWN,
+      campaign.getId(),
+      whitelistedObject.variation.id,
+      context,
+    );
   }
 
   // Return the results of the evaluation
-  return { preSegmentationResult, whitelistedObject, updatedDecision: decision };
+  return { preSegmentationResult, whitelistedObject, updatedDecision: decision, payload: payload };
 };

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Struct, array, boolean, number, object, optional, string, type, union, validate } from 'superstruct';
+import { Struct, array, boolean, number, object, optional, refine, string, type, union, validate } from 'superstruct';
 
 import { dynamic } from '../../types/Common';
 import { SettingsModel } from '../settings/SettingsModel';
@@ -26,6 +26,7 @@ export class SettingsSchema {
   private settingsSchema: Struct<dynamic>;
   private featureSchema: Struct<dynamic>;
   private ruleSchema: Struct<dynamic>;
+  private holdoutSchema: Struct<dynamic>;
 
   constructor() {
     this.initializeSchemas();
@@ -92,12 +93,30 @@ export class SettingsSchema {
       variables: optional(array(this.variableObjectSchema)),
     });
 
+    this.holdoutSchema = type({
+      metrics: array(this.campaignMetricSchema),
+      segments: object(),
+      featureIds: array(number()),
+      isGlobal: boolean(),
+      name: string(),
+      id: union([number(), string()]),
+      percentTraffic: number(),
+    });
+
+    // holdouts: optional. Backend sends {} when no holdouts; [] or [holdout, ...] when 1+ present.
+    // Union: either an array (each item validated by holdoutSchema) or a strict empty object {}.
+    const holdoutsSchema = union([
+      array(this.holdoutSchema),
+      refine(object(), 'EmptyObject', (v) => Object.keys(v).length === 0),
+    ]);
+
     this.settingsSchema = type({
       sdkKey: optional(string()),
       version: union([number(), string()]),
       accountId: union([number(), string()]),
       usageStatsAccountId: optional(number()),
       features: optional(array(this.featureSchema)),
+      holdouts: optional(holdoutsSchema),
       campaigns: array(this.campaignObjectSchema),
       groups: optional(object()),
       campaignGroups: optional(object()),

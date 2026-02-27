@@ -1,6 +1,7 @@
 import { isObject } from './DataTypeUtil.js';
 import { checkWhitelistingAndPreSeg } from './DecisionUtil.js';
-import { createAndSendImpressionForVariationShown } from './ImpressionUtil.js';
+import { getTrackUserPayloadData } from './NetworkUtil.js';
+import { EventEnum } from '../enums/EventEnum.js';
 /**
  * Evaluates the rules for a given campaign and feature based on the provided context.
  * This function checks for whitelisting and pre-segmentation conditions, and if applicable,
@@ -18,6 +19,7 @@ import { createAndSendImpressionForVariationShown } from './ImpressionUtil.js';
  * and the whitelisted object, if any.
  */
 export const evaluateRule = async (serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) => {
+    let payload = null;
     // Perform whitelisting and pre-segmentation checks
     const [preSegmentationResult, whitelistedObject] = await checkWhitelistingAndPreSeg(serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision);
     // If pre-segmentation is successful and a whitelisted object exists, proceed to send an impression
@@ -29,14 +31,9 @@ export const evaluateRule = async (serviceContainer, feature, campaign, context,
             experimentVariationId: whitelistedObject.variationId,
         });
         // Send an impression for the variation shown
-        if (serviceContainer.getShouldWaitForTrackingCalls()) {
-            await createAndSendImpressionForVariationShown(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
-        }
-        else {
-            createAndSendImpressionForVariationShown(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
-        }
+        payload = getTrackUserPayloadData(serviceContainer, EventEnum.VWO_VARIATION_SHOWN, campaign.getId(), whitelistedObject.variation.id, context);
     }
     // Return the results of the evaluation
-    return { preSegmentationResult, whitelistedObject, updatedDecision: decision };
+    return { preSegmentationResult, whitelistedObject, updatedDecision: decision, payload: payload };
 };
 //# sourceMappingURL=RuleEvaluationUtil.js.map

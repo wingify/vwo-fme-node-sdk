@@ -68,7 +68,8 @@ var TrackApi = /** @class */ (function () {
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        if (!(0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, serviceContainer.getSettings())) return [3 /*break*/, 4];
+                        if (!((0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, serviceContainer.getSettings()) ||
+                            (0, FunctionUtil_1.doesEventBelongToAnyHoldout)(eventName, serviceContainer.getSettings()))) return [3 /*break*/, 4];
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 2];
                         return [4 /*yield*/, createImpressionForTrack(serviceContainer, eventName, context, eventProperties)];
                     case 1:

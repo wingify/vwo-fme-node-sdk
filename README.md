@@ -92,7 +92,7 @@ To customize the SDK further, additional parameters can be passed to the `init()
 | `pollInterval`               | Time interval for fetching updates from VWO servers (in milliseconds).                                                                                      | No           | Number   | `60000`                                       |
 | `gatewayService`             | An object representing configuration for integrating VWO Gateway Service.                                                                                   | No           | Object   | see [Gateway](#gateway) section               |
 | `storage`                    | Custom storage connector for persisting user decisions and campaign data.                                                                                   | No           | Object   | See [Storage](#storage) section               |
-| `clientStorage`              | Browser storage configuration for persisting user data in browser environments.                                                                             | No           | Object   | See [Client Storage](#client-storage) section |
+| `browserConfig`              | Browser-specific configuration, including network transport mode and browser storage options.                                                               | No           | Object   | See [Browser Config](#browser-config) section |
 | `logger`                     | Toggle log levels for more insights or for debugging purposes. You can also customize your own transport in order to have better control over log messages. | No           | Object   | See [Logger](#logger) section                 |
 | `shouldWaitForTrackingCalls` | Ensures tracking calls complete before resolving promises, useful for edge computing environments like Cloudflare Workers                                   | No           | Boolean  | `true`                                        |
 | `integrations`               | A callback function that receives data which can be pushed to any external tool that you need to integrate with.                                            | No           | Object   | See [Integrations](#integrations)             |
@@ -363,27 +363,36 @@ const vwoClient = await init({
 });
 ```
 
-### Client Storage
+### Browser Config
 
-In browser environments, the SDK automatically uses `localStorage` to persist user data. You can customize this behavior using the `clientStorage` option:
+In browser environments, the SDK automatically uses `localStorage` to persist user data and `navigator.sendBeacon` to send tracking events (with XHR fallback). You can customize this behavior using the `browserConfig` option, which exposes both `networkTransportMode` and `clientStorage`:
 
 ```javascript
 const vwoClient = await init({
   accountId: '123456',
   sdkKey: '32-alpha-numeric-sdk-key',
-  clientStorage: {
-    key: 'vwo_data', // defaults to vwo_fme_data
-    provider: sessionStorage, // defaults to localStorage
-    isDisabled: false, // defaults to false, set to true to disable storage
+  browserConfig: {
+    // Control how tracking calls are sent from the browser
+    // 'sendBeacon' (default) uses navigator.sendBeacon with XHR fallback
+    // 'xhr' forces XHR for all tracking requests including retry functionality
+    networkTransportMode: 'sendBeacon',
+
+    // Configure browser storage behavior
+    clientStorage: {
+      key: 'vwo_data', // defaults to vwo_fme_data
+      provider: sessionStorage, // defaults to localStorage
+      isDisabled: false, // defaults to false, set to true to disable storage
+    },
   },
 });
 ```
 
-| **Parameter** | **Description**                                   | **Required** | **Type** | **Default**      |
-| ------------- | ------------------------------------------------- | ------------ | -------- | ---------------- |
-| `key`         | Key used to store data in browser storage         | No           | String   | `'vwo_fme_data'` |
-| `provider`    | Storage provider (localStorage or sessionStorage) | No           | Object   | `localStorage`   |
-| `isDisabled`  | Disable browser storage completely                | No           | Boolean  | `false`          |
+| **browserConfig Property** | **Description**                                                            | **Required** | **Type** | **Default**      |
+| -------------------------- | -------------------------------------------------------------------------- | ------------ | -------- | ---------------- |
+| `networkTransportMode`     | How tracking events are sent from the browser (`'sendBeacon'` or `'xhr'`). | No           | String   | `'sendBeacon'`   |
+| `clientStorage.key`        | Key used to store data in browser storage.                                 | No           | String   | `'vwo_fme_data'` |
+| `clientStorage.provider`   | Storage provider (e.g. `localStorage` or `sessionStorage`).                | No           | Object   | `localStorage`   |
+| `clientStorage.isDisabled` | Disable browser storage completely.                                        | No           | Boolean  | `false`          |
 
 Note: This feature is only applicable in browser environments. In Node.js environments, you should continue using the `storage` option for custom storage implementations.
 

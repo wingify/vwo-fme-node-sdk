@@ -8,6 +8,8 @@ export class StorageDataModel {
         this.experimentId = storageData.experimentId;
         this.experimentKey = storageData.experimentKey;
         this.experimentVariationId = storageData.experimentVariationId;
+        this.isInHoldoutId = storageData.isInHoldoutId;
+        this.notInHoldoutId = storageData.notInHoldoutId;
         return this;
     }
     getFeatureKey() {
@@ -33,6 +35,12 @@ export class StorageDataModel {
     }
     getExperimentVariationId() {
         return this.experimentVariationId;
+    }
+    getIsInHoldoutId() {
+        return this.isInHoldoutId;
+    }
+    getNotInHoldoutId() {
+        return this.notInHoldoutId;
     }
     setFeatureKey(featureKey) {
         this.featureKey = featureKey;

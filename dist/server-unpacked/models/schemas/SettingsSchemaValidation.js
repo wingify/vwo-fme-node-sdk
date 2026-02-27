@@ -76,12 +76,28 @@ var SettingsSchema = /** @class */ (function () {
             rules: (0, superstruct_1.optional)((0, superstruct_1.array)(this.ruleSchema)),
             variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema)),
         });
+        this.holdoutSchema = (0, superstruct_1.type)({
+            metrics: (0, superstruct_1.array)(this.campaignMetricSchema),
+            segments: (0, superstruct_1.object)(),
+            featureIds: (0, superstruct_1.array)((0, superstruct_1.number)()),
+            isGlobal: (0, superstruct_1.boolean)(),
+            name: (0, superstruct_1.string)(),
+            id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
+            percentTraffic: (0, superstruct_1.number)(),
+        });
+        // holdouts: optional. Backend sends {} when no holdouts; [] or [holdout, ...] when 1+ present.
+        // Union: either an array (each item validated by holdoutSchema) or a strict empty object {}.
+        var holdoutsSchema = (0, superstruct_1.union)([
+            (0, superstruct_1.array)(this.holdoutSchema),
+            (0, superstruct_1.refine)((0, superstruct_1.object)(), 'EmptyObject', function (v) { return Object.keys(v).length === 0; }),
+        ]);
         this.settingsSchema = (0, superstruct_1.type)({
             sdkKey: (0, superstruct_1.optional)((0, superstruct_1.string)()),
             version: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             accountId: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             usageStatsAccountId: (0, superstruct_1.optional)((0, superstruct_1.number)()),
             features: (0, superstruct_1.optional)((0, superstruct_1.array)(this.featureSchema)),
+            holdouts: (0, superstruct_1.optional)(holdoutsSchema),
             campaigns: (0, superstruct_1.array)(this.campaignObjectSchema),
             groups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
             campaignGroups: (0, superstruct_1.optional)((0, superstruct_1.object)()),

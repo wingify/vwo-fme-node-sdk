@@ -23,9 +23,9 @@ import { Storage } from './packages/storage';
 import { IVWOClient, VWOClient } from './VWOClient';
 import { SettingsService } from './services/SettingsService';
 
-import { DebugLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';
+import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';
 import { IVWOOptions } from './models/VWOOptionsModel';
-import { isEmptyObject, isNumber } from './utils/DataTypeUtil';
+import { isEmptyObject, isNumber, isString } from './utils/DataTypeUtil';
 import { cloneObject, getFormattedErrorMessage } from './utils/FunctionUtil';
 import { buildMessage } from './utils/LogMessageUtil';
 import { Deferred } from './utils/PromiseUtil';
@@ -35,6 +35,7 @@ import { Constants } from './constants';
 import { ApiEnum } from './enums/ApiEnum';
 import { EdgeConfigModel } from './models/edge/EdgeConfigModel';
 import { ServiceContainer } from './services/ServiceContainer';
+import { NetworkTransportModeEnum } from './enums/NetworkTransportModeEnum';
 
 export interface IVWOBuilder {
   settings: Record<any, any>; // Holds the configuration settings for the VWO client
@@ -88,7 +89,34 @@ export class VWOBuilder implements IVWOBuilder {
     if (this.options.edgeConfig && !isEmptyObject(this.options?.edgeConfig)) {
       this.options.shouldWaitForTrackingCalls = true;
     }
-    this.networkManager = new NetworkManager(this.logManager, this.options?.network?.client, this.options?.retryConfig);
+    // check if it is browser environment and network transport mode is provided
+    if (typeof window !== 'undefined' && this.options?.browserConfig?.networkTransportMode) {
+      const mode = this.options?.browserConfig?.networkTransportMode;
+
+      // check if network transport mode is invalid and use default mode
+      if (
+        !isString(mode) ||
+        (mode.toLowerCase() !== NetworkTransportModeEnum.XHR.toLowerCase() &&
+          mode.toLowerCase() !== NetworkTransportModeEnum.SEND_BEACON.toLowerCase())
+      ) {
+        this.logManager.error(
+          buildMessage(ErrorLogMessagesEnum.INVALID_NETWORK_TRANSPORT_MODE, {
+            validModes: [NetworkTransportModeEnum.XHR, NetworkTransportModeEnum.SEND_BEACON].join(', '),
+            networkTransportMode: mode,
+            defaultMode: NetworkTransportModeEnum.SEND_BEACON,
+          }),
+        );
+        // use default mode
+        this.options.browserConfig.networkTransportMode = NetworkTransportModeEnum.SEND_BEACON;
+      }
+    }
+    this.networkManager = new NetworkManager(
+      this.logManager,
+      this.options?.network?.client,
+      this.options?.retryConfig,
+      this.options?.shouldWaitForTrackingCalls ?? false,
+      this.options?.browserConfig?.networkTransportMode ?? NetworkTransportModeEnum.SEND_BEACON,
+    );
 
     this.logManager.debug(
       buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
@@ -197,6 +225,7 @@ export class VWOBuilder implements IVWOBuilder {
       this.storage = new Storage(this.options.storage);
       this.settingFileManager.isStorageServiceProvided = true;
     } else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
+      const browserStorageConfig = this.options.browserConfig?.clientStorage ?? this.options.clientStorage ?? {};
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { BrowserStorageConnector } = require('./packages/storage/connectors/BrowserStorageConnector');
       // create accountId and sdkKey hash and use it as key for storage
@@ -206,9 +235,9 @@ export class VWOBuilder implements IVWOBuilder {
       this.storage = new Storage(
         new BrowserStorageConnector(
           {
-            ...this.options.clientStorage,
-            alwaysUseCachedSettings: this.options.clientStorage?.alwaysUseCachedSettings,
-            ttl: this.options.clientStorage?.ttl,
+            ...browserStorageConfig,
+            alwaysUseCachedSettings: browserStorageConfig?.alwaysUseCachedSettings,
+            ttl: browserStorageConfig?.ttl,
           },
           defaultStorageKey,
           this.logManager,

@@ -24,7 +24,8 @@ export class StorageDataModel {
   private experimentId: number;
   private experimentKey: string;
   private experimentVariationId: number;
-
+  private isInHoldoutId: string[];
+  private notInHoldoutId: string[];
   modelFromDictionary(storageData: StorageDataModel): this {
     this.featureKey = storageData.featureKey;
     this.context = storageData.context;
@@ -34,6 +35,8 @@ export class StorageDataModel {
     this.experimentId = storageData.experimentId;
     this.experimentKey = storageData.experimentKey;
     this.experimentVariationId = storageData.experimentVariationId;
+    this.isInHoldoutId = storageData.isInHoldoutId;
+    this.notInHoldoutId = storageData.notInHoldoutId;
     return this;
   }
 
@@ -67,6 +70,14 @@ export class StorageDataModel {
 
   getExperimentVariationId(): number {
     return this.experimentVariationId;
+  }
+
+  getIsInHoldoutId(): string[] {
+    return this.isInHoldoutId;
+  }
+
+  getNotInHoldoutId(): string[] {
+    return this.notInHoldoutId;
   }
 
   setFeatureKey(featureKey: string): void {

@@ -201,3 +201,22 @@ export declare function createNetWorkAndRetryDebugEvent(
   apiName: string,
   extraData: string,
 ): Record<string, any>;
+/**
+ * Creates payload for holdout variation shown event.
+ * Similar to getTrackUserPayloadData but specifically for holdouts.
+ * @param {SettingsModel} settings - The settings model containing configuration.
+ * @param {string} eventName - The event name.
+ * @param {number} holdoutId - The holdout ID (used as campaignId).
+ * @param {number} variationId - The variation ID (1 if IN holdout, 2 if NOT IN holdout).
+ * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {number} featureId - The feature ID.
+ * @returns {Record<string, any>} - The holdout payload data.
+ */
+export declare function createHoldoutPayload(
+  serviceContainer: any,
+  eventName: string,
+  holdoutId: number,
+  variationId: number,
+  context: ContextModel,
+  featureId: number,
+): Record<string, any>;

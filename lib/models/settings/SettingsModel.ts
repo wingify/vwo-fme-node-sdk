@@ -15,6 +15,7 @@
  */
 import { CampaignModel } from '../campaign/CampaignModel';
 import { FeatureModel } from '../campaign/FeatureModel';
+import { HoldoutModel } from '../campaign/HoldoutModel';
 
 export class SettingsModel {
   private sK?: string;
@@ -41,6 +42,7 @@ export class SettingsModel {
   private pollInterval?: number;
   private usageStatsAccountId?: number;
   private isWebConnectivityEnabled?: boolean;
+  private holdouts?: Array<HoldoutModel> = [];
 
   constructor(settings: SettingsModel) {
     this.sdkKey = settings.sK || settings.sdkKey;
@@ -82,6 +84,13 @@ export class SettingsModel {
 
     if (settings.isWebConnectivityEnabled) {
       this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
+    }
+
+    if (Array.isArray((settings as any).holdouts)) {
+      const holdoutsArray: Array<HoldoutModel> = (settings as any).holdouts as Array<HoldoutModel>;
+      holdoutsArray.forEach((holdout) => {
+        this.holdouts.push(new HoldoutModel().modelFromDictionary(holdout));
+      });
     }
 
     return this;
@@ -132,5 +141,9 @@ export class SettingsModel {
 
   getIsWebConnectivityEnabled(): boolean {
     return this.isWebConnectivityEnabled;
+  }
+
+  getHoldouts(): Array<HoldoutModel> {
+    return Array.isArray(this.holdouts) ? this.holdouts : [];
   }
 }

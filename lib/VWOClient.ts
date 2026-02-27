@@ -243,8 +243,15 @@ export class VWOClient implements IVWOClient {
       // Create a copy of context to avoid modifying the original
       const contextCopy = { ...context };
       contextCopy.id = userId;
-      // set uuid in the context copy
-      contextCopy.uuid = uuid;
+
+      // check if the userId changed after aliasing, by comparing the original userId with the new userId
+      if (contextCopy.id !== context.id) {
+        // if the userId changed, then we need to generate a new uuid
+        contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
+      } else {
+        // if the userId didn't change, then we can use the existing uuid
+        contextCopy.uuid = uuid;
+      }
 
       const contextModel = new ContextModel().modelFromDictionary(contextCopy, this.options);
 

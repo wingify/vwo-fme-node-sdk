@@ -69,6 +69,9 @@ export class VWOOptionsModel {
         if (options?.edgeConfig) {
             this.edgeConfig = options.edgeConfig;
         }
+        if (options?.browserConfig) {
+            this.browserConfig = options.browserConfig;
+        }
         return this;
     }
     getAccountId() {
@@ -124,6 +127,9 @@ export class VWOOptionsModel {
     }
     getEdgeConfig() {
         return this.edgeConfig;
+    }
+    getBrowserConfig() {
+        return this.browserConfig;
     }
 }
 //# sourceMappingURL=VWOOptionsModel.js.map

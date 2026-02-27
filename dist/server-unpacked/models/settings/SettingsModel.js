@@ -18,6 +18,7 @@ exports.SettingsModel = void 0;
  */
 var CampaignModel_1 = require("../campaign/CampaignModel");
 var FeatureModel_1 = require("../campaign/FeatureModel");
+var HoldoutModel_1 = require("../campaign/HoldoutModel");
 var SettingsModel = /** @class */ (function () {
     function SettingsModel(settings) {
         var _this = this;
@@ -29,6 +30,7 @@ var SettingsModel = /** @class */ (function () {
         this.cG = {};
         this.groups = {};
         this.g = {};
+        this.holdouts = [];
         this.sdkKey = settings.sK || settings.sdkKey;
         this.accountId = settings.a || settings.accountId;
         this.version = settings.v || settings.version;
@@ -59,6 +61,12 @@ var SettingsModel = /** @class */ (function () {
         }
         if (settings.isWebConnectivityEnabled) {
             this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
+        }
+        if (Array.isArray(settings.holdouts)) {
+            var holdoutsArray = settings.holdouts;
+            holdoutsArray.forEach(function (holdout) {
+                _this.holdouts.push(new HoldoutModel_1.HoldoutModel().modelFromDictionary(holdout));
+            });
         }
         return this;
     }
@@ -97,6 +105,9 @@ var SettingsModel = /** @class */ (function () {
     };
     SettingsModel.prototype.getIsWebConnectivityEnabled = function () {
         return this.isWebConnectivityEnabled;
+    };
+    SettingsModel.prototype.getHoldouts = function () {
+        return Array.isArray(this.holdouts) ? this.holdouts : [];
     };
     return SettingsModel;
 }());

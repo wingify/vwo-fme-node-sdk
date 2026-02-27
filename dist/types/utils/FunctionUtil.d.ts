@@ -73,6 +73,13 @@ export declare function getFeatureFromKey(settings: SettingsModel, featureKey: s
  */
 export declare function doesEventBelongToAnyFeature(eventName: string, settings: SettingsModel): boolean;
 /**
+ * Checks if an event exists within any holdout's metrics.
+ * @param {string} eventName - The name of the event to check.
+ * @param {any} settings - The settings containing holdouts.
+ * @returns {boolean} True if the event exists, otherwise false.
+ */
+export declare function doesEventBelongToAnyHoldout(eventName: string, settings: SettingsModel): boolean;
+/**
  * Adds linked campaigns to each feature in the settings based on rules.
  * @param {any} settings - The settings file to modify.
  */

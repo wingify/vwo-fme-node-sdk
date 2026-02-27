@@ -221,8 +221,15 @@ var VWOClient = /** @class */ (function () {
                         userId = _c.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
-                        // set uuid in the context copy
-                        contextCopy.uuid = uuid;
+                        // check if the userId changed after aliasing, by comparing the original userId with the new userId
+                        if (contextCopy.id !== context.id) {
+                            // if the userId changed, then we need to generate a new uuid
+                            contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
+                        }
+                        else {
+                            // if the userId didn't change, then we can use the existing uuid
+                            contextCopy.uuid = uuid;
+                        }
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         GetFlag_1.FlagApi.get(featureKey, contextModel, this.serviceContainer)
                             .then(function (data) {

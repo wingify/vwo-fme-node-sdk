@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.38.0
+ * vwo-fme-javascript-sdk - v1.40.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -20,7 +20,7 @@
  *  1. murmurhash - ^2.0.1
  *  2. superstruct - ^0.14.x
  *  3. uuid - ^9.0.1
- *  4. vwo-fme-sdk-log-messages - ^1.4.0
+ *  4. vwo-fme-sdk-log-messages - ^1.5.0
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	// CommonJS2
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.38.0"
+  version: "1.40.0"
 };
 
 /***/ }),
@@ -361,6 +361,7 @@ var constants_1 = __webpack_require__(/*! ./constants */ "./lib/constants/index.
 var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
 var EdgeConfigModel_1 = __webpack_require__(/*! ./models/edge/EdgeConfigModel */ "./lib/models/edge/EdgeConfigModel.ts");
 var ServiceContainer_1 = __webpack_require__(/*! ./services/ServiceContainer */ "./lib/services/ServiceContainer.ts");
+var NetworkTransportModeEnum_1 = __webpack_require__(/*! ./enums/NetworkTransportModeEnum */ "./lib/enums/NetworkTransportModeEnum.ts");
 var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.originalSettings = {};
@@ -375,11 +376,27 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
             this.options.shouldWaitForTrackingCalls = true;
         }
-        this.networkManager = new network_layer_1.NetworkManager(this.logManager, (_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.network) === null || _c === void 0 ? void 0 : _c.client, (_d = this.options) === null || _d === void 0 ? void 0 : _d.retryConfig);
+        // check if it is browser environment and network transport mode is provided
+        if (typeof window !== 'undefined' && ((_c = (_b = this.options) === null || _b === void 0 ? void 0 : _b.browserConfig) === null || _c === void 0 ? void 0 : _c.networkTransportMode)) {
+            var mode = (_e = (_d = this.options) === null || _d === void 0 ? void 0 : _d.browserConfig) === null || _e === void 0 ? void 0 : _e.networkTransportMode;
+            // check if network transport mode is invalid and use default mode
+            if (!(0, DataTypeUtil_1.isString)(mode) ||
+                (mode.toLowerCase() !== NetworkTransportModeEnum_1.NetworkTransportModeEnum.XHR.toLowerCase() &&
+                    mode.toLowerCase() !== NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON.toLowerCase())) {
+                this.logManager.error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_NETWORK_TRANSPORT_MODE, {
+                    validModes: [NetworkTransportModeEnum_1.NetworkTransportModeEnum.XHR, NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON].join(', '),
+                    networkTransportMode: mode,
+                    defaultMode: NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON,
+                }));
+                // use default mode
+                this.options.browserConfig.networkTransportMode = NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON;
+            }
+        }
+        this.networkManager = new network_layer_1.NetworkManager(this.logManager, (_g = (_f = this.options) === null || _f === void 0 ? void 0 : _f.network) === null || _g === void 0 ? void 0 : _g.client, (_h = this.options) === null || _h === void 0 ? void 0 : _h.retryConfig, (_k = (_j = this.options) === null || _j === void 0 ? void 0 : _j.shouldWaitForTrackingCalls) !== null && _k !== void 0 ? _k : false, (_o = (_m = (_l = this.options) === null || _l === void 0 ? void 0 : _l.browserConfig) === null || _m === void 0 ? void 0 : _m.networkTransportMode) !== null && _o !== void 0 ? _o : NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON);
         this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: "Network Layer",
         }));
@@ -473,22 +490,23 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setStorage = function () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         if (this.options.storage) {
             // Attach the storage connector from options
             this.storage = new storage_1.Storage(this.options.storage);
             this.settingFileManager.isStorageServiceProvided = true;
         }
         else if ( true && typeof window !== 'undefined' && window.localStorage) {
+            var browserStorageConfig = (_c = (_b = (_a = this.options.browserConfig) === null || _a === void 0 ? void 0 : _a.clientStorage) !== null && _b !== void 0 ? _b : this.options.clientStorage) !== null && _c !== void 0 ? _c : {};
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             var BrowserStorageConnector = (__webpack_require__(/*! ./packages/storage/connectors/BrowserStorageConnector */ "./lib/packages/storage/connectors/BrowserStorageConnector.ts").BrowserStorageConnector);
             // create accountId and sdkKey hash and use it as key for storage
             var encodedSdkKey = btoa(this.options.sdkKey);
             var defaultStorageKey = "".concat(constants_1.Constants.PRODUCT_NAME, "_").concat(this.options.accountId, "_").concat(encodedSdkKey);
             // Pass clientStorage config to BrowserStorageConnector
-            this.storage = new storage_1.Storage(new BrowserStorageConnector(__assign(__assign({}, this.options.clientStorage), { alwaysUseCachedSettings: (_a = this.options.clientStorage) === null || _a === void 0 ? void 0 : _a.alwaysUseCachedSettings, ttl: (_b = this.options.clientStorage) === null || _b === void 0 ? void 0 : _b.ttl }), defaultStorageKey, this.logManager));
+            this.storage = new storage_1.Storage(new BrowserStorageConnector(__assign(__assign({}, browserStorageConfig), { alwaysUseCachedSettings: browserStorageConfig === null || browserStorageConfig === void 0 ? void 0 : browserStorageConfig.alwaysUseCachedSettings, ttl: browserStorageConfig === null || browserStorageConfig === void 0 ? void 0 : browserStorageConfig.ttl }), defaultStorageKey, this.logManager));
             this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-                service: ((_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.clientStorage) === null || _d === void 0 ? void 0 : _d.provider) === sessionStorage ? "Session Storage" : "Local Storage",
+                service: ((_e = (_d = this.options) === null || _d === void 0 ? void 0 : _d.clientStorage) === null || _e === void 0 ? void 0 : _e.provider) === sessionStorage ? "Session Storage" : "Local Storage",
             }));
             this.settingFileManager.isStorageServiceProvided = true;
         }
@@ -946,8 +964,15 @@ var VWOClient = /** @class */ (function () {
                         userId = _c.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
-                        // set uuid in the context copy
-                        contextCopy.uuid = uuid;
+                        // check if the userId changed after aliasing, by comparing the original userId with the new userId
+                        if (contextCopy.id !== context.id) {
+                            // if the userId changed, then we need to generate a new uuid
+                            contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
+                        }
+                        else {
+                            // if the userId didn't change, then we can use the existing uuid
+                            contextCopy.uuid = uuid;
+                        }
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         GetFlag_1.FlagApi.get(featureKey, contextModel, this.serviceContainer)
                             .then(function (data) {
@@ -1471,6 +1496,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FlagApi = exports.Flag = void 0;
 var StorageDecorator_1 = __webpack_require__(/*! ../decorators/StorageDecorator */ "./lib/decorators/StorageDecorator.ts");
@@ -1486,14 +1520,16 @@ var CampaignUtil_1 = __webpack_require__(/*! ../utils/CampaignUtil */ "./lib/uti
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var DecisionUtil_1 = __webpack_require__(/*! ../utils/DecisionUtil */ "./lib/utils/DecisionUtil.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ../utils/FunctionUtil */ "./lib/utils/FunctionUtil.ts");
-var ImpressionUtil_1 = __webpack_require__(/*! ../utils/ImpressionUtil */ "./lib/utils/ImpressionUtil.ts");
 var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
 var RuleEvaluationUtil_1 = __webpack_require__(/*! ../utils/RuleEvaluationUtil */ "./lib/utils/RuleEvaluationUtil.ts");
 var DebuggerServiceUtil_1 = __webpack_require__(/*! ../utils/DebuggerServiceUtil */ "./lib/utils/DebuggerServiceUtil.ts");
 var DebuggerCategoryEnum_1 = __webpack_require__(/*! ../enums/DebuggerCategoryEnum */ "./lib/enums/DebuggerCategoryEnum.ts");
 var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
-var CampaignUtil_2 = __webpack_require__(/*! ../utils/CampaignUtil */ "./lib/utils/CampaignUtil.ts");
+var HoldoutUtil_1 = __webpack_require__(/*! ../utils/HoldoutUtil */ "./lib/utils/HoldoutUtil.ts");
+var ImpressionUtil_1 = __webpack_require__(/*! ../utils/ImpressionUtil */ "./lib/utils/ImpressionUtil.ts");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
+var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./lib/utils/NetworkUtil.ts");
 var Flag = /** @class */ (function () {
     function Flag(isEnabled, sessionId, uuid, variation) {
         this.enabled = isEnabled;
@@ -1527,10 +1563,10 @@ var FlagApi = /** @class */ (function () {
     }
     FlagApi.get = function (featureKey, context, serviceContainer) {
         return __awaiter(this, void 0, void 0, function () {
-            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, feature, decision, debugEventProps, storageService, storedData, variation, variation, featureInfo, rollOutRules, rolloutRulesToEvaluate, _i, rollOutRules_1, rule, _a, preSegmentationResult, updatedDecision, passedRolloutCampaign, variation, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _b, experimentRules_1, rule, _c, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation;
-            var _d, _e, _f, _g;
-            return __generator(this, function (_h) {
-                switch (_h.label) {
+            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, notInHoldoutIds, batchPayload, feature, decision, debugEventProps, storageService, storedData, storedIsInHoldoutId, storedNotInHoldoutId, applicableHoldouts, _i, applicableHoldouts_1, holdout, _a, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, updatedHoldoutIds, updatedNotInHoldoutIds, _b, holdoutPayloads_1, payload, _c, holdoutPayloads_2, payload, variation, variation, updatedNotInHoldoutIds, featureInfo, _d, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, qualifiedHoldoutNames, _e, holdoutPayloads_3, payload, _f, holdoutPayloads_4, payload, _g, holdoutPayloads_5, payload, _h, holdoutPayloads_6, payload, rollOutRules, rolloutRulesToEvaluate, _j, rollOutRules_1, rule, _k, preSegmentationResult, updatedDecision, payload, passedRolloutCampaign, variation, payload, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _l, experimentRules_1, rule, _m, preSegmentationResult, whitelistedObject, updatedDecision, campaign, variation, payload, payload;
+            var _o, _p, _q, _r, _s, _t, _u, _v, _w;
+            return __generator(this, function (_x) {
+                switch (_x.label) {
                     case 0:
                         isEnabled = false;
                         rolloutVariationToReturn = null;
@@ -1539,6 +1575,8 @@ var FlagApi = /** @class */ (function () {
                         passedRulesInformation = {};
                         deferredObject = new PromiseUtil_1.Deferred();
                         evaluatedFeatureMap = new Map();
+                        notInHoldoutIds = [];
+                        batchPayload = [];
                         feature = (0, FunctionUtil_1.getFeatureFromKey)(serviceContainer.getSettings(), featureKey);
                         decision = {
                             featureName: feature === null || feature === void 0 ? void 0 : feature.getName(),
@@ -1546,6 +1584,10 @@ var FlagApi = /** @class */ (function () {
                             featureKey: feature === null || feature === void 0 ? void 0 : feature.getKey(),
                             userId: context === null || context === void 0 ? void 0 : context.getId(),
                             api: ApiEnum_1.ApiEnum.GET_FLAG,
+                            holdoutIDs: [],
+                            isPartOfHoldout: false,
+                            isHoldoutPresent: false,
+                            isUserPartOfCampaign: false,
                         };
                         debugEventProps = {
                             an: ApiEnum_1.ApiEnum.GET_FLAG,
@@ -1556,48 +1598,115 @@ var FlagApi = /** @class */ (function () {
                         storageService = new StorageService_1.StorageService(serviceContainer);
                         return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer)];
                     case 1:
-                        storedData = _h.sent();
-                        if ((storedData === null || storedData === void 0 ? void 0 : storedData.featureId) && (0, CampaignUtil_2.isFeatureIdPresentInSettings)(serviceContainer.getSettings(), storedData.featureId)) {
-                            if (storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId) {
-                                if (storedData.experimentKey) {
-                                    variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.experimentKey, storedData.experimentVariationId);
-                                    if (variation) {
-                                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
-                                            variationKey: variation.getKey(),
-                                            userId: context.getId(),
-                                            experimentType: 'experiment',
-                                            experimentKey: storedData.experimentKey,
-                                        }));
-                                        deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
-                                        return [2 /*return*/, deferredObject.promise];
-                                    }
-                                }
-                            }
-                            else if ((storedData === null || storedData === void 0 ? void 0 : storedData.rolloutKey) && (storedData === null || storedData === void 0 ? void 0 : storedData.rolloutId)) {
-                                variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.rolloutKey, storedData.rolloutVariationId);
-                                if (variation) {
-                                    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
-                                        variationKey: variation.getKey(),
-                                        userId: context.getId(),
-                                        experimentType: 'rollout',
-                                        experimentKey: storedData.rolloutKey,
-                                    }));
-                                    serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED, {
-                                        userId: context.getId(),
-                                    }));
-                                    isEnabled = true;
-                                    shouldCheckForExperimentsRules = true;
-                                    rolloutVariationToReturn = variation;
-                                    featureInfo = {
-                                        rolloutId: storedData.rolloutId,
-                                        rolloutKey: storedData.rolloutKey,
-                                        rolloutVariationId: storedData.rolloutVariationId,
-                                    };
-                                    evaluatedFeatureMap.set(featureKey, featureInfo);
-                                    Object.assign(passedRulesInformation, featureInfo);
-                                }
-                            }
+                        storedData = _x.sent();
+                        storedIsInHoldoutId = (_o = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _o !== void 0 ? _o : storedData === null || storedData === void 0 ? void 0 : storedData.holdoutGroupId;
+                        storedNotInHoldoutId = (_p = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _p !== void 0 ? _p : [];
+                        if (!(storedIsInHoldoutId && ((0, DataTypeUtil_1.isArray)(storedIsInHoldoutId) ? storedIsInHoldoutId.length > 0 : true))) return [3 /*break*/, 10];
+                        applicableHoldouts = (0, HoldoutUtil_1.getApplicableHoldouts)(serviceContainer.getSettings(), feature.getId());
+                        if (!(applicableHoldouts.length > 0)) return [3 /*break*/, 10];
+                        _i = 0, applicableHoldouts_1 = applicableHoldouts;
+                        _x.label = 2;
+                    case 2:
+                        if (!(_i < applicableHoldouts_1.length)) return [3 /*break*/, 10];
+                        holdout = applicableHoldouts_1[_i];
+                        if (!storedIsInHoldoutId.includes(holdout.getId())) return [3 /*break*/, 9];
+                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_HOLDOUT_DECISION_FOUND, {
+                            featureKey: featureKey,
+                            userId: context.getId(),
+                            holdoutId: storedIsInHoldoutId,
+                        }));
+                        return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature, context, storedData)];
+                    case 3:
+                        _a = _x.sent(), matchedHoldouts = _a.matchedHoldouts, notMatchedHoldouts = _a.notMatchedHoldouts, holdoutPayloads = _a.holdoutPayloads;
+                        updatedHoldoutIds = __spreadArray(__spreadArray([], storedIsInHoldoutId, true), matchedHoldouts.map(function (holdout) { return holdout.getId(); }), true);
+                        updatedNotInHoldoutIds = __spreadArray(__spreadArray([], storedNotInHoldoutId, true), notMatchedHoldouts.map(function (holdout) { return holdout.getId(); }), true);
+                        // store the updated holdout ids in storage and push the updated not in holdout ids to the notInHoldoutIds array
+                        new StorageDecorator_1.StorageDecorator().setDataInStorage({
+                            featureKey: featureKey,
+                            context: context,
+                            isInHoldoutId: updatedHoldoutIds,
+                            notInHoldoutId: updatedNotInHoldoutIds,
+                        }, storageService, serviceContainer);
+                        if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 4];
+                        for (_b = 0, holdoutPayloads_1 = holdoutPayloads; _b < holdoutPayloads_1.length; _b++) {
+                            payload = holdoutPayloads_1[_b];
+                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
                         }
+                        return [3 /*break*/, 8];
+                    case 4:
+                        if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 5];
+                        for (_c = 0, holdoutPayloads_2 = holdoutPayloads; _c < holdoutPayloads_2.length; _c++) {
+                            payload = holdoutPayloads_2[_c];
+                            serviceContainer.getBatchEventsQueue().enqueue(payload);
+                        }
+                        return [3 /*break*/, 8];
+                    case 5:
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 7];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads)];
+                    case 6:
+                        _x.sent();
+                        return [3 /*break*/, 8];
+                    case 7:
+                        (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads);
+                        _x.label = 8;
+                    case 8:
+                        deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel()));
+                        return [2 /*return*/, deferredObject.promise];
+                    case 9:
+                        _i++;
+                        return [3 /*break*/, 2];
+                    case 10:
+                        if (!((storedData === null || storedData === void 0 ? void 0 : storedData.featureId) && (0, CampaignUtil_1.isFeatureIdPresentInSettings)(serviceContainer.getSettings(), storedData.featureId))) return [3 /*break*/, 15];
+                        if (!(storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId)) return [3 /*break*/, 13];
+                        if (!storedData.experimentKey) return [3 /*break*/, 12];
+                        variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.experimentKey, storedData.experimentVariationId);
+                        if (!variation) return [3 /*break*/, 12];
+                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
+                            variationKey: variation.getKey(),
+                            userId: context.getId(),
+                            experimentType: 'experiment',
+                            experimentKey: storedData.experimentKey,
+                        }));
+                        decision.isUserPartOfCampaign = true;
+                        // network calls for holdouts that are newly added in settings and are not present in storage
+                        return [4 /*yield*/, (0, HoldoutUtil_1.sendNetworkCallsForNotInHoldouts)(serviceContainer, feature, context, decision, storedData, storageService)];
+                    case 11:
+                        // network calls for holdouts that are newly added in settings and are not present in storage
+                        _x.sent();
+                        deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
+                        return [2 /*return*/, deferredObject.promise];
+                    case 12: return [3 /*break*/, 15];
+                    case 13:
+                        if (!((storedData === null || storedData === void 0 ? void 0 : storedData.rolloutKey) && (storedData === null || storedData === void 0 ? void 0 : storedData.rolloutId))) return [3 /*break*/, 15];
+                        variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.rolloutKey, storedData.rolloutVariationId);
+                        if (!variation) return [3 /*break*/, 15];
+                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
+                            variationKey: variation.getKey(),
+                            userId: context.getId(),
+                            experimentType: 'rollout',
+                            experimentKey: storedData.rolloutKey,
+                        }));
+                        decision.isUserPartOfCampaign = true;
+                        serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED, {
+                            userId: context.getId(),
+                        }));
+                        return [4 /*yield*/, (0, HoldoutUtil_1.sendNetworkCallsForNotInHoldouts)(serviceContainer, feature, context, decision, storedData, storageService)];
+                    case 14:
+                        updatedNotInHoldoutIds = _x.sent();
+                        // push the updated not in holdout ids to the notInHoldoutIds array
+                        notInHoldoutIds.push.apply(notInHoldoutIds, updatedNotInHoldoutIds);
+                        isEnabled = true;
+                        shouldCheckForExperimentsRules = true;
+                        rolloutVariationToReturn = variation;
+                        featureInfo = {
+                            rolloutId: storedData.rolloutId,
+                            rolloutKey: storedData.rolloutKey,
+                            rolloutVariationId: storedData.rolloutVariationId,
+                        };
+                        evaluatedFeatureMap.set(featureKey, featureInfo);
+                        Object.assign(passedRulesInformation, featureInfo);
+                        _x.label = 15;
+                    case 15:
                         if (!(0, DataTypeUtil_1.isObject)(feature) || feature === undefined) {
                             serviceContainer.getLogManager().errorLog('FEATURE_NOT_FOUND', {
                                 featureKey: featureKey,
@@ -1605,74 +1714,185 @@ var FlagApi = /** @class */ (function () {
                             deferredObject.reject({});
                             return [2 /*return*/, deferredObject.promise];
                         }
-                        // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
                         return [4 /*yield*/, serviceContainer.getSegmentationManager().setContextualData(serviceContainer, feature, context)];
-                    case 2:
-                        // TODO: remove await from here, need not wait for gateway service at the time of calling getFlag
-                        _h.sent();
-                        rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
-                        if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 10];
-                        rolloutRulesToEvaluate = [];
-                        _i = 0, rollOutRules_1 = rollOutRules;
-                        _h.label = 3;
-                    case 3:
-                        if (!(_i < rollOutRules_1.length)) return [3 /*break*/, 6];
-                        rule = rollOutRules_1[_i];
-                        return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
-                    case 4:
-                        _a = _h.sent(), preSegmentationResult = _a.preSegmentationResult, updatedDecision = _a.updatedDecision;
-                        Object.assign(decision, updatedDecision);
-                        if (preSegmentationResult) {
-                            // if pre segment passed, then break the loop and check the traffic allocation
-                            rolloutRulesToEvaluate.push(rule);
-                            evaluatedFeatureMap.set(featureKey, {
-                                rolloutId: rule.getId(),
-                                rolloutKey: rule.getKey(),
-                                rolloutVariationId: (_d = rule.getVariations()[0]) === null || _d === void 0 ? void 0 : _d.getId(),
-                            });
-                            return [3 /*break*/, 6];
+                    case 16:
+                        _x.sent();
+                        if (!!isEnabled) return [3 /*break*/, 24];
+                        return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature, context, storedData)];
+                    case 17:
+                        _d = _x.sent(), matchedHoldouts = _d.matchedHoldouts, notMatchedHoldouts = _d.notMatchedHoldouts, holdoutPayloads = _d.holdoutPayloads;
+                        decision.isPartOfHoldout = matchedHoldouts !== null && matchedHoldouts.length > 0;
+                        if ((matchedHoldouts !== null && matchedHoldouts.length > 0) ||
+                            (notMatchedHoldouts !== null && notMatchedHoldouts.length > 0)) {
+                            decision.isHoldoutPresent = true;
                         }
-                        return [3 /*break*/, 5]; // if rule does not satisfy, then check for other ROLLOUT rules
-                    case 5:
-                        _i++;
-                        return [3 /*break*/, 3];
-                    case 6:
-                        if (!(rolloutRulesToEvaluate.length > 0)) return [3 /*break*/, 9];
+                        if (!(matchedHoldouts !== null && matchedHoldouts.length > 0)) return [3 /*break*/, 23];
+                        qualifiedHoldoutNames = matchedHoldouts.map(function (holdout) { return holdout.getName(); }).join(',');
+                        decision.holdoutIDs = matchedHoldouts.map(function (holdout) { return holdout.getId(); });
+                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_IN_HOLDOUT_GROUP, {
+                            userId: context.getId(),
+                            holdoutGroupName: qualifiedHoldoutNames,
+                            featureKey: featureKey,
+                        }));
+                        // Store holdout decision in storage
+                        new StorageDecorator_1.StorageDecorator().setDataInStorage({
+                            featureKey: featureKey,
+                            context: context,
+                            isInHoldoutId: matchedHoldouts.map(function (holdout) { return holdout.getId(); }),
+                            notInHoldoutId: notMatchedHoldouts.map(function (holdout) { return holdout.getId(); }),
+                        }, storageService, serviceContainer);
+                        decision['isEnabled'] = false;
+                        serviceContainer.getHooksService().set(decision);
+                        serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
+                        if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 18];
+                        for (_e = 0, holdoutPayloads_3 = holdoutPayloads; _e < holdoutPayloads_3.length; _e++) {
+                            payload = holdoutPayloads_3[_e];
+                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
+                        }
+                        return [3 /*break*/, 22];
+                    case 18:
+                        if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 19];
+                        for (_f = 0, holdoutPayloads_4 = holdoutPayloads; _f < holdoutPayloads_4.length; _f++) {
+                            payload = holdoutPayloads_4[_f];
+                            serviceContainer.getBatchEventsQueue().enqueue(payload);
+                        }
+                        return [3 /*break*/, 22];
+                    case 19:
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 21];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads)];
+                    case 20:
+                        _x.sent();
+                        return [3 /*break*/, 22];
+                    case 21:
+                        (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads);
+                        _x.label = 22;
+                    case 22:
+                        deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel()));
+                        return [2 /*return*/, deferredObject.promise];
+                    case 23:
+                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_NOT_EXCLUDED_DUE_TO_HOLDOUT, {
+                            featureKey: featureKey,
+                            userId: context.getId(),
+                        }));
+                        notInHoldoutIds.push.apply(notInHoldoutIds, notMatchedHoldouts.map(function (holdout) { return holdout.getId(); }));
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
+                            for (_g = 0, holdoutPayloads_5 = holdoutPayloads; _g < holdoutPayloads_5.length; _g++) {
+                                payload = holdoutPayloads_5[_g];
+                                (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
+                            }
+                        }
+                        else if (serviceContainer.getBatchEventsQueue()) {
+                            for (_h = 0, holdoutPayloads_6 = holdoutPayloads; _h < holdoutPayloads_6.length; _h++) {
+                                payload = holdoutPayloads_6[_h];
+                                serviceContainer.getBatchEventsQueue().enqueue(payload);
+                            }
+                        }
+                        else {
+                            batchPayload.push.apply(batchPayload, holdoutPayloads);
+                        }
+                        _x.label = 24;
+                    case 24:
+                        rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
+                        if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 40];
+                        rolloutRulesToEvaluate = [];
+                        _j = 0, rollOutRules_1 = rollOutRules;
+                        _x.label = 25;
+                    case 25:
+                        if (!(_j < rollOutRules_1.length)) return [3 /*break*/, 34];
+                        rule = rollOutRules_1[_j];
+                        return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
+                    case 26:
+                        _k = _x.sent(), preSegmentationResult = _k.preSegmentationResult, updatedDecision = _k.updatedDecision, payload = _k.payload;
+                        Object.assign(decision, updatedDecision);
+                        if (!preSegmentationResult) return [3 /*break*/, 32];
+                        // if pre segment passed, then break the loop and check the traffic allocation
+                        rolloutRulesToEvaluate.push(rule);
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 30];
+                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 28];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_q = rule.getVariations()[0]) === null || _q === void 0 ? void 0 : _q.getId(), context, featureKey, payload)];
+                    case 27:
+                        _x.sent();
+                        return [3 /*break*/, 29];
+                    case 28:
+                        if (payload != null) {
+                            batchPayload.push(payload);
+                        }
+                        _x.label = 29;
+                    case 29: return [3 /*break*/, 31];
+                    case 30:
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_r = rule.getVariations()[0]) === null || _r === void 0 ? void 0 : _r.getId(), context, featureKey, payload);
+                        }
+                        else {
+                            if (payload != null) {
+                                batchPayload.push(payload);
+                            }
+                        }
+                        _x.label = 31;
+                    case 31:
+                        evaluatedFeatureMap.set(featureKey, {
+                            rolloutId: rule.getId(),
+                            rolloutKey: rule.getKey(),
+                            rolloutVariationId: (_s = rule.getVariations()[0]) === null || _s === void 0 ? void 0 : _s.getId(),
+                        });
+                        return [3 /*break*/, 34];
+                    case 32: return [3 /*break*/, 33]; // if rule does not satisfy, then check for other ROLLOUT rules
+                    case 33:
+                        _j++;
+                        return [3 /*break*/, 25];
+                    case 34:
+                        if (!(rolloutRulesToEvaluate.length > 0)) return [3 /*break*/, 39];
                         passedRolloutCampaign = new CampaignModel_1.CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
                         variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, passedRolloutCampaign, context.getId());
-                        if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 9];
+                        if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 39];
                         isEnabled = true;
                         shouldCheckForExperimentsRules = true;
                         rolloutVariationToReturn = variation;
+                        decision['isUserPartOfCampaign'] = true;
                         _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 8];
-                        return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey)];
-                    case 7:
-                        _h.sent();
-                        return [3 /*break*/, 9];
-                    case 8:
-                        (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey);
-                        _h.label = 9;
-                    case 9: return [3 /*break*/, 11];
-                    case 10:
+                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, passedRolloutCampaign.getId(), variation.getId(), context);
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 38];
+                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 36];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload)];
+                    case 35:
+                        _x.sent();
+                        return [3 /*break*/, 37];
+                    case 36:
+                        if (payload != null) {
+                            batchPayload.push(payload);
+                        }
+                        _x.label = 37;
+                    case 37: return [3 /*break*/, 39];
+                    case 38:
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload);
+                        }
+                        else {
+                            if (payload != null) {
+                                batchPayload.push(payload);
+                            }
+                        }
+                        _x.label = 39;
+                    case 39: return [3 /*break*/, 41];
+                    case 40:
                         if (rollOutRules.length === 0) {
                             serviceContainer.getLogManager().debug(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
                             shouldCheckForExperimentsRules = true;
                         }
-                        _h.label = 11;
-                    case 11:
-                        if (!shouldCheckForExperimentsRules) return [3 /*break*/, 18];
+                        _x.label = 41;
+                    case 41:
+                        if (!shouldCheckForExperimentsRules) return [3 /*break*/, 50];
                         experimentRulesToEvaluate = [];
                         experimentRules = (0, FunctionUtil_1.getAllExperimentRules)(feature);
                         megGroupWinnerCampaigns = new Map();
-                        _b = 0, experimentRules_1 = experimentRules;
-                        _h.label = 12;
-                    case 12:
-                        if (!(_b < experimentRules_1.length)) return [3 /*break*/, 15];
-                        rule = experimentRules_1[_b];
+                        _l = 0, experimentRules_1 = experimentRules;
+                        _x.label = 42;
+                    case 42:
+                        if (!(_l < experimentRules_1.length)) return [3 /*break*/, 45];
+                        rule = experimentRules_1[_l];
                         return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
-                    case 13:
-                        _c = _h.sent(), preSegmentationResult = _c.preSegmentationResult, whitelistedObject = _c.whitelistedObject, updatedDecision = _c.updatedDecision;
+                    case 43:
+                        _m = _x.sent(), preSegmentationResult = _m.preSegmentationResult, whitelistedObject = _m.whitelistedObject, updatedDecision = _m.updatedDecision;
                         Object.assign(decision, updatedDecision);
                         if (preSegmentationResult) {
                             if (whitelistedObject === null) {
@@ -1681,6 +1901,7 @@ var FlagApi = /** @class */ (function () {
                             }
                             else {
                                 isEnabled = true;
+                                decision['isUserPartOfCampaign'] = true;
                                 experimentVariationToReturn = whitelistedObject.variation;
                                 Object.assign(passedRulesInformation, {
                                     experimentId: rule.getId(),
@@ -1688,33 +1909,56 @@ var FlagApi = /** @class */ (function () {
                                     experimentVariationId: whitelistedObject.variationId,
                                 });
                             }
-                            return [3 /*break*/, 15];
+                            return [3 /*break*/, 45];
                         }
-                        return [3 /*break*/, 14];
-                    case 14:
-                        _b++;
-                        return [3 /*break*/, 12];
-                    case 15:
-                        if (!(experimentRulesToEvaluate.length > 0)) return [3 /*break*/, 18];
+                        return [3 /*break*/, 44];
+                    case 44:
+                        _l++;
+                        return [3 /*break*/, 42];
+                    case 45:
+                        if (!(experimentRulesToEvaluate.length > 0)) return [3 /*break*/, 50];
                         campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
                         variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context.getId());
-                        if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 18];
+                        if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 50];
                         isEnabled = true;
+                        decision['isUserPartOfCampaign'] = true;
                         experimentVariationToReturn = variation;
                         _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 17];
-                        return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey)];
-                    case 16:
-                        _h.sent();
-                        return [3 /*break*/, 18];
-                    case 17:
-                        (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey);
-                        _h.label = 18;
-                    case 18:
+                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaign.getId(), variation.getId(), context);
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 49];
+                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 47];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload)];
+                    case 46:
+                        _x.sent();
+                        return [3 /*break*/, 48];
+                    case 47:
+                        if (payload != null) {
+                            batchPayload.push(payload);
+                        }
+                        _x.label = 48;
+                    case 48: return [3 /*break*/, 50];
+                    case 49:
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload);
+                        }
+                        else {
+                            if (payload != null) {
+                                batchPayload.push(payload);
+                            }
+                        }
+                        _x.label = 50;
+                    case 50:
                         // If flag is enabled, store it in data
                         if (isEnabled) {
                             // set storage data
-                            new StorageDecorator_1.StorageDecorator().setDataInStorage(__assign({ featureKey: featureKey, featureId: feature.getId(), context: context }, passedRulesInformation), storageService, serviceContainer);
+                            new StorageDecorator_1.StorageDecorator().setDataInStorage(__assign(__assign({ featureKey: featureKey, featureId: feature.getId(), context: context }, passedRulesInformation), { notInHoldoutId: notInHoldoutIds }), storageService, serviceContainer);
+                        }
+                        else {
+                            new StorageDecorator_1.StorageDecorator().setDataInStorage({
+                                featureKey: featureKey,
+                                context: context,
+                                notInHoldoutId: notInHoldoutIds,
+                            }, storageService, serviceContainer);
                         }
                         // call integration callback, if defined
                         serviceContainer.getHooksService().set(decision);
@@ -1729,25 +1973,47 @@ var FlagApi = /** @class */ (function () {
                             // send debug event
                             (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
                         }
-                        if (!((_e = feature.getImpactCampaign()) === null || _e === void 0 ? void 0 : _e.getCampaignId())) return [3 /*break*/, 21];
+                        if (!((_t = feature.getImpactCampaign()) === null || _t === void 0 ? void 0 : _t.getCampaignId())) return [3 /*break*/, 55];
                         serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
                             userId: context.getId(),
                             featureKey: featureKey,
                             status: isEnabled ? 'enabled' : 'disabled',
                         }));
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 20];
-                        return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, (_f = feature.getImpactCampaign()) === null || _f === void 0 ? void 0 : _f.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-                            context, featureKey)];
-                    case 19:
-                        _h.sent();
-                        return [3 /*break*/, 21];
-                    case 20:
-                        (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, (_g = feature.getImpactCampaign()) === null || _g === void 0 ? void 0 : _g.getCampaignId(), isEnabled ? 2 : 1, // 2 is for Variation(flag enabled), 1 is for Control(flag disabled)
-                        context, featureKey);
-                        _h.label = 21;
-                    case 21:
+                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, (_u = feature.getImpactCampaign()) === null || _u === void 0 ? void 0 : _u.getCampaignId(), isEnabled ? 2 : 1, context);
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 54];
+                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 52];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_v = feature.getImpactCampaign()) === null || _v === void 0 ? void 0 : _v.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload)];
+                    case 51:
+                        _x.sent();
+                        return [3 /*break*/, 53];
+                    case 52:
+                        if (payload != null) {
+                            batchPayload.push(payload);
+                        }
+                        _x.label = 53;
+                    case 53: return [3 /*break*/, 55];
+                    case 54:
+                        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_w = feature.getImpactCampaign()) === null || _w === void 0 ? void 0 : _w.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload);
+                        }
+                        else {
+                            if (payload != null) {
+                                batchPayload.push(payload);
+                            }
+                        }
+                        _x.label = 55;
+                    case 55:
                         deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
-                        return [2 /*return*/, deferredObject.promise];
+                        if (!(!serviceContainer.getSettingsService().isGatewayServiceProvided && batchPayload.length > 0)) return [3 /*break*/, 58];
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 57];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload)];
+                    case 56:
+                        _x.sent();
+                        return [3 /*break*/, 58];
+                    case 57:
+                        (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload);
+                        _x.label = 58;
+                    case 58: return [2 /*return*/, deferredObject.promise];
                 }
             });
         });
@@ -1995,7 +2261,8 @@ var TrackApi = /** @class */ (function () {
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        if (!(0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, serviceContainer.getSettings())) return [3 /*break*/, 4];
+                        if (!((0, FunctionUtil_1.doesEventBelongToAnyFeature)(eventName, serviceContainer.getSettings()) ||
+                            (0, FunctionUtil_1.doesEventBelongToAnyHoldout)(eventName, serviceContainer.getSettings()))) return [3 /*break*/, 4];
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 2];
                         return [4 /*yield*/, createImpressionForTrack(serviceContainer, eventName, context, eventProperties)];
                     case 1:
@@ -2178,6 +2445,8 @@ exports.Constants = {
     NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES: 'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
     NETWORK_CALL_SUCCESS_WITH_RETRIES: 'NETWORK_CALL_SUCCESS_WITH_RETRIES',
     IMPACT_ANALYSIS: 'IMPACT_ANALYSIS',
+    VARIATION_IS_PART_OF_HOLDOUT: 1,
+    VARIATION_NOT_PART_OF_HOLDOUT: 2,
 };
 
 
@@ -2300,7 +2569,7 @@ var StorageDecorator = /** @class */ (function () {
      */
     StorageDecorator.prototype.setDataInStorage = function (data, storageService, serviceContainer) {
         var deferredObject = new PromiseUtil_1.Deferred();
-        var featureKey = data.featureKey, featureId = data.featureId, context = data.context, rolloutId = data.rolloutId, rolloutKey = data.rolloutKey, rolloutVariationId = data.rolloutVariationId, experimentId = data.experimentId, experimentKey = data.experimentKey, experimentVariationId = data.experimentVariationId;
+        var featureKey = data.featureKey, featureId = data.featureId, context = data.context, rolloutId = data.rolloutId, rolloutKey = data.rolloutKey, rolloutVariationId = data.rolloutVariationId, experimentId = data.experimentId, experimentKey = data.experimentKey, experimentVariationId = data.experimentVariationId, isInHoldoutId = data.isInHoldoutId, notInHoldoutId = data.notInHoldoutId;
         if (!featureKey) {
             serviceContainer.getLogManager().errorLog('ERROR_STORING_DATA_IN_STORAGE', {
                 key: 'featureKey',
@@ -2339,6 +2608,8 @@ var StorageDecorator = /** @class */ (function () {
             experimentId: experimentId,
             experimentKey: experimentKey,
             experimentVariationId: experimentVariationId,
+            isInHoldoutId: isInHoldoutId,
+            notInHoldoutId: notInHoldoutId,
         }, serviceContainer);
         deferredObject.resolve(); // Resolve promise when data is successfully set
         return deferredObject.promise;
@@ -2494,6 +2765,7 @@ var EventEnum;
     EventEnum["VWO_LOG_EVENT"] = "vwo_log";
     EventEnum["VWO_INIT_CALLED"] = "vwo_fmeSdkInit";
     EventEnum["VWO_USAGE_STATS"] = "vwo_sdkUsageStats";
+    EventEnum["VWO_HOLDOUT"] = "vwo_holdout";
     EventEnum["VWO_DEBUGGER_EVENT"] = "vwo_sdkDebug";
 })(EventEnum || (exports.EventEnum = EventEnum = {}));
 
@@ -2564,6 +2836,40 @@ var HttpMethodEnum;
     HttpMethodEnum["GET"] = "GET";
     HttpMethodEnum["POST"] = "POST";
 })(HttpMethodEnum || (exports.HttpMethodEnum = HttpMethodEnum = {}));
+
+
+/***/ }),
+
+/***/ "./lib/enums/NetworkTransportModeEnum.ts":
+/*!***********************************************!*\
+  !*** ./lib/enums/NetworkTransportModeEnum.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.NetworkTransportModeEnum = void 0;
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var NetworkTransportModeEnum;
+(function (NetworkTransportModeEnum) {
+    NetworkTransportModeEnum["SEND_BEACON"] = "sendBeacon";
+    NetworkTransportModeEnum["XHR"] = "xhr";
+})(NetworkTransportModeEnum || (exports.NetworkTransportModeEnum = NetworkTransportModeEnum = {}));
 
 
 /***/ }),
@@ -2988,6 +3294,104 @@ var FeatureModel = /** @class */ (function () {
     return FeatureModel;
 }());
 exports.FeatureModel = FeatureModel;
+
+
+/***/ }),
+
+/***/ "./lib/models/campaign/HoldoutModel.ts":
+/*!*********************************************!*\
+  !*** ./lib/models/campaign/HoldoutModel.ts ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HoldoutModel = void 0;
+var MetricModel_1 = __webpack_require__(/*! ./MetricModel */ "./lib/models/campaign/MetricModel.ts");
+var HoldoutModel = /** @class */ (function () {
+    function HoldoutModel() {
+        this.segments = {};
+        this.featureIds = [];
+        this.m = [];
+        this.metrics = [];
+        this.isGatewayServiceRequired = false;
+        this.name = '';
+    }
+    HoldoutModel.prototype.modelFromDictionary = function (data) {
+        var _this = this;
+        var _a;
+        if (!data) {
+            return this;
+        }
+        this.id = data.id;
+        this.segments = data.segments || {};
+        this.percentTraffic = data.percentTraffic || 0;
+        this.isGlobal = !!data.isGlobal;
+        this.featureIds = Array.isArray(data.featureIds) ? data.featureIds : [];
+        this.name = data.name || '';
+        if (data === null || data === void 0 ? void 0 : data.isGatewayServiceRequired) {
+            this.isGatewayServiceRequired = data.isGatewayServiceRequired;
+        }
+        if ((data.m && data.m.constructor === {}.constructor) || ((_a = data.metrics) === null || _a === void 0 ? void 0 : _a.constructor) === {}.constructor) {
+            this.metrics = [];
+        }
+        else {
+            var metricList = data.m || data.metrics;
+            metricList === null || metricList === void 0 ? void 0 : metricList.forEach(function (metric) {
+                _this.metrics.push(new MetricModel_1.MetricModel().modelFromDictionary(metric));
+            });
+        }
+        return this;
+    };
+    HoldoutModel.prototype.getId = function () {
+        return this.id;
+    };
+    HoldoutModel.prototype.getSegments = function () {
+        return this.segments || {};
+    };
+    HoldoutModel.prototype.getPercentTraffic = function () {
+        return this.percentTraffic;
+    };
+    HoldoutModel.prototype.getIsGlobal = function () {
+        return this.isGlobal;
+    };
+    HoldoutModel.prototype.getFeatureIds = function () {
+        return this.featureIds;
+    };
+    HoldoutModel.prototype.getMetrics = function () {
+        return this.metrics;
+    };
+    HoldoutModel.prototype.getIsGatewayServiceRequired = function () {
+        return this.isGatewayServiceRequired;
+    };
+    HoldoutModel.prototype.setIsGatewayServiceRequired = function (isGatewayServiceRequired) {
+        this.isGatewayServiceRequired = isGatewayServiceRequired;
+    };
+    HoldoutModel.prototype.getName = function () {
+        return this.name;
+    };
+    HoldoutModel.prototype.setName = function (name) {
+        this.name = name;
+    };
+    return HoldoutModel;
+}());
+exports.HoldoutModel = HoldoutModel;
 
 
 /***/ }),
@@ -3453,12 +3857,28 @@ var SettingsSchema = /** @class */ (function () {
             rules: (0, superstruct_1.optional)((0, superstruct_1.array)(this.ruleSchema)),
             variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema)),
         });
+        this.holdoutSchema = (0, superstruct_1.type)({
+            metrics: (0, superstruct_1.array)(this.campaignMetricSchema),
+            segments: (0, superstruct_1.object)(),
+            featureIds: (0, superstruct_1.array)((0, superstruct_1.number)()),
+            isGlobal: (0, superstruct_1.boolean)(),
+            name: (0, superstruct_1.string)(),
+            id: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
+            percentTraffic: (0, superstruct_1.number)(),
+        });
+        // holdouts: optional. Backend sends {} when no holdouts; [] or [holdout, ...] when 1+ present.
+        // Union: either an array (each item validated by holdoutSchema) or a strict empty object {}.
+        var holdoutsSchema = (0, superstruct_1.union)([
+            (0, superstruct_1.array)(this.holdoutSchema),
+            (0, superstruct_1.refine)((0, superstruct_1.object)(), 'EmptyObject', function (v) { return Object.keys(v).length === 0; }),
+        ]);
         this.settingsSchema = (0, superstruct_1.type)({
             sdkKey: (0, superstruct_1.optional)((0, superstruct_1.string)()),
             version: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             accountId: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             usageStatsAccountId: (0, superstruct_1.optional)((0, superstruct_1.number)()),
             features: (0, superstruct_1.optional)((0, superstruct_1.array)(this.featureSchema)),
+            holdouts: (0, superstruct_1.optional)(holdoutsSchema),
             campaigns: (0, superstruct_1.array)(this.campaignObjectSchema),
             groups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
             campaignGroups: (0, superstruct_1.optional)((0, superstruct_1.object)()),
@@ -3508,6 +3928,7 @@ exports.SettingsModel = void 0;
  */
 var CampaignModel_1 = __webpack_require__(/*! ../campaign/CampaignModel */ "./lib/models/campaign/CampaignModel.ts");
 var FeatureModel_1 = __webpack_require__(/*! ../campaign/FeatureModel */ "./lib/models/campaign/FeatureModel.ts");
+var HoldoutModel_1 = __webpack_require__(/*! ../campaign/HoldoutModel */ "./lib/models/campaign/HoldoutModel.ts");
 var SettingsModel = /** @class */ (function () {
     function SettingsModel(settings) {
         var _this = this;
@@ -3519,6 +3940,7 @@ var SettingsModel = /** @class */ (function () {
         this.cG = {};
         this.groups = {};
         this.g = {};
+        this.holdouts = [];
         this.sdkKey = settings.sK || settings.sdkKey;
         this.accountId = settings.a || settings.accountId;
         this.version = settings.v || settings.version;
@@ -3549,6 +3971,12 @@ var SettingsModel = /** @class */ (function () {
         }
         if (settings.isWebConnectivityEnabled) {
             this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
+        }
+        if (Array.isArray(settings.holdouts)) {
+            var holdoutsArray = settings.holdouts;
+            holdoutsArray.forEach(function (holdout) {
+                _this.holdouts.push(new HoldoutModel_1.HoldoutModel().modelFromDictionary(holdout));
+            });
         }
         return this;
     }
@@ -3587,6 +4015,9 @@ var SettingsModel = /** @class */ (function () {
     };
     SettingsModel.prototype.getIsWebConnectivityEnabled = function () {
         return this.isWebConnectivityEnabled;
+    };
+    SettingsModel.prototype.getHoldouts = function () {
+        return Array.isArray(this.holdouts) ? this.holdouts : [];
     };
     return SettingsModel;
 }());
@@ -4493,12 +4924,20 @@ exports.NetworkBrowserClient = void 0;
  */
 var XMLUtil_1 = __webpack_require__(/*! ../../../utils/XMLUtil */ "./lib/utils/XMLUtil.ts");
 var PromiseUtil_1 = __webpack_require__(/*! ../../../utils/PromiseUtil */ "./lib/utils/PromiseUtil.ts");
+var ResponseModel_1 = __webpack_require__(/*! ../models/ResponseModel */ "./lib/packages/network-layer/models/ResponseModel.ts");
+var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./lib/utils/FunctionUtil.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
+var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+var NetworkTransportModeEnum_1 = __webpack_require__(/*! ../../../enums/NetworkTransportModeEnum */ "./lib/enums/NetworkTransportModeEnum.ts");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
 var NetworkBrowserClient = /** @class */ (function () {
-    function NetworkBrowserClient(logManager) {
+    function NetworkBrowserClient(logManager, networkTransportMode) {
+        if (networkTransportMode === void 0) { networkTransportMode = NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON; }
         this.logManager = logManager;
+        this.networkTransportMode = networkTransportMode;
     }
     /**
      * Performs a GET request using the provided RequestModel.
@@ -4516,50 +4955,73 @@ var NetworkBrowserClient = /** @class */ (function () {
                 deferred.reject(responseModel);
             },
         }, this.logManager);
-        /*try {
-          fetch(url)
-              .then(res => {
-                // Some endpoints return empty strings as the response body; treat
-                // as raw text and handle potential JSON parsing errors below
-                return res.text().then(text => {
-                  let jsonData = {};
-                  try {
-                    jsonData = JSON.parse(text);
-                  } catch (err) {
-                    console.info(
-                      `VWO-SDK - [INFO]: VWO didn't send JSON response which is expected: ${err}`
-                    );
-                  }
-    
-                  if (res.status === 200) {
-                    responseModel.setData(jsonData);
-                    deferred.resolve(responseModel);
-                  } else {
-                    let error = `VWO-SDK - [ERROR]: Request failed for fetching account settings. Got Status Code: ${
-                      res.status
-                    }`;
-    
-                    responseModel.setError(error);
-                    deferred.reject(responseModel);
-                  }
-                });
-              })
-              .catch(err => {
-                responseModel.setError(err);
-                deferred.reject(responseModel);
-              });
-        } catch (err) {
-          responseModel.setError(err);
-          deferred.reject(responseModel);
-        } */
         return deferred.promise;
     };
     /**
-     * Performs a POST request using the provided RequestModel.
+     * Performs a POST request using navigator.sendBeacon. If the request is not queued, it will be performed using XHR.
      * @param {RequestModel} request - The model containing request options.
      * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
      */
     NetworkBrowserClient.prototype.POST = function (requestModel) {
+        var deferred = new PromiseUtil_1.Deferred();
+        // if networkTransportMode is SEND_BEACON, and navigator.sendBeacon is defined, use beacon
+        // sendBeacon can be undefined for internet explorer 11 - so we will fallback to XHR
+        if (this.networkTransportMode.toLowerCase() !== NetworkTransportModeEnum_1.NetworkTransportModeEnum.XHR.toLowerCase() &&
+            typeof navigator !== 'undefined' && // not using DataTypeUtil.isUndefined because we want to check for the existence of navigator object in non-browser environments
+            typeof navigator.sendBeacon === 'function') {
+            var responseModel = new ResponseModel_1.ResponseModel();
+            try {
+                this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                    api: NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON,
+                    process: 'undefined',
+                }));
+                var networkOptions = requestModel.getOptions();
+                var url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname).concat(networkOptions.path);
+                if (networkOptions.port) {
+                    url = "".concat(networkOptions.scheme, "://").concat(networkOptions.hostname, ":").concat(networkOptions.port).concat(networkOptions.path);
+                }
+                var body = networkOptions.body;
+                var postBody = (0, DataTypeUtil_1.isString)(body) ? body : JSON.stringify(body || {});
+                // sendBeacon returns a boolean indicating if the request was queued
+                var queued = navigator.sendBeacon(url, postBody);
+                if (!queued) {
+                    // if the request was not queued, fallback to XHR
+                    return this.POST_XHR(requestModel);
+                }
+                else {
+                    // if the request was queued, resolve the promise with a success response
+                    responseModel.setStatusCode(200);
+                    responseModel.setData(undefined);
+                    deferred.resolve(responseModel);
+                    return deferred.promise;
+                }
+            }
+            catch (error) {
+                var err = (0, FunctionUtil_1.getFormattedErrorMessage)(error);
+                this.logManager.errorLog('SEND_BEACON_ERROR', {
+                    err: err,
+                }, {}, false);
+                responseModel.setStatusCode(0);
+                responseModel.setError(err);
+                deferred.reject(responseModel);
+                return deferred.promise;
+            }
+        }
+        else {
+            this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+                api: NetworkTransportModeEnum_1.NetworkTransportModeEnum.XHR,
+                process: 'undefined',
+            }));
+            // if networkTransportMode is not SEND_BEACON, fallback to XHR
+            return this.POST_XHR(requestModel);
+        }
+    };
+    /**
+     * Performs a POST request using XHR.
+     * @param {RequestModel} requestModel - The model containing request options.
+     * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
+     */
+    NetworkBrowserClient.prototype.POST_XHR = function (requestModel) {
         var deferred = new PromiseUtil_1.Deferred();
         (0, XMLUtil_1.sendPostCall)({
             requestModel: requestModel,
@@ -4570,49 +5032,6 @@ var NetworkBrowserClient = /** @class */ (function () {
                 deferred.reject(responseModel);
             },
         }, this.logManager);
-        /* try {
-          const options: any = Object.assign(
-            {},
-            { method: HttpMethodEnum.POST },
-            { body: networkOptions.body },
-            { headers: networkOptions.headers }
-          );
-    
-          fetch(url, options)
-              .then(res => {
-                // Some endpoints return empty strings as the response body; treat
-                // as raw text and handle potential JSON parsing errors below
-                return res.text().then(text => {
-                  let jsonData = {};
-                  try {
-                    jsonData = JSON.parse(text);
-                  } catch (err) {
-                    console.info(
-                      `VWO-SDK - [INFO]: VWO didn't send JSON response which is expected: ${err}`
-                    );
-                  }
-    
-                  if (res.status === 200) {
-                    responseModel.setData(jsonData);
-                    deferred.resolve(responseModel);
-                  } else {
-                    let error = `VWO-SDK - [ERROR]: Request failed for fetching account settings. Got Status Code: ${
-                      res.status
-                    }`;
-    
-                    responseModel.setError(error);
-                    deferred.reject(responseModel);
-                  }
-                });
-              })
-              .catch(err => {
-                responseModel.setError(err);
-                deferred.reject(responseModel);
-              });
-        } catch (err) {
-          responseModel.setError(err);
-          deferred.reject(responseModel);
-        } */
         return deferred.promise;
     };
     return NetworkBrowserClient;
@@ -4838,9 +5257,11 @@ var NetworkBrowserClient_1 = __webpack_require__(/*! ../client/NetworkBrowserCli
 var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./lib/enums/log-messages/index.ts");
 var Url_1 = __webpack_require__(/*! ../../../constants/Url */ "./lib/constants/Url.ts");
+var NetworkTransportModeEnum_1 = __webpack_require__(/*! ../../../enums/NetworkTransportModeEnum */ "./lib/enums/NetworkTransportModeEnum.ts");
 var NetworkManager = /** @class */ (function () {
-    function NetworkManager(logManager, client, retryConfig, shouldWaitForTrackingCalls) {
+    function NetworkManager(logManager, client, retryConfig, shouldWaitForTrackingCalls, networkTransportMode) {
         if (shouldWaitForTrackingCalls === void 0) { shouldWaitForTrackingCalls = false; }
+        if (networkTransportMode === void 0) { networkTransportMode = NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON; }
         this.logManager = logManager;
         // Only set retry configuration if it's not already initialized or if a new config is provided
         if (!this.retryConfig || retryConfig) {
@@ -4863,12 +5284,8 @@ var NetworkManager = /** @class */ (function () {
                 this.client = client || new NetworkServerLessClient_1.NetworkServerLessClient(this.logManager);
             }
             else {
-                this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
-                    api: 'xhr',
-                    process: 'undefined',
-                }));
                 // if XMLHttpRequest is defined, we are in browser
-                this.client = client || new NetworkBrowserClient_1.NetworkBrowserClient(this.logManager); // Use provided client or default to NetworkClient
+                this.client = client || new NetworkBrowserClient_1.NetworkBrowserClient(this.logManager, networkTransportMode); // Use provided client or default to NetworkBrowserClient
             }
         }
         else { var NetworkClient; }
@@ -5686,7 +6103,7 @@ var SegmentationManager = /** @class */ (function () {
      */
     SegmentationManager.prototype.setContextualData = function (serviceContainer, feature, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var queryParams, params, _vwo, err_1;
+            var settings, holdouts, isGatewayServiceRequiredForHoldouts, queryParams, params, _vwo, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -5698,7 +6115,10 @@ var SegmentationManager = /** @class */ (function () {
                         if ((context === null || context === void 0 ? void 0 : context.getUserAgent()) === null && (context === null || context === void 0 ? void 0 : context.getIpAddress()) === null) {
                             return [2 /*return*/];
                         }
-                        if (!(feature.getIsGatewayServiceRequired() === true)) return [3 /*break*/, 4];
+                        settings = serviceContainer.getSettings();
+                        holdouts = settings.getHoldouts() || [];
+                        isGatewayServiceRequiredForHoldouts = holdouts.filter(function (holdout) { return holdout.getIsGatewayServiceRequired() === true; }).length > 0;
+                        if (!(feature.getIsGatewayServiceRequired() === true || isGatewayServiceRequiredForHoldouts)) return [3 /*break*/, 4];
                         if (!(serviceContainer.getSettingsService().isGatewayServiceProvided &&
                             ((0, DataTypeUtil_1.isUndefined)(context.getVwo()) || context.getVwo() === null))) return [3 /*break*/, 4];
                         queryParams = {};
@@ -10405,6 +10825,7 @@ exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
 exports.getAllExperimentRules = getAllExperimentRules;
 exports.getFeatureFromKey = getFeatureFromKey;
 exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
+exports.doesEventBelongToAnyHoldout = doesEventBelongToAnyHoldout;
 exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 exports.getFormattedErrorMessage = getFormattedErrorMessage;
 /**
@@ -10525,6 +10946,18 @@ function doesEventBelongToAnyFeature(eventName, settings) {
     return settings
         .getFeatures()
         .some(function (feature) { return feature.getMetrics().some(function (metric) { return metric.getIdentifier() === eventName; }); });
+}
+/**
+ * Checks if an event exists within any holdout's metrics.
+ * @param {string} eventName - The name of the event to check.
+ * @param {any} settings - The settings containing holdouts.
+ * @returns {boolean} True if the event exists, otherwise false.
+ */
+function doesEventBelongToAnyHoldout(eventName, settings) {
+    // Use the `some` method to check if any holdout contains the event in its metrics
+    return settings
+        .getHoldouts()
+        .some(function (holdout) { return holdout.getMetrics().some(function (metric) { return metric.getIdentifier() === eventName; }); });
 }
 /**
  * Adds linked campaigns to each feature in the settings based on rules.
@@ -10734,20 +11167,26 @@ function getQueryParams(queryParams) {
     return encodedParams;
 }
 /**
- * Adds isGatewayServiceRequired flag to each feature in the settings based on pre segmentation.
- * @param {any} settings - The settings file to modify.
+ * Adds isGatewayServiceRequired flag to each feature and holdout in the settings based on pre segmentation.
+ * @param settings - The settings file to modify.
  */
 function addIsGatewayServiceRequiredFlag(settings) {
     var keywordPattern = /\b(country|region|city|os|device_type|browser_string|ua|browser_version|os_version)\b/g;
     var inlistPattern = /"custom_variable"\s*:\s*{[^}]*inlist\([^)]*\)/g;
+    // for FEATURE
     for (var _i = 0, _a = settings.getFeatures(); _i < _a.length; _i++) {
         var feature = _a[_i];
         var rules = feature.getRulesLinkedCampaign();
         for (var _b = 0, rules_1 = rules; _b < rules_1.length; _b++) {
             var rule = rules_1[_b];
-            var segments = {};
-            if (rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE || rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT) {
-                segments = rule.getVariations()[0].getSegments();
+            var isRollout = rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT;
+            var isPersonalize = rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+            var segments = null;
+            if (isRollout || isPersonalize) {
+                var variations = rule.getVariations();
+                if (variations && variations.length > 0) {
+                    segments = variations[0].getSegments();
+                }
             }
             else {
                 segments = rule.getSegments();
@@ -10763,6 +11202,292 @@ function addIsGatewayServiceRequiredFlag(settings) {
             }
         }
     }
+    // for Holdouts
+    for (var _c = 0, _d = settings.getHoldouts(); _c < _d.length; _c++) {
+        var holdout = _d[_c];
+        var segments = holdout.getSegments();
+        if (segments) {
+            var jsonSegments = JSON.stringify(segments);
+            var keywordMatches = jsonSegments.match(keywordPattern);
+            var inlistMatches = jsonSegments.match(inlistPattern);
+            if ((keywordMatches && keywordMatches.length > 0) || (inlistMatches && inlistMatches.length > 0)) {
+                holdout.setIsGatewayServiceRequired(true);
+                break;
+            }
+        }
+    }
+}
+
+
+/***/ }),
+
+/***/ "./lib/utils/HoldoutUtil.ts":
+/*!**********************************!*\
+  !*** ./lib/utils/HoldoutUtil.ts ***!
+  \**********************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getApplicableHoldouts = getApplicableHoldouts;
+exports.getMatchedHoldouts = getMatchedHoldouts;
+exports.sendNetworkCallsForNotInHoldouts = sendNetworkCallsForNotInHoldouts;
+var decision_maker_1 = __webpack_require__(/*! ../packages/decision-maker */ "./lib/packages/decision-maker/index.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
+var ImpressionUtil_1 = __webpack_require__(/*! ./ImpressionUtil */ "./lib/utils/ImpressionUtil.ts");
+var index_1 = __webpack_require__(/*! ../constants/index */ "./lib/constants/index.ts");
+var StorageDecorator_1 = __webpack_require__(/*! ../decorators/StorageDecorator */ "./lib/decorators/StorageDecorator.ts");
+/**
+ * Gets the applicable holdouts for a given feature ID.
+ * @param settings - The settings object.
+ * @param featureId - The feature ID.
+ * @returns The applicable holdouts.
+ */
+function getApplicableHoldouts(settings, featureId) {
+    var holdouts = settings.getHoldouts() || [];
+    // filter the holdouts to only include global holdouts and holdouts that have the given feature ID
+    return holdouts.filter(function (holdout) { return holdout.getIsGlobal() || holdout.getFeatureIds().includes(featureId); });
+}
+/**
+ * Gets the matched holdout(s) for a given feature ID and context.
+ * Evaluates all applicable holdouts, creates batched impressions for all of them,
+ * and returns all matched holdouts (i.e. holdouts the user is part of).
+ * @param settings - The settings object.
+ * @param feature - The feature object.
+ * @param context - The context object.
+ * @returns The matched holdouts or null if no holdout is matched.
+ */
+function getMatchedHoldouts(serviceContainer, feature, context, storedData) {
+    return __awaiter(this, void 0, void 0, function () {
+        var settings, isInHoldoutIds, notInHoldoutIds, alreadyEvaluatedHoldoutIds, featureId, applicableHoldouts, notMatchedHoldouts, matchedHoldouts, holdoutPayloads, _i, applicableHoldouts_1, holdout, segments, segmentPass, variationId, isInHoldout, hashKey, bucket, payload;
+        var _a, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    settings = serviceContainer.getSettings();
+                    isInHoldoutIds = (_a = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _a !== void 0 ? _a : [];
+                    notInHoldoutIds = (_b = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _b !== void 0 ? _b : [];
+                    alreadyEvaluatedHoldoutIds = __spreadArray(__spreadArray([], isInHoldoutIds, true), notInHoldoutIds, true);
+                    featureId = feature.getId();
+                    applicableHoldouts = getApplicableHoldouts(settings, featureId);
+                    notMatchedHoldouts = [];
+                    // if there are no applicable holdouts, return null
+                    if (!applicableHoldouts.length)
+                        return [2 /*return*/, { matchedHoldouts: [], notMatchedHoldouts: [], holdoutPayloads: [] }];
+                    matchedHoldouts = [];
+                    holdoutPayloads = [];
+                    _i = 0, applicableHoldouts_1 = applicableHoldouts;
+                    _c.label = 1;
+                case 1:
+                    if (!(_i < applicableHoldouts_1.length)) return [3 /*break*/, 6];
+                    holdout = applicableHoldouts_1[_i];
+                    if (alreadyEvaluatedHoldoutIds.includes(holdout.getId())) {
+                        serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.HOLDOUT_SKIP_EVALUATION, {
+                            holdoutId: holdout.getId(),
+                            reason: "user ".concat(context.getId(), " was already evaluated for feature with id: ").concat(featureId, "; SKIP decision making altogether."),
+                        }));
+                        return [3 /*break*/, 5];
+                    }
+                    segments = holdout.getSegments() || {};
+                    segmentPass = true;
+                    if (!(segments && Object.keys(segments).length > 0)) return [3 /*break*/, 3];
+                    return [4 /*yield*/, serviceContainer
+                            .getSegmentationManager()
+                            .validateSegmentation(segments, context.getCustomVariables())];
+                case 2:
+                    segmentPass = _c.sent();
+                    return [3 /*break*/, 4];
+                case 3:
+                    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.HOLDOUT_SEGMENTATION_SKIP, {
+                        holdoutId: holdout.getId(),
+                        userId: context.getId(),
+                    }));
+                    _c.label = 4;
+                case 4:
+                    variationId = void 0;
+                    isInHoldout = false;
+                    // if the segmentation fails, user is NOT IN holdout (variationId = 2)
+                    if (!segmentPass) {
+                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.HOLDOUT_SEGMENTATION_FAIL, {
+                            userId: context.getId(),
+                            holdoutGroupName: holdout.getName(),
+                        }));
+                        variationId = index_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT; // NOT IN holdout
+                        notMatchedHoldouts.push(holdout);
+                    }
+                    else {
+                        hashKey = "".concat(settings.getAccountId(), "_").concat(holdout.getId(), "_").concat(context.getId());
+                        bucket = new decision_maker_1.DecisionMaker().getBucketValueForUser(hashKey, 100);
+                        // If bucket is within percentTraffic, user is IN holdout (variationId = 1)
+                        // Otherwise, user is NOT IN holdout (variationId = 2)
+                        isInHoldout = bucket !== 0 && bucket <= holdout.getPercentTraffic();
+                        variationId = isInHoldout ? index_1.Constants.VARIATION_IS_PART_OF_HOLDOUT : index_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT;
+                        // Add all matched holdouts (user is IN)
+                        if (isInHoldout) {
+                            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.HOLDOUT_SHOULD_EXCLUDE_USER, {
+                                userId: context.getId(),
+                                bucketValue: bucket,
+                                holdoutGroupName: holdout.getName(),
+                                percentTraffic: holdout.getPercentTraffic(),
+                                featureId: featureId,
+                            }));
+                            matchedHoldouts.push(holdout);
+                        }
+                        else {
+                            serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.HOLDOUT_SHOULD_NOT_EXCLUDE_USER, {
+                                userId: context.getId(),
+                                holdoutGroupName: holdout.getName(),
+                                featureId: featureId,
+                            }));
+                            notMatchedHoldouts.push(holdout);
+                        }
+                    }
+                    payload = (0, NetworkUtil_1.createHoldoutPayload)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, holdout.getId(), // campaignId is the holdoutId
+                    variationId, // 1 if IN holdout, 2 if NOT IN holdout
+                    context, featureId);
+                    holdoutPayloads.push(payload);
+                    _c.label = 5;
+                case 5:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 6: return [2 /*return*/, {
+                        matchedHoldouts: matchedHoldouts,
+                        notMatchedHoldouts: notMatchedHoldouts,
+                        holdoutPayloads: holdoutPayloads,
+                    }];
+            }
+        });
+    });
+}
+/**
+ * Sends network calls for not in holdouts that are applicable but not stored in storage.
+ * @param serviceContainer - The service container.
+ * @param feature - The feature model.
+ * @param context - The context model.
+ * @param storedData - The stored data.
+ * @param storageService - The storage service.
+ */
+function sendNetworkCallsForNotInHoldouts(serviceContainer, feature, context, decision, storedData, storageService) {
+    return __awaiter(this, void 0, void 0, function () {
+        var applicableHoldouts, updatedNotInHoldoutIds, isInHoldoutIds, batchPayload, initialNotInHoldoutCount, _i, applicableHoldouts_2, holdout, payload, response;
+        var _a, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    applicableHoldouts = getApplicableHoldouts(serviceContainer.getSettings(), feature.getId());
+                    updatedNotInHoldoutIds = __spreadArray([], ((_a = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _a !== void 0 ? _a : []), true);
+                    isInHoldoutIds = __spreadArray([], ((_b = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _b !== void 0 ? _b : []), true);
+                    batchPayload = [];
+                    initialNotInHoldoutCount = updatedNotInHoldoutIds.length;
+                    if (applicableHoldouts.length > 0) {
+                        decision.isHoldoutPresent = true;
+                    }
+                    _i = 0, applicableHoldouts_2 = applicableHoldouts;
+                    _c.label = 1;
+                case 1:
+                    if (!(_i < applicableHoldouts_2.length)) return [3 /*break*/, 6];
+                    holdout = applicableHoldouts_2[_i];
+                    if (!(!(updatedNotInHoldoutIds === null || updatedNotInHoldoutIds === void 0 ? void 0 : updatedNotInHoldoutIds.includes(holdout.getId())) && !(isInHoldoutIds === null || isInHoldoutIds === void 0 ? void 0 : isInHoldoutIds.includes(holdout.getId())))) return [3 /*break*/, 5];
+                    //update the holdout ids in storage
+                    updatedNotInHoldoutIds.push(holdout.getId());
+                    payload = (0, NetworkUtil_1.createHoldoutPayload)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, holdout.getId(), index_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT, context, feature.getId());
+                    if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 4];
+                    response = (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, holdout.getId(), index_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT, context, feature.getKey(), payload);
+                    if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                    return [4 /*yield*/, response];
+                case 2:
+                    _c.sent();
+                    _c.label = 3;
+                case 3: return [3 /*break*/, 5];
+                case 4:
+                    if (payload != null) {
+                        batchPayload.push(payload);
+                    }
+                    _c.label = 5;
+                case 5:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 6:
+                    if (updatedNotInHoldoutIds.length > initialNotInHoldoutCount) {
+                        new StorageDecorator_1.StorageDecorator().setDataInStorage({ featureKey: feature.getKey(), context: context, notInHoldoutId: updatedNotInHoldoutIds }, storageService, serviceContainer);
+                    }
+                    if (!(batchPayload.length > 0)) return [3 /*break*/, 9];
+                    if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 8];
+                    return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload)];
+                case 7:
+                    _c.sent();
+                    return [3 /*break*/, 9];
+                case 8:
+                    (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload);
+                    _c.label = 9;
+                case 9: return [2 /*return*/, updatedNotInHoldoutIds];
+            }
+        });
+    });
 }
 
 
@@ -10828,12 +11553,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createAndSendImpressionForVariationShown = void 0;
+exports.sendImpressionForVariationShownInBatch = exports.sendImpressionForVariationShown = void 0;
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./lib/utils/CampaignUtil.ts");
 var CampaignUtil_2 = __webpack_require__(/*! ./CampaignUtil */ "./lib/utils/CampaignUtil.ts");
 var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
+var BatchEventsDispatcher_1 = __webpack_require__(/*! ./BatchEventsDispatcher */ "./lib/utils/BatchEventsDispatcher.ts");
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -10844,14 +11570,13 @@ var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-var createAndSendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey) { return __awaiter(void 0, void 0, void 0, function () {
-    var properties, payload, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
+var sendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey, payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var properties, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
                 context.getIpAddress());
-                payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaignId, variationId, context);
                 campaignKeyWithFeatureName = (0, CampaignUtil_1.getCampaignKeyFromCampaignId)(serviceContainer.getSettings(), campaignId);
                 variationName = (0, CampaignUtil_2.getVariationNameFromCampaignIdAndVariationId)(serviceContainer.getSettings(), campaignId, variationId);
                 campaignKey = '';
@@ -10876,7 +11601,37 @@ var createAndSendImpressionForVariationShown = function (serviceContainer, campa
         }
     });
 }); };
-exports.createAndSendImpressionForVariationShown = createAndSendImpressionForVariationShown;
+exports.sendImpressionForVariationShown = sendImpressionForVariationShown;
+/**
+ * Sends an impression for a variation shown event in batch.
+ * This function constructs the necessary properties and payload for the event
+ * and uses the NetworkUtil to send a POST API request.
+ *
+ * @param {any[]} payloads - The payloads to send.
+ * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {string} featureKey - The feature key.
+ */
+var sendImpressionForVariationShownInBatch = function (serviceContainer, payloads) { return __awaiter(void 0, void 0, void 0, function () {
+    var _i, payloads_1, payload;
+    return __generator(this, function (_a) {
+        if (serviceContainer.getBatchEventsQueue()) {
+            for (_i = 0, payloads_1 = payloads; _i < payloads_1.length; _i++) {
+                payload = payloads_1[_i];
+                serviceContainer.getBatchEventsQueue().enqueue(payload);
+            }
+        }
+        else {
+            BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch(serviceContainer, { ev: payloads }, function () { }, {
+                a: serviceContainer.getSettingsService().accountId,
+                env: serviceContainer.getSettingsService().sdkKey,
+                sn: constants_1.Constants.SDK_NAME,
+                sv: constants_1.Constants.SDK_VERSION,
+            });
+        }
+        return [2 /*return*/];
+    });
+}); };
+exports.sendImpressionForVariationShownInBatch = sendImpressionForVariationShownInBatch;
 
 
 /***/ }),
@@ -11016,6 +11771,7 @@ var RuleEvaluationUtil_1 = __webpack_require__(/*! ../utils/RuleEvaluationUtil *
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./lib/utils/CampaignUtil.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var DecisionUtil_1 = __webpack_require__(/*! ./DecisionUtil */ "./lib/utils/DecisionUtil.ts");
+var HoldoutUtil_1 = __webpack_require__(/*! ./HoldoutUtil */ "./lib/utils/HoldoutUtil.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./lib/utils/FunctionUtil.ts");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 /**
@@ -11031,25 +11787,56 @@ var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/
  */
 var evaluateGroups = function (serviceContainer, feature, groupId, evaluatedFeatureMap, context, storageService) { return __awaiter(void 0, void 0, void 0, function () {
     var featureToSkip, campaignMap, _a, featureKeys, groupCampaignIds, _loop_1, _i, featureKeys_1, featureKey, _b, eligibleCampaigns, eligibleCampaignsWithStorage;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
                 featureToSkip = [];
                 campaignMap = new Map();
                 _a = getFeatureKeysFromGroup(serviceContainer.getSettings(), groupId), featureKeys = _a.featureKeys, groupCampaignIds = _a.groupCampaignIds;
                 _loop_1 = function (featureKey) {
-                    var feature_1, isRolloutRulePassed;
-                    return __generator(this, function (_d) {
-                        switch (_d.label) {
+                    var feature_1, storedData, storedIsInHoldoutId, matchedHoldouts, qualifiedHoldoutIds, isRolloutRulePassed;
+                    return __generator(this, function (_e) {
+                        switch (_e.label) {
                             case 0:
                                 feature_1 = (0, FunctionUtil_1.getFeatureFromKey)(serviceContainer.getSettings(), featureKey);
                                 // check if the feature is already evaluated
                                 if (featureToSkip.includes(featureKey)) {
                                     return [2 /*return*/, "continue"];
                                 }
-                                return [4 /*yield*/, _isRolloutRuleForFeaturePassed(serviceContainer, feature_1, evaluatedFeatureMap, featureToSkip, storageService, context)];
+                                return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer)];
                             case 1:
-                                isRolloutRulePassed = _d.sent();
+                                storedData = _e.sent();
+                                storedIsInHoldoutId = (_c = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _c !== void 0 ? _c : storedData === null || storedData === void 0 ? void 0 : storedData.holdoutGroupId;
+                                if (storedIsInHoldoutId && ((0, DataTypeUtil_1.isArray)(storedIsInHoldoutId) ? storedIsInHoldoutId.length > 0 : true)) {
+                                    featureToSkip.push(featureKey);
+                                    serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.PART_OF_HOLDOUT_IN_MEG, {
+                                        featureKey: featureKey,
+                                        holdoutId: storedIsInHoldoutId,
+                                        userId: context.getId(),
+                                    }));
+                                    return [2 /*return*/, "continue"];
+                                }
+                                return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature_1, context, storedData)];
+                            case 2:
+                                matchedHoldouts = (_e.sent()).matchedHoldouts;
+                                if (!(matchedHoldouts !== null && matchedHoldouts.length > 0)) return [3 /*break*/, 3];
+                                featureToSkip.push(featureKey);
+                                qualifiedHoldoutIds = matchedHoldouts.map(function (holdout) { return holdout.getId(); }).join(',');
+                                new StorageDecorator_1.StorageDecorator().setDataInStorage({
+                                    featureKey: featureKey,
+                                    context: context,
+                                    isInHoldoutId: matchedHoldouts.map(function (holdout) { return holdout.getId(); }),
+                                }, storageService, serviceContainer);
+                                serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.PART_OF_HOLDOUT_IN_MEG, {
+                                    featureKey: featureKey,
+                                    holdoutId: qualifiedHoldoutIds,
+                                    userId: context.getId(),
+                                }));
+                                return [3 /*break*/, 5];
+                            case 3: return [4 /*yield*/, _isRolloutRuleForFeaturePassed(serviceContainer, feature_1, evaluatedFeatureMap, featureToSkip, storageService, context)];
+                            case 4:
+                                isRolloutRulePassed = _e.sent();
                                 if (isRolloutRulePassed) {
                                     serviceContainer
                                         .getSettings()
@@ -11071,27 +11858,28 @@ var evaluateGroups = function (serviceContainer, feature, groupId, evaluatedFeat
                                         }
                                     });
                                 }
-                                return [2 /*return*/];
+                                _e.label = 5;
+                            case 5: return [2 /*return*/];
                         }
                     });
                 };
                 _i = 0, featureKeys_1 = featureKeys;
-                _c.label = 1;
+                _d.label = 1;
             case 1:
                 if (!(_i < featureKeys_1.length)) return [3 /*break*/, 4];
                 featureKey = featureKeys_1[_i];
                 return [5 /*yield**/, _loop_1(featureKey)];
             case 2:
-                _c.sent();
-                _c.label = 3;
+                _d.sent();
+                _d.label = 3;
             case 3:
                 _i++;
                 return [3 /*break*/, 1];
             case 4: return [4 /*yield*/, _getEligbleCampaigns(serviceContainer, campaignMap, context, storageService)];
             case 5:
-                _b = _c.sent(), eligibleCampaigns = _b.eligibleCampaigns, eligibleCampaignsWithStorage = _b.eligibleCampaignsWithStorage;
+                _b = _d.sent(), eligibleCampaigns = _b.eligibleCampaigns, eligibleCampaignsWithStorage = _b.eligibleCampaignsWithStorage;
                 return [4 /*yield*/, _findWinnerCampaignAmongEligibleCampaigns(serviceContainer, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService)];
-            case 6: return [2 /*return*/, _c.sent()];
+            case 6: return [2 /*return*/, _d.sent()];
         }
     });
 }); };
@@ -11543,6 +12331,7 @@ exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
 exports.getDebuggerEventPayload = getDebuggerEventPayload;
 exports.sendEvent = sendEvent;
 exports.createNetWorkAndRetryDebugEvent = createNetWorkAndRetryDebugEvent;
+exports.createHoldoutPayload = createHoldoutPayload;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -11644,6 +12433,13 @@ function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, i
     else {
         // set account id for internal usage stats event
         properties.a = usageStatsAccountId;
+    }
+    // if browser environment, then add the user agent and ip address to the properties
+    if (typeof window !== 'undefined') {
+        // use typeof check so referencing `window` stays safe in non-browser environments
+        // add the dh (default header) to the properties
+        // true means - ignore custom ua and ip address and fetch it from http request
+        properties.dh = 1;
     }
     return properties;
 }
@@ -12119,6 +12915,26 @@ function createNetWorkAndRetryDebugEvent(response, payload, apiName, extraData) 
         };
     }
 }
+/**
+ * Creates payload for holdout variation shown event.
+ * Similar to getTrackUserPayloadData but specifically for holdouts.
+ * @param {SettingsModel} settings - The settings model containing configuration.
+ * @param {string} eventName - The event name.
+ * @param {number} holdoutId - The holdout ID (used as campaignId).
+ * @param {number} variationId - The variation ID (1 if IN holdout, 2 if NOT IN holdout).
+ * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {number} featureId - The feature ID.
+ * @returns {Record<string, any>} - The holdout payload data.
+ */
+function createHoldoutPayload(serviceContainer, eventName, holdoutId, variationId, context, featureId) {
+    var userId = context.getId();
+    var properties = _getEventBasePayload(serviceContainer.getSettingsService(), userId, eventName, context === null || context === void 0 ? void 0 : context.getUserAgent(), context === null || context === void 0 ? void 0 : context.getIpAddress());
+    properties.d.event.props.id = holdoutId;
+    properties.d.event.props.variation = variationId;
+    properties.d.event.props.isFirst = 1;
+    properties.d.event.props.fId = featureId;
+    return properties;
+}
 
 
 /***/ }),
@@ -12199,7 +13015,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.evaluateRule = void 0;
 var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var DecisionUtil_1 = __webpack_require__(/*! ./DecisionUtil */ "./lib/utils/DecisionUtil.ts");
-var ImpressionUtil_1 = __webpack_require__(/*! ./ImpressionUtil */ "./lib/utils/ImpressionUtil.ts");
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
 /**
  * Evaluates the rules for a given campaign and feature based on the provided context.
  * This function checks for whitelisting and pre-segmentation conditions, and if applicable,
@@ -12217,30 +13034,27 @@ var ImpressionUtil_1 = __webpack_require__(/*! ./ImpressionUtil */ "./lib/utils/
  * and the whitelisted object, if any.
  */
 var evaluateRule = function (serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, preSegmentationResult, whitelistedObject;
+    var payload, _a, preSegmentationResult, whitelistedObject;
     return __generator(this, function (_b) {
         switch (_b.label) {
-            case 0: return [4 /*yield*/, (0, DecisionUtil_1.checkWhitelistingAndPreSeg)(serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
+            case 0:
+                payload = null;
+                return [4 /*yield*/, (0, DecisionUtil_1.checkWhitelistingAndPreSeg)(serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
             case 1:
                 _a = _b.sent(), preSegmentationResult = _a[0], whitelistedObject = _a[1];
-                if (!(preSegmentationResult && (0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0)) return [3 /*break*/, 4];
-                // Update the decision object with campaign and variation details
-                Object.assign(decision, {
-                    experimentId: campaign.getId(),
-                    experimentKey: campaign.getKey(),
-                    experimentVariationId: whitelistedObject.variationId,
-                });
-                if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
-                return [4 /*yield*/, (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey())];
-            case 2:
-                _b.sent();
-                return [3 /*break*/, 4];
-            case 3:
-                (0, ImpressionUtil_1.createAndSendImpressionForVariationShown)(serviceContainer, campaign.getId(), whitelistedObject.variation.id, context, feature.getKey());
-                _b.label = 4;
-            case 4: 
-            // Return the results of the evaluation
-            return [2 /*return*/, { preSegmentationResult: preSegmentationResult, whitelistedObject: whitelistedObject, updatedDecision: decision }];
+                // If pre-segmentation is successful and a whitelisted object exists, proceed to send an impression
+                if (preSegmentationResult && (0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0) {
+                    // Update the decision object with campaign and variation details
+                    Object.assign(decision, {
+                        experimentId: campaign.getId(),
+                        experimentKey: campaign.getKey(),
+                        experimentVariationId: whitelistedObject.variationId,
+                    });
+                    // Send an impression for the variation shown
+                    payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaign.getId(), whitelistedObject.variation.id, context);
+                }
+                // Return the results of the evaluation
+                return [2 /*return*/, { preSegmentationResult: preSegmentationResult, whitelistedObject: whitelistedObject, updatedDecision: decision, payload: payload }];
         }
     });
 }); };
@@ -15182,7 +15996,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty, nothing to flush","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}","WEB_UUID_FOUND":"VWO Web Testing identified UUID {uuid} as the Context ID for API {apiName}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"VWO {service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown(VWO standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}(VWO internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty, nothing to flush","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}","WEB_UUID_FOUND":"VWO Web Testing UUID {uuid} identified as the Context ID for API {apiName}","HOLDOUT_SEGMENTATION_FAIL":"User ID: {userId} does not qualify segmentation for Holdout: {holdoutGroupName}","HOLDOUT_SHOULD_NOT_EXCLUDE_USER":"User ID: {userId} is not part of Holdout: {holdoutGroupName} for feature: {featureId}","PART_OF_HOLDOUT_IN_MEG":"MEG: User ID:{userId} is part of holdout: {holdoutId} for feature: {featureKey}","HOLDOUT_SKIP_EVALUATION":"Skip holdout reevaluation for holdout ID: {holdoutId} because {reason}"}');
 
 /***/ }),
 
@@ -15193,7 +16007,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Failed to read data from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","ERROR_STORING_SETTINGS_IN_STORAGE":"Failed to store settings in storage. Error: {err}","ERROR_READING_SETTINGS_FROM_STORAGE":"Failed to read settings from storage. Error: {err}","ERROR_STORING_FRESH_SETTINGS_IN_STORAGE":"Failed to store latest settings in storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Failed to fetch data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API","ERROR_INITIALIZING_FETCH":"Failed to initialize the fetch API. Details: {error}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. VWO client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Failed to read data from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","ERROR_STORING_SETTINGS_IN_STORAGE":"Failed to store settings in storage. Error: {err}","ERROR_READING_SETTINGS_FROM_STORAGE":"Failed to read settings from storage. Error: {err}","ERROR_STORING_FRESH_SETTINGS_IN_STORAGE":"Failed to store latest settings in storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for VWO Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","ERROR_FETCHING_DATA_FROM_GATEWAY":"Failed to fetch data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API","ERROR_INITIALIZING_FETCH":"Failed to initialize the fetch API. Error: {error}","INVALID_NETWORK_TRANSPORT_MODE":"Invalid network transport mode. Expected one of: {validModes}. Received: {networkTransportMode}. Falling back to default mode: {defaultMode}","SEND_BEACON_ERROR":"Failed to send sendBeacon request to VWO. Error: {err}"}');
 
 /***/ }),
 
@@ -15215,7 +16029,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: VWO-SD
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings not matches with the provided sdk-key/account-id. Fetching latest settings from the server","SETTINGS_EXPIRED":"Cached settings expired. Fetching latest settings from server","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings retrieved from storage","SETTINGS_SUCCESSFULLY_STORED":"Settings successfully stored in storage","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings updated with latest settings fetched from the server","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled in the init options","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments was missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events couldn\\"t be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: VWO-SDK {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: VWO-SDK {date} VWO settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new VWO client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new VWO client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings not matches with the provided sdk-key/account-id. Fetching latest settings from the server","SETTINGS_EXPIRED":"Cached settings expired. Fetching latest settings from server","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings retrieved from storage","SETTINGS_SUCCESSFULLY_STORED":"Settings successfully stored in storage","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings updated with latest settings fetched from the server","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled in the init options","CLIENT_INITIALIZED":"VWO Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments were missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current VWO client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by VWO having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events could not be received by VWO. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","STORED_HOLDOUT_DECISION_FOUND":"User: {userId} already part of holdout with ID:{holdoutId} for feature: {featureKey}","HOLDOUT_SHOULD_EXCLUDE_USER":"User: {userId} ({bucketValue}%) is in holdout: {holdoutGroupName} with targeted traffic percent: {percentTraffic}% for feature ID: {featureId}","USER_IN_HOLDOUT_GROUP":"User: {userId} is in holdout group: {holdoutGroupName} for feature {featureKey}. Feature not evaluated","USER_NOT_EXCLUDED_DUE_TO_HOLDOUT":"User ID:{userId} is not excluded from feature:{featureKey} due to any holdout groups","HOLDOUT_SEGMENTATION_SKIP":"No segments found for holdout: {holdoutId} and user ID: {userId}. Hence skipping segmentation"}');
 
 /***/ }),
 
@@ -15299,7 +16113,7 @@ var exports = __webpack_exports__;
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getUUID = exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
+exports.NetworkTransportModeEnum = exports.getUUID = exports.Flag = exports.StorageConnector = exports.LogLevelEnum = exports.onInit = exports.init = void 0;
 var LogLevelEnum_1 = __webpack_require__(/*! ./packages/logger/enums/LogLevelEnum */ "./lib/packages/logger/enums/LogLevelEnum.ts");
 Object.defineProperty(exports, "LogLevelEnum", ({ enumerable: true, get: function () { return LogLevelEnum_1.LogLevelEnum; } }));
 var Connector_1 = __webpack_require__(/*! ./packages/storage/Connector */ "./lib/packages/storage/Connector.ts");
@@ -15308,6 +16122,8 @@ var GetFlag_1 = __webpack_require__(/*! ./api/GetFlag */ "./lib/api/GetFlag.ts")
 Object.defineProperty(exports, "Flag", ({ enumerable: true, get: function () { return GetFlag_1.Flag; } }));
 var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./lib/utils/UuidUtil.ts");
 Object.defineProperty(exports, "getUUID", ({ enumerable: true, get: function () { return UuidUtil_1.getUUID; } }));
+var NetworkTransportModeEnum_1 = __webpack_require__(/*! ./enums/NetworkTransportModeEnum */ "./lib/enums/NetworkTransportModeEnum.ts");
+Object.defineProperty(exports, "NetworkTransportModeEnum", ({ enumerable: true, get: function () { return NetworkTransportModeEnum_1.NetworkTransportModeEnum; } }));
 var VWO_1 = __webpack_require__(/*! ./VWO */ "./lib/VWO.ts");
 Object.defineProperty(exports, "init", ({ enumerable: true, get: function () { return VWO_1.init; } }));
 Object.defineProperty(exports, "onInit", ({ enumerable: true, get: function () { return VWO_1.onInit; } }));

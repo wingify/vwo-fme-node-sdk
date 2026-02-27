@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { ContextModel } from '../models/user/ContextModel';
-import { ServiceContainer } from '../services/ServiceContainer';
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -25,10 +24,21 @@ import { ServiceContainer } from '../services/ServiceContainer';
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-export declare const createAndSendImpressionForVariationShown: (
-  serviceContainer: ServiceContainer,
+export declare const sendImpressionForVariationShown: (
+  serviceContainer: any,
   campaignId: number,
   variationId: number,
   context: ContextModel,
   featureKey: string,
+  payload: any,
 ) => Promise<void>;
+/**
+ * Sends an impression for a variation shown event in batch.
+ * This function constructs the necessary properties and payload for the event
+ * and uses the NetworkUtil to send a POST API request.
+ *
+ * @param {any[]} payloads - The payloads to send.
+ * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {string} featureKey - The feature key.
+ */
+export declare const sendImpressionForVariationShownInBatch: (serviceContainer: any, payloads: any[]) => Promise<void>;

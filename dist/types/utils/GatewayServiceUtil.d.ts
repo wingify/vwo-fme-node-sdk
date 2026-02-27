@@ -21,7 +21,7 @@ export declare function getFromGatewayService(
  */
 export declare function getQueryParams(queryParams: Record<string, string | number>): Record<string, string>;
 /**
- * Adds isGatewayServiceRequired flag to each feature in the settings based on pre segmentation.
- * @param {any} settings - The settings file to modify.
+ * Adds isGatewayServiceRequired flag to each feature and holdout in the settings based on pre segmentation.
+ * @param settings - The settings file to modify.
  */
 export declare function addIsGatewayServiceRequiredFlag(settings: SettingsModel): void;

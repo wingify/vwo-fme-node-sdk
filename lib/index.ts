@@ -22,9 +22,11 @@ import { IVWOClient } from './VWOClient';
 import { IVWOContextModel } from './models/user/ContextModel';
 import { Flag } from './api/GetFlag';
 import { getUUID } from './utils/UuidUtil';
+import { NetworkTransportModeEnum } from './enums/NetworkTransportModeEnum';
 
 export { init, onInit } from './VWO';
 export { LogLevelEnum, Connector as StorageConnector, ISettingsData };
 export { IVWOOptions, IVWOClient, IVWOContextModel, Flag, getUUID };
 export { ClientStorageOptions } from './packages/storage/connectors/BrowserStorageConnector';
 export { IRetryConfig } from './packages/network-layer/client/NetworkClient';
+export { NetworkTransportModeEnum };

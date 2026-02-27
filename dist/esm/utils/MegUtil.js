@@ -16,15 +16,16 @@
 import { Constants } from '../constants/index.js';
 import { StorageDecorator } from '../decorators/StorageDecorator.js';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum.js';
-import { InfoLogMessagesEnum } from '../enums/log-messages/index.js';
+import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages/index.js';
 import { CampaignModel } from '../models/campaign/CampaignModel.js';
 import { VariationModel } from '../models/campaign/VariationModel.js';
 import { DecisionMaker } from '../packages/decision-maker/index.js';
 import { CampaignDecisionService } from '../services/CampaignDecisionService.js';
 import { evaluateRule } from '../utils/RuleEvaluationUtil.js';
 import { getBucketingSeed, getCampaignIdsFromFeatureKey, getCampaignsByGroupId, getFeatureKeysFromCampaignIds, getVariationFromCampaignKey, setCampaignAllocation, } from './CampaignUtil.js';
-import { isObject, isUndefined } from './DataTypeUtil.js';
+import { isArray, isObject, isUndefined } from './DataTypeUtil.js';
 import { evaluateTrafficAndGetVariation } from './DecisionUtil.js';
+import { getMatchedHoldouts } from './HoldoutUtil.js';
 import { cloneObject, getFeatureFromKey, getSpecificRulesBasedOnType } from './FunctionUtil.js';
 import { buildMessage } from './LogMessageUtil.js';
 /**
@@ -49,28 +50,56 @@ export const evaluateGroups = async (serviceContainer, feature, groupId, evaluat
         if (featureToSkip.includes(featureKey)) {
             continue;
         }
-        // evaluate the feature rollout rules
-        const isRolloutRulePassed = await _isRolloutRuleForFeaturePassed(serviceContainer, feature, evaluatedFeatureMap, featureToSkip, storageService, context);
-        if (isRolloutRulePassed) {
-            serviceContainer
-                .getSettings()
-                .getFeatures()
-                .forEach((feature) => {
-                if (feature.getKey() === featureKey) {
-                    feature.getRulesLinkedCampaign().forEach((rule) => {
-                        if (groupCampaignIds.includes(rule.getId().toString()) ||
-                            groupCampaignIds.includes(`${rule.getId()}_${rule.getVariations()[0].getId()}`.toString())) {
-                            if (!campaignMap.has(featureKey)) {
-                                campaignMap.set(featureKey, []);
+        const storedData = await new StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer);
+        const storedIsInHoldoutId = storedData?.isInHoldoutId ?? storedData?.holdoutGroupId;
+        if (storedIsInHoldoutId && (isArray(storedIsInHoldoutId) ? storedIsInHoldoutId.length > 0 : true)) {
+            featureToSkip.push(featureKey);
+            serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.PART_OF_HOLDOUT_IN_MEG, {
+                featureKey: featureKey,
+                holdoutId: storedIsInHoldoutId,
+                userId: context.getId(),
+            }));
+            continue;
+        }
+        const { matchedHoldouts } = await getMatchedHoldouts(serviceContainer, feature, context, storedData);
+        if (matchedHoldouts !== null && matchedHoldouts.length > 0) {
+            featureToSkip.push(featureKey);
+            const qualifiedHoldoutIds = matchedHoldouts.map((holdout) => holdout.getId()).join(',');
+            new StorageDecorator().setDataInStorage({
+                featureKey,
+                context,
+                isInHoldoutId: matchedHoldouts.map((holdout) => holdout.getId()),
+            }, storageService, serviceContainer);
+            serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.PART_OF_HOLDOUT_IN_MEG, {
+                featureKey: featureKey,
+                holdoutId: qualifiedHoldoutIds,
+                userId: context.getId(),
+            }));
+        }
+        else {
+            // evaluate the feature rollout rules
+            const isRolloutRulePassed = await _isRolloutRuleForFeaturePassed(serviceContainer, feature, evaluatedFeatureMap, featureToSkip, storageService, context);
+            if (isRolloutRulePassed) {
+                serviceContainer
+                    .getSettings()
+                    .getFeatures()
+                    .forEach((feature) => {
+                    if (feature.getKey() === featureKey) {
+                        feature.getRulesLinkedCampaign().forEach((rule) => {
+                            if (groupCampaignIds.includes(rule.getId().toString()) ||
+                                groupCampaignIds.includes(`${rule.getId()}_${rule.getVariations()[0].getId()}`.toString())) {
+                                if (!campaignMap.has(featureKey)) {
+                                    campaignMap.set(featureKey, []);
+                                }
+                                // check if the campaign is already present in the campaignMap for the feature
+                                if (campaignMap.get(featureKey).findIndex((item) => item.ruleKey === rule.getRuleKey()) === -1) {
+                                    campaignMap.get(featureKey).push(rule);
+                                }
                             }
-                            // check if the campaign is already present in the campaignMap for the feature
-                            if (campaignMap.get(featureKey).findIndex((item) => item.ruleKey === rule.getRuleKey()) === -1) {
-                                campaignMap.get(featureKey).push(rule);
-                            }
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
+            }
         }
     }
     const { eligibleCampaigns, eligibleCampaignsWithStorage } = await _getEligbleCampaigns(serviceContainer, campaignMap, context, storageService);

@@ -29,6 +29,7 @@ import { buildMessage } from '../../../utils/LogMessageUtil';
 import { DebugLogMessagesEnum } from '../../../enums/log-messages';
 import { HTTPS_PROTOCOL } from '../../../constants/Url';
 import { ServiceContainer } from '../../../services/ServiceContainer';
+import { NetworkTransportModeEnum } from '../../../enums/NetworkTransportModeEnum';
 
 export class NetworkManager {
   private config: GlobalRequestModel; // Holds the global configuration for network requests
@@ -43,6 +44,7 @@ export class NetworkManager {
     client?: NetworkClientInterface,
     retryConfig?: IRetryConfig,
     shouldWaitForTrackingCalls: boolean = false,
+    networkTransportMode: NetworkTransportModeEnum = NetworkTransportModeEnum.SEND_BEACON,
   ) {
     this.logManager = logManager;
 
@@ -73,14 +75,8 @@ export class NetworkManager {
       if (typeof XMLHttpRequest === 'undefined') {
         this.client = client || new NetworkServerLessClient(this.logManager);
       } else {
-        this.logManager.debug(
-          buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
-            api: 'xhr',
-            process: 'undefined',
-          }),
-        );
         // if XMLHttpRequest is defined, we are in browser
-        this.client = client || new NetworkBrowserClient(this.logManager); // Use provided client or default to NetworkClient
+        this.client = client || new NetworkBrowserClient(this.logManager, networkTransportMode); // Use provided client or default to NetworkBrowserClient
       }
     } else {
       // if env is defined, we expect to be in Node

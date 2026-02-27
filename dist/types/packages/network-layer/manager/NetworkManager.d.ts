@@ -5,6 +5,7 @@ import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { LogManager } from '../../logger/core/LogManager';
 import { ServiceContainer } from '../../../services/ServiceContainer';
+import { NetworkTransportModeEnum } from '../../../enums/NetworkTransportModeEnum';
 export declare class NetworkManager {
   private config;
   private client;
@@ -17,6 +18,7 @@ export declare class NetworkManager {
     client?: NetworkClientInterface,
     retryConfig?: IRetryConfig,
     shouldWaitForTrackingCalls?: boolean,
+    networkTransportMode?: NetworkTransportModeEnum,
   );
   /**
    * Validates the retry configuration parameters

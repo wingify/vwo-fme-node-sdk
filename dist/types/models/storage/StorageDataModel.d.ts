@@ -23,6 +23,8 @@ export declare class StorageDataModel {
   private experimentId;
   private experimentKey;
   private experimentVariationId;
+  private isInHoldoutId;
+  private notInHoldoutId;
   modelFromDictionary(storageData: StorageDataModel): this;
   getFeatureKey(): string;
   getContext(): ContextModel;
@@ -32,6 +34,8 @@ export declare class StorageDataModel {
   getExperimentId(): number;
   getExperimentKey(): string;
   getExperimentVariationId(): number;
+  getIsInHoldoutId(): string[];
+  getNotInHoldoutId(): string[];
   setFeatureKey(featureKey: string): void;
   setContext(context: ContextModel): void;
   setRolloutId(rolloutId: number): void;

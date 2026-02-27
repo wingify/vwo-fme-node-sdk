@@ -65,6 +65,7 @@ var RuleEvaluationUtil_1 = require("../utils/RuleEvaluationUtil");
 var CampaignUtil_1 = require("./CampaignUtil");
 var DataTypeUtil_1 = require("./DataTypeUtil");
 var DecisionUtil_1 = require("./DecisionUtil");
+var HoldoutUtil_1 = require("./HoldoutUtil");
 var FunctionUtil_1 = require("./FunctionUtil");
 var LogMessageUtil_1 = require("./LogMessageUtil");
 /**
@@ -80,25 +81,56 @@ var LogMessageUtil_1 = require("./LogMessageUtil");
  */
 var evaluateGroups = function (serviceContainer, feature, groupId, evaluatedFeatureMap, context, storageService) { return __awaiter(void 0, void 0, void 0, function () {
     var featureToSkip, campaignMap, _a, featureKeys, groupCampaignIds, _loop_1, _i, featureKeys_1, featureKey, _b, eligibleCampaigns, eligibleCampaignsWithStorage;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
                 featureToSkip = [];
                 campaignMap = new Map();
                 _a = getFeatureKeysFromGroup(serviceContainer.getSettings(), groupId), featureKeys = _a.featureKeys, groupCampaignIds = _a.groupCampaignIds;
                 _loop_1 = function (featureKey) {
-                    var feature_1, isRolloutRulePassed;
-                    return __generator(this, function (_d) {
-                        switch (_d.label) {
+                    var feature_1, storedData, storedIsInHoldoutId, matchedHoldouts, qualifiedHoldoutIds, isRolloutRulePassed;
+                    return __generator(this, function (_e) {
+                        switch (_e.label) {
                             case 0:
                                 feature_1 = (0, FunctionUtil_1.getFeatureFromKey)(serviceContainer.getSettings(), featureKey);
                                 // check if the feature is already evaluated
                                 if (featureToSkip.includes(featureKey)) {
                                     return [2 /*return*/, "continue"];
                                 }
-                                return [4 /*yield*/, _isRolloutRuleForFeaturePassed(serviceContainer, feature_1, evaluatedFeatureMap, featureToSkip, storageService, context)];
+                                return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer)];
                             case 1:
-                                isRolloutRulePassed = _d.sent();
+                                storedData = _e.sent();
+                                storedIsInHoldoutId = (_c = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _c !== void 0 ? _c : storedData === null || storedData === void 0 ? void 0 : storedData.holdoutGroupId;
+                                if (storedIsInHoldoutId && ((0, DataTypeUtil_1.isArray)(storedIsInHoldoutId) ? storedIsInHoldoutId.length > 0 : true)) {
+                                    featureToSkip.push(featureKey);
+                                    serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.PART_OF_HOLDOUT_IN_MEG, {
+                                        featureKey: featureKey,
+                                        holdoutId: storedIsInHoldoutId,
+                                        userId: context.getId(),
+                                    }));
+                                    return [2 /*return*/, "continue"];
+                                }
+                                return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature_1, context, storedData)];
+                            case 2:
+                                matchedHoldouts = (_e.sent()).matchedHoldouts;
+                                if (!(matchedHoldouts !== null && matchedHoldouts.length > 0)) return [3 /*break*/, 3];
+                                featureToSkip.push(featureKey);
+                                qualifiedHoldoutIds = matchedHoldouts.map(function (holdout) { return holdout.getId(); }).join(',');
+                                new StorageDecorator_1.StorageDecorator().setDataInStorage({
+                                    featureKey: featureKey,
+                                    context: context,
+                                    isInHoldoutId: matchedHoldouts.map(function (holdout) { return holdout.getId(); }),
+                                }, storageService, serviceContainer);
+                                serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.PART_OF_HOLDOUT_IN_MEG, {
+                                    featureKey: featureKey,
+                                    holdoutId: qualifiedHoldoutIds,
+                                    userId: context.getId(),
+                                }));
+                                return [3 /*break*/, 5];
+                            case 3: return [4 /*yield*/, _isRolloutRuleForFeaturePassed(serviceContainer, feature_1, evaluatedFeatureMap, featureToSkip, storageService, context)];
+                            case 4:
+                                isRolloutRulePassed = _e.sent();
                                 if (isRolloutRulePassed) {
                                     serviceContainer
                                         .getSettings()
@@ -120,27 +152,28 @@ var evaluateGroups = function (serviceContainer, feature, groupId, evaluatedFeat
                                         }
                                     });
                                 }
-                                return [2 /*return*/];
+                                _e.label = 5;
+                            case 5: return [2 /*return*/];
                         }
                     });
                 };
                 _i = 0, featureKeys_1 = featureKeys;
-                _c.label = 1;
+                _d.label = 1;
             case 1:
                 if (!(_i < featureKeys_1.length)) return [3 /*break*/, 4];
                 featureKey = featureKeys_1[_i];
                 return [5 /*yield**/, _loop_1(featureKey)];
             case 2:
-                _c.sent();
-                _c.label = 3;
+                _d.sent();
+                _d.label = 3;
             case 3:
                 _i++;
                 return [3 /*break*/, 1];
             case 4: return [4 /*yield*/, _getEligbleCampaigns(serviceContainer, campaignMap, context, storageService)];
             case 5:
-                _b = _c.sent(), eligibleCampaigns = _b.eligibleCampaigns, eligibleCampaignsWithStorage = _b.eligibleCampaignsWithStorage;
+                _b = _d.sent(), eligibleCampaigns = _b.eligibleCampaigns, eligibleCampaignsWithStorage = _b.eligibleCampaignsWithStorage;
                 return [4 /*yield*/, _findWinnerCampaignAmongEligibleCampaigns(serviceContainer, feature.getKey(), eligibleCampaigns, eligibleCampaignsWithStorage, groupId, context, storageService)];
-            case 6: return [2 /*return*/, _c.sent()];
+            case 6: return [2 /*return*/, _d.sent()];
         }
     });
 }); };

@@ -15,6 +15,7 @@
  */
 import { CampaignModel } from '../campaign/CampaignModel.js';
 import { FeatureModel } from '../campaign/FeatureModel.js';
+import { HoldoutModel } from '../campaign/HoldoutModel.js';
 export class SettingsModel {
     constructor(settings) {
         this.f = [];
@@ -25,6 +26,7 @@ export class SettingsModel {
         this.cG = {};
         this.groups = {};
         this.g = {};
+        this.holdouts = [];
         this.sdkKey = settings.sK || settings.sdkKey;
         this.accountId = settings.a || settings.accountId;
         this.version = settings.v || settings.version;
@@ -55,6 +57,12 @@ export class SettingsModel {
         }
         if (settings.isWebConnectivityEnabled) {
             this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
+        }
+        if (Array.isArray(settings.holdouts)) {
+            const holdoutsArray = settings.holdouts;
+            holdoutsArray.forEach((holdout) => {
+                this.holdouts.push(new HoldoutModel().modelFromDictionary(holdout));
+            });
         }
         return this;
     }
@@ -93,6 +101,9 @@ export class SettingsModel {
     }
     getIsWebConnectivityEnabled() {
         return this.isWebConnectivityEnabled;
+    }
+    getHoldouts() {
+        return Array.isArray(this.holdouts) ? this.holdouts : [];
     }
 }
 //# sourceMappingURL=SettingsModel.js.map

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { getEventsBaseProperties, getTrackUserPayloadData, sendPostApiRequest } from './NetworkUtil';
+import { getEventsBaseProperties, sendPostApiRequest } from './NetworkUtil';
 import { ContextModel } from '../models/user/ContextModel';
 import { EventEnum } from '../enums/EventEnum';
 import { getCampaignKeyFromCampaignId, getCampaignTypeFromCampaignId } from './CampaignUtil';
 import { getVariationNameFromCampaignIdAndVariationId } from './CampaignUtil';
 import { Constants } from '../constants';
-import { ServiceContainer } from '../services/ServiceContainer';
+import { BatchEventsDispatcher } from './BatchEventsDispatcher';
 
 /**
  * Creates and sends an impression for a variation shown event.
@@ -32,12 +32,13 @@ import { ServiceContainer } from '../services/ServiceContainer';
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
-export const createAndSendImpressionForVariationShown = async (
-  serviceContainer: ServiceContainer,
+export const sendImpressionForVariationShown = async (
+  serviceContainer,
   campaignId: number,
   variationId: number,
   context: ContextModel,
   featureKey: string,
+  payload: any,
 ) => {
   // Get base properties for the event
   const properties = getEventsBaseProperties(
@@ -45,15 +46,6 @@ export const createAndSendImpressionForVariationShown = async (
     EventEnum.VWO_VARIATION_SHOWN,
     encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
     context.getIpAddress(),
-  );
-
-  // Construct payload data for tracking the user
-  const payload = getTrackUserPayloadData(
-    serviceContainer,
-    EventEnum.VWO_VARIATION_SHOWN,
-    campaignId,
-    variationId,
-    context,
   );
 
   const campaignKeyWithFeatureName = getCampaignKeyFromCampaignId(serviceContainer.getSettings(), campaignId);
@@ -82,5 +74,29 @@ export const createAndSendImpressionForVariationShown = async (
       {},
       { campaignKey, variationName, featureKey, campaignType },
     );
+  }
+};
+
+/**
+ * Sends an impression for a variation shown event in batch.
+ * This function constructs the necessary properties and payload for the event
+ * and uses the NetworkUtil to send a POST API request.
+ *
+ * @param {any[]} payloads - The payloads to send.
+ * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {string} featureKey - The feature key.
+ */
+export const sendImpressionForVariationShownInBatch = async (serviceContainer, payloads: any[]) => {
+  if (serviceContainer.getBatchEventsQueue()) {
+    for (const payload of payloads) {
+      serviceContainer.getBatchEventsQueue().enqueue(payload);
+    }
+  } else {
+    BatchEventsDispatcher.dispatch(serviceContainer, { ev: payloads }, () => {}, {
+      a: serviceContainer.getSettingsService().accountId,
+      env: serviceContainer.getSettingsService().sdkKey,
+      sn: Constants.SDK_NAME,
+      sv: Constants.SDK_VERSION,
+    });
   }
 };

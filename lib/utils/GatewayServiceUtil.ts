@@ -126,19 +126,25 @@ export function getQueryParams(queryParams: Record<string, string | number>): Re
 }
 
 /**
- * Adds isGatewayServiceRequired flag to each feature in the settings based on pre segmentation.
- * @param {any} settings - The settings file to modify.
+ * Adds isGatewayServiceRequired flag to each feature and holdout in the settings based on pre segmentation.
+ * @param settings - The settings file to modify.
  */
 export function addIsGatewayServiceRequiredFlag(settings: SettingsModel): void {
   const keywordPattern = /\b(country|region|city|os|device_type|browser_string|ua|browser_version|os_version)\b/g;
   const inlistPattern = /"custom_variable"\s*:\s*{[^}]*inlist\([^)]*\)/g;
 
+  // for FEATURE
   for (const feature of settings.getFeatures()) {
     const rules = feature.getRulesLinkedCampaign();
     for (const rule of rules) {
-      let segments = {};
-      if (rule.getType() === CampaignTypeEnum.PERSONALIZE || rule.getType() === CampaignTypeEnum.ROLLOUT) {
-        segments = rule.getVariations()[0].getSegments();
+      const isRollout = rule.getType() === CampaignTypeEnum.ROLLOUT;
+      const isPersonalize = rule.getType() === CampaignTypeEnum.PERSONALIZE;
+      let segments: Record<string, any> | null = null;
+      if (isRollout || isPersonalize) {
+        const variations = rule.getVariations();
+        if (variations && variations.length > 0) {
+          segments = variations[0].getSegments();
+        }
       } else {
         segments = rule.getSegments();
       }
@@ -150,6 +156,20 @@ export function addIsGatewayServiceRequiredFlag(settings: SettingsModel): void {
           feature.setIsGatewayServiceRequired(true);
           break;
         }
+      }
+    }
+  }
+
+  // for Holdouts
+  for (const holdout of settings.getHoldouts()) {
+    const segments = holdout.getSegments();
+    if (segments) {
+      const jsonSegments = JSON.stringify(segments);
+      const keywordMatches = jsonSegments.match(keywordPattern);
+      const inlistMatches = jsonSegments.match(inlistPattern);
+      if ((keywordMatches && keywordMatches.length > 0) || (inlistMatches && inlistMatches.length > 0)) {
+        holdout.setIsGatewayServiceRequired(true);
+        break;
       }
     }
   }

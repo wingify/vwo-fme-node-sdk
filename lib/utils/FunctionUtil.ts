@@ -133,6 +133,19 @@ export function doesEventBelongToAnyFeature(eventName: string, settings: Setting
 }
 
 /**
+ * Checks if an event exists within any holdout's metrics.
+ * @param {string} eventName - The name of the event to check.
+ * @param {any} settings - The settings containing holdouts.
+ * @returns {boolean} True if the event exists, otherwise false.
+ */
+export function doesEventBelongToAnyHoldout(eventName: string, settings: SettingsModel): boolean {
+  // Use the `some` method to check if any holdout contains the event in its metrics
+  return settings
+    .getHoldouts()
+    .some((holdout) => holdout.getMetrics().some((metric) => metric.getIdentifier() === eventName));
+}
+
+/**
  * Adds linked campaigns to each feature in the settings based on rules.
  * @param {any} settings - The settings file to modify.
  */

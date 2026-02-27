@@ -37,9 +37,11 @@ var NetworkBrowserClient_1 = require("../client/NetworkBrowserClient");
 var LogMessageUtil_1 = require("../../../utils/LogMessageUtil");
 var log_messages_1 = require("../../../enums/log-messages");
 var Url_1 = require("../../../constants/Url");
+var NetworkTransportModeEnum_1 = require("../../../enums/NetworkTransportModeEnum");
 var NetworkManager = /** @class */ (function () {
-    function NetworkManager(logManager, client, retryConfig, shouldWaitForTrackingCalls) {
+    function NetworkManager(logManager, client, retryConfig, shouldWaitForTrackingCalls, networkTransportMode) {
         if (shouldWaitForTrackingCalls === void 0) { shouldWaitForTrackingCalls = false; }
+        if (networkTransportMode === void 0) { networkTransportMode = NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON; }
         this.logManager = logManager;
         // Only set retry configuration if it's not already initialized or if a new config is provided
         if (!this.retryConfig || retryConfig) {
@@ -62,12 +64,8 @@ var NetworkManager = /** @class */ (function () {
                 this.client = client || new NetworkServerLessClient_1.NetworkServerLessClient(this.logManager);
             }
             else {
-                this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
-                    api: 'xhr',
-                    process: 'undefined',
-                }));
                 // if XMLHttpRequest is defined, we are in browser
-                this.client = client || new NetworkBrowserClient_1.NetworkBrowserClient(this.logManager); // Use provided client or default to NetworkClient
+                this.client = client || new NetworkBrowserClient_1.NetworkBrowserClient(this.logManager, networkTransportMode); // Use provided client or default to NetworkBrowserClient
             }
         }
         else {

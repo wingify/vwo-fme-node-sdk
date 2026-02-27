@@ -20,15 +20,25 @@ import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { NetworkClientInterface } from './NetworkClientInterface';
 import { LogManager } from '../../logger';
+import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
+import { buildMessage } from '../../../utils/LogMessageUtil';
+import { DebugLogMessagesEnum } from '../../../enums/log-messages';
+import { isString } from '../../../utils/DataTypeUtil';
+import { NetworkTransportModeEnum } from '../../../enums/NetworkTransportModeEnum';
 
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
 export class NetworkBrowserClient implements NetworkClientInterface {
   private logManager: LogManager;
+  private networkTransportMode: NetworkTransportModeEnum;
 
-  constructor(logManager: LogManager) {
+  constructor(
+    logManager: LogManager,
+    networkTransportMode: NetworkTransportModeEnum = NetworkTransportModeEnum.SEND_BEACON,
+  ) {
     this.logManager = logManager;
+    this.networkTransportMode = networkTransportMode;
   }
   /**
    * Performs a GET request using the provided RequestModel.
@@ -50,52 +60,85 @@ export class NetworkBrowserClient implements NetworkClientInterface {
       },
       this.logManager,
     );
-
-    /*try {
-      fetch(url)
-          .then(res => {
-            // Some endpoints return empty strings as the response body; treat
-            // as raw text and handle potential JSON parsing errors below
-            return res.text().then(text => {
-              let jsonData = {};
-              try {
-                jsonData = JSON.parse(text);
-              } catch (err) {
-                console.info(
-                  `VWO-SDK - [INFO]: VWO didn't send JSON response which is expected: ${err}`
-                );
-              }
-
-              if (res.status === 200) {
-                responseModel.setData(jsonData);
-                deferred.resolve(responseModel);
-              } else {
-                let error = `VWO-SDK - [ERROR]: Request failed for fetching account settings. Got Status Code: ${
-                  res.status
-                }`;
-
-                responseModel.setError(error);
-                deferred.reject(responseModel);
-              }
-            });
-          })
-          .catch(err => {
-            responseModel.setError(err);
-            deferred.reject(responseModel);
-          });
-    } catch (err) {
-      responseModel.setError(err);
-      deferred.reject(responseModel);
-    } */
     return deferred.promise;
   }
 
   /**
-   * Performs a POST request using the provided RequestModel.
+   * Performs a POST request using navigator.sendBeacon. If the request is not queued, it will be performed using XHR.
    * @param {RequestModel} request - The model containing request options.
    * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
    */
   POST(requestModel: RequestModel): Promise<ResponseModel> {
+    const deferred = new Deferred();
+
+    // if networkTransportMode is SEND_BEACON, and navigator.sendBeacon is defined, use beacon
+    // sendBeacon can be undefined for internet explorer 11 - so we will fallback to XHR
+    if (
+      this.networkTransportMode.toLowerCase() !== NetworkTransportModeEnum.XHR.toLowerCase() &&
+      typeof navigator !== 'undefined' && // not using DataTypeUtil.isUndefined because we want to check for the existence of navigator object in non-browser environments
+      typeof navigator.sendBeacon === 'function'
+    ) {
+      const responseModel = new ResponseModel();
+      try {
+        this.logManager.debug(
+          buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+            api: NetworkTransportModeEnum.SEND_BEACON,
+            process: 'undefined',
+          }),
+        );
+        const networkOptions = requestModel.getOptions();
+        let url = `${networkOptions.scheme}://${networkOptions.hostname}${networkOptions.path}`;
+        if (networkOptions.port) {
+          url = `${networkOptions.scheme}://${networkOptions.hostname}:${networkOptions.port}${networkOptions.path}`;
+        }
+        const body = networkOptions.body;
+        const postBody = isString(body) ? body : JSON.stringify(body || {});
+
+        // sendBeacon returns a boolean indicating if the request was queued
+        const queued = navigator.sendBeacon(url, postBody);
+        if (!queued) {
+          // if the request was not queued, fallback to XHR
+          return this.POST_XHR(requestModel);
+        } else {
+          // if the request was queued, resolve the promise with a success response
+          responseModel.setStatusCode(200);
+          responseModel.setData(undefined);
+          deferred.resolve(responseModel);
+          return deferred.promise;
+        }
+      } catch (error) {
+        const err = getFormattedErrorMessage(error);
+        this.logManager.errorLog(
+          'SEND_BEACON_ERROR',
+          {
+            err,
+          },
+          {},
+          false,
+        );
+        responseModel.setStatusCode(0);
+        responseModel.setError(err);
+        deferred.reject(responseModel);
+        return deferred.promise;
+      }
+    } else {
+      this.logManager.debug(
+        buildMessage(DebugLogMessagesEnum.USING_API_WITH_PROCESS, {
+          api: NetworkTransportModeEnum.XHR,
+          process: 'undefined',
+        }),
+      );
+      // if networkTransportMode is not SEND_BEACON, fallback to XHR
+      return this.POST_XHR(requestModel);
+    }
+  }
+
+  /**
+   * Performs a POST request using XHR.
+   * @param {RequestModel} requestModel - The model containing request options.
+   * @returns {Promise<ResponseModel>} A promise that resolves or rejects with a ResponseModel.
+   */
+  POST_XHR(requestModel: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
 
     sendPostCall(
@@ -110,51 +153,6 @@ export class NetworkBrowserClient implements NetworkClientInterface {
       },
       this.logManager,
     );
-
-    /* try {
-      const options: any = Object.assign(
-        {},
-        { method: HttpMethodEnum.POST },
-        { body: networkOptions.body },
-        { headers: networkOptions.headers }
-      );
-
-      fetch(url, options)
-          .then(res => {
-            // Some endpoints return empty strings as the response body; treat
-            // as raw text and handle potential JSON parsing errors below
-            return res.text().then(text => {
-              let jsonData = {};
-              try {
-                jsonData = JSON.parse(text);
-              } catch (err) {
-                console.info(
-                  `VWO-SDK - [INFO]: VWO didn't send JSON response which is expected: ${err}`
-                );
-              }
-
-              if (res.status === 200) {
-                responseModel.setData(jsonData);
-                deferred.resolve(responseModel);
-              } else {
-                let error = `VWO-SDK - [ERROR]: Request failed for fetching account settings. Got Status Code: ${
-                  res.status
-                }`;
-
-                responseModel.setError(error);
-                deferred.reject(responseModel);
-              }
-            });
-          })
-          .catch(err => {
-            responseModel.setError(err);
-            deferred.reject(responseModel);
-          });
-    } catch (err) {
-      responseModel.setError(err);
-      deferred.reject(responseModel);
-    } */
-
     return deferred.promise;
   }
 }

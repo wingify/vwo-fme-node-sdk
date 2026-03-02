@@ -62,6 +62,7 @@ var FunctionUtil_1 = require("../utils/FunctionUtil");
 var ApiEnum_1 = require("../enums/ApiEnum");
 var StorageService_1 = require("./StorageService");
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
+var SDKMetaUtil_1 = require("../utils/SDKMetaUtil");
 var SettingsService = /** @class */ (function () {
     function SettingsService(options, logManager) {
         var _a, _b, _c, _d, _e, _f;
@@ -197,8 +198,8 @@ var SettingsService = /** @class */ (function () {
         var options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
         var retryConfig = this.serviceContainer.getNetworkManager().getRetryConfig();
         options.platform = constants_1.Constants.PLATFORM;
-        options.sn = constants_1.Constants.SDK_NAME;
-        options.sv = constants_1.Constants.SDK_VERSION;
+        options.sn = SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName();
+        options.sv = SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion();
         options['api-version'] = constants_1.Constants.API_VERSION;
         if (!this.serviceContainer.getNetworkManager().getConfig().getDevelopmentMode()) {
             options.s = 'prod';

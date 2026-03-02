@@ -33,6 +33,11 @@ interface INetworkOptions {
   client?: NetworkClientInterface;
 }
 
+export interface ISdkMetaConfig {
+  _vwo_sdkName?: string;
+  _vwo_sdkVersion?: string;
+}
+
 export interface IVWOOptions {
   accountId: string;
   sdkKey: string;
@@ -57,6 +62,7 @@ export interface IVWOOptions {
   isAliasingEnabled?: boolean;
   edgeConfig?: IEdgeConfig;
   browserConfig?: IBrowserConfig;
+  sdkMeta?: ISdkMetaConfig;
 }
 
 export class VWOOptionsModel implements IVWOOptions {
@@ -81,6 +87,7 @@ export class VWOOptionsModel implements IVWOOptions {
   proxyUrl?: string;
   edgeConfig?: IEdgeConfig;
   browserConfig?: IBrowserConfig;
+  sdkMeta?: ISdkMetaConfig;
   modelFromDictionary(options: VWOOptionsModel): this {
     this.accountId = options.accountId;
     this.sdkKey = options.sdkKey;
@@ -148,6 +155,10 @@ export class VWOOptionsModel implements IVWOOptions {
 
     if (options?.browserConfig) {
       this.browserConfig = options.browserConfig;
+    }
+
+    if (options?.sdkMeta) {
+      this.sdkMeta = options.sdkMeta;
     }
 
     return this;
@@ -227,5 +238,29 @@ export class VWOOptionsModel implements IVWOOptions {
 
   getBrowserConfig(): IBrowserConfig {
     return this.browserConfig;
+  }
+
+  /**
+   * Gets the SDK meta.
+   * @returns The SDK meta.
+   */
+  getSdkMeta(): ISdkMetaConfig | undefined {
+    return this.sdkMeta;
+  }
+
+  /**
+   * Gets the SDK name.
+   * @returns The SDK name.
+   */
+  getSdkName(): string | undefined {
+    return this.sdkMeta?._vwo_sdkName;
+  }
+
+  /**
+   * Gets the SDK version.
+   * @returns The SDK version.
+   */
+  getVersion(): string | undefined {
+    return this.sdkMeta?._vwo_sdkVersion;
   }
 }

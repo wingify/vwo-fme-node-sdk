@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.40.0
+ * vwo-fme-node-sdk - v1.40.1
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.40.0"
+  version: "1.40.1"
 };
 
 /***/ }),
@@ -1014,6 +1014,7 @@ var SdkInitAndUsageStatsUtil_1 = __webpack_require__(/*! ./utils/SdkInitAndUsage
 var UsageStatsUtil_1 = __webpack_require__(/*! ./utils/UsageStatsUtil */ "./dist/server-unpacked/utils/UsageStatsUtil.js");
 var StorageService_1 = __webpack_require__(/*! ./services/StorageService */ "./dist/server-unpacked/services/StorageService.js");
 var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./dist/server-unpacked/utils/UuidUtil.js");
+var SDKMetaUtil_1 = __webpack_require__(/*! ./utils/SDKMetaUtil */ "./dist/server-unpacked/utils/SDKMetaUtil.js");
 var VWOClient = /** @class */function () {
   /**
    * Constructor for the VWOClient class.
@@ -1046,6 +1047,8 @@ var VWOClient = /** @class */function () {
       this.vwoClientInstance = this;
       var usageStatsUtil = new UsageStatsUtil_1.UsageStatsUtil(this.options);
       this.sendSdkInitAndUsageStatsEvents(usageStatsUtil);
+      // initialize the sdk meta util
+      new SDKMetaUtil_1.SDKMetaUtil(this.options);
       return this;
     } catch (err) {
       this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
@@ -9132,6 +9135,7 @@ var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/se
 var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var BatchEventsDispatcher_1 = __importDefault(__webpack_require__(/*! ../utils/BatchEventsDispatcher */ "./dist/server-unpacked/utils/BatchEventsDispatcher.js"));
+var SDKMetaUtil_1 = __webpack_require__(/*! ../utils/SDKMetaUtil */ "./dist/server-unpacked/utils/SDKMetaUtil.js");
 var BatchEventsQueue = /** @class */function () {
   /**
    * Constructor for the BatchEventsQueue
@@ -9227,8 +9231,8 @@ var BatchEventsQueue = /** @class */function () {
       }, this.flushCallback, Object.assign({}, {
         a: this.accountId,
         env: this.serviceContainer.getSettingsService().sdkKey,
-        sn: constants_1.Constants.SDK_NAME,
-        sv: constants_1.Constants.SDK_VERSION
+        sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+        sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion()
       })).then(function (result) {
         var _a;
         if (result.status === 'success') {
@@ -10001,6 +10005,7 @@ var FunctionUtil_1 = __webpack_require__(/*! ../utils/FunctionUtil */ "./dist/se
 var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var StorageService_1 = __webpack_require__(/*! ./StorageService */ "./dist/server-unpacked/services/StorageService.js");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var SDKMetaUtil_1 = __webpack_require__(/*! ../utils/SDKMetaUtil */ "./dist/server-unpacked/utils/SDKMetaUtil.js");
 var SettingsService = /** @class */function () {
   function SettingsService(options, logManager) {
     var _a, _b, _c, _d, _e, _f;
@@ -10132,8 +10137,8 @@ var SettingsService = /** @class */function () {
     var options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
     var retryConfig = this.serviceContainer.getNetworkManager().getRetryConfig();
     options.platform = constants_1.Constants.PLATFORM;
-    options.sn = constants_1.Constants.SDK_NAME;
-    options.sv = constants_1.Constants.SDK_VERSION;
+    options.sn = SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName();
+    options.sv = SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion();
     options['api-version'] = constants_1.Constants.API_VERSION;
     if (!this.serviceContainer.getNetworkManager().getConfig().getDevelopmentMode()) {
       options.s = 'prod';
@@ -13799,6 +13804,7 @@ var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-un
 var CampaignUtil_2 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
 var BatchEventsDispatcher_1 = __webpack_require__(/*! ./BatchEventsDispatcher */ "./dist/server-unpacked/utils/BatchEventsDispatcher.js");
+var SDKMetaUtil_1 = __webpack_require__(/*! ./SDKMetaUtil */ "./dist/server-unpacked/utils/SDKMetaUtil.js");
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -13873,8 +13879,8 @@ var sendImpressionForVariationShownInBatch = function (serviceContainer, payload
         }, function () {}, {
           a: serviceContainer.getSettingsService().accountId,
           env: serviceContainer.getSettingsService().sdkKey,
-          sn: constants_1.Constants.SDK_NAME,
-          sv: constants_1.Constants.SDK_VERSION
+          sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+          sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion()
         });
       }
       return [2 /*return*/];
@@ -14770,6 +14776,7 @@ var DebuggerCategoryEnum_1 = __webpack_require__(/*! ../enums/DebuggerCategoryEn
 var DebuggerServiceUtil_1 = __webpack_require__(/*! ./DebuggerServiceUtil */ "./dist/server-unpacked/utils/DebuggerServiceUtil.js");
 var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var CampaignTypeEnum_1 = __webpack_require__(/*! ../enums/CampaignTypeEnum */ "./dist/server-unpacked/enums/CampaignTypeEnum.js");
+var SDKMetaUtil_1 = __webpack_require__(/*! ./SDKMetaUtil */ "./dist/server-unpacked/utils/SDKMetaUtil.js");
 /**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
@@ -14803,9 +14810,9 @@ function getTrackEventPath(event, accountId, userId) {
     // User ID
     u: (0, UuidUtil_1.getUUID)(userId, accountId),
     // UUID generated for the user
-    sdk: constants_1.Constants.SDK_NAME,
+    sdk: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
     // SDK name constant
-    'sdk-v': constants_1.Constants.SDK_VERSION,
+    'sdk-v': SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
     // SDK version
     random: (0, FunctionUtil_1.getRandomNumber)(),
     // Random number for uniqueness
@@ -14850,8 +14857,8 @@ function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, i
     p: 'FS',
     visitor_ua: visitorUserAgent,
     visitor_ip: ipAddress,
-    sn: constants_1.Constants.SDK_NAME,
-    sv: constants_1.Constants.SDK_VERSION
+    sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+    sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion()
   });
   if (!isUsageStatsEvent) {
     // set env key for standard sdk events
@@ -14909,8 +14916,8 @@ function _getEventBasePayload(settingsService, userId, eventName, visitorUserAge
     uuid = userId.toString();
   }
   var props = {
-    vwo_sdkName: constants_1.Constants.SDK_NAME,
-    vwo_sdkVersion: constants_1.Constants.SDK_VERSION
+    vwo_sdkName: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+    vwo_sdkVersion: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion()
   };
   if (!isUsageStatsEvent) {
     // set env key for standard sdk events
@@ -15237,8 +15244,9 @@ function getDebuggerEventPayload(settingsService, eventProps) {
   properties.d.event.props.vwoMeta = __assign(__assign({}, eventProps), {
     a: settingsService.accountId.toString(),
     product: constants_1.Constants.PRODUCT_NAME,
-    sn: constants_1.Constants.SDK_NAME,
-    sv: constants_1.Constants.SDK_VERSION,
+    sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+    sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
+    'src-v': constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION,
     eventId: (0, UuidUtil_1.getRandomUUID)(settingsService.sdkKey)
   });
   return properties;
@@ -15571,6 +15579,81 @@ var evaluateRule = function (serviceContainer, feature, campaign, context, evalu
   });
 };
 exports.evaluateRule = evaluateRule;
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/utils/SDKMetaUtil.js":
+/*!***************************************************!*\
+  !*** ./dist/server-unpacked/utils/SDKMetaUtil.js ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.SDKMetaUtil = void 0;
+var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
+/**
+ * Singleton utility to manage SDK name and version.
+ *
+ * Usage:
+ *   SDKMetaUtil.init(options); // typically during SDK init
+ *   const sdkMetaUtil = SDKMetaUtil.getInstance();
+ *   const name = sdkMetaUtil.getSdkName();
+ *   const version = sdkMetaUtil.getVersion();
+ */
+var SDKMetaUtil = /** @class */function () {
+  function SDKMetaUtil(options) {
+    var _a, _b;
+    var sdkMeta = options === null || options === void 0 ? void 0 : options.sdkMeta;
+    this.sdkName = (_a = sdkMeta === null || sdkMeta === void 0 ? void 0 : sdkMeta._vwo_sdkName) !== null && _a !== void 0 ? _a : constants_1.Constants.SDK_NAME;
+    this.version = (_b = sdkMeta === null || sdkMeta === void 0 ? void 0 : sdkMeta._vwo_sdkVersion) !== null && _b !== void 0 ? _b : constants_1.Constants.SDK_VERSION;
+    SDKMetaUtil.instance = this;
+  }
+  /**
+   * Returns the singleton instance. If not initialized, it initializes it with default constants for sdkName and version.
+   * @returns The singleton instance.
+   */
+  SDKMetaUtil.getInstance = function () {
+    if (!SDKMetaUtil.instance) {
+      SDKMetaUtil.instance = new SDKMetaUtil(null);
+    }
+    return SDKMetaUtil.instance;
+  };
+  SDKMetaUtil.prototype.getSdkName = function () {
+    return this.sdkName;
+  };
+  SDKMetaUtil.prototype.getVersion = function () {
+    return this.version;
+  };
+  SDKMetaUtil.prototype.getMeta = function () {
+    return {
+      sdkName: this.sdkName,
+      version: this.version
+    };
+  };
+  SDKMetaUtil.instance = null;
+  return SDKMetaUtil;
+}();
+exports.SDKMetaUtil = SDKMetaUtil;
 
 /***/ }),
 

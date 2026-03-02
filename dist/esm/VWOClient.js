@@ -18,6 +18,7 @@ import { sendSdkInitEvent, sendSDKUsageStatsEvent } from './utils/SdkInitAndUsag
 import { UsageStatsUtil } from './utils/UsageStatsUtil.js';
 import { StorageService } from './services/StorageService.js';
 import { getUUID, isWebUuid } from './utils/UuidUtil.js';
+import { SDKMetaUtil } from './utils/SDKMetaUtil.js';
 export class VWOClient {
     /**
      * Constructor for the VWOClient class.
@@ -49,6 +50,8 @@ export class VWOClient {
             this.vwoClientInstance = this;
             const usageStatsUtil = new UsageStatsUtil(this.options);
             this.sendSdkInitAndUsageStatsEvents(usageStatsUtil);
+            // initialize the sdk meta util
+            new SDKMetaUtil(this.options);
             return this;
         }
         catch (err) {

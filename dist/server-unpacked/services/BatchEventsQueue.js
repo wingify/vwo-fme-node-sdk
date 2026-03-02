@@ -60,6 +60,7 @@ var DataTypeUtil_1 = require("../utils/DataTypeUtil");
 var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 var log_messages_1 = require("../enums/log-messages");
 var BatchEventsDispatcher_1 = __importDefault(require("../utils/BatchEventsDispatcher"));
+var SDKMetaUtil_1 = require("../utils/SDKMetaUtil");
 var BatchEventsQueue = /** @class */ (function () {
     /**
      * Constructor for the BatchEventsQueue
@@ -156,8 +157,8 @@ var BatchEventsQueue = /** @class */ (function () {
             }, this.flushCallback, Object.assign({}, {
                 a: this.accountId,
                 env: this.serviceContainer.getSettingsService().sdkKey,
-                sn: constants_1.Constants.SDK_NAME,
-                sv: constants_1.Constants.SDK_VERSION,
+                sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+                sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
             }))
                 .then(function (result) {
                 var _a;

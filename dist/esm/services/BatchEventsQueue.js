@@ -18,6 +18,7 @@ import { isNumber, isFunction, isBoolean } from '../utils/DataTypeUtil.js';
 import { buildMessage } from '../utils/LogMessageUtil.js';
 import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages/index.js';
 import BatchEventsDispatcher from '../utils/BatchEventsDispatcher.js';
+import { SDKMetaUtil } from '../utils/SDKMetaUtil.js';
 export class BatchEventsQueue {
     /**
      * Constructor for the BatchEventsQueue
@@ -111,8 +112,8 @@ export class BatchEventsQueue {
             }, this.flushCallback, Object.assign({}, {
                 a: this.accountId,
                 env: this.serviceContainer.getSettingsService().sdkKey,
-                sn: Constants.SDK_NAME,
-                sv: Constants.SDK_VERSION,
+                sn: SDKMetaUtil.getInstance().getSdkName(),
+                sv: SDKMetaUtil.getInstance().getVersion(),
             }))
                 .then((result) => {
                 if (result.status === 'success') {

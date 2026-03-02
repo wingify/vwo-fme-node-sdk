@@ -77,6 +77,9 @@ var VWOOptionsModel = /** @class */ (function () {
         if (options === null || options === void 0 ? void 0 : options.browserConfig) {
             this.browserConfig = options.browserConfig;
         }
+        if (options === null || options === void 0 ? void 0 : options.sdkMeta) {
+            this.sdkMeta = options.sdkMeta;
+        }
         return this;
     };
     VWOOptionsModel.prototype.getAccountId = function () {
@@ -135,6 +138,29 @@ var VWOOptionsModel = /** @class */ (function () {
     };
     VWOOptionsModel.prototype.getBrowserConfig = function () {
         return this.browserConfig;
+    };
+    /**
+     * Gets the SDK meta.
+     * @returns The SDK meta.
+     */
+    VWOOptionsModel.prototype.getSdkMeta = function () {
+        return this.sdkMeta;
+    };
+    /**
+     * Gets the SDK name.
+     * @returns The SDK name.
+     */
+    VWOOptionsModel.prototype.getSdkName = function () {
+        var _a;
+        return (_a = this.sdkMeta) === null || _a === void 0 ? void 0 : _a._vwo_sdkName;
+    };
+    /**
+     * Gets the SDK version.
+     * @returns The SDK version.
+     */
+    VWOOptionsModel.prototype.getVersion = function () {
+        var _a;
+        return (_a = this.sdkMeta) === null || _a === void 0 ? void 0 : _a._vwo_sdkVersion;
     };
     return VWOOptionsModel;
 }());

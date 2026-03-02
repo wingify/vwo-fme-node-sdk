@@ -68,6 +68,7 @@ var SdkInitAndUsageStatsUtil_1 = require("./utils/SdkInitAndUsageStatsUtil");
 var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
 var StorageService_1 = require("./services/StorageService");
 var UuidUtil_1 = require("./utils/UuidUtil");
+var SDKMetaUtil_1 = require("./utils/SDKMetaUtil");
 var VWOClient = /** @class */ (function () {
     /**
      * Constructor for the VWOClient class.
@@ -99,6 +100,8 @@ var VWOClient = /** @class */ (function () {
             this.vwoClientInstance = this;
             var usageStatsUtil = new UsageStatsUtil_1.UsageStatsUtil(this.options);
             this.sendSdkInitAndUsageStatsEvents(usageStatsUtil);
+            // initialize the sdk meta util
+            new SDKMetaUtil_1.SDKMetaUtil(this.options);
             return this;
         }
         catch (err) {

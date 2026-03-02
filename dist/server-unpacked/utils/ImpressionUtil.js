@@ -58,6 +58,7 @@ var CampaignUtil_1 = require("./CampaignUtil");
 var CampaignUtil_2 = require("./CampaignUtil");
 var constants_1 = require("../constants");
 var BatchEventsDispatcher_1 = require("./BatchEventsDispatcher");
+var SDKMetaUtil_1 = require("./SDKMetaUtil");
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -122,8 +123,8 @@ var sendImpressionForVariationShownInBatch = function (serviceContainer, payload
             BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch(serviceContainer, { ev: payloads }, function () { }, {
                 a: serviceContainer.getSettingsService().accountId,
                 env: serviceContainer.getSettingsService().sdkKey,
-                sn: constants_1.Constants.SDK_NAME,
-                sv: constants_1.Constants.SDK_VERSION,
+                sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+                sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
             });
         }
         return [2 /*return*/];

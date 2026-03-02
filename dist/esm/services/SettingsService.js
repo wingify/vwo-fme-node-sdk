@@ -12,6 +12,7 @@ import { getFormattedErrorMessage } from '../utils/FunctionUtil.js';
 import { ApiEnum } from '../enums/ApiEnum.js';
 import { StorageService } from './StorageService.js';
 import { isEmptyObject } from '../utils/DataTypeUtil.js';
+import { SDKMetaUtil } from '../utils/SDKMetaUtil.js';
 export class SettingsService {
     constructor(options, logManager) {
         this.isGatewayServiceProvided = false;
@@ -143,8 +144,8 @@ export class SettingsService {
         const options = getSettingsPath(this.sdkKey, this.accountId);
         const retryConfig = this.serviceContainer.getNetworkManager().getRetryConfig();
         options.platform = Constants.PLATFORM;
-        options.sn = Constants.SDK_NAME;
-        options.sv = Constants.SDK_VERSION;
+        options.sn = SDKMetaUtil.getInstance().getSdkName();
+        options.sv = SDKMetaUtil.getInstance().getVersion();
         options['api-version'] = Constants.API_VERSION;
         if (!this.serviceContainer.getNetworkManager().getConfig().getDevelopmentMode()) {
             options.s = 'prod';

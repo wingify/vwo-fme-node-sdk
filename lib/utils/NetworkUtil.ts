@@ -42,6 +42,7 @@ import { sendDebugEventToVWO } from './DebuggerServiceUtil';
 import { ApiEnum } from '../enums/ApiEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { ServiceContainer } from '../services/ServiceContainer';
+import { SDKMetaUtil } from './SDKMetaUtil';
 
 /**
  * Constructs the settings path with API key and account ID.
@@ -71,8 +72,8 @@ export function getTrackEventPath(event: string, accountId: string, userId: stri
     account_id: accountId, // Account ID
     uId: userId, // User ID
     u: getUUID(userId, accountId), // UUID generated for the user
-    sdk: Constants.SDK_NAME, // SDK name constant
-    'sdk-v': Constants.SDK_VERSION, // SDK version
+    sdk: SDKMetaUtil.getInstance().getSdkName(), // SDK name constant
+    'sdk-v': SDKMetaUtil.getInstance().getVersion(), // SDK version
     random: getRandomNumber(), // Random number for uniqueness
     ap: Constants.PLATFORM, // Application platform
     sId: getCurrentUnixTimestamp(), // Session ID
@@ -108,8 +109,8 @@ export function getEventsBaseProperties(
     p: 'FS',
     visitor_ua: visitorUserAgent,
     visitor_ip: ipAddress,
-    sn: Constants.SDK_NAME,
-    sv: Constants.SDK_VERSION,
+    sn: SDKMetaUtil.getInstance().getSdkName(),
+    sv: SDKMetaUtil.getInstance().getVersion(),
   });
 
   if (!isUsageStatsEvent) {
@@ -177,8 +178,8 @@ export function _getEventBasePayload(
     data?: Record<string, any>;
     product?: string;
   } = {
-    vwo_sdkName: Constants.SDK_NAME,
-    vwo_sdkVersion: Constants.SDK_VERSION,
+    vwo_sdkName: SDKMetaUtil.getInstance().getSdkName(),
+    vwo_sdkVersion: SDKMetaUtil.getInstance().getVersion(),
   };
 
   if (!isUsageStatsEvent) {
@@ -630,8 +631,9 @@ export function getDebuggerEventPayload(
     ...eventProps,
     a: settingsService.accountId.toString(),
     product: Constants.PRODUCT_NAME,
-    sn: Constants.SDK_NAME,
-    sv: Constants.SDK_VERSION,
+    sn: SDKMetaUtil.getInstance().getSdkName(),
+    sv: SDKMetaUtil.getInstance().getVersion(),
+    'src-v': Constants.SDK_NAME + '-' + Constants.SDK_VERSION,
     eventId: getRandomUUID(settingsService.sdkKey),
   };
 

@@ -94,6 +94,7 @@ var DebuggerCategoryEnum_1 = require("../enums/DebuggerCategoryEnum");
 var DebuggerServiceUtil_1 = require("./DebuggerServiceUtil");
 var ApiEnum_1 = require("../enums/ApiEnum");
 var CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
+var SDKMetaUtil_1 = require("./SDKMetaUtil");
 /**
  * Constructs the settings path with API key and account ID.
  * @param {string} sdkKey - The API key.
@@ -121,8 +122,8 @@ function getTrackEventPath(event, accountId, userId) {
         account_id: accountId, // Account ID
         uId: userId, // User ID
         u: (0, UuidUtil_1.getUUID)(userId, accountId), // UUID generated for the user
-        sdk: constants_1.Constants.SDK_NAME, // SDK name constant
-        'sdk-v': constants_1.Constants.SDK_VERSION, // SDK version
+        sdk: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(), // SDK name constant
+        'sdk-v': SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(), // SDK version
         random: (0, FunctionUtil_1.getRandomNumber)(), // Random number for uniqueness
         ap: constants_1.Constants.PLATFORM, // Application platform
         sId: (0, FunctionUtil_1.getCurrentUnixTimestamp)(), // Session ID
@@ -153,8 +154,8 @@ function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, i
         p: 'FS',
         visitor_ua: visitorUserAgent,
         visitor_ip: ipAddress,
-        sn: constants_1.Constants.SDK_NAME,
-        sv: constants_1.Constants.SDK_VERSION,
+        sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+        sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
     });
     if (!isUsageStatsEvent) {
         // set env key for standard sdk events
@@ -204,8 +205,8 @@ function _getEventBasePayload(settingsService, userId, eventName, visitorUserAge
         uuid = userId.toString();
     }
     var props = {
-        vwo_sdkName: constants_1.Constants.SDK_NAME,
-        vwo_sdkVersion: constants_1.Constants.SDK_VERSION,
+        vwo_sdkName: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+        vwo_sdkVersion: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
     };
     if (!isUsageStatsEvent) {
         // set env key for standard sdk events
@@ -536,7 +537,7 @@ function getDebuggerEventPayload(settingsService, eventProps) {
         eventProps.an = EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT;
     }
     // add all debugger props inside vwoMeta
-    properties.d.event.props.vwoMeta = __assign(__assign({}, eventProps), { a: settingsService.accountId.toString(), product: constants_1.Constants.PRODUCT_NAME, sn: constants_1.Constants.SDK_NAME, sv: constants_1.Constants.SDK_VERSION, eventId: (0, UuidUtil_1.getRandomUUID)(settingsService.sdkKey) });
+    properties.d.event.props.vwoMeta = __assign(__assign({}, eventProps), { a: settingsService.accountId.toString(), product: constants_1.Constants.PRODUCT_NAME, sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(), sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(), 'src-v': constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION, eventId: (0, UuidUtil_1.getRandomUUID)(settingsService.sdkKey) });
     return properties;
 }
 /**

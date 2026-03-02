@@ -32,6 +32,7 @@ import { ApiEnum } from '../enums/ApiEnum';
 import { StorageService } from './StorageService';
 import { isEmptyObject } from '../utils/DataTypeUtil';
 import { ServiceContainer } from './ServiceContainer';
+import { SDKMetaUtil } from '../utils/SDKMetaUtil';
 
 interface ISettingsService {
   sdkKey: string;
@@ -193,8 +194,8 @@ export class SettingsService implements ISettingsService {
     const retryConfig = this.serviceContainer.getNetworkManager().getRetryConfig();
 
     options.platform = Constants.PLATFORM;
-    options.sn = Constants.SDK_NAME;
-    options.sv = Constants.SDK_VERSION;
+    options.sn = SDKMetaUtil.getInstance().getSdkName();
+    options.sv = SDKMetaUtil.getInstance().getVersion();
     options['api-version'] = Constants.API_VERSION;
 
     if (!this.serviceContainer.getNetworkManager().getConfig().getDevelopmentMode()) {

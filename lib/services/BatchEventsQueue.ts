@@ -21,6 +21,7 @@ import { buildMessage } from '../utils/LogMessageUtil';
 import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import BatchEventsDispatcher from '../utils/BatchEventsDispatcher';
 import { ServiceContainer } from './ServiceContainer';
+import { SDKMetaUtil } from '../utils/SDKMetaUtil';
 
 export interface BatchConfig {
   isEdgeEnvironment?: boolean;
@@ -151,8 +152,8 @@ export class BatchEventsQueue {
           {
             a: this.accountId,
             env: this.serviceContainer.getSettingsService().sdkKey,
-            sn: Constants.SDK_NAME,
-            sv: Constants.SDK_VERSION,
+            sn: SDKMetaUtil.getInstance().getSdkName(),
+            sv: SDKMetaUtil.getInstance().getVersion(),
           },
         ),
       )

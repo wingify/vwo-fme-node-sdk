@@ -21,6 +21,7 @@ import { getCampaignKeyFromCampaignId, getCampaignTypeFromCampaignId } from './C
 import { getVariationNameFromCampaignIdAndVariationId } from './CampaignUtil';
 import { Constants } from '../constants';
 import { BatchEventsDispatcher } from './BatchEventsDispatcher';
+import { SDKMetaUtil } from './SDKMetaUtil';
 
 /**
  * Creates and sends an impression for a variation shown event.
@@ -95,8 +96,8 @@ export const sendImpressionForVariationShownInBatch = async (serviceContainer, p
     BatchEventsDispatcher.dispatch(serviceContainer, { ev: payloads }, () => {}, {
       a: serviceContainer.getSettingsService().accountId,
       env: serviceContainer.getSettingsService().sdkKey,
-      sn: Constants.SDK_NAME,
-      sv: Constants.SDK_VERSION,
+      sn: SDKMetaUtil.getInstance().getSdkName(),
+      sv: SDKMetaUtil.getInstance().getVersion(),
     });
   }
 };

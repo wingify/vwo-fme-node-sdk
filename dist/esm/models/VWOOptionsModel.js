@@ -72,6 +72,9 @@ export class VWOOptionsModel {
         if (options?.browserConfig) {
             this.browserConfig = options.browserConfig;
         }
+        if (options?.sdkMeta) {
+            this.sdkMeta = options.sdkMeta;
+        }
         return this;
     }
     getAccountId() {
@@ -130,6 +133,27 @@ export class VWOOptionsModel {
     }
     getBrowserConfig() {
         return this.browserConfig;
+    }
+    /**
+     * Gets the SDK meta.
+     * @returns The SDK meta.
+     */
+    getSdkMeta() {
+        return this.sdkMeta;
+    }
+    /**
+     * Gets the SDK name.
+     * @returns The SDK name.
+     */
+    getSdkName() {
+        return this.sdkMeta?._vwo_sdkName;
+    }
+    /**
+     * Gets the SDK version.
+     * @returns The SDK version.
+     */
+    getVersion() {
+        return this.sdkMeta?._vwo_sdkVersion;
     }
 }
 //# sourceMappingURL=VWOOptionsModel.js.map

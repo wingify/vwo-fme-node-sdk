@@ -44,6 +44,7 @@ import { sendSdkInitEvent, sendSDKUsageStatsEvent } from './utils/SdkInitAndUsag
 import { UsageStatsUtil } from './utils/UsageStatsUtil';
 import { StorageService } from './services/StorageService';
 import { getUUID, isWebUuid } from './utils/UuidUtil';
+import { SDKMetaUtil } from './utils/SDKMetaUtil';
 
 export interface IVWOClient {
   readonly options?: IVWOOptions;
@@ -111,6 +112,8 @@ export class VWOClient implements IVWOClient {
       this.vwoClientInstance = this;
       const usageStatsUtil = new UsageStatsUtil(this.options);
       this.sendSdkInitAndUsageStatsEvents(usageStatsUtil);
+      // initialize the sdk meta util
+      new SDKMetaUtil(this.options);
       return this;
     } catch (err) {
       this.serviceContainer.getLogManager().errorLog(

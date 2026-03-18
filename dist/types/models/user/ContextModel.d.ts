@@ -23,6 +23,7 @@ export interface IVWOContextModel {
   customVariables?: Record<string, any>;
   variationTargetingVariables?: Record<string, dynamic>;
   postSegmentationVariables?: string[];
+  bucketingSeed?: string;
   sessionId?: number;
 }
 export declare class ContextModel implements IVWOContextModel {
@@ -32,6 +33,7 @@ export declare class ContextModel implements IVWOContextModel {
   customVariables?: Record<string, any>;
   variationTargetingVariables?: Record<string, dynamic>;
   postSegmentationVariables?: string[];
+  bucketingSeed?: string;
   _vwo_uuid?: string;
   sessionId?: number;
   _vwo?: ContextVWOModel;
@@ -49,4 +51,5 @@ export declare class ContextModel implements IVWOContextModel {
   setPostSegmentationVariables(postSegmentationVariables: string[]): void;
   getUuid(): string;
   getSessionId(): number;
+  getBucketingSeed(): string | undefined;
 }

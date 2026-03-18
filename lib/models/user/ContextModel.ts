@@ -19,6 +19,7 @@ import { getUUID } from '../../utils/UuidUtil';
 import { getCurrentUnixTimestamp } from '../../utils/FunctionUtil';
 import { IVWOOptions } from '../VWOOptionsModel';
 
+// Interface definition
 export interface IVWOContextModel {
   id: string | number;
   userAgent?: string;
@@ -26,6 +27,7 @@ export interface IVWOContextModel {
   customVariables?: Record<string, any>;
   variationTargetingVariables?: Record<string, dynamic>;
   postSegmentationVariables?: string[];
+  bucketingSeed?: string;
   sessionId?: number;
 }
 export class ContextModel implements IVWOContextModel {
@@ -35,6 +37,7 @@ export class ContextModel implements IVWOContextModel {
   customVariables?: Record<string, any>;
   variationTargetingVariables?: Record<string, dynamic>;
   postSegmentationVariables?: string[];
+  bucketingSeed?: string;
   _vwo_uuid?: string;
   sessionId?: number;
   _vwo?: ContextVWOModel;
@@ -60,6 +63,9 @@ export class ContextModel implements IVWOContextModel {
     }
     if (context?.postSegmentationVariables) {
       this.postSegmentationVariables = context.postSegmentationVariables;
+    }
+    if (context?.bucketingSeed) {
+      this.bucketingSeed = context.bucketingSeed;
     }
 
     // if uuid is provided in the context, use it, otherwise generate a new uuid
@@ -126,5 +132,9 @@ export class ContextModel implements IVWOContextModel {
 
   getSessionId(): number {
     return this.sessionId;
+  }
+
+  getBucketingSeed(): string | undefined {
+    return this.bucketingSeed?.toString();
   }
 }

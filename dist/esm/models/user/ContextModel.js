@@ -23,6 +23,9 @@ export class ContextModel {
         if (context?.postSegmentationVariables) {
             this.postSegmentationVariables = context.postSegmentationVariables;
         }
+        if (context?.bucketingSeed) {
+            this.bucketingSeed = context.bucketingSeed;
+        }
         // if uuid is provided in the context, use it, otherwise generate a new uuid
         this._vwo_uuid =
             context?.uuid ??
@@ -74,6 +77,9 @@ export class ContextModel {
     }
     getSessionId() {
         return this.sessionId;
+    }
+    getBucketingSeed() {
+        return this.bucketingSeed?.toString();
     }
 }
 //# sourceMappingURL=ContextModel.js.map

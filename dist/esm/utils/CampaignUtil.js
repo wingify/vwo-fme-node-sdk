@@ -88,23 +88,23 @@ export function scaleVariationWeights(variations) {
     }
 }
 /**
- * Generates a bucketing seed based on user ID, campaign, and optional group ID.
- * @param {string} userId - The user ID.
+ * Generates a bucketing seed based on bucketing ID (could be custom seed or user ID), campaign, and optional group ID.
+ * @param {string} bucketingId - The resolved bucketing identifier (custom seed || user ID).
  * @param {any} campaign - The campaign object.
  * @param {string} [groupId] - The optional group ID.
  * @returns {string} The bucketing seed.
  */
-export function getBucketingSeed(userId, campaign, groupId) {
-    // Return a seed combining group ID and user ID if group ID is provided
+export function getBucketingSeed(bucketingId, campaign, groupId) {
+    // Return a seed combining group ID and bucketing ID if group ID is provided
     if (groupId) {
-        return `${groupId}_${userId}`;
+        return `${groupId}_${bucketingId}`;
     }
     const isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE;
     // get salt
     const salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
     // get bucket key
-    const bucketKey = salt ? `${salt}_${userId}` : `${campaign.getId()}_${userId}`;
-    // Return a seed combining campaign ID and user ID otherwise
+    const bucketKey = salt ? `${salt}_${bucketingId}` : `${campaign.getId()}_${bucketingId}`;
+    // Return a seed combining campaign ID and bucketing ID otherwise
     return bucketKey;
 }
 /**

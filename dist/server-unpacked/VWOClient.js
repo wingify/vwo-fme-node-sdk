@@ -20,8 +20,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -172,7 +172,7 @@ var VWOClient = /** @class */ (function () {
      */
     VWOClient.prototype.getFlag = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, deferredObject, uuid, errorReturnSchema, userId, contextCopy, contextModel, err_2;
+            var apiName, deferredObject, uuid, errorReturnSchema, userId, contextCopy, seed, contextModel, err_2;
             var _a, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
@@ -232,6 +232,22 @@ var VWOClient = /** @class */ (function () {
                         else {
                             // if the userId didn't change, then we can use the existing uuid
                             contextCopy.uuid = uuid;
+                        }
+                        // Validate bucketingSeed: must be a non-empty, non-whitespace-only string
+                        if ('bucketingSeed' in contextCopy) {
+                            seed = contextCopy.bucketingSeed;
+                            if (seed === undefined ||
+                                seed === null ||
+                                (0, DataTypeUtil_1.isNumber)(seed) ||
+                                (0, DataTypeUtil_1.isObject)(seed) ||
+                                (0, DataTypeUtil_2.isArray)(seed) ||
+                                ((0, DataTypeUtil_1.isString)(seed) && seed.trim().length === 0)) {
+                                this.serviceContainer.getLogManager().errorLog('INVALID_BUCKETING_SEED', {
+                                    apiName: apiName,
+                                    type: (0, DataTypeUtil_1.getType)(seed),
+                                }, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
+                                delete contextCopy.bucketingSeed;
+                            }
                         }
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         GetFlag_1.FlagApi.get(featureKey, contextModel, this.serviceContainer)

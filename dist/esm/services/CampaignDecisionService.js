@@ -28,27 +28,27 @@ export class CampaignDecisionService {
      *
      * @return {Boolean} if User is a part of Campaign or not
      */
-    isUserPartOfCampaign(userId, campaign, serviceContainer) {
-        // if (!ValidateUtil.isValidValue(userId) || !campaign) {
-        //   return false;
-        // }
-        if (!campaign || !userId) {
+    isUserPartOfCampaign(context, campaign, serviceContainer) {
+        if (!campaign || !context.getId()) {
             return false;
         }
+        const userId = context.getId();
+        const bucketingSeed = context.getBucketingSeed();
+        const bucketingId = bucketingSeed || userId;
         // check if campaign is rollout or personalize
         const isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE;
         // get salt
         const salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
         // get traffic allocation
         const trafficAllocation = isRolloutOrPersonalize ? campaign.getVariations()[0].getWeight() : campaign.getTraffic();
-        // get bucket key
-        const bucketKey = salt ? `${salt}_${userId}` : `${campaign.getId()}_${userId}`;
+        // get bucket key using resolved bucketingId
+        const bucketKey = salt ? `${salt}_${bucketingId}` : `${campaign.getId()}_${bucketingId}`;
         // get bucket value for user
         const valueAssignedToUser = new DecisionMaker().getBucketValueForUser(bucketKey);
         // check if user is part of campaign
         const isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
         serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
-            userId,
+            userId: bucketingId !== userId ? `${userId} (Seed: ${bucketingId})` : userId,
             notPart: isUserPart ? '' : 'not',
             campaignKey: campaign.getType() === CampaignTypeEnum.AB
                 ? campaign.getKey()
@@ -86,9 +86,12 @@ export class CampaignDecisionService {
      *
      * @return {Object|null} variation data into which user is bucketed in or null if not
      */
-    bucketUserToVariation(userId, accountId, campaign, serviceContainer) {
+    bucketUserToVariation(context, accountId, campaign, serviceContainer) {
         let multiplier;
-        if (!campaign || !userId) {
+        const userId = context.getId();
+        const bucketingSeed = context.getBucketingSeed();
+        const bucketingId = bucketingSeed || userId;
+        if (!campaign || !bucketingId) {
             return null;
         }
         if (campaign.getTraffic()) {
@@ -97,13 +100,13 @@ export class CampaignDecisionService {
         const percentTraffic = campaign.getTraffic();
         // get salt
         const salt = campaign.getSalt();
-        // get bucket key
-        const bucketKey = salt ? `${salt}_${accountId}_${userId}` : `${campaign.getId()}_${accountId}_${userId}`;
+        // get bucket key using resolved bucketingId
+        const bucketKey = salt ? `${salt}_${accountId}_${bucketingId}` : `${campaign.getId()}_${accountId}_${bucketingId}`;
         // get hash value
         const hashValue = new DecisionMaker().generateHashValue(bucketKey);
         const bucketValue = new DecisionMaker().generateBucketValue(hashValue, Constants.MAX_TRAFFIC_VALUE, multiplier);
         serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
-            userId,
+            userId: bucketingId !== userId ? `${userId} (Seed: ${bucketingId})` : userId,
             campaignKey: campaign.getKey(),
             percentTraffic,
             bucketValue,
@@ -154,8 +157,8 @@ export class CampaignDecisionService {
             return true;
         }
     }
-    getVariationAlloted(userId, accountId, campaign, serviceContainer) {
-        const isUserPart = this.isUserPartOfCampaign(userId, campaign, serviceContainer);
+    getVariationAlloted(context, accountId, campaign, serviceContainer) {
+        const isUserPart = this.isUserPartOfCampaign(context, campaign, serviceContainer);
         if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
             if (isUserPart) {
                 return campaign.getVariations()[0];
@@ -166,7 +169,7 @@ export class CampaignDecisionService {
         }
         else {
             if (isUserPart) {
-                return this.bucketUserToVariation(userId, accountId, campaign, serviceContainer);
+                return this.bucketUserToVariation(context, accountId, campaign, serviceContainer);
             }
             else {
                 return null;

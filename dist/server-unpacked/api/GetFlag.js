@@ -35,8 +35,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -408,7 +408,7 @@ var FlagApi = /** @class */ (function () {
                     case 34:
                         if (!(rolloutRulesToEvaluate.length > 0)) return [3 /*break*/, 39];
                         passedRolloutCampaign = new CampaignModel_1.CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
-                        variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, passedRolloutCampaign, context.getId());
+                        variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, passedRolloutCampaign, context);
                         if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 39];
                         isEnabled = true;
                         shouldCheckForExperimentsRules = true;
@@ -483,7 +483,7 @@ var FlagApi = /** @class */ (function () {
                     case 45:
                         if (!(experimentRulesToEvaluate.length > 0)) return [3 /*break*/, 50];
                         campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
-                        variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context.getId());
+                        variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context);
                         if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 50];
                         isEnabled = true;
                         decision['isUserPartOfCampaign'] = true;

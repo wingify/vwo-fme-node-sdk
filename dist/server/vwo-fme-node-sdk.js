@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.40.1
+ * vwo-fme-node-sdk - v1.41.0
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -25,6 +25,24 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./dist/server-unpacked/utils sync recursive":
+/*!******************************************!*\
+  !*** ./dist/server-unpacked/utils/ sync ***!
+  \******************************************/
+/***/ ((module) => {
+
+function webpackEmptyContext(req) {
+	var e = new Error("Cannot find module '" + req + "'");
+	e.code = 'MODULE_NOT_FOUND';
+	throw e;
+}
+webpackEmptyContext.keys = () => ([]);
+webpackEmptyContext.resolve = webpackEmptyContext;
+webpackEmptyContext.id = "./dist/server-unpacked/utils sync recursive";
+module.exports = webpackEmptyContext;
+
+/***/ }),
+
 /***/ "./dist/VERSION.js":
 /*!*************************!*\
   !*** ./dist/VERSION.js ***!
@@ -32,7 +50,7 @@
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.40.1"
+  version: "1.41.0"
 };
 
 /***/ }),
@@ -86,8 +104,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -160,9 +182,7 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.VWO = void 0;
-exports.init = init;
-exports.onInit = onInit;
+exports.onInit = exports.init = exports.VWO = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -303,6 +323,7 @@ function init(options) {
     });
   });
 }
+exports.init = init;
 function onInit() {
   return __awaiter(this, void 0, void 0, function () {
     var apiName, date_1, msg, msg;
@@ -344,6 +365,7 @@ function onInit() {
     });
   });
 }
+exports.onInit = onInit;
 
 /***/ }),
 
@@ -406,8 +428,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -919,8 +945,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -1122,7 +1152,7 @@ var VWOClient = /** @class */function () {
    */
   VWOClient.prototype.getFlag = function (featureKey, context) {
     return __awaiter(this, void 0, void 0, function () {
-      var apiName, deferredObject, uuid, errorReturnSchema, userId, contextCopy, contextModel, err_2;
+      var apiName, deferredObject, uuid, errorReturnSchema, userId, contextCopy, seed, contextModel, err_2;
       var _a, _b;
       return __generator(this, function (_c) {
         switch (_c.label) {
@@ -1188,6 +1218,19 @@ var VWOClient = /** @class */function () {
             } else {
               // if the userId didn't change, then we can use the existing uuid
               contextCopy.uuid = uuid;
+            }
+            // Validate bucketingSeed: must be a non-empty, non-whitespace-only string
+            if ('bucketingSeed' in contextCopy) {
+              seed = contextCopy.bucketingSeed;
+              if (seed === undefined || seed === null || (0, DataTypeUtil_1.isNumber)(seed) || (0, DataTypeUtil_1.isObject)(seed) || (0, DataTypeUtil_2.isArray)(seed) || (0, DataTypeUtil_1.isString)(seed) && seed.trim().length === 0) {
+                this.serviceContainer.getLogManager().errorLog('INVALID_BUCKETING_SEED', {
+                  apiName: apiName,
+                  type: (0, DataTypeUtil_1.getType)(seed)
+                }, {
+                  an: ApiEnum_1.ApiEnum.GET_FLAG
+                }, false);
+                delete contextCopy.bucketingSeed;
+              }
             }
             contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
             GetFlag_1.FlagApi.get(featureKey, contextModel, this.serviceContainer).then(function (data) {
@@ -1751,8 +1794,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -2186,7 +2233,7 @@ var FlagApi = /** @class */function () {
           case 34:
             if (!(rolloutRulesToEvaluate.length > 0)) return [3 /*break*/, 39];
             passedRolloutCampaign = new CampaignModel_1.CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
-            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, passedRolloutCampaign, context.getId());
+            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, passedRolloutCampaign, context);
             if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 39];
             isEnabled = true;
             shouldCheckForExperimentsRules = true;
@@ -2261,7 +2308,7 @@ var FlagApi = /** @class */function () {
           case 45:
             if (!(experimentRulesToEvaluate.length > 0)) return [3 /*break*/, 50];
             campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
-            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context.getId());
+            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context);
             if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 50];
             isEnabled = true;
             decision['isUserPartOfCampaign'] = true;
@@ -2471,8 +2518,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -2660,8 +2711,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -3043,8 +3098,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -4729,6 +4788,9 @@ var ContextModel = /** @class */function () {
     if (context === null || context === void 0 ? void 0 : context.postSegmentationVariables) {
       this.postSegmentationVariables = context.postSegmentationVariables;
     }
+    if (context === null || context === void 0 ? void 0 : context.bucketingSeed) {
+      this.bucketingSeed = context.bucketingSeed;
+    }
     // if uuid is provided in the context, use it, otherwise generate a new uuid
     this._vwo_uuid = (_a = context === null || context === void 0 ? void 0 : context.uuid) !== null && _a !== void 0 ? _a : (0, UuidUtil_1.getUUID)((_c = (_b = context === null || context === void 0 ? void 0 : context.id) === null || _b === void 0 ? void 0 : _b.toString()) !== null && _c !== void 0 ? _c : "".concat(options === null || options === void 0 ? void 0 : options.accountId, "_").concat(options === null || options === void 0 ? void 0 : options.sdkKey), (_d = options === null || options === void 0 ? void 0 : options.accountId) === null || _d === void 0 ? void 0 : _d.toString());
     // If sessionId is provided in the context, use it, otherwise generate a new one
@@ -4778,6 +4840,10 @@ var ContextModel = /** @class */function () {
   };
   ContextModel.prototype.getSessionId = function () {
     return this.sessionId;
+  };
+  ContextModel.prototype.getBucketingSeed = function () {
+    var _a;
+    return (_a = this.bucketingSeed) === null || _a === void 0 ? void 0 : _a.toString();
   };
   return ContextModel;
 }();
@@ -5774,23 +5840,13 @@ var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? fun
 } : function (o, v) {
   o["default"] = v;
 });
-var __importStar = this && this.__importStar || function () {
-  var ownKeys = function (o) {
-    ownKeys = Object.getOwnPropertyNames || function (o) {
-      var ar = [];
-      for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-      return ar;
-    };
-    return ownKeys(o);
-  };
-  return function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-    __setModuleDefault(result, mod);
-    return result;
-  };
-}();
+var __importStar = this && this.__importStar || function (mod) {
+  if (mod && mod.__esModule) return mod;
+  var result = {};
+  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+  __setModuleDefault(result, mod);
+  return result;
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -7069,8 +7125,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -7451,8 +7511,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -8038,8 +8102,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -8581,8 +8649,7 @@ exports.SegmentOperandEvaluator = SegmentOperandEvaluator;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getKeyValue = getKeyValue;
-exports.matchWithRegex = matchWithRegex;
+exports.matchWithRegex = exports.getKeyValue = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -8619,6 +8686,7 @@ function getKeyValue(obj) {
     value: value
   };
 }
+exports.getKeyValue = getKeyValue;
 /**
  * Matches a string against a regular expression and returns the match result.
  * @param {string} string - The string to match against the regex.
@@ -8634,6 +8702,7 @@ function matchWithRegex(string, regex) {
     return null;
   }
 }
+exports.matchWithRegex = matchWithRegex;
 
 /***/ }),
 
@@ -9050,8 +9119,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -9352,8 +9425,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -9458,27 +9535,27 @@ var CampaignDecisionService = /** @class */function () {
    *
    * @return {Boolean} if User is a part of Campaign or not
    */
-  CampaignDecisionService.prototype.isUserPartOfCampaign = function (userId, campaign, serviceContainer) {
-    // if (!ValidateUtil.isValidValue(userId) || !campaign) {
-    //   return false;
-    // }
-    if (!campaign || !userId) {
+  CampaignDecisionService.prototype.isUserPartOfCampaign = function (context, campaign, serviceContainer) {
+    if (!campaign || !context.getId()) {
       return false;
     }
+    var userId = context.getId();
+    var bucketingSeed = context.getBucketingSeed();
+    var bucketingId = bucketingSeed || userId;
     // check if campaign is rollout or personalize
     var isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
     // get salt
     var salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
     // get traffic allocation
     var trafficAllocation = isRolloutOrPersonalize ? campaign.getVariations()[0].getWeight() : campaign.getTraffic();
-    // get bucket key
-    var bucketKey = salt ? "".concat(salt, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(userId);
+    // get bucket key using resolved bucketingId
+    var bucketKey = salt ? "".concat(salt, "_").concat(bucketingId) : "".concat(campaign.getId(), "_").concat(bucketingId);
     // get bucket value for user
     var valueAssignedToUser = new decision_maker_1.DecisionMaker().getBucketValueForUser(bucketKey);
     // check if user is part of campaign
     var isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
     serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
-      userId: userId,
+      userId: bucketingId !== userId ? "".concat(userId, " (Seed: ").concat(bucketingId, ")") : userId,
       notPart: isUserPart ? '' : 'not',
       campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey()
     }));
@@ -9514,9 +9591,12 @@ var CampaignDecisionService = /** @class */function () {
    *
    * @return {Object|null} variation data into which user is bucketed in or null if not
    */
-  CampaignDecisionService.prototype.bucketUserToVariation = function (userId, accountId, campaign, serviceContainer) {
+  CampaignDecisionService.prototype.bucketUserToVariation = function (context, accountId, campaign, serviceContainer) {
     var multiplier;
-    if (!campaign || !userId) {
+    var userId = context.getId();
+    var bucketingSeed = context.getBucketingSeed();
+    var bucketingId = bucketingSeed || userId;
+    if (!campaign || !bucketingId) {
       return null;
     }
     if (campaign.getTraffic()) {
@@ -9525,13 +9605,13 @@ var CampaignDecisionService = /** @class */function () {
     var percentTraffic = campaign.getTraffic();
     // get salt
     var salt = campaign.getSalt();
-    // get bucket key
-    var bucketKey = salt ? "".concat(salt, "_").concat(accountId, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(accountId, "_").concat(userId);
+    // get bucket key using resolved bucketingId
+    var bucketKey = salt ? "".concat(salt, "_").concat(accountId, "_").concat(bucketingId) : "".concat(campaign.getId(), "_").concat(accountId, "_").concat(bucketingId);
     // get hash value
     var hashValue = new decision_maker_1.DecisionMaker().generateHashValue(bucketKey);
     var bucketValue = new decision_maker_1.DecisionMaker().generateBucketValue(hashValue, constants_1.Constants.MAX_TRAFFIC_VALUE, multiplier);
     serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
-      userId: userId,
+      userId: bucketingId !== userId ? "".concat(userId, " (Seed: ").concat(bucketingId, ")") : userId,
       campaignKey: campaign.getKey(),
       percentTraffic: percentTraffic,
       bucketValue: bucketValue,
@@ -9580,8 +9660,8 @@ var CampaignDecisionService = /** @class */function () {
       });
     });
   };
-  CampaignDecisionService.prototype.getVariationAlloted = function (userId, accountId, campaign, serviceContainer) {
-    var isUserPart = this.isUserPartOfCampaign(userId, campaign, serviceContainer);
+  CampaignDecisionService.prototype.getVariationAlloted = function (context, accountId, campaign, serviceContainer) {
+    var isUserPart = this.isUserPartOfCampaign(context, campaign, serviceContainer);
     if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
       if (isUserPart) {
         return campaign.getVariations()[0];
@@ -9590,7 +9670,7 @@ var CampaignDecisionService = /** @class */function () {
       }
     } else {
       if (isUserPart) {
-        return this.bucketUserToVariation(userId, accountId, campaign, serviceContainer);
+        return this.bucketUserToVariation(context, accountId, campaign, serviceContainer);
       } else {
         return null;
       }
@@ -9916,8 +9996,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -10329,8 +10413,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -10682,24 +10770,6 @@ exports.StorageService = StorageService;
 
 /***/ }),
 
-/***/ "./dist/server-unpacked/utils sync recursive":
-/*!******************************************!*\
-  !*** ./dist/server-unpacked/utils/ sync ***!
-  \******************************************/
-/***/ ((module) => {
-
-function webpackEmptyContext(req) {
-	var e = new Error("Cannot find module '" + req + "'");
-	e.code = 'MODULE_NOT_FOUND';
-	throw e;
-}
-webpackEmptyContext.keys = () => ([]);
-webpackEmptyContext.resolve = webpackEmptyContext;
-webpackEmptyContext.id = "./dist/server-unpacked/utils sync recursive";
-module.exports = webpackEmptyContext;
-
-/***/ }),
-
 /***/ "./dist/server-unpacked/utils/AliasingUtil.js":
 /*!****************************************************!*\
   !*** ./dist/server-unpacked/utils/AliasingUtil.js ***!
@@ -10764,8 +10834,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -11022,8 +11096,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -11303,21 +11381,7 @@ exports["default"] = BatchEventsDispatcher;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.setVariationAllocation = setVariationAllocation;
-exports.assignRangeValues = assignRangeValues;
-exports.scaleVariationWeights = scaleVariationWeights;
-exports.getBucketingSeed = getBucketingSeed;
-exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
-exports.getCampaignKeyFromCampaignId = getCampaignKeyFromCampaignId;
-exports.getVariationNameFromCampaignIdAndVariationId = getVariationNameFromCampaignIdAndVariationId;
-exports.getCampaignTypeFromCampaignId = getCampaignTypeFromCampaignId;
-exports.isFeatureIdPresentInSettings = isFeatureIdPresentInSettings;
-exports.setCampaignAllocation = setCampaignAllocation;
-exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
-exports.getCampaignsByGroupId = getCampaignsByGroupId;
-exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
-exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
-exports.assignRangeValuesMEG = assignRangeValuesMEG;
+exports.assignRangeValuesMEG = exports.getCampaignIdsFromFeatureKey = exports.getFeatureKeysFromCampaignIds = exports.getCampaignsByGroupId = exports.getGroupDetailsIfCampaignPartOfIt = exports.setCampaignAllocation = exports.isFeatureIdPresentInSettings = exports.getCampaignTypeFromCampaignId = exports.getVariationNameFromCampaignIdAndVariationId = exports.getCampaignKeyFromCampaignId = exports.getVariationFromCampaignKey = exports.getBucketingSeed = exports.scaleVariationWeights = exports.assignRangeValues = exports.setVariationAllocation = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -11367,6 +11431,7 @@ function setVariationAllocation(campaign, logManager) {
     });
   }
 }
+exports.setVariationAllocation = setVariationAllocation;
 /**
  * Assigns start and end range values to a variation based on its weight.
  * @param {VariationModel} data - The variation model to assign range values.
@@ -11386,6 +11451,7 @@ function assignRangeValues(data, currentAllocation) {
   }
   return stepFactor;
 }
+exports.assignRangeValues = assignRangeValues;
 /**
  * Scales the weights of variations to sum up to 100%.
  * @param {any[]} variations - The list of variations to scale.
@@ -11408,26 +11474,28 @@ function scaleVariationWeights(variations) {
     });
   }
 }
+exports.scaleVariationWeights = scaleVariationWeights;
 /**
- * Generates a bucketing seed based on user ID, campaign, and optional group ID.
- * @param {string} userId - The user ID.
+ * Generates a bucketing seed based on bucketing ID (could be custom seed or user ID), campaign, and optional group ID.
+ * @param {string} bucketingId - The resolved bucketing identifier (custom seed || user ID).
  * @param {any} campaign - The campaign object.
  * @param {string} [groupId] - The optional group ID.
  * @returns {string} The bucketing seed.
  */
-function getBucketingSeed(userId, campaign, groupId) {
-  // Return a seed combining group ID and user ID if group ID is provided
+function getBucketingSeed(bucketingId, campaign, groupId) {
+  // Return a seed combining group ID and bucketing ID if group ID is provided
   if (groupId) {
-    return "".concat(groupId, "_").concat(userId);
+    return "".concat(groupId, "_").concat(bucketingId);
   }
   var isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
   // get salt
   var salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
   // get bucket key
-  var bucketKey = salt ? "".concat(salt, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(userId);
-  // Return a seed combining campaign ID and user ID otherwise
+  var bucketKey = salt ? "".concat(salt, "_").concat(bucketingId) : "".concat(campaign.getId(), "_").concat(bucketingId);
+  // Return a seed combining campaign ID and bucketing ID otherwise
   return bucketKey;
 }
+exports.getBucketingSeed = getBucketingSeed;
 /**
  * Retrieves a variation by its ID within a specific campaign identified by its key.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -11452,6 +11520,7 @@ function getVariationFromCampaignKey(settings, campaignKey, variationId) {
   }
   return null;
 }
+exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
 /**
  * Retrieves the key of a campaign by its ID.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -11467,6 +11536,7 @@ function getCampaignKeyFromCampaignId(settings, campaignId) {
   }
   return null;
 }
+exports.getCampaignKeyFromCampaignId = getCampaignKeyFromCampaignId;
 /**
  * Retrieves the name of a variation by its ID within a specific campaign identified by its ID.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -11488,6 +11558,7 @@ function getVariationNameFromCampaignIdAndVariationId(settings, campaignId, vari
   }
   return null;
 }
+exports.getVariationNameFromCampaignIdAndVariationId = getVariationNameFromCampaignIdAndVariationId;
 /**
  * Retrieves the type of a campaign by its ID.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -11503,6 +11574,7 @@ function getCampaignTypeFromCampaignId(settings, campaignId) {
   }
   return null;
 }
+exports.getCampaignTypeFromCampaignId = getCampaignTypeFromCampaignId;
 /**
  * Checks if a feature ID is present in the settings.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -11514,6 +11586,7 @@ function isFeatureIdPresentInSettings(settings, featureId) {
     return feature.getId() === featureId;
   });
 }
+exports.isFeatureIdPresentInSettings = isFeatureIdPresentInSettings;
 /**
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.
@@ -11527,6 +11600,7 @@ function setCampaignAllocation(campaigns) {
     currentAllocation += stepFactor;
   }
 }
+exports.setCampaignAllocation = setCampaignAllocation;
 /**
  * Determines if a campaign is part of a group.
  * @param {SettingsModel} settings - The settings model containing group associations.
@@ -11557,6 +11631,7 @@ function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId) {
   }
   return {};
 }
+exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
 /**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
@@ -11571,6 +11646,7 @@ function getCampaignsByGroupId(settings, groupId) {
     return []; // Return an empty array if the group ID is not found
   }
 }
+exports.getCampaignsByGroupId = getCampaignsByGroupId;
 /**
  * Retrieves feature keys from a list of campaign IDs.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -11611,6 +11687,7 @@ function getFeatureKeysFromCampaignIds(settings, campaignIdWithVariation) {
   }
   return featureKeys;
 }
+exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 /**
  * Retrieves campaign IDs from a specific feature key.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -11628,6 +11705,7 @@ function getCampaignIdsFromFeatureKey(settings, featureKey) {
   });
   return campaignIds;
 }
+exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 /**
  * Assigns range values to a campaign based on its weight.
  * @param {any} data - The campaign data containing weight.
@@ -11645,6 +11723,7 @@ function assignRangeValuesMEG(data, currentAllocation) {
   }
   return stepFactor;
 }
+exports.assignRangeValuesMEG = assignRangeValuesMEG;
 /**
  * Calculates the bucket range for a variation based on its weight.
  * @param {number} variationWeight - The weight of the variation.
@@ -11693,17 +11772,7 @@ function _handleRolloutCampaign(campaign, logManager) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.isObject = isObject;
-exports.isEmptyObject = isEmptyObject;
-exports.isArray = isArray;
-exports.isNull = isNull;
-exports.isUndefined = isUndefined;
-exports.isNumber = isNumber;
-exports.isString = isString;
-exports.isBoolean = isBoolean;
-exports.isFunction = isFunction;
-exports.isPromise = isPromise;
-exports.getType = getType;
+exports.getType = exports.isPromise = exports.isFunction = exports.isBoolean = exports.isString = exports.isNumber = exports.isUndefined = exports.isNull = exports.isArray = exports.isEmptyObject = exports.isObject = void 0;
 /**
  * Checks if a value is an object excluding arrays, functions, regexes, promises, and dates.
  * @param val The value to check.
@@ -11713,6 +11782,7 @@ function isObject(val) {
   // Using Object.prototype.toString to get a precise string representation of the value type
   return Object.prototype.toString.call(val) === '[object Object]';
 }
+exports.isObject = isObject;
 /**
  * Checks if a value is an empty object.
  * @param val The value to check.
@@ -11721,6 +11791,7 @@ function isObject(val) {
 function isEmptyObject(val) {
   return isObject(val) && Object.keys(val).length === 0;
 }
+exports.isEmptyObject = isEmptyObject;
 /**
  * Checks if a value is an array.
  * @param val The value to check.
@@ -11729,6 +11800,7 @@ function isEmptyObject(val) {
 function isArray(val) {
   return Object.prototype.toString.call(val) === '[object Array]';
 }
+exports.isArray = isArray;
 /**
  * Checks if a value is null.
  * @param val The value to check.
@@ -11737,6 +11809,7 @@ function isArray(val) {
 function isNull(val) {
   return Object.prototype.toString.call(val) === '[object Null]';
 }
+exports.isNull = isNull;
 /**
  * Checks if a value is undefined.
  * @param val The value to check.
@@ -11745,6 +11818,7 @@ function isNull(val) {
 function isUndefined(val) {
   return Object.prototype.toString.call(val) === '[object Undefined]';
 }
+exports.isUndefined = isUndefined;
 /**
  * Checks if a value is a number, including NaN.
  * @param val The value to check.
@@ -11754,6 +11828,7 @@ function isNumber(val) {
   // Note: NaN is also a number
   return Object.prototype.toString.call(val) === '[object Number]';
 }
+exports.isNumber = isNumber;
 /**
  * Checks if a value is a string.
  * @param val The value to check.
@@ -11762,6 +11837,7 @@ function isNumber(val) {
 function isString(val) {
   return Object.prototype.toString.call(val) === '[object String]';
 }
+exports.isString = isString;
 /**
  * Checks if a value is a boolean.
  * @param val The value to check.
@@ -11770,6 +11846,7 @@ function isString(val) {
 function isBoolean(val) {
   return Object.prototype.toString.call(val) === '[object Boolean]';
 }
+exports.isBoolean = isBoolean;
 /**
  * Checks if a value is a function.
  * @param val The value to check.
@@ -11778,6 +11855,7 @@ function isBoolean(val) {
 function isFunction(val) {
   return Object.prototype.toString.call(val) === '[object Function]';
 }
+exports.isFunction = isFunction;
 /**
  * Checks if a value is a Promise.
  * @param val The value to check.
@@ -11786,6 +11864,7 @@ function isFunction(val) {
 function isPromise(val) {
   return Object.prototype.toString.call(val) === '[object Promise]';
 }
+exports.isPromise = isPromise;
 /**
  * Determines the type of the given value using various type-checking utility functions.
  * @param val The value to determine the type of.
@@ -11813,6 +11892,7 @@ function getType(val) {
   // If none of the above, return 'Unknown Type'
   'Unknown Type';
 }
+exports.getType = getType;
 
 /***/ }),
 
@@ -11880,8 +11960,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -11954,8 +12038,7 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.extractDecisionKeys = extractDecisionKeys;
-exports.sendDebugEventToVWO = sendDebugEventToVWO;
+exports.sendDebugEventToVWO = exports.extractDecisionKeys = void 0;
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 /**
@@ -11990,6 +12073,7 @@ function extractDecisionKeys(decisionObj) {
   }
   return extractedKeys;
 }
+exports.extractDecisionKeys = extractDecisionKeys;
 /**
  * Sends a debug event to VWO.
  * @param eventProps - The properties for the event.
@@ -12020,6 +12104,7 @@ function sendDebugEventToVWO(serviceContainer_1) {
     });
   });
 }
+exports.sendDebugEventToVWO = sendDebugEventToVWO;
 
 /***/ }),
 
@@ -12072,8 +12157,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -12300,19 +12389,22 @@ var checkWhitelistingAndPreSeg = function (serviceContainer, feature, campaign, 
   });
 };
 exports.checkWhitelistingAndPreSeg = checkWhitelistingAndPreSeg;
-var evaluateTrafficAndGetVariation = function (serviceContainer, campaign, userId) {
-  var variation = new CampaignDecisionService_1.CampaignDecisionService().getVariationAlloted(userId, serviceContainer.getSettings().getAccountId(), campaign, serviceContainer);
+var evaluateTrafficAndGetVariation = function (serviceContainer, campaign, context) {
+  var variation = new CampaignDecisionService_1.CampaignDecisionService().getVariationAlloted(context, serviceContainer.getSettings().getAccountId(), campaign, serviceContainer);
+  var userId = context.getId();
+  var bucketingSeed = context.getBucketingSeed();
+  var bucketingId = bucketingSeed || userId;
   if (!variation) {
     serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
       campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
-      userId: userId,
+      userId: bucketingId !== userId ? "".concat(userId, " (Seed: ").concat(bucketingId, ")") : userId,
       status: 'did not get any variation'
     }));
     return null;
   }
   serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
     campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
-    userId: userId,
+    userId: bucketingId !== userId ? "".concat(userId, " (Seed: ").concat(bucketingId, ")") : userId,
     status: "got variation:".concat(variation.getKey())
   }));
   return variation;
@@ -12390,7 +12482,7 @@ var _evaluateWhitelisting = function (campaign, context, serviceContainer) {
               stepFactor = (0, CampaignUtil_1.assignRangeValues)(targetedVariations[i], currentAllocation);
               currentAllocation += stepFactor;
             }
-            whitelistedVariation = new CampaignDecisionService_1.CampaignDecisionService().getVariation(targetedVariations, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getId(), campaign, null)));
+            whitelistedVariation = new CampaignDecisionService_1.CampaignDecisionService().getVariation(targetedVariations, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getBucketingSeed() || context.getId(), campaign, null)));
           } else {
             whitelistedVariation = targetedVariations[0];
           }
@@ -12457,23 +12549,13 @@ var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? fun
 } : function (o, v) {
   o["default"] = v;
 });
-var __importStar = this && this.__importStar || function () {
-  var ownKeys = function (o) {
-    ownKeys = Object.getOwnPropertyNames || function (o) {
-      var ar = [];
-      for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-      return ar;
-    };
-    return ownKeys(o);
-  };
-  return function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-    __setModuleDefault(result, mod);
-    return result;
-  };
-}();
+var __importStar = this && this.__importStar || function (mod) {
+  if (mod && mod.__esModule) return mod;
+  var result = {};
+  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+  __setModuleDefault(result, mod);
+  return result;
+};
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function (resolve) {
@@ -12514,8 +12596,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -12588,8 +12674,7 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.sendGetCall = sendGetCall;
-exports.sendPostCall = sendPostCall;
+exports.sendPostCall = exports.sendGetCall = void 0;
 var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
@@ -12666,9 +12751,11 @@ function getFetch(logManager) {
 function sendGetCall(request, logManager) {
   return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, request, logManager);
 }
+exports.sendGetCall = sendGetCall;
 function sendPostCall(request, logManager) {
   return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, request, logManager);
 }
+exports.sendPostCall = sendPostCall;
 /**
  * Sends a request to the server using the Fetch API.
  * @param method - The HTTP method to use for the request.
@@ -12807,18 +12894,7 @@ var __assign = this && this.__assign || function () {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.cloneObject = cloneObject;
-exports.getCurrentTime = getCurrentTime;
-exports.getCurrentUnixTimestamp = getCurrentUnixTimestamp;
-exports.getCurrentUnixTimestampInMillis = getCurrentUnixTimestampInMillis;
-exports.getRandomNumber = getRandomNumber;
-exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
-exports.getAllExperimentRules = getAllExperimentRules;
-exports.getFeatureFromKey = getFeatureFromKey;
-exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
-exports.doesEventBelongToAnyHoldout = doesEventBelongToAnyHoldout;
-exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
-exports.getFormattedErrorMessage = getFormattedErrorMessage;
+exports.getFormattedErrorMessage = exports.addLinkedCampaignsToSettings = exports.doesEventBelongToAnyHoldout = exports.doesEventBelongToAnyFeature = exports.getFeatureFromKey = exports.getAllExperimentRules = exports.getSpecificRulesBasedOnType = exports.getRandomNumber = exports.getCurrentUnixTimestampInMillis = exports.getCurrentUnixTimestamp = exports.getCurrentTime = exports.cloneObject = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -12851,6 +12927,7 @@ function cloneObject(obj) {
   var clonedObj = JSON.parse(JSON.stringify(obj));
   return clonedObj;
 }
+exports.cloneObject = cloneObject;
 /**
  * Gets the current time in ISO string format.
  * @returns {string} The current time in ISO string format.
@@ -12858,6 +12935,7 @@ function cloneObject(obj) {
 function getCurrentTime() {
   return new Date().toISOString();
 }
+exports.getCurrentTime = getCurrentTime;
 /**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.
@@ -12866,6 +12944,7 @@ function getCurrentUnixTimestamp() {
   // Convert the current date to Unix timestamp in seconds
   return Math.ceil(+new Date() / 1000);
 }
+exports.getCurrentUnixTimestamp = getCurrentUnixTimestamp;
 /**
  * Gets the current Unix timestamp in milliseconds.
  * @returns {number} The current Unix timestamp in milliseconds.
@@ -12874,6 +12953,7 @@ function getCurrentUnixTimestampInMillis() {
   // Convert the current date to Unix timestamp in milliseconds
   return +new Date();
 }
+exports.getCurrentUnixTimestampInMillis = getCurrentUnixTimestampInMillis;
 /**
  * Generates a random number between 0 and 1.
  * @returns {number} A random number.
@@ -12882,6 +12962,7 @@ function getRandomNumber() {
   // Use Math.random to generate a random number
   return Math.random();
 }
+exports.getRandomNumber = getRandomNumber;
 /**
  * Retrieves specific rules based on the type from a feature.
  * @param {FeatureModel} feature - The key of the feature.
@@ -12906,6 +12987,7 @@ function getSpecificRulesBasedOnType(feature, type) {
   // Return all linked campaigns if no type is specified
   return feature.getRulesLinkedCampaign();
 }
+exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
 /**
  * Retrieves all AB and Personalize rules from a feature.
  * @param {any} settings - The settings containing features.
@@ -12919,6 +13001,7 @@ function getAllExperimentRules(feature) {
     return rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB || rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
   })) || [];
 }
+exports.getAllExperimentRules = getAllExperimentRules;
 /**
  * Retrieves a feature by its key from the settings.
  * @param {any} settings - The settings containing features.
@@ -12932,6 +13015,7 @@ function getFeatureFromKey(settings, featureKey) {
     return feature.getKey() === featureKey;
   });
 }
+exports.getFeatureFromKey = getFeatureFromKey;
 /**
  * Checks if an event exists within any feature's metrics.
  * @param {string} eventName - The name of the event to check.
@@ -12946,6 +13030,7 @@ function doesEventBelongToAnyFeature(eventName, settings) {
     });
   });
 }
+exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
 /**
  * Checks if an event exists within any holdout's metrics.
  * @param {string} eventName - The name of the event to check.
@@ -12960,6 +13045,7 @@ function doesEventBelongToAnyHoldout(eventName, settings) {
     });
   });
 }
+exports.doesEventBelongToAnyHoldout = doesEventBelongToAnyHoldout;
 /**
  * Adds linked campaigns to each feature in the settings based on rules.
  * @param {any} settings - The settings file to modify.
@@ -13003,6 +13089,7 @@ function addLinkedCampaignsToSettings(settings) {
     feature.setRulesLinkedCampaign(rulesLinkedCampaignModel);
   }
 }
+exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 /**
  * Formats an error message.
  * @param {any} error - The error to format.
@@ -13019,6 +13106,7 @@ function getFormattedErrorMessage(error) {
   }
   return errorMessage;
 }
+exports.getFormattedErrorMessage = getFormattedErrorMessage;
 
 /***/ }),
 
@@ -13071,8 +13159,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -13145,9 +13237,7 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getFromGatewayService = getFromGatewayService;
-exports.getQueryParams = getQueryParams;
-exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
+exports.addIsGatewayServiceRequiredFlag = exports.getQueryParams = exports.getFromGatewayService = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -13229,6 +13319,7 @@ function getFromGatewayService(serviceContainer, queryParams, endpoint, context)
     });
   });
 }
+exports.getFromGatewayService = getFromGatewayService;
 /**
  * Encodes the query parameters to ensure they are URL-safe.
  * @param queryParams  The query parameters to be encoded.
@@ -13247,6 +13338,7 @@ function getQueryParams(queryParams) {
   }
   return encodedParams;
 }
+exports.getQueryParams = getQueryParams;
 /**
  * Adds isGatewayServiceRequired flag to each feature and holdout in the settings based on pre segmentation.
  * @param settings - The settings file to modify.
@@ -13297,6 +13389,7 @@ function addIsGatewayServiceRequiredFlag(settings) {
     }
   }
 }
+exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 
 /***/ }),
 
@@ -13364,8 +13457,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -13447,9 +13544,7 @@ var __spreadArray = this && this.__spreadArray || function (to, from, pack) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getApplicableHoldouts = getApplicableHoldouts;
-exports.getMatchedHoldouts = getMatchedHoldouts;
-exports.sendNetworkCallsForNotInHoldouts = sendNetworkCallsForNotInHoldouts;
+exports.sendNetworkCallsForNotInHoldouts = exports.getMatchedHoldouts = exports.getApplicableHoldouts = void 0;
 var decision_maker_1 = __webpack_require__(/*! ../packages/decision-maker */ "./dist/server-unpacked/packages/decision-maker/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
@@ -13471,6 +13566,7 @@ function getApplicableHoldouts(settings, featureId) {
     return holdout.getIsGlobal() || holdout.getFeatureIds().includes(featureId);
   });
 }
+exports.getApplicableHoldouts = getApplicableHoldouts;
 /**
  * Gets the matched holdout(s) for a given feature ID and context.
  * Evaluates all applicable holdouts, creates batched impressions for all of them,
@@ -13584,6 +13680,7 @@ function getMatchedHoldouts(serviceContainer, feature, context, storedData) {
     });
   });
 }
+exports.getMatchedHoldouts = getMatchedHoldouts;
 /**
  * Sends network calls for not in holdouts that are applicable but not stored in storage.
  * @param serviceContainer - The service container.
@@ -13656,6 +13753,7 @@ function sendNetworkCallsForNotInHoldouts(serviceContainer, feature, context, de
     });
   });
 }
+exports.sendNetworkCallsForNotInHoldouts = sendNetworkCallsForNotInHoldouts;
 
 /***/ }),
 
@@ -13723,8 +13821,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -13903,7 +14005,7 @@ exports.sendImpressionForVariationShownInBatch = sendImpressionForVariationShown
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.buildMessage = buildMessage;
+exports.buildMessage = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -13954,6 +14056,7 @@ function buildMessage(template, data) {
     return template; // Return the original template in case of an error
   }
 }
+exports.buildMessage = buildMessage;
 
 /***/ }),
 
@@ -14006,8 +14109,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -14080,8 +14187,7 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.evaluateGroups = void 0;
-exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
+exports.getFeatureKeysFromGroup = exports.evaluateGroups = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -14245,6 +14351,7 @@ function getFeatureKeysFromGroup(settings, groupId) {
     groupCampaignIds: groupCampaignIds
   };
 }
+exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
 /*******************************
  * PRIVATE methods - MegUtil
  ******************************/
@@ -14290,7 +14397,7 @@ var _isRolloutRuleForFeaturePassed = function (serviceContainer, feature, evalua
         case 4:
           if (ruleToTestForTraffic !== null) {
             campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(ruleToTestForTraffic);
-            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context.getId());
+            variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context);
             if ((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0) {
               evaluatedFeatureMap.set(feature.getKey(), {
                 rolloutId: ruleToTestForTraffic.id,
@@ -14366,7 +14473,7 @@ var _getEligbleCampaigns = function (serviceContainer, campaignMap, context, sto
                   return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(new CampaignModel_1.CampaignModel().modelFromDictionary(campaign), context, serviceContainer)];
                 case 2:
                   // Check if user is eligible for the campaign
-                  if (_d.sent() && new CampaignDecisionService_1.CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign, serviceContainer)) {
+                  if (_d.sent() && new CampaignDecisionService_1.CampaignDecisionService().isUserPartOfCampaign(context, campaign, serviceContainer)) {
                     serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_ELIGIBLE, {
                       campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? campaign.getKey() : campaign.getName() + '_' + campaign.getRuleKey(),
                       userId: context.getId()
@@ -14480,7 +14587,7 @@ var _normalizeWeightsAndFindWinningCampaign = function (serviceContainer, shortl
   });
   // re-distribute the traffic for each camapign
   (0, CampaignUtil_1.setCampaignAllocation)(shortlistedCampaigns);
-  var winnerCampaign = new CampaignDecisionService_1.CampaignDecisionService().getVariation(shortlistedCampaigns, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getId(), undefined, groupId)));
+  var winnerCampaign = new CampaignDecisionService_1.CampaignDecisionService().getVariation(shortlistedCampaigns, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getBucketingSeed() || context.getId(), undefined, groupId)));
   serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
     campaignKey: winnerCampaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB ? winnerCampaign.getKey() : winnerCampaign.getKey() + '_' + winnerCampaign.getRuleKey(),
     groupId: groupId,
@@ -14558,7 +14665,7 @@ var _getCampaignUsingAdvancedAlgo = function (serviceContainer, shortlistedCampa
       return new VariationModel_1.VariationModel().modelFromDictionary(campaign);
     });
     (0, CampaignUtil_1.setCampaignAllocation)(participatingCampaignList);
-    winnerCampaign = new CampaignDecisionService_1.CampaignDecisionService().getVariation(participatingCampaignList, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getId(), undefined, groupId)));
+    winnerCampaign = new CampaignDecisionService_1.CampaignDecisionService().getVariation(participatingCampaignList, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getBucketingSeed() || context.getId(), undefined, groupId)));
   }
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
   // also shortlistedCampaigns and wt array does not have a single campaign id in common
@@ -14655,8 +14762,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -14729,21 +14840,7 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getSettingsPath = getSettingsPath;
-exports.getTrackEventPath = getTrackEventPath;
-exports.getEventsBaseProperties = getEventsBaseProperties;
-exports._getEventBasePayload = _getEventBasePayload;
-exports.getTrackUserPayloadData = getTrackUserPayloadData;
-exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
-exports.getAttributePayloadData = getAttributePayloadData;
-exports.sendPostApiRequest = sendPostApiRequest;
-exports.getMessagingEventPayload = getMessagingEventPayload;
-exports.getSDKInitEventPayload = getSDKInitEventPayload;
-exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
-exports.getDebuggerEventPayload = getDebuggerEventPayload;
-exports.sendEvent = sendEvent;
-exports.createNetWorkAndRetryDebugEvent = createNetWorkAndRetryDebugEvent;
-exports.createHoldoutPayload = createHoldoutPayload;
+exports.createHoldoutPayload = exports.createNetWorkAndRetryDebugEvent = exports.sendEvent = exports.getDebuggerEventPayload = exports.getSDKUsageStatsEventPayload = exports.getSDKInitEventPayload = exports.getMessagingEventPayload = exports.sendPostApiRequest = exports.getAttributePayloadData = exports.getTrackGoalPayloadData = exports.getTrackUserPayloadData = exports._getEventBasePayload = exports.getEventsBaseProperties = exports.getTrackEventPath = exports.getSettingsPath = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -14793,6 +14890,7 @@ function getSettingsPath(sdkKey, accountId) {
   };
   return path;
 }
+exports.getSettingsPath = getSettingsPath;
 /**
  * Constructs the tracking path for an event.
  * @param {string} event - The event type.
@@ -14826,6 +14924,7 @@ function getTrackEventPath(event, accountId, userId) {
   };
   return path;
 }
+exports.getTrackEventPath = getTrackEventPath;
 /**
  * Builds generic properties for different tracking calls required by VWO servers.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -14876,6 +14975,7 @@ function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, i
   }
   return properties;
 }
+exports.getEventsBaseProperties = getEventsBaseProperties;
 /**
  * Builds generic payload required by all the different tracking calls.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -14947,6 +15047,7 @@ function _getEventBasePayload(settingsService, userId, eventName, visitorUserAge
   }
   return properties;
 }
+exports._getEventBasePayload = _getEventBasePayload;
 /**
  * Builds payload to track the visitor.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -14994,6 +15095,7 @@ function getTrackUserPayloadData(serviceContainer, eventName, campaignId, variat
   }));
   return properties;
 }
+exports.getTrackUserPayloadData = getTrackUserPayloadData;
 /**
  * Constructs the payload data for tracking goals with custom event properties.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -15028,6 +15130,7 @@ function getTrackGoalPayloadData(serviceContainer, eventName, eventProperties, c
   }));
   return properties;
 }
+exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -15062,6 +15165,7 @@ function getAttributePayloadData(serviceContainer, eventName, attributes, contex
   }));
   return properties;
 }
+exports.getAttributePayloadData = getAttributePayloadData;
 /**
  * Sends a POST API request with the specified properties and payload.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -15142,6 +15246,7 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
     });
   });
 }
+exports.sendPostApiRequest = sendPostApiRequest;
 /**
  * Constructs the payload for a messaging event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -15169,6 +15274,7 @@ function getMessagingEventPayload(settingsService, messageType, message, eventNa
   properties.d.event.props.data = data;
   return properties;
 }
+exports.getMessagingEventPayload = getMessagingEventPayload;
 /**
  * Constructs the payload for init called event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -15191,6 +15297,7 @@ function getSDKInitEventPayload(settingsService, eventName, settingsFetchTime, s
   properties.d.event.props.data = data;
   return properties;
 }
+exports.getSDKInitEventPayload = getSDKInitEventPayload;
 /**
  * Constructs the payload for sdk usage stats event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -15207,6 +15314,7 @@ function getSDKUsageStatsEventPayload(settingsService, eventName, usageStatsAcco
   properties.d.event.props.vwoMeta = usageStatsUtil.getUsageStats();
   return properties;
 }
+exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
 /**
  * Constructs the payload for debugger event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -15251,6 +15359,7 @@ function getDebuggerEventPayload(settingsService, eventProps) {
   });
   return properties;
 }
+exports.getDebuggerEventPayload = getDebuggerEventPayload;
 /**
  * Sends an event to VWO (generic event sender).
  * @param {NetworkManager} networkManager - The network manager instance.
@@ -15289,6 +15398,7 @@ function sendEvent(serviceContainer, properties, payload, eventName) {
     });
   });
 }
+exports.sendEvent = sendEvent;
 /**
  * Creates a network and retry debug event.
  * @param response The response model.
@@ -15349,6 +15459,7 @@ function createNetWorkAndRetryDebugEvent(response, payload, apiName, extraData) 
     };
   }
 }
+exports.createNetWorkAndRetryDebugEvent = createNetWorkAndRetryDebugEvent;
 /**
  * Creates payload for holdout variation shown event.
  * Similar to getTrackUserPayloadData but specifically for holdouts.
@@ -15369,6 +15480,7 @@ function createHoldoutPayload(serviceContainer, eventName, holdoutId, variationI
   properties.d.event.props.fId = featureId;
   return properties;
 }
+exports.createHoldoutPayload = createHoldoutPayload;
 
 /***/ }),
 
@@ -15384,7 +15496,7 @@ function createHoldoutPayload(serviceContainer, eventName, holdoutId, variationI
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.Deferred = Deferred;
+exports.Deferred = void 0;
 /**
  * Creates a Deferred object with properties for promise, resolve, and reject.
  * This allows manual control over the resolution and rejection of a promise.
@@ -15399,6 +15511,7 @@ function Deferred() {
   });
   return this; // Return the Deferred object with attached methods
 }
+exports.Deferred = Deferred;
 
 /***/ }),
 
@@ -15451,8 +15564,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -15706,8 +15823,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -15780,8 +15901,7 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.sendSdkInitEvent = sendSdkInitEvent;
-exports.sendSDKUsageStatsEvent = sendSDKUsageStatsEvent;
+exports.sendSDKUsageStatsEvent = exports.sendSdkInitEvent = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -15832,6 +15952,7 @@ function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceContainer) {
     });
   });
 }
+exports.sendSdkInitEvent = sendSdkInitEvent;
 /**
  * Sends a usage stats event to VWO.
  * This event is triggered when the SDK is initialized.
@@ -15863,6 +15984,7 @@ function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStat
     });
   });
 }
+exports.sendSDKUsageStatsEvent = sendSDKUsageStatsEvent;
 
 /***/ }),
 
@@ -15878,7 +16000,7 @@ function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStat
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.setSettingsAndAddCampaignsToRules = setSettingsAndAddCampaignsToRules;
+exports.setSettingsAndAddCampaignsToRules = void 0;
 var SettingsModel_1 = __webpack_require__(/*! ../models/settings/SettingsModel */ "./dist/server-unpacked/models/settings/SettingsModel.js");
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
@@ -15902,6 +16024,7 @@ function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance, logManag
   (0, FunctionUtil_1.addLinkedCampaignsToSettings)(vwoClientInstance.settings);
   (0, GatewayServiceUtil_1.addIsGatewayServiceRequiredFlag)(vwoClientInstance.settings);
 }
+exports.setSettingsAndAddCampaignsToRules = setSettingsAndAddCampaignsToRules;
 
 /***/ }),
 
@@ -16074,8 +16197,12 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -16148,7 +16275,7 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getUserId = getUserId;
+exports.getUserId = void 0;
 var AliasingUtil_1 = __webpack_require__(/*! ./AliasingUtil */ "./dist/server-unpacked/utils/AliasingUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
@@ -16183,6 +16310,7 @@ function getUserId(userId, isAliasingEnabled, serviceContainer) {
     });
   });
 }
+exports.getUserId = getUserId;
 
 /***/ }),
 
@@ -16198,10 +16326,7 @@ function getUserId(userId, isAliasingEnabled, serviceContainer) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getRandomUUID = getRandomUUID;
-exports.getUUID = getUUID;
-exports.generateUUID = generateUUID;
-exports.isWebUuid = isWebUuid;
+exports.isWebUuid = exports.generateUUID = exports.getUUID = exports.getRandomUUID = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -16232,6 +16357,7 @@ function getRandomUUID(sdkKey) {
   var randomUUID = (0, uuid_2.v5)((0, uuid_1.v4)(), namespace);
   return randomUUID;
 }
+exports.getRandomUUID = getRandomUUID;
 /**
  * Generates a UUID for a user based on their userId and accountId.
  * @param userId The user's ID.
@@ -16251,6 +16377,7 @@ function getUUID(userId, accountId) {
   var desiredUuid = uuidForUserIdAccountId === null || uuidForUserIdAccountId === void 0 ? void 0 : uuidForUserIdAccountId.replace(/-/gi, '').toUpperCase();
   return desiredUuid;
 }
+exports.getUUID = getUUID;
 /**
  * Helper function to generate a UUID v5 based on a name and a namespace.
  * @param name The name from which to generate the UUID.
@@ -16265,6 +16392,7 @@ function generateUUID(name, namespace) {
   // Generate and return the UUID v5
   return (0, uuid_2.v5)(name, namespace);
 }
+exports.generateUUID = generateUUID;
 /**
  * Validates whether the given string is an web-generated UUID.
  * Performs a basic check that an incoming context.id looks like an web-generated ID:
@@ -16279,6 +16407,7 @@ function isWebUuid(id) {
   }
   return /^[DJ][0-9A-Fa-f]{32}$/.test(id);
 }
+exports.isWebUuid = isWebUuid;
 
 /***/ }),
 
@@ -16294,8 +16423,7 @@ function isWebUuid(id) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.sendGetCall = sendGetCall;
-exports.sendPostCall = sendPostCall;
+exports.sendPostCall = exports.sendGetCall = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -16319,9 +16447,11 @@ var noop = function () {};
 function sendGetCall(options, logManager) {
   sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options, logManager);
 }
+exports.sendGetCall = sendGetCall;
 function sendPostCall(options, logManager) {
   sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options, logManager);
 }
+exports.sendPostCall = sendPostCall;
 function sendRequest(method, options, logManager) {
   var requestModel = options.requestModel,
     _a = options.successCallback,
@@ -16426,28 +16556,6 @@ function sendRequest(method, options, logManager) {
 
 /***/ }),
 
-/***/ "http":
-/*!***********************!*\
-  !*** external "http" ***!
-  \***********************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("http");
-
-/***/ }),
-
-/***/ "https":
-/*!************************!*\
-  !*** external "https" ***!
-  \************************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("https");
-
-/***/ }),
-
 /***/ "murmurhash":
 /*!*****************************!*\
   !*** external "murmurhash" ***!
@@ -16490,6 +16598,28 @@ module.exports = require("uuid");
 "use strict";
 module.exports = require("vwo-fme-sdk-log-messages");
 
+/***/ }),
+
+/***/ "http":
+/*!***********************!*\
+  !*** external "http" ***!
+  \***********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("http");
+
+/***/ }),
+
+/***/ "https":
+/*!************************!*\
+  !*** external "https" ***!
+  \************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("https");
+
 /***/ })
 
 /******/ 	});
@@ -16526,7 +16656,7 @@ module.exports = require("vwo-fme-sdk-log-messages");
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
 "use strict";
 var exports = __webpack_exports__;

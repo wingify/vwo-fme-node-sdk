@@ -9,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -69,27 +69,27 @@ var CampaignDecisionService = /** @class */ (function () {
      *
      * @return {Boolean} if User is a part of Campaign or not
      */
-    CampaignDecisionService.prototype.isUserPartOfCampaign = function (userId, campaign, serviceContainer) {
-        // if (!ValidateUtil.isValidValue(userId) || !campaign) {
-        //   return false;
-        // }
-        if (!campaign || !userId) {
+    CampaignDecisionService.prototype.isUserPartOfCampaign = function (context, campaign, serviceContainer) {
+        if (!campaign || !context.getId()) {
             return false;
         }
+        var userId = context.getId();
+        var bucketingSeed = context.getBucketingSeed();
+        var bucketingId = bucketingSeed || userId;
         // check if campaign is rollout or personalize
         var isRolloutOrPersonalize = campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
         // get salt
         var salt = isRolloutOrPersonalize ? campaign.getVariations()[0].getSalt() : campaign.getSalt();
         // get traffic allocation
         var trafficAllocation = isRolloutOrPersonalize ? campaign.getVariations()[0].getWeight() : campaign.getTraffic();
-        // get bucket key
-        var bucketKey = salt ? "".concat(salt, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(userId);
+        // get bucket key using resolved bucketingId
+        var bucketKey = salt ? "".concat(salt, "_").concat(bucketingId) : "".concat(campaign.getId(), "_").concat(bucketingId);
         // get bucket value for user
         var valueAssignedToUser = new decision_maker_1.DecisionMaker().getBucketValueForUser(bucketKey);
         // check if user is part of campaign
         var isUserPart = valueAssignedToUser !== 0 && valueAssignedToUser <= trafficAllocation;
         serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_PART_OF_CAMPAIGN, {
-            userId: userId,
+            userId: bucketingId !== userId ? "".concat(userId, " (Seed: ").concat(bucketingId, ")") : userId,
             notPart: isUserPart ? '' : 'not',
             campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
                 ? campaign.getKey()
@@ -127,9 +127,12 @@ var CampaignDecisionService = /** @class */ (function () {
      *
      * @return {Object|null} variation data into which user is bucketed in or null if not
      */
-    CampaignDecisionService.prototype.bucketUserToVariation = function (userId, accountId, campaign, serviceContainer) {
+    CampaignDecisionService.prototype.bucketUserToVariation = function (context, accountId, campaign, serviceContainer) {
         var multiplier;
-        if (!campaign || !userId) {
+        var userId = context.getId();
+        var bucketingSeed = context.getBucketingSeed();
+        var bucketingId = bucketingSeed || userId;
+        if (!campaign || !bucketingId) {
             return null;
         }
         if (campaign.getTraffic()) {
@@ -138,13 +141,13 @@ var CampaignDecisionService = /** @class */ (function () {
         var percentTraffic = campaign.getTraffic();
         // get salt
         var salt = campaign.getSalt();
-        // get bucket key
-        var bucketKey = salt ? "".concat(salt, "_").concat(accountId, "_").concat(userId) : "".concat(campaign.getId(), "_").concat(accountId, "_").concat(userId);
+        // get bucket key using resolved bucketingId
+        var bucketKey = salt ? "".concat(salt, "_").concat(accountId, "_").concat(bucketingId) : "".concat(campaign.getId(), "_").concat(accountId, "_").concat(bucketingId);
         // get hash value
         var hashValue = new decision_maker_1.DecisionMaker().generateHashValue(bucketKey);
         var bucketValue = new decision_maker_1.DecisionMaker().generateBucketValue(hashValue, constants_1.Constants.MAX_TRAFFIC_VALUE, multiplier);
         serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.USER_BUCKET_TO_VARIATION, {
-            userId: userId,
+            userId: bucketingId !== userId ? "".concat(userId, " (Seed: ").concat(bucketingId, ")") : userId,
             campaignKey: campaign.getKey(),
             percentTraffic: percentTraffic,
             bucketValue: bucketValue,
@@ -201,8 +204,8 @@ var CampaignDecisionService = /** @class */ (function () {
             });
         });
     };
-    CampaignDecisionService.prototype.getVariationAlloted = function (userId, accountId, campaign, serviceContainer) {
-        var isUserPart = this.isUserPartOfCampaign(userId, campaign, serviceContainer);
+    CampaignDecisionService.prototype.getVariationAlloted = function (context, accountId, campaign, serviceContainer) {
+        var isUserPart = this.isUserPartOfCampaign(context, campaign, serviceContainer);
         if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
             if (isUserPart) {
                 return campaign.getVariations()[0];
@@ -213,7 +216,7 @@ var CampaignDecisionService = /** @class */ (function () {
         }
         else {
             if (isUserPart) {
-                return this.bucketUserToVariation(userId, accountId, campaign, serviceContainer);
+                return this.bucketUserToVariation(context, accountId, campaign, serviceContainer);
             }
             else {
                 return null;

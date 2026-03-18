@@ -256,6 +256,30 @@ export class VWOClient implements IVWOClient {
         contextCopy.uuid = uuid;
       }
 
+      // Validate bucketingSeed: must be a non-empty, non-whitespace-only string
+      if ('bucketingSeed' in contextCopy) {
+        const seed = contextCopy.bucketingSeed;
+        if (
+          seed === undefined ||
+          seed === null ||
+          isNumber(seed) ||
+          isObject(seed) ||
+          isArray(seed) ||
+          (isString(seed) && (seed as string).trim().length === 0)
+        ) {
+          this.serviceContainer.getLogManager().errorLog(
+            'INVALID_BUCKETING_SEED',
+            {
+              apiName,
+              type: getType(seed),
+            },
+            { an: ApiEnum.GET_FLAG },
+            false,
+          );
+          delete contextCopy.bucketingSeed;
+        }
+      }
+
       const contextModel = new ContextModel().modelFromDictionary(contextCopy, this.options);
 
       FlagApi.get(featureKey, contextModel, this.serviceContainer)

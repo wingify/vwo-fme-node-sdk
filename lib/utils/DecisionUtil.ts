@@ -195,14 +195,19 @@ export const checkWhitelistingAndPreSeg = async (
 export const evaluateTrafficAndGetVariation = (
   serviceContainer: ServiceContainer,
   campaign: CampaignModel,
-  userId: string | number,
+  context: ContextModel,
 ): VariationModel => {
   const variation = new CampaignDecisionService().getVariationAlloted(
-    userId,
+    context,
     serviceContainer.getSettings().getAccountId(),
     campaign,
     serviceContainer,
   );
+
+  const userId = context.getId();
+  const bucketingSeed = context.getBucketingSeed();
+  const bucketingId = bucketingSeed || userId;
+
   if (!variation) {
     serviceContainer.getLogManager().info(
       buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
@@ -210,7 +215,7 @@ export const evaluateTrafficAndGetVariation = (
           campaign.getType() === CampaignTypeEnum.AB
             ? campaign.getKey()
             : campaign.getName() + '_' + campaign.getRuleKey(),
-        userId,
+        userId: bucketingId !== userId ? `${userId} (Seed: ${bucketingId})` : userId,
         status: 'did not get any variation',
       }),
     );
@@ -223,7 +228,7 @@ export const evaluateTrafficAndGetVariation = (
         campaign.getType() === CampaignTypeEnum.AB
           ? campaign.getKey()
           : campaign.getName() + '_' + campaign.getRuleKey(),
-      userId,
+      userId: bucketingId !== userId ? `${userId} (Seed: ${bucketingId})` : userId,
       status: `got variation:${variation.getKey()}`,
     }),
   );
@@ -321,7 +326,11 @@ const _evaluateWhitelisting = async (
     }
     whitelistedVariation = new CampaignDecisionService().getVariation(
       targetedVariations,
-      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), campaign, null)),
+      new DecisionMaker().calculateBucketValue(getBucketingSeed(
+        context.getBucketingSeed() || context.getId(),
+        campaign,
+        null
+      )),
     );
   } else {
     whitelistedVariation = targetedVariations[0];

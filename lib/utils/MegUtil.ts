@@ -232,7 +232,7 @@ const _isRolloutRuleForFeaturePassed = async (
     }
     if (ruleToTestForTraffic !== null) {
       const campaign = new CampaignModel().modelFromDictionary(ruleToTestForTraffic);
-      const variation = evaluateTrafficAndGetVariation(serviceContainer, campaign, context.getId());
+      const variation = evaluateTrafficAndGetVariation(serviceContainer, campaign, context);
       if (isObject(variation) && Object.keys(variation).length > 0) {
         evaluatedFeatureMap.set(feature.getKey(), {
           rolloutId: ruleToTestForTraffic.id,
@@ -316,7 +316,7 @@ const _getEligbleCampaigns = async (
           context,
           serviceContainer,
         )) &&
-        new CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign, serviceContainer)
+        new CampaignDecisionService().isUserPartOfCampaign(context, campaign, serviceContainer)
       ) {
         serviceContainer.getLogManager().info(
           buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_ELIGIBLE, {
@@ -475,7 +475,11 @@ const _normalizeWeightsAndFindWinningCampaign = (
   setCampaignAllocation(shortlistedCampaigns);
   const winnerCampaign = new CampaignDecisionService().getVariation(
     shortlistedCampaigns,
-    new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), undefined, groupId)),
+    new DecisionMaker().calculateBucketValue(getBucketingSeed(
+      context.getBucketingSeed() || context.getId(),
+      undefined,
+      groupId
+    )),
   );
 
   serviceContainer.getLogManager().info(
@@ -583,7 +587,11 @@ const _getCampaignUsingAdvancedAlgo = (
     setCampaignAllocation(participatingCampaignList);
     winnerCampaign = new CampaignDecisionService().getVariation(
       participatingCampaignList,
-      new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), undefined, groupId)),
+      new DecisionMaker().calculateBucketValue(getBucketingSeed(
+        context.getBucketingSeed() || context.getId(),
+        undefined,
+        groupId
+      )),
     );
   }
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and

@@ -20,8 +20,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -47,21 +47,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSettingsPath = getSettingsPath;
-exports.getTrackEventPath = getTrackEventPath;
-exports.getEventsBaseProperties = getEventsBaseProperties;
-exports._getEventBasePayload = _getEventBasePayload;
-exports.getTrackUserPayloadData = getTrackUserPayloadData;
-exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
-exports.getAttributePayloadData = getAttributePayloadData;
-exports.sendPostApiRequest = sendPostApiRequest;
-exports.getMessagingEventPayload = getMessagingEventPayload;
-exports.getSDKInitEventPayload = getSDKInitEventPayload;
-exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
-exports.getDebuggerEventPayload = getDebuggerEventPayload;
-exports.sendEvent = sendEvent;
-exports.createNetWorkAndRetryDebugEvent = createNetWorkAndRetryDebugEvent;
-exports.createHoldoutPayload = createHoldoutPayload;
+exports.createHoldoutPayload = exports.createNetWorkAndRetryDebugEvent = exports.sendEvent = exports.getDebuggerEventPayload = exports.getSDKUsageStatsEventPayload = exports.getSDKInitEventPayload = exports.getMessagingEventPayload = exports.sendPostApiRequest = exports.getAttributePayloadData = exports.getTrackGoalPayloadData = exports.getTrackUserPayloadData = exports._getEventBasePayload = exports.getEventsBaseProperties = exports.getTrackEventPath = exports.getSettingsPath = void 0;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -109,6 +95,7 @@ function getSettingsPath(sdkKey, accountId) {
     };
     return path;
 }
+exports.getSettingsPath = getSettingsPath;
 /**
  * Constructs the tracking path for an event.
  * @param {string} event - The event type.
@@ -131,6 +118,7 @@ function getTrackEventPath(event, accountId, userId) {
     };
     return path;
 }
+exports.getTrackEventPath = getTrackEventPath;
 /**
  * Builds generic properties for different tracking calls required by VWO servers.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -174,6 +162,7 @@ function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, i
     }
     return properties;
 }
+exports.getEventsBaseProperties = getEventsBaseProperties;
 /**
  * Builds generic payload required by all the different tracking calls.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -236,6 +225,7 @@ function _getEventBasePayload(settingsService, userId, eventName, visitorUserAge
     }
     return properties;
 }
+exports._getEventBasePayload = _getEventBasePayload;
 /**
  * Builds payload to track the visitor.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -286,6 +276,7 @@ function getTrackUserPayloadData(serviceContainer, eventName, campaignId, variat
     }));
     return properties;
 }
+exports.getTrackUserPayloadData = getTrackUserPayloadData;
 /**
  * Constructs the payload data for tracking goals with custom event properties.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -320,6 +311,7 @@ function getTrackGoalPayloadData(serviceContainer, eventName, eventProperties, c
     }));
     return properties;
 }
+exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -352,6 +344,7 @@ function getAttributePayloadData(serviceContainer, eventName, attributes, contex
     }));
     return properties;
 }
+exports.getAttributePayloadData = getAttributePayloadData;
 /**
  * Sends a POST API request with the specified properties and payload.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -440,6 +433,7 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
         });
     });
 }
+exports.sendPostApiRequest = sendPostApiRequest;
 /**
  * Constructs the payload for a messaging event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -465,6 +459,7 @@ function getMessagingEventPayload(settingsService, messageType, message, eventNa
     properties.d.event.props.data = data;
     return properties;
 }
+exports.getMessagingEventPayload = getMessagingEventPayload;
 /**
  * Constructs the payload for init called event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -487,6 +482,7 @@ function getSDKInitEventPayload(settingsService, eventName, settingsFetchTime, s
     properties.d.event.props.data = data;
     return properties;
 }
+exports.getSDKInitEventPayload = getSDKInitEventPayload;
 /**
  * Constructs the payload for sdk usage stats event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -503,6 +499,7 @@ function getSDKUsageStatsEventPayload(settingsService, eventName, usageStatsAcco
     properties.d.event.props.vwoMeta = usageStatsUtil.getUsageStats();
     return properties;
 }
+exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
 /**
  * Constructs the payload for debugger event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -540,6 +537,7 @@ function getDebuggerEventPayload(settingsService, eventProps) {
     properties.d.event.props.vwoMeta = __assign(__assign({}, eventProps), { a: settingsService.accountId.toString(), product: constants_1.Constants.PRODUCT_NAME, sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(), sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(), 'src-v': constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION, eventId: (0, UuidUtil_1.getRandomUUID)(settingsService.sdkKey) });
     return properties;
 }
+exports.getDebuggerEventPayload = getDebuggerEventPayload;
 /**
  * Sends an event to VWO (generic event sender).
  * @param {NetworkManager} networkManager - The network manager instance.
@@ -584,6 +582,7 @@ function sendEvent(serviceContainer, properties, payload, eventName) {
         });
     });
 }
+exports.sendEvent = sendEvent;
 /**
  * Creates a network and retry debug event.
  * @param response The response model.
@@ -646,6 +645,7 @@ function createNetWorkAndRetryDebugEvent(response, payload, apiName, extraData) 
         };
     }
 }
+exports.createNetWorkAndRetryDebugEvent = createNetWorkAndRetryDebugEvent;
 /**
  * Creates payload for holdout variation shown event.
  * Similar to getTrackUserPayloadData but specifically for holdouts.
@@ -666,4 +666,5 @@ function createHoldoutPayload(serviceContainer, eventName, holdoutId, variationI
     properties.d.event.props.fId = featureId;
     return properties;
 }
+exports.createHoldoutPayload = createHoldoutPayload;
 //# sourceMappingURL=NetworkUtil.js.map

@@ -17,5 +17,5 @@ export declare const checkWhitelistingAndPreSeg: (
 export declare const evaluateTrafficAndGetVariation: (
   serviceContainer: ServiceContainer,
   campaign: CampaignModel,
-  userId: string | number,
+  context: ContextModel,
 ) => VariationModel;

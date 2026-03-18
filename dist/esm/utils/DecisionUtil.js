@@ -143,14 +143,17 @@ export const checkWhitelistingAndPreSeg = async (serviceContainer, feature, camp
     }
     return [isPreSegmentationPassed, null];
 };
-export const evaluateTrafficAndGetVariation = (serviceContainer, campaign, userId) => {
-    const variation = new CampaignDecisionService().getVariationAlloted(userId, serviceContainer.getSettings().getAccountId(), campaign, serviceContainer);
+export const evaluateTrafficAndGetVariation = (serviceContainer, campaign, context) => {
+    const variation = new CampaignDecisionService().getVariationAlloted(context, serviceContainer.getSettings().getAccountId(), campaign, serviceContainer);
+    const userId = context.getId();
+    const bucketingSeed = context.getBucketingSeed();
+    const bucketingId = bucketingSeed || userId;
     if (!variation) {
         serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.USER_CAMPAIGN_BUCKET_INFO, {
             campaignKey: campaign.getType() === CampaignTypeEnum.AB
                 ? campaign.getKey()
                 : campaign.getName() + '_' + campaign.getRuleKey(),
-            userId,
+            userId: bucketingId !== userId ? `${userId} (Seed: ${bucketingId})` : userId,
             status: 'did not get any variation',
         }));
         return null;
@@ -159,7 +162,7 @@ export const evaluateTrafficAndGetVariation = (serviceContainer, campaign, userI
         campaignKey: campaign.getType() === CampaignTypeEnum.AB
             ? campaign.getKey()
             : campaign.getName() + '_' + campaign.getRuleKey(),
-        userId,
+        userId: bucketingId !== userId ? `${userId} (Seed: ${bucketingId})` : userId,
         status: `got variation:${variation.getKey()}`,
     }));
     return variation;
@@ -228,7 +231,7 @@ const _evaluateWhitelisting = async (campaign, context, serviceContainer) => {
             stepFactor = assignRangeValues(targetedVariations[i], currentAllocation);
             currentAllocation += stepFactor;
         }
-        whitelistedVariation = new CampaignDecisionService().getVariation(targetedVariations, new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), campaign, null)));
+        whitelistedVariation = new CampaignDecisionService().getVariation(targetedVariations, new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getBucketingSeed() || context.getId(), campaign, null)));
     }
     else {
         whitelistedVariation = targetedVariations[0];

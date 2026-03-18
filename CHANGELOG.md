@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.41.0] - 2026-03-18
+
+### Added
+
+- Added support for custom bucketing seed via `bucketingSeed` in the context. This allows users to bucket by a shared identifier instead of the individual user ID, ensuring all users within the same group receive the same variation.
+
+  Example usage:
+
+  ```javascript
+  const vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+  });
+
+  // All employees of company-abc will get the same variation
+  const context = {
+    id: 'employee-123',
+    bucketingSeed: 'company-abc',
+  };
+  const flag = await vwoClient.getFlag('feature-key', context);
+  ```
+
 ## [1.40.1] - 2026-03-02
 
 ### Changed

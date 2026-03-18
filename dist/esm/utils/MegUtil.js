@@ -148,7 +148,7 @@ const _isRolloutRuleForFeaturePassed = async (serviceContainer, feature, evaluat
         }
         if (ruleToTestForTraffic !== null) {
             const campaign = new CampaignModel().modelFromDictionary(ruleToTestForTraffic);
-            const variation = evaluateTrafficAndGetVariation(serviceContainer, campaign, context.getId());
+            const variation = evaluateTrafficAndGetVariation(serviceContainer, campaign, context);
             if (isObject(variation) && Object.keys(variation).length > 0) {
                 evaluatedFeatureMap.set(feature.getKey(), {
                     rolloutId: ruleToTestForTraffic.id,
@@ -204,7 +204,7 @@ const _getEligbleCampaigns = async (serviceContainer, campaignMap, context, stor
             }
             // Check if user is eligible for the campaign
             if ((await new CampaignDecisionService().getPreSegmentationDecision(new CampaignModel().modelFromDictionary(campaign), context, serviceContainer)) &&
-                new CampaignDecisionService().isUserPartOfCampaign(context.getId(), campaign, serviceContainer)) {
+                new CampaignDecisionService().isUserPartOfCampaign(context, campaign, serviceContainer)) {
                 serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_ELIGIBLE, {
                     campaignKey: campaign.getType() === CampaignTypeEnum.AB
                         ? campaign.getKey()
@@ -303,7 +303,7 @@ const _normalizeWeightsAndFindWinningCampaign = (serviceContainer, shortlistedCa
     shortlistedCampaigns = shortlistedCampaigns.map((campaign) => new VariationModel().modelFromDictionary(campaign));
     // re-distribute the traffic for each camapign
     setCampaignAllocation(shortlistedCampaigns);
-    const winnerCampaign = new CampaignDecisionService().getVariation(shortlistedCampaigns, new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), undefined, groupId)));
+    const winnerCampaign = new CampaignDecisionService().getVariation(shortlistedCampaigns, new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getBucketingSeed() || context.getId(), undefined, groupId)));
     serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.MEG_WINNER_CAMPAIGN, {
         campaignKey: winnerCampaign.getType() === CampaignTypeEnum.AB
             ? winnerCampaign.getKey()
@@ -388,7 +388,7 @@ const _getCampaignUsingAdvancedAlgo = (serviceContainer, shortlistedCampaigns, c
         // make participatingCampaignList as array of VariationModel
         participatingCampaignList = participatingCampaignList.map((campaign) => new VariationModel().modelFromDictionary(campaign));
         setCampaignAllocation(participatingCampaignList);
-        winnerCampaign = new CampaignDecisionService().getVariation(participatingCampaignList, new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getId(), undefined, groupId)));
+        winnerCampaign = new CampaignDecisionService().getVariation(participatingCampaignList, new DecisionMaker().calculateBucketValue(getBucketingSeed(context.getBucketingSeed() || context.getId(), undefined, groupId)));
     }
     // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and
     // also shortlistedCampaigns and wt array does not have a single campaign id in common

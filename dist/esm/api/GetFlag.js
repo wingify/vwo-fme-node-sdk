@@ -317,7 +317,7 @@ export class FlagApi {
             }
             if (rolloutRulesToEvaluate.length > 0) {
                 const passedRolloutCampaign = new CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
-                const variation = evaluateTrafficAndGetVariation(serviceContainer, passedRolloutCampaign, context.getId());
+                const variation = evaluateTrafficAndGetVariation(serviceContainer, passedRolloutCampaign, context);
                 if (isObject(variation) && Object.keys(variation).length > 0) {
                     isEnabled = true;
                     shouldCheckForExperimentsRules = true;
@@ -381,7 +381,7 @@ export class FlagApi {
             }
             if (experimentRulesToEvaluate.length > 0) {
                 const campaign = new CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
-                const variation = evaluateTrafficAndGetVariation(serviceContainer, campaign, context.getId());
+                const variation = evaluateTrafficAndGetVariation(serviceContainer, campaign, context);
                 if (isObject(variation) && Object.keys(variation).length > 0) {
                     isEnabled = true;
                     decision['isUserPartOfCampaign'] = true;

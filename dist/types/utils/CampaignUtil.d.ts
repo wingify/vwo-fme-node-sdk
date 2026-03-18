@@ -23,13 +23,13 @@ export declare function assignRangeValues(data: VariationModel, currentAllocatio
  */
 export declare function scaleVariationWeights(variations: any): void;
 /**
- * Generates a bucketing seed based on user ID, campaign, and optional group ID.
- * @param {string} userId - The user ID.
+ * Generates a bucketing seed based on bucketing ID (could be custom seed or user ID), campaign, and optional group ID.
+ * @param {string} bucketingId - The resolved bucketing identifier (custom seed || user ID).
  * @param {any} campaign - The campaign object.
  * @param {string} [groupId] - The optional group ID.
  * @returns {string} The bucketing seed.
  */
-export declare function getBucketingSeed(userId: string, campaign: CampaignModel, groupId: number): string;
+export declare function getBucketingSeed(bucketingId: string, campaign: CampaignModel, groupId: number): string;
 /**
  * Retrieves a variation by its ID within a specific campaign identified by its key.
  * @param {SettingsModel} settings - The settings model containing all campaigns.

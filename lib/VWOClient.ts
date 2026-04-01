@@ -68,6 +68,7 @@ export interface IVWOClient {
   setAttribute(attributes: Record<string, boolean | string | number>, context: Record<string, any>): Promise<void>;
   updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
   flushEvents(): Promise<Record<string, any>>;
+  shutdown(): Promise<void>;
   setAlias(context: Record<string, any> | string, aliasId: string): Promise<boolean>;
 }
 
@@ -81,6 +82,7 @@ export class VWOClient implements IVWOClient {
   isAliasingEnabled: boolean;
   serviceContainer: ServiceContainer;
   options?: IVWOOptions;
+  private isShutdown: boolean = false;
 
   /**
    * Constructor for the VWOClient class.
@@ -756,6 +758,41 @@ export class VWOClient implements IVWOClient {
         context?.id?.toString() ?? `${this.options?.accountId}_${this.options?.sdkKey}`,
         this.options?.accountId?.toString(),
       );
+    }
+  }
+
+  /**
+   * Shuts down the client: flushes pending batch events (and clears the batch timer) via flushEvents(),
+   * then clears the batch queue so no further events are enqueued. Idempotent.
+   */
+  async shutdown(): Promise<void> {
+    try {
+      this.serviceContainer
+        .getLogManager()
+        .debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName: ApiEnum.SHUTDOWN }));
+      // check if the client is already shutdown
+      if (this.isShutdown) {
+        this.serviceContainer.getLogManager().info(InfoLogMessagesEnum.SHUTDOWN_ALREADY_COMPLETED);
+        return;
+      }
+      // set the isShutdown flag to true to avoid multiple calls to shutdown
+      this.isShutdown = true;
+      this.serviceContainer.stopPolling();
+      if (this.serviceContainer.getBatchEventsQueue()) {
+        await this.flushEvents();
+        this.serviceContainer.getLogManager().info(InfoLogMessagesEnum.SHUTDOWN_COMPLETED_WITH_FLUSH);
+        this.serviceContainer.setBatchEventsQueue(null);
+      } else {
+        this.serviceContainer.getLogManager().info(InfoLogMessagesEnum.SHUTDOWN_COMPLETED_WITHOUT_FLUSH);
+      }
+    } catch (err) {
+      this.serviceContainer
+        .getLogManager()
+        .errorLog(
+          'EXECUTION_FAILED',
+          { apiName: ApiEnum.SHUTDOWN, err: getFormattedErrorMessage(err) },
+          { an: ApiEnum.SHUTDOWN },
+        );
     }
   }
 }

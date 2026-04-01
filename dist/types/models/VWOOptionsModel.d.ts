@@ -21,7 +21,7 @@ import { Connector } from '../packages/storage/Connector';
 import { IGatewayService } from './GatewayServiceModel';
 import { BatchConfig } from '../services/BatchEventsQueue';
 import { ClientStorageOptions } from '../packages/storage/connectors/BrowserStorageConnector';
-import { IRetryConfig } from '../packages/network-layer/client/NetworkClient';
+import { IHttpsAgentConfig, IRetryConfig } from '../packages/network-layer/client/NetworkClient';
 import { IEdgeConfig } from './edge/EdgeConfigModel';
 import { IBrowserConfig } from './browser/BrowserConfigModel';
 interface IIntegrationOptions {
@@ -54,11 +54,13 @@ export interface IVWOOptions {
   _vwo_meta?: Record<any, any>;
   clientStorage?: ClientStorageOptions;
   retryConfig?: IRetryConfig;
+  httpsAgentConfig?: IHttpsAgentConfig;
   proxyUrl?: string;
   isAliasingEnabled?: boolean;
   edgeConfig?: IEdgeConfig;
   browserConfig?: IBrowserConfig;
   sdkMeta?: ISdkMetaConfig;
+  isBatchingDisabled?: boolean;
 }
 export declare class VWOOptionsModel implements IVWOOptions {
   accountId: string;
@@ -79,11 +81,23 @@ export declare class VWOOptionsModel implements IVWOOptions {
   _vwo_meta?: Record<any, any>;
   clientStorage?: ClientStorageOptions;
   retryConfig?: IRetryConfig;
+  httpsAgentConfig?: IHttpsAgentConfig;
   proxyUrl?: string;
   edgeConfig?: IEdgeConfig;
   browserConfig?: IBrowserConfig;
   sdkMeta?: ISdkMetaConfig;
+  isBatchingDisabled?: boolean;
   modelFromDictionary(options: VWOOptionsModel): this;
+  /**
+   * Gets the flag indicating whether batching is disabled.
+   * @returns The flag indicating whether batching is disabled.
+   */
+  getIsBatchingDisabled(): boolean;
+  /**
+   * Gets the HTTPS agent configuration.
+   * @returns The HTTPS agent configuration.
+   */
+  getHttpsAgentConfig(): IHttpsAgentConfig;
   getAccountId(): string;
   getSdkKey(): string;
   getIsDevelopmentMode(): boolean;

@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.42.0] - 2026-04-01
+
+### Added
+
+- Added a `shutdown()` API on `VWOClient` to support graceful teardown in long-running environments. Calling `shutdown()` now stops the internal settings polling loop, flushes any pending batched events, clears batch timers, and releases batching resources.
+
+  Example usage:
+
+  ```javascript
+  const { init } = require('vwo-fme-node-sdk');
+
+  (async () => {
+    const vwoClient = await init({
+      accountId: '123456',
+      sdkKey: '32-alpha-numeric-sdk-key',
+    });
+
+    // When your app/process is about to exit:
+    await vwoClient.shutdown();
+  })();
+  ```
+
+### Changed
+
+- Optimized the batch events queue to enforce `eventsPerRequest` as a hard per-dispatch cap, preserve event ordering when retries occur and avoid unnecessary timer wakeups when the queue is empty.
+- Improved Node.js HTTPS networking by introducing a configurable HTTPS agent (`httpsAgentConfig`) in the network layer, including validation and sensible defaults for `keepAlive`, `maxSockets`, `maxFreeSockets`, and `timeout` to provide better socket reuse and connection management.
+
+  Example usage:
+
+  ```javascript
+  const { init } = require('vwo-fme-node-sdk');
+
+  (async () => {
+    const vwoClient = await init({
+      accountId: '123456',
+      sdkKey: '32-alpha-numeric-sdk-key',
+      httpsAgentConfig: {
+        keepAlive: true, // default: true
+        maxSockets: 100, // default: 100, minimum 50
+        maxFreeSockets: 20, // default: 20, minimum 10
+        timeout: 60000, // in milliseconds, default: 60000, minimum 30000
+      },
+    });
+
+    // ...use the client...
+  })();
+  ```
+
 ## [1.41.0] - 2026-03-18
 
 ### Added

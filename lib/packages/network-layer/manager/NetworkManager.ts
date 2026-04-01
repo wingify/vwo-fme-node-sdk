@@ -30,11 +30,13 @@ import { DebugLogMessagesEnum } from '../../../enums/log-messages';
 import { HTTPS_PROTOCOL } from '../../../constants/Url';
 import { ServiceContainer } from '../../../services/ServiceContainer';
 import { NetworkTransportModeEnum } from '../../../enums/NetworkTransportModeEnum';
+import { IHttpsAgentConfig } from '../client/NetworkClient';
 
 export class NetworkManager {
   private config: GlobalRequestModel; // Holds the global configuration for network requests
   private client: NetworkClientInterface; // Interface for the network client handling the actual HTTP requests
   private retryConfig: IRetryConfig;
+  private httpsAgentConfig: IHttpsAgentConfig;
   private isInvalidRetryConfig: boolean;
   private logManager: LogManager;
   private serviceContainer: ServiceContainer;
@@ -44,9 +46,18 @@ export class NetworkManager {
     client?: NetworkClientInterface,
     retryConfig?: IRetryConfig,
     shouldWaitForTrackingCalls: boolean = false,
+    httpsAgentConfig?: IHttpsAgentConfig,
     networkTransportMode: NetworkTransportModeEnum = NetworkTransportModeEnum.SEND_BEACON,
   ) {
     this.logManager = logManager;
+
+    // Merge the default HTTPS agent configuration with the provided configuration
+    const mergedHttpsAgentConfig = {
+      ...Constants.DEFAULT_HTTPS_AGENT,
+      ...(httpsAgentConfig || {}),
+    };
+    // Validate the merged HTTPS agent configuration
+    this.httpsAgentConfig = this.validateHttpsAgentConfig(mergedHttpsAgentConfig);
 
     // Only set retry configuration if it's not already initialized or if a new config is provided
     if (!this.retryConfig || retryConfig) {
@@ -90,7 +101,7 @@ export class NetworkManager {
         );
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { NetworkClient } = require('../client/NetworkClient');
-        this.client = client || new NetworkClient(this.logManager); // Use provided client or default to NetworkClient
+        this.client = client || new NetworkClient(this.logManager, this.httpsAgentConfig); // Use provided client or default to NetworkClient
       } else {
         // Node ESM runtime: fall back to the fetch-based client which is compatible everywhere
         this.client = client || new NetworkServerLessClient(this.logManager);
@@ -144,6 +155,49 @@ export class NetworkManager {
     }
 
     return this.isInvalidRetryConfig ? Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
+  }
+
+  /**
+   * Validates the HTTPS agent configuration parameters.
+   * maxSockets must be >= 50, maxFreeSockets >= 10, timeout >= 30000.
+   * Invalid or missing values fall back to Constants.DEFAULT_HTTPS_AGENT.
+   * @param {IHttpsAgentConfig} httpsAgentConfig - The HTTPS agent configuration to validate
+   * @returns {IHttpsAgentConfig} The validated HTTPS agent configuration
+   */
+  private validateHttpsAgentConfig(httpsAgentConfig: IHttpsAgentConfig): IHttpsAgentConfig {
+    // Create a copy of the provided HTTPS agent configuration
+    const validatedConfig: IHttpsAgentConfig = { ...httpsAgentConfig };
+    // Get the default HTTPS agent configuration
+    const defaults = Constants.DEFAULT_HTTPS_AGENT;
+
+    // Validate the maxSockets configuration
+    if (
+      !isNumber(validatedConfig.maxSockets) ||
+      !Number.isInteger(validatedConfig.maxSockets) ||
+      validatedConfig.maxSockets < Constants.MIN_SOCKETS
+    ) {
+      validatedConfig.maxSockets = defaults.maxSockets;
+    }
+
+    // Validate the maxFreeSockets configuration
+    if (
+      !isNumber(validatedConfig.maxFreeSockets) ||
+      !Number.isInteger(validatedConfig.maxFreeSockets) ||
+      validatedConfig.maxFreeSockets < Constants.MIN_FREE_SOCKETS
+    ) {
+      validatedConfig.maxFreeSockets = defaults.maxFreeSockets;
+    }
+
+    // Validate the timeout configuration
+    if (
+      !isNumber(validatedConfig.timeout) ||
+      !Number.isInteger(validatedConfig.timeout) ||
+      validatedConfig.timeout < Constants.MIN_TIMEOUT
+    ) {
+      validatedConfig.timeout = defaults.timeout;
+    }
+
+    return validatedConfig;
   }
 
   /**

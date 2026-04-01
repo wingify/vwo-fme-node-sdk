@@ -39,10 +39,14 @@ var log_messages_1 = require("../../../enums/log-messages");
 var Url_1 = require("../../../constants/Url");
 var NetworkTransportModeEnum_1 = require("../../../enums/NetworkTransportModeEnum");
 var NetworkManager = /** @class */ (function () {
-    function NetworkManager(logManager, client, retryConfig, shouldWaitForTrackingCalls, networkTransportMode) {
+    function NetworkManager(logManager, client, retryConfig, shouldWaitForTrackingCalls, httpsAgentConfig, networkTransportMode) {
         if (shouldWaitForTrackingCalls === void 0) { shouldWaitForTrackingCalls = false; }
         if (networkTransportMode === void 0) { networkTransportMode = NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON; }
         this.logManager = logManager;
+        // Merge the default HTTPS agent configuration with the provided configuration
+        var mergedHttpsAgentConfig = __assign(__assign({}, constants_1.Constants.DEFAULT_HTTPS_AGENT), (httpsAgentConfig || {}));
+        // Validate the merged HTTPS agent configuration
+        this.httpsAgentConfig = this.validateHttpsAgentConfig(mergedHttpsAgentConfig);
         // Only set retry configuration if it's not already initialized or if a new config is provided
         if (!this.retryConfig || retryConfig) {
             // Define default retry configuration
@@ -78,7 +82,7 @@ var NetworkManager = /** @class */ (function () {
                 }));
                 // eslint-disable-next-line @typescript-eslint/no-var-requires
                 var NetworkClient = require('../client/NetworkClient').NetworkClient;
-                this.client = client || new NetworkClient(this.logManager); // Use provided client or default to NetworkClient
+                this.client = client || new NetworkClient(this.logManager, this.httpsAgentConfig); // Use provided client or default to NetworkClient
             }
             else {
                 // Node ESM runtime: fall back to the fetch-based client which is compatible everywhere
@@ -121,6 +125,38 @@ var NetworkManager = /** @class */ (function () {
             this.isInvalidRetryConfig = true;
         }
         return this.isInvalidRetryConfig ? constants_1.Constants.DEFAULT_RETRY_CONFIG : validatedConfig;
+    };
+    /**
+     * Validates the HTTPS agent configuration parameters.
+     * maxSockets must be >= 50, maxFreeSockets >= 10, timeout >= 30000.
+     * Invalid or missing values fall back to Constants.DEFAULT_HTTPS_AGENT.
+     * @param {IHttpsAgentConfig} httpsAgentConfig - The HTTPS agent configuration to validate
+     * @returns {IHttpsAgentConfig} The validated HTTPS agent configuration
+     */
+    NetworkManager.prototype.validateHttpsAgentConfig = function (httpsAgentConfig) {
+        // Create a copy of the provided HTTPS agent configuration
+        var validatedConfig = __assign({}, httpsAgentConfig);
+        // Get the default HTTPS agent configuration
+        var defaults = constants_1.Constants.DEFAULT_HTTPS_AGENT;
+        // Validate the maxSockets configuration
+        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.maxSockets) ||
+            !Number.isInteger(validatedConfig.maxSockets) ||
+            validatedConfig.maxSockets < constants_1.Constants.MIN_SOCKETS) {
+            validatedConfig.maxSockets = defaults.maxSockets;
+        }
+        // Validate the maxFreeSockets configuration
+        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.maxFreeSockets) ||
+            !Number.isInteger(validatedConfig.maxFreeSockets) ||
+            validatedConfig.maxFreeSockets < constants_1.Constants.MIN_FREE_SOCKETS) {
+            validatedConfig.maxFreeSockets = defaults.maxFreeSockets;
+        }
+        // Validate the timeout configuration
+        if (!(0, DataTypeUtil_1.isNumber)(validatedConfig.timeout) ||
+            !Number.isInteger(validatedConfig.timeout) ||
+            validatedConfig.timeout < constants_1.Constants.MIN_TIMEOUT) {
+            validatedConfig.timeout = defaults.timeout;
+        }
+        return validatedConfig;
     };
     /**
      * Retrieves the current retry configuration.

@@ -27,6 +27,8 @@ var DataTypeUtil_1 = require("../utils/DataTypeUtil");
  */
 var ServiceContainer = /** @class */ (function () {
     function ServiceContainer(options) {
+        this.BatchEventsQueue = null;
+        this.pollingStopCallback = null;
         this.vwoOptions = options;
         this.HooksService = new HooksService_1.default(this.vwoOptions);
         this.SegmentationManager = new SegmentationManger_1.SegmentationManager();
@@ -75,14 +77,14 @@ var ServiceContainer = /** @class */ (function () {
     };
     /**
      *
-     * @returns BatchEventsQueue
+     * @returns BatchEventsQueue or null if cleared (e.g. after shutdown)
      */
     ServiceContainer.prototype.getBatchEventsQueue = function () {
         return this.BatchEventsQueue;
     };
     /**
-     * Sets the batch events queue.
-     * @param batchEventsQueue - The batch events queue to set.
+     * Sets the batch events queue. Pass null to clear (e.g. on shutdown).
+     * @param batchEventsQueue - The batch events queue to set, or null to clear.
      */
     ServiceContainer.prototype.setBatchEventsQueue = function (batchEventsQueue) {
         this.BatchEventsQueue = batchEventsQueue;
@@ -183,6 +185,22 @@ var ServiceContainer = /** @class */ (function () {
      */
     ServiceContainer.prototype.getShouldWaitForTrackingCalls = function () {
         return this.shouldWaitForTrackingCalls;
+    };
+    /**
+     * Registers a callback to stop settings polling (called from VWOBuilder when polling is started).
+     * @param callback - Callback to run when polling should stop, or null to clear.
+     */
+    ServiceContainer.prototype.setPollingStopCallback = function (callback) {
+        this.pollingStopCallback = callback;
+    };
+    /**
+     * Stops settings polling if it was started. No-op if polling was not active.
+     */
+    ServiceContainer.prototype.stopPolling = function () {
+        if (this.pollingStopCallback) {
+            this.pollingStopCallback();
+            this.pollingStopCallback = null;
+        }
     };
     return ServiceContainer;
 }());

@@ -20,6 +20,7 @@ var VWOOptionsModel = /** @class */ (function () {
     function VWOOptionsModel() {
     }
     VWOOptionsModel.prototype.modelFromDictionary = function (options) {
+        var _a;
         this.accountId = options.accountId;
         this.sdkKey = options.sdkKey;
         this.vwoBuilder = options.vwoBuilder;
@@ -80,7 +81,26 @@ var VWOOptionsModel = /** @class */ (function () {
         if (options === null || options === void 0 ? void 0 : options.sdkMeta) {
             this.sdkMeta = options.sdkMeta;
         }
+        if (options === null || options === void 0 ? void 0 : options.httpsAgentConfig) {
+            this.httpsAgentConfig = options.httpsAgentConfig;
+        }
+        // default to false if not provided
+        this.isBatchingDisabled = (_a = options === null || options === void 0 ? void 0 : options.isBatchingDisabled) !== null && _a !== void 0 ? _a : false;
         return this;
+    };
+    /**
+     * Gets the flag indicating whether batching is disabled.
+     * @returns The flag indicating whether batching is disabled.
+     */
+    VWOOptionsModel.prototype.getIsBatchingDisabled = function () {
+        return this.isBatchingDisabled;
+    };
+    /**
+     * Gets the HTTPS agent configuration.
+     * @returns The HTTPS agent configuration.
+     */
+    VWOOptionsModel.prototype.getHttpsAgentConfig = function () {
+        return this.httpsAgentConfig;
     };
     VWOOptionsModel.prototype.getAccountId = function () {
         return this.accountId;

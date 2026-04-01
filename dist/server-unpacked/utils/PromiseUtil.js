@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Deferred = void 0;
+exports.Deferred = Deferred;
 /**
  * Creates a Deferred object with properties for promise, resolve, and reject.
  * This allows manual control over the resolution and rejection of a promise.
@@ -15,5 +15,4 @@ function Deferred() {
     });
     return this; // Return the Deferred object with attached methods
 }
-exports.Deferred = Deferred;
 //# sourceMappingURL=PromiseUtil.js.map

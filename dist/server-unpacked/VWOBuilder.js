@@ -20,8 +20,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -69,6 +69,8 @@ var VWOBuilder = /** @class */ (function () {
     function VWOBuilder(options) {
         this.originalSettings = {};
         this.isValidPollIntervalPassedFromInit = false;
+        this.pollTimerId = null;
+        this.isPollingStopped = false;
         this.isSettingsValid = false;
         this.settingsFetchTime = undefined;
         this.options = options;
@@ -79,7 +81,7 @@ var VWOBuilder = /** @class */ (function () {
      * @returns {this} The instance of this builder.
      */
     VWOBuilder.prototype.setNetworkManager = function () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
         if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
             this.options.shouldWaitForTrackingCalls = true;
         }
@@ -99,7 +101,7 @@ var VWOBuilder = /** @class */ (function () {
                 this.options.browserConfig.networkTransportMode = NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON;
             }
         }
-        this.networkManager = new network_layer_1.NetworkManager(this.logManager, (_g = (_f = this.options) === null || _f === void 0 ? void 0 : _f.network) === null || _g === void 0 ? void 0 : _g.client, (_h = this.options) === null || _h === void 0 ? void 0 : _h.retryConfig, (_k = (_j = this.options) === null || _j === void 0 ? void 0 : _j.shouldWaitForTrackingCalls) !== null && _k !== void 0 ? _k : false, (_o = (_m = (_l = this.options) === null || _l === void 0 ? void 0 : _l.browserConfig) === null || _m === void 0 ? void 0 : _m.networkTransportMode) !== null && _o !== void 0 ? _o : NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON);
+        this.networkManager = new network_layer_1.NetworkManager(this.logManager, (_g = (_f = this.options) === null || _f === void 0 ? void 0 : _f.network) === null || _g === void 0 ? void 0 : _g.client, (_h = this.options) === null || _h === void 0 ? void 0 : _h.retryConfig, (_k = (_j = this.options) === null || _j === void 0 ? void 0 : _j.shouldWaitForTrackingCalls) !== null && _k !== void 0 ? _k : false, (_l = this.options) === null || _l === void 0 ? void 0 : _l.httpsAgentConfig, (_p = (_o = (_m = this.options) === null || _m === void 0 ? void 0 : _m.browserConfig) === null || _o === void 0 ? void 0 : _o.networkTransportMode) !== null && _p !== void 0 ? _p : NetworkTransportModeEnum_1.NetworkTransportModeEnum.SEND_BEACON);
         this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
             service: "Network Layer",
         }));
@@ -107,7 +109,7 @@ var VWOBuilder = /** @class */ (function () {
         return this;
     };
     VWOBuilder.prototype.initBatching = function () {
-        var _a;
+        var _a, _b;
         // If edge config is provided, set the batch event data to the default values
         if (this.options.edgeConfig && !(0, DataTypeUtil_1.isEmptyObject)((_a = this.options) === null || _a === void 0 ? void 0 : _a.edgeConfig)) {
             var edgeConfigModel = new EdgeConfigModel_1.EdgeConfigModel().modelFromDictionary(this.options.edgeConfig);
@@ -115,6 +117,11 @@ var VWOBuilder = /** @class */ (function () {
                 eventsPerRequest: edgeConfigModel.getMaxEventsToBatch(),
                 isEdgeEnvironment: true,
             };
+        }
+        // merge the options.batchEventData with the default batch event data
+        // this will enable batching by default if isBatchingDisabled is not true
+        if (((_b = this.options) === null || _b === void 0 ? void 0 : _b.isBatchingDisabled) !== true) {
+            this.options.batchEventData = __assign({ eventsPerRequest: constants_1.Constants.DEFAULT_EVENTS_PER_REQUEST, requestTimeInterval: constants_1.Constants.DEFAULT_REQUEST_TIME_INTERVAL }, (this.options.batchEventData || {}));
         }
         if (this.options.batchEventData) {
             if (this.settingFileManager.isGatewayServiceProvided) {
@@ -130,7 +137,6 @@ var VWOBuilder = /** @class */ (function () {
                 else {
                     this.options.batchEventData.accountId = parseInt(this.options.accountId);
                     this.batchEventsQueue = new BatchEventsQueue_1.BatchEventsQueue(Object.assign({}, this.options.batchEventData), this.logManager);
-                    this.batchEventsQueue.flushAndClearTimer.bind(this.batchEventsQueue);
                 }
             }
         }
@@ -374,6 +380,7 @@ var VWOBuilder = /** @class */ (function () {
     VWOBuilder.prototype.checkAndPoll = function () {
         var _this = this;
         var _a;
+        this.defaultServiceContainer.setPollingStopCallback(function () { return _this.stopPolling(); });
         var poll = function () { return __awaiter(_this, void 0, void 0, function () {
             var latestSettings, clonedSettings, ex_1, interval_1;
             var _a;
@@ -405,16 +412,27 @@ var VWOBuilder = /** @class */ (function () {
                         }, { an: constants_1.Constants.POLLING });
                         return [3 /*break*/, 4];
                     case 3:
-                        interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
-                        setTimeout(poll, interval_1);
+                        if (!this.isPollingStopped) {
+                            interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
+                            this.pollTimerId = setTimeout(poll, interval_1);
+                        }
                         return [7 /*endfinally*/];
                     case 4: return [2 /*return*/];
                 }
             });
         }); };
-        // Start the polling after the given interval
         var interval = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
-        setTimeout(poll, interval);
+        this.pollTimerId = setTimeout(poll, interval);
+    };
+    /**
+     * Stops the settings polling timer. No further polls will be scheduled.
+     */
+    VWOBuilder.prototype.stopPolling = function () {
+        this.isPollingStopped = true;
+        if (this.pollTimerId != null) {
+            clearTimeout(this.pollTimerId);
+            this.pollTimerId = null;
+        }
     };
     VWOBuilder.prototype.updatePollIntervalAndCheckAndPoll = function (settings, shouldCheckAndPoll) {
         var _a;

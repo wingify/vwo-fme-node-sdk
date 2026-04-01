@@ -304,8 +304,7 @@ var RequestModel = /** @class */ (function () {
         }
         var _a = this.url.split('/'), hostname = _a[0], collectionPrefix = _a[1];
         var options = {
-            hostname: hostname, // if url is example.com/as01, hostname will be example.com
-            agent: false,
+            hostname: hostname,
         };
         if (this.scheme) {
             options.scheme = this.scheme;

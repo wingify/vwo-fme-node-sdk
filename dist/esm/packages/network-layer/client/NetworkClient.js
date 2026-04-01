@@ -24,8 +24,11 @@ import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
  * Implements the NetworkClientInterface to handle network requests.
  */
 export class NetworkClient {
-    constructor(logManager) {
+    constructor(logManager, httpsAgentConfig) {
         this.logManager = logManager;
+        this.httpsAgentConfig = httpsAgentConfig;
+        this.httpAgent = new http.Agent(httpsAgentConfig);
+        this.httpsAgent = new https.Agent(httpsAgentConfig);
     }
     /**
      * Performs a GET request using the provided RequestModel.
@@ -41,6 +44,13 @@ export class NetworkClient {
             try {
                 // Choose HTTP or HTTPS client based on the scheme.
                 const httpClient = networkOptions.scheme === HTTPS ? https : http;
+                // Set the agent based on the scheme.
+                if (networkOptions.scheme === HTTPS) {
+                    networkOptions.agent = this.httpsAgent;
+                }
+                else {
+                    networkOptions.agent = this.httpAgent;
+                }
                 // Perform the HTTP GET request.
                 const req = httpClient.get(networkOptions, (res) => {
                     responseModel.setStatusCode(res.statusCode);
@@ -118,6 +128,13 @@ export class NetworkClient {
             try {
                 // Choose HTTP or HTTPS client based on the scheme.
                 const httpClient = networkOptions.scheme === HTTPS ? https : http;
+                // Set the agent based on the scheme.
+                if (networkOptions.scheme === HTTPS) {
+                    networkOptions.agent = this.httpsAgent;
+                }
+                else {
+                    networkOptions.agent = this.httpAgent;
+                }
                 // Perform the HTTP POST request.
                 const req = httpClient.request(networkOptions, (res) => {
                     let rawData = '';

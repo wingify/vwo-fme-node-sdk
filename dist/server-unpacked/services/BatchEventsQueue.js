@@ -24,8 +24,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -110,10 +110,6 @@ var BatchEventsQueue = /** @class */ (function () {
         }
         this.flushCallback = (0, DataTypeUtil_1.isFunction)(config.flushCallback) ? config.flushCallback : function () { };
         this.accountId = config.accountId;
-        // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
-        if (!this.isEdgeEnvironment) {
-            this.createNewBatchTimer();
-        }
         return this;
     }
     BatchEventsQueue.prototype.injectServiceContainer = function (serviceContainer) {
@@ -130,6 +126,11 @@ var BatchEventsQueue = /** @class */ (function () {
             queueType: 'batch',
             event: JSON.stringify(payload),
         }));
+        // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
+        if (!this.isEdgeEnvironment && !this.timer) {
+            // Create a new batch timer if it is not already created during the enqueue operation
+            this.createNewBatchTimer();
+        }
         // If the queue length is equal to or exceeds the events per request, flush the queue
         if (this.queue.length >= this.eventsPerRequest) {
             this.flush();
@@ -139,65 +140,80 @@ var BatchEventsQueue = /** @class */ (function () {
      * Flushes the queue
      * @param manual - Whether the flush is manual or not
      */
-    BatchEventsQueue.prototype.flush = function (manual) {
-        var _this = this;
-        if (manual === void 0) { manual = false; }
-        // If the queue is not empty, flush the queue
-        if (this.queue.length) {
-            this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
-                manually: manual ? 'manually' : '',
-                length: this.queue.length,
-                accountId: this.accountId,
-                timer: manual ? 'Timer will be cleared and registered again' : '',
-            }));
-            var tempQueue_1 = this.queue;
-            this.queue = [];
-            return BatchEventsDispatcher_1.default.dispatch(this.serviceContainer, {
-                ev: tempQueue_1,
-            }, this.flushCallback, Object.assign({}, {
-                a: this.accountId,
-                env: this.serviceContainer.getSettingsService().sdkKey,
-                sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
-                sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
-            }))
-                .then(function (result) {
-                var _a;
-                if (result.status === 'success') {
-                    _this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_After_FLUSHING, {
-                        manually: manual ? 'manually' : '',
-                        length: tempQueue_1.length,
-                    }));
-                    return result;
+    BatchEventsQueue.prototype.flush = function () {
+        return __awaiter(this, arguments, void 0, function (manual) {
+            var tempQueue_1;
+            var _this = this;
+            if (manual === void 0) { manual = false; }
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!this.queue.length) return [3 /*break*/, 2];
+                        this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
+                            manually: manual ? 'manually' : '',
+                            length: this.queue.length,
+                            accountId: this.accountId,
+                            timer: manual ? 'Timer will be cleared and registered again' : '',
+                        }));
+                        tempQueue_1 = manual
+                            ? this.queue.splice(0, this.queue.length) // drain everything if manual flush
+                            : this.queue.splice(0, this.eventsPerRequest);
+                        return [4 /*yield*/, BatchEventsDispatcher_1.default.dispatch(this.serviceContainer, {
+                                ev: tempQueue_1,
+                            }, this.flushCallback, Object.assign({}, {
+                                a: this.accountId,
+                                env: this.serviceContainer.getSettingsService().sdkKey,
+                                sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+                                sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
+                            }))
+                                .then(function (result) {
+                                if (result.status === 'success') {
+                                    _this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_BATCH_After_FLUSHING, {
+                                        manually: manual ? 'manually' : '',
+                                        length: tempQueue_1.length,
+                                    }));
+                                    return result;
+                                }
+                                else {
+                                    // Preserve ordering: failed events should be retried before newer enqueued events
+                                    _this.queue = tempQueue_1.concat(_this.queue);
+                                    return result;
+                                }
+                            })
+                                .catch(function () {
+                                // Preserve ordering: failed events should be retried before newer enqueued events
+                                _this.queue = tempQueue_1.concat(_this.queue);
+                                return { status: 'error', events: tempQueue_1 };
+                            })];
+                    case 1: // drain only events per request if automatic flush
+                    return [2 /*return*/, _a.sent()];
+                    case 2:
+                        this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
+                        return [2 /*return*/, new Promise(function (resolve) {
+                                resolve({ status: 'success', events: [] });
+                            })];
                 }
-                else {
-                    (_a = _this.queue).push.apply(_a, tempQueue_1);
-                    return result;
-                }
-            })
-                .catch(function () {
-                var _a;
-                (_a = _this.queue).push.apply(_a, tempQueue_1);
-                return { status: 'error', events: tempQueue_1 };
             });
-        }
-        else {
-            this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
-            return new Promise(function (resolve) {
-                resolve({ status: 'success', events: [] });
-            });
-        }
+        });
     };
     /**
      * Creates a new batch timer
      */
     BatchEventsQueue.prototype.createNewBatchTimer = function () {
         var _this = this;
-        this.timer = setInterval(function () { return __awaiter(_this, void 0, void 0, function () {
+        // Use a one-shot timer to avoid waking up when the queue is empty.
+        this.timer = setTimeout(function () { return __awaiter(_this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.flush()];
+                    case 0:
+                        this.timer = null;
+                        return [4 /*yield*/, this.flush()];
                     case 1:
                         _a.sent();
+                        // Create a new batch timer if there are still events in the queue after the flush
+                        if (this.queue.length) {
+                            this.createNewBatchTimer();
+                        }
                         return [2 /*return*/];
                 }
             });
@@ -214,8 +230,21 @@ var BatchEventsQueue = /** @class */ (function () {
      * Flushes the queue and clears the timer
      */
     BatchEventsQueue.prototype.flushAndClearTimer = function () {
-        var flushResult = this.flush(true);
-        return flushResult;
+        return __awaiter(this, void 0, void 0, function () {
+            var flushResult;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!this.isEdgeEnvironment) {
+                            this.clearRequestTimer();
+                        }
+                        return [4 /*yield*/, this.flush(true)];
+                    case 1:
+                        flushResult = _a.sent();
+                        return [2 /*return*/, flushResult];
+                }
+            });
+        });
     };
     return BatchEventsQueue;
 }());

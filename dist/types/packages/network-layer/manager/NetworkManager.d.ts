@@ -6,10 +6,12 @@ import { ResponseModel } from '../models/ResponseModel';
 import { LogManager } from '../../logger/core/LogManager';
 import { ServiceContainer } from '../../../services/ServiceContainer';
 import { NetworkTransportModeEnum } from '../../../enums/NetworkTransportModeEnum';
+import { IHttpsAgentConfig } from '../client/NetworkClient';
 export declare class NetworkManager {
   private config;
   private client;
   private retryConfig;
+  private httpsAgentConfig;
   private isInvalidRetryConfig;
   private logManager;
   private serviceContainer;
@@ -18,6 +20,7 @@ export declare class NetworkManager {
     client?: NetworkClientInterface,
     retryConfig?: IRetryConfig,
     shouldWaitForTrackingCalls?: boolean,
+    httpsAgentConfig?: IHttpsAgentConfig,
     networkTransportMode?: NetworkTransportModeEnum,
   );
   /**
@@ -26,6 +29,14 @@ export declare class NetworkManager {
    * @returns {IRetryConfig} The validated retry configuration with corrected values
    */
   private validateRetryConfig;
+  /**
+   * Validates the HTTPS agent configuration parameters.
+   * maxSockets must be >= 50, maxFreeSockets >= 10, timeout >= 30000.
+   * Invalid or missing values fall back to Constants.DEFAULT_HTTPS_AGENT.
+   * @param {IHttpsAgentConfig} httpsAgentConfig - The HTTPS agent configuration to validate
+   * @returns {IHttpsAgentConfig} The validated HTTPS agent configuration
+   */
+  private validateHttpsAgentConfig;
   /**
    * Retrieves the current retry configuration.
    * @returns {boolean} Whether the retry configuration is invalid.

@@ -26,5 +26,6 @@ var ApiEnum;
     ApiEnum["FLUSH_EVENTS"] = "flushEvents";
     ApiEnum["UPDATE_SETTINGS"] = "updateSettings";
     ApiEnum["SET_ALIAS"] = "setAlias";
+    ApiEnum["SHUTDOWN"] = "shutdown";
 })(ApiEnum || (exports.ApiEnum = ApiEnum = {}));
 //# sourceMappingURL=ApiEnum.js.map

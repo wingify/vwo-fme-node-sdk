@@ -20,8 +20,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -81,6 +81,7 @@ var VWOClient = /** @class */ (function () {
      * @param batchEventsQueue - The batch events queue to use for batching events.
      */
     function VWOClient(settings, options, serviceContainer) {
+        this.isShutdown = false;
         try {
             this.options = options;
             this.serviceContainer = serviceContainer;
@@ -694,6 +695,50 @@ var VWOClient = /** @class */ (function () {
             // if web connectivity is disabled, fallback to server‑side UUID derivation
             return (0, UuidUtil_1.getUUID)((_h = (_g = context === null || context === void 0 ? void 0 : context.id) === null || _g === void 0 ? void 0 : _g.toString()) !== null && _h !== void 0 ? _h : "".concat((_j = this.options) === null || _j === void 0 ? void 0 : _j.accountId, "_").concat((_k = this.options) === null || _k === void 0 ? void 0 : _k.sdkKey), (_m = (_l = this.options) === null || _l === void 0 ? void 0 : _l.accountId) === null || _m === void 0 ? void 0 : _m.toString());
         }
+    };
+    /**
+     * Shuts down the client: flushes pending batch events (and clears the batch timer) via flushEvents(),
+     * then clears the batch queue so no further events are enqueued. Idempotent.
+     */
+    VWOClient.prototype.shutdown = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var err_7;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 4, , 5]);
+                        this.serviceContainer
+                            .getLogManager()
+                            .debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: ApiEnum_1.ApiEnum.SHUTDOWN }));
+                        // check if the client is already shutdown
+                        if (this.isShutdown) {
+                            this.serviceContainer.getLogManager().info(log_messages_1.InfoLogMessagesEnum.SHUTDOWN_ALREADY_COMPLETED);
+                            return [2 /*return*/];
+                        }
+                        // set the isShutdown flag to true to avoid multiple calls to shutdown
+                        this.isShutdown = true;
+                        this.serviceContainer.stopPolling();
+                        if (!this.serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.flushEvents()];
+                    case 1:
+                        _a.sent();
+                        this.serviceContainer.getLogManager().info(log_messages_1.InfoLogMessagesEnum.SHUTDOWN_COMPLETED_WITH_FLUSH);
+                        this.serviceContainer.setBatchEventsQueue(null);
+                        return [3 /*break*/, 3];
+                    case 2:
+                        this.serviceContainer.getLogManager().info(log_messages_1.InfoLogMessagesEnum.SHUTDOWN_COMPLETED_WITHOUT_FLUSH);
+                        _a.label = 3;
+                    case 3: return [3 /*break*/, 5];
+                    case 4:
+                        err_7 = _a.sent();
+                        this.serviceContainer
+                            .getLogManager()
+                            .errorLog('EXECUTION_FAILED', { apiName: ApiEnum_1.ApiEnum.SHUTDOWN, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_7) }, { an: ApiEnum_1.ApiEnum.SHUTDOWN });
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
     };
     return VWOClient;
 }());

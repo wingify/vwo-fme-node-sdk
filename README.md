@@ -98,6 +98,7 @@ To customize the SDK further, additional parameters can be passed to the `init()
 | `integrations`               | A callback function that receives data which can be pushed to any external tool that you need to integrate with.                                            | No           | Object   | See [Integrations](#integrations)             |
 | `batchEventData`             | Configuration for batch event processing to optimize network requests                                                                                       | No           | Object   | See [Batch Events](#batch-events) section     |
 | `retryConfig`                | Configuration for network request retry behavior and exponential backoff strategy                                                                           | No           | Object   | See [Retry Config](#retry-config) section     |
+| `httpsAgentConfig`           | Node.js HTTPS agent configuration for controlling keep-alive, socket pool size, and timeouts                                                                | No           | Object   | See [HTTPS Agent Config](#https-agent-config) |
 | `edgeConfig`                 | Configuration for edge/serverless environment optimizations (e.g., Cloudflare Workers)                                                                      | No           | Object   | See [Edge Config](#edge-config) section       |
 
 Refer to the [official VWO documentation](https://developers.vwo.com/v2/docs/fme-node-install) for additional parameter details.
@@ -110,13 +111,13 @@ The `context` object uniquely identifies users and is crucial for consistent fea
 
 The following table explains all the parameters in the `context` object:
 
-| **Parameter**     | **Description**                                                            | **Required** | **Type** | **Example**                       |
-| ----------------- | -------------------------------------------------------------------------- | ------------ | -------- | --------------------------------- |
-| `id`              | Unique identifier for the user.                                            | Yes          | String   | `'unique_user_id'`                |
-| `customVariables` | Custom attributes for targeting.                                           | No           | Object   | `{ age: 25, location: 'US' }`     |
-| `userAgent`       | User agent string for identifying the user's browser and operating system. | No           | String   | `'Mozilla/5.0 ... Safari/537.36'` |
-| `ipAddress`       | IP address of the user.                                                    | No           | String   | `'1.1.1.1'`                       |
-| `bucketingSeed`   | Custom string used for bucketing instead of user `id`. See [Custom Bucketing Seed](#custom-bucketing-seed). | No | String | `'company-abc'` |
+| **Parameter**     | **Description**                                                                                             | **Required** | **Type** | **Example**                       |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- | ------------ | -------- | --------------------------------- |
+| `id`              | Unique identifier for the user.                                                                             | Yes          | String   | `'unique_user_id'`                |
+| `customVariables` | Custom attributes for targeting.                                                                            | No           | Object   | `{ age: 25, location: 'US' }`     |
+| `userAgent`       | User agent string for identifying the user's browser and operating system.                                  | No           | String   | `'Mozilla/5.0 ... Safari/537.36'` |
+| `ipAddress`       | IP address of the user.                                                                                     | No           | String   | `'1.1.1.1'`                       |
+| `bucketingSeed`   | Custom string used for bucketing instead of user `id`. See [Custom Bucketing Seed](#custom-bucketing-seed). | No           | String   | `'company-abc'`                   |
 
 #### Example
 
@@ -611,6 +612,32 @@ With this configuration, the retry delays would be:
 - 3rd retry: 12 seconds (3 × 2^2)
 - 4th retry: 24 seconds (3 × 2^3)
 - 5th retry: 48 seconds (3 × 2^4)
+
+### HTTPS Agent Config
+
+The `httpsAgentConfig` option lets you customize the underlying Node.js HTTPS agent used by the SDK for network calls. This is useful when you need finer control over TCP connection reuse, socket pool sizing, and timeouts.
+
+| **Parameter**    | **Description**                                                         | **Required** | **Type** | **Default** | **Minimum** |
+| ---------------- | ----------------------------------------------------------------------- | ------------ | -------- | ----------- | ----------- |
+| `keepAlive`      | Reuse TCP connections so that multiple requests can use the same socket | No           | Boolean  | `true`      | —           |
+| `maxSockets`     | Maximum number of sockets allowed per host                              | No           | Number   | `100`       | `50`        |
+| `maxFreeSockets` | Maximum number of sockets to leave open in a free state                 | No           | Number   | `20`        | `10`        |
+| `timeout`        | Socket timeout in milliseconds                                          | No           | Number   | `60000`     | `30000`     |
+
+If any field is missing or below the minimum, the SDK uses the default value for that field.
+
+```javascript
+const vwoClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  httpsAgentConfig: {
+    keepAlive: true,
+    maxSockets: 100,
+    maxFreeSockets: 20,
+    timeout: 60000, // in milliseconds -- this is socket timeout
+  },
+});
+```
 
 ### Edge Config
 

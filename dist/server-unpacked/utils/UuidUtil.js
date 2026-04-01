@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isWebUuid = exports.generateUUID = exports.getUUID = exports.getRandomUUID = void 0;
+exports.getRandomUUID = getRandomUUID;
+exports.getUUID = getUUID;
+exports.generateUUID = generateUUID;
+exports.isWebUuid = isWebUuid;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -31,7 +34,6 @@ function getRandomUUID(sdkKey) {
     var randomUUID = (0, uuid_2.v5)((0, uuid_1.v4)(), namespace);
     return randomUUID;
 }
-exports.getRandomUUID = getRandomUUID;
 /**
  * Generates a UUID for a user based on their userId and accountId.
  * @param userId The user's ID.
@@ -51,7 +53,6 @@ function getUUID(userId, accountId) {
     var desiredUuid = uuidForUserIdAccountId === null || uuidForUserIdAccountId === void 0 ? void 0 : uuidForUserIdAccountId.replace(/-/gi, '').toUpperCase();
     return desiredUuid;
 }
-exports.getUUID = getUUID;
 /**
  * Helper function to generate a UUID v5 based on a name and a namespace.
  * @param name The name from which to generate the UUID.
@@ -66,7 +67,6 @@ function generateUUID(name, namespace) {
     // Generate and return the UUID v5
     return (0, uuid_2.v5)(name, namespace);
 }
-exports.generateUUID = generateUUID;
 /**
  * Validates whether the given string is an web-generated UUID.
  * Performs a basic check that an incoming context.id looks like an web-generated ID:
@@ -81,5 +81,4 @@ function isWebUuid(id) {
     }
     return /^[DJ][0-9A-Fa-f]{32}$/.test(id);
 }
-exports.isWebUuid = isWebUuid;
 //# sourceMappingURL=UuidUtil.js.map

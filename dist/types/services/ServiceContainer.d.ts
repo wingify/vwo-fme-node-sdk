@@ -36,6 +36,7 @@ export declare class ServiceContainer {
   private NetworkManager;
   private Storage;
   private shouldWaitForTrackingCalls;
+  private pollingStopCallback;
   constructor(options: IVWOOptions);
   /**
    *
@@ -69,14 +70,14 @@ export declare class ServiceContainer {
   getVWOOptions(): IVWOOptions;
   /**
    *
-   * @returns BatchEventsQueue
+   * @returns BatchEventsQueue or null if cleared (e.g. after shutdown)
    */
-  getBatchEventsQueue(): BatchEventsQueue;
+  getBatchEventsQueue(): BatchEventsQueue | null;
   /**
-   * Sets the batch events queue.
-   * @param batchEventsQueue - The batch events queue to set.
+   * Sets the batch events queue. Pass null to clear (e.g. on shutdown).
+   * @param batchEventsQueue - The batch events queue to set, or null to clear.
    */
-  setBatchEventsQueue(batchEventsQueue: BatchEventsQueue): void;
+  setBatchEventsQueue(batchEventsQueue: BatchEventsQueue | null): void;
   /**
    *
    * @returns SegmentationManager
@@ -133,4 +134,13 @@ export declare class ServiceContainer {
    * @returns The value to determine if the SDK should wait for a network response.
    */
   getShouldWaitForTrackingCalls(): boolean;
+  /**
+   * Registers a callback to stop settings polling (called from VWOBuilder when polling is started).
+   * @param callback - Callback to run when polling should stop, or null to clear.
+   */
+  setPollingStopCallback(callback: (() => void) | null): void;
+  /**
+   * Stops settings polling if it was started. No-op if polling was not active.
+   */
+  stopPolling(): void;
 }

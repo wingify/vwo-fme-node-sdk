@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendPostCall = exports.sendGetCall = void 0;
+exports.sendGetCall = sendGetCall;
+exports.sendPostCall = sendPostCall;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -24,11 +25,9 @@ var noop = function () { };
 function sendGetCall(options, logManager) {
     sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options, logManager);
 }
-exports.sendGetCall = sendGetCall;
 function sendPostCall(options, logManager) {
     sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options, logManager);
 }
-exports.sendPostCall = sendPostCall;
 function sendRequest(method, options, logManager) {
     var requestModel = options.requestModel, _a = options.successCallback, successCallback = _a === void 0 ? noop : _a, _b = options.errorCallback, errorCallback = _b === void 0 ? noop : _b;
     var networkOptions = requestModel.getOptions();

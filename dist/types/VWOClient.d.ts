@@ -40,6 +40,7 @@ export interface IVWOClient {
   setAttribute(attributes: Record<string, boolean | string | number>, context: Record<string, any>): Promise<void>;
   updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
   flushEvents(): Promise<Record<string, any>>;
+  shutdown(): Promise<void>;
   setAlias(context: Record<string, any> | string, aliasId: string): Promise<boolean>;
 }
 export declare class VWOClient implements IVWOClient {
@@ -52,6 +53,7 @@ export declare class VWOClient implements IVWOClient {
   isAliasingEnabled: boolean;
   serviceContainer: ServiceContainer;
   options?: IVWOOptions;
+  private isShutdown;
   /**
    * Constructor for the VWOClient class.
    * @param settings - The settings to initialize the client with.
@@ -133,4 +135,9 @@ export declare class VWOClient implements IVWOClient {
    * @returns The UUID generated from the context.id
    */
   private getUUIDFromContext;
+  /**
+   * Shuts down the client: flushes pending batch events (and clears the batch timer) via flushEvents(),
+   * then clears the batch queue so no further events are enqueued. Idempotent.
+   */
+  shutdown(): Promise<void>;
 }

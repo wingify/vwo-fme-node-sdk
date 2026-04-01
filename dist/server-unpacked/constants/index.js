@@ -49,7 +49,7 @@ exports.Constants = {
     STATUS_RUNNING: 'RUNNING',
     SEED_VALUE: 1,
     MAX_EVENTS_PER_REQUEST: 5000,
-    DEFAULT_REQUEST_TIME_INTERVAL: 600, // 10 * 60(secs) = 600 secs i.e. 10 minutes
+    DEFAULT_REQUEST_TIME_INTERVAL: 3,
     DEFAULT_EVENTS_PER_REQUEST: 100,
     SEED_URL: Url_1.SEED_URL,
     HTTP_PROTOCOL: Url_1.HTTP_PROTOCOL,
@@ -87,7 +87,19 @@ exports.Constants = {
     NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES: 'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
     NETWORK_CALL_SUCCESS_WITH_RETRIES: 'NETWORK_CALL_SUCCESS_WITH_RETRIES',
     IMPACT_ANALYSIS: 'IMPACT_ANALYSIS',
+    // Holdout constants
     VARIATION_IS_PART_OF_HOLDOUT: 1,
     VARIATION_NOT_PART_OF_HOLDOUT: 2,
+    // default https agent configuration constants
+    DEFAULT_HTTPS_AGENT: {
+        keepAlive: true,
+        maxSockets: 100,
+        maxFreeSockets: 20,
+        timeout: 60000,
+    },
+    // minimun agent configuration constants
+    MIN_SOCKETS: 50,
+    MIN_FREE_SOCKETS: 10,
+    MIN_TIMEOUT: 30000,
 };
 //# sourceMappingURL=index.js.map

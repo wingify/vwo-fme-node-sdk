@@ -475,7 +475,6 @@ export class FlagApi {
         continue; // if rule does not satisfy, then check for other ROLLOUT rules
       }
 
-
       if (rolloutRulesToEvaluate.length > 0) {
         const passedRolloutCampaign = new CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
         const variation = evaluateTrafficAndGetVariation(serviceContainer, passedRolloutCampaign, context);

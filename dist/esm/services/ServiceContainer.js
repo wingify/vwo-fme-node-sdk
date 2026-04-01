@@ -21,6 +21,8 @@ import { isString } from '../utils/DataTypeUtil.js';
  */
 export class ServiceContainer {
     constructor(options) {
+        this.BatchEventsQueue = null;
+        this.pollingStopCallback = null;
         this.vwoOptions = options;
         this.HooksService = new HooksService(this.vwoOptions);
         this.SegmentationManager = new SegmentationManager();
@@ -69,14 +71,14 @@ export class ServiceContainer {
     }
     /**
      *
-     * @returns BatchEventsQueue
+     * @returns BatchEventsQueue or null if cleared (e.g. after shutdown)
      */
     getBatchEventsQueue() {
         return this.BatchEventsQueue;
     }
     /**
-     * Sets the batch events queue.
-     * @param batchEventsQueue - The batch events queue to set.
+     * Sets the batch events queue. Pass null to clear (e.g. on shutdown).
+     * @param batchEventsQueue - The batch events queue to set, or null to clear.
      */
     setBatchEventsQueue(batchEventsQueue) {
         this.BatchEventsQueue = batchEventsQueue;
@@ -177,6 +179,22 @@ export class ServiceContainer {
      */
     getShouldWaitForTrackingCalls() {
         return this.shouldWaitForTrackingCalls;
+    }
+    /**
+     * Registers a callback to stop settings polling (called from VWOBuilder when polling is started).
+     * @param callback - Callback to run when polling should stop, or null to clear.
+     */
+    setPollingStopCallback(callback) {
+        this.pollingStopCallback = callback;
+    }
+    /**
+     * Stops settings polling if it was started. No-op if polling was not active.
+     */
+    stopPolling() {
+        if (this.pollingStopCallback) {
+            this.pollingStopCallback();
+            this.pollingStopCallback = null;
+        }
     }
 }
 //# sourceMappingURL=ServiceContainer.js.map

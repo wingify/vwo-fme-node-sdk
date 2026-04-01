@@ -289,7 +289,6 @@ export class RequestModel {
         const [hostname, collectionPrefix] = this.url.split('/');
         const options = {
             hostname, // if url is example.com/as01, hostname will be example.com
-            agent: false,
         };
         if (this.scheme) {
             options.scheme = this.scheme;

@@ -33,12 +33,13 @@ export class ServiceContainer {
   private SettingsService: SettingsService;
   private HooksService: HooksService;
   private vwoOptions: IVWOOptions;
-  private BatchEventsQueue: BatchEventsQueue;
+  private BatchEventsQueue: BatchEventsQueue | null = null;
   private SegmentationManager: SegmentationManager;
   private SettingsModel: SettingsModel;
   private NetworkManager: NetworkManager;
   private Storage: Storage;
   private shouldWaitForTrackingCalls: boolean;
+  private pollingStopCallback: (() => void) | null = null;
 
   constructor(options: IVWOOptions) {
     this.vwoOptions = options;
@@ -96,17 +97,17 @@ export class ServiceContainer {
 
   /**
    *
-   * @returns BatchEventsQueue
+   * @returns BatchEventsQueue or null if cleared (e.g. after shutdown)
    */
-  public getBatchEventsQueue(): BatchEventsQueue {
+  public getBatchEventsQueue(): BatchEventsQueue | null {
     return this.BatchEventsQueue;
   }
 
   /**
-   * Sets the batch events queue.
-   * @param batchEventsQueue - The batch events queue to set.
+   * Sets the batch events queue. Pass null to clear (e.g. on shutdown).
+   * @param batchEventsQueue - The batch events queue to set, or null to clear.
    */
-  public setBatchEventsQueue(batchEventsQueue: BatchEventsQueue): void {
+  public setBatchEventsQueue(batchEventsQueue: BatchEventsQueue | null): void {
     this.BatchEventsQueue = batchEventsQueue;
   }
 
@@ -216,5 +217,23 @@ export class ServiceContainer {
    */
   public getShouldWaitForTrackingCalls(): boolean {
     return this.shouldWaitForTrackingCalls;
+  }
+
+  /**
+   * Registers a callback to stop settings polling (called from VWOBuilder when polling is started).
+   * @param callback - Callback to run when polling should stop, or null to clear.
+   */
+  public setPollingStopCallback(callback: (() => void) | null): void {
+    this.pollingStopCallback = callback;
+  }
+
+  /**
+   * Stops settings polling if it was started. No-op if polling was not active.
+   */
+  public stopPolling(): void {
+    if (this.pollingStopCallback) {
+      this.pollingStopCallback();
+      this.pollingStopCallback = null;
+    }
   }
 }

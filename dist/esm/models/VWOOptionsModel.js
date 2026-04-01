@@ -75,7 +75,26 @@ export class VWOOptionsModel {
         if (options?.sdkMeta) {
             this.sdkMeta = options.sdkMeta;
         }
+        if (options?.httpsAgentConfig) {
+            this.httpsAgentConfig = options.httpsAgentConfig;
+        }
+        // default to false if not provided
+        this.isBatchingDisabled = options?.isBatchingDisabled ?? false;
         return this;
+    }
+    /**
+     * Gets the flag indicating whether batching is disabled.
+     * @returns The flag indicating whether batching is disabled.
+     */
+    getIsBatchingDisabled() {
+        return this.isBatchingDisabled;
+    }
+    /**
+     * Gets the HTTPS agent configuration.
+     * @returns The HTTPS agent configuration.
+     */
+    getHttpsAgentConfig() {
+        return this.httpsAgentConfig;
     }
     getAccountId() {
         return this.accountId;

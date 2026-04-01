@@ -71,6 +71,8 @@ export class VWOBuilder implements IVWOBuilder {
   vwoInstance: IVWOClient;
   batchEventsQueue: BatchEventsQueue;
   private isValidPollIntervalPassedFromInit: boolean = false;
+  private pollTimerId: NodeJS.Timeout | null = null;
+  private isPollingStopped: boolean = false;
   isSettingsValid: boolean = false;
   settingsFetchTime: number | undefined = undefined;
   networkManager: NetworkManager;
@@ -115,6 +117,7 @@ export class VWOBuilder implements IVWOBuilder {
       this.options?.network?.client,
       this.options?.retryConfig,
       this.options?.shouldWaitForTrackingCalls ?? false,
+      this.options?.httpsAgentConfig,
       this.options?.browserConfig?.networkTransportMode ?? NetworkTransportModeEnum.SEND_BEACON,
     );
 
@@ -136,6 +139,16 @@ export class VWOBuilder implements IVWOBuilder {
         isEdgeEnvironment: true,
       };
     }
+
+    // merge the options.batchEventData with the default batch event data
+    // this will enable batching by default if isBatchingDisabled is not true
+    if (this.options?.isBatchingDisabled !== true) {
+      this.options.batchEventData = {
+        eventsPerRequest: Constants.DEFAULT_EVENTS_PER_REQUEST,
+        requestTimeInterval: Constants.DEFAULT_REQUEST_TIME_INTERVAL,
+        ...(this.options.batchEventData || {}),
+      };
+    }
     if (this.options.batchEventData) {
       if (this.settingFileManager.isGatewayServiceProvided) {
         this.logManager.info(buildMessage(InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
@@ -150,7 +163,6 @@ export class VWOBuilder implements IVWOBuilder {
         } else {
           this.options.batchEventData.accountId = parseInt(this.options.accountId);
           this.batchEventsQueue = new BatchEventsQueue(Object.assign({}, this.options.batchEventData), this.logManager);
-          this.batchEventsQueue.flushAndClearTimer.bind(this.batchEventsQueue);
         }
       }
     }
@@ -428,6 +440,7 @@ export class VWOBuilder implements IVWOBuilder {
    * Checks and polls for settings updates at the provided interval.
    */
   checkAndPoll(): void {
+    this.defaultServiceContainer.setPollingStopCallback(() => this.stopPolling());
     const poll = async () => {
       try {
         const latestSettings = await this.getSettings();
@@ -456,15 +469,25 @@ export class VWOBuilder implements IVWOBuilder {
           { an: Constants.POLLING },
         );
       } finally {
-        // Schedule next poll
-        const interval = this.options.pollInterval ?? Constants.POLLING_INTERVAL;
-        setTimeout(poll, interval);
+        if (!this.isPollingStopped) {
+          const interval = this.options.pollInterval ?? Constants.POLLING_INTERVAL;
+          this.pollTimerId = setTimeout(poll, interval);
+        }
       }
     };
-
-    // Start the polling after the given interval
     const interval = this.options.pollInterval ?? Constants.POLLING_INTERVAL;
-    setTimeout(poll, interval);
+    this.pollTimerId = setTimeout(poll, interval);
+  }
+
+  /**
+   * Stops the settings polling timer. No further polls will be scheduled.
+   */
+  stopPolling(): void {
+    this.isPollingStopped = true;
+    if (this.pollTimerId != null) {
+      clearTimeout(this.pollTimerId);
+      this.pollTimerId = null;
+    }
   }
 
   private updatePollIntervalAndCheckAndPoll(settings: Record<any, any>, shouldCheckAndPoll: boolean) {

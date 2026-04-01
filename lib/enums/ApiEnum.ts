@@ -22,4 +22,5 @@ export enum ApiEnum {
   FLUSH_EVENTS = 'flushEvents',
   UPDATE_SETTINGS = 'updateSettings',
   SET_ALIAS = 'setAlias',
+  SHUTDOWN = 'shutdown',
 }

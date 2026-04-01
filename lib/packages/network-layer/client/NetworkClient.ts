@@ -26,6 +26,9 @@ import { LogManager } from '../../../packages/logger';
 import { EventEnum } from '../../../enums/EventEnum';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 
+/**
+ * Interface for the retry configuration.
+ */
 export interface IRetryConfig {
   shouldRetry?: boolean;
   initialDelay?: number;
@@ -34,13 +37,29 @@ export interface IRetryConfig {
 }
 
 /**
+ * Interface for the HTTPS agent configuration.
+ */
+export interface IHttpsAgentConfig {
+  keepAlive?: boolean;
+  maxSockets?: number;
+  maxFreeSockets?: number;
+  timeout?: number;
+}
+
+/**
  * Implements the NetworkClientInterface to handle network requests.
  */
 export class NetworkClient implements NetworkClientInterface {
   private logManager: LogManager;
+  private httpsAgentConfig: IHttpsAgentConfig;
+  private httpAgent: http.Agent;
+  private httpsAgent: https.Agent;
 
-  constructor(logManager: LogManager) {
+  constructor(logManager: LogManager, httpsAgentConfig: IHttpsAgentConfig) {
     this.logManager = logManager;
+    this.httpsAgentConfig = httpsAgentConfig;
+    this.httpAgent = new http.Agent(httpsAgentConfig);
+    this.httpsAgent = new https.Agent(httpsAgentConfig);
   }
   /**
    * Performs a GET request using the provided RequestModel.
@@ -58,6 +77,13 @@ export class NetworkClient implements NetworkClientInterface {
       try {
         // Choose HTTP or HTTPS client based on the scheme.
         const httpClient = networkOptions.scheme === HTTPS ? https : http;
+
+        // Set the agent based on the scheme.
+        if (networkOptions.scheme === HTTPS) {
+          networkOptions.agent = this.httpsAgent;
+        } else {
+          networkOptions.agent = this.httpAgent;
+        }
 
         // Perform the HTTP GET request.
         const req = httpClient.get(networkOptions, (res) => {
@@ -186,6 +212,13 @@ export class NetworkClient implements NetworkClientInterface {
       try {
         // Choose HTTP or HTTPS client based on the scheme.
         const httpClient = networkOptions.scheme === HTTPS ? https : http;
+
+        // Set the agent based on the scheme.
+        if (networkOptions.scheme === HTTPS) {
+          networkOptions.agent = this.httpsAgent;
+        } else {
+          networkOptions.agent = this.httpAgent;
+        }
 
         // Perform the HTTP POST request.
         const req = httpClient.request(networkOptions, (res) => {

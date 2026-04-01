@@ -49,6 +49,8 @@ export declare class VWOBuilder implements IVWOBuilder {
   vwoInstance: IVWOClient;
   batchEventsQueue: BatchEventsQueue;
   private isValidPollIntervalPassedFromInit;
+  private pollTimerId;
+  private isPollingStopped;
   isSettingsValid: boolean;
   settingsFetchTime: number | undefined;
   networkManager: NetworkManager;
@@ -128,5 +130,9 @@ export declare class VWOBuilder implements IVWOBuilder {
    * Checks and polls for settings updates at the provided interval.
    */
   checkAndPoll(): void;
+  /**
+   * Stops the settings polling timer. No further polls will be scheduled.
+   */
+  stopPolling(): void;
   private updatePollIntervalAndCheckAndPoll;
 }

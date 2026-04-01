@@ -22,7 +22,7 @@ import { Connector } from '../packages/storage/Connector';
 import { IGatewayService } from './GatewayServiceModel';
 import { BatchConfig } from '../services/BatchEventsQueue';
 import { ClientStorageOptions } from '../packages/storage/connectors/BrowserStorageConnector';
-import { IRetryConfig } from '../packages/network-layer/client/NetworkClient';
+import { IHttpsAgentConfig, IRetryConfig } from '../packages/network-layer/client/NetworkClient';
 import { IEdgeConfig } from './edge/EdgeConfigModel';
 import { IBrowserConfig } from './browser/BrowserConfigModel';
 interface IIntegrationOptions {
@@ -58,11 +58,13 @@ export interface IVWOOptions {
   _vwo_meta?: Record<any, any>;
   clientStorage?: ClientStorageOptions;
   retryConfig?: IRetryConfig;
+  httpsAgentConfig?: IHttpsAgentConfig;
   proxyUrl?: string;
   isAliasingEnabled?: boolean;
   edgeConfig?: IEdgeConfig;
   browserConfig?: IBrowserConfig;
   sdkMeta?: ISdkMetaConfig;
+  isBatchingDisabled?: boolean;
 }
 
 export class VWOOptionsModel implements IVWOOptions {
@@ -84,10 +86,13 @@ export class VWOOptionsModel implements IVWOOptions {
   _vwo_meta?: Record<any, any>;
   clientStorage?: ClientStorageOptions;
   retryConfig?: IRetryConfig;
+  httpsAgentConfig?: IHttpsAgentConfig;
   proxyUrl?: string;
   edgeConfig?: IEdgeConfig;
   browserConfig?: IBrowserConfig;
   sdkMeta?: ISdkMetaConfig;
+  isBatchingDisabled?: boolean;
+
   modelFromDictionary(options: VWOOptionsModel): this {
     this.accountId = options.accountId;
     this.sdkKey = options.sdkKey;
@@ -161,7 +166,29 @@ export class VWOOptionsModel implements IVWOOptions {
       this.sdkMeta = options.sdkMeta;
     }
 
+    if (options?.httpsAgentConfig) {
+      this.httpsAgentConfig = options.httpsAgentConfig;
+    }
+
+    // default to false if not provided
+    this.isBatchingDisabled = options?.isBatchingDisabled ?? false;
     return this;
+  }
+
+  /**
+   * Gets the flag indicating whether batching is disabled.
+   * @returns The flag indicating whether batching is disabled.
+   */
+  getIsBatchingDisabled(): boolean {
+    return this.isBatchingDisabled;
+  }
+
+  /**
+   * Gets the HTTPS agent configuration.
+   * @returns The HTTPS agent configuration.
+   */
+  getHttpsAgentConfig(): IHttpsAgentConfig {
+    return this.httpsAgentConfig;
   }
 
   getAccountId(): string {

@@ -475,11 +475,9 @@ const _normalizeWeightsAndFindWinningCampaign = (
   setCampaignAllocation(shortlistedCampaigns);
   const winnerCampaign = new CampaignDecisionService().getVariation(
     shortlistedCampaigns,
-    new DecisionMaker().calculateBucketValue(getBucketingSeed(
-      context.getBucketingSeed() || context.getId(),
-      undefined,
-      groupId
-    )),
+    new DecisionMaker().calculateBucketValue(
+      getBucketingSeed(context.getBucketingSeed() || context.getId(), undefined, groupId),
+    ),
   );
 
   serviceContainer.getLogManager().info(
@@ -587,11 +585,9 @@ const _getCampaignUsingAdvancedAlgo = (
     setCampaignAllocation(participatingCampaignList);
     winnerCampaign = new CampaignDecisionService().getVariation(
       participatingCampaignList,
-      new DecisionMaker().calculateBucketValue(getBucketingSeed(
-        context.getBucketingSeed() || context.getId(),
-        undefined,
-        groupId
-      )),
+      new DecisionMaker().calculateBucketValue(
+        getBucketingSeed(context.getBucketingSeed() || context.getId(), undefined, groupId),
+      ),
     );
   }
   // WinnerCampaign should not be null, in case when winnerCampaign hasn't been found through PriorityOrder and

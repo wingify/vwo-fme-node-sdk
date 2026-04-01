@@ -326,11 +326,9 @@ const _evaluateWhitelisting = async (
     }
     whitelistedVariation = new CampaignDecisionService().getVariation(
       targetedVariations,
-      new DecisionMaker().calculateBucketValue(getBucketingSeed(
-        context.getBucketingSeed() || context.getId(),
-        campaign,
-        null
-      )),
+      new DecisionMaker().calculateBucketValue(
+        getBucketingSeed(context.getBucketingSeed() || context.getId(), campaign, null),
+      ),
     );
   } else {
     whitelistedVariation = targetedVariations[0];

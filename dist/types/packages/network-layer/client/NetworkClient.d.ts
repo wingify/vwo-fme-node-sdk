@@ -2,6 +2,9 @@ import { RequestModel } from '../models/RequestModel';
 import { ResponseModel } from '../models/ResponseModel';
 import { NetworkClientInterface } from './NetworkClientInterface';
 import { LogManager } from '../../../packages/logger';
+/**
+ * Interface for the retry configuration.
+ */
 export interface IRetryConfig {
   shouldRetry?: boolean;
   initialDelay?: number;
@@ -9,11 +12,23 @@ export interface IRetryConfig {
   backoffMultiplier?: number;
 }
 /**
+ * Interface for the HTTPS agent configuration.
+ */
+export interface IHttpsAgentConfig {
+  keepAlive?: boolean;
+  maxSockets?: number;
+  maxFreeSockets?: number;
+  timeout?: number;
+}
+/**
  * Implements the NetworkClientInterface to handle network requests.
  */
 export declare class NetworkClient implements NetworkClientInterface {
   private logManager;
-  constructor(logManager: LogManager);
+  private httpsAgentConfig;
+  private httpAgent;
+  private httpsAgent;
+  constructor(logManager: LogManager, httpsAgentConfig: IHttpsAgentConfig);
   /**
    * Performs a GET request using the provided RequestModel.
    * @param {RequestModel} requestModel - The model containing request options.

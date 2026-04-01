@@ -93,11 +93,6 @@ export class BatchEventsQueue {
 
     this.flushCallback = isFunction(config.flushCallback) ? config.flushCallback : () => {};
     this.accountId = config.accountId;
-
-    // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
-    if (!this.isEdgeEnvironment) {
-      this.createNewBatchTimer();
-    }
     return this;
   }
 
@@ -118,6 +113,12 @@ export class BatchEventsQueue {
       }),
     );
 
+    // In edge environments, automatic batching/timer is skipped; flushing is expected to be triggered manually
+    if (!this.isEdgeEnvironment && !this.timer) {
+      // Create a new batch timer if it is not already created during the enqueue operation
+      this.createNewBatchTimer();
+    }
+
     // If the queue length is equal to or exceeds the events per request, flush the queue
     if (this.queue.length >= this.eventsPerRequest) {
       this.flush();
@@ -128,7 +129,7 @@ export class BatchEventsQueue {
    * Flushes the queue
    * @param manual - Whether the flush is manual or not
    */
-  public flush(manual: boolean = false): Promise<Record<string, any>> {
+  public async flush(manual: boolean = false): Promise<Record<string, any>> {
     // If the queue is not empty, flush the queue
     if (this.queue.length) {
       this.logManager.debug(
@@ -139,9 +140,12 @@ export class BatchEventsQueue {
           timer: manual ? 'Timer will be cleared and registered again' : '',
         }),
       );
-      const tempQueue = this.queue;
-      this.queue = [];
-      return BatchEventsDispatcher.dispatch(
+
+      const tempQueue = manual
+        ? this.queue.splice(0, this.queue.length) // drain everything if manual flush
+        : this.queue.splice(0, this.eventsPerRequest); // drain only events per request if automatic flush
+
+      return await BatchEventsDispatcher.dispatch(
         this.serviceContainer,
         {
           ev: tempQueue,
@@ -167,12 +171,14 @@ export class BatchEventsQueue {
             );
             return result;
           } else {
-            this.queue.push(...tempQueue);
+            // Preserve ordering: failed events should be retried before newer enqueued events
+            this.queue = tempQueue.concat(this.queue);
             return result;
           }
         })
         .catch(() => {
-          this.queue.push(...tempQueue);
+          // Preserve ordering: failed events should be retried before newer enqueued events
+          this.queue = tempQueue.concat(this.queue);
           return { status: 'error', events: tempQueue };
         });
     } else {
@@ -188,8 +194,14 @@ export class BatchEventsQueue {
    * Creates a new batch timer
    */
   private createNewBatchTimer(): void {
-    this.timer = setInterval(async () => {
+    // Use a one-shot timer to avoid waking up when the queue is empty.
+    this.timer = setTimeout(async () => {
+      this.timer = null;
       await this.flush();
+      // Create a new batch timer if there are still events in the queue after the flush
+      if (this.queue.length) {
+        this.createNewBatchTimer();
+      }
     }, this.requestTimeInterval * 1000);
   }
 
@@ -204,8 +216,11 @@ export class BatchEventsQueue {
   /**
    * Flushes the queue and clears the timer
    */
-  public flushAndClearTimer(): Promise<Record<string, any>> {
-    const flushResult = this.flush(true);
+  public async flushAndClearTimer(): Promise<Record<string, any>> {
+    if (!this.isEdgeEnvironment) {
+      this.clearRequestTimer();
+    }
+    const flushResult = await this.flush(true);
     return flushResult;
   }
 }

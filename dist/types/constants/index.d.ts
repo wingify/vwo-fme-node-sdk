@@ -46,4 +46,13 @@ export declare const Constants: {
   IMPACT_ANALYSIS: string;
   VARIATION_IS_PART_OF_HOLDOUT: number;
   VARIATION_NOT_PART_OF_HOLDOUT: number;
+  DEFAULT_HTTPS_AGENT: {
+    keepAlive: boolean;
+    maxSockets: number;
+    maxFreeSockets: number;
+    timeout: number;
+  };
+  MIN_SOCKETS: number;
+  MIN_FREE_SOCKETS: number;
+  MIN_TIMEOUT: number;
 };

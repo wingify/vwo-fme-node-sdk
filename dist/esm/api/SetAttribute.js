@@ -38,6 +38,11 @@ export class SetAttributeApi {
  * @param context Context containing user information.
  */
 const createImpressionForAttributes = async (serviceContainer, attributes, context) => {
+    const isSettingsDevModeEnabled = serviceContainer?.getSettings?.()?.getDevMode?.() === true;
+    const isUserDevModeEnabled = context?.getIsDevMode?.() === true;
+    if (isSettingsDevModeEnabled && isUserDevModeEnabled) {
+        return;
+    }
     // Retrieve base properties for the event
     const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
     // Construct payload data for multiple attributes

@@ -90,6 +90,12 @@ const createImpressionForTrack = async (
   context: ContextModel,
   eventProperties: any,
 ) => {
+  const isSettingsDevModeEnabled = serviceContainer?.getSettings?.()?.getDevMode?.() === true;
+  const isUserDevModeEnabled = context?.getIsDevMode?.() === true;
+
+  if (isSettingsDevModeEnabled && isUserDevModeEnabled) {
+    return;
+  }
   // Get base properties for the event
   const properties = getEventsBaseProperties(
     serviceContainer.getSettingsService(),

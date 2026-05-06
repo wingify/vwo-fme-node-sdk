@@ -36,6 +36,10 @@ var SettingsModel = /** @class */ (function () {
         this.version = settings.v || settings.version;
         this.collectionPrefix = settings.collectionPrefix;
         this.usageStatsAccountId = settings.usageStatsAccountId;
+        // devMode is an optional parameter, so we need to check if it is defined
+        if (settings.devMode) {
+            this.devMode = settings.devMode;
+        }
         if ((settings.f && settings.f.constructor !== {}.constructor) ||
             (settings.features && settings.features.constructor !== {}.constructor)) {
             var featureList = settings.f || settings.features;
@@ -108,6 +112,9 @@ var SettingsModel = /** @class */ (function () {
     };
     SettingsModel.prototype.getHoldouts = function () {
         return Array.isArray(this.holdouts) ? this.holdouts : [];
+    };
+    SettingsModel.prototype.getDevMode = function () {
+        return this.devMode === true;
     };
     return SettingsModel;
 }());

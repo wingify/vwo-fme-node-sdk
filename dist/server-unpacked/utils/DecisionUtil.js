@@ -9,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -52,16 +52,15 @@ exports.evaluateTrafficAndGetVariation = exports.checkWhitelistingAndPreSeg = vo
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var DataTypeUtil_1 = require("../utils/DataTypeUtil");
 var CampaignTypeEnum_1 = require("../enums/CampaignTypeEnum");
 var StatusEnum_1 = require("../enums/StatusEnum");
 var log_messages_1 = require("../enums/log-messages");
+var VariationModel_1 = require("../models/campaign/VariationModel");
 var decision_maker_1 = require("../packages/decision-maker");
 var CampaignDecisionService_1 = require("../services/CampaignDecisionService");
-var DataTypeUtil_2 = require("../utils/DataTypeUtil");
+var DataTypeUtil_1 = require("../utils/DataTypeUtil");
 var constants_1 = require("../constants");
 var CampaignUtil_1 = require("./CampaignUtil");
-var FunctionUtil_1 = require("./FunctionUtil");
 var LogMessageUtil_1 = require("./LogMessageUtil");
 var MegUtil_1 = require("./MegUtil");
 var UuidUtil_1 = require("./UuidUtil");
@@ -233,7 +232,7 @@ var _checkCampaignWhitelisting = function (campaign, context, serviceContainer) 
             case 1:
                 whitelistingResult = _a.sent();
                 status = whitelistingResult ? StatusEnum_1.StatusEnum.PASSED : StatusEnum_1.StatusEnum.FAILED;
-                variationString = whitelistingResult ? whitelistingResult.variation.key : '';
+                variationString = whitelistingResult ? whitelistingResult.variation.getKey() : '';
                 serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_STATUS, {
                     userId: context.getId(),
                     campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
@@ -246,61 +245,72 @@ var _checkCampaignWhitelisting = function (campaign, context, serviceContainer) 
         }
     });
 }); };
+/**
+ * Deep copy for bucketing among multiple matches without mutating campaign variation weights/ranges.
+ * JSON + modelFromDictionary restores VariationModel methods (getWeight, setStartRange, …).
+ */
+var _cloneVariationModelForWhitelisting = function (variation) {
+    return new VariationModel_1.VariationModel().modelFromDictionary(JSON.parse(JSON.stringify(variation)));
+};
 var _evaluateWhitelisting = function (campaign, context, serviceContainer) { return __awaiter(void 0, void 0, void 0, function () {
-    var targetedVariations, promises, whitelistedVariation, i, currentAllocation, stepFactor;
+    var variations, results, matched, v, targetedVariations, i, currentAllocation, stepFactor, whitelistedVariation;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                targetedVariations = [];
-                promises = [];
-                campaign.getVariations().forEach(function (variation) {
-                    if ((0, DataTypeUtil_2.isObject)(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
-                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
-                            campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
-                                ? campaign.getKey()
-                                : campaign.getName() + '_' + campaign.getRuleKey(),
-                            userId: context.getId(),
-                            variation: variation.getKey() ? "for variation: ".concat(variation.getKey()) : '',
-                        }));
-                        return;
-                    }
-                    // check for segmentation and evaluate
-                    if ((0, DataTypeUtil_2.isObject)(variation.getSegments())) {
-                        var SegmentEvaluatorResult = serviceContainer
-                            .getSegmentationManager()
-                            .validateSegmentation(variation.getSegments(), context.getVariationTargetingVariables());
-                        SegmentEvaluatorResult = (0, DataTypeUtil_1.isPromise)(SegmentEvaluatorResult)
-                            ? SegmentEvaluatorResult
-                            : Promise.resolve(SegmentEvaluatorResult);
-                        SegmentEvaluatorResult.then(function (evaluationResult) {
-                            if (evaluationResult) {
-                                targetedVariations.push((0, FunctionUtil_1.cloneObject)(variation));
+                variations = campaign.getVariations();
+                return [4 /*yield*/, Promise.all(variations.map(function (variation) { return __awaiter(void 0, void 0, void 0, function () {
+                        var evaluationResult;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if ((0, DataTypeUtil_1.isObject)(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
+                                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
+                                            campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
+                                                ? campaign.getKey()
+                                                : campaign.getName() + '_' + campaign.getRuleKey(),
+                                            userId: context.getId(),
+                                            variation: variation.getKey() ? "for variation: ".concat(variation.getKey()) : '',
+                                        }));
+                                        return [2 /*return*/, { matched: false, variation: variation }];
+                                    }
+                                    if (!(0, DataTypeUtil_1.isObject)(variation.getSegments())) {
+                                        return [2 /*return*/, { matched: false, variation: variation }];
+                                    }
+                                    return [4 /*yield*/, serviceContainer
+                                            .getSegmentationManager()
+                                            .validateSegmentation(variation.getSegments(), context.getVariationTargetingVariables())];
+                                case 1:
+                                    evaluationResult = _a.sent();
+                                    return [2 /*return*/, { matched: evaluationResult, variation: variation }];
                             }
                         });
-                        promises.push(SegmentEvaluatorResult);
-                    }
-                });
-                // Wait for all promises to resolve
-                return [4 /*yield*/, Promise.all(promises)];
+                    }); }))];
             case 1:
-                // Wait for all promises to resolve
-                _a.sent();
-                if (targetedVariations.length > 1) {
-                    (0, CampaignUtil_1.scaleVariationWeights)(targetedVariations);
-                    for (i = 0, currentAllocation = 0, stepFactor = 0; i < targetedVariations.length; i++) {
-                        stepFactor = (0, CampaignUtil_1.assignRangeValues)(targetedVariations[i], currentAllocation);
-                        currentAllocation += stepFactor;
-                    }
-                    whitelistedVariation = new CampaignDecisionService_1.CampaignDecisionService().getVariation(targetedVariations, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getBucketingSeed() || context.getId(), campaign, null)));
+                results = _a.sent();
+                matched = results.filter(function (r) { return r.matched; }).map(function (r) { return r.variation; });
+                if (matched.length === 0) {
+                    return [2 /*return*/];
                 }
-                else {
-                    whitelistedVariation = targetedVariations[0];
+                if (matched.length === 1) {
+                    v = matched[0];
+                    return [2 /*return*/, {
+                            variation: v,
+                            variationName: v.getKey(),
+                            variationId: v.getId(),
+                        }];
                 }
+                targetedVariations = matched.map(function (v) { return _cloneVariationModelForWhitelisting(v); });
+                (0, CampaignUtil_1.scaleVariationWeights)(targetedVariations);
+                for (i = 0, currentAllocation = 0, stepFactor = 0; i < targetedVariations.length; i++) {
+                    stepFactor = (0, CampaignUtil_1.assignRangeValues)(targetedVariations[i], currentAllocation);
+                    currentAllocation += stepFactor;
+                }
+                whitelistedVariation = new CampaignDecisionService_1.CampaignDecisionService().getVariation(targetedVariations, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getBucketingSeed() || context.getId(), campaign, null)));
                 if (whitelistedVariation) {
                     return [2 /*return*/, {
                             variation: whitelistedVariation,
-                            variationName: whitelistedVariation.name,
-                            variationId: whitelistedVariation.id,
+                            variationName: whitelistedVariation.getKey(),
+                            variationId: whitelistedVariation.getId(),
                         }];
                 }
                 return [2 /*return*/];

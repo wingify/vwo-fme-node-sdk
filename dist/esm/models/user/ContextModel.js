@@ -26,6 +26,9 @@ export class ContextModel {
         if (context?.bucketingSeed) {
             this.bucketingSeed = context.bucketingSeed;
         }
+        if (context?.isDevMode) {
+            this.isDevMode = context.isDevMode === true;
+        }
         // if uuid is provided in the context, use it, otherwise generate a new uuid
         this._vwo_uuid =
             context?.uuid ??
@@ -80,6 +83,9 @@ export class ContextModel {
     }
     getBucketingSeed() {
         return this.bucketingSeed?.toString();
+    }
+    getIsDevMode() {
+        return this.isDevMode === true;
     }
 }
 //# sourceMappingURL=ContextModel.js.map

@@ -32,6 +32,9 @@ var ContextModel = /** @class */ (function () {
         if (context === null || context === void 0 ? void 0 : context.bucketingSeed) {
             this.bucketingSeed = context.bucketingSeed;
         }
+        if (context === null || context === void 0 ? void 0 : context.isDevMode) {
+            this.isDevMode = context.isDevMode === true;
+        }
         // if uuid is provided in the context, use it, otherwise generate a new uuid
         this._vwo_uuid =
             (_a = context === null || context === void 0 ? void 0 : context.uuid) !== null && _a !== void 0 ? _a : (0, UuidUtil_1.getUUID)((_c = (_b = context === null || context === void 0 ? void 0 : context.id) === null || _b === void 0 ? void 0 : _b.toString()) !== null && _c !== void 0 ? _c : "".concat(options === null || options === void 0 ? void 0 : options.accountId, "_").concat(options === null || options === void 0 ? void 0 : options.sdkKey), (_d = options === null || options === void 0 ? void 0 : options.accountId) === null || _d === void 0 ? void 0 : _d.toString());
@@ -87,6 +90,9 @@ var ContextModel = /** @class */ (function () {
     ContextModel.prototype.getBucketingSeed = function () {
         var _a;
         return (_a = this.bucketingSeed) === null || _a === void 0 ? void 0 : _a.toString();
+    };
+    ContextModel.prototype.getIsDevMode = function () {
+        return this.isDevMode === true;
     };
     return ContextModel;
 }());

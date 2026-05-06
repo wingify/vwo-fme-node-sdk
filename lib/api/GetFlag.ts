@@ -101,6 +101,10 @@ export class FlagApi {
 
     const batchPayload: any[] = [];
 
+    const isSettingsDevModeEnabled = serviceContainer.getSettings()?.getDevMode?.() === true;
+    const isUserDevModeEnabled = context?.getIsDevMode?.() === true;
+    const isDevModeForUser = isSettingsDevModeEnabled && isUserDevModeEnabled;
+
     // get feature object from feature key
     const feature = getFeatureFromKey(serviceContainer.getSettings(), featureKey);
     const decision = {
@@ -176,26 +180,28 @@ export class FlagApi {
             );
 
             // send the impression for the new holdouts
-            if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
-              for (const payload of holdoutPayloads) {
-                sendImpressionForVariationShown(
-                  serviceContainer,
-                  payload.d.event.props.id,
-                  payload.d.event.props.variation,
-                  context,
-                  featureKey,
-                  payload,
-                );
-              }
-            } else if (serviceContainer.getBatchEventsQueue()) {
-              for (const payload of holdoutPayloads) {
-                serviceContainer.getBatchEventsQueue().enqueue(payload);
-              }
-            } else {
-              if (serviceContainer.getShouldWaitForTrackingCalls()) {
-                await sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+            if (!isDevModeForUser) {
+              if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
+                for (const payload of holdoutPayloads) {
+                  sendImpressionForVariationShown(
+                    serviceContainer,
+                    payload.d.event.props.id,
+                    payload.d.event.props.variation,
+                    context,
+                    featureKey,
+                    payload,
+                  );
+                }
+              } else if (serviceContainer.getBatchEventsQueue()) {
+                for (const payload of holdoutPayloads) {
+                  serviceContainer.getBatchEventsQueue().enqueue(payload);
+                }
               } else {
-                sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+                if (serviceContainer.getShouldWaitForTrackingCalls()) {
+                  await sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+                } else {
+                  sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+                }
               }
             }
 
@@ -387,23 +393,25 @@ export class FlagApi {
         );
         notInHoldoutIds.push(...notMatchedHoldouts.map((holdout) => holdout.getId()));
 
-        if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
-          for (const payload of holdoutPayloads) {
-            sendImpressionForVariationShown(
-              serviceContainer,
-              payload.d.event.props.id,
-              payload.d.event.props.variation,
-              context,
-              featureKey,
-              payload,
-            );
+        if (!isDevModeForUser) {
+          if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
+            for (const payload of holdoutPayloads) {
+              sendImpressionForVariationShown(
+                serviceContainer,
+                payload.d.event.props.id,
+                payload.d.event.props.variation,
+                context,
+                featureKey,
+                payload,
+              );
+            }
+          } else if (serviceContainer.getBatchEventsQueue()) {
+            for (const payload of holdoutPayloads) {
+              serviceContainer.getBatchEventsQueue().enqueue(payload);
+            }
+          } else {
+            batchPayload.push(...holdoutPayloads);
           }
-        } else if (serviceContainer.getBatchEventsQueue()) {
-          for (const payload of holdoutPayloads) {
-            serviceContainer.getBatchEventsQueue().enqueue(payload);
-          }
-        } else {
-          batchPayload.push(...holdoutPayloads);
         }
       }
     }
@@ -487,42 +495,44 @@ export class FlagApi {
 
           _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
 
-          const payload = getTrackUserPayloadData(
-            serviceContainer,
-            EventEnum.VWO_VARIATION_SHOWN,
-            passedRolloutCampaign.getId(),
-            variation.getId(),
-            context,
-          );
+          if (!isDevModeForUser) {
+            const payload = getTrackUserPayloadData(
+              serviceContainer,
+              EventEnum.VWO_VARIATION_SHOWN,
+              passedRolloutCampaign.getId(),
+              variation.getId(),
+              context,
+            );
 
-          if (serviceContainer.getShouldWaitForTrackingCalls()) {
-            if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-              await sendImpressionForVariationShown(
-                serviceContainer,
-                passedRolloutCampaign.getId(),
-                variation.getId(),
-                context,
-                featureKey,
-                payload,
-              );
-            } else {
-              if (payload != null) {
-                batchPayload.push(payload);
+            if (serviceContainer.getShouldWaitForTrackingCalls()) {
+              if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                await sendImpressionForVariationShown(
+                  serviceContainer,
+                  passedRolloutCampaign.getId(),
+                  variation.getId(),
+                  context,
+                  featureKey,
+                  payload,
+                );
+              } else {
+                if (payload != null) {
+                  batchPayload.push(payload);
+                }
               }
-            }
-          } else {
-            if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-              sendImpressionForVariationShown(
-                serviceContainer,
-                passedRolloutCampaign.getId(),
-                variation.getId(),
-                context,
-                featureKey,
-                payload,
-              );
             } else {
-              if (payload != null) {
-                batchPayload.push(payload);
+              if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                sendImpressionForVariationShown(
+                  serviceContainer,
+                  passedRolloutCampaign.getId(),
+                  variation.getId(),
+                  context,
+                  featureKey,
+                  payload,
+                );
+              } else {
+                if (payload != null) {
+                  batchPayload.push(payload);
+                }
               }
             }
           }
@@ -541,7 +551,7 @@ export class FlagApi {
       const megGroupWinnerCampaigns: Map<number, any> = new Map();
 
       for (const rule of experimentRules) {
-        const { preSegmentationResult, whitelistedObject, updatedDecision } = await evaluateRule(
+        const { preSegmentationResult, whitelistedObject, updatedDecision, payload } = await evaluateRule(
           serviceContainer,
           feature,
           rule,
@@ -567,6 +577,40 @@ export class FlagApi {
               experimentKey: rule.getKey(),
               experimentVariationId: whitelistedObject.variationId,
             });
+
+            if (!isDevModeForUser) {
+              if (serviceContainer.getShouldWaitForTrackingCalls()) {
+                if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                  await sendImpressionForVariationShown(
+                    serviceContainer,
+                    rule.getId(),
+                    whitelistedObject.variationId,
+                    context,
+                    featureKey,
+                    payload,
+                  );
+                } else {
+                  if (payload != null) {
+                    batchPayload.push(payload);
+                  }
+                }
+              } else {
+                if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                  sendImpressionForVariationShown(
+                    serviceContainer,
+                    rule.getId(),
+                    whitelistedObject.variationId,
+                    context,
+                    featureKey,
+                    payload,
+                  );
+                } else {
+                  if (payload != null) {
+                    batchPayload.push(payload);
+                  }
+                }
+              }
+            }
           }
 
           break;
@@ -584,42 +628,44 @@ export class FlagApi {
           experimentVariationToReturn = variation;
 
           _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
-          const payload = getTrackUserPayloadData(
-            serviceContainer,
-            EventEnum.VWO_VARIATION_SHOWN,
-            campaign.getId(),
-            variation.getId(),
-            context,
-          );
+          if (!isDevModeForUser) {
+            const payload = getTrackUserPayloadData(
+              serviceContainer,
+              EventEnum.VWO_VARIATION_SHOWN,
+              campaign.getId(),
+              variation.getId(),
+              context,
+            );
 
-          if (serviceContainer.getShouldWaitForTrackingCalls()) {
-            if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-              await sendImpressionForVariationShown(
-                serviceContainer,
-                campaign.getId(),
-                variation.getId(),
-                context,
-                featureKey,
-                payload,
-              );
-            } else {
-              if (payload != null) {
-                batchPayload.push(payload);
+            if (serviceContainer.getShouldWaitForTrackingCalls()) {
+              if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                await sendImpressionForVariationShown(
+                  serviceContainer,
+                  campaign.getId(),
+                  variation.getId(),
+                  context,
+                  featureKey,
+                  payload,
+                );
+              } else {
+                if (payload != null) {
+                  batchPayload.push(payload);
+                }
               }
-            }
-          } else {
-            if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-              sendImpressionForVariationShown(
-                serviceContainer,
-                campaign.getId(),
-                variation.getId(),
-                context,
-                featureKey,
-                payload,
-              );
             } else {
-              if (payload != null) {
-                batchPayload.push(payload);
+              if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                sendImpressionForVariationShown(
+                  serviceContainer,
+                  campaign.getId(),
+                  variation.getId(),
+                  context,
+                  featureKey,
+                  payload,
+                );
+              } else {
+                if (payload != null) {
+                  batchPayload.push(payload);
+                }
               }
             }
           }
@@ -678,41 +724,43 @@ export class FlagApi {
           status: isEnabled ? 'enabled' : 'disabled',
         }),
       );
-      const payload = getTrackUserPayloadData(
-        serviceContainer,
-        EventEnum.VWO_VARIATION_SHOWN,
-        feature.getImpactCampaign()?.getCampaignId(),
-        isEnabled ? 2 : 1,
-        context,
-      );
-      if (serviceContainer.getShouldWaitForTrackingCalls()) {
-        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-          await sendImpressionForVariationShown(
-            serviceContainer,
-            feature.getImpactCampaign()?.getCampaignId(),
-            isEnabled ? 2 : 1,
-            context,
-            featureKey,
-            payload,
-          );
-        } else {
-          if (payload != null) {
-            batchPayload.push(payload);
+      if (!isDevModeForUser) {
+        const payload = getTrackUserPayloadData(
+          serviceContainer,
+          EventEnum.VWO_VARIATION_SHOWN,
+          feature.getImpactCampaign()?.getCampaignId(),
+          isEnabled ? 2 : 1,
+          context,
+        );
+        if (serviceContainer.getShouldWaitForTrackingCalls()) {
+          if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+            await sendImpressionForVariationShown(
+              serviceContainer,
+              feature.getImpactCampaign()?.getCampaignId(),
+              isEnabled ? 2 : 1,
+              context,
+              featureKey,
+              payload,
+            );
+          } else {
+            if (payload != null) {
+              batchPayload.push(payload);
+            }
           }
-        }
-      } else {
-        if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-          sendImpressionForVariationShown(
-            serviceContainer,
-            feature.getImpactCampaign()?.getCampaignId(),
-            isEnabled ? 2 : 1,
-            context,
-            featureKey,
-            payload,
-          );
         } else {
-          if (payload != null) {
-            batchPayload.push(payload);
+          if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+            sendImpressionForVariationShown(
+              serviceContainer,
+              feature.getImpactCampaign()?.getCampaignId(),
+              isEnabled ? 2 : 1,
+              context,
+              featureKey,
+              payload,
+            );
+          } else {
+            if (payload != null) {
+              batchPayload.push(payload);
+            }
           }
         }
       }
@@ -728,10 +776,12 @@ export class FlagApi {
     );
 
     if (!serviceContainer.getSettingsService().isGatewayServiceProvided && batchPayload.length > 0) {
-      if (serviceContainer.getShouldWaitForTrackingCalls()) {
-        await sendImpressionForVariationShownInBatch(serviceContainer, batchPayload);
-      } else {
-        sendImpressionForVariationShownInBatch(serviceContainer, batchPayload);
+      if (!isDevModeForUser) {
+        if (serviceContainer.getShouldWaitForTrackingCalls()) {
+          await sendImpressionForVariationShownInBatch(serviceContainer, batchPayload);
+        } else {
+          sendImpressionForVariationShownInBatch(serviceContainer, batchPayload);
+        }
       }
     }
 

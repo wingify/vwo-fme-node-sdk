@@ -64,6 +64,12 @@ const createImpressionForAttributes = async (
   attributes: Record<string, boolean | string | number>,
   context: ContextModel,
 ) => {
+  const isSettingsDevModeEnabled = serviceContainer?.getSettings?.()?.getDevMode?.() === true;
+  const isUserDevModeEnabled = context?.getIsDevMode?.() === true;
+
+  if (isSettingsDevModeEnabled && isUserDevModeEnabled) {
+    return;
+  }
   // Retrieve base properties for the event
   const properties = getEventsBaseProperties(
     serviceContainer.getSettingsService(),

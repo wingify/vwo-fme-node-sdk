@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isPromise } from '../utils/DataTypeUtil';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { StatusEnum } from '../enums/StatusEnum';
 import { InfoLogMessagesEnum } from '../enums/log-messages';
@@ -32,7 +31,6 @@ import {
   getGroupDetailsIfCampaignPartOfIt,
   scaleVariationWeights,
 } from './CampaignUtil';
-import { cloneObject } from './FunctionUtil';
 import { buildMessage } from './LogMessageUtil';
 import { evaluateGroups } from './MegUtil';
 import { getUUID } from './UuidUtil';
@@ -255,7 +253,7 @@ const _checkCampaignWhitelisting = async (
   // check if the campaign satisfies the whitelisting
   const whitelistingResult = await _evaluateWhitelisting(campaign, context, serviceContainer);
   const status = whitelistingResult ? StatusEnum.PASSED : StatusEnum.FAILED;
-  const variationString = whitelistingResult ? whitelistingResult.variation.key : '';
+  const variationString = whitelistingResult ? whitelistingResult.variation.getKey() : '';
 
   serviceContainer.getLogManager().info(
     buildMessage(InfoLogMessagesEnum.WHITELISTING_STATUS, {
@@ -272,73 +270,79 @@ const _checkCampaignWhitelisting = async (
   return whitelistingResult;
 };
 
+/**
+ * Deep copy for bucketing among multiple matches without mutating campaign variation weights/ranges.
+ * JSON + modelFromDictionary restores VariationModel methods (getWeight, setStartRange, …).
+ */
+const _cloneVariationModelForWhitelisting = (variation: VariationModel): VariationModel => {
+  return new VariationModel().modelFromDictionary(JSON.parse(JSON.stringify(variation)) as VariationModel);
+};
+
 const _evaluateWhitelisting = async (
   campaign: CampaignModel,
   context: ContextModel,
   serviceContainer: ServiceContainer,
 ): Promise<any> => {
-  const targetedVariations = [];
-  const promises: Promise<any>[] = [];
+  const variations = campaign.getVariations();
 
-  let whitelistedVariation;
-
-  campaign.getVariations().forEach((variation) => {
-    if (isObject(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
-      serviceContainer.getLogManager().info(
-        buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
-          campaignKey:
-            campaign.getType() === CampaignTypeEnum.AB
-              ? campaign.getKey()
-              : campaign.getName() + '_' + campaign.getRuleKey(),
-          userId: context.getId(),
-          variation: variation.getKey() ? `for variation: ${variation.getKey()}` : '',
-        }),
-      );
-
-      return;
-    }
-    // check for segmentation and evaluate
-    if (isObject(variation.getSegments())) {
-      let SegmentEvaluatorResult = serviceContainer
+  const results = await Promise.all(
+    variations.map(async (variation) => {
+      if (isObject(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
+        serviceContainer.getLogManager().info(
+          buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
+            campaignKey:
+              campaign.getType() === CampaignTypeEnum.AB
+                ? campaign.getKey()
+                : campaign.getName() + '_' + campaign.getRuleKey(),
+            userId: context.getId(),
+            variation: variation.getKey() ? `for variation: ${variation.getKey()}` : '',
+          }),
+        );
+        return { matched: false as const, variation };
+      }
+      if (!isObject(variation.getSegments())) {
+        return { matched: false as const, variation };
+      }
+      const evaluationResult = await serviceContainer
         .getSegmentationManager()
         .validateSegmentation(variation.getSegments(), context.getVariationTargetingVariables());
-      SegmentEvaluatorResult = isPromise(SegmentEvaluatorResult)
-        ? SegmentEvaluatorResult
-        : Promise.resolve(SegmentEvaluatorResult);
-      SegmentEvaluatorResult.then((evaluationResult) => {
-        if (evaluationResult) {
-          targetedVariations.push(cloneObject(variation));
-        }
-      });
+      return { matched: evaluationResult, variation };
+    }),
+  );
 
-      promises.push(SegmentEvaluatorResult);
-    }
-  });
+  const matched = results.filter((r) => r.matched).map((r) => r.variation);
 
-  // Wait for all promises to resolve
-  await Promise.all(promises);
-
-  if (targetedVariations.length > 1) {
-    scaleVariationWeights(targetedVariations);
-    for (let i = 0, currentAllocation = 0, stepFactor = 0; i < targetedVariations.length; i++) {
-      stepFactor = assignRangeValues(targetedVariations[i], currentAllocation);
-      currentAllocation += stepFactor;
-    }
-    whitelistedVariation = new CampaignDecisionService().getVariation(
-      targetedVariations,
-      new DecisionMaker().calculateBucketValue(
-        getBucketingSeed(context.getBucketingSeed() || context.getId(), campaign, null),
-      ),
-    );
-  } else {
-    whitelistedVariation = targetedVariations[0];
+  if (matched.length === 0) {
+    return;
   }
+
+  if (matched.length === 1) {
+    const v = matched[0];
+    return {
+      variation: v,
+      variationName: v.getKey(),
+      variationId: v.getId(),
+    };
+  }
+
+  const targetedVariations = matched.map((v) => _cloneVariationModelForWhitelisting(v));
+  scaleVariationWeights(targetedVariations);
+  for (let i = 0, currentAllocation = 0, stepFactor = 0; i < targetedVariations.length; i++) {
+    stepFactor = assignRangeValues(targetedVariations[i], currentAllocation);
+    currentAllocation += stepFactor;
+  }
+  const whitelistedVariation = new CampaignDecisionService().getVariation(
+    targetedVariations,
+    new DecisionMaker().calculateBucketValue(
+      getBucketingSeed(context.getBucketingSeed() || context.getId(), campaign, null),
+    ),
+  );
 
   if (whitelistedVariation) {
     return {
       variation: whitelistedVariation,
-      variationName: whitelistedVariation.name,
-      variationId: whitelistedVariation.id,
+      variationName: whitelistedVariation.getKey(),
+      variationId: whitelistedVariation.getId(),
     };
   }
 };

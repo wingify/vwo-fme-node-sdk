@@ -29,6 +29,7 @@ export interface IVWOContextModel {
   postSegmentationVariables?: string[];
   bucketingSeed?: string;
   sessionId?: number;
+  isDevMode?: boolean;
 }
 export class ContextModel implements IVWOContextModel {
   id: string | number;
@@ -41,6 +42,7 @@ export class ContextModel implements IVWOContextModel {
   _vwo_uuid?: string;
   sessionId?: number;
   _vwo?: ContextVWOModel;
+  isDevMode?: boolean;
 
   modelFromDictionary(context: Record<string, any>, options: IVWOOptions): this {
     this.id = context.id;
@@ -66,6 +68,10 @@ export class ContextModel implements IVWOContextModel {
     }
     if (context?.bucketingSeed) {
       this.bucketingSeed = context.bucketingSeed;
+    }
+
+    if (context?.isDevMode) {
+      this.isDevMode = context.isDevMode === true;
     }
 
     // if uuid is provided in the context, use it, otherwise generate a new uuid
@@ -136,5 +142,9 @@ export class ContextModel implements IVWOContextModel {
 
   getBucketingSeed(): string | undefined {
     return this.bucketingSeed?.toString();
+  }
+
+  getIsDevMode(): boolean {
+    return this.isDevMode === true;
   }
 }

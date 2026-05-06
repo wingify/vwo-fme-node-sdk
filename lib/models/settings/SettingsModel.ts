@@ -43,6 +43,7 @@ export class SettingsModel {
   private usageStatsAccountId?: number;
   private isWebConnectivityEnabled?: boolean;
   private holdouts?: Array<HoldoutModel> = [];
+  private devMode?: boolean;
 
   constructor(settings: SettingsModel) {
     this.sdkKey = settings.sK || settings.sdkKey;
@@ -50,6 +51,10 @@ export class SettingsModel {
     this.version = settings.v || settings.version;
     this.collectionPrefix = settings.collectionPrefix;
     this.usageStatsAccountId = settings.usageStatsAccountId;
+    // devMode is an optional parameter, so we need to check if it is defined
+    if (settings.devMode) {
+      this.devMode = settings.devMode;
+    }
     if (
       (settings.f && settings.f.constructor !== {}.constructor) ||
       (settings.features && settings.features.constructor !== {}.constructor)
@@ -145,5 +150,9 @@ export class SettingsModel {
 
   getHoldouts(): Array<HoldoutModel> {
     return Array.isArray(this.holdouts) ? this.holdouts : [];
+  }
+
+  getDevMode(): boolean {
+    return this.devMode === true;
   }
 }

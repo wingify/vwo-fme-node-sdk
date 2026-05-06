@@ -9,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -104,10 +104,16 @@ exports.TrackApi = TrackApi;
  * @param eventProperties Properties associated with the event.
  */
 var createImpressionForTrack = function (serviceContainer, eventName, context, eventProperties) { return __awaiter(void 0, void 0, void 0, function () {
-    var properties, payload;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var isSettingsDevModeEnabled, isUserDevModeEnabled, properties, payload;
+    var _a, _b, _c, _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
+                isSettingsDevModeEnabled = ((_c = (_b = (_a = serviceContainer === null || serviceContainer === void 0 ? void 0 : serviceContainer.getSettings) === null || _a === void 0 ? void 0 : _a.call(serviceContainer)) === null || _b === void 0 ? void 0 : _b.getDevMode) === null || _c === void 0 ? void 0 : _c.call(_b)) === true;
+                isUserDevModeEnabled = ((_d = context === null || context === void 0 ? void 0 : context.getIsDevMode) === null || _d === void 0 ? void 0 : _d.call(context)) === true;
+                if (isSettingsDevModeEnabled && isUserDevModeEnabled) {
+                    return [2 /*return*/];
+                }
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
                 payload = (0, NetworkUtil_1.getTrackGoalPayloadData)(serviceContainer, eventName, eventProperties, context);
                 if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
@@ -118,8 +124,8 @@ var createImpressionForTrack = function (serviceContainer, eventName, context, e
             return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId(), eventProperties)];
             case 2:
                 // Send the constructed payload via POST request
-                _a.sent();
-                _a.label = 3;
+                _e.sent();
+                _e.label = 3;
             case 3: return [2 /*return*/];
         }
     });

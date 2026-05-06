@@ -25,6 +25,7 @@ export interface IVWOContextModel {
   postSegmentationVariables?: string[];
   bucketingSeed?: string;
   sessionId?: number;
+  isDevMode?: boolean;
 }
 export declare class ContextModel implements IVWOContextModel {
   id: string | number;
@@ -37,6 +38,7 @@ export declare class ContextModel implements IVWOContextModel {
   _vwo_uuid?: string;
   sessionId?: number;
   _vwo?: ContextVWOModel;
+  isDevMode?: boolean;
   modelFromDictionary(context: Record<string, any>, options: IVWOOptions): this;
   getId(): string;
   getUserAgent(): string;
@@ -52,4 +54,5 @@ export declare class ContextModel implements IVWOContextModel {
   getUuid(): string;
   getSessionId(): number;
   getBucketingSeed(): string | undefined;
+  getIsDevMode(): boolean;
 }

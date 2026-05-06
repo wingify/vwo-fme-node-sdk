@@ -36,6 +36,7 @@ export declare class SettingsModel {
   private usageStatsAccountId?;
   private isWebConnectivityEnabled?;
   private holdouts?;
+  private devMode?;
   constructor(settings: SettingsModel);
   getFeatures(): Array<FeatureModel>;
   getCampaigns(): Array<CampaignModel>;
@@ -50,4 +51,5 @@ export declare class SettingsModel {
   getUsageStatsAccountId(): number;
   getIsWebConnectivityEnabled(): boolean;
   getHoldouts(): Array<HoldoutModel>;
+  getDevMode(): boolean;
 }

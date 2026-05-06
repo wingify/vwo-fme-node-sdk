@@ -51,6 +51,11 @@ export class TrackApi {
  * @param eventProperties Properties associated with the event.
  */
 const createImpressionForTrack = async (serviceContainer, eventName, context, eventProperties) => {
+    const isSettingsDevModeEnabled = serviceContainer?.getSettings?.()?.getDevMode?.() === true;
+    const isUserDevModeEnabled = context?.getIsDevMode?.() === true;
+    if (isSettingsDevModeEnabled && isUserDevModeEnabled) {
+        return;
+    }
     // Get base properties for the event
     const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), eventName, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
     // Prepare the payload for the track goal

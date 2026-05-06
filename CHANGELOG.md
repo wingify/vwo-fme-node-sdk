@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.43.0] - 2026-04-07
+
+### Added
+
+- Added support for whitelisting based on custom variables via `variationTargetingVariables` in the context. This allows users to be forcefully bucketed into specific variations based on custom evaluating rules, bypassing standard traffic allocation.
+
+  Example usage:
+
+  ```javascript
+  const vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+  });
+
+  // Force users with 'premium' plan into a specific whitelisted variation
+  const userContext = {
+    id: 'user-123',
+    variationTargetingVariables: {
+      plan: 'premium',
+    },
+  };
+
+  const flag = await vwoClient.getFlag('feature-key', userContext);
+  ```
+
+- Added support for `isDevMode` in `userContext` that disables event dispatching for that user when enabled in both `userContext` and VWO settings.
+
+  Example usage:
+
+  ```javascript
+  const vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+  });
+
+  // send isDevMode in userContext
+  const userContext = {
+    id: 'user-123',
+    isDevMode: true,
+  };
+
+  // Decisions are returned as normal, but events are not sent to DaCDN
+  const flag = await vwoClient.getFlag('feature-key', userContext);
+  await vwoClient.trackEvent('event-name', userContext, eventProperties);
+  ```
+
 ## [1.42.0] - 2026-04-01
 
 ### Added

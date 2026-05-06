@@ -32,6 +32,10 @@ export class SettingsModel {
         this.version = settings.v || settings.version;
         this.collectionPrefix = settings.collectionPrefix;
         this.usageStatsAccountId = settings.usageStatsAccountId;
+        // devMode is an optional parameter, so we need to check if it is defined
+        if (settings.devMode) {
+            this.devMode = settings.devMode;
+        }
         if ((settings.f && settings.f.constructor !== {}.constructor) ||
             (settings.features && settings.features.constructor !== {}.constructor)) {
             const featureList = settings.f || settings.features;
@@ -104,6 +108,9 @@ export class SettingsModel {
     }
     getHoldouts() {
         return Array.isArray(this.holdouts) ? this.holdouts : [];
+    }
+    getDevMode() {
+        return this.devMode === true;
     }
 }
 //# sourceMappingURL=SettingsModel.js.map

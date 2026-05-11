@@ -138,9 +138,13 @@ export class ServiceContainer {
   /**
    * Updates the endpoint with the collection prefix.
    * @param endpoint - The endpoint to update.
+   * @param isGatewayPassed - If gateway is configured, return endpoint as-is.
    * @returns The updated endpoint with the collection prefix.
    */
-  public getUpdatedEndpointWithCollectionPrefix(endpoint: string): string {
+  public getUpdatedEndpointWithCollectionPrefix(endpoint: string, isGatewayPassed: boolean = false): string {
+    if (isGatewayPassed) {
+      return endpoint;
+    }
     if (this.SettingsModel) {
       if (endpoint && this.SettingsModel.getCollectionPrefix() && isString(this.SettingsModel.getCollectionPrefix())) {
         return `/${this.SettingsModel.getCollectionPrefix()}${endpoint}`;

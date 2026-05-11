@@ -113,9 +113,14 @@ var ServiceContainer = /** @class */ (function () {
     /**
      * Updates the endpoint with the collection prefix.
      * @param endpoint - The endpoint to update.
+     * @param isGatewayPassed - If gateway is configured, return endpoint as-is.
      * @returns The updated endpoint with the collection prefix.
      */
-    ServiceContainer.prototype.getUpdatedEndpointWithCollectionPrefix = function (endpoint) {
+    ServiceContainer.prototype.getUpdatedEndpointWithCollectionPrefix = function (endpoint, isGatewayPassed) {
+        if (isGatewayPassed === void 0) { isGatewayPassed = false; }
+        if (isGatewayPassed) {
+            return endpoint;
+        }
         if (this.SettingsModel) {
             if (endpoint && this.SettingsModel.getCollectionPrefix() && (0, DataTypeUtil_1.isString)(this.SettingsModel.getCollectionPrefix())) {
                 return "/".concat(this.SettingsModel.getCollectionPrefix()).concat(endpoint);

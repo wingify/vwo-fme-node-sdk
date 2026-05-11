@@ -286,6 +286,7 @@ export function getAttributePayloadData(serviceContainer, eventName, attributes,
  */
 export async function sendPostApiRequest(serviceContainer, properties, payload, userId, eventProperties = {}, campaignInfo = {}) {
     const retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
+    const isGatewayServiceConfigured = Boolean(serviceContainer.getVWOOptions()?.gatewayService);
     const headers = {};
     const userAgent = payload.d.visitor_ua; // Extract user agent from payload
     const ipAddress = payload.d.visitor_ip; // Extract IP address from payload
@@ -294,7 +295,7 @@ export async function sendPostApiRequest(serviceContainer, properties, payload, 
         headers[HeadersEnum.USER_AGENT] = userAgent;
     if (ipAddress)
         headers[HeadersEnum.IP] = ipAddress;
-    const request = new RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.EVENTS), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
+    const request = new RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.EVENTS, isGatewayServiceConfigured), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
     request.setEventName(properties.en);
     request.setUuid(payload.d.visId);
     let apiName;
@@ -472,13 +473,14 @@ export function getDebuggerEventPayload(settingsService, eventProps = {}) {
 export async function sendEvent(serviceContainer, properties, payload, eventName) {
     // Create a new deferred object to manage promise resolution
     const deferredObject = new Deferred();
+    const isGatewayServiceConfigured = Boolean(serviceContainer.getVWOOptions()?.gatewayService);
     const retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
     // disable retry for event (no retry for generic events)
     if (eventName === EventEnum.VWO_DEBUGGER_EVENT)
         retryConfig.shouldRetry = false;
     try {
         // Create a new request model instance with the provided parameters
-        const request = new RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.EVENTS), properties, payload, null, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
+        const request = new RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.EVENTS, isGatewayServiceConfigured), properties, payload, null, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
         request.setEventName(properties.en);
         // Perform the network POST request
         serviceContainer

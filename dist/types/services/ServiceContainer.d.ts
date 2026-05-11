@@ -96,9 +96,10 @@ export declare class ServiceContainer {
   /**
    * Updates the endpoint with the collection prefix.
    * @param endpoint - The endpoint to update.
+   * @param isGatewayPassed - If gateway is configured, return endpoint as-is.
    * @returns The updated endpoint with the collection prefix.
    */
-  getUpdatedEndpointWithCollectionPrefix(endpoint: string): string;
+  getUpdatedEndpointWithCollectionPrefix(endpoint: string, isGatewayPassed?: boolean): string;
   /**
    *
    * @returns NetworkManager

@@ -402,6 +402,7 @@ export async function sendPostApiRequest(
   campaignInfo: any = {},
 ): Promise<void> {
   const retryConfig: IRetryConfig = serviceContainer.getNetworkManager().getRetryConfig();
+  const isGatewayServiceConfigured = Boolean(serviceContainer.getVWOOptions()?.gatewayService);
 
   const headers: Record<string, string> = {};
 
@@ -415,7 +416,7 @@ export async function sendPostApiRequest(
   const request: RequestModel = new RequestModel(
     serviceContainer.getSettingsService().hostname,
     HttpMethodEnum.POST,
-    serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.EVENTS),
+    serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.EVENTS, isGatewayServiceConfigured),
     properties,
     payload,
     headers,
@@ -657,6 +658,7 @@ export async function sendEvent(
 ): Promise<any> {
   // Create a new deferred object to manage promise resolution
   const deferredObject = new Deferred();
+  const isGatewayServiceConfigured = Boolean(serviceContainer.getVWOOptions()?.gatewayService);
 
   const retryConfig: IRetryConfig = serviceContainer.getNetworkManager().getRetryConfig();
 
@@ -667,7 +669,7 @@ export async function sendEvent(
     const request: RequestModel = new RequestModel(
       serviceContainer.getSettingsService().hostname,
       HttpMethodEnum.POST,
-      serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.EVENTS),
+      serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.EVENTS, isGatewayServiceConfigured),
       properties,
       payload,
       null,

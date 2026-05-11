@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-node-sdk - v1.43.0
+ * vwo-fme-node-sdk - v1.43.1
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -25,24 +25,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./dist/server-unpacked/utils sync recursive":
-/*!******************************************!*\
-  !*** ./dist/server-unpacked/utils/ sync ***!
-  \******************************************/
-/***/ ((module) => {
-
-function webpackEmptyContext(req) {
-	var e = new Error("Cannot find module '" + req + "'");
-	e.code = 'MODULE_NOT_FOUND';
-	throw e;
-}
-webpackEmptyContext.keys = () => ([]);
-webpackEmptyContext.resolve = webpackEmptyContext;
-webpackEmptyContext.id = "./dist/server-unpacked/utils sync recursive";
-module.exports = webpackEmptyContext;
-
-/***/ }),
-
 /***/ "./dist/VERSION.js":
 /*!*************************!*\
   !*** ./dist/VERSION.js ***!
@@ -50,7 +32,7 @@ module.exports = webpackEmptyContext;
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.43.0"
+  version: "1.43.1"
 };
 
 /***/ }),
@@ -104,12 +86,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -182,7 +160,9 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.onInit = exports.init = exports.VWO = void 0;
+exports.VWO = void 0;
+exports.init = init;
+exports.onInit = onInit;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -323,7 +303,6 @@ function init(options) {
     });
   });
 }
-exports.init = init;
 function onInit() {
   return __awaiter(this, void 0, void 0, function () {
     var apiName, date_1, msg, msg;
@@ -365,7 +344,6 @@ function onInit() {
     });
   });
 }
-exports.onInit = onInit;
 
 /***/ }),
 
@@ -428,12 +406,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -968,12 +942,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -1867,12 +1837,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -2625,12 +2591,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -2824,12 +2786,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -3228,12 +3186,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -5984,13 +5938,23 @@ var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? fun
 } : function (o, v) {
   o["default"] = v;
 });
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-  __setModuleDefault(result, mod);
-  return result;
-};
+var __importStar = this && this.__importStar || function () {
+  var ownKeys = function (o) {
+    ownKeys = Object.getOwnPropertyNames || function (o) {
+      var ar = [];
+      for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+      return ar;
+    };
+    return ownKeys(o);
+  };
+  return function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+    __setModuleDefault(result, mod);
+    return result;
+  };
+}();
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -7312,12 +7276,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -7698,12 +7658,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -8289,12 +8245,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -8836,7 +8788,8 @@ exports.SegmentOperandEvaluator = SegmentOperandEvaluator;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.matchWithRegex = exports.getKeyValue = void 0;
+exports.getKeyValue = getKeyValue;
+exports.matchWithRegex = matchWithRegex;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -8873,7 +8826,6 @@ function getKeyValue(obj) {
     value: value
   };
 }
-exports.getKeyValue = getKeyValue;
 /**
  * Matches a string against a regular expression and returns the match result.
  * @param {string} string - The string to match against the regex.
@@ -8889,7 +8841,6 @@ function matchWithRegex(string, regex) {
     return null;
   }
 }
-exports.matchWithRegex = matchWithRegex;
 
 /***/ }),
 
@@ -9306,12 +9257,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -9641,12 +9588,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -10076,9 +10019,16 @@ var ServiceContainer = /** @class */function () {
   /**
    * Updates the endpoint with the collection prefix.
    * @param endpoint - The endpoint to update.
+   * @param isGatewayPassed - If gateway is configured, return endpoint as-is.
    * @returns The updated endpoint with the collection prefix.
    */
-  ServiceContainer.prototype.getUpdatedEndpointWithCollectionPrefix = function (endpoint) {
+  ServiceContainer.prototype.getUpdatedEndpointWithCollectionPrefix = function (endpoint, isGatewayPassed) {
+    if (isGatewayPassed === void 0) {
+      isGatewayPassed = false;
+    }
+    if (isGatewayPassed) {
+      return endpoint;
+    }
     if (this.SettingsModel) {
       if (endpoint && this.SettingsModel.getCollectionPrefix() && (0, DataTypeUtil_1.isString)(this.SettingsModel.getCollectionPrefix())) {
         return "/".concat(this.SettingsModel.getCollectionPrefix()).concat(endpoint);
@@ -10230,12 +10180,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -10647,12 +10593,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -11004,6 +10946,24 @@ exports.StorageService = StorageService;
 
 /***/ }),
 
+/***/ "./dist/server-unpacked/utils sync recursive":
+/*!******************************************!*\
+  !*** ./dist/server-unpacked/utils/ sync ***!
+  \******************************************/
+/***/ ((module) => {
+
+function webpackEmptyContext(req) {
+	var e = new Error("Cannot find module '" + req + "'");
+	e.code = 'MODULE_NOT_FOUND';
+	throw e;
+}
+webpackEmptyContext.keys = () => ([]);
+webpackEmptyContext.resolve = webpackEmptyContext;
+webpackEmptyContext.id = "./dist/server-unpacked/utils sync recursive";
+module.exports = webpackEmptyContext;
+
+/***/ }),
+
 /***/ "./dist/server-unpacked/utils/AliasingUtil.js":
 /*!****************************************************!*\
   !*** ./dist/server-unpacked/utils/AliasingUtil.js ***!
@@ -11068,12 +11028,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -11330,12 +11286,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -11615,7 +11567,21 @@ exports["default"] = BatchEventsDispatcher;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.assignRangeValuesMEG = exports.getCampaignIdsFromFeatureKey = exports.getFeatureKeysFromCampaignIds = exports.getCampaignsByGroupId = exports.getGroupDetailsIfCampaignPartOfIt = exports.setCampaignAllocation = exports.isFeatureIdPresentInSettings = exports.getCampaignTypeFromCampaignId = exports.getVariationNameFromCampaignIdAndVariationId = exports.getCampaignKeyFromCampaignId = exports.getVariationFromCampaignKey = exports.getBucketingSeed = exports.scaleVariationWeights = exports.assignRangeValues = exports.setVariationAllocation = void 0;
+exports.setVariationAllocation = setVariationAllocation;
+exports.assignRangeValues = assignRangeValues;
+exports.scaleVariationWeights = scaleVariationWeights;
+exports.getBucketingSeed = getBucketingSeed;
+exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
+exports.getCampaignKeyFromCampaignId = getCampaignKeyFromCampaignId;
+exports.getVariationNameFromCampaignIdAndVariationId = getVariationNameFromCampaignIdAndVariationId;
+exports.getCampaignTypeFromCampaignId = getCampaignTypeFromCampaignId;
+exports.isFeatureIdPresentInSettings = isFeatureIdPresentInSettings;
+exports.setCampaignAllocation = setCampaignAllocation;
+exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
+exports.getCampaignsByGroupId = getCampaignsByGroupId;
+exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
+exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
+exports.assignRangeValuesMEG = assignRangeValuesMEG;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -11665,7 +11631,6 @@ function setVariationAllocation(campaign, logManager) {
     });
   }
 }
-exports.setVariationAllocation = setVariationAllocation;
 /**
  * Assigns start and end range values to a variation based on its weight.
  * @param {VariationModel} data - The variation model to assign range values.
@@ -11685,7 +11650,6 @@ function assignRangeValues(data, currentAllocation) {
   }
   return stepFactor;
 }
-exports.assignRangeValues = assignRangeValues;
 /**
  * Scales the weights of variations to sum up to 100%.
  * @param {any[]} variations - The list of variations to scale.
@@ -11708,7 +11672,6 @@ function scaleVariationWeights(variations) {
     });
   }
 }
-exports.scaleVariationWeights = scaleVariationWeights;
 /**
  * Generates a bucketing seed based on bucketing ID (could be custom seed or user ID), campaign, and optional group ID.
  * @param {string} bucketingId - The resolved bucketing identifier (custom seed || user ID).
@@ -11729,7 +11692,6 @@ function getBucketingSeed(bucketingId, campaign, groupId) {
   // Return a seed combining campaign ID and bucketing ID otherwise
   return bucketKey;
 }
-exports.getBucketingSeed = getBucketingSeed;
 /**
  * Retrieves a variation by its ID within a specific campaign identified by its key.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -11754,7 +11716,6 @@ function getVariationFromCampaignKey(settings, campaignKey, variationId) {
   }
   return null;
 }
-exports.getVariationFromCampaignKey = getVariationFromCampaignKey;
 /**
  * Retrieves the key of a campaign by its ID.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -11770,7 +11731,6 @@ function getCampaignKeyFromCampaignId(settings, campaignId) {
   }
   return null;
 }
-exports.getCampaignKeyFromCampaignId = getCampaignKeyFromCampaignId;
 /**
  * Retrieves the name of a variation by its ID within a specific campaign identified by its ID.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -11792,7 +11752,6 @@ function getVariationNameFromCampaignIdAndVariationId(settings, campaignId, vari
   }
   return null;
 }
-exports.getVariationNameFromCampaignIdAndVariationId = getVariationNameFromCampaignIdAndVariationId;
 /**
  * Retrieves the type of a campaign by its ID.
  * @param {SettingsModel} settings - The settings model containing all campaigns.
@@ -11808,7 +11767,6 @@ function getCampaignTypeFromCampaignId(settings, campaignId) {
   }
   return null;
 }
-exports.getCampaignTypeFromCampaignId = getCampaignTypeFromCampaignId;
 /**
  * Checks if a feature ID is present in the settings.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -11820,7 +11778,6 @@ function isFeatureIdPresentInSettings(settings, featureId) {
     return feature.getId() === featureId;
   });
 }
-exports.isFeatureIdPresentInSettings = isFeatureIdPresentInSettings;
 /**
  * Sets the allocation ranges for a list of campaigns.
  * @param {CampaignModel[]} campaigns - The list of campaigns to set allocations for.
@@ -11834,7 +11791,6 @@ function setCampaignAllocation(campaigns) {
     currentAllocation += stepFactor;
   }
 }
-exports.setCampaignAllocation = setCampaignAllocation;
 /**
  * Determines if a campaign is part of a group.
  * @param {SettingsModel} settings - The settings model containing group associations.
@@ -11865,7 +11821,6 @@ function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId) {
   }
   return {};
 }
-exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
 /**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
@@ -11880,7 +11835,6 @@ function getCampaignsByGroupId(settings, groupId) {
     return []; // Return an empty array if the group ID is not found
   }
 }
-exports.getCampaignsByGroupId = getCampaignsByGroupId;
 /**
  * Retrieves feature keys from a list of campaign IDs.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -11921,7 +11875,6 @@ function getFeatureKeysFromCampaignIds(settings, campaignIdWithVariation) {
   }
   return featureKeys;
 }
-exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 /**
  * Retrieves campaign IDs from a specific feature key.
  * @param {SettingsModel} settings - The settings model containing all features.
@@ -11939,7 +11892,6 @@ function getCampaignIdsFromFeatureKey(settings, featureKey) {
   });
   return campaignIds;
 }
-exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
 /**
  * Assigns range values to a campaign based on its weight.
  * @param {any} data - The campaign data containing weight.
@@ -11957,7 +11909,6 @@ function assignRangeValuesMEG(data, currentAllocation) {
   }
   return stepFactor;
 }
-exports.assignRangeValuesMEG = assignRangeValuesMEG;
 /**
  * Calculates the bucket range for a variation based on its weight.
  * @param {number} variationWeight - The weight of the variation.
@@ -12006,7 +11957,17 @@ function _handleRolloutCampaign(campaign, logManager) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getType = exports.isPromise = exports.isFunction = exports.isBoolean = exports.isString = exports.isNumber = exports.isUndefined = exports.isNull = exports.isArray = exports.isEmptyObject = exports.isObject = void 0;
+exports.isObject = isObject;
+exports.isEmptyObject = isEmptyObject;
+exports.isArray = isArray;
+exports.isNull = isNull;
+exports.isUndefined = isUndefined;
+exports.isNumber = isNumber;
+exports.isString = isString;
+exports.isBoolean = isBoolean;
+exports.isFunction = isFunction;
+exports.isPromise = isPromise;
+exports.getType = getType;
 /**
  * Checks if a value is an object excluding arrays, functions, regexes, promises, and dates.
  * @param val The value to check.
@@ -12016,7 +11977,6 @@ function isObject(val) {
   // Using Object.prototype.toString to get a precise string representation of the value type
   return Object.prototype.toString.call(val) === '[object Object]';
 }
-exports.isObject = isObject;
 /**
  * Checks if a value is an empty object.
  * @param val The value to check.
@@ -12025,7 +11985,6 @@ exports.isObject = isObject;
 function isEmptyObject(val) {
   return isObject(val) && Object.keys(val).length === 0;
 }
-exports.isEmptyObject = isEmptyObject;
 /**
  * Checks if a value is an array.
  * @param val The value to check.
@@ -12034,7 +11993,6 @@ exports.isEmptyObject = isEmptyObject;
 function isArray(val) {
   return Object.prototype.toString.call(val) === '[object Array]';
 }
-exports.isArray = isArray;
 /**
  * Checks if a value is null.
  * @param val The value to check.
@@ -12043,7 +12001,6 @@ exports.isArray = isArray;
 function isNull(val) {
   return Object.prototype.toString.call(val) === '[object Null]';
 }
-exports.isNull = isNull;
 /**
  * Checks if a value is undefined.
  * @param val The value to check.
@@ -12052,7 +12009,6 @@ exports.isNull = isNull;
 function isUndefined(val) {
   return Object.prototype.toString.call(val) === '[object Undefined]';
 }
-exports.isUndefined = isUndefined;
 /**
  * Checks if a value is a number, including NaN.
  * @param val The value to check.
@@ -12062,7 +12018,6 @@ function isNumber(val) {
   // Note: NaN is also a number
   return Object.prototype.toString.call(val) === '[object Number]';
 }
-exports.isNumber = isNumber;
 /**
  * Checks if a value is a string.
  * @param val The value to check.
@@ -12071,7 +12026,6 @@ exports.isNumber = isNumber;
 function isString(val) {
   return Object.prototype.toString.call(val) === '[object String]';
 }
-exports.isString = isString;
 /**
  * Checks if a value is a boolean.
  * @param val The value to check.
@@ -12080,7 +12034,6 @@ exports.isString = isString;
 function isBoolean(val) {
   return Object.prototype.toString.call(val) === '[object Boolean]';
 }
-exports.isBoolean = isBoolean;
 /**
  * Checks if a value is a function.
  * @param val The value to check.
@@ -12089,7 +12042,6 @@ exports.isBoolean = isBoolean;
 function isFunction(val) {
   return Object.prototype.toString.call(val) === '[object Function]';
 }
-exports.isFunction = isFunction;
 /**
  * Checks if a value is a Promise.
  * @param val The value to check.
@@ -12098,7 +12050,6 @@ exports.isFunction = isFunction;
 function isPromise(val) {
   return Object.prototype.toString.call(val) === '[object Promise]';
 }
-exports.isPromise = isPromise;
 /**
  * Determines the type of the given value using various type-checking utility functions.
  * @param val The value to determine the type of.
@@ -12126,7 +12077,6 @@ function getType(val) {
   // If none of the above, return 'Unknown Type'
   'Unknown Type';
 }
-exports.getType = getType;
 
 /***/ }),
 
@@ -12194,12 +12144,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -12272,7 +12218,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.sendDebugEventToVWO = exports.extractDecisionKeys = void 0;
+exports.extractDecisionKeys = extractDecisionKeys;
+exports.sendDebugEventToVWO = sendDebugEventToVWO;
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
 /**
@@ -12307,7 +12254,6 @@ function extractDecisionKeys(decisionObj) {
   }
   return extractedKeys;
 }
-exports.extractDecisionKeys = extractDecisionKeys;
 /**
  * Sends a debug event to VWO.
  * @param eventProps - The properties for the event.
@@ -12338,7 +12284,6 @@ function sendDebugEventToVWO(serviceContainer_1) {
     });
   });
 }
-exports.sendDebugEventToVWO = sendDebugEventToVWO;
 
 /***/ }),
 
@@ -12391,12 +12336,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -12813,13 +12754,23 @@ var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? fun
 } : function (o, v) {
   o["default"] = v;
 });
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-  __setModuleDefault(result, mod);
-  return result;
-};
+var __importStar = this && this.__importStar || function () {
+  var ownKeys = function (o) {
+    ownKeys = Object.getOwnPropertyNames || function (o) {
+      var ar = [];
+      for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+      return ar;
+    };
+    return ownKeys(o);
+  };
+  return function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+    __setModuleDefault(result, mod);
+    return result;
+  };
+}();
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function (resolve) {
@@ -12860,12 +12811,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -12938,7 +12885,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.sendPostCall = exports.sendGetCall = void 0;
+exports.sendGetCall = sendGetCall;
+exports.sendPostCall = sendPostCall;
 var HttpMethodEnum_1 = __webpack_require__(/*! ../enums/HttpMethodEnum */ "./dist/server-unpacked/enums/HttpMethodEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
@@ -13015,11 +12963,9 @@ function getFetch(logManager) {
 function sendGetCall(request, logManager) {
   return sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, request, logManager);
 }
-exports.sendGetCall = sendGetCall;
 function sendPostCall(request, logManager) {
   return sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, request, logManager);
 }
-exports.sendPostCall = sendPostCall;
 /**
  * Sends a request to the server using the Fetch API.
  * @param method - The HTTP method to use for the request.
@@ -13158,7 +13104,18 @@ var __assign = this && this.__assign || function () {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getFormattedErrorMessage = exports.addLinkedCampaignsToSettings = exports.doesEventBelongToAnyHoldout = exports.doesEventBelongToAnyFeature = exports.getFeatureFromKey = exports.getAllExperimentRules = exports.getSpecificRulesBasedOnType = exports.getRandomNumber = exports.getCurrentUnixTimestampInMillis = exports.getCurrentUnixTimestamp = exports.getCurrentTime = exports.cloneObject = void 0;
+exports.cloneObject = cloneObject;
+exports.getCurrentTime = getCurrentTime;
+exports.getCurrentUnixTimestamp = getCurrentUnixTimestamp;
+exports.getCurrentUnixTimestampInMillis = getCurrentUnixTimestampInMillis;
+exports.getRandomNumber = getRandomNumber;
+exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
+exports.getAllExperimentRules = getAllExperimentRules;
+exports.getFeatureFromKey = getFeatureFromKey;
+exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
+exports.doesEventBelongToAnyHoldout = doesEventBelongToAnyHoldout;
+exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
+exports.getFormattedErrorMessage = getFormattedErrorMessage;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -13191,7 +13148,6 @@ function cloneObject(obj) {
   var clonedObj = JSON.parse(JSON.stringify(obj));
   return clonedObj;
 }
-exports.cloneObject = cloneObject;
 /**
  * Gets the current time in ISO string format.
  * @returns {string} The current time in ISO string format.
@@ -13199,7 +13155,6 @@ exports.cloneObject = cloneObject;
 function getCurrentTime() {
   return new Date().toISOString();
 }
-exports.getCurrentTime = getCurrentTime;
 /**
  * Gets the current Unix timestamp in seconds.
  * @returns {number} The current Unix timestamp.
@@ -13208,7 +13163,6 @@ function getCurrentUnixTimestamp() {
   // Convert the current date to Unix timestamp in seconds
   return Math.ceil(+new Date() / 1000);
 }
-exports.getCurrentUnixTimestamp = getCurrentUnixTimestamp;
 /**
  * Gets the current Unix timestamp in milliseconds.
  * @returns {number} The current Unix timestamp in milliseconds.
@@ -13217,7 +13171,6 @@ function getCurrentUnixTimestampInMillis() {
   // Convert the current date to Unix timestamp in milliseconds
   return +new Date();
 }
-exports.getCurrentUnixTimestampInMillis = getCurrentUnixTimestampInMillis;
 /**
  * Generates a random number between 0 and 1.
  * @returns {number} A random number.
@@ -13226,7 +13179,6 @@ function getRandomNumber() {
   // Use Math.random to generate a random number
   return Math.random();
 }
-exports.getRandomNumber = getRandomNumber;
 /**
  * Retrieves specific rules based on the type from a feature.
  * @param {FeatureModel} feature - The key of the feature.
@@ -13251,7 +13203,6 @@ function getSpecificRulesBasedOnType(feature, type) {
   // Return all linked campaigns if no type is specified
   return feature.getRulesLinkedCampaign();
 }
-exports.getSpecificRulesBasedOnType = getSpecificRulesBasedOnType;
 /**
  * Retrieves all AB and Personalize rules from a feature.
  * @param {any} settings - The settings containing features.
@@ -13265,7 +13216,6 @@ function getAllExperimentRules(feature) {
     return rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB || rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
   })) || [];
 }
-exports.getAllExperimentRules = getAllExperimentRules;
 /**
  * Retrieves a feature by its key from the settings.
  * @param {any} settings - The settings containing features.
@@ -13279,7 +13229,6 @@ function getFeatureFromKey(settings, featureKey) {
     return feature.getKey() === featureKey;
   });
 }
-exports.getFeatureFromKey = getFeatureFromKey;
 /**
  * Checks if an event exists within any feature's metrics.
  * @param {string} eventName - The name of the event to check.
@@ -13294,7 +13243,6 @@ function doesEventBelongToAnyFeature(eventName, settings) {
     });
   });
 }
-exports.doesEventBelongToAnyFeature = doesEventBelongToAnyFeature;
 /**
  * Checks if an event exists within any holdout's metrics.
  * @param {string} eventName - The name of the event to check.
@@ -13309,7 +13257,6 @@ function doesEventBelongToAnyHoldout(eventName, settings) {
     });
   });
 }
-exports.doesEventBelongToAnyHoldout = doesEventBelongToAnyHoldout;
 /**
  * Adds linked campaigns to each feature in the settings based on rules.
  * @param {any} settings - The settings file to modify.
@@ -13353,7 +13300,6 @@ function addLinkedCampaignsToSettings(settings) {
     feature.setRulesLinkedCampaign(rulesLinkedCampaignModel);
   }
 }
-exports.addLinkedCampaignsToSettings = addLinkedCampaignsToSettings;
 /**
  * Formats an error message.
  * @param {any} error - The error to format.
@@ -13370,7 +13316,6 @@ function getFormattedErrorMessage(error) {
   }
   return errorMessage;
 }
-exports.getFormattedErrorMessage = getFormattedErrorMessage;
 
 /***/ }),
 
@@ -13423,12 +13368,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -13501,7 +13442,9 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.addIsGatewayServiceRequiredFlag = exports.getQueryParams = exports.getFromGatewayService = void 0;
+exports.getFromGatewayService = getFromGatewayService;
+exports.getQueryParams = getQueryParams;
+exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -13583,7 +13526,6 @@ function getFromGatewayService(serviceContainer, queryParams, endpoint, context)
     });
   });
 }
-exports.getFromGatewayService = getFromGatewayService;
 /**
  * Encodes the query parameters to ensure they are URL-safe.
  * @param queryParams  The query parameters to be encoded.
@@ -13602,7 +13544,6 @@ function getQueryParams(queryParams) {
   }
   return encodedParams;
 }
-exports.getQueryParams = getQueryParams;
 /**
  * Adds isGatewayServiceRequired flag to each feature and holdout in the settings based on pre segmentation.
  * @param settings - The settings file to modify.
@@ -13653,7 +13594,6 @@ function addIsGatewayServiceRequiredFlag(settings) {
     }
   }
 }
-exports.addIsGatewayServiceRequiredFlag = addIsGatewayServiceRequiredFlag;
 
 /***/ }),
 
@@ -13721,12 +13661,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -13808,7 +13744,9 @@ var __spreadArray = this && this.__spreadArray || function (to, from, pack) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.sendNetworkCallsForNotInHoldouts = exports.getMatchedHoldouts = exports.getApplicableHoldouts = void 0;
+exports.getApplicableHoldouts = getApplicableHoldouts;
+exports.getMatchedHoldouts = getMatchedHoldouts;
+exports.sendNetworkCallsForNotInHoldouts = sendNetworkCallsForNotInHoldouts;
 var decision_maker_1 = __webpack_require__(/*! ../packages/decision-maker */ "./dist/server-unpacked/packages/decision-maker/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
@@ -13830,7 +13768,6 @@ function getApplicableHoldouts(settings, featureId) {
     return holdout.getIsGlobal() || holdout.getFeatureIds().includes(featureId);
   });
 }
-exports.getApplicableHoldouts = getApplicableHoldouts;
 /**
  * Gets the matched holdout(s) for a given feature ID and context.
  * Evaluates all applicable holdouts, creates batched impressions for all of them,
@@ -13944,7 +13881,6 @@ function getMatchedHoldouts(serviceContainer, feature, context, storedData) {
     });
   });
 }
-exports.getMatchedHoldouts = getMatchedHoldouts;
 /**
  * Sends network calls for not in holdouts that are applicable but not stored in storage.
  * @param serviceContainer - The service container.
@@ -14017,7 +13953,6 @@ function sendNetworkCallsForNotInHoldouts(serviceContainer, feature, context, de
     });
   });
 }
-exports.sendNetworkCallsForNotInHoldouts = sendNetworkCallsForNotInHoldouts;
 
 /***/ }),
 
@@ -14085,12 +14020,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -14269,7 +14200,7 @@ exports.sendImpressionForVariationShownInBatch = sendImpressionForVariationShown
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.buildMessage = void 0;
+exports.buildMessage = buildMessage;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -14320,7 +14251,6 @@ function buildMessage(template, data) {
     return template; // Return the original template in case of an error
   }
 }
-exports.buildMessage = buildMessage;
 
 /***/ }),
 
@@ -14373,12 +14303,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -14451,7 +14377,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getFeatureKeysFromGroup = exports.evaluateGroups = void 0;
+exports.evaluateGroups = void 0;
+exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -14615,7 +14542,6 @@ function getFeatureKeysFromGroup(settings, groupId) {
     groupCampaignIds: groupCampaignIds
   };
 }
-exports.getFeatureKeysFromGroup = getFeatureKeysFromGroup;
 /*******************************
  * PRIVATE methods - MegUtil
  ******************************/
@@ -15026,12 +14952,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -15104,7 +15026,21 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.createHoldoutPayload = exports.createNetWorkAndRetryDebugEvent = exports.sendEvent = exports.getDebuggerEventPayload = exports.getSDKUsageStatsEventPayload = exports.getSDKInitEventPayload = exports.getMessagingEventPayload = exports.sendPostApiRequest = exports.getAttributePayloadData = exports.getTrackGoalPayloadData = exports.getTrackUserPayloadData = exports._getEventBasePayload = exports.getEventsBaseProperties = exports.getTrackEventPath = exports.getSettingsPath = void 0;
+exports.getSettingsPath = getSettingsPath;
+exports.getTrackEventPath = getTrackEventPath;
+exports.getEventsBaseProperties = getEventsBaseProperties;
+exports._getEventBasePayload = _getEventBasePayload;
+exports.getTrackUserPayloadData = getTrackUserPayloadData;
+exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
+exports.getAttributePayloadData = getAttributePayloadData;
+exports.sendPostApiRequest = sendPostApiRequest;
+exports.getMessagingEventPayload = getMessagingEventPayload;
+exports.getSDKInitEventPayload = getSDKInitEventPayload;
+exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
+exports.getDebuggerEventPayload = getDebuggerEventPayload;
+exports.sendEvent = sendEvent;
+exports.createNetWorkAndRetryDebugEvent = createNetWorkAndRetryDebugEvent;
+exports.createHoldoutPayload = createHoldoutPayload;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -15154,7 +15090,6 @@ function getSettingsPath(sdkKey, accountId) {
   };
   return path;
 }
-exports.getSettingsPath = getSettingsPath;
 /**
  * Constructs the tracking path for an event.
  * @param {string} event - The event type.
@@ -15188,7 +15123,6 @@ function getTrackEventPath(event, accountId, userId) {
   };
   return path;
 }
-exports.getTrackEventPath = getTrackEventPath;
 /**
  * Builds generic properties for different tracking calls required by VWO servers.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -15239,7 +15173,6 @@ function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, i
   }
   return properties;
 }
-exports.getEventsBaseProperties = getEventsBaseProperties;
 /**
  * Builds generic payload required by all the different tracking calls.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -15311,7 +15244,6 @@ function _getEventBasePayload(settingsService, userId, eventName, visitorUserAge
   }
   return properties;
 }
-exports._getEventBasePayload = _getEventBasePayload;
 /**
  * Builds payload to track the visitor.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -15359,7 +15291,6 @@ function getTrackUserPayloadData(serviceContainer, eventName, campaignId, variat
   }));
   return properties;
 }
-exports.getTrackUserPayloadData = getTrackUserPayloadData;
 /**
  * Constructs the payload data for tracking goals with custom event properties.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -15394,7 +15325,6 @@ function getTrackGoalPayloadData(serviceContainer, eventName, eventProperties, c
   }));
   return properties;
 }
-exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 /**
  * Constructs the payload data for syncing multiple visitor attributes.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -15429,7 +15359,6 @@ function getAttributePayloadData(serviceContainer, eventName, attributes, contex
   }));
   return properties;
 }
-exports.getAttributePayloadData = getAttributePayloadData;
 /**
  * Sends a POST API request with the specified properties and payload.
  * @param {ServiceContainer} serviceContainer - The service container instance.
@@ -15439,24 +15368,26 @@ exports.getAttributePayloadData = getAttributePayloadData;
  */
 function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_1) {
   return __awaiter(this, arguments, void 0, function (serviceContainer, properties, payload, userId, eventProperties, campaignInfo) {
-    var retryConfig, headers, userAgent, ipAddress, request, apiName, extraDataForMessage;
+    var retryConfig, isGatewayServiceConfigured, headers, userAgent, ipAddress, request, apiName, extraDataForMessage;
+    var _a;
     if (eventProperties === void 0) {
       eventProperties = {};
     }
     if (campaignInfo === void 0) {
       campaignInfo = {};
     }
-    return __generator(this, function (_a) {
-      switch (_a.label) {
+    return __generator(this, function (_b) {
+      switch (_b.label) {
         case 0:
           retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
+          isGatewayServiceConfigured = Boolean((_a = serviceContainer.getVWOOptions()) === null || _a === void 0 ? void 0 : _a.gatewayService);
           headers = {};
           userAgent = payload.d.visitor_ua;
           ipAddress = payload.d.visitor_ip;
           // Set headers if available
           if (userAgent) headers[HeadersEnum_1.HeadersEnum.USER_AGENT] = userAgent;
           if (ipAddress) headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
-          request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.EVENTS), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
+          request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.EVENTS, isGatewayServiceConfigured), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
           request.setEventName(properties.en);
           request.setUuid(payload.d.visId);
           if (properties.en === EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
@@ -15504,13 +15435,12 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
             }, {}, false);
           })];
         case 1:
-          _a.sent();
+          _b.sent();
           return [2 /*return*/];
       }
     });
   });
 }
-exports.sendPostApiRequest = sendPostApiRequest;
 /**
  * Constructs the payload for a messaging event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -15538,7 +15468,6 @@ function getMessagingEventPayload(settingsService, messageType, message, eventNa
   properties.d.event.props.data = data;
   return properties;
 }
-exports.getMessagingEventPayload = getMessagingEventPayload;
 /**
  * Constructs the payload for init called event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -15561,7 +15490,6 @@ function getSDKInitEventPayload(settingsService, eventName, settingsFetchTime, s
   properties.d.event.props.data = data;
   return properties;
 }
-exports.getSDKInitEventPayload = getSDKInitEventPayload;
 /**
  * Constructs the payload for sdk usage stats event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -15578,7 +15506,6 @@ function getSDKUsageStatsEventPayload(settingsService, eventName, usageStatsAcco
   properties.d.event.props.vwoMeta = usageStatsUtil.getUsageStats();
   return properties;
 }
-exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
 /**
  * Constructs the payload for debugger event.
  * @param {SettingsService} settingsService - The settings service instance.
@@ -15623,7 +15550,6 @@ function getDebuggerEventPayload(settingsService, eventProps) {
   });
   return properties;
 }
-exports.getDebuggerEventPayload = getDebuggerEventPayload;
 /**
  * Sends an event to VWO (generic event sender).
  * @param {NetworkManager} networkManager - The network manager instance.
@@ -15635,14 +15561,16 @@ exports.getDebuggerEventPayload = getDebuggerEventPayload;
  */
 function sendEvent(serviceContainer, properties, payload, eventName) {
   return __awaiter(this, void 0, void 0, function () {
-    var deferredObject, retryConfig, request;
-    return __generator(this, function (_a) {
+    var deferredObject, isGatewayServiceConfigured, retryConfig, request;
+    var _a;
+    return __generator(this, function (_b) {
       deferredObject = new PromiseUtil_1.Deferred();
+      isGatewayServiceConfigured = Boolean((_a = serviceContainer.getVWOOptions()) === null || _a === void 0 ? void 0 : _a.gatewayService);
       retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
       // disable retry for event (no retry for generic events)
       if (eventName === EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT) retryConfig.shouldRetry = false;
       try {
-        request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.EVENTS), properties, payload, null, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
+        request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.EVENTS, isGatewayServiceConfigured), properties, payload, null, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
         request.setEventName(properties.en);
         // Perform the network POST request
         serviceContainer.getNetworkManager().post(request).then(function (response) {
@@ -15662,7 +15590,6 @@ function sendEvent(serviceContainer, properties, payload, eventName) {
     });
   });
 }
-exports.sendEvent = sendEvent;
 /**
  * Creates a network and retry debug event.
  * @param response The response model.
@@ -15723,7 +15650,6 @@ function createNetWorkAndRetryDebugEvent(response, payload, apiName, extraData) 
     };
   }
 }
-exports.createNetWorkAndRetryDebugEvent = createNetWorkAndRetryDebugEvent;
 /**
  * Creates payload for holdout variation shown event.
  * Similar to getTrackUserPayloadData but specifically for holdouts.
@@ -15744,7 +15670,6 @@ function createHoldoutPayload(serviceContainer, eventName, holdoutId, variationI
   properties.d.event.props.fId = featureId;
   return properties;
 }
-exports.createHoldoutPayload = createHoldoutPayload;
 
 /***/ }),
 
@@ -15760,7 +15685,7 @@ exports.createHoldoutPayload = createHoldoutPayload;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.Deferred = void 0;
+exports.Deferred = Deferred;
 /**
  * Creates a Deferred object with properties for promise, resolve, and reject.
  * This allows manual control over the resolution and rejection of a promise.
@@ -15775,7 +15700,6 @@ function Deferred() {
   });
   return this; // Return the Deferred object with attached methods
 }
-exports.Deferred = Deferred;
 
 /***/ }),
 
@@ -15828,12 +15752,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -16087,12 +16007,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -16165,7 +16081,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.sendSDKUsageStatsEvent = exports.sendSdkInitEvent = void 0;
+exports.sendSdkInitEvent = sendSdkInitEvent;
+exports.sendSDKUsageStatsEvent = sendSDKUsageStatsEvent;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -16216,7 +16133,6 @@ function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceContainer) {
     });
   });
 }
-exports.sendSdkInitEvent = sendSdkInitEvent;
 /**
  * Sends a usage stats event to VWO.
  * This event is triggered when the SDK is initialized.
@@ -16248,7 +16164,6 @@ function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStat
     });
   });
 }
-exports.sendSDKUsageStatsEvent = sendSDKUsageStatsEvent;
 
 /***/ }),
 
@@ -16264,7 +16179,7 @@ exports.sendSDKUsageStatsEvent = sendSDKUsageStatsEvent;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.setSettingsAndAddCampaignsToRules = void 0;
+exports.setSettingsAndAddCampaignsToRules = setSettingsAndAddCampaignsToRules;
 var SettingsModel_1 = __webpack_require__(/*! ../models/settings/SettingsModel */ "./dist/server-unpacked/models/settings/SettingsModel.js");
 var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
 var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
@@ -16288,7 +16203,6 @@ function setSettingsAndAddCampaignsToRules(settings, vwoClientInstance, logManag
   (0, FunctionUtil_1.addLinkedCampaignsToSettings)(vwoClientInstance.settings);
   (0, GatewayServiceUtil_1.addIsGatewayServiceRequiredFlag)(vwoClientInstance.settings);
 }
-exports.setSettingsAndAddCampaignsToRules = setSettingsAndAddCampaignsToRules;
 
 /***/ }),
 
@@ -16461,12 +16375,8 @@ var __generator = this && this.__generator || function (thisArg, body) {
     f,
     y,
     t,
-    g;
-  return g = {
-    next: verb(0),
-    "throw": verb(1),
-    "return": verb(2)
-  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
     return this;
   }), g;
   function verb(n) {
@@ -16539,7 +16449,7 @@ var __generator = this && this.__generator || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getUserId = void 0;
+exports.getUserId = getUserId;
 var AliasingUtil_1 = __webpack_require__(/*! ./AliasingUtil */ "./dist/server-unpacked/utils/AliasingUtil.js");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
 var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
@@ -16574,7 +16484,6 @@ function getUserId(userId, isAliasingEnabled, serviceContainer) {
     });
   });
 }
-exports.getUserId = getUserId;
 
 /***/ }),
 
@@ -16590,7 +16499,10 @@ exports.getUserId = getUserId;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.isWebUuid = exports.generateUUID = exports.getUUID = exports.getRandomUUID = void 0;
+exports.getRandomUUID = getRandomUUID;
+exports.getUUID = getUUID;
+exports.generateUUID = generateUUID;
+exports.isWebUuid = isWebUuid;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -16621,7 +16533,6 @@ function getRandomUUID(sdkKey) {
   var randomUUID = (0, uuid_2.v5)((0, uuid_1.v4)(), namespace);
   return randomUUID;
 }
-exports.getRandomUUID = getRandomUUID;
 /**
  * Generates a UUID for a user based on their userId and accountId.
  * @param userId The user's ID.
@@ -16641,7 +16552,6 @@ function getUUID(userId, accountId) {
   var desiredUuid = uuidForUserIdAccountId === null || uuidForUserIdAccountId === void 0 ? void 0 : uuidForUserIdAccountId.replace(/-/gi, '').toUpperCase();
   return desiredUuid;
 }
-exports.getUUID = getUUID;
 /**
  * Helper function to generate a UUID v5 based on a name and a namespace.
  * @param name The name from which to generate the UUID.
@@ -16656,7 +16566,6 @@ function generateUUID(name, namespace) {
   // Generate and return the UUID v5
   return (0, uuid_2.v5)(name, namespace);
 }
-exports.generateUUID = generateUUID;
 /**
  * Validates whether the given string is an web-generated UUID.
  * Performs a basic check that an incoming context.id looks like an web-generated ID:
@@ -16671,7 +16580,6 @@ function isWebUuid(id) {
   }
   return /^[DJ][0-9A-Fa-f]{32}$/.test(id);
 }
-exports.isWebUuid = isWebUuid;
 
 /***/ }),
 
@@ -16687,7 +16595,8 @@ exports.isWebUuid = isWebUuid;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.sendPostCall = exports.sendGetCall = void 0;
+exports.sendGetCall = sendGetCall;
+exports.sendPostCall = sendPostCall;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -16711,11 +16620,9 @@ var noop = function () {};
 function sendGetCall(options, logManager) {
   sendRequest(HttpMethodEnum_1.HttpMethodEnum.GET, options, logManager);
 }
-exports.sendGetCall = sendGetCall;
 function sendPostCall(options, logManager) {
   sendRequest(HttpMethodEnum_1.HttpMethodEnum.POST, options, logManager);
 }
-exports.sendPostCall = sendPostCall;
 function sendRequest(method, options, logManager) {
   var requestModel = options.requestModel,
     _a = options.successCallback,
@@ -16820,6 +16727,28 @@ function sendRequest(method, options, logManager) {
 
 /***/ }),
 
+/***/ "http":
+/*!***********************!*\
+  !*** external "http" ***!
+  \***********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("http");
+
+/***/ }),
+
+/***/ "https":
+/*!************************!*\
+  !*** external "https" ***!
+  \************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("https");
+
+/***/ }),
+
 /***/ "murmurhash":
 /*!*****************************!*\
   !*** external "murmurhash" ***!
@@ -16862,28 +16791,6 @@ module.exports = require("uuid");
 "use strict";
 module.exports = require("vwo-fme-sdk-log-messages");
 
-/***/ }),
-
-/***/ "http":
-/*!***********************!*\
-  !*** external "http" ***!
-  \***********************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("http");
-
-/***/ }),
-
-/***/ "https":
-/*!************************!*\
-  !*** external "https" ***!
-  \************************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("https");
-
 /***/ })
 
 /******/ 	});
@@ -16920,7 +16827,7 @@ module.exports = require("https");
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
 "use strict";
 var exports = __webpack_exports__;

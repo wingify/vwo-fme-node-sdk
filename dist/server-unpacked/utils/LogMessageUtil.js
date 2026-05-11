@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.buildMessage = void 0;
+exports.buildMessage = buildMessage;
 /**
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
  *
@@ -48,5 +48,4 @@ function buildMessage(template, data) {
         return template; // Return the original template in case of an error
     }
 }
-exports.buildMessage = buildMessage;
 //# sourceMappingURL=LogMessageUtil.js.map

@@ -25,7 +25,7 @@ import { isString } from '../utils/DataTypeUtil';
 import { Deferred } from './PromiseUtil';
 import { getFormattedErrorMessage } from './FunctionUtil';
 import { Constants } from '../constants';
-import { sendDebugEventToVWO } from './DebuggerServiceUtil';
+import { sendDebugEventToWingify } from './DebuggerServiceUtil';
 import { createNetWorkAndRetryDebugEvent } from './NetworkUtil';
 import { EventEnum } from '../enums/EventEnum';
 import { ServiceContainer } from '../services/ServiceContainer';
@@ -59,7 +59,7 @@ export class BatchEventsDispatcher {
     headers['Authorization'] = serviceContainer.getSettingsService().sdkKey;
 
     const request: RequestModel = new RequestModel(
-      serviceContainer.getSettingsService().hostname,
+      serviceContainer.getSettingsService().getCollectionHostname(),
       HttpMethodEnum.POST,
       serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.BATCH_EVENTS),
       properties,
@@ -93,7 +93,7 @@ export class BatchEventsDispatcher {
               extraData,
             );
             // send debug event
-            sendDebugEventToVWO(serviceContainer, debugEventProps);
+            sendDebugEventToWingify(serviceContainer, debugEventProps);
           }
           const batchApiResult = this.handleBatchResponse(
             serviceContainer.getLogManager(),
@@ -114,7 +114,7 @@ export class BatchEventsDispatcher {
             extraData,
           );
           // send debug event
-          sendDebugEventToVWO(serviceContainer, debugEventProps);
+          sendDebugEventToWingify(serviceContainer, debugEventProps);
           const batchApiResult = this.handleBatchResponse(
             serviceContainer.getLogManager(),
             UrlEnum.BATCH_EVENTS,
@@ -252,12 +252,12 @@ export class BatchEventsDispatcher {
         continue;
       }
 
-      if (name === EventEnum.VWO_VARIATION_SHOWN) {
+      if (name === EventEnum.VARIATION_SHOWN) {
         counts.variationShownCount += 1;
         continue;
       }
 
-      if (name === EventEnum.VWO_SYNC_VISITOR_PROP) {
+      if (name === EventEnum.SYNC_VISITOR_PROP) {
         counts.setAttributeCount += 1;
         continue;
       }

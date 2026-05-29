@@ -31,7 +31,7 @@ import { getAllExperimentRules, getFeatureFromKey, getSpecificRulesBasedOnType }
 import { buildMessage } from '../utils/LogMessageUtil';
 import { Deferred } from '../utils/PromiseUtil';
 import { evaluateRule } from '../utils/RuleEvaluationUtil';
-import { extractDecisionKeys, sendDebugEventToVWO } from '../utils/DebuggerServiceUtil';
+import { extractDecisionKeys, sendDebugEventToWingify } from '../utils/DebuggerServiceUtil';
 import { DebuggerCategoryEnum } from '../enums/DebuggerCategoryEnum';
 import { Constants } from '../constants';
 import { ServiceContainer } from '../services/ServiceContainer';
@@ -498,7 +498,7 @@ export class FlagApi {
           if (!isDevModeForUser) {
             const payload = getTrackUserPayloadData(
               serviceContainer,
-              EventEnum.VWO_VARIATION_SHOWN,
+              EventEnum.VARIATION_SHOWN,
               passedRolloutCampaign.getId(),
               variation.getId(),
               context,
@@ -539,7 +539,9 @@ export class FlagApi {
         }
       }
     } else if (rollOutRules.length === 0) {
-      serviceContainer.getLogManager().debug(DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
+      serviceContainer
+        .getLogManager()
+        .debug(buildMessage(DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT));
       shouldCheckForExperimentsRules = true;
     }
 
@@ -631,7 +633,7 @@ export class FlagApi {
           if (!isDevModeForUser) {
             const payload = getTrackUserPayloadData(
               serviceContainer,
-              EventEnum.VWO_VARIATION_SHOWN,
+              EventEnum.VARIATION_SHOWN,
               campaign.getId(),
               variation.getId(),
               context,
@@ -712,7 +714,7 @@ export class FlagApi {
       _updateDebugEventProps(debugEventProps, decision);
 
       // send debug event
-      sendDebugEventToVWO(serviceContainer, debugEventProps);
+      sendDebugEventToWingify(serviceContainer, debugEventProps);
     }
 
     // Send data for Impact Campaign, if defined
@@ -727,7 +729,7 @@ export class FlagApi {
       if (!isDevModeForUser) {
         const payload = getTrackUserPayloadData(
           serviceContainer,
-          EventEnum.VWO_VARIATION_SHOWN,
+          EventEnum.VARIATION_SHOWN,
           feature.getImpactCampaign()?.getCampaignId(),
           isEnabled ? 2 : 1,
           context,

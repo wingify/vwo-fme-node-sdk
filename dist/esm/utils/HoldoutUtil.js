@@ -122,7 +122,7 @@ export async function getMatchedHoldouts(serviceContainer, feature, context, sto
         }
         // Create holdout payload for ALL applicable holdouts (both IN and NOT IN)
         // campaignId is the holdoutId, variationId is 1 (IN) or 2 (NOT IN)
-        const payload = createHoldoutPayload(serviceContainer, EventEnum.VWO_VARIATION_SHOWN, holdout.getId(), // campaignId is the holdoutId
+        const payload = createHoldoutPayload(serviceContainer, EventEnum.VARIATION_SHOWN, holdout.getId(), // campaignId is the holdoutId
         variationId, // 1 if IN holdout, 2 if NOT IN holdout
         context, featureId);
         holdoutPayloads.push(payload);
@@ -157,7 +157,7 @@ export async function sendNetworkCallsForNotInHoldouts(serviceContainer, feature
         if (!updatedNotInHoldoutIds?.includes(holdout.getId()) && !isInHoldoutIds?.includes(holdout.getId())) {
             //update the holdout ids in storage
             updatedNotInHoldoutIds.push(holdout.getId());
-            const payload = createHoldoutPayload(serviceContainer, EventEnum.VWO_VARIATION_SHOWN, holdout.getId(), Constants.VARIATION_NOT_PART_OF_HOLDOUT, context, feature.getId());
+            const payload = createHoldoutPayload(serviceContainer, EventEnum.VARIATION_SHOWN, holdout.getId(), Constants.VARIATION_NOT_PART_OF_HOLDOUT, context, feature.getId());
             if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
                 const response = sendImpressionForVariationShown(serviceContainer, holdout.getId(), Constants.VARIATION_NOT_PART_OF_HOLDOUT, context, feature.getKey(), payload);
                 if (serviceContainer.getShouldWaitForTrackingCalls()) {

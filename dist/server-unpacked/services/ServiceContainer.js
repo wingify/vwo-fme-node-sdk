@@ -70,9 +70,9 @@ var ServiceContainer = /** @class */ (function () {
     };
     /**
      *
-     * @returns IVWOOptions
+     * @returns IWingifyOptions
      */
-    ServiceContainer.prototype.getVWOOptions = function () {
+    ServiceContainer.prototype.getWingifyOptions = function () {
         return this.vwoOptions;
     };
     /**
@@ -192,7 +192,7 @@ var ServiceContainer = /** @class */ (function () {
         return this.shouldWaitForTrackingCalls;
     };
     /**
-     * Registers a callback to stop settings polling (called from VWOBuilder when polling is started).
+     * Registers a callback to stop settings polling (called from WingifyBuilder when polling is started).
      * @param callback - Callback to run when polling should stop, or null to clear.
      */
     ServiceContainer.prototype.setPollingStopCallback = function (callback) {

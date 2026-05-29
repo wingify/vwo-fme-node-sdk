@@ -26,8 +26,8 @@ import { Constants } from '../constants/index.js';
 export class SDKMetaUtil {
     constructor(options) {
         const sdkMeta = options?.sdkMeta;
-        this.sdkName = sdkMeta?._vwo_sdkName ?? Constants.SDK_NAME;
-        this.version = sdkMeta?._vwo_sdkVersion ?? Constants.SDK_VERSION;
+        this.sdkName = sdkMeta?._wingify_sdkName ?? sdkMeta?._vwo_sdkName ?? Constants.SDK_NAME;
+        this.version = sdkMeta?._wingify_sdkVersion ?? sdkMeta?._vwo_sdkVersion ?? Constants.SDK_VERSION;
         SDKMetaUtil.instance = this;
     }
     /**

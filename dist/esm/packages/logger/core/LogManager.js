@@ -20,9 +20,10 @@ import { isObject } from '../../../utils/DataTypeUtil.js';
 import { LogLevelEnum } from '../enums/LogLevelEnum.js';
 import { buildMessage } from '../../../utils/LogMessageUtil.js';
 import { DebuggerCategoryEnum } from '../../../enums/DebuggerCategoryEnum.js';
-import { sendDebugEventToVWO } from '../../../utils/DebuggerServiceUtil.js';
+import { sendDebugEventToWingify } from '../../../utils/DebuggerServiceUtil.js';
 import { ErrorLogMessagesEnum } from '../../../enums/log-messages/index.js';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
+import { Constants } from '../../../constants/index.js';
 /**
  * LogManager class provides logging functionality with support for multiple transports.
  * It is designed as a singleton to ensure a single instance throughout the application.
@@ -37,10 +38,10 @@ export class LogManager extends Logger {
      */
     constructor(config) {
         super();
-        this.name = 'VWO Logger'; // Default logger name
+        this.name = Constants.LOGGER_NAME; // Default logger name
         this.requestId = uuidv4(); // Unique request ID generated for each instance
         this.level = LogLevelEnum.ERROR; // Default logging level
-        this.prefix = 'VWO-SDK'; // Default prefix for log messages
+        this.prefix = Constants.LOG_PREFIX; // Default prefix for log messages
         this.shouldLogToStandardOutput = false;
         this.config = config;
         // Initialize configuration with defaults or provided values
@@ -121,14 +122,14 @@ export class LogManager extends Logger {
     }
     /**
      * Middleware method that stores error in DebuggerService and logs it.
-     * @param {boolean} shouldSendToVWO - Whether to send the error to VWO.
+     * @param {boolean} shouldSendToWingify - Whether to send the error to Wingify.
      * @param {string} category - The category of the error.
      */
-    errorLog(template, data = {}, debugData = {}, shouldSendToVWO = true) {
+    errorLog(template, data = {}, debugData = {}, shouldSendToWingify = true) {
         try {
             const message = buildMessage(ErrorLogMessagesEnum[template], data);
             this.error(message);
-            if (shouldSendToVWO) {
+            if (shouldSendToWingify) {
                 const debugEventProps = {
                     ...debugData,
                     ...data,
@@ -137,8 +138,8 @@ export class LogManager extends Logger {
                     lt: LogLevelEnum.ERROR.toString(),
                     cg: DebuggerCategoryEnum.ERROR,
                 };
-                // send debug event to VWO
-                sendDebugEventToVWO(this.serviceContainer, debugEventProps);
+                // send debug event to Wingify
+                sendDebugEventToWingify(this.serviceContainer, debugEventProps);
             }
         }
         catch (err) {

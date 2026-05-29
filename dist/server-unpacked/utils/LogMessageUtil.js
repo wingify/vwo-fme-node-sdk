@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildMessage = buildMessage;
 /**
@@ -17,6 +28,7 @@ exports.buildMessage = buildMessage;
  * limitations under the License.
  */
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
+var constants_1 = require("../constants");
 var nargs = /\{([0-9a-zA-Z_]+)\}/g;
 /**
  * Constructs a message by replacing placeholders in a template with corresponding values from a data object.
@@ -28,6 +40,7 @@ var nargs = /\{([0-9a-zA-Z_]+)\}/g;
 function buildMessage(template, data) {
     if (template === void 0) { template = ''; }
     if (data === void 0) { data = {}; }
+    var payload = __assign({ brand: constants_1.Constants.BRAND_DISPLAY_NAME, logPrefix: constants_1.Constants.LOG_PREFIX }, data);
     try {
         return template.replace(nargs, function (match, key, index) {
             // Check for escaped placeholders
@@ -35,7 +48,7 @@ function buildMessage(template, data) {
                 return key;
             }
             // Retrieve the value from the data object
-            var value = data[key];
+            var value = payload[key];
             // If the key does not exist or the value is null/undefined, return an empty string
             if (value === undefined || value === null) {
                 return '';

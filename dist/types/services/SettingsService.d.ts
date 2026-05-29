@@ -12,6 +12,7 @@ export declare class SettingsService implements ISettingsService {
   expiry: number;
   networkTimeout: number;
   hostname: string;
+  collectionHostname: string;
   port: number;
   protocol: string;
   isGatewayServiceProvided: boolean;
@@ -40,6 +41,11 @@ export declare class SettingsService implements ISettingsService {
    * @returns {boolean} - True if proxy is provided, false otherwise
    */
   isProxyProvided(): boolean;
+  /**
+   * Host used for event collection POST calls (track, impressions, batch, debugger).
+   * Defaults to collect.wingify.net for Wingify SDK; same as serving host for VWO SDK.
+   */
+  getCollectionHostname(): string;
   /**
    * Normalize the settings
    * @param settings - The settings to normalize

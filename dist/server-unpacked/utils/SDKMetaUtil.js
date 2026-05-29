@@ -28,10 +28,10 @@ var constants_1 = require("../constants");
  */
 var SDKMetaUtil = /** @class */ (function () {
     function SDKMetaUtil(options) {
-        var _a, _b;
+        var _a, _b, _c, _d;
         var sdkMeta = options === null || options === void 0 ? void 0 : options.sdkMeta;
-        this.sdkName = (_a = sdkMeta === null || sdkMeta === void 0 ? void 0 : sdkMeta._vwo_sdkName) !== null && _a !== void 0 ? _a : constants_1.Constants.SDK_NAME;
-        this.version = (_b = sdkMeta === null || sdkMeta === void 0 ? void 0 : sdkMeta._vwo_sdkVersion) !== null && _b !== void 0 ? _b : constants_1.Constants.SDK_VERSION;
+        this.sdkName = (_b = (_a = sdkMeta === null || sdkMeta === void 0 ? void 0 : sdkMeta._wingify_sdkName) !== null && _a !== void 0 ? _a : sdkMeta === null || sdkMeta === void 0 ? void 0 : sdkMeta._vwo_sdkName) !== null && _b !== void 0 ? _b : constants_1.Constants.SDK_NAME;
+        this.version = (_d = (_c = sdkMeta === null || sdkMeta === void 0 ? void 0 : sdkMeta._wingify_sdkVersion) !== null && _c !== void 0 ? _c : sdkMeta === null || sdkMeta === void 0 ? void 0 : sdkMeta._vwo_sdkVersion) !== null && _d !== void 0 ? _d : constants_1.Constants.SDK_VERSION;
         SDKMetaUtil.instance = this;
     }
     /**

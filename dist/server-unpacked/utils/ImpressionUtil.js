@@ -74,7 +74,7 @@ var sendImpressionForVariationShown = function (serviceContainer, campaignId, va
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
+                properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
                 context.getIpAddress());
                 campaignKeyWithFeatureName = (0, CampaignUtil_1.getCampaignKeyFromCampaignId)(serviceContainer.getSettings(), campaignId);
                 variationName = (0, CampaignUtil_2.getVariationNameFromCampaignIdAndVariationId)(serviceContainer.getSettings(), campaignId, variationId);

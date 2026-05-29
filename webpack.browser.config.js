@@ -47,8 +47,9 @@ Dependencies used - ${deps}`;
     }),
     new webpack.DefinePlugin({
       'typeof process': JSON.stringify('undefined'),
-      SDK_NAME: JSON.stringify(libraryName),
-      SDK_VERSION: JSON.stringify(libVersion)
+      SDK_NAME: JSON.stringify(argv.env && argv.env.brand === 'wingify' ? 'wingify-fme-javascript-sdk' : libraryName),
+      SDK_VERSION: JSON.stringify(libVersion),
+      __SDK_BRAND__: JSON.stringify(argv.env && argv.env.brand ? argv.env.brand : 'vwo')
     })
   ];
 
@@ -60,9 +61,13 @@ Dependencies used - ${deps}`;
 }
 
 module.exports = function(_env, argv) {
+  const brand = _env && _env.brand ? _env.brand : 'vwo';
+  const outLibraryName = brand === 'wingify' ? 'wingify-fme-javascript-sdk' : libraryName;
+  const entryFile = brand === 'wingify' ? './lib/index.wingify.ts' : './lib/index.ts';
+
   return {
     entry: {
-      [libraryName]: './lib/index.ts'
+      [outLibraryName]: entryFile
     },
     mode: argv.mode === PRODUCTION ? 'production' : 'development',
     devtool: 'source-map',
@@ -75,7 +80,7 @@ module.exports = function(_env, argv) {
 
         return '[name].js';
       },
-      library: 'vwoSdk',
+      library: brand === 'wingify' ? 'wingifySdk' : 'vwoSdk',
       libraryTarget: 'umd',
       globalObject: 'this',
       auxiliaryComment: {

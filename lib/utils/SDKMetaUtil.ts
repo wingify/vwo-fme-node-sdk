@@ -15,7 +15,7 @@
  */
 
 import { Constants } from '../constants';
-import { IVWOOptions } from '../models/VWOOptionsModel';
+import { IWingifyOptions } from '../models/WingifyOptionsModel';
 
 export interface ISDKMeta {
   sdkName: string;
@@ -37,10 +37,10 @@ export class SDKMetaUtil {
   private sdkName: string;
   private version: string;
 
-  constructor(options?: IVWOOptions | null) {
+  constructor(options?: IWingifyOptions | null) {
     const sdkMeta = options?.sdkMeta;
-    this.sdkName = sdkMeta?._vwo_sdkName ?? Constants.SDK_NAME;
-    this.version = sdkMeta?._vwo_sdkVersion ?? Constants.SDK_VERSION;
+    this.sdkName = sdkMeta?._wingify_sdkName ?? sdkMeta?._vwo_sdkName ?? Constants.SDK_NAME;
+    this.version = sdkMeta?._wingify_sdkVersion ?? sdkMeta?._vwo_sdkVersion ?? Constants.SDK_VERSION;
     SDKMetaUtil.instance = this;
   }
 

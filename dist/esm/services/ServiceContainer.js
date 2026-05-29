@@ -64,9 +64,9 @@ export class ServiceContainer {
     }
     /**
      *
-     * @returns IVWOOptions
+     * @returns IWingifyOptions
      */
-    getVWOOptions() {
+    getWingifyOptions() {
         return this.vwoOptions;
     }
     /**
@@ -185,7 +185,7 @@ export class ServiceContainer {
         return this.shouldWaitForTrackingCalls;
     }
     /**
-     * Registers a callback to stop settings polling (called from VWOBuilder when polling is started).
+     * Registers a callback to stop settings polling (called from WingifyBuilder when polling is started).
      * @param callback - Callback to run when polling should stop, or null to clear.
      */
     setPollingStopCallback(callback) {

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContextModel = void 0;
-var ContextVWOModel_1 = require("./ContextVWOModel");
+var ContextWingifyModel_1 = require("./ContextWingifyModel");
 var UuidUtil_1 = require("../../utils/UuidUtil");
 var FunctionUtil_1 = require("../../utils/FunctionUtil");
 var ContextModel = /** @class */ (function () {
@@ -23,8 +23,8 @@ var ContextModel = /** @class */ (function () {
         if (context === null || context === void 0 ? void 0 : context.variationTargetingVariables) {
             this.variationTargetingVariables = context.variationTargetingVariables;
         }
-        if (context === null || context === void 0 ? void 0 : context._vwo) {
-            this._vwo = new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(context._vwo);
+        if ((context === null || context === void 0 ? void 0 : context._wingify) || (context === null || context === void 0 ? void 0 : context._vwo)) {
+            this._wingify = new ContextWingifyModel_1.ContextWingifyModel().modelFromDictionary(context._wingify || context._vwo);
         }
         if (context === null || context === void 0 ? void 0 : context.postSegmentationVariables) {
             this.postSegmentationVariables = context.postSegmentationVariables;
@@ -36,7 +36,7 @@ var ContextModel = /** @class */ (function () {
             this.isDevMode = context.isDevMode === true;
         }
         // if uuid is provided in the context, use it, otherwise generate a new uuid
-        this._vwo_uuid =
+        this._wingify_uuid =
             (_a = context === null || context === void 0 ? void 0 : context.uuid) !== null && _a !== void 0 ? _a : (0, UuidUtil_1.getUUID)((_c = (_b = context === null || context === void 0 ? void 0 : context.id) === null || _b === void 0 ? void 0 : _b.toString()) !== null && _c !== void 0 ? _c : "".concat(options === null || options === void 0 ? void 0 : options.accountId, "_").concat(options === null || options === void 0 ? void 0 : options.sdkKey), (_d = options === null || options === void 0 ? void 0 : options.accountId) === null || _d === void 0 ? void 0 : _d.toString());
         // If sessionId is provided in the context, use it, otherwise generate a new one
         if (context === null || context === void 0 ? void 0 : context.sessionId) {
@@ -70,10 +70,10 @@ var ContextModel = /** @class */ (function () {
         this.variationTargetingVariables = variationTargetingVariables;
     };
     ContextModel.prototype.getVwo = function () {
-        return this._vwo;
+        return this._wingify;
     };
-    ContextModel.prototype.setVwo = function (_vwo) {
-        this._vwo = _vwo;
+    ContextModel.prototype.setVwo = function (_wingify) {
+        this._wingify = _wingify;
     };
     ContextModel.prototype.getPostSegmentationVariables = function () {
         return this.postSegmentationVariables;
@@ -82,7 +82,7 @@ var ContextModel = /** @class */ (function () {
         this.postSegmentationVariables = postSegmentationVariables;
     };
     ContextModel.prototype.getUuid = function () {
-        return this._vwo_uuid;
+        return this._wingify_uuid;
     };
     ContextModel.prototype.getSessionId = function () {
         return this.sessionId;

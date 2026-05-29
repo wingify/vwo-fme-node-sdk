@@ -38,7 +38,7 @@ export class UsageStatsUtil {
      * @param options.sdkName - SDK name configuration
      */
     setUsageStats(options) {
-        const { storage, logger, batchEventData, gatewayService, integrations, pollInterval, _vwo_meta, shouldWaitForTrackingCalls, } = options;
+        const { storage, logger, batchEventData, gatewayService, integrations, pollInterval, _wingify_meta, _vwo_meta, shouldWaitForTrackingCalls, } = options;
         const data = {};
         data.a = options.accountId;
         data.env = options.sdkKey;
@@ -61,8 +61,9 @@ export class UsageStatsUtil {
             data.pi = pollInterval; // Polling interval configured
         if (shouldWaitForTrackingCalls)
             data.swtc = 1;
-        // if _vwo_meta has ea, then addd data._ea to be 1
-        if (_vwo_meta && _vwo_meta.ea)
+        // if _wingify_meta or _vwo_meta has ea, then add data._ea to be 1
+        const meta = _wingify_meta || _vwo_meta;
+        if (meta && meta.ea)
             data._ea = 1;
         if (typeof process !== 'undefined' && process.version) {
             // For Node.js environment

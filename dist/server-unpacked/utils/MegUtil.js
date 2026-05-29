@@ -437,7 +437,7 @@ var _normalizeWeightsAndFindWinningCampaign = function (serviceContainer, shortl
     }));
     if (winnerCampaign) {
         new StorageDecorator_1.StorageDecorator().setDataInStorage({
-            featureKey: "".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId),
+            featureKey: "".concat(constants_1.Constants.META_MEG_KEY).concat(groupId),
             context: context,
             experimentId: winnerCampaign.getId(),
             experimentKey: winnerCampaign.getKey(),
@@ -539,7 +539,7 @@ var _getCampaignUsingAdvancedAlgo = function (serviceContainer, shortlistedCampa
     }
     if (winnerCampaign) {
         new StorageDecorator_1.StorageDecorator().setDataInStorage({
-            featureKey: "".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId),
+            featureKey: "".concat(constants_1.Constants.META_MEG_KEY).concat(groupId),
             context: context,
             experimentId: winnerCampaign.id,
             experimentKey: winnerCampaign.key,

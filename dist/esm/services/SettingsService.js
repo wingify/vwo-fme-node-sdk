@@ -7,7 +7,7 @@ import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages
 import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation.js';
 import { buildMessage } from '../utils/LogMessageUtil.js';
 import { createNetWorkAndRetryDebugEvent, getSettingsPath } from '../utils/NetworkUtil.js';
-import { sendDebugEventToVWO } from '../utils/DebuggerServiceUtil.js';
+import { sendDebugEventToWingify } from '../utils/DebuggerServiceUtil.js';
 import { getFormattedErrorMessage } from '../utils/FunctionUtil.js';
 import { ApiEnum } from '../enums/ApiEnum.js';
 import { StorageService } from './StorageService.js';
@@ -100,11 +100,21 @@ export class SettingsService {
                 this.hostname = Constants.HOST_NAME;
             }
         }
+        if (this.proxyProvided || options?.gatewayService?.url) {
+            // Proxy and gateway route all traffic through a single host
+            this.collectionHostname = this.hostname;
+        }
+        else {
+            this.collectionHostname = Constants.COLLECTION_HOST_NAME;
+            if (!this.hostname) {
+                this.hostname = Constants.HOST_NAME;
+            }
+        }
         // if (this.expiry > 0) {
         //   this.setSettingsExpiry();
         // }
         this.logManager.debug(buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-            service: 'Settings Manager',
+            service: Constants.SETTINGS_MANAGER_NAME,
         }));
     }
     /**
@@ -120,6 +130,13 @@ export class SettingsService {
      */
     isProxyProvided() {
         return this.proxyProvided;
+    }
+    /**
+     * Host used for event collection POST calls (track, impressions, batch, debugger).
+     * Defaults to collect.wingify.net for Wingify SDK; same as serving host for VWO SDK.
+     */
+    getCollectionHostname() {
+        return this.collectionHostname;
     }
     /**
      * Normalize the settings
@@ -169,14 +186,14 @@ export class SettingsService {
                 if (response.getTotalAttempts() > 0) {
                     const debugEventProps = createNetWorkAndRetryDebugEvent(response, '', isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName, path);
                     // send debug event
-                    sendDebugEventToVWO(this.serviceContainer, debugEventProps);
+                    sendDebugEventToWingify(this.serviceContainer, debugEventProps);
                 }
                 deferredObject.resolve(response.getData());
             })
                 .catch((err) => {
                 const debugEventProps = createNetWorkAndRetryDebugEvent(err, '', isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName, path);
                 // send debug event
-                sendDebugEventToVWO(this.serviceContainer, debugEventProps);
+                sendDebugEventToWingify(this.serviceContainer, debugEventProps);
                 deferredObject.reject(err);
             });
             return deferredObject.promise;
@@ -231,7 +248,7 @@ export class SettingsService {
                 const normalizedSettings = await this.normalizeSettings(freshSettings);
                 this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
                 if (this.isSettingsValid) {
-                    this.logManager.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+                    this.logManager.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
                     deferredObject.resolve(normalizedSettings);
                 }
                 else {

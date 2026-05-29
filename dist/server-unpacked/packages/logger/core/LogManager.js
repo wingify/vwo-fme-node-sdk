@@ -52,6 +52,7 @@ var DebuggerCategoryEnum_1 = require("../../../enums/DebuggerCategoryEnum");
 var DebuggerServiceUtil_1 = require("../../../utils/DebuggerServiceUtil");
 var log_messages_1 = require("../../../enums/log-messages");
 var FunctionUtil_1 = require("../../../utils/FunctionUtil");
+var constants_1 = require("../../../constants");
 /**
  * LogManager class provides logging functionality with support for multiple transports.
  * It is designed as a singleton to ensure a single instance throughout the application.
@@ -64,10 +65,10 @@ var LogManager = /** @class */ (function (_super) {
      */
     function LogManager(config) {
         var _this = _super.call(this) || this;
-        _this.name = 'VWO Logger'; // Default logger name
+        _this.name = constants_1.Constants.LOGGER_NAME; // Default logger name
         _this.requestId = (0, uuid_1.v4)(); // Unique request ID generated for each instance
         _this.level = LogLevelEnum_1.LogLevelEnum.ERROR; // Default logging level
-        _this.prefix = 'VWO-SDK'; // Default prefix for log messages
+        _this.prefix = constants_1.Constants.LOG_PREFIX; // Default prefix for log messages
         _this.shouldLogToStandardOutput = false;
         _this.config = config;
         // Initialize configuration with defaults or provided values
@@ -152,20 +153,20 @@ var LogManager = /** @class */ (function (_super) {
     };
     /**
      * Middleware method that stores error in DebuggerService and logs it.
-     * @param {boolean} shouldSendToVWO - Whether to send the error to VWO.
+     * @param {boolean} shouldSendToWingify - Whether to send the error to Wingify.
      * @param {string} category - The category of the error.
      */
-    LogManager.prototype.errorLog = function (template, data, debugData, shouldSendToVWO) {
+    LogManager.prototype.errorLog = function (template, data, debugData, shouldSendToWingify) {
         if (data === void 0) { data = {}; }
         if (debugData === void 0) { debugData = {}; }
-        if (shouldSendToVWO === void 0) { shouldSendToVWO = true; }
+        if (shouldSendToWingify === void 0) { shouldSendToWingify = true; }
         try {
             var message = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum[template], data);
             this.error(message);
-            if (shouldSendToVWO) {
+            if (shouldSendToWingify) {
                 var debugEventProps = __assign(__assign(__assign({}, debugData), data), { msg_t: template, msg: message, lt: LogLevelEnum_1.LogLevelEnum.ERROR.toString(), cg: DebuggerCategoryEnum_1.DebuggerCategoryEnum.ERROR });
-                // send debug event to VWO
-                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(this.serviceContainer, debugEventProps);
+                // send debug event to Wingify
+                (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(this.serviceContainer, debugEventProps);
             }
         }
         catch (err) {

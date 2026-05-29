@@ -22,7 +22,7 @@ import { isString } from '../utils/DataTypeUtil.js';
 import { Deferred } from './PromiseUtil.js';
 import { getFormattedErrorMessage } from './FunctionUtil.js';
 import { Constants } from '../constants/index.js';
-import { sendDebugEventToVWO } from './DebuggerServiceUtil.js';
+import { sendDebugEventToWingify } from './DebuggerServiceUtil.js';
 import { createNetWorkAndRetryDebugEvent } from './NetworkUtil.js';
 import { EventEnum } from '../enums/EventEnum.js';
 export class BatchEventsDispatcher {
@@ -40,7 +40,7 @@ export class BatchEventsDispatcher {
         const retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
         const headers = {};
         headers['Authorization'] = serviceContainer.getSettingsService().sdkKey;
-        const request = new RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.BATCH_EVENTS), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
+        const request = new RequestModel(serviceContainer.getSettingsService().getCollectionHostname(), HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum.BATCH_EVENTS), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
         const { variationShownCount, setAttributeCount, customEventCount } = this.extractEventCounts(payload);
         let extraData = `${Constants.BATCH_EVENTS} having `;
         if (variationShownCount > 0) {
@@ -60,7 +60,7 @@ export class BatchEventsDispatcher {
                 if (response.getTotalAttempts() > 0) {
                     const debugEventProps = createNetWorkAndRetryDebugEvent(response, '', Constants.BATCH_EVENTS, extraData);
                     // send debug event
-                    sendDebugEventToVWO(serviceContainer, debugEventProps);
+                    sendDebugEventToWingify(serviceContainer, debugEventProps);
                 }
                 const batchApiResult = this.handleBatchResponse(serviceContainer.getLogManager(), UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
                 deferred.resolve(batchApiResult);
@@ -68,7 +68,7 @@ export class BatchEventsDispatcher {
                 .catch((err) => {
                 const debugEventProps = createNetWorkAndRetryDebugEvent(err, '', Constants.BATCH_EVENTS, extraData);
                 // send debug event
-                sendDebugEventToVWO(serviceContainer, debugEventProps);
+                sendDebugEventToWingify(serviceContainer, debugEventProps);
                 const batchApiResult = this.handleBatchResponse(serviceContainer.getLogManager(), UrlEnum.BATCH_EVENTS, payload, properties, null, err, flushCallback);
                 deferred.resolve(batchApiResult);
             });
@@ -152,11 +152,11 @@ export class BatchEventsDispatcher {
             if (!name) {
                 continue;
             }
-            if (name === EventEnum.VWO_VARIATION_SHOWN) {
+            if (name === EventEnum.VARIATION_SHOWN) {
                 counts.variationShownCount += 1;
                 continue;
             }
-            if (name === EventEnum.VWO_SYNC_VISITOR_PROP) {
+            if (name === EventEnum.SYNC_VISITOR_PROP) {
                 counts.setAttributeCount += 1;
                 continue;
             }

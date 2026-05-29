@@ -74,7 +74,7 @@ export const evaluateRule = async (
     // Send an impression for the variation shown
     payload = getTrackUserPayloadData(
       serviceContainer,
-      EventEnum.VWO_VARIATION_SHOWN,
+      EventEnum.VARIATION_SHOWN,
       campaign.getId(),
       whitelistedObject.variation.id,
       context,

@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { init } from '../../lib';
-import { IVWOOptions } from '../../lib/models/VWOOptionsModel';
-import { VWOBuilder } from '../../lib/VWOBuilder';
+import { init, IVWOOptions } from '../../lib';
+import { WingifyBuilder } from '../../lib/WingifyBuilder';
 
 import { GETFLAG_TESTS, TESTS_DATA } from '../data/Settings';
 
@@ -57,7 +56,7 @@ async function runTests(tests, storageMap?: any) {
       if (storageMap) {
         vwoOptions.storage = storageMap;
       }
-      const vwoBuilder = new VWOBuilder(vwoOptions);
+      const vwoBuilder = new WingifyBuilder(vwoOptions);
 
       jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(TESTS_DATA[testData.settings] as any);
 
@@ -118,7 +117,7 @@ async function runSaltTests(tests: any) {
       sdkKey: 'abcdef',
     };
 
-    const vwoBuilder = new VWOBuilder(vwoOptions);
+    const vwoBuilder = new WingifyBuilder(vwoOptions);
 
     jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(TESTS_DATA[testData.settings] as any);
 

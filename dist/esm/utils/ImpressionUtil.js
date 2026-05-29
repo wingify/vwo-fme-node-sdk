@@ -32,7 +32,7 @@ import { SDKMetaUtil } from './SDKMetaUtil.js';
  */
 export const sendImpressionForVariationShown = async (serviceContainer, campaignId, variationId, context, featureKey, payload) => {
     // Get base properties for the event
-    const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.VWO_VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
+    const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
     context.getIpAddress());
     const campaignKeyWithFeatureName = getCampaignKeyFromCampaignId(serviceContainer.getSettings(), campaignId);
     const variationName = getVariationNameFromCampaignIdAndVariationId(serviceContainer.getSettings(), campaignId, variationId);

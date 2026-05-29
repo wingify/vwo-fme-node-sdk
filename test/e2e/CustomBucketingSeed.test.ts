@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import { init } from '../../lib';
-import { IVWOOptions } from '../../lib/models/VWOOptionsModel';
-import { VWOBuilder } from '../../lib/VWOBuilder';
+import { init, IVWOOptions } from '../../lib';
+import { WingifyBuilder } from '../../lib/WingifyBuilder';
 import { SETTINGS_WITH_SAME_SALT } from '../data/Settings';
 import * as UserIdUtil from '../../lib/utils/UserIdUtil';
 
@@ -171,7 +170,7 @@ describe('Custom Bucketing Seed', () => {
         sdkKey: 'abcdef',
       };
 
-      const vwoBuilder = new VWOBuilder(vwoOptions);
+      const vwoBuilder = new WingifyBuilder(vwoOptions);
       jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MOCK_SETTINGS_FILE as any);
 
       const options = {
@@ -199,7 +198,7 @@ describe('Custom Bucketing Seed', () => {
         sdkKey: 'abcdef',
       };
 
-      const vwoBuilder = new VWOBuilder(vwoOptions);
+      const vwoBuilder = new WingifyBuilder(vwoOptions);
       jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MOCK_SETTINGS_FILE as any);
 
       const options = {
@@ -233,7 +232,7 @@ describe('Custom Bucketing Seed', () => {
         sdkKey: 'abcdef',
       };
 
-      const vwoBuilder = new VWOBuilder(vwoOptions);
+      const vwoBuilder = new WingifyBuilder(vwoOptions);
       jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MOCK_SETTINGS_FILE as any);
       const vwoClient = await init({
         sdkKey: 'sdk-key',
@@ -258,7 +257,7 @@ describe('Custom Bucketing Seed', () => {
         sdkKey: 'abcdef',
       };
 
-      const vwoBuilder = new VWOBuilder(vwoOptions);
+      const vwoBuilder = new WingifyBuilder(vwoOptions);
       jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MOCK_SETTINGS_FILE as any);
       const vwoClient = await init({
         sdkKey: 'sdk-key',
@@ -282,7 +281,7 @@ describe('Custom Bucketing Seed', () => {
         sdkKey: 'abcdef',
       };
 
-      const vwoBuilder = new VWOBuilder(vwoOptions);
+      const vwoBuilder = new WingifyBuilder(vwoOptions);
       jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(SETTINGS_WITH_SAME_SALT as any);
       const vwoClient = await init({
         sdkKey: 'sdk-key',
@@ -307,7 +306,7 @@ describe('Custom Bucketing Seed', () => {
         sdkKey: 'abcdef',
       };
 
-      const vwoBuilder = new VWOBuilder(vwoOptions);
+      const vwoBuilder = new WingifyBuilder(vwoOptions);
       jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(SETTINGS_WITH_SAME_SALT as any);
 
       const vwoClient = await init({
@@ -343,7 +342,7 @@ describe('Custom Bucketing Seed', () => {
         sdkKey: 'abcdef',
       };
 
-      const vwoBuilder = new VWOBuilder(vwoOptions);
+      const vwoBuilder = new WingifyBuilder(vwoOptions);
       jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MOCK_SETTINGS_FILE as any);
 
       const vwoClient = await init({
@@ -366,7 +365,7 @@ describe('Custom Bucketing Seed', () => {
         sdkKey: 'abcdef',
       };
 
-      const vwoBuilder = new VWOBuilder(vwoOptions);
+      const vwoBuilder = new WingifyBuilder(vwoOptions);
       jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MOCK_SETTINGS_FILE as any);
 
       const vwoClient = await init({
@@ -398,7 +397,7 @@ describe('Custom Bucketing Seed', () => {
         isAliasingEnabled: true,
       };
 
-      const vwoBuilder = new VWOBuilder(vwoOptions);
+      const vwoBuilder = new WingifyBuilder(vwoOptions);
       jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MOCK_SETTINGS_FILE as any);
 
       const vwoClient = await init({
@@ -440,7 +439,7 @@ describe('Custom Bucketing Seed', () => {
         isAliasingEnabled: true,
       };
 
-      const vwoBuilder = new VWOBuilder(vwoOptions);
+      const vwoBuilder = new WingifyBuilder(vwoOptions);
       jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(MOCK_SETTINGS_FILE as any);
 
       const vwoClient = await init({

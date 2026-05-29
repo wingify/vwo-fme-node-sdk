@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IVWOClient } from './../VWOClient';
+import { IWingifyClient } from './../WingifyClient';
 import { LogManager } from '../packages/logger';
 /**
  * Sets settings and adds campaigns to rules
  * @param settings settings
- * @param vwoClientInstance VWOClient instance
+ * @param wingifyClientInstance WingifyClient instance
  * @param logManager Log manager instance
  */
 export declare function setSettingsAndAddCampaignsToRules(
   settings: any,
-  vwoClientInstance: IVWOClient,
+  wingifyClientInstance: IWingifyClient,
   logManager: LogManager,
 ): void;

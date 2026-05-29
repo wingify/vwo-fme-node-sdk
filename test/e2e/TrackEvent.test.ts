@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { init } from '../../lib';
-import { VWOBuilder } from '../../lib/VWOBuilder';
+import { WingifyBuilder } from '../../lib/WingifyBuilder';
 import { BASIC_ROLLOUT_SETTINGS } from '../data/Settings';
 
 describe('VWOClient trackEvent method', () => {
@@ -22,7 +22,7 @@ describe('VWOClient trackEvent method', () => {
 
   beforeEach(() => {
     process.env.TEST_ENV = 'true';
-    const vwoBuilder = new VWOBuilder({ accountId: '123456', sdkKey: 'abcdef' });
+    const vwoBuilder = new WingifyBuilder({ accountId: '123456', sdkKey: 'abcdef' });
     jest.spyOn(vwoBuilder, 'getSettings').mockResolvedValue(BASIC_ROLLOUT_SETTINGS as any);
 
     options = {

@@ -1,4 +1,19 @@
 "use strict";
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -36,193 +51,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VWO = void 0;
 exports.init = init;
 exports.onInit = onInit;
-/**
- * Copyright 2024-2026 Wingify Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var VWOBuilder_1 = require("./VWOBuilder");
-var DataTypeUtil_1 = require("./utils/DataTypeUtil");
-var PromiseUtil_1 = require("./utils/PromiseUtil");
-var log_messages_1 = require("./enums/log-messages");
-var LogMessageUtil_1 = require("./utils/LogMessageUtil");
-var PlatformEnum_1 = require("./enums/PlatformEnum");
-var ApiEnum_1 = require("./enums/ApiEnum");
-var FunctionUtil_1 = require("./utils/FunctionUtil");
-var VWO = /** @class */ (function () {
-    /**
-     * Constructor for the VWO class.
-     * Initializes a new instance of VWO with the provided options.
-     * @param {Record<string, dynamic>} options - Configuration options for the VWO instance.
-     * @returns The instance of VWO.
-     */
-    function VWO(options) {
-        return VWO.setInstance(options);
-    }
-    /**
-     * Sets the singleton instance of VWO.
-     * Configures and builds the VWO instance using the provided options.
-     * @param {Record<string, dynamic>} options - Configuration options for setting up VWO.
-     * @returns A Promise resolving to the configured VWO instance.
-     */
-    VWO.setInstance = function (options) {
-        var _this = this;
-        var startTimeForInit = Date.now();
-        var optionsVWOBuilder = options === null || options === void 0 ? void 0 : options.vwoBuilder;
-        this.vwoBuilder = optionsVWOBuilder || new VWOBuilder_1.VWOBuilder(options);
-        this.instance = this.vwoBuilder
-            .setLogger() // Sets up logging for debugging and monitoring.
-            .setSettingsService() // Sets the settings service for configuration management.
-            .setStorage() // Configures storage for data persistence.
-            .setNetworkManager() // Configures network management for API communication.
-            // .initBatching()        // Initializes batching for bulk data processing.
-            .initPolling() // Starts polling mechanism for regular updates.
-            .initBatching(); // Initializes usage statistics for the SDK.
-        // .setAnalyticsCallback() // Sets up analytics callback for data analysis.
-        this.vwoBuilder.getSettingsService().startTimeForInit = startTimeForInit;
-        if (options === null || options === void 0 ? void 0 : options.settings) {
-            this.vwoBuilder.getSettingsService().isSettingsProvidedInInit = true;
-            return Promise.resolve(this.vwoBuilder.build(options.settings));
-        }
-        return this.vwoBuilder.getSettings().then(function (settings) {
-            return _this.vwoBuilder.build(settings); // Builds the VWO instance with the fetched settings.
-        });
-    };
-    Object.defineProperty(VWO, "Instance", {
-        /**
-         * Gets the singleton instance of VWO.
-         * @returns The singleton instance of VWO.
-         */
-        get: function () {
-            return this.instance;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return VWO;
-}());
-exports.VWO = VWO;
-var _global = {};
-/**
- * Initializes a new instance of VWO with the provided options.
- * @param options Configuration options for the VWO instance.
- * @property {string} sdkKey - The SDK key for the VWO account.
- * @property {string} accountId - The account ID for the VWO account.
- * @property {GatewayServiceModel} gatewayService - The gateway service configuration.
- * @property {string} proxyUrl - (Browser only) Custom proxy URL to redirect all API calls. If provided, all GET and POST calls will be made to this URL instead of the default HOST_NAME.
- * @property {StorageService} storage - The storage configuration.
- * @returns
- */
+var Wingify_1 = require("./Wingify");
 function init(options) {
     return __awaiter(this, void 0, void 0, function () {
-        var apiName, date, invalidErrorPrefix, msg, msg, msg, msg, instance, msg;
         return __generator(this, function (_a) {
-            apiName = ApiEnum_1.ApiEnum.INIT;
-            date = new Date().toISOString();
-            try {
-                invalidErrorPrefix = "[ERROR]: VWO-SDK ".concat(date, " ");
-                if (!(0, DataTypeUtil_1.isObject)(options)) {
-                    msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_OPTIONS);
-                    console.error(msg); // Ensures options is an object.
-                }
-                if (!(options === null || options === void 0 ? void 0 : options.sdkKey) || !(0, DataTypeUtil_1.isString)(options === null || options === void 0 ? void 0 : options.sdkKey)) {
-                    msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_SDK_KEY_IN_OPTIONS);
-                    console.error(msg); // Validates sdkKey presence and type.
-                }
-                if (!options.accountId) {
-                    msg = invalidErrorPrefix + (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_ACCOUNT_ID_IN_OPTIONS);
-                    console.error(msg); // Validates accountId presence and type.
-                }
-                if (options.isAliasingEnabled && !options.gatewayService) {
-                    msg = invalidErrorPrefix +
-                        (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.INVALID_GATEWAY_URL, {
-                            date: date,
-                        });
-                    console.error(msg); // Validates gatewayService presence and type.
-                }
-                if (typeof process === 'undefined') {
-                    options.platform = PlatformEnum_1.PlatformEnum.CLIENT;
-                }
-                else {
-                    options.platform = PlatformEnum_1.PlatformEnum.SERVER;
-                }
-                instance = new VWO(options);
-                _global = {
-                    vwoInitDeferred: new PromiseUtil_1.Deferred(),
-                    isSettingsFetched: false,
-                    instance: null,
-                };
-                return [2 /*return*/, instance.then(function (_vwoInstance) {
-                        _global.isSettingsFetched = true;
-                        _global.instance = _vwoInstance;
-                        _global.vwoInitDeferred.resolve(_vwoInstance);
-                        return _vwoInstance;
-                    })];
-            }
-            catch (err) {
-                msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EXECUTION_FAILED, {
-                    apiName: apiName,
-                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
-                });
-                console.info("[INFO]: VWO-SDK ".concat(new Date().toISOString(), " ").concat(msg));
-            }
-            return [2 /*return*/];
+            return [2 /*return*/, (0, Wingify_1.init)(options)];
         });
     });
 }
 function onInit() {
     return __awaiter(this, void 0, void 0, function () {
-        var apiName, date_1, msg, msg;
         return __generator(this, function (_a) {
-            apiName = ApiEnum_1.ApiEnum.ON_INIT;
-            try {
-                _global.vwoInitDeferred = new PromiseUtil_1.Deferred();
-                date_1 = new Date().toISOString();
-                // If settings are already fetched, resolve the promise
-                if (_global.isSettingsFetched) {
-                    msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.ON_INIT_ALREADY_RESOLVED, {
-                        date: date_1,
-                        apiName: apiName,
-                    });
-                    console.info(msg);
-                    _global.vwoInitDeferred.resolve(_global.instance);
-                }
-                else {
-                    // wait for five seconds, else reject the promise
-                    setTimeout(function () {
-                        if (_global.isSettingsFetched) {
-                            return;
-                        }
-                        var msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.ON_INIT_SETTINGS_FAILED, {
-                            date: date_1,
-                        });
-                        console.error(msg);
-                        _global.vwoInitDeferred.reject(new Error('VWO settings could not be fetched'));
-                    }, 5000);
-                }
-                return [2 /*return*/, _global.vwoInitDeferred.promise];
-            }
-            catch (err) {
-                msg = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.EXECUTION_FAILED, {
-                    apiName: apiName,
-                    err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
-                });
-                console.info("[INFO]: VWO-SDK ".concat(new Date().toISOString(), " ").concat(msg));
-            }
-            return [2 /*return*/];
+            return [2 /*return*/, (0, Wingify_1.onInit)()];
         });
     });
 }

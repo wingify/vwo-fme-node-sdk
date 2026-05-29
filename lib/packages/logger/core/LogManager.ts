@@ -24,10 +24,11 @@ import { isObject } from '../../../utils/DataTypeUtil';
 import { LogLevelEnum } from '../enums/LogLevelEnum';
 import { buildMessage } from '../../../utils/LogMessageUtil';
 import { DebuggerCategoryEnum } from '../../../enums/DebuggerCategoryEnum';
-import { sendDebugEventToVWO } from '../../../utils/DebuggerServiceUtil';
+import { sendDebugEventToWingify } from '../../../utils/DebuggerServiceUtil';
 import { ErrorLogMessagesEnum } from '../../../enums/log-messages';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 import { ServiceContainer } from '../../../services/ServiceContainer';
+import { Constants } from '../../../constants';
 
 type LogTransport = {
   log: (level: string, message: string) => void;
@@ -55,7 +56,7 @@ export interface ILogManager {
     template: string,
     data?: Record<string, any>,
     debugData?: Record<string, any>,
-    shouldSendToVWO?: boolean,
+    shouldSendToWingify?: boolean,
   ): void;
 }
 
@@ -66,10 +67,10 @@ export interface ILogManager {
 export class LogManager extends Logger implements ILogManager {
   transportManager: LogTransportManager;
   config: Record<string, any>;
-  name = 'VWO Logger'; // Default logger name
+  name = Constants.LOGGER_NAME; // Default logger name
   requestId = uuidv4(); // Unique request ID generated for each instance
   level = LogLevelEnum.ERROR; // Default logging level
-  prefix = 'VWO-SDK'; // Default prefix for log messages
+  prefix = Constants.LOG_PREFIX; // Default prefix for log messages
   public dateTimeFormat(): string {
     return new Date().toISOString(); // Default date-time format for log messages
   }
@@ -175,19 +176,19 @@ export class LogManager extends Logger implements ILogManager {
 
   /**
    * Middleware method that stores error in DebuggerService and logs it.
-   * @param {boolean} shouldSendToVWO - Whether to send the error to VWO.
+   * @param {boolean} shouldSendToWingify - Whether to send the error to Wingify.
    * @param {string} category - The category of the error.
    */
   errorLog(
     template: string,
     data: Record<string, any> = {},
     debugData: Record<string, any> = {},
-    shouldSendToVWO: boolean = true,
+    shouldSendToWingify: boolean = true,
   ): void {
     try {
       const message = buildMessage(ErrorLogMessagesEnum[template], data);
       this.error(message);
-      if (shouldSendToVWO) {
+      if (shouldSendToWingify) {
         const debugEventProps = {
           ...debugData,
           ...data,
@@ -196,8 +197,8 @@ export class LogManager extends Logger implements ILogManager {
           lt: LogLevelEnum.ERROR.toString(),
           cg: DebuggerCategoryEnum.ERROR,
         };
-        // send debug event to VWO
-        sendDebugEventToVWO(this.serviceContainer, debugEventProps);
+        // send debug event to Wingify
+        sendDebugEventToWingify(this.serviceContainer, debugEventProps);
       }
     } catch (err) {
       console.error('Got error while logging error' + getFormattedErrorMessage(err));

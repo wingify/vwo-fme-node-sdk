@@ -55,7 +55,7 @@ exports.SegmentationManager = void 0;
 var SegmentEvaluator_1 = require("../evaluators/SegmentEvaluator");
 var GatewayServiceUtil_1 = require("../../../utils/GatewayServiceUtil");
 var UrlEnum_1 = require("../../../enums/UrlEnum");
-var ContextVWOModel_1 = require("../../../models/user/ContextVWOModel");
+var ContextWingifyModel_1 = require("../../../models/user/ContextWingifyModel");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var ApiEnum_1 = require("../../../enums/ApiEnum");
 var FunctionUtil_1 = require("../../../utils/FunctionUtil");
@@ -75,7 +75,7 @@ var SegmentationManager = /** @class */ (function () {
      */
     SegmentationManager.prototype.setContextualData = function (serviceContainer, feature, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var settings, holdouts, isGatewayServiceRequiredForHoldouts, queryParams, params, _vwo, err_1;
+            var settings, holdouts, isGatewayServiceRequiredForHoldouts, queryParams, params, _wingify, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -106,8 +106,8 @@ var SegmentationManager = /** @class */ (function () {
                         params = (0, GatewayServiceUtil_1.getQueryParams)(queryParams);
                         return [4 /*yield*/, (0, GatewayServiceUtil_1.getFromGatewayService)(serviceContainer, params, UrlEnum_1.UrlEnum.GET_USER_DATA, context)];
                     case 2:
-                        _vwo = _a.sent();
-                        context.setVwo(new ContextVWOModel_1.ContextVWOModel().modelFromDictionary(_vwo));
+                        _wingify = _a.sent();
+                        context.setVwo(new ContextWingifyModel_1.ContextWingifyModel().modelFromDictionary(_wingify));
                         this.evaluator.context = context;
                         return [3 /*break*/, 4];
                     case 3:

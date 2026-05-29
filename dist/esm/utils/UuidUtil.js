@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SEED_URL } from '../constants/Url.js';
+import { Constants } from '../constants/index.js';
 import { v4 as uuidv4 } from 'uuid';
 import { v5 as uuidv5 } from 'uuid';
 /**
@@ -35,7 +35,7 @@ export function getRandomUUID(sdkKey) {
  * @returns A UUID string formatted without dashes and in uppercase.
  */
 export function getUUID(userId, accountId) {
-    const VWO_NAMESPACE = uuidv5(SEED_URL, uuidv5.URL);
+    const VWO_NAMESPACE = uuidv5(Constants.SEED_URL, uuidv5.URL);
     // Convert userId and accountId to string to ensure proper type
     userId = String(userId);
     accountId = String(accountId);

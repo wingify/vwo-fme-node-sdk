@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IVWOOptions } from '../models/VWOOptionsModel';
+import { IWingifyOptions } from '../models/WingifyOptionsModel';
 import { isFunction } from '../utils/DataTypeUtil';
 
 export interface IHooksService {
@@ -26,7 +26,7 @@ class HooksService implements IHooksService {
   private isCallBackFunction: boolean;
   private decision: Record<string, any>;
 
-  constructor(options: IVWOOptions) {
+  constructor(options: IWingifyOptions) {
     this.callback = options.integrations?.callback;
     this.isCallBackFunction = isFunction(this.callback);
     this.decision = {};

@@ -52,7 +52,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.extractDecisionKeys = extractDecisionKeys;
-exports.sendDebugEventToVWO = sendDebugEventToVWO;
+exports.sendDebugEventToWingify = sendDebugEventToWingify;
 var NetworkUtil_1 = require("./NetworkUtil");
 var EventEnum_1 = require("../enums/EventEnum");
 /**
@@ -86,23 +86,23 @@ function extractDecisionKeys(decisionObj) {
     return extractedKeys;
 }
 /**
- * Sends a debug event to VWO.
+ * Sends a debug event to Wingify.
  * @param eventProps - The properties for the event.
  * @returns A promise that resolves when the event is sent.
  */
-function sendDebugEventToVWO(serviceContainer_1) {
+function sendDebugEventToWingify(serviceContainer_1) {
     return __awaiter(this, arguments, void 0, function (serviceContainer, eventProps) {
         var properties, payload;
         if (eventProps === void 0) { eventProps = {}; }
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, null, null);
+                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.DEBUGGER_EVENT, null, null);
                     payload = (0, NetworkUtil_1.getDebuggerEventPayload)(serviceContainer.getSettingsService(), eventProps);
                     if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
                     serviceContainer.getBatchEventsQueue().enqueue(payload);
                     return [3 /*break*/, 3];
-                case 1: return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT).catch(function () { })];
+                case 1: return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.DEBUGGER_EVENT).catch(function () { })];
                 case 2:
                     _a.sent();
                     _a.label = 3;

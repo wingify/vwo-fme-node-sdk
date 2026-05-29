@@ -257,7 +257,7 @@ var NetworkClient = /** @class */ (function () {
             }, delay);
         }
         else {
-            if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)) {
+            if (!String(networkOptions.path).includes(EventEnum_1.EventEnum.DEBUGGER_EVENT)) {
                 this.logManager.errorLog('NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES', {
                     extraData: endpoint,
                     attempts: attempt,

@@ -34,7 +34,7 @@ const createMockServiceContainer = (): ServiceContainer => {
     getSettings: () => ({}),
     getSettingsService: () => ({}),
     getHooksService: () => ({}),
-    getVWOOptions: () => ({}),
+    getWingifyOptions: () => ({}),
     getBatchEventsQueue: () => ({}),
     getSegmentationManager: () => ({}),
     getBaseUrl: () => '',

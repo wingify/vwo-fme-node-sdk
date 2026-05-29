@@ -5295,11 +5295,6 @@ vwo-fme-sdk-e2e-test-settings-n-cases@^1.5.0:
   resolved "https://registry.npmjs.org/vwo-fme-sdk-e2e-test-settings-n-cases/-/vwo-fme-sdk-e2e-test-settings-n-cases-1.5.0.tgz#6f0db6a97faa2b653a0ebfec67662ca02d22b17a"
   integrity sha512-GRz2uHe7Oweoh9AAMlwRu9n1DqGQY/SmqT/3h1M3rdJ0sT00ULoPQlOVcCpUPN0OKmF8hsqxA7aTQ52Z6tSjYg==
 
-vwo-fme-sdk-log-messages@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/vwo-fme-sdk-log-messages/-/vwo-fme-sdk-log-messages-1.5.0.tgz#d70eceb7fab27dcdbd85def2c90ad32aafb4ab31"
-  integrity sha512-n5uw4WZk4nID0sxNeIFbgCAMEHGoOVRk3nvuei49cruB/FcVjfwKFD7ttt13cnOSLn9NlrLwXJwrzAcyW+oJkQ==
-
 walker@^1.0.8:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/walker/-/walker-1.0.8.tgz#bd498db477afe573dc04185f011d3ab8a8d7653f"
@@ -5417,6 +5412,11 @@ wildcard@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/wildcard/-/wildcard-2.0.1.tgz#5ab10d02487198954836b6349f74fff961e10f67"
   integrity sha512-CC1bOL87PIWSBhDcTrdeLo6eGT7mCFtrg0uIJtqJUFyK+eJnzl8A1niH56uu7KMa5XFrtiV+AQuHO3n7DsHnLQ==
+
+wingify-fme-sdk-log-messages@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/wingify-fme-sdk-log-messages/-/wingify-fme-sdk-log-messages-2.0.0.tgz#717c7266452bfab89d14d547263c437059a09bff"
+  integrity sha512-yf5P/4AVNvjWhu7RGx52jK9iJ8m0Qxg/m1u/achcs1w7oQMfODL7zwNEV6KjUAqHEqo+b5Tp9ce+NtjM2vx3rQ==
 
 word-wrap@^1.2.5:
   version "1.2.5"

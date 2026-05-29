@@ -5,6 +5,81 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.50.0] - 2026-05-29
+
+This release introduces **Wingify** as the primary SDK branding and a new npm package namespace, while keeping existing **VWO** integrations fully supported on `vwo-fme-node-sdk`.
+
+### Added
+
+- **Wingify npm package** — `wingify-fme-node-sdk` (Node) and `wingify-fme-javascript-sdk` (browser) are built from the same codebase as the VWO packages. Install the Wingify package for new integrations:
+
+  ```bash
+  npm install wingify-fme-node-sdk
+  ```
+
+- **Wingify public API** — use `init`, `onInit`, `IWingifyOptions`, `IWingifyClient`, and `IWingifyContextModel` as the recommended entry point for new integrations:
+
+  ```javascript
+  const { init } = require('wingify-fme-node-sdk');
+
+  (async () => {
+    const client = await init({
+      accountId: '123456',
+      sdkKey: '32-alpha-numeric-sdk-key',
+      logger: { level: 'DEBUG' },
+    });
+
+    const context = { id: 'user-123' };
+
+    const flag = await client.getFlag('feature-key', context);
+    console.log(flag.isEnabled(), flag.getVariation());
+  })();
+  ```
+
+  TypeScript:
+
+  ```typescript
+  import { init, IWingifyOptions, IWingifyClient } from 'wingify-fme-node-sdk';
+  ```
+
+### Changed
+
+- The SDK implementation now uses a shared core with build-time brand selection (`vwo` vs `wingify`). Wingify builds use Wingify-specific hosts (`edge.wingify.net` for settings, `collect.wingify.net` for events) and log prefix (`Wingify-SDK`).
+- **No breaking changes for existing `vwo-fme-node-sdk` integrations** — public exports, method signatures, server event names, payload keys, and runtime behavior remain compatible with the VWO platform.
+
+### Deprecated
+
+Nothing is deprecated on **`vwo-fme-node-sdk`**. Existing imports and types continue to work without modification.
+
+For **new projects**, install `wingify-fme-node-sdk` instead of `vwo-fme-node-sdk`. The API surface is equivalent; only package name and exported type names differ:
+
+| Existing VWO package (`vwo-fme-node-sdk`)             | Wingify package (`wingify-fme-node-sdk`) |
+| ----------------------------------------------------- | ---------------------------------------- |
+| `init`, `onInit`                                      | `init`, `onInit`                         |
+| `IVWOOptions`                                         | `IWingifyOptions`                        |
+| `IVWOClient`                                          | `IWingifyClient`                         |
+| `IVWOContextModel`                                    | `IWingifyContextModel`                   |
+| `LogLevelEnum`, `StorageConnector`, `Flag`, `getUUID` | Same exports (names unchanged)           |
+
+Existing code on **`vwo-fme-node-sdk` does not need to change**:
+
+```javascript
+const { init } = require('vwo-fme-node-sdk');
+
+(async () => {
+  const vwoClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+  });
+
+  const context = { id: 'user-123', _vwo: { ua: 'Mozilla/5.0...' } };
+
+  const flag = await vwoClient.getFlag('feature-key', context);
+})();
+```
+
+**Migration tip (optional, for new Wingify installs only):** Change the npm package from `vwo-fme-node-sdk` to `wingify-fme-node-sdk`, and replace type names `IVWOOptions` → `IWingifyOptions`, `IVWOClient` → `IWingifyClient`, and `IVWOContextModel` → `IWingifyContextModel`. Method signatures and SDK behavior are unchanged. Legacy options such as `vwoBuilder` and context fields such as `_vwo` remain supported on the VWO package.
+
 ## [1.43.1] - 2026-05-11
 
 ### Added

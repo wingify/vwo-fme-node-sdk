@@ -176,7 +176,7 @@ function getMatchedHoldouts(serviceContainer, feature, context, storedData) {
                             notMatchedHoldouts.push(holdout);
                         }
                     }
-                    payload = (0, NetworkUtil_1.createHoldoutPayload)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, holdout.getId(), // campaignId is the holdoutId
+                    payload = (0, NetworkUtil_1.createHoldoutPayload)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, holdout.getId(), // campaignId is the holdoutId
                     variationId, // 1 if IN holdout, 2 if NOT IN holdout
                     context, featureId);
                     holdoutPayloads.push(payload);
@@ -224,7 +224,7 @@ function sendNetworkCallsForNotInHoldouts(serviceContainer, feature, context, de
                     if (!(!(updatedNotInHoldoutIds === null || updatedNotInHoldoutIds === void 0 ? void 0 : updatedNotInHoldoutIds.includes(holdout.getId())) && !(isInHoldoutIds === null || isInHoldoutIds === void 0 ? void 0 : isInHoldoutIds.includes(holdout.getId())))) return [3 /*break*/, 5];
                     //update the holdout ids in storage
                     updatedNotInHoldoutIds.push(holdout.getId());
-                    payload = (0, NetworkUtil_1.createHoldoutPayload)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, holdout.getId(), index_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT, context, feature.getId());
+                    payload = (0, NetworkUtil_1.createHoldoutPayload)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, holdout.getId(), index_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT, context, feature.getId());
                     if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 4];
                     response = (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, holdout.getId(), index_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT, context, feature.getKey(), payload);
                     if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];

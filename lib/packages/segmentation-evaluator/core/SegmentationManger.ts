@@ -19,7 +19,7 @@ import { getFromGatewayService, getQueryParams } from '../../../utils/GatewaySer
 import { UrlEnum } from '../../../enums/UrlEnum';
 import { ContextModel } from '../../../models/user/ContextModel';
 import { FeatureModel } from '../../../models/campaign/FeatureModel';
-import { ContextVWOModel } from '../../../models/user/ContextVWOModel';
+import { ContextWingifyModel } from '../../../models/user/ContextWingifyModel';
 import { isUndefined } from '../../../utils/DataTypeUtil';
 import { ApiEnum } from '../../../enums/ApiEnum';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
@@ -74,8 +74,8 @@ export class SegmentationManager {
         }
         try {
           const params = getQueryParams(queryParams);
-          const _vwo = await getFromGatewayService(serviceContainer, params, UrlEnum.GET_USER_DATA, context);
-          context.setVwo(new ContextVWOModel().modelFromDictionary(_vwo));
+          const _wingify = await getFromGatewayService(serviceContainer, params, UrlEnum.GET_USER_DATA, context);
+          context.setVwo(new ContextWingifyModel().modelFromDictionary(_wingify));
           this.evaluator.context = context;
         } catch (err) {
           serviceContainer.getLogManager().errorLog(

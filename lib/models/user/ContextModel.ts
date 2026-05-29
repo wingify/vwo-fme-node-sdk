@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { dynamic } from '../../types/Common';
-import { ContextVWOModel } from './ContextVWOModel';
+import { ContextWingifyModel } from './ContextWingifyModel';
 import { getUUID } from '../../utils/UuidUtil';
 import { getCurrentUnixTimestamp } from '../../utils/FunctionUtil';
-import { IVWOOptions } from '../VWOOptionsModel';
+import { IWingifyOptions } from '../WingifyOptionsModel';
 
 // Interface definition
-export interface IVWOContextModel {
+export interface IWingifyContextModel {
   id: string | number;
   userAgent?: string;
   ipAddress?: string;
@@ -31,7 +31,7 @@ export interface IVWOContextModel {
   sessionId?: number;
   isDevMode?: boolean;
 }
-export class ContextModel implements IVWOContextModel {
+export class ContextModel implements IWingifyContextModel {
   id: string | number;
   userAgent?: string;
   ipAddress?: string;
@@ -39,12 +39,12 @@ export class ContextModel implements IVWOContextModel {
   variationTargetingVariables?: Record<string, dynamic>;
   postSegmentationVariables?: string[];
   bucketingSeed?: string;
-  _vwo_uuid?: string;
+  _wingify_uuid?: string;
   sessionId?: number;
-  _vwo?: ContextVWOModel;
+  _wingify?: ContextWingifyModel;
   isDevMode?: boolean;
 
-  modelFromDictionary(context: Record<string, any>, options: IVWOOptions): this {
+  modelFromDictionary(context: Record<string, any>, options: IWingifyOptions): this {
     this.id = context.id;
     this.userAgent = context.userAgent;
     this.ipAddress = context.ipAddress;
@@ -60,8 +60,8 @@ export class ContextModel implements IVWOContextModel {
     if (context?.variationTargetingVariables) {
       this.variationTargetingVariables = context.variationTargetingVariables;
     }
-    if (context?._vwo) {
-      this._vwo = new ContextVWOModel().modelFromDictionary(context._vwo);
+    if (context?._wingify || context?._vwo) {
+      this._wingify = new ContextWingifyModel().modelFromDictionary(context._wingify || context._vwo);
     }
     if (context?.postSegmentationVariables) {
       this.postSegmentationVariables = context.postSegmentationVariables;
@@ -75,7 +75,7 @@ export class ContextModel implements IVWOContextModel {
     }
 
     // if uuid is provided in the context, use it, otherwise generate a new uuid
-    this._vwo_uuid =
+    this._wingify_uuid =
       context?.uuid ??
       getUUID(context?.id?.toString() ?? `${options?.accountId}_${options?.sdkKey}`, options?.accountId?.toString());
 
@@ -116,12 +116,12 @@ export class ContextModel implements IVWOContextModel {
     this.variationTargetingVariables = variationTargetingVariables;
   }
 
-  getVwo(): ContextVWOModel {
-    return this._vwo;
+  getVwo(): ContextWingifyModel {
+    return this._wingify;
   }
 
-  setVwo(_vwo: ContextVWOModel): void {
-    this._vwo = _vwo;
+  setVwo(_wingify: ContextWingifyModel): void {
+    this._wingify = _wingify;
   }
 
   getPostSegmentationVariables(): string[] {
@@ -133,7 +133,7 @@ export class ContextModel implements IVWOContextModel {
   }
 
   getUuid(): string {
-    return this._vwo_uuid;
+    return this._wingify_uuid;
   }
 
   getSessionId(): number {

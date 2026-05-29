@@ -17,19 +17,23 @@ import { PlatformEnum } from '../enums/PlatformEnum.js';
 import { SEED_URL, HTTP_PROTOCOL, HTTPS_PROTOCOL } from './Url.js';
 import sdkMeta from '../../VERSION.js';
 const SDK_VERSION = sdkMeta.version;
+// __SDK_BRAND__ is injected by webpack DefinePlugin at build time ('vwo' or 'wingify').
+// Falls back to 'vwo' in non-webpack environments (e.g., tests, ts-node).
+const _brand = typeof __SDK_BRAND__ !== 'undefined' ? __SDK_BRAND__ : 'vwo';
+const _isWingify = _brand === 'wingify';
 let packageFile;
 let platform;
 // Reading package.json will bundle the whole file that's why preventing it by reading VERSION
 if (typeof process === 'undefined') {
     packageFile = {
-        name: 'vwo-fme-javascript-sdk',
+        name: _isWingify ? 'wingify-fme-javascript-sdk' : 'vwo-fme-javascript-sdk',
         version: SDK_VERSION,
     };
     platform = PlatformEnum.CLIENT;
 }
 else {
     packageFile = {
-        name: 'vwo-fme-node-sdk',
+        name: _isWingify ? 'wingify-fme-node-sdk' : 'vwo-fme-node-sdk',
         version: SDK_VERSION,
     };
     platform = PlatformEnum.SERVER;
@@ -55,23 +59,33 @@ export const Constants = {
     SETTINGS_TTL: 7200000, // 2 HOURS
     ALWAYS_USE_CACHED_SETTINGS: false,
     MIN_TTL_MS: 60000, // 1 MINUTE
-    HOST_NAME: 'dev.visualwebsiteoptimizer.com',
+    HOST_NAME: _isWingify ? 'edge.wingify.net' : 'dev.visualwebsiteoptimizer.com',
+    COLLECTION_HOST_NAME: _isWingify ? 'collect.wingify.net' : 'dev.visualwebsiteoptimizer.com',
     SETTINGS_ENDPOINT: '/server-side/v2-settings',
     WEBHOOK_SETTINGS_ENDPOINT: '/server-side/v2-pull',
     LOCATION_ENDPOINT: '/getLocation',
-    VWO_FS_ENVIRONMENT: 'vwo_fs_environment',
+    FS_ENVIRONMENT_KEY: 'vwo_fs_environment',
     RANDOM_ALGO: 1,
     API_VERSION: '1',
-    VWO_META_MEG_KEY: '_vwo_meta_meg_',
+    META_MEG_KEY: '_vwo_meta_meg_',
     DEFAULT_RETRY_CONFIG: {
         shouldRetry: true,
         initialDelay: 2,
         maxRetries: 3,
         backoffMultiplier: 2,
     },
+    // Same localStorage key for VWO and Wingify packages (backward compatible with existing apps).
     DEFAULT_SETTINGS_STORAGE_KEY: 'vwo_fme_settings',
     POLLING_INTERVAL: 600000,
     PRODUCT_NAME: 'fme',
+    BRAND_DISPLAY_NAME: _isWingify ? 'Wingify' : 'VWO',
+    LOG_PREFIX: _isWingify ? 'Wingify-SDK' : 'VWO-SDK',
+    LOGGER_NAME: _isWingify ? 'Wingify Logger' : 'VWO Logger',
+    SETTINGS_MANAGER_NAME: _isWingify ? 'Wingify Settings Manager' : 'VWO Settings Manager',
+    NETWORK_LAYER_NAME: _isWingify ? 'Wingify Network Layer' : 'VWO Network Layer',
+    LOCAL_STORAGE_NAME: _isWingify ? 'Wingify Local Storage' : 'VWO Local Storage',
+    SESSION_STORAGE_NAME: _isWingify ? 'Wingify Session Storage' : 'VWO Session Storage',
+    SETTINGS_FETCH_ERROR: _isWingify ? 'Wingify settings could not be fetched' : 'VWO settings could not be fetched',
     // Debugger constants
     V2_SETTINGS: 'v2-settings',
     POLLING: 'polling',

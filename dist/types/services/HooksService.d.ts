@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IVWOOptions } from '../models/VWOOptionsModel';
+import { IWingifyOptions } from '../models/WingifyOptionsModel';
 export interface IHooksService {
   execute(properties: Record<string, any>): void;
   set(properties: Record<string, any>): void;
@@ -23,7 +23,7 @@ declare class HooksService implements IHooksService {
   private callback;
   private isCallBackFunction;
   private decision;
-  constructor(options: IVWOOptions);
+  constructor(options: IWingifyOptions);
   /**
    * Executes the callback
    * @param {Record<string, any>} properties Properties from the callback

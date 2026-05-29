@@ -30,9 +30,9 @@ export const checkWhitelistingAndPreSeg = async (serviceContainer, feature, camp
     const vwoUserId = getUUID(context.getId(), serviceContainer.getSettings().getAccountId());
     const campaignId = campaign.getId();
     if (campaign.getType() === CampaignTypeEnum.AB) {
-        // set _vwoUserId for variation targeting variables
+        // set _wingifyUserId for variation targeting variables
         context.setVariationTargetingVariables(Object.assign({}, context.getVariationTargetingVariables(), {
-            _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
+            _wingifyUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
         }));
         Object.assign(decision, { variationTargetingVariables: context.getVariationTargetingVariables() }); // for integration
         // check if the campaign satisfies the whitelisting
@@ -51,7 +51,7 @@ export const checkWhitelistingAndPreSeg = async (serviceContainer, feature, camp
     }
     // userlist segment is also available for campaign pre segmentation
     context.setCustomVariables(Object.assign({}, context.getCustomVariables(), {
-        _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
+        _wingifyUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
     }));
     Object.assign(decision, { customVariables: context.getCustomVariables() }); // for integeration
     // Check if RUle being evaluated is part of Mutually Exclusive Group
@@ -76,7 +76,7 @@ export const checkWhitelistingAndPreSeg = async (serviceContainer, feature, camp
     }
     else if (groupId) {
         // check in storage if the group is already evaluated for the user
-        const storedData = await new StorageDecorator().getFeatureFromStorage(`${Constants.VWO_META_MEG_KEY}${groupId}`, context, storageService, serviceContainer);
+        const storedData = await new StorageDecorator().getFeatureFromStorage(`${Constants.META_MEG_KEY}${groupId}`, context, storageService, serviceContainer);
         if (storedData && storedData.experimentKey && storedData.experimentId) {
             serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
                 campaignKey: storedData.experimentKey,

@@ -422,7 +422,7 @@ var FlagApi = /** @class */ (function () {
                         decision['isUserPartOfCampaign'] = true;
                         _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
                         if (!!isDevModeForUser) return [3 /*break*/, 39];
-                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, passedRolloutCampaign.getId(), variation.getId(), context);
+                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, passedRolloutCampaign.getId(), variation.getId(), context);
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 38];
                         if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 36];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload)];
@@ -448,7 +448,9 @@ var FlagApi = /** @class */ (function () {
                     case 39: return [3 /*break*/, 41];
                     case 40:
                         if (rollOutRules.length === 0) {
-                            serviceContainer.getLogManager().debug(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
+                            serviceContainer
+                                .getLogManager()
+                                .debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT));
                             shouldCheckForExperimentsRules = true;
                         }
                         _0.label = 41;
@@ -518,7 +520,7 @@ var FlagApi = /** @class */ (function () {
                         experimentVariationToReturn = variation;
                         _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
                         if (!!isDevModeForUser) return [3 /*break*/, 57];
-                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaign.getId(), variation.getId(), context);
+                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, campaign.getId(), variation.getId(), context);
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 56];
                         if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 54];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload)];
@@ -565,7 +567,7 @@ var FlagApi = /** @class */ (function () {
                             // update debug event props with decision keys
                             _updateDebugEventProps(debugEventProps, decision);
                             // send debug event
-                            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
+                            (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(serviceContainer, debugEventProps);
                         }
                         if (!((_w = feature.getImpactCampaign()) === null || _w === void 0 ? void 0 : _w.getCampaignId())) return [3 /*break*/, 62];
                         serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
@@ -574,7 +576,7 @@ var FlagApi = /** @class */ (function () {
                             status: isEnabled ? 'enabled' : 'disabled',
                         }));
                         if (!!isDevModeForUser) return [3 /*break*/, 62];
-                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, (_x = feature.getImpactCampaign()) === null || _x === void 0 ? void 0 : _x.getCampaignId(), isEnabled ? 2 : 1, context);
+                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, (_x = feature.getImpactCampaign()) === null || _x === void 0 ? void 0 : _x.getCampaignId(), isEnabled ? 2 : 1, context);
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 61];
                         if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 59];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_y = feature.getImpactCampaign()) === null || _y === void 0 ? void 0 : _y.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload)];

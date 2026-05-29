@@ -15,9 +15,9 @@
  */
 import { LogLevelEnum } from './packages/logger/enums/LogLevelEnum';
 import { Connector, ISettingsData } from './packages/storage/Connector';
-import { IVWOOptions } from './models/VWOOptionsModel';
-import { IVWOClient } from './VWOClient';
-import { IVWOContextModel } from './models/user/ContextModel';
+import { IWingifyOptions as IVWOOptions } from './models/WingifyOptionsModel';
+import { IWingifyClient as IVWOClient } from './WingifyClient';
+import { IWingifyContextModel as IVWOContextModel } from './models/user/ContextModel';
 import { Flag } from './api/GetFlag';
 import { getUUID } from './utils/UuidUtil';
 import { NetworkTransportModeEnum } from './enums/NetworkTransportModeEnum';

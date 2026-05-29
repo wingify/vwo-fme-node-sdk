@@ -56,7 +56,7 @@ exports.sendSDKUsageStatsEvent = sendSDKUsageStatsEvent;
 var NetworkUtil_1 = require("./NetworkUtil");
 var EventEnum_1 = require("../enums/EventEnum");
 /**
- * Sends an init called event to VWO.
+ * Sends an init called event to Wingify.
  * This event is triggered when the init function is called.
  * @param {number} settingsFetchTime - Time taken to fetch settings in milliseconds.
  * @param {number} sdkInitTime - Time taken to initialize the SDK in milliseconds.
@@ -68,15 +68,15 @@ function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceContainer) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_INIT_CALLED);
-                    payload = (0, NetworkUtil_1.getSDKInitEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_INIT_CALLED, settingsFetchTime, sdkInitTime);
+                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.INIT_CALLED);
+                    payload = (0, NetworkUtil_1.getSDKInitEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.INIT_CALLED, settingsFetchTime, sdkInitTime);
                     if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
                     serviceContainer.getBatchEventsQueue().enqueue(payload);
                     return [3 /*break*/, 3];
                 case 1: 
                 // Send the constructed properties and payload as a POST request
                 //send eventName in parameters so that we can enable retry for this event
-                return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.VWO_INIT_CALLED).catch(function () { })];
+                return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.INIT_CALLED).catch(function () { })];
                 case 2:
                     // Send the constructed properties and payload as a POST request
                     //send eventName in parameters so that we can enable retry for this event
@@ -88,7 +88,7 @@ function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceContainer) {
     });
 }
 /**
- * Sends a usage stats event to VWO.
+ * Sends a usage stats event to Wingify.
  * This event is triggered when the SDK is initialized.
  * @returns A promise that resolves to the response from the server.
  */
@@ -98,15 +98,15 @@ function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStat
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_USAGE_STATS, null, null, true, usageStatsAccountId);
-                    payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_USAGE_STATS, usageStatsAccountId, usageStatsUtil);
+                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.USAGE_STATS, null, null, true, usageStatsAccountId);
+                    payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.USAGE_STATS, usageStatsAccountId, usageStatsUtil);
                     if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
                     serviceContainer.getBatchEventsQueue().enqueue(payload);
                     return [3 /*break*/, 3];
                 case 1: 
                 // Send the constructed properties and payload as a POST request
                 //send eventName in parameters so that we can enable retry for this event
-                return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.VWO_USAGE_STATS).catch(function () { })];
+                return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.USAGE_STATS).catch(function () { })];
                 case 2:
                     // Send the constructed properties and payload as a POST request
                     //send eventName in parameters so that we can enable retry for this event

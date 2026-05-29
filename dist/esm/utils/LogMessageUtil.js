@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { isFunction } from '../utils/DataTypeUtil.js';
+import { Constants } from '../constants/index.js';
 const nargs = /\{([0-9a-zA-Z_]+)\}/g;
 /**
  * Constructs a message by replacing placeholders in a template with corresponding values from a data object.
@@ -23,6 +24,11 @@ const nargs = /\{([0-9a-zA-Z_]+)\}/g;
  * @returns {string} The constructed message with all placeholders replaced by their corresponding values from the data object.
  */
 export function buildMessage(template = '', data = {}) {
+    const payload = {
+        brand: Constants.BRAND_DISPLAY_NAME,
+        logPrefix: Constants.LOG_PREFIX,
+        ...data,
+    };
     try {
         return template.replace(nargs, (match, key, index) => {
             // Check for escaped placeholders
@@ -30,7 +36,7 @@ export function buildMessage(template = '', data = {}) {
                 return key;
             }
             // Retrieve the value from the data object
-            const value = data[key];
+            const value = payload[key];
             // If the key does not exist or the value is null/undefined, return an empty string
             if (value === undefined || value === null) {
                 return '';

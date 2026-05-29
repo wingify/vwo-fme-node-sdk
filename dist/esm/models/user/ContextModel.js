@@ -1,4 +1,4 @@
-import { ContextVWOModel } from './ContextVWOModel.js';
+import { ContextWingifyModel } from './ContextWingifyModel.js';
 import { getUUID } from '../../utils/UuidUtil.js';
 import { getCurrentUnixTimestamp } from '../../utils/FunctionUtil.js';
 export class ContextModel {
@@ -17,8 +17,8 @@ export class ContextModel {
         if (context?.variationTargetingVariables) {
             this.variationTargetingVariables = context.variationTargetingVariables;
         }
-        if (context?._vwo) {
-            this._vwo = new ContextVWOModel().modelFromDictionary(context._vwo);
+        if (context?._wingify || context?._vwo) {
+            this._wingify = new ContextWingifyModel().modelFromDictionary(context._wingify || context._vwo);
         }
         if (context?.postSegmentationVariables) {
             this.postSegmentationVariables = context.postSegmentationVariables;
@@ -30,7 +30,7 @@ export class ContextModel {
             this.isDevMode = context.isDevMode === true;
         }
         // if uuid is provided in the context, use it, otherwise generate a new uuid
-        this._vwo_uuid =
+        this._wingify_uuid =
             context?.uuid ??
                 getUUID(context?.id?.toString() ?? `${options?.accountId}_${options?.sdkKey}`, options?.accountId?.toString());
         // If sessionId is provided in the context, use it, otherwise generate a new one
@@ -64,10 +64,10 @@ export class ContextModel {
         this.variationTargetingVariables = variationTargetingVariables;
     }
     getVwo() {
-        return this._vwo;
+        return this._wingify;
     }
-    setVwo(_vwo) {
-        this._vwo = _vwo;
+    setVwo(_wingify) {
+        this._wingify = _wingify;
     }
     getPostSegmentationVariables() {
         return this.postSegmentationVariables;
@@ -76,7 +76,7 @@ export class ContextModel {
         this.postSegmentationVariables = postSegmentationVariables;
     }
     getUuid() {
-        return this._vwo_uuid;
+        return this._wingify_uuid;
     }
     getSessionId() {
         return this.sessionId;

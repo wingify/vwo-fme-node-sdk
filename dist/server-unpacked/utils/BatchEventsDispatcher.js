@@ -92,7 +92,7 @@ var BatchEventsDispatcher = /** @class */ (function () {
                 retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
                 headers = {};
                 headers['Authorization'] = serviceContainer.getSettingsService().sdkKey;
-                request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.BATCH_EVENTS), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
+                request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().getCollectionHostname(), HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.BATCH_EVENTS), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
                 _a = this.extractEventCounts(payload), variationShownCount = _a.variationShownCount, setAttributeCount = _a.setAttributeCount, customEventCount = _a.customEventCount;
                 extraData = "".concat(constants_1.Constants.BATCH_EVENTS, " having ");
                 if (variationShownCount > 0) {
@@ -112,7 +112,7 @@ var BatchEventsDispatcher = /** @class */ (function () {
                         if (response.getTotalAttempts() > 0) {
                             var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', constants_1.Constants.BATCH_EVENTS, extraData);
                             // send debug event
-                            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
+                            (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(serviceContainer, debugEventProps);
                         }
                         var batchApiResult = _this.handleBatchResponse(serviceContainer.getLogManager(), UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, response, flushCallback);
                         deferred.resolve(batchApiResult);
@@ -120,7 +120,7 @@ var BatchEventsDispatcher = /** @class */ (function () {
                         .catch(function (err) {
                         var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(err, '', constants_1.Constants.BATCH_EVENTS, extraData);
                         // send debug event
-                        (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
+                        (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(serviceContainer, debugEventProps);
                         var batchApiResult = _this.handleBatchResponse(serviceContainer.getLogManager(), UrlEnum_1.UrlEnum.BATCH_EVENTS, payload, properties, null, err, flushCallback);
                         deferred.resolve(batchApiResult);
                     });
@@ -209,11 +209,11 @@ var BatchEventsDispatcher = /** @class */ (function () {
             if (!name_1) {
                 continue;
             }
-            if (name_1 === EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
+            if (name_1 === EventEnum_1.EventEnum.VARIATION_SHOWN) {
                 counts.variationShownCount += 1;
                 continue;
             }
-            if (name_1 === EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP) {
+            if (name_1 === EventEnum_1.EventEnum.SYNC_VISITOR_PROP) {
                 counts.setAttributeCount += 1;
                 continue;
             }

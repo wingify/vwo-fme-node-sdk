@@ -25,11 +25,11 @@ import { ServiceContainer } from '../services/ServiceContainer';
  */
 export declare function extractDecisionKeys(decisionObj?: Record<string, any>): Record<string, any>;
 /**
- * Sends a debug event to VWO.
+ * Sends a debug event to Wingify.
  * @param eventProps - The properties for the event.
  * @returns A promise that resolves when the event is sent.
  */
-export declare function sendDebugEventToVWO(
+export declare function sendDebugEventToWingify(
   serviceContainer: ServiceContainer,
   eventProps?: Record<string, any>,
 ): Promise<void>;

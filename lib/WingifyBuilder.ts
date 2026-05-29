@@ -1,0 +1,511 @@
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { dynamic } from './types/Common';
+
+import { LogManager } from './packages/logger';
+import { NetworkManager } from './packages/network-layer';
+
+import { Storage } from './packages/storage';
+
+import { IWingifyClient, WingifyClient } from './WingifyClient';
+import { SettingsService } from './services/SettingsService';
+
+import { DebugLogMessagesEnum, ErrorLogMessagesEnum, InfoLogMessagesEnum } from './enums/log-messages';
+import { IWingifyOptions } from './models/WingifyOptionsModel';
+import { isEmptyObject, isNumber, isString } from './utils/DataTypeUtil';
+import { cloneObject, getFormattedErrorMessage } from './utils/FunctionUtil';
+import { buildMessage } from './utils/LogMessageUtil';
+import { Deferred } from './utils/PromiseUtil';
+import { getRandomUUID } from './utils/UuidUtil';
+import { BatchEventsQueue } from './services/BatchEventsQueue';
+import { Constants } from './constants';
+import { ApiEnum } from './enums/ApiEnum';
+import { EdgeConfigModel } from './models/edge/EdgeConfigModel';
+import { ServiceContainer } from './services/ServiceContainer';
+import { NetworkTransportModeEnum } from './enums/NetworkTransportModeEnum';
+
+export interface IWingifyBuilder {
+  settings: Record<any, any>; // Holds the configuration settings for the Wingify client
+  storage: Storage; // Interface for storage management
+  logManager: LogManager; // Manages logging across the Wingify SDK
+  isSettingsFetchInProgress: boolean; // Flag to check if settings fetch is in progress
+  wingifyInstance: IWingifyClient;
+
+  build(settings: Record<any, any>): IWingifyClient; // Builds and returns a new WingifyClient instance
+
+  fetchSettings(): Promise<Record<any, any>>; // Asynchronously fetches settings from the server
+  setSettingsService(): this; // Sets up the settings manager with provided options
+  getSettings(force: boolean): Promise<Record<any, any>>; // Fetches settings, optionally forcing a refresh
+  setStorage(): this; // Sets up the storage connector based on provided options
+  setNetworkManager(): this; // Configures the network manager with client and mode
+  // initBatching(): this; // Initializes event batching with provided configuration
+  // setAnalyticsCallback(): this; // Configures the analytics callback based on provided options
+  initPolling(): this; // Sets up polling for settings at a specified interval
+  setLogger(): this; // Sets up the logger with specified options
+}
+
+export class WingifyBuilder implements IWingifyBuilder {
+  readonly sdkKey: string;
+  readonly options: IWingifyOptions;
+
+  private settingFileManager: SettingsService;
+
+  settings: Record<any, any>;
+  storage: Storage;
+  logManager: LogManager;
+  originalSettings: dynamic = {};
+  isSettingsFetchInProgress: boolean;
+  wingifyInstance: IWingifyClient;
+  batchEventsQueue: BatchEventsQueue;
+  private isValidPollIntervalPassedFromInit: boolean = false;
+  private pollTimerId: NodeJS.Timeout | null = null;
+  private isPollingStopped: boolean = false;
+  isSettingsValid: boolean = false;
+  settingsFetchTime: number | undefined = undefined;
+  networkManager: NetworkManager;
+  defaultServiceContainer: ServiceContainer;
+
+  constructor(options: IWingifyOptions) {
+    this.options = options;
+    this.defaultServiceContainer = new ServiceContainer(this.options);
+  }
+
+  /**
+   * Sets the network manager with the provided client and development mode options.
+   * @returns {this} The instance of this builder.
+   */
+  setNetworkManager(): this {
+    if (this.options.edgeConfig && !isEmptyObject(this.options?.edgeConfig)) {
+      this.options.shouldWaitForTrackingCalls = true;
+    }
+    // check if it is browser environment and network transport mode is provided
+    if (typeof window !== 'undefined' && this.options?.browserConfig?.networkTransportMode) {
+      const mode = this.options?.browserConfig?.networkTransportMode;
+
+      // check if network transport mode is invalid and use default mode
+      if (
+        !isString(mode) ||
+        (mode.toLowerCase() !== NetworkTransportModeEnum.XHR.toLowerCase() &&
+          mode.toLowerCase() !== NetworkTransportModeEnum.SEND_BEACON.toLowerCase())
+      ) {
+        this.logManager.error(
+          buildMessage(ErrorLogMessagesEnum.INVALID_NETWORK_TRANSPORT_MODE, {
+            validModes: [NetworkTransportModeEnum.XHR, NetworkTransportModeEnum.SEND_BEACON].join(', '),
+            networkTransportMode: mode,
+            defaultMode: NetworkTransportModeEnum.SEND_BEACON,
+          }),
+        );
+        // use default mode
+        this.options.browserConfig.networkTransportMode = NetworkTransportModeEnum.SEND_BEACON;
+      }
+    }
+    this.networkManager = new NetworkManager(
+      this.logManager,
+      this.options?.network?.client,
+      this.options?.retryConfig,
+      this.options?.shouldWaitForTrackingCalls ?? false,
+      this.options?.httpsAgentConfig,
+      this.options?.browserConfig?.networkTransportMode ?? NetworkTransportModeEnum.SEND_BEACON,
+    );
+
+    this.logManager.debug(
+      buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+        service: Constants.NETWORK_LAYER_NAME,
+      }),
+    );
+    this.defaultServiceContainer.setNetworkManager(this.networkManager);
+    return this;
+  }
+
+  initBatching(): this {
+    // If edge config is provided, set the batch event data to the default values
+    if (this.options.edgeConfig && !isEmptyObject(this.options?.edgeConfig)) {
+      const edgeConfigModel = new EdgeConfigModel().modelFromDictionary(this.options.edgeConfig);
+      this.options.batchEventData = {
+        eventsPerRequest: edgeConfigModel.getMaxEventsToBatch(),
+        isEdgeEnvironment: true,
+      };
+    }
+
+    // merge the options.batchEventData with the default batch event data
+    // this will enable batching by default if isBatchingDisabled is not true
+    if (this.options?.isBatchingDisabled !== true) {
+      this.options.batchEventData = {
+        eventsPerRequest: Constants.DEFAULT_EVENTS_PER_REQUEST,
+        requestTimeInterval: Constants.DEFAULT_REQUEST_TIME_INTERVAL,
+        ...(this.options.batchEventData || {}),
+      };
+    }
+    if (this.options.batchEventData) {
+      if (this.settingFileManager.isGatewayServiceProvided) {
+        this.logManager.info(buildMessage(InfoLogMessagesEnum.GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH));
+      } else {
+        if (
+          (!isNumber(this.options.batchEventData.eventsPerRequest) ||
+            this.options.batchEventData.eventsPerRequest <= 0) &&
+          (!isNumber(this.options.batchEventData.requestTimeInterval) ||
+            this.options.batchEventData.requestTimeInterval <= 0)
+        ) {
+          this.logManager.errorLog('INVALID_BATCH_EVENTS_CONFIG', {}, { an: ApiEnum.INIT });
+        } else {
+          this.options.batchEventData.accountId = parseInt(this.options.accountId);
+          this.batchEventsQueue = new BatchEventsQueue(Object.assign({}, this.options.batchEventData), this.logManager);
+        }
+      }
+    }
+    this.defaultServiceContainer.setBatchEventsQueue(this.batchEventsQueue);
+    this.defaultServiceContainer.injectServiceContainer(this.defaultServiceContainer);
+    return this;
+  }
+
+  /**
+   * Fetches settings asynchronously, ensuring no parallel fetches.
+   * @returns {Promise<SettingsModel>} A promise that resolves to the fetched settings.
+   */
+  fetchSettings(): Promise<Record<any, any>> {
+    const deferredObject = new Deferred();
+
+    // Check if a fetch operation is already in progress
+    if (!this.isSettingsFetchInProgress) {
+      this.isSettingsFetchInProgress = true;
+      this.settingFileManager.getSettings().then((settings: Record<any, any>) => {
+        this.isSettingsValid = this.settingFileManager.isSettingsValid;
+        this.settingsFetchTime = this.settingFileManager.settingsFetchTime;
+        this.isSettingsFetchInProgress = false;
+        deferredObject.resolve(settings);
+      });
+
+      return deferredObject.promise;
+    } else {
+      deferredObject.resolve(this.originalSettings);
+      return deferredObject.promise;
+    }
+  }
+
+  /**
+   * Gets the settings, fetching them if not cached or if forced.
+   * @returns {Promise<SettingsModel>} A promise that resolves to the settings.
+   */
+  getSettings(): Promise<Record<any, any>> {
+    const deferredObject = new Deferred();
+
+    try {
+      // Use cached settings if available and not forced to fetch
+      if (this.settings) {
+        this.logManager.info('Using already fetched and cached settings');
+        deferredObject.resolve(this.settings);
+      } else {
+        // Fetch settings if not cached
+        this.fetchSettings().then((settings: Record<any, any>) => {
+          deferredObject.resolve(settings);
+        });
+      }
+    } catch (err) {
+      this.logManager.errorLog(
+        'ERROR_FETCHING_SETTINGS',
+        {
+          err: getFormattedErrorMessage(err),
+        },
+        { an: ApiEnum.INIT },
+        false,
+      );
+      deferredObject.resolve({});
+    }
+    return deferredObject.promise;
+  }
+
+  /**
+   * Sets the storage connector based on the provided storage options.
+   * @returns {this} The instance of this builder.
+   */
+  setStorage(): this {
+    if (this.options.storage) {
+      // Attach the storage connector from options
+      this.storage = new Storage(this.options.storage);
+      this.settingFileManager.isStorageServiceProvided = true;
+    } else if (typeof process === 'undefined' && typeof window !== 'undefined' && window.localStorage) {
+      const browserStorageConfig = this.options.browserConfig?.clientStorage ?? this.options.clientStorage ?? {};
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { BrowserStorageConnector } = require('./packages/storage/connectors/BrowserStorageConnector');
+      // create accountId and sdkKey hash and use it as key for storage
+      const encodedSdkKey = btoa(this.options.sdkKey);
+      const defaultStorageKey = `${Constants.PRODUCT_NAME}_${this.options.accountId}_${encodedSdkKey}`;
+      // Pass clientStorage config to BrowserStorageConnector
+      this.storage = new Storage(
+        new BrowserStorageConnector(
+          {
+            ...browserStorageConfig,
+            alwaysUseCachedSettings: browserStorageConfig?.alwaysUseCachedSettings,
+            ttl: browserStorageConfig?.ttl,
+          },
+          defaultStorageKey,
+          this.logManager,
+        ),
+      );
+      this.logManager.debug(
+        buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+          service:
+            this.options?.clientStorage?.provider === sessionStorage
+              ? Constants.SESSION_STORAGE_NAME
+              : Constants.LOCAL_STORAGE_NAME,
+        }),
+      );
+      this.settingFileManager.isStorageServiceProvided = true;
+    } else {
+      // Set storage to null if no storage options provided
+      this.storage = null;
+    }
+    this.defaultServiceContainer.setStorage(this.storage);
+    return this;
+  }
+
+  /**
+   * Sets the settings manager with the provided options.
+   * @returns {this} The instance of this builder.
+   */
+  setSettingsService(): this {
+    this.settingFileManager = new SettingsService(this.options, this.logManager);
+    this.defaultServiceContainer.setSettingsService(this.settingFileManager);
+    return this;
+  }
+
+  /**
+   * Returns the logger.
+   * @returns {LogManager} The logger.
+   */
+  getLogger(): LogManager {
+    return this.logManager;
+  }
+
+  /**
+   * Returns the settings manager.
+   * @returns {SettingsService} The settings manager.
+   */
+  getSettingsService(): SettingsService {
+    return this.settingFileManager;
+  }
+
+  /**
+   * Returns the storage.
+   * @returns {Storage} The storage.
+   */
+  getStorage(): Storage {
+    return this.storage;
+  }
+
+  /**
+   * Sets the logger with the provided logger options.
+   * @returns {this} The instance of this builder.
+   */
+  setLogger(): this {
+    this.logManager = new LogManager(this.options.logger || {});
+
+    this.logManager.debug(
+      buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
+        service: Constants.LOGGER_NAME,
+      }),
+    );
+    this.defaultServiceContainer.setLogManager(this.logManager);
+    return this;
+  }
+
+  /**
+   * Sets the analytics callback with the provided analytics options.
+   * @returns {this} The instance of this builder.
+   */
+  /* setAnalyticsCallback(): this {
+    if (!isObject(this.options.analyticsEvent)) {
+      // TODO: add logging here
+      return this;
+    }
+
+    if (!isFunction(this.options.analyticsEvent.eventCallback)) {
+      // TODO: add logging here
+      return this;
+    }
+
+    if (
+      this.options.analyticsEvent.isBatchingSupported &&
+      !isBoolean(this.options.analyticsEvent.isBatchingSupported)
+    ) {
+      // TODO:- add logging here
+      return this;
+    }
+
+    // AnalyticsEvent.Instance.attachCallback(
+    //   this.options.analyticsEvent.eventCallback,
+    //   this.options.analyticsEvent.isBatchingSupported
+    // );
+    return this;
+  } */
+
+  /**
+   * Generates a random user ID based on the provided API key.
+   * @returns {string} The generated random user ID.
+   */
+  getRandomUserId(): string {
+    const apiName = 'getRandomUserId';
+    try {
+      this.logManager.debug(
+        buildMessage(DebugLogMessagesEnum.API_CALLED, {
+          apiName,
+        }),
+      );
+
+      return getRandomUUID(this.options.sdkKey);
+    } catch (err) {
+      this.logManager.errorLog('EXECUTION_FAILED', {
+        apiName,
+        err: getFormattedErrorMessage(err),
+      });
+    }
+  }
+
+  /**
+   * Initializes the batching with the provided batch events options.
+   * @returns {this} The instance of this builder.
+   */
+  /* initBatching(): this {
+    if (!isObject(this.options.batchEvents)) {
+      // TODO:- add logging here
+      return this;
+    }
+
+    if (
+      isObject(this.options.batchEvents) &&
+      (!(
+        (isNumber(this.options.batchEvents.eventsPerRequest) &&
+          this.options.batchEvents.eventsPerRequest > 0 &&
+          this.options.batchEvents.eventsPerRequest <= Constants.MAX_EVENTS_PER_REQUEST) ||
+        (isNumber(this.options.batchEvents.requestTimeInterval) && this.options.batchEvents.requestTimeInterval >= 1)
+      ) ||
+        !isFunction(this.options.batchEvents.flushCallback))
+    ) {
+      LogManager.Instance.error('Invalid batchEvents config');
+      // throw new Error('Invalid batchEvents config');
+      return this;
+    }
+
+    // BatchEventsQueue.Instance.setBatchConfig(this.options.batchEvents, this.options.sdkKey); // TODO
+
+    return this;
+  } */
+
+  /**
+   * Initializes the polling with the provided poll interval.
+   * @returns {this} The instance of this builder.
+   */
+  initPolling(): this {
+    const pollInterval = this.options.pollInterval;
+
+    if (pollInterval != null && isNumber(pollInterval) && pollInterval >= 1000) {
+      this.isValidPollIntervalPassedFromInit = true;
+      this.checkAndPoll();
+    } else if (pollInterval != null) {
+      this.logManager.errorLog(
+        'INVALID_POLLING_CONFIGURATION',
+        {
+          key: 'pollInterval',
+          correctType: 'number >= 1000',
+        },
+        { an: ApiEnum.INIT },
+      );
+    }
+    return this;
+  }
+
+  /**
+   * Builds a new WingifyClient instance with the provided settings.
+   * @param {SettingsModel} settings - The settings for the WingifyClient.
+   * @returns {WingifyClient} The new WingifyClient instance.
+   */
+  build(settings: Record<any, any>): IWingifyClient {
+    this.originalSettings = settings;
+    this.wingifyInstance = new WingifyClient(settings, this.options, this.defaultServiceContainer);
+    this.updatePollIntervalAndCheckAndPoll(settings, true);
+    return this.wingifyInstance;
+  }
+
+  /**
+   * Checks and polls for settings updates at the provided interval.
+   */
+  checkAndPoll(): void {
+    this.defaultServiceContainer.setPollingStopCallback(() => this.stopPolling());
+    const poll = async () => {
+      try {
+        const latestSettings = await this.getSettings();
+        if (
+          latestSettings &&
+          Object.keys(latestSettings).length > 0 &&
+          JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)
+        ) {
+          this.originalSettings = latestSettings;
+          const clonedSettings = cloneObject(latestSettings);
+
+          this.logManager.info(buildMessage(InfoLogMessagesEnum.POLLING_SET_SETTINGS));
+          this.wingifyInstance.updateSettings(clonedSettings, false);
+
+          // Reinitialize the poll_interval value if there is a change in settings
+          this.updatePollIntervalAndCheckAndPoll(latestSettings, false);
+        } else if (latestSettings) {
+          this.logManager.info(buildMessage(InfoLogMessagesEnum.POLLING_NO_CHANGE_IN_SETTINGS));
+        }
+      } catch (ex) {
+        this.logManager.errorLog(
+          'ERROR_FETCHING_SETTINGS_WITH_POLLING',
+          {
+            err: getFormattedErrorMessage(ex),
+          },
+          { an: Constants.POLLING },
+        );
+      } finally {
+        if (!this.isPollingStopped) {
+          const interval = this.options.pollInterval ?? Constants.POLLING_INTERVAL;
+          this.pollTimerId = setTimeout(poll, interval);
+        }
+      }
+    };
+    const interval = this.options.pollInterval ?? Constants.POLLING_INTERVAL;
+    this.pollTimerId = setTimeout(poll, interval);
+  }
+
+  /**
+   * Stops the settings polling timer. No further polls will be scheduled.
+   */
+  stopPolling(): void {
+    this.isPollingStopped = true;
+    if (this.pollTimerId != null) {
+      clearTimeout(this.pollTimerId);
+      this.pollTimerId = null;
+    }
+  }
+
+  private updatePollIntervalAndCheckAndPoll(settings: Record<any, any>, shouldCheckAndPoll: boolean) {
+    if (!this.isValidPollIntervalPassedFromInit) {
+      const pollInterval = settings?.pollInterval ?? Constants.POLLING_INTERVAL;
+      this.logManager.debug(
+        buildMessage(DebugLogMessagesEnum.USING_POLL_INTERVAL_FROM_SETTINGS, {
+          source: settings?.pollInterval ? 'settings' : 'default',
+          pollInterval: pollInterval.toString(),
+        }),
+      );
+      this.options.pollInterval = pollInterval;
+    }
+    if (shouldCheckAndPoll && !this.isValidPollIntervalPassedFromInit) {
+      this.checkAndPoll();
+    }
+  }
+}

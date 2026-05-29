@@ -17,7 +17,7 @@
 import { SettingsModel } from '../models/settings/SettingsModel';
 import { SegmentationManager } from '../packages/segmentation-evaluator/core/SegmentationManger';
 import { BatchEventsQueue } from './BatchEventsQueue';
-import { IVWOOptions } from '../models/VWOOptionsModel';
+import { IWingifyOptions } from '../models/WingifyOptionsModel';
 import { SettingsService } from './SettingsService';
 import HooksService from './HooksService';
 import { isString } from '../utils/DataTypeUtil';
@@ -32,7 +32,7 @@ export class ServiceContainer {
   private logManager: LogManager;
   private SettingsService: SettingsService;
   private HooksService: HooksService;
-  private vwoOptions: IVWOOptions;
+  private vwoOptions: IWingifyOptions;
   private BatchEventsQueue: BatchEventsQueue | null = null;
   private SegmentationManager: SegmentationManager;
   private SettingsModel: SettingsModel;
@@ -41,7 +41,7 @@ export class ServiceContainer {
   private shouldWaitForTrackingCalls: boolean;
   private pollingStopCallback: (() => void) | null = null;
 
-  constructor(options: IVWOOptions) {
+  constructor(options: IWingifyOptions) {
     this.vwoOptions = options;
     this.HooksService = new HooksService(this.vwoOptions);
     this.SegmentationManager = new SegmentationManager();
@@ -89,9 +89,9 @@ export class ServiceContainer {
 
   /**
    *
-   * @returns IVWOOptions
+   * @returns IWingifyOptions
    */
-  public getVWOOptions(): IVWOOptions {
+  public getWingifyOptions(): IWingifyOptions {
     return this.vwoOptions;
   }
 
@@ -224,7 +224,7 @@ export class ServiceContainer {
   }
 
   /**
-   * Registers a callback to stop settings polling (called from VWOBuilder when polling is started).
+   * Registers a callback to stop settings polling (called from WingifyBuilder when polling is started).
    * @param callback - Callback to run when polling should stop, or null to clear.
    */
   public setPollingStopCallback(callback: (() => void) | null): void {

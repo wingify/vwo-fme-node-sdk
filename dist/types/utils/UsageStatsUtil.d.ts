@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IVWOOptions } from '../models/VWOOptionsModel';
+import { IWingifyOptions } from '../models/WingifyOptionsModel';
 /**
  * Manages usage statistics for the SDK.
  * Tracks various features and configurations being used by the client.
@@ -22,7 +22,7 @@ import { IVWOOptions } from '../models/VWOOptionsModel';
 export declare class UsageStatsUtil {
   /** Internal storage for usage statistics data */
   private usageStatsData;
-  constructor(options: IVWOOptions);
+  constructor(options: IWingifyOptions);
   /**
    * Sets usage statistics based on provided options.
    * Maps various SDK features and configurations to boolean flags.
@@ -35,7 +35,7 @@ export declare class UsageStatsUtil {
    * @param options.pollingInterval - Polling interval configuration
    * @param options.sdkName - SDK name configuration
    */
-  setUsageStats(options: IVWOOptions): void;
+  setUsageStats(options: IWingifyOptions): void;
   /**
    * Retrieves the current usage statistics.
    *

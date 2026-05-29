@@ -1,37 +1,37 @@
 {
-  "name": "vwo-fme-node-sdk",
-  "version": "1.43.1",
-  "description": "VWO Node/JavaScript SDK for Feature Management and Experimentation",
-  "main": "dist/server/vwo-fme-node-sdk.min.js",
-  "browser": "dist/client/vwo-fme-javascript-sdk.min.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "name": "wingify-fme-node-sdk",
+  "version": "1.50.0",
+  "description": "Wingify Node/JavaScript SDK for Feature Management and Experimentation",
+  "main": "dist/server/wingify-fme-node-sdk.min.js",
+  "browser": "dist/client/wingify-fme-javascript-sdk.min.js",
+  "module": "dist/esm/index.wingify.js",
+  "types": "dist/types/index.wingify.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/types/index.wingify.d.ts",
       "browser": {
-        "import": "./dist/client/vwo-fme-javascript-sdk.min.js",
-        "require": "./dist/client/vwo-fme-javascript-sdk.min.js",
-        "default": "./dist/client/vwo-fme-javascript-sdk.min.js"
+        "import": "./dist/client/wingify-fme-javascript-sdk.min.js",
+        "require": "./dist/client/wingify-fme-javascript-sdk.min.js",
+        "default": "./dist/client/wingify-fme-javascript-sdk.min.js"
       },
       "node": {
-        "import": "./dist/esm/index.js",
-        "require": "./dist/server/vwo-fme-node-sdk.min.js",
-        "default": "./dist/server/vwo-fme-node-sdk.min.js"
+        "import": "./dist/esm/index.wingify.js",
+        "require": "./dist/server/wingify-fme-node-sdk.min.js",
+        "default": "./dist/server/wingify-fme-node-sdk.min.js"
       },
-      "import": "./dist/esm/index.js",
-      "require": "./dist/server/vwo-fme-node-sdk.min.js",
-      "default": "./dist/server/vwo-fme-node-sdk.min.js"
+      "import": "./dist/esm/index.wingify.js",
+      "require": "./dist/server/wingify-fme-node-sdk.min.js",
+      "default": "./dist/server/wingify-fme-node-sdk.min.js"
     },
     "./esm": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "default": "./dist/esm/index.js"
+      "types": "./dist/types/index.wingify.d.ts",
+      "import": "./dist/esm/index.wingify.js",
+      "default": "./dist/esm/index.wingify.js"
     },
     "./node": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/server/vwo-fme-node-sdk.min.js",
-      "default": "./dist/server/vwo-fme-node-sdk.min.js"
+      "types": "./dist/types/index.wingify.d.ts",
+      "import": "./dist/server/wingify-fme-node-sdk.min.js",
+      "default": "./dist/server/wingify-fme-node-sdk.min.js"
     }
   },
   "scripts": {
@@ -39,15 +39,15 @@
     "build:browser": "yarn build:dev-browser && yarn build:prod-browser",
     "build:node": "yarn build:dev-node && yarn build:prod-node",
     "build:esm": "tsc --project tsconfig.esm.json && node scripts/add-js-extensions.js && cp package.esm.json dist/esm/package.json",
-    "build:dev-browser": "webpack --config ./webpack.browser.config.js --mode=development",
-    "build:dev-node": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development",
-    "build:dev-browser-watch": "webpack --config ./webpack.browser.config.js --mode=development --watch",
-    "build:dev-node-watch": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --watch",
+    "build:dev-browser": "webpack --config ./webpack.browser.config.js --mode=development --env brand=wingify",
+    "build:dev-node": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --env brand=wingify",
+    "build:dev-browser-watch": "webpack --config ./webpack.browser.config.js --mode=development --env brand=wingify --watch",
+    "build:dev-node-watch": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=development --env brand=wingify --watch",
     "build:dev-esm-watch": "yarn tsc:prod && webpack --config ./webpack.esm.config.js --mode=development --watch",
-    "build:dev-browser-analyze": "webpack --config ./webpack.browser.config.js --mode=development --env analyze=1",
-    "build:dev-node-analyze": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env analyze=1",
-    "build:prod-browser": "webpack --config ./webpack.browser.config.js --mode=production",
-    "build:prod-node": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production",
+    "build:dev-browser-analyze": "webpack --config ./webpack.browser.config.js --mode=development --env brand=wingify --env analyze=1",
+    "build:dev-node-analyze": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env brand=wingify --env analyze=1",
+    "build:prod-browser": "webpack --config ./webpack.browser.config.js --mode=production --env brand=wingify",
+    "build:prod-node": "yarn tsc:prod && webpack --config ./webpack.node.config.js --mode=production --env brand=wingify",
     "check:license": "yarn check:versions && node -e 'require(\"./scripts/check-license\")'",
     "check:versions": "node -e 'require(\"./scripts/check-versions\")'",
     "demo": "nodemon --inspect=0.0.0.0:9229 --legacy-watch --ignore node_modules demo/index.js",
@@ -60,8 +60,8 @@
     "test:dev": "node --inspect-brk node_modules/jest/bin/jest.js --watch --runInBand --debug --colors --errorOnDeprecated",
     "test:prod": "jest --runInBand --colors --errorOnDeprecated",
     "test:coverage": "jest --coverage --coverageDirectory=coverage && cat ./coverage/lcov.info",
-    "tsc": "yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/ && tsc -w",
-    "tsc:prod": "yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/ && cp VERSION.js dist/",
+    "tsc": "yarn check:versions && rm -rf dist/server-unpacked && cp package.json dist/package.json && tsc -w",
+    "tsc:prod": "yarn check:versions && rm -rf dist/server-unpacked && tsc && cp package.json dist/package.json && cp VERSION.js dist/",
     "typedoc": "typedoc --plugin typedoc-plugin-markdown --out ./docs lib/*.ts lib/**/*.ts lib/**/**/*.ts ",
     "typedoc:html": "typedoc --out docs-html lib/*.ts lib/**/*.ts lib/**/**/*.ts"
   },
@@ -86,7 +86,7 @@
     "murmurhash": "^2.0.1",
     "superstruct": "^0.14.x",
     "uuid": "^9.0.1",
-    "vwo-fme-sdk-log-messages": "^1.5.0"
+    "wingify-fme-sdk-log-messages": "^2.0.0"
   },
   "optionalDependencies": {
     "node-fetch": "^3.3.2"

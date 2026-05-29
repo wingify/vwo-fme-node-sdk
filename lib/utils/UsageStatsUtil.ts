@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { IVWOOptions } from '../models/VWOOptionsModel';
+import { IWingifyOptions } from '../models/WingifyOptionsModel';
 import { LogLevelNumberEnum } from '../packages/logger/core/TransportManager';
 
 /**
@@ -26,7 +26,7 @@ export class UsageStatsUtil {
   /** Internal storage for usage statistics data */
   private usageStatsData: Record<string, string | number> = {};
 
-  constructor(options: IVWOOptions) {
+  constructor(options: IWingifyOptions) {
     this.setUsageStats(options);
   }
 
@@ -42,7 +42,7 @@ export class UsageStatsUtil {
    * @param options.pollingInterval - Polling interval configuration
    * @param options.sdkName - SDK name configuration
    */
-  setUsageStats(options: IVWOOptions): void {
+  setUsageStats(options: IWingifyOptions): void {
     const {
       storage,
       logger,
@@ -50,6 +50,7 @@ export class UsageStatsUtil {
       gatewayService,
       integrations,
       pollInterval,
+      _wingify_meta,
       _vwo_meta,
       shouldWaitForTrackingCalls,
     } = options;
@@ -76,8 +77,9 @@ export class UsageStatsUtil {
 
     if (shouldWaitForTrackingCalls) data.swtc = 1;
 
-    // if _vwo_meta has ea, then addd data._ea to be 1
-    if (_vwo_meta && _vwo_meta.ea) data._ea = 1;
+    // if _wingify_meta or _vwo_meta has ea, then add data._ea to be 1
+    const meta = _wingify_meta || _vwo_meta;
+    if (meta && meta.ea) data._ea = 1;
 
     if (typeof process !== 'undefined' && process.version) {
       // For Node.js environment

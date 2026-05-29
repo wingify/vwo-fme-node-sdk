@@ -75,7 +75,7 @@ var evaluateRule = function (serviceContainer, feature, campaign, context, evalu
                         experimentVariationId: whitelistedObject.variationId,
                     });
                     // Send an impression for the variation shown
-                    payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_VARIATION_SHOWN, campaign.getId(), whitelistedObject.variation.id, context);
+                    payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, campaign.getId(), whitelistedObject.variation.id, context);
                 }
                 // Return the results of the evaluation
                 return [2 /*return*/, { preSegmentationResult: preSegmentationResult, whitelistedObject: whitelistedObject, updatedDecision: decision, payload: payload }];

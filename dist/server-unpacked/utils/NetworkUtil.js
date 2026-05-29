@@ -132,7 +132,7 @@ function getTrackEventPath(event, accountId, userId) {
     return path;
 }
 /**
- * Builds generic properties for different tracking calls required by VWO servers.
+ * Builds generic properties for different tracking calls required by Wingify servers.
  * @param {SettingsService} settingsService - The settings service instance.
  * @param {String} eventName
  * @param {String} visitorUserAgent - The visitor user agent.
@@ -339,7 +339,7 @@ function getAttributePayloadData(serviceContainer, eventName, attributes, contex
         properties.d.visId = context.getUuid();
     }
     properties.d.event.props.isCustomEvent = true; // Mark as a custom event
-    properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = serviceContainer.getSettingsService().sdkKey; // Set environment key
+    properties.d.event.props[constants_1.Constants.FS_ENVIRONMENT_KEY] = serviceContainer.getSettingsService().sdkKey; // Set environment key
     // Iterate over the attributes map and append to the visitor properties
     for (var _i = 0, _a = Object.entries(attributes); _i < _a.length; _i++) {
         var _b = _a[_i], key = _b[0], value = _b[1];
@@ -369,7 +369,7 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
             switch (_b.label) {
                 case 0:
                     retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
-                    isGatewayServiceConfigured = Boolean((_a = serviceContainer.getVWOOptions()) === null || _a === void 0 ? void 0 : _a.gatewayService);
+                    isGatewayServiceConfigured = Boolean((_a = serviceContainer.getWingifyOptions()) === null || _a === void 0 ? void 0 : _a.gatewayService);
                     headers = {};
                     userAgent = payload.d.visitor_ua;
                     ipAddress = payload.d.visitor_ip;
@@ -378,10 +378,10 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
                         headers[HeadersEnum_1.HeadersEnum.USER_AGENT] = userAgent;
                     if (ipAddress)
                         headers[HeadersEnum_1.HeadersEnum.IP] = ipAddress;
-                    request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.EVENTS, isGatewayServiceConfigured), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
+                    request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().getCollectionHostname(), HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.EVENTS, isGatewayServiceConfigured), properties, payload, headers, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
                     request.setEventName(properties.en);
                     request.setUuid(payload.d.visId);
-                    if (properties.en === EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
+                    if (properties.en === EventEnum_1.EventEnum.VARIATION_SHOWN) {
                         apiName = ApiEnum_1.ApiEnum.GET_FLAG;
                         if (campaignInfo.campaignType === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT ||
                             campaignInfo.campaignType === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
@@ -392,14 +392,14 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
                         }
                         request.setCampaignId(payload.d.event.props.id);
                     }
-                    else if (properties.en != EventEnum_1.EventEnum.VWO_VARIATION_SHOWN) {
-                        if (properties.en === EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP) {
+                    else if (properties.en != EventEnum_1.EventEnum.VARIATION_SHOWN) {
+                        if (properties.en === EventEnum_1.EventEnum.SYNC_VISITOR_PROP) {
                             apiName = ApiEnum_1.ApiEnum.SET_ATTRIBUTE;
                             extraDataForMessage = apiName;
                         }
-                        else if (properties.en !== EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT &&
-                            properties.en !== EventEnum_1.EventEnum.VWO_LOG_EVENT &&
-                            properties.en !== EventEnum_1.EventEnum.VWO_INIT_CALLED) {
+                        else if (properties.en !== EventEnum_1.EventEnum.DEBUGGER_EVENT &&
+                            properties.en !== EventEnum_1.EventEnum.LOG_EVENT &&
+                            properties.en !== EventEnum_1.EventEnum.INIT_CALLED) {
                             apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
                             extraDataForMessage = "event: ".concat(properties.en);
                         }
@@ -416,7 +416,7 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
                                 var debugEventProps = createNetWorkAndRetryDebugEvent(response, payload, apiName, extraDataForMessage);
                                 debugEventProps.uuid = request.getUuid();
                                 // send debug event
-                                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
+                                (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(serviceContainer, debugEventProps);
                             }
                             serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.NETWORK_CALL_SUCCESS, {
                                 event: properties.en,
@@ -429,7 +429,7 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
                             .catch(function (err) {
                             var debugEventProps = createNetWorkAndRetryDebugEvent(err, payload, apiName, extraDataForMessage);
                             debugEventProps.uuid = request.getUuid();
-                            (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(serviceContainer, debugEventProps);
+                            (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(serviceContainer, debugEventProps);
                             serviceContainer.getLogManager().errorLog('NETWORK_CALL_FAILED', {
                                 method: HttpMethodEnum_1.HttpMethodEnum.POST,
                                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
@@ -454,7 +454,7 @@ function getMessagingEventPayload(settingsService, messageType, message, eventNa
     if (extraData === void 0) { extraData = {}; }
     var userId = settingsService.accountId + '_' + settingsService.sdkKey;
     var properties = _getEventBasePayload(settingsService, userId, eventName);
-    properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = settingsService.sdkKey; // Set environment key
+    properties.d.event.props[constants_1.Constants.FS_ENVIRONMENT_KEY] = settingsService.sdkKey; // Set environment key
     properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     var data = {
         type: messageType,
@@ -479,7 +479,7 @@ function getSDKInitEventPayload(settingsService, eventName, settingsFetchTime, s
     var userId = settingsService.accountId + '_' + settingsService.sdkKey;
     var properties = _getEventBasePayload(settingsService, userId, eventName);
     // Set the required fields as specified
-    properties.d.event.props[constants_1.Constants.VWO_FS_ENVIRONMENT] = settingsService.sdkKey;
+    properties.d.event.props[constants_1.Constants.FS_ENVIRONMENT_KEY] = settingsService.sdkKey;
     properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     var data = {
         isSDKInitialized: true,
@@ -525,7 +525,7 @@ function getDebuggerEventPayload(settingsService, eventProps) {
         uuid = eventProps.uuid;
     }
     // create standard event payload
-    var properties = _getEventBasePayload(settingsService, uuid, EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT, '', '', false, null, false);
+    var properties = _getEventBasePayload(settingsService, uuid, EventEnum_1.EventEnum.DEBUGGER_EVENT, '', '', false, null, false);
     properties.d.event.props = {};
     // add session id to the event props if not present
     if (eventProps.sId) {
@@ -536,14 +536,14 @@ function getDebuggerEventPayload(settingsService, eventProps) {
     }
     // add a safety check for apiName
     if (!eventProps.an) {
-        eventProps.an = EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT;
+        eventProps.an = EventEnum_1.EventEnum.DEBUGGER_EVENT;
     }
     // add all debugger props inside vwoMeta
     properties.d.event.props.vwoMeta = __assign(__assign({}, eventProps), { a: settingsService.accountId.toString(), product: constants_1.Constants.PRODUCT_NAME, sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(), sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(), 'src-v': constants_1.Constants.SDK_NAME + '-' + constants_1.Constants.SDK_VERSION, eventId: (0, UuidUtil_1.getRandomUUID)(settingsService.sdkKey) });
     return properties;
 }
 /**
- * Sends an event to VWO (generic event sender).
+ * Sends an event to Wingify (generic event sender).
  * @param {NetworkManager} networkManager - The network manager instance.
  * @param {SettingsService} settingsService - The settings service instance.
  * @param properties - Query parameters for the request.
@@ -557,13 +557,13 @@ function sendEvent(serviceContainer, properties, payload, eventName) {
         var _a;
         return __generator(this, function (_b) {
             deferredObject = new PromiseUtil_1.Deferred();
-            isGatewayServiceConfigured = Boolean((_a = serviceContainer.getVWOOptions()) === null || _a === void 0 ? void 0 : _a.gatewayService);
+            isGatewayServiceConfigured = Boolean((_a = serviceContainer.getWingifyOptions()) === null || _a === void 0 ? void 0 : _a.gatewayService);
             retryConfig = serviceContainer.getNetworkManager().getRetryConfig();
             // disable retry for event (no retry for generic events)
-            if (eventName === EventEnum_1.EventEnum.VWO_DEBUGGER_EVENT)
+            if (eventName === EventEnum_1.EventEnum.DEBUGGER_EVENT)
                 retryConfig.shouldRetry = false;
             try {
-                request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().hostname, HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.EVENTS, isGatewayServiceConfigured), properties, payload, null, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
+                request = new network_layer_1.RequestModel(serviceContainer.getSettingsService().getCollectionHostname(), HttpMethodEnum_1.HttpMethodEnum.POST, serviceContainer.getUpdatedEndpointWithCollectionPrefix(UrlEnum_1.UrlEnum.EVENTS, isGatewayServiceConfigured), properties, payload, null, serviceContainer.getSettingsService().protocol, serviceContainer.getSettingsService().port, retryConfig);
                 request.setEventName(properties.en);
                 // Perform the network POST request
                 serviceContainer

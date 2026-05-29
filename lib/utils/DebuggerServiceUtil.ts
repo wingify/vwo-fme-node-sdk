@@ -55,18 +55,18 @@ export function extractDecisionKeys(decisionObj: Record<string, any> = {}): Reco
 }
 
 /**
- * Sends a debug event to VWO.
+ * Sends a debug event to Wingify.
  * @param eventProps - The properties for the event.
  * @returns A promise that resolves when the event is sent.
  */
-export async function sendDebugEventToVWO(
+export async function sendDebugEventToWingify(
   serviceContainer: ServiceContainer,
   eventProps: Record<string, any> = {},
 ): Promise<void> {
   // create query parameters
   const properties = getEventsBaseProperties(
     serviceContainer.getSettingsService(),
-    EventEnum.VWO_DEBUGGER_EVENT,
+    EventEnum.DEBUGGER_EVENT,
     null,
     null,
   );
@@ -77,6 +77,6 @@ export async function sendDebugEventToVWO(
   if (serviceContainer.getBatchEventsQueue()) {
     serviceContainer.getBatchEventsQueue().enqueue(payload);
   } else {
-    await sendEvent(serviceContainer, properties, payload, EventEnum.VWO_DEBUGGER_EVENT).catch(() => {});
+    await sendEvent(serviceContainer, properties, payload, EventEnum.DEBUGGER_EVENT).catch(() => {});
   }
 }

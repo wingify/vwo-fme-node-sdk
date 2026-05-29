@@ -41,7 +41,7 @@ export interface ILogManager {
     template: string,
     data?: Record<string, any>,
     debugData?: Record<string, any>,
-    shouldSendToVWO?: boolean,
+    shouldSendToWingify?: boolean,
   ): void;
 }
 /**
@@ -107,14 +107,14 @@ export declare class LogManager extends Logger implements ILogManager {
   error(message: string): void;
   /**
    * Middleware method that stores error in DebuggerService and logs it.
-   * @param {boolean} shouldSendToVWO - Whether to send the error to VWO.
+   * @param {boolean} shouldSendToWingify - Whether to send the error to Wingify.
    * @param {string} category - The category of the error.
    */
   errorLog(
     template: string,
     data?: Record<string, any>,
     debugData?: Record<string, any>,
-    shouldSendToVWO?: boolean,
+    shouldSendToWingify?: boolean,
   ): void;
 }
 export {};

@@ -16,7 +16,7 @@
 import { SegmentEvaluator } from '../evaluators/SegmentEvaluator.js';
 import { getFromGatewayService, getQueryParams } from '../../../utils/GatewayServiceUtil.js';
 import { UrlEnum } from '../../../enums/UrlEnum.js';
-import { ContextVWOModel } from '../../../models/user/ContextVWOModel.js';
+import { ContextWingifyModel } from '../../../models/user/ContextWingifyModel.js';
 import { isUndefined } from '../../../utils/DataTypeUtil.js';
 import { ApiEnum } from '../../../enums/ApiEnum.js';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
@@ -59,8 +59,8 @@ export class SegmentationManager {
                 }
                 try {
                     const params = getQueryParams(queryParams);
-                    const _vwo = await getFromGatewayService(serviceContainer, params, UrlEnum.GET_USER_DATA, context);
-                    context.setVwo(new ContextVWOModel().modelFromDictionary(_vwo));
+                    const _wingify = await getFromGatewayService(serviceContainer, params, UrlEnum.GET_USER_DATA, context);
+                    context.setVwo(new ContextWingifyModel().modelFromDictionary(_wingify));
                     this.evaluator.context = context;
                 }
                 catch (err) {

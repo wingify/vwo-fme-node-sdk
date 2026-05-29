@@ -314,7 +314,7 @@ const _normalizeWeightsAndFindWinningCampaign = (serviceContainer, shortlistedCa
     }));
     if (winnerCampaign) {
         new StorageDecorator().setDataInStorage({
-            featureKey: `${Constants.VWO_META_MEG_KEY}${groupId}`,
+            featureKey: `${Constants.META_MEG_KEY}${groupId}`,
             context,
             experimentId: winnerCampaign.getId(),
             experimentKey: winnerCampaign.getKey(),
@@ -414,7 +414,7 @@ const _getCampaignUsingAdvancedAlgo = (serviceContainer, shortlistedCampaigns, c
     }
     if (winnerCampaign) {
         new StorageDecorator().setDataInStorage({
-            featureKey: `${Constants.VWO_META_MEG_KEY}${groupId}`,
+            featureKey: `${Constants.META_MEG_KEY}${groupId}`,
             context,
             experimentId: winnerCampaign.id,
             experimentKey: winnerCampaign.key,

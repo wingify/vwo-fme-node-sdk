@@ -20,13 +20,14 @@ export declare const Constants: {
   ALWAYS_USE_CACHED_SETTINGS: boolean;
   MIN_TTL_MS: number;
   HOST_NAME: string;
+  COLLECTION_HOST_NAME: string;
   SETTINGS_ENDPOINT: string;
   WEBHOOK_SETTINGS_ENDPOINT: string;
   LOCATION_ENDPOINT: string;
-  VWO_FS_ENVIRONMENT: string;
+  FS_ENVIRONMENT_KEY: string;
   RANDOM_ALGO: number;
   API_VERSION: string;
-  VWO_META_MEG_KEY: string;
+  META_MEG_KEY: string;
   DEFAULT_RETRY_CONFIG: {
     shouldRetry: boolean;
     initialDelay: number;
@@ -36,6 +37,14 @@ export declare const Constants: {
   DEFAULT_SETTINGS_STORAGE_KEY: string;
   POLLING_INTERVAL: number;
   PRODUCT_NAME: string;
+  BRAND_DISPLAY_NAME: string;
+  LOG_PREFIX: string;
+  LOGGER_NAME: string;
+  SETTINGS_MANAGER_NAME: string;
+  NETWORK_LAYER_NAME: string;
+  LOCAL_STORAGE_NAME: string;
+  SESSION_STORAGE_NAME: string;
+  SETTINGS_FETCH_ERROR: string;
   V2_SETTINGS: string;
   POLLING: string;
   BATCH_EVENTS: string;

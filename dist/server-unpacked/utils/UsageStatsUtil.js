@@ -42,7 +42,7 @@ var UsageStatsUtil = /** @class */ (function () {
      */
     UsageStatsUtil.prototype.setUsageStats = function (options) {
         var _a;
-        var storage = options.storage, logger = options.logger, batchEventData = options.batchEventData, gatewayService = options.gatewayService, integrations = options.integrations, pollInterval = options.pollInterval, _vwo_meta = options._vwo_meta, shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
+        var storage = options.storage, logger = options.logger, batchEventData = options.batchEventData, gatewayService = options.gatewayService, integrations = options.integrations, pollInterval = options.pollInterval, _wingify_meta = options._wingify_meta, _vwo_meta = options._vwo_meta, shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
         var data = {};
         data.a = options.accountId;
         data.env = options.sdkKey;
@@ -65,8 +65,9 @@ var UsageStatsUtil = /** @class */ (function () {
             data.pi = pollInterval; // Polling interval configured
         if (shouldWaitForTrackingCalls)
             data.swtc = 1;
-        // if _vwo_meta has ea, then addd data._ea to be 1
-        if (_vwo_meta && _vwo_meta.ea)
+        // if _wingify_meta or _vwo_meta has ea, then add data._ea to be 1
+        var meta = _wingify_meta || _vwo_meta;
+        if (meta && meta.ea)
             data._ea = 1;
         if (typeof process !== 'undefined' && process.version) {
             // For Node.js environment

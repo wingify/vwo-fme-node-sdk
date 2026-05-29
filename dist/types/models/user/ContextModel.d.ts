@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { dynamic } from '../../types/Common';
-import { ContextVWOModel } from './ContextVWOModel';
-import { IVWOOptions } from '../VWOOptionsModel';
-export interface IVWOContextModel {
+import { ContextWingifyModel } from './ContextWingifyModel';
+import { IWingifyOptions } from '../WingifyOptionsModel';
+export interface IWingifyContextModel {
   id: string | number;
   userAgent?: string;
   ipAddress?: string;
@@ -27,7 +27,7 @@ export interface IVWOContextModel {
   sessionId?: number;
   isDevMode?: boolean;
 }
-export declare class ContextModel implements IVWOContextModel {
+export declare class ContextModel implements IWingifyContextModel {
   id: string | number;
   userAgent?: string;
   ipAddress?: string;
@@ -35,11 +35,11 @@ export declare class ContextModel implements IVWOContextModel {
   variationTargetingVariables?: Record<string, dynamic>;
   postSegmentationVariables?: string[];
   bucketingSeed?: string;
-  _vwo_uuid?: string;
+  _wingify_uuid?: string;
   sessionId?: number;
-  _vwo?: ContextVWOModel;
+  _wingify?: ContextWingifyModel;
   isDevMode?: boolean;
-  modelFromDictionary(context: Record<string, any>, options: IVWOOptions): this;
+  modelFromDictionary(context: Record<string, any>, options: IWingifyOptions): this;
   getId(): string;
   getUserAgent(): string;
   getIpAddress(): string;
@@ -47,8 +47,8 @@ export declare class ContextModel implements IVWOContextModel {
   setCustomVariables(customVariables: Record<string, any>): void;
   getVariationTargetingVariables(): Record<string, dynamic>;
   setVariationTargetingVariables(variationTargetingVariables: Record<string, dynamic>): void;
-  getVwo(): ContextVWOModel;
-  setVwo(_vwo: ContextVWOModel): void;
+  getVwo(): ContextWingifyModel;
+  setVwo(_wingify: ContextWingifyModel): void;
   getPostSegmentationVariables(): string[];
   setPostSegmentationVariables(postSegmentationVariables: string[]): void;
   getUuid(): string;

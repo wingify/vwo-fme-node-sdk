@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import messages from 'vwo-fme-sdk-log-messages';
+import messages from 'wingify-fme-sdk-log-messages';
 const resolvedMessages = messages.default || messages;
 const DebugLogMessagesEnum = resolvedMessages.debugMessages;
 const InfoLogMessagesEnum = resolvedMessages.infoMessages;

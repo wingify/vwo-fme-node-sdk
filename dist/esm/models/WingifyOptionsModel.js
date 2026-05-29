@@ -1,0 +1,178 @@
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+export class WingifyOptionsModel {
+    modelFromDictionary(options) {
+        this.accountId = options.accountId;
+        this.sdkKey = options.sdkKey;
+        this.wingifyBuilder = options.wingifyBuilder || options.vwoBuilder;
+        if (options?.shouldWaitForTrackingCalls) {
+            this.shouldWaitForTrackingCalls = options.shouldWaitForTrackingCalls;
+        }
+        if (options?.isDevelopmentMode) {
+            this.isDevelopmentMode = options.isDevelopmentMode;
+        }
+        if (options?.storage) {
+            this.storage = options.storage;
+        }
+        if (options?.gatewayService) {
+            this.gatewayService = options.gatewayService;
+        }
+        if (options?.pollInterval) {
+            this.pollInterval = options.pollInterval;
+        }
+        if (options?.logger) {
+            this.logger = options.logger;
+        }
+        if (options?.segmentation) {
+            this.segmentation = options.segmentation;
+        }
+        if (options?.integrations) {
+            this.integrations = options.integrations;
+        }
+        if (options?.network) {
+            this.network = options.network;
+        }
+        if (options?.settings) {
+            this.settings = options.settings;
+        }
+        if (options?.isUsageStatsDisabled) {
+            this.isUsageStatsDisabled = options.isUsageStatsDisabled;
+        }
+        if (options?._wingify_meta || options?._vwo_meta) {
+            this._wingify_meta = options._wingify_meta || options._vwo_meta;
+        }
+        if (options?.clientStorage) {
+            this.clientStorage = options.clientStorage;
+        }
+        if (options?.retryConfig) {
+            this.retryConfig = options.retryConfig;
+        }
+        if (options?.proxyUrl) {
+            this.proxyUrl = options.proxyUrl;
+        }
+        if (options?.isAliasingEnabled) {
+            this.isAliasingEnabled = options.isAliasingEnabled;
+        }
+        if (options?.edgeConfig) {
+            this.edgeConfig = options.edgeConfig;
+        }
+        if (options?.browserConfig) {
+            this.browserConfig = options.browserConfig;
+        }
+        if (options?.sdkMeta) {
+            this.sdkMeta = options.sdkMeta;
+        }
+        if (options?.httpsAgentConfig) {
+            this.httpsAgentConfig = options.httpsAgentConfig;
+        }
+        // default to false if not provided
+        this.isBatchingDisabled = options?.isBatchingDisabled ?? false;
+        return this;
+    }
+    /**
+     * Gets the flag indicating whether batching is disabled.
+     * @returns The flag indicating whether batching is disabled.
+     */
+    getIsBatchingDisabled() {
+        return this.isBatchingDisabled;
+    }
+    /**
+     * Gets the HTTPS agent configuration.
+     * @returns The HTTPS agent configuration.
+     */
+    getHttpsAgentConfig() {
+        return this.httpsAgentConfig;
+    }
+    getAccountId() {
+        return this.accountId;
+    }
+    getSdkKey() {
+        return this.sdkKey;
+    }
+    getIsDevelopmentMode() {
+        return this.isDevelopmentMode;
+    }
+    getStorageService() {
+        return this.storage;
+    }
+    getGatewayService() {
+        return this.gatewayService;
+    }
+    getPollInterval() {
+        return this.pollInterval;
+    }
+    getLogger() {
+        return this.logger;
+    }
+    getSegmentation() {
+        return this.segmentation;
+    }
+    getNetwork() {
+        return this.network;
+    }
+    getWingifyBuilder() {
+        return this.wingifyBuilder;
+    }
+    getSettings() {
+        return this.settings;
+    }
+    getIsUsageStatsDisabled() {
+        return this.isUsageStatsDisabled;
+    }
+    getWingifyMeta() {
+        return this._wingify_meta;
+    }
+    getClientStorage() {
+        return this.clientStorage;
+    }
+    getRetryConfig() {
+        return this.retryConfig;
+    }
+    getProxyUrl() {
+        return this.proxyUrl;
+    }
+    getIsAliasingEnabled() {
+        return this.isAliasingEnabled;
+    }
+    getEdgeConfig() {
+        return this.edgeConfig;
+    }
+    getBrowserConfig() {
+        return this.browserConfig;
+    }
+    /**
+     * Gets the SDK meta.
+     * @returns The SDK meta.
+     */
+    getSdkMeta() {
+        return this.sdkMeta;
+    }
+    /**
+     * Gets the SDK name.
+     * @returns The SDK name.
+     */
+    getSdkName() {
+        return this.sdkMeta?._wingify_sdkName || this.sdkMeta?._vwo_sdkName;
+    }
+    /**
+     * Gets the SDK version.
+     * @returns The SDK version.
+     */
+    getVersion() {
+        return this.sdkMeta?._wingify_sdkVersion || this.sdkMeta?._vwo_sdkVersion;
+    }
+}
+//# sourceMappingURL=WingifyOptionsModel.js.map

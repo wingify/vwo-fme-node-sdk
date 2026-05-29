@@ -51,10 +51,10 @@ export const checkWhitelistingAndPreSeg = async (
   const campaignId = campaign.getId();
 
   if (campaign.getType() === CampaignTypeEnum.AB) {
-    // set _vwoUserId for variation targeting variables
+    // set _wingifyUserId for variation targeting variables
     context.setVariationTargetingVariables(
       Object.assign({}, context.getVariationTargetingVariables(), {
-        _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
+        _wingifyUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
       }),
     );
 
@@ -78,7 +78,7 @@ export const checkWhitelistingAndPreSeg = async (
   // userlist segment is also available for campaign pre segmentation
   context.setCustomVariables(
     Object.assign({}, context.getCustomVariables(), {
-      _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
+      _wingifyUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
     }),
   );
 
@@ -109,7 +109,7 @@ export const checkWhitelistingAndPreSeg = async (
   } else if (groupId) {
     // check in storage if the group is already evaluated for the user
     const storedData: Record<any, any> = await new StorageDecorator().getFeatureFromStorage(
-      `${Constants.VWO_META_MEG_KEY}${groupId}`,
+      `${Constants.META_MEG_KEY}${groupId}`,
       context,
       storageService,
       serviceContainer,

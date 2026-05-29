@@ -129,7 +129,7 @@ export class StorageDecorator implements IStorageDecorator {
         {
           key: 'featureKey',
         },
-        { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId },
+        { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
       );
 
       deferredObject.reject(); // Reject promise if feature key is invalid
@@ -141,7 +141,7 @@ export class StorageDecorator implements IStorageDecorator {
         {
           key: 'Context or Context.id',
         },
-        { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId },
+        { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
       );
 
       deferredObject.reject(); // Reject promise if user ID is invalid
@@ -153,7 +153,7 @@ export class StorageDecorator implements IStorageDecorator {
         {
           key: 'Variation:(rolloutKey, experimentKey or rolloutVariationId)',
         },
-        { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId },
+        { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
       );
 
       deferredObject.reject(); // Reject promise if rollout variation is invalid
@@ -165,7 +165,7 @@ export class StorageDecorator implements IStorageDecorator {
         {
           key: 'Variation:(experimentKey or rolloutVariationId)',
         },
-        { an: ApiEnum.GET_FLAG, uuid: context._vwo_uuid, sId: context._vwo_sessionId },
+        { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() },
       );
 
       deferredObject.reject(); // Reject promise if experiment variation is invalid

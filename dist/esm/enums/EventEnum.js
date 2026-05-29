@@ -15,12 +15,12 @@
  */
 export var EventEnum;
 (function (EventEnum) {
-    EventEnum["VWO_VARIATION_SHOWN"] = "vwo_variationShown";
-    EventEnum["VWO_SYNC_VISITOR_PROP"] = "vwo_syncVisitorProp";
-    EventEnum["VWO_LOG_EVENT"] = "vwo_log";
-    EventEnum["VWO_INIT_CALLED"] = "vwo_fmeSdkInit";
-    EventEnum["VWO_USAGE_STATS"] = "vwo_sdkUsageStats";
-    EventEnum["VWO_HOLDOUT"] = "vwo_holdout";
-    EventEnum["VWO_DEBUGGER_EVENT"] = "vwo_sdkDebug";
+    EventEnum["VARIATION_SHOWN"] = "vwo_variationShown";
+    EventEnum["SYNC_VISITOR_PROP"] = "vwo_syncVisitorProp";
+    EventEnum["LOG_EVENT"] = "vwo_log";
+    EventEnum["INIT_CALLED"] = "vwo_fmeSdkInit";
+    EventEnum["USAGE_STATS"] = "vwo_sdkUsageStats";
+    EventEnum["HOLDOUT"] = "vwo_holdout";
+    EventEnum["DEBUGGER_EVENT"] = "vwo_sdkDebug";
 })(EventEnum || (EventEnum = {}));
 //# sourceMappingURL=EventEnum.js.map

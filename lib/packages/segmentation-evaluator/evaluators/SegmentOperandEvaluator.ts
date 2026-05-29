@@ -125,9 +125,10 @@ export class SegmentOperandEvaluator {
    * @returns {boolean} - True if the user ID is in the list, otherwise false.
    */
   evaluateUserDSL(dslOperandValue: Record<string, any>, properties: Record<string, dynamic>): boolean {
+    const userId = properties._wingifyUserId ?? properties._vwoUserId;
     const users = dslOperandValue.split(',');
     for (let i = 0; i < users.length; i++) {
-      if (users[i].trim() == properties._vwoUserId) {
+      if (users[i].trim() == userId) {
         return true;
       }
     }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import messages from 'vwo-fme-sdk-log-messages';
+import messages from 'wingify-fme-sdk-log-messages';
 
 const resolvedMessages: Record<string, any> =
   (messages as unknown as { default?: Record<string, any> }).default || (messages as Record<string, any>);

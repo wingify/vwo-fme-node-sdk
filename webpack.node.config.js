@@ -45,6 +45,9 @@ Dependencies used - ${deps}`;
       banner: libraryHeaderComment,
       entryOnly: true,
       stage: webpack.Compilation.PROCESS_ASSETS_STAGE_REPORT
+    }),
+    new webpack.DefinePlugin({
+      __SDK_BRAND__: JSON.stringify(argv.env && argv.env.brand ? argv.env.brand : 'vwo')
     })
   ];
 
@@ -56,9 +59,13 @@ Dependencies used - ${deps}`;
 }
 
 module.exports = function(_env, argv) {
+  const brand = _env && _env.brand ? _env.brand : 'vwo';
+  const outLibraryName = brand === 'wingify' ? 'wingify-fme-node-sdk' : libraryName;
+  const entryFile = brand === 'wingify' ? './dist/server-unpacked/index.wingify.js' : './dist/server-unpacked/index.js';
+
   return {
     entry: {
-      [libraryName]: './dist/server-unpacked/index.js'
+      [outLibraryName]: entryFile
     },
     mode: argv.mode === PRODUCTION ? 'production' : 'development',
     devtool: 'source-map',

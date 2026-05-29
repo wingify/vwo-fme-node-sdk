@@ -140,9 +140,11 @@ var SegmentOperandEvaluator = /** @class */ (function () {
      * @returns {boolean} - True if the user ID is in the list, otherwise false.
      */
     SegmentOperandEvaluator.prototype.evaluateUserDSL = function (dslOperandValue, properties) {
+        var _a;
+        var userId = (_a = properties._wingifyUserId) !== null && _a !== void 0 ? _a : properties._vwoUserId;
         var users = dslOperandValue.split(',');
         for (var i = 0; i < users.length; i++) {
-            if (users[i].trim() == properties._vwoUserId) {
+            if (users[i].trim() == userId) {
                 return true;
             }
         }

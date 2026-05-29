@@ -31,7 +31,7 @@ export const evaluateRule = async (serviceContainer, feature, campaign, context,
             experimentVariationId: whitelistedObject.variationId,
         });
         // Send an impression for the variation shown
-        payload = getTrackUserPayloadData(serviceContainer, EventEnum.VWO_VARIATION_SHOWN, campaign.getId(), whitelistedObject.variation.id, context);
+        payload = getTrackUserPayloadData(serviceContainer, EventEnum.VARIATION_SHOWN, campaign.getId(), whitelistedObject.variation.id, context);
     }
     // Return the results of the evaluation
     return { preSegmentationResult, whitelistedObject, updatedDecision: decision, payload: payload };

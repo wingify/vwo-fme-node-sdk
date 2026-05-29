@@ -29,7 +29,7 @@ import { getAllExperimentRules, getFeatureFromKey, getSpecificRulesBasedOnType }
 import { buildMessage } from '../utils/LogMessageUtil.js';
 import { Deferred } from '../utils/PromiseUtil.js';
 import { evaluateRule } from '../utils/RuleEvaluationUtil.js';
-import { extractDecisionKeys, sendDebugEventToVWO } from '../utils/DebuggerServiceUtil.js';
+import { extractDecisionKeys, sendDebugEventToWingify } from '../utils/DebuggerServiceUtil.js';
 import { DebuggerCategoryEnum } from '../enums/DebuggerCategoryEnum.js';
 import { Constants } from '../constants/index.js';
 import { getApplicableHoldouts, getMatchedHoldouts, sendNetworkCallsForNotInHoldouts } from '../utils/HoldoutUtil.js';
@@ -332,7 +332,7 @@ export class FlagApi {
                     decision['isUserPartOfCampaign'] = true;
                     _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
                     if (!isDevModeForUser) {
-                        const payload = getTrackUserPayloadData(serviceContainer, EventEnum.VWO_VARIATION_SHOWN, passedRolloutCampaign.getId(), variation.getId(), context);
+                        const payload = getTrackUserPayloadData(serviceContainer, EventEnum.VARIATION_SHOWN, passedRolloutCampaign.getId(), variation.getId(), context);
                         if (serviceContainer.getShouldWaitForTrackingCalls()) {
                             if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
                                 await sendImpressionForVariationShown(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload);
@@ -358,7 +358,9 @@ export class FlagApi {
             }
         }
         else if (rollOutRules.length === 0) {
-            serviceContainer.getLogManager().debug(DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT);
+            serviceContainer
+                .getLogManager()
+                .debug(buildMessage(DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT));
             shouldCheckForExperimentsRules = true;
         }
         if (shouldCheckForExperimentsRules) {
@@ -419,7 +421,7 @@ export class FlagApi {
                     experimentVariationToReturn = variation;
                     _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
                     if (!isDevModeForUser) {
-                        const payload = getTrackUserPayloadData(serviceContainer, EventEnum.VWO_VARIATION_SHOWN, campaign.getId(), variation.getId(), context);
+                        const payload = getTrackUserPayloadData(serviceContainer, EventEnum.VARIATION_SHOWN, campaign.getId(), variation.getId(), context);
                         if (serviceContainer.getShouldWaitForTrackingCalls()) {
                             if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
                                 await sendImpressionForVariationShown(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload);
@@ -473,7 +475,7 @@ export class FlagApi {
             // update debug event props with decision keys
             _updateDebugEventProps(debugEventProps, decision);
             // send debug event
-            sendDebugEventToVWO(serviceContainer, debugEventProps);
+            sendDebugEventToWingify(serviceContainer, debugEventProps);
         }
         // Send data for Impact Campaign, if defined
         if (feature.getImpactCampaign()?.getCampaignId()) {
@@ -483,7 +485,7 @@ export class FlagApi {
                 status: isEnabled ? 'enabled' : 'disabled',
             }));
             if (!isDevModeForUser) {
-                const payload = getTrackUserPayloadData(serviceContainer, EventEnum.VWO_VARIATION_SHOWN, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, context);
+                const payload = getTrackUserPayloadData(serviceContainer, EventEnum.VARIATION_SHOWN, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, context);
                 if (serviceContainer.getShouldWaitForTrackingCalls()) {
                     if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
                         await sendImpressionForVariationShown(serviceContainer, feature.getImpactCampaign()?.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload);

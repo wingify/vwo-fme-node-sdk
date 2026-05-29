@@ -101,8 +101,8 @@ var createImpressionForAttributes = function (serviceContainer, attributes, cont
                 if (isSettingsDevModeEnabled && isUserDevModeEnabled) {
                     return [2 /*return*/];
                 }
-                properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
-                payload = (0, NetworkUtil_1.getAttributePayloadData)(serviceContainer, EventEnum_1.EventEnum.VWO_SYNC_VISITOR_PROP, attributes, context);
+                properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.SYNC_VISITOR_PROP, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+                payload = (0, NetworkUtil_1.getAttributePayloadData)(serviceContainer, EventEnum_1.EventEnum.SYNC_VISITOR_PROP, attributes, context);
                 if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
                 serviceContainer.getBatchEventsQueue().enqueue(payload);
                 return [3 /*break*/, 3];

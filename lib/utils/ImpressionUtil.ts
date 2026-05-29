@@ -44,7 +44,7 @@ export const sendImpressionForVariationShown = async (
   // Get base properties for the event
   const properties = getEventsBaseProperties(
     serviceContainer.getSettingsService(),
-    EventEnum.VWO_VARIATION_SHOWN,
+    EventEnum.VARIATION_SHOWN,
     encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
     context.getIpAddress(),
   );

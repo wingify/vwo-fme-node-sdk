@@ -26,7 +26,7 @@ import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages
 import { SettingsSchema } from '../models/schemas/SettingsSchemaValidation';
 import { buildMessage } from '../utils/LogMessageUtil';
 import { createNetWorkAndRetryDebugEvent, getSettingsPath } from '../utils/NetworkUtil';
-import { sendDebugEventToVWO } from '../utils/DebuggerServiceUtil';
+import { sendDebugEventToWingify } from '../utils/DebuggerServiceUtil';
 import { getFormattedErrorMessage } from '../utils/FunctionUtil';
 import { ApiEnum } from '../enums/ApiEnum';
 import { StorageService } from './StorageService';
@@ -48,6 +48,7 @@ export class SettingsService implements ISettingsService {
   expiry: number;
   networkTimeout: number;
   hostname: string;
+  collectionHostname: string;
   port: number;
   protocol: string;
   isGatewayServiceProvided: boolean = false;
@@ -141,12 +142,22 @@ export class SettingsService implements ISettingsService {
       }
     }
 
+    if (this.proxyProvided || options?.gatewayService?.url) {
+      // Proxy and gateway route all traffic through a single host
+      this.collectionHostname = this.hostname;
+    } else {
+      this.collectionHostname = Constants.COLLECTION_HOST_NAME;
+      if (!this.hostname) {
+        this.hostname = Constants.HOST_NAME;
+      }
+    }
+
     // if (this.expiry > 0) {
     //   this.setSettingsExpiry();
     // }
     this.logManager.debug(
       buildMessage(DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-        service: 'Settings Manager',
+        service: Constants.SETTINGS_MANAGER_NAME,
       }),
     );
   }
@@ -165,6 +176,14 @@ export class SettingsService implements ISettingsService {
    */
   isProxyProvided(): boolean {
     return this.proxyProvided;
+  }
+
+  /**
+   * Host used for event collection POST calls (track, impressions, batch, debugger).
+   * Defaults to collect.wingify.net for Wingify SDK; same as serving host for VWO SDK.
+   */
+  getCollectionHostname(): string {
+    return this.collectionHostname;
   }
 
   /**
@@ -239,7 +258,7 @@ export class SettingsService implements ISettingsService {
               path,
             );
             // send debug event
-            sendDebugEventToVWO(this.serviceContainer, debugEventProps);
+            sendDebugEventToWingify(this.serviceContainer, debugEventProps);
           }
           deferredObject.resolve(response.getData());
         })
@@ -251,7 +270,7 @@ export class SettingsService implements ISettingsService {
             path,
           );
           // send debug event
-          sendDebugEventToVWO(this.serviceContainer, debugEventProps);
+          sendDebugEventToWingify(this.serviceContainer, debugEventProps);
 
           deferredObject.reject(err);
         });
@@ -315,7 +334,7 @@ export class SettingsService implements ISettingsService {
         const normalizedSettings = await this.normalizeSettings(freshSettings);
         this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
         if (this.isSettingsValid) {
-          this.logManager.info(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+          this.logManager.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
           deferredObject.resolve(normalizedSettings);
         } else {
           this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);

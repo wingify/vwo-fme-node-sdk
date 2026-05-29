@@ -191,7 +191,7 @@ async function sendRequest(
           executeRequest().then(resolve).catch(reject);
         }, delay);
       } else {
-        if (!String(networkOptions.path).includes(EventEnum.VWO_DEBUGGER_EVENT)) {
+        if (!String(networkOptions.path).includes(EventEnum.DEBUGGER_EVENT)) {
           logManager.errorLog(
             'NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES',
             {

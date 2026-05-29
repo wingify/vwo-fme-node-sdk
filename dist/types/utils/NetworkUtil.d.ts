@@ -20,7 +20,7 @@ export declare function getSettingsPath(sdkKey: string, accountId: string | numb
  */
 export declare function getTrackEventPath(event: string, accountId: string, userId: string): Record<string, dynamic>;
 /**
- * Builds generic properties for different tracking calls required by VWO servers.
+ * Builds generic properties for different tracking calls required by Wingify servers.
  * @param {SettingsService} settingsService - The settings service instance.
  * @param {String} eventName
  * @param {String} visitorUserAgent - The visitor user agent.
@@ -172,7 +172,7 @@ export declare function getDebuggerEventPayload(
   eventProps?: Record<string, any>,
 ): Record<string, any>;
 /**
- * Sends an event to VWO (generic event sender).
+ * Sends an event to Wingify (generic event sender).
  * @param {NetworkManager} networkManager - The network manager instance.
  * @param {SettingsService} settingsService - The settings service instance.
  * @param properties - Query parameters for the request.

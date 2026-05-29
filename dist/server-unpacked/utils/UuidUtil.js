@@ -19,7 +19,7 @@ exports.isWebUuid = isWebUuid;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var Url_1 = require("../constants/Url");
+var constants_1 = require("../constants");
 var uuid_1 = require("uuid");
 var uuid_2 = require("uuid");
 /**
@@ -41,7 +41,7 @@ function getRandomUUID(sdkKey) {
  * @returns A UUID string formatted without dashes and in uppercase.
  */
 function getUUID(userId, accountId) {
-    var VWO_NAMESPACE = (0, uuid_2.v5)(Url_1.SEED_URL, uuid_2.v5.URL);
+    var VWO_NAMESPACE = (0, uuid_2.v5)(constants_1.Constants.SEED_URL, uuid_2.v5.URL);
     // Convert userId and accountId to string to ensure proper type
     userId = String(userId);
     accountId = String(accountId);

@@ -73,9 +73,9 @@ var checkWhitelistingAndPreSeg = function (serviceContainer, feature, campaign, 
                 vwoUserId = (0, UuidUtil_1.getUUID)(context.getId(), serviceContainer.getSettings().getAccountId());
                 campaignId = campaign.getId();
                 if (!(campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB)) return [3 /*break*/, 3];
-                // set _vwoUserId for variation targeting variables
+                // set _wingifyUserId for variation targeting variables
                 context.setVariationTargetingVariables(Object.assign({}, context.getVariationTargetingVariables(), {
-                    _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
+                    _wingifyUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
                 }));
                 Object.assign(decision, { variationTargetingVariables: context.getVariationTargetingVariables() }); // for integration
                 if (!campaign.getIsForcedVariationEnabled()) return [3 /*break*/, 2];
@@ -95,7 +95,7 @@ var checkWhitelistingAndPreSeg = function (serviceContainer, feature, campaign, 
             case 3:
                 // userlist segment is also available for campaign pre segmentation
                 context.setCustomVariables(Object.assign({}, context.getCustomVariables(), {
-                    _vwoUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
+                    _wingifyUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
                 }));
                 Object.assign(decision, { customVariables: context.getCustomVariables() }); // for integeration
                 groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(serviceContainer.getSettings(), campaign.getId(), campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null).groupId;
@@ -117,7 +117,7 @@ var checkWhitelistingAndPreSeg = function (serviceContainer, feature, campaign, 
                 return [2 /*return*/, [false, null]];
             case 4:
                 if (!groupId) return [3 /*break*/, 6];
-                return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.VWO_META_MEG_KEY).concat(groupId), context, storageService, serviceContainer)];
+                return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.META_MEG_KEY).concat(groupId), context, storageService, serviceContainer)];
             case 5:
                 storedData = _a.sent();
                 if (storedData && storedData.experimentKey && storedData.experimentId) {

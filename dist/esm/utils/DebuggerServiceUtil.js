@@ -45,20 +45,20 @@ export function extractDecisionKeys(decisionObj = {}) {
     return extractedKeys;
 }
 /**
- * Sends a debug event to VWO.
+ * Sends a debug event to Wingify.
  * @param eventProps - The properties for the event.
  * @returns A promise that resolves when the event is sent.
  */
-export async function sendDebugEventToVWO(serviceContainer, eventProps = {}) {
+export async function sendDebugEventToWingify(serviceContainer, eventProps = {}) {
     // create query parameters
-    const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.VWO_DEBUGGER_EVENT, null, null);
+    const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.DEBUGGER_EVENT, null, null);
     // create payload
     const payload = getDebuggerEventPayload(serviceContainer.getSettingsService(), eventProps);
     if (serviceContainer.getBatchEventsQueue()) {
         serviceContainer.getBatchEventsQueue().enqueue(payload);
     }
     else {
-        await sendEvent(serviceContainer, properties, payload, EventEnum.VWO_DEBUGGER_EVENT).catch(() => { });
+        await sendEvent(serviceContainer, properties, payload, EventEnum.DEBUGGER_EVENT).catch(() => { });
     }
 }
 //# sourceMappingURL=DebuggerServiceUtil.js.map

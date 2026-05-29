@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 export declare enum EventEnum {
-  VWO_VARIATION_SHOWN = 'vwo_variationShown',
-  VWO_SYNC_VISITOR_PROP = 'vwo_syncVisitorProp',
-  VWO_LOG_EVENT = 'vwo_log',
-  VWO_INIT_CALLED = 'vwo_fmeSdkInit',
-  VWO_USAGE_STATS = 'vwo_sdkUsageStats',
-  VWO_HOLDOUT = 'vwo_holdout',
-  VWO_DEBUGGER_EVENT = 'vwo_sdkDebug',
+  VARIATION_SHOWN = 'vwo_variationShown',
+  SYNC_VISITOR_PROP = 'vwo_syncVisitorProp',
+  LOG_EVENT = 'vwo_log',
+  INIT_CALLED = 'vwo_fmeSdkInit',
+  USAGE_STATS = 'vwo_sdkUsageStats',
+  HOLDOUT = 'vwo_holdout',
+  DEBUGGER_EVENT = 'vwo_sdkDebug',
 }

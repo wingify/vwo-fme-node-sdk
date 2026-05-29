@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IVWOOptions } from '../models/VWOOptionsModel';
+import { IWingifyOptions } from '../models/WingifyOptionsModel';
 export interface ISDKMeta {
   sdkName: string;
   version: string;
@@ -31,7 +31,7 @@ export declare class SDKMetaUtil {
   private static instance;
   private sdkName;
   private version;
-  constructor(options?: IVWOOptions | null);
+  constructor(options?: IWingifyOptions | null);
   /**
    * Returns the singleton instance. If not initialized, it initializes it with default constants for sdkName and version.
    * @returns The singleton instance.

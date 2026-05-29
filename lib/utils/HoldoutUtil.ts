@@ -156,7 +156,7 @@ export async function getMatchedHoldouts(
     // campaignId is the holdoutId, variationId is 1 (IN) or 2 (NOT IN)
     const payload = createHoldoutPayload(
       serviceContainer,
-      EventEnum.VWO_VARIATION_SHOWN,
+      EventEnum.VARIATION_SHOWN,
       holdout.getId(), // campaignId is the holdoutId
       variationId, // 1 if IN holdout, 2 if NOT IN holdout
       context,
@@ -207,7 +207,7 @@ export async function sendNetworkCallsForNotInHoldouts(
       updatedNotInHoldoutIds.push(holdout.getId());
       const payload = createHoldoutPayload(
         serviceContainer,
-        EventEnum.VWO_VARIATION_SHOWN,
+        EventEnum.VARIATION_SHOWN,
         holdout.getId(),
         Constants.VARIATION_NOT_PART_OF_HOLDOUT,
         context,

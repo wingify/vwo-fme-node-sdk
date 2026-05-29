@@ -65,7 +65,7 @@ var DataTypeUtil_1 = require("../utils/DataTypeUtil");
 var SDKMetaUtil_1 = require("../utils/SDKMetaUtil");
 var SettingsService = /** @class */ (function () {
     function SettingsService(options, logManager) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         this.isGatewayServiceProvided = false;
         this.settingsFetchTime = undefined; //time taken to fetch the settings
         this.isSettingsValid = false;
@@ -151,11 +151,21 @@ var SettingsService = /** @class */ (function () {
                 this.hostname = constants_1.Constants.HOST_NAME;
             }
         }
+        if (this.proxyProvided || ((_g = options === null || options === void 0 ? void 0 : options.gatewayService) === null || _g === void 0 ? void 0 : _g.url)) {
+            // Proxy and gateway route all traffic through a single host
+            this.collectionHostname = this.hostname;
+        }
+        else {
+            this.collectionHostname = constants_1.Constants.COLLECTION_HOST_NAME;
+            if (!this.hostname) {
+                this.hostname = constants_1.Constants.HOST_NAME;
+            }
+        }
         // if (this.expiry > 0) {
         //   this.setSettingsExpiry();
         // }
         this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.SERVICE_INITIALIZED, {
-            service: 'Settings Manager',
+            service: constants_1.Constants.SETTINGS_MANAGER_NAME,
         }));
     }
     /**
@@ -171,6 +181,13 @@ var SettingsService = /** @class */ (function () {
      */
     SettingsService.prototype.isProxyProvided = function () {
         return this.proxyProvided;
+    };
+    /**
+     * Host used for event collection POST calls (track, impressions, batch, debugger).
+     * Defaults to collect.wingify.net for Wingify SDK; same as serving host for VWO SDK.
+     */
+    SettingsService.prototype.getCollectionHostname = function () {
+        return this.collectionHostname;
     };
     /**
      * Normalize the settings
@@ -223,14 +240,14 @@ var SettingsService = /** @class */ (function () {
                 if (response.getTotalAttempts() > 0) {
                     var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
                     // send debug event
-                    (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(_this.serviceContainer, debugEventProps);
+                    (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(_this.serviceContainer, debugEventProps);
                 }
                 deferredObject.resolve(response.getData());
             })
                 .catch(function (err) {
                 var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(err, '', isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName, path);
                 // send debug event
-                (0, DebuggerServiceUtil_1.sendDebugEventToVWO)(_this.serviceContainer, debugEventProps);
+                (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(_this.serviceContainer, debugEventProps);
                 deferredObject.reject(err);
             });
             return deferredObject.promise;
@@ -298,7 +315,7 @@ var SettingsService = /** @class */ (function () {
                         normalizedSettings = _a.sent();
                         this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
                         if (this.isSettingsValid) {
-                            this.logManager.info(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS);
+                            this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
                             deferredObject.resolve(normalizedSettings);
                         }
                         else {

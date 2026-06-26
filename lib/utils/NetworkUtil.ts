@@ -385,6 +385,51 @@ export function getAttributePayloadData(
 }
 
 /**
+ * Constructs the payload data for usage tracking call.
+ * Sent to server when a user is evaluated via getFlag() but no variationShown
+ * event is dispatched by the SDK (i.e., decision served from storage cache or
+ * flag evaluation returned false with no holdout impression already fired).
+ *
+ * Payload contains only user identity + session + SDK metadata.
+ * There is NO campaignId or variationId — this is a pure user-evaluation signal.
+ *
+ * @param {ServiceContainer} serviceContainer - The service container instance.
+ * @param {ContextModel} context - The context model instance.
+ * @returns {Record<string, any>} - The usage tracking payload.
+ */
+export function getTrackingUsagePayloadData(
+  serviceContainer: ServiceContainer,
+  context: ContextModel,
+): Record<string, any> {
+  const userId = context.getId();
+  const properties = _getEventBasePayload(
+    serviceContainer.getSettingsService(),
+    userId,
+    EventEnum.USER_EVALUATED,
+    context.getUserAgent(),
+    context.getIpAddress(),
+  );
+
+  if (context.getSessionId() !== 0) {
+    properties.d.sessionId = context.getSessionId();
+  }
+  // if uuid is present in the context, use it, otherwise generate a new one
+  if (context.getUuid()) {
+    properties.d.msgId = `${context.getUuid()}-${getCurrentUnixTimestampInMillis()}`;
+    properties.d.visId = context.getUuid();
+  }
+
+  serviceContainer.getLogManager().debug(
+    buildMessage(DebugLogMessagesEnum.IMPRESSION_FOR_TRACKING_USAGE, {
+      accountId: serviceContainer.getSettingsService().accountId.toString(),
+      userId,
+    }),
+  );
+
+  return properties;
+}
+
+/**
  * Sends a POST API request with the specified properties and payload.
  * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {any} properties - Properties for the request.

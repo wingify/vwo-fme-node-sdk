@@ -54,6 +54,7 @@ exports._getEventBasePayload = _getEventBasePayload;
 exports.getTrackUserPayloadData = getTrackUserPayloadData;
 exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 exports.getAttributePayloadData = getAttributePayloadData;
+exports.getTrackingUsagePayloadData = getTrackingUsagePayloadData;
 exports.sendPostApiRequest = sendPostApiRequest;
 exports.getMessagingEventPayload = getMessagingEventPayload;
 exports.getSDKInitEventPayload = getSDKInitEventPayload;
@@ -349,6 +350,36 @@ function getAttributePayloadData(serviceContainer, eventName, attributes, contex
         eventName: eventName,
         accountId: serviceContainer.getSettingsService().accountId.toString(),
         userId: context.getId(),
+    }));
+    return properties;
+}
+/**
+ * Constructs the payload data for usage tracking call.
+ * Sent to server when a user is evaluated via getFlag() but no variationShown
+ * event is dispatched by the SDK (i.e., decision served from storage cache or
+ * flag evaluation returned false with no holdout impression already fired).
+ *
+ * Payload contains only user identity + session + SDK metadata.
+ * There is NO campaignId or variationId — this is a pure user-evaluation signal.
+ *
+ * @param {ServiceContainer} serviceContainer - The service container instance.
+ * @param {ContextModel} context - The context model instance.
+ * @returns {Record<string, any>} - The usage tracking payload.
+ */
+function getTrackingUsagePayloadData(serviceContainer, context) {
+    var userId = context.getId();
+    var properties = _getEventBasePayload(serviceContainer.getSettingsService(), userId, EventEnum_1.EventEnum.USER_EVALUATED, context.getUserAgent(), context.getIpAddress());
+    if (context.getSessionId() !== 0) {
+        properties.d.sessionId = context.getSessionId();
+    }
+    // if uuid is present in the context, use it, otherwise generate a new one
+    if (context.getUuid()) {
+        properties.d.msgId = "".concat(context.getUuid(), "-").concat((0, FunctionUtil_1.getCurrentUnixTimestampInMillis)());
+        properties.d.visId = context.getUuid();
+    }
+    serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACKING_USAGE, {
+        accountId: serviceContainer.getSettingsService().accountId.toString(),
+        userId: userId,
     }));
     return properties;
 }

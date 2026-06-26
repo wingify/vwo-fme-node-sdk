@@ -104,6 +104,23 @@ export declare function getAttributePayloadData(
   context: ContextModel,
 ): Record<string, any>;
 /**
+ * Constructs the payload data for usage tracking call.
+ * Sent to server when a user is evaluated via getFlag() but no variationShown
+ * event is dispatched by the SDK (i.e., decision served from storage cache or
+ * flag evaluation returned false with no holdout impression already fired).
+ *
+ * Payload contains only user identity + session + SDK metadata.
+ * There is NO campaignId or variationId — this is a pure user-evaluation signal.
+ *
+ * @param {ServiceContainer} serviceContainer - The service container instance.
+ * @param {ContextModel} context - The context model instance.
+ * @returns {Record<string, any>} - The usage tracking payload.
+ */
+export declare function getTrackingUsagePayloadData(
+  serviceContainer: ServiceContainer,
+  context: ContextModel,
+): Record<string, any>;
+/**
  * Sends a POST API request with the specified properties and payload.
  * @param {ServiceContainer} serviceContainer - The service container instance.
  * @param {any} properties - Properties for the request.

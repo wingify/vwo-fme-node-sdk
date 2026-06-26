@@ -22,4 +22,5 @@ export enum EventEnum {
   USAGE_STATS = 'vwo_sdkUsageStats',
   HOLDOUT = 'vwo_holdout',
   DEBUGGER_EVENT = 'vwo_sdkDebug',
+  USER_EVALUATED = 'vwo_feTrackUsage',
 }

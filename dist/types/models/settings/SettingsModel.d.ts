@@ -37,6 +37,7 @@ export declare class SettingsModel {
   private isWebConnectivityEnabled?;
   private holdouts?;
   private devMode?;
+  private isMAU?;
   constructor(settings: SettingsModel);
   getFeatures(): Array<FeatureModel>;
   getCampaigns(): Array<CampaignModel>;
@@ -52,4 +53,5 @@ export declare class SettingsModel {
   getIsWebConnectivityEnabled(): boolean;
   getHoldouts(): Array<HoldoutModel>;
   getDevMode(): boolean;
+  getIsTrackingUsageEnabled(): boolean;
 }

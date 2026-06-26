@@ -44,6 +44,7 @@ export class SettingsModel {
   private isWebConnectivityEnabled?: boolean;
   private holdouts?: Array<HoldoutModel> = [];
   private devMode?: boolean;
+  private isMAU?: boolean;
 
   constructor(settings: SettingsModel) {
     this.sdkKey = settings.sK || settings.sdkKey;
@@ -89,6 +90,10 @@ export class SettingsModel {
 
     if (settings.isWebConnectivityEnabled) {
       this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
+    }
+
+    if (settings.isMAU !== undefined) {
+      this.isMAU = settings.isMAU;
     }
 
     if (Array.isArray((settings as any).holdouts)) {
@@ -154,5 +159,9 @@ export class SettingsModel {
 
   getDevMode(): boolean {
     return this.devMode === true;
+  }
+
+  getIsTrackingUsageEnabled(): boolean {
+    return this.isMAU === true;
   }
 }

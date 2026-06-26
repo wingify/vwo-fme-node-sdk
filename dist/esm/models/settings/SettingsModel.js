@@ -62,6 +62,9 @@ export class SettingsModel {
         if (settings.isWebConnectivityEnabled) {
             this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
         }
+        if (settings.isMAU !== undefined) {
+            this.isMAU = settings.isMAU;
+        }
         if (Array.isArray(settings.holdouts)) {
             const holdoutsArray = settings.holdouts;
             holdoutsArray.forEach((holdout) => {
@@ -111,6 +114,9 @@ export class SettingsModel {
     }
     getDevMode() {
         return this.devMode === true;
+    }
+    getIsTrackingUsageEnabled() {
+        return this.isMAU === true;
     }
 }
 //# sourceMappingURL=SettingsModel.js.map

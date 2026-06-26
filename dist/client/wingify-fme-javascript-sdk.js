@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.50.0
+ * vwo-fme-javascript-sdk - v1.55.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.50.0"
+  version: "1.55.0"
 };
 
 /***/ }),
@@ -1648,10 +1648,10 @@ var FlagApi = /** @class */ (function () {
     }
     FlagApi.get = function (featureKey, context, serviceContainer) {
         return __awaiter(this, void 0, void 0, function () {
-            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, notInHoldoutIds, batchPayload, isSettingsDevModeEnabled, isUserDevModeEnabled, isDevModeForUser, feature, decision, debugEventProps, storageService, storedData, storedIsInHoldoutId, storedNotInHoldoutId, applicableHoldouts, _i, applicableHoldouts_1, holdout, _a, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, updatedHoldoutIds, updatedNotInHoldoutIds, _b, holdoutPayloads_1, payload, _c, holdoutPayloads_2, payload, variation, variation, updatedNotInHoldoutIds, featureInfo, _d, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, qualifiedHoldoutNames, _e, holdoutPayloads_3, payload, _f, holdoutPayloads_4, payload, _g, holdoutPayloads_5, payload, _h, holdoutPayloads_6, payload, rollOutRules, rolloutRulesToEvaluate, _j, rollOutRules_1, rule, _k, preSegmentationResult, updatedDecision, payload, passedRolloutCampaign, variation, payload, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _l, experimentRules_1, rule, _m, preSegmentationResult, whitelistedObject, updatedDecision, payload, campaign, variation, payload, payload;
-            var _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
-            return __generator(this, function (_0) {
-                switch (_0.label) {
+            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, notInHoldoutIds, batchPayload, isSettingsDevModeEnabled, isUserDevModeEnabled, isDevModeForUser, isTrackingUsageEnabled, isVariationShownFired, feature, decision, debugEventProps, storageService, storedData, storedIsInHoldoutId, storedNotInHoldoutId, applicableHoldouts, _i, applicableHoldouts_1, holdout, _a, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, updatedHoldoutIds, updatedNotInHoldoutIds, _b, holdoutPayloads_1, payload, _c, holdoutPayloads_2, payload, variation, variation, updatedNotInHoldoutIds, featureInfo, _d, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, qualifiedHoldoutNames, _e, holdoutPayloads_3, payload, _f, holdoutPayloads_4, payload, _g, holdoutPayloads_5, payload, _h, holdoutPayloads_6, payload, rollOutRules, rolloutRulesToEvaluate, _j, rollOutRules_1, rule, _k, preSegmentationResult, updatedDecision, payload, passedRolloutCampaign, variation, payload, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _l, experimentRules_1, rule, _m, preSegmentationResult, whitelistedObject, updatedDecision, payload, campaign, variation, payload, payload;
+            var _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1;
+            return __generator(this, function (_2) {
+                switch (_2.label) {
                     case 0:
                         isEnabled = false;
                         rolloutVariationToReturn = null;
@@ -1665,6 +1665,8 @@ var FlagApi = /** @class */ (function () {
                         isSettingsDevModeEnabled = ((_p = (_o = serviceContainer.getSettings()) === null || _o === void 0 ? void 0 : _o.getDevMode) === null || _p === void 0 ? void 0 : _p.call(_o)) === true;
                         isUserDevModeEnabled = ((_q = context === null || context === void 0 ? void 0 : context.getIsDevMode) === null || _q === void 0 ? void 0 : _q.call(context)) === true;
                         isDevModeForUser = isSettingsDevModeEnabled && isUserDevModeEnabled;
+                        isTrackingUsageEnabled = ((_s = (_r = serviceContainer.getSettings()) === null || _r === void 0 ? void 0 : _r.getIsTrackingUsageEnabled) === null || _s === void 0 ? void 0 : _s.call(_r)) === true;
+                        isVariationShownFired = false;
                         feature = (0, FunctionUtil_1.getFeatureFromKey)(serviceContainer.getSettings(), featureKey);
                         decision = {
                             featureName: feature === null || feature === void 0 ? void 0 : feature.getName(),
@@ -1686,14 +1688,14 @@ var FlagApi = /** @class */ (function () {
                         storageService = new StorageService_1.StorageService(serviceContainer);
                         return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer)];
                     case 1:
-                        storedData = _0.sent();
-                        storedIsInHoldoutId = (_r = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _r !== void 0 ? _r : storedData === null || storedData === void 0 ? void 0 : storedData.holdoutGroupId;
-                        storedNotInHoldoutId = (_s = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _s !== void 0 ? _s : [];
+                        storedData = _2.sent();
+                        storedIsInHoldoutId = (_t = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _t !== void 0 ? _t : storedData === null || storedData === void 0 ? void 0 : storedData.holdoutGroupId;
+                        storedNotInHoldoutId = (_u = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _u !== void 0 ? _u : [];
                         if (!(storedIsInHoldoutId && ((0, DataTypeUtil_1.isArray)(storedIsInHoldoutId) ? storedIsInHoldoutId.length > 0 : true))) return [3 /*break*/, 10];
                         applicableHoldouts = (0, HoldoutUtil_1.getApplicableHoldouts)(serviceContainer.getSettings(), feature.getId());
                         if (!(applicableHoldouts.length > 0)) return [3 /*break*/, 10];
                         _i = 0, applicableHoldouts_1 = applicableHoldouts;
-                        _0.label = 2;
+                        _2.label = 2;
                     case 2:
                         if (!(_i < applicableHoldouts_1.length)) return [3 /*break*/, 10];
                         holdout = applicableHoldouts_1[_i];
@@ -1705,7 +1707,7 @@ var FlagApi = /** @class */ (function () {
                         }));
                         return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature, context, storedData)];
                     case 3:
-                        _a = _0.sent(), matchedHoldouts = _a.matchedHoldouts, notMatchedHoldouts = _a.notMatchedHoldouts, holdoutPayloads = _a.holdoutPayloads;
+                        _a = _2.sent(), matchedHoldouts = _a.matchedHoldouts, notMatchedHoldouts = _a.notMatchedHoldouts, holdoutPayloads = _a.holdoutPayloads;
                         updatedHoldoutIds = __spreadArray(__spreadArray([], storedIsInHoldoutId, true), matchedHoldouts.map(function (holdout) { return holdout.getId(); }), true);
                         updatedNotInHoldoutIds = __spreadArray(__spreadArray([], storedNotInHoldoutId, true), notMatchedHoldouts.map(function (holdout) { return holdout.getId(); }), true);
                         // store the updated holdout ids in storage and push the updated not in holdout ids to the notInHoldoutIds array
@@ -1733,12 +1735,16 @@ var FlagApi = /** @class */ (function () {
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 7];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads)];
                     case 6:
-                        _0.sent();
+                        _2.sent();
                         return [3 /*break*/, 8];
                     case 7:
                         (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads);
-                        _0.label = 8;
+                        _2.label = 8;
                     case 8:
+                        // Decision served from holdout storage cache.
+                        // The cached holdout variationShown is NOT re-fired, so server has no usage tracking signal.
+                        // Send usage tracking call before returning.
+                        sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
                         deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel()));
                         return [2 /*return*/, deferredObject.promise];
                     case 9:
@@ -1761,7 +1767,11 @@ var FlagApi = /** @class */ (function () {
                         return [4 /*yield*/, (0, HoldoutUtil_1.sendNetworkCallsForNotInHoldouts)(serviceContainer, feature, context, decision, storedData, storageService)];
                     case 11:
                         // network calls for holdouts that are newly added in settings and are not present in storage
-                        _0.sent();
+                        _2.sent();
+                        // Experiment decision served from storage cache.
+                        // variationShown is NOT re-fired for cached decisions, so server has no usage tracking signal.
+                        // Send usage tracking call before returning.
+                        sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
                         deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
                         return [2 /*return*/, deferredObject.promise];
                     case 12: return [3 /*break*/, 15];
@@ -1781,9 +1791,12 @@ var FlagApi = /** @class */ (function () {
                         }));
                         return [4 /*yield*/, (0, HoldoutUtil_1.sendNetworkCallsForNotInHoldouts)(serviceContainer, feature, context, decision, storedData, storageService)];
                     case 14:
-                        updatedNotInHoldoutIds = _0.sent();
+                        updatedNotInHoldoutIds = _2.sent();
                         // push the updated not in holdout ids to the notInHoldoutIds array
                         notInHoldoutIds.push.apply(notInHoldoutIds, updatedNotInHoldoutIds);
+                        // Rollout decision served from storage cache.
+                        // variationShown is NOT re-fired for cached rollout decisions.
+                        // Usage tracking call will be dispatched at the end if no other experiment rule matches.
                         isEnabled = true;
                         shouldCheckForExperimentsRules = true;
                         rolloutVariationToReturn = variation;
@@ -1794,22 +1807,25 @@ var FlagApi = /** @class */ (function () {
                         };
                         evaluatedFeatureMap.set(featureKey, featureInfo);
                         Object.assign(passedRulesInformation, featureInfo);
-                        _0.label = 15;
+                        _2.label = 15;
                     case 15:
                         if (!(0, DataTypeUtil_1.isObject)(feature) || feature === undefined) {
                             serviceContainer.getLogManager().errorLog('FEATURE_NOT_FOUND', {
                                 featureKey: featureKey,
                             }, debugEventProps);
+                            // Feature key not found in settings (flag is OFF or not yet created).
+                            // No variationShown possible. Send usage tracking call before rejecting.
+                            sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
                             deferredObject.reject({});
                             return [2 /*return*/, deferredObject.promise];
                         }
                         return [4 /*yield*/, serviceContainer.getSegmentationManager().setContextualData(serviceContainer, feature, context)];
                     case 16:
-                        _0.sent();
+                        _2.sent();
                         if (!!isEnabled) return [3 /*break*/, 24];
                         return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature, context, storedData)];
                     case 17:
-                        _d = _0.sent(), matchedHoldouts = _d.matchedHoldouts, notMatchedHoldouts = _d.notMatchedHoldouts, holdoutPayloads = _d.holdoutPayloads;
+                        _d = _2.sent(), matchedHoldouts = _d.matchedHoldouts, notMatchedHoldouts = _d.notMatchedHoldouts, holdoutPayloads = _d.holdoutPayloads;
                         decision.isPartOfHoldout = matchedHoldouts !== null && matchedHoldouts.length > 0;
                         if ((matchedHoldouts !== null && matchedHoldouts.length > 0) ||
                             (notMatchedHoldouts !== null && notMatchedHoldouts.length > 0)) {
@@ -1850,12 +1866,14 @@ var FlagApi = /** @class */ (function () {
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 21];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads)];
                     case 20:
-                        _0.sent();
+                        _2.sent();
                         return [3 /*break*/, 22];
                     case 21:
                         (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads);
-                        _0.label = 22;
+                        _2.label = 22;
                     case 22:
+                        // Holdout variationShown(variation=1) was fired above — server handles usage tracking.
+                        // No explicit usage tracking call needed here.
                         deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel()));
                         return [2 /*return*/, deferredObject.promise];
                     case 23:
@@ -1880,51 +1898,60 @@ var FlagApi = /** @class */ (function () {
                             else {
                                 batchPayload.push.apply(batchPayload, holdoutPayloads);
                             }
+                            // Usage tracking optimization: holdout variationShown(variation=2) was dispatched above.
+                            // server will handle usage tracking from that event. Mark flag so Point 4 skips our usage tracking call
+                            // to avoid an unnecessary duplicate network round trip.
+                            if (holdoutPayloads.length > 0) {
+                                isVariationShownFired = true;
+                            }
                         }
-                        _0.label = 24;
+                        _2.label = 24;
                     case 24:
                         rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
                         if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 40];
                         rolloutRulesToEvaluate = [];
                         _j = 0, rollOutRules_1 = rollOutRules;
-                        _0.label = 25;
+                        _2.label = 25;
                     case 25:
                         if (!(_j < rollOutRules_1.length)) return [3 /*break*/, 34];
                         rule = rollOutRules_1[_j];
                         return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
                     case 26:
-                        _k = _0.sent(), preSegmentationResult = _k.preSegmentationResult, updatedDecision = _k.updatedDecision, payload = _k.payload;
+                        _k = _2.sent(), preSegmentationResult = _k.preSegmentationResult, updatedDecision = _k.updatedDecision, payload = _k.payload;
                         Object.assign(decision, updatedDecision);
+                        if (payload) {
+                            isVariationShownFired = true;
+                        }
                         if (!preSegmentationResult) return [3 /*break*/, 32];
                         // if pre segment passed, then break the loop and check the traffic allocation
                         rolloutRulesToEvaluate.push(rule);
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 30];
                         if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 28];
-                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_t = rule.getVariations()[0]) === null || _t === void 0 ? void 0 : _t.getId(), context, featureKey, payload)];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_v = rule.getVariations()[0]) === null || _v === void 0 ? void 0 : _v.getId(), context, featureKey, payload)];
                     case 27:
-                        _0.sent();
+                        _2.sent();
                         return [3 /*break*/, 29];
                     case 28:
                         if (payload != null) {
                             batchPayload.push(payload);
                         }
-                        _0.label = 29;
+                        _2.label = 29;
                     case 29: return [3 /*break*/, 31];
                     case 30:
                         if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_u = rule.getVariations()[0]) === null || _u === void 0 ? void 0 : _u.getId(), context, featureKey, payload);
+                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_w = rule.getVariations()[0]) === null || _w === void 0 ? void 0 : _w.getId(), context, featureKey, payload);
                         }
                         else {
                             if (payload != null) {
                                 batchPayload.push(payload);
                             }
                         }
-                        _0.label = 31;
+                        _2.label = 31;
                     case 31:
                         evaluatedFeatureMap.set(featureKey, {
                             rolloutId: rule.getId(),
                             rolloutKey: rule.getKey(),
-                            rolloutVariationId: (_v = rule.getVariations()[0]) === null || _v === void 0 ? void 0 : _v.getId(),
+                            rolloutVariationId: (_x = rule.getVariations()[0]) === null || _x === void 0 ? void 0 : _x.getId(),
                         });
                         return [3 /*break*/, 34];
                     case 32: return [3 /*break*/, 33]; // if rule does not satisfy, then check for other ROLLOUT rules
@@ -1943,17 +1970,20 @@ var FlagApi = /** @class */ (function () {
                         _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
                         if (!!isDevModeForUser) return [3 /*break*/, 39];
                         payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, passedRolloutCampaign.getId(), variation.getId(), context);
+                        if (payload) {
+                            isVariationShownFired = true;
+                        }
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 38];
                         if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 36];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload)];
                     case 35:
-                        _0.sent();
+                        _2.sent();
                         return [3 /*break*/, 37];
                     case 36:
                         if (payload != null) {
                             batchPayload.push(payload);
                         }
-                        _0.label = 37;
+                        _2.label = 37;
                     case 37: return [3 /*break*/, 39];
                     case 38:
                         if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
@@ -1964,7 +1994,7 @@ var FlagApi = /** @class */ (function () {
                                 batchPayload.push(payload);
                             }
                         }
-                        _0.label = 39;
+                        _2.label = 39;
                     case 39: return [3 /*break*/, 41];
                     case 40:
                         if (rollOutRules.length === 0) {
@@ -1973,21 +2003,24 @@ var FlagApi = /** @class */ (function () {
                                 .debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT));
                             shouldCheckForExperimentsRules = true;
                         }
-                        _0.label = 41;
+                        _2.label = 41;
                     case 41:
                         if (!shouldCheckForExperimentsRules) return [3 /*break*/, 57];
                         experimentRulesToEvaluate = [];
                         experimentRules = (0, FunctionUtil_1.getAllExperimentRules)(feature);
                         megGroupWinnerCampaigns = new Map();
                         _l = 0, experimentRules_1 = experimentRules;
-                        _0.label = 42;
+                        _2.label = 42;
                     case 42:
                         if (!(_l < experimentRules_1.length)) return [3 /*break*/, 52];
                         rule = experimentRules_1[_l];
                         return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
                     case 43:
-                        _m = _0.sent(), preSegmentationResult = _m.preSegmentationResult, whitelistedObject = _m.whitelistedObject, updatedDecision = _m.updatedDecision, payload = _m.payload;
+                        _m = _2.sent(), preSegmentationResult = _m.preSegmentationResult, whitelistedObject = _m.whitelistedObject, updatedDecision = _m.updatedDecision, payload = _m.payload;
                         Object.assign(decision, updatedDecision);
+                        if (payload) {
+                            isVariationShownFired = true;
+                        }
                         if (!preSegmentationResult) return [3 /*break*/, 50];
                         if (!(whitelistedObject === null)) return [3 /*break*/, 44];
                         // whitelistedObject will be null if pre segment passed but whitelisting failed
@@ -2007,13 +2040,13 @@ var FlagApi = /** @class */ (function () {
                         if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 46];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), whitelistedObject.variationId, context, featureKey, payload)];
                     case 45:
-                        _0.sent();
+                        _2.sent();
                         return [3 /*break*/, 47];
                     case 46:
                         if (payload != null) {
                             batchPayload.push(payload);
                         }
-                        _0.label = 47;
+                        _2.label = 47;
                     case 47: return [3 /*break*/, 49];
                     case 48:
                         if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
@@ -2024,7 +2057,7 @@ var FlagApi = /** @class */ (function () {
                                 batchPayload.push(payload);
                             }
                         }
-                        _0.label = 49;
+                        _2.label = 49;
                     case 49: return [3 /*break*/, 52];
                     case 50: return [3 /*break*/, 51];
                     case 51:
@@ -2041,17 +2074,20 @@ var FlagApi = /** @class */ (function () {
                         _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
                         if (!!isDevModeForUser) return [3 /*break*/, 57];
                         payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, campaign.getId(), variation.getId(), context);
+                        if (payload) {
+                            isVariationShownFired = true;
+                        }
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 56];
                         if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 54];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload)];
                     case 53:
-                        _0.sent();
+                        _2.sent();
                         return [3 /*break*/, 55];
                     case 54:
                         if (payload != null) {
                             batchPayload.push(payload);
                         }
-                        _0.label = 55;
+                        _2.label = 55;
                     case 55: return [3 /*break*/, 57];
                     case 56:
                         if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
@@ -2062,7 +2098,7 @@ var FlagApi = /** @class */ (function () {
                                 batchPayload.push(payload);
                             }
                         }
-                        _0.label = 57;
+                        _2.label = 57;
                     case 57:
                         // If flag is enabled, store it in data
                         if (isEnabled) {
@@ -2089,49 +2125,62 @@ var FlagApi = /** @class */ (function () {
                             // send debug event
                             (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(serviceContainer, debugEventProps);
                         }
-                        if (!((_w = feature.getImpactCampaign()) === null || _w === void 0 ? void 0 : _w.getCampaignId())) return [3 /*break*/, 62];
+                        if (!((_y = feature.getImpactCampaign()) === null || _y === void 0 ? void 0 : _y.getCampaignId())) return [3 /*break*/, 62];
                         serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
                             userId: context.getId(),
                             featureKey: featureKey,
                             status: isEnabled ? 'enabled' : 'disabled',
                         }));
                         if (!!isDevModeForUser) return [3 /*break*/, 62];
-                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, (_x = feature.getImpactCampaign()) === null || _x === void 0 ? void 0 : _x.getCampaignId(), isEnabled ? 2 : 1, context);
+                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, (_z = feature.getImpactCampaign()) === null || _z === void 0 ? void 0 : _z.getCampaignId(), isEnabled ? 2 : 1, context);
+                        if (payload) {
+                            isVariationShownFired = true;
+                        }
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 61];
                         if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 59];
-                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_y = feature.getImpactCampaign()) === null || _y === void 0 ? void 0 : _y.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload)];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_0 = feature.getImpactCampaign()) === null || _0 === void 0 ? void 0 : _0.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload)];
                     case 58:
-                        _0.sent();
+                        _2.sent();
                         return [3 /*break*/, 60];
                     case 59:
                         if (payload != null) {
                             batchPayload.push(payload);
                         }
-                        _0.label = 60;
+                        _2.label = 60;
                     case 60: return [3 /*break*/, 62];
                     case 61:
                         if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_z = feature.getImpactCampaign()) === null || _z === void 0 ? void 0 : _z.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload);
+                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_1 = feature.getImpactCampaign()) === null || _1 === void 0 ? void 0 : _1.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload);
                         }
                         else {
                             if (payload != null) {
                                 batchPayload.push(payload);
                             }
                         }
-                        _0.label = 62;
+                        _2.label = 62;
                     case 62:
-                        deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
-                        if (!(!serviceContainer.getSettingsService().isGatewayServiceProvided && batchPayload.length > 0)) return [3 /*break*/, 65];
-                        if (!!isDevModeForUser) return [3 /*break*/, 65];
+                        if (!!isVariationShownFired) return [3 /*break*/, 65];
                         if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 64];
-                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload)];
+                        return [4 /*yield*/, sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey, true)];
                     case 63:
-                        _0.sent();
+                        _2.sent();
                         return [3 /*break*/, 65];
                     case 64:
+                        sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
+                        _2.label = 65;
+                    case 65:
+                        deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel().modelFromDictionary(experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn)));
+                        if (!(!serviceContainer.getSettingsService().isGatewayServiceProvided && batchPayload.length > 0)) return [3 /*break*/, 68];
+                        if (!!isDevModeForUser) return [3 /*break*/, 68];
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 67];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload)];
+                    case 66:
+                        _2.sent();
+                        return [3 /*break*/, 68];
+                    case 67:
                         (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload);
-                        _0.label = 65;
-                    case 65: return [2 /*return*/, deferredObject.promise];
+                        _2.label = 68;
+                    case 68: return [2 /*return*/, deferredObject.promise];
                 }
             });
         });
@@ -2173,6 +2222,64 @@ function _updateDebugEventProps(debugEventProps, decision) {
     }
     debugEventProps.msg = message;
     Object.assign(debugEventProps, decisionKeys);
+}
+/**
+ * Sends the usage tracking payload to server.
+ * Called whenever a user is evaluated via getFlag() but no variationShown event is
+ * dispatched by the SDK for that evaluation (decision from storage cache, flag=false, etc.).
+ *
+ * Routes through BatchEventsQueue when configured, otherwise fire-and-forget
+ * (or awaited when shouldAwait is true).
+ *
+ * @param serviceContainer - The service container instance.
+ * @param context - The user context model.
+ * @param isTrackingUsageEnabled - Whether usage tracking is active for this account.
+ * @param isDevModeForUser - Whether dev mode is active (suppresses all tracking).
+ * @param shouldAwait - When true, awaits the network call (for shouldWaitForTrackingCalls flows).
+ */
+function sendTrackingUsage(serviceContainer_1, context_1, isTrackingUsageEnabled_1, isDevModeForUser_1, featureKey_1) {
+    return __awaiter(this, arguments, void 0, function (serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey, shouldAwait) {
+        var trackingPayload, properties;
+        if (shouldAwait === void 0) { shouldAwait = false; }
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!isTrackingUsageEnabled || isDevModeForUser)
+                        return [2 /*return*/];
+                    trackingPayload = (0, NetworkUtil_1.getTrackingUsagePayloadData)(serviceContainer, context);
+                    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USAGE_TRACKING_CALL_SENT, {
+                        accountId: serviceContainer.getSettingsService().accountId.toString(),
+                        userId: context.getId(),
+                        featureKey: featureKey,
+                    }));
+                    if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 1];
+                    serviceContainer.getBatchEventsQueue().enqueue(trackingPayload);
+                    return [3 /*break*/, 8];
+                case 1:
+                    if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 5];
+                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.USER_EVALUATED, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+                    if (!shouldAwait) return [3 /*break*/, 3];
+                    return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, trackingPayload, context.getId())];
+                case 2:
+                    _a.sent();
+                    return [3 /*break*/, 4];
+                case 3:
+                    (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, trackingPayload, context.getId()); // fire-and-forget
+                    _a.label = 4;
+                case 4: return [3 /*break*/, 8];
+                case 5:
+                    if (!shouldAwait) return [3 /*break*/, 7];
+                    return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, [trackingPayload])];
+                case 6:
+                    _a.sent();
+                    return [3 /*break*/, 8];
+                case 7:
+                    (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, [trackingPayload]); // fire-and-forget
+                    _a.label = 8;
+                case 8: return [2 /*return*/];
+            }
+        });
+    });
 }
 
 
@@ -2924,6 +3031,7 @@ var EventEnum;
     EventEnum["USAGE_STATS"] = "vwo_sdkUsageStats";
     EventEnum["HOLDOUT"] = "vwo_holdout";
     EventEnum["DEBUGGER_EVENT"] = "vwo_sdkDebug";
+    EventEnum["USER_EVALUATED"] = "vwo_feTrackUsage";
 })(EventEnum || (exports.EventEnum = EventEnum = {}));
 
 
@@ -4133,6 +4241,9 @@ var SettingsModel = /** @class */ (function () {
         if (settings.isWebConnectivityEnabled) {
             this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
         }
+        if (settings.isMAU !== undefined) {
+            this.isMAU = settings.isMAU;
+        }
         if (Array.isArray(settings.holdouts)) {
             var holdoutsArray = settings.holdouts;
             holdoutsArray.forEach(function (holdout) {
@@ -4182,6 +4293,9 @@ var SettingsModel = /** @class */ (function () {
     };
     SettingsModel.prototype.getDevMode = function () {
         return this.devMode === true;
+    };
+    SettingsModel.prototype.getIsTrackingUsageEnabled = function () {
+        return this.isMAU === true;
     };
     return SettingsModel;
 }());
@@ -12640,6 +12754,7 @@ exports._getEventBasePayload = _getEventBasePayload;
 exports.getTrackUserPayloadData = getTrackUserPayloadData;
 exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 exports.getAttributePayloadData = getAttributePayloadData;
+exports.getTrackingUsagePayloadData = getTrackingUsagePayloadData;
 exports.sendPostApiRequest = sendPostApiRequest;
 exports.getMessagingEventPayload = getMessagingEventPayload;
 exports.getSDKInitEventPayload = getSDKInitEventPayload;
@@ -12935,6 +13050,36 @@ function getAttributePayloadData(serviceContainer, eventName, attributes, contex
         eventName: eventName,
         accountId: serviceContainer.getSettingsService().accountId.toString(),
         userId: context.getId(),
+    }));
+    return properties;
+}
+/**
+ * Constructs the payload data for usage tracking call.
+ * Sent to server when a user is evaluated via getFlag() but no variationShown
+ * event is dispatched by the SDK (i.e., decision served from storage cache or
+ * flag evaluation returned false with no holdout impression already fired).
+ *
+ * Payload contains only user identity + session + SDK metadata.
+ * There is NO campaignId or variationId — this is a pure user-evaluation signal.
+ *
+ * @param {ServiceContainer} serviceContainer - The service container instance.
+ * @param {ContextModel} context - The context model instance.
+ * @returns {Record<string, any>} - The usage tracking payload.
+ */
+function getTrackingUsagePayloadData(serviceContainer, context) {
+    var userId = context.getId();
+    var properties = _getEventBasePayload(serviceContainer.getSettingsService(), userId, EventEnum_1.EventEnum.USER_EVALUATED, context.getUserAgent(), context.getIpAddress());
+    if (context.getSessionId() !== 0) {
+        properties.d.sessionId = context.getSessionId();
+    }
+    // if uuid is present in the context, use it, otherwise generate a new one
+    if (context.getUuid()) {
+        properties.d.msgId = "".concat(context.getUuid(), "-").concat((0, FunctionUtil_1.getCurrentUnixTimestampInMillis)());
+        properties.d.visId = context.getUuid();
+    }
+    serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.IMPRESSION_FOR_TRACKING_USAGE, {
+        accountId: serviceContainer.getSettingsService().accountId.toString(),
+        userId: userId,
     }));
     return properties;
 }
@@ -16391,7 +16536,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"{service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown({brand} standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}({brand} internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty, nothing to flush","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}","WEB_UUID_FOUND":"{brand} Web Testing UUID {uuid} identified as the Context ID for API {apiName}","HOLDOUT_SEGMENTATION_FAIL":"User ID: {userId} does not qualify segmentation for Holdout: {holdoutGroupName}","HOLDOUT_SHOULD_NOT_EXCLUDE_USER":"User ID: {userId} is not part of Holdout: {holdoutGroupName} for feature: {featureId}","PART_OF_HOLDOUT_IN_MEG":"MEG: User ID:{userId} is part of holdout: {holdoutId} for feature: {featureKey}","HOLDOUT_SKIP_EVALUATION":"Skip holdout reevaluation for holdout ID: {holdoutId} because {reason}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"{service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown({brand} standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACKING_USAGE":"Impression built for vwo_userEvaluated({brand} standard event for usage tracking call) event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}({brand} internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty, nothing to flush","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}","WEB_UUID_FOUND":"{brand} Web Testing UUID {uuid} identified as the Context ID for API {apiName}","HOLDOUT_SEGMENTATION_FAIL":"User ID: {userId} does not qualify segmentation for Holdout: {holdoutGroupName}","HOLDOUT_SHOULD_NOT_EXCLUDE_USER":"User ID: {userId} is not part of Holdout: {holdoutGroupName} for feature: {featureId}","PART_OF_HOLDOUT_IN_MEG":"MEG: User ID:{userId} is part of holdout: {holdoutId} for feature: {featureKey}","HOLDOUT_SKIP_EVALUATION":"Skip holdout reevaluation for holdout ID: {holdoutId} because {reason}"}');
 
 /***/ }),
 
@@ -16424,7 +16569,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: {logPr
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: {logPrefix} {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: {logPrefix} {date} {brand} settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new {brand} client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new {brand} client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings not matches with the provided sdk-key/account-id. Fetching latest settings from the server","SETTINGS_EXPIRED":"Cached settings expired. Fetching latest settings from server","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings retrieved from storage","SETTINGS_SUCCESSFULLY_STORED":"Settings successfully stored in storage","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings updated with latest settings fetched from the server","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled in the init options","CLIENT_INITIALIZED":"{brand} Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments were missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current {brand} client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by {brand} having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by {brand} having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events could not be received by {brand}. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","STORED_HOLDOUT_DECISION_FOUND":"User: {userId} already part of holdout with ID:{holdoutId} for feature: {featureKey}","HOLDOUT_SHOULD_EXCLUDE_USER":"User: {userId} ({bucketValue}%) is in holdout: {holdoutGroupName} with targeted traffic percent: {percentTraffic}% for feature ID: {featureId}","USER_IN_HOLDOUT_GROUP":"User: {userId} is in holdout group: {holdoutGroupName} for feature {featureKey}. Feature not evaluated","USER_NOT_EXCLUDED_DUE_TO_HOLDOUT":"User ID:{userId} is not excluded from feature:{featureKey} due to any holdout groups","HOLDOUT_SEGMENTATION_SKIP":"No segments found for holdout: {holdoutId} and user ID: {userId}. Hence skipping segmentation"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: {logPrefix} {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: {logPrefix} {date} {brand} settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new {brand} client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new {brand} client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings not matches with the provided sdk-key/account-id. Fetching latest settings from the server","SETTINGS_EXPIRED":"Cached settings expired. Fetching latest settings from server","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings retrieved from storage","SETTINGS_SUCCESSFULLY_STORED":"Settings successfully stored in storage","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings updated with latest settings fetched from the server","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled in the init options","CLIENT_INITIALIZED":"{brand} Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","DECISION_EXPIRED":"Stored decision expired for feature: {featureKey} and user: {userId}, re-evaluating.","MEG_DECISION_EXPIRED":"Stored MEG decision expired for group: {groupId} and user: {userId}, re-evaluating.","MEG_FEATURE_DECISION_EXPIRED":"Stored MEG decision expired for feature: {featureKey} and user: {userId}, re-evaluating.","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments were missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current {brand} client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by {brand} having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by {brand} having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events could not be received by {brand}. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","STORED_HOLDOUT_DECISION_FOUND":"User: {userId} already part of holdout with ID:{holdoutId} for feature: {featureKey}","HOLDOUT_SHOULD_EXCLUDE_USER":"User: {userId} ({bucketValue}%) is in holdout: {holdoutGroupName} with targeted traffic percent: {percentTraffic}% for feature ID: {featureId}","USER_IN_HOLDOUT_GROUP":"User: {userId} is in holdout group: {holdoutGroupName} for feature {featureKey}. Feature not evaluated","USER_NOT_EXCLUDED_DUE_TO_HOLDOUT":"User ID:{userId} is not excluded from feature:{featureKey} due to any holdout groups","HOLDOUT_SEGMENTATION_SKIP":"No segments found for holdout: {holdoutId} and user ID: {userId}. Hence skipping segmentation","API_BLOCKED_BY_PANIC_MODE":"API {apiName} is blocked because panic mode is active.","PANIC_MODE_ACTIVATED":"SDK entered panic mode (panic timestamp: {panicTs}). All client-facing API calls will be no-ops until panic is cleared.","PANIC_MODE_CLEARED_VIA_SETTINGS":"Panic mode cleared via settings update. Feature flag evaluations have resumed.","PANIC_MODE_CLEARED_VIA_RESPONSE":"Panic mode cleared via DaCDN collect response. Feature flag evaluations have resumed.","FORCE_REFRESH_TRIGGERED":"Force settings refresh triggered by {source} (refresh timestamp: {refreshTs}). Fetching latest settings.","FORCE_REFRESH_COMPLETED":"Force settings refresh completed. SDK is now running with updated settings.","USAGE_TRACKING_CALL_SENT":"Usage tracking call dispatched for Account ID:{accountId}, User ID:{userId}, and feature key:{featureKey}"}');
 
 /***/ }),
 

@@ -66,6 +66,9 @@ var SettingsModel = /** @class */ (function () {
         if (settings.isWebConnectivityEnabled) {
             this.isWebConnectivityEnabled = settings.isWebConnectivityEnabled;
         }
+        if (settings.isMAU !== undefined) {
+            this.isMAU = settings.isMAU;
+        }
         if (Array.isArray(settings.holdouts)) {
             var holdoutsArray = settings.holdouts;
             holdoutsArray.forEach(function (holdout) {
@@ -115,6 +118,9 @@ var SettingsModel = /** @class */ (function () {
     };
     SettingsModel.prototype.getDevMode = function () {
         return this.devMode === true;
+    };
+    SettingsModel.prototype.getIsTrackingUsageEnabled = function () {
+        return this.isMAU === true;
     };
     return SettingsModel;
 }());

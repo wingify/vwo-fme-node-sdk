@@ -38,7 +38,12 @@ import { ServiceContainer } from '../services/ServiceContainer';
 import { getApplicableHoldouts, getMatchedHoldouts, sendNetworkCallsForNotInHoldouts } from '../utils/HoldoutUtil';
 import { sendImpressionForVariationShown, sendImpressionForVariationShownInBatch } from '../utils/ImpressionUtil';
 import { EventEnum } from '../enums/EventEnum';
-import { getTrackUserPayloadData } from '../utils/NetworkUtil';
+import {
+  getEventsBaseProperties,
+  getTrackUserPayloadData,
+  getTrackingUsagePayloadData,
+  sendPostApiRequest,
+} from '../utils/NetworkUtil';
 export class Flag {
   private readonly enabled: boolean;
   private variation: VariationModel | Record<string, any> | undefined;
@@ -104,6 +109,15 @@ export class FlagApi {
     const isSettingsDevModeEnabled = serviceContainer.getSettings()?.getDevMode?.() === true;
     const isUserDevModeEnabled = context?.getIsDevMode?.() === true;
     const isDevModeForUser = isSettingsDevModeEnabled && isUserDevModeEnabled;
+
+    // Check if usage tracking is enabled for this account.
+    // isMAU is sent in settings only when the account has usage tracking enabled.
+    const isTrackingUsageEnabled = serviceContainer.getSettings()?.getIsTrackingUsageEnabled?.() === true;
+
+    // Track whether a primary variationShown event was already dispatched this evaluation.
+    // If true, server already received a usage tracking qualifying event — skip our explicit usage tracking call
+    // to avoid an unnecessary duplicate network round trip (server deduplicates on its end).
+    let isVariationShownFired = false;
 
     // get feature object from feature key
     const feature = getFeatureFromKey(serviceContainer.getSettings(), featureKey);
@@ -179,7 +193,8 @@ export class FlagApi {
               serviceContainer,
             );
 
-            // send the impression for the new holdouts
+            // send the impression for the new holdouts (only for holdouts newly added to settings
+            // that were not previously evaluated for this user)
             if (!isDevModeForUser) {
               if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
                 for (const payload of holdoutPayloads) {
@@ -204,6 +219,11 @@ export class FlagApi {
                 }
               }
             }
+
+            // Decision served from holdout storage cache.
+            // The cached holdout variationShown is NOT re-fired, so server has no usage tracking signal.
+            // Send usage tracking call before returning.
+            sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
 
             deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel()));
             return deferredObject.promise;
@@ -241,6 +261,11 @@ export class FlagApi {
               storedData,
               storageService,
             );
+
+            // Experiment decision served from storage cache.
+            // variationShown is NOT re-fired for cached decisions, so server has no usage tracking signal.
+            // Send usage tracking call before returning.
+            sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
 
             deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
             return deferredObject.promise;
@@ -283,6 +308,9 @@ export class FlagApi {
           // push the updated not in holdout ids to the notInHoldoutIds array
           notInHoldoutIds.push(...updatedNotInHoldoutIds);
 
+          // Rollout decision served from storage cache.
+          // variationShown is NOT re-fired for cached rollout decisions.
+          // Usage tracking call will be dispatched at the end if no other experiment rule matches.
           isEnabled = true;
           shouldCheckForExperimentsRules = true;
           rolloutVariationToReturn = variation;
@@ -305,6 +333,10 @@ export class FlagApi {
         },
         debugEventProps,
       );
+
+      // Feature key not found in settings (flag is OFF or not yet created).
+      // No variationShown possible. Send usage tracking call before rejecting.
+      sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
 
       deferredObject.reject({});
 
@@ -382,6 +414,9 @@ export class FlagApi {
           }
         }
 
+        // Holdout variationShown(variation=1) was fired above — server handles usage tracking.
+        // No explicit usage tracking call needed here.
+
         deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel()));
         return deferredObject.promise;
       } else {
@@ -412,6 +447,12 @@ export class FlagApi {
           } else {
             batchPayload.push(...holdoutPayloads);
           }
+          // Usage tracking optimization: holdout variationShown(variation=2) was dispatched above.
+          // server will handle usage tracking from that event. Mark flag so Point 4 skips our usage tracking call
+          // to avoid an unnecessary duplicate network round trip.
+          if (holdoutPayloads.length > 0) {
+            isVariationShownFired = true;
+          }
         }
       }
     }
@@ -434,6 +475,9 @@ export class FlagApi {
         );
 
         Object.assign(decision, updatedDecision);
+        if (payload) {
+          isVariationShownFired = true;
+        }
 
         if (preSegmentationResult) {
           // if pre segment passed, then break the loop and check the traffic allocation
@@ -503,6 +547,9 @@ export class FlagApi {
               variation.getId(),
               context,
             );
+            if (payload) {
+              isVariationShownFired = true;
+            }
 
             if (serviceContainer.getShouldWaitForTrackingCalls()) {
               if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
@@ -565,6 +612,9 @@ export class FlagApi {
         );
 
         Object.assign(decision, updatedDecision);
+        if (payload) {
+          isVariationShownFired = true;
+        }
 
         if (preSegmentationResult) {
           if (whitelistedObject === null) {
@@ -638,6 +688,9 @@ export class FlagApi {
               variation.getId(),
               context,
             );
+            if (payload) {
+              isVariationShownFired = true;
+            }
 
             if (serviceContainer.getShouldWaitForTrackingCalls()) {
               if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
@@ -734,6 +787,9 @@ export class FlagApi {
           isEnabled ? 2 : 1,
           context,
         );
+        if (payload) {
+          isVariationShownFired = true;
+        }
         if (serviceContainer.getShouldWaitForTrackingCalls()) {
           if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
             await sendImpressionForVariationShown(
@@ -765,6 +821,17 @@ export class FlagApi {
             }
           }
         }
+      }
+    }
+
+    // Send usage tracking call when no primary variationShown event was dispatched.
+    // If a primary variation=1/2 was fired, server already has the usage tracking signal — skipping the call
+    // here avoids an unnecessary duplicate network round trip (server deduplicates anyway).
+    if (!isVariationShownFired) {
+      if (serviceContainer.getShouldWaitForTrackingCalls()) {
+        await sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey, true);
+      } else {
+        sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
       }
     }
 
@@ -831,4 +898,63 @@ function _updateDebugEventProps(debugEventProps: Record<string, any>, decision: 
   }
   debugEventProps.msg = message;
   Object.assign(debugEventProps, decisionKeys);
+}
+
+/**
+ * Sends the usage tracking payload to server.
+ * Called whenever a user is evaluated via getFlag() but no variationShown event is
+ * dispatched by the SDK for that evaluation (decision from storage cache, flag=false, etc.).
+ *
+ * Routes through BatchEventsQueue when configured, otherwise fire-and-forget
+ * (or awaited when shouldAwait is true).
+ *
+ * @param serviceContainer - The service container instance.
+ * @param context - The user context model.
+ * @param isTrackingUsageEnabled - Whether usage tracking is active for this account.
+ * @param isDevModeForUser - Whether dev mode is active (suppresses all tracking).
+ * @param shouldAwait - When true, awaits the network call (for shouldWaitForTrackingCalls flows).
+ */
+async function sendTrackingUsage(
+  serviceContainer: ServiceContainer,
+  context: ContextModel,
+  isTrackingUsageEnabled: boolean,
+  isDevModeForUser: boolean,
+  featureKey: string,
+  shouldAwait = false,
+): Promise<void> {
+  if (!isTrackingUsageEnabled || isDevModeForUser) return;
+  const trackingPayload = getTrackingUsagePayloadData(serviceContainer, context);
+
+  serviceContainer.getLogManager().info(
+    buildMessage(InfoLogMessagesEnum.USAGE_TRACKING_CALL_SENT, {
+      accountId: serviceContainer.getSettingsService().accountId.toString(),
+      userId: context.getId(),
+      featureKey,
+    }),
+  );
+
+  if (serviceContainer.getBatchEventsQueue()) {
+    serviceContainer.getBatchEventsQueue().enqueue(trackingPayload);
+  } else if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
+    // Gateway is connected: must use the single-event /event/t endpoint.
+    // /batch-events-v2 is not supported by the gateway and returns 404.
+    const properties = getEventsBaseProperties(
+      serviceContainer.getSettingsService(),
+      EventEnum.USER_EVALUATED,
+      encodeURIComponent(context.getUserAgent()),
+      context.getIpAddress(),
+    );
+    if (shouldAwait) {
+      await sendPostApiRequest(serviceContainer, properties, trackingPayload, context.getId());
+    } else {
+      sendPostApiRequest(serviceContainer, properties, trackingPayload, context.getId()); // fire-and-forget
+    }
+  } else {
+    // No gateway, no user-configured batch queue: use the SDK's internal batch dispatcher.
+    if (shouldAwait) {
+      await sendImpressionForVariationShownInBatch(serviceContainer, [trackingPayload]);
+    } else {
+      sendImpressionForVariationShownInBatch(serviceContainer, [trackingPayload]); // fire-and-forget
+    }
+  }
 }

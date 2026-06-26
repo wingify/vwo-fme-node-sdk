@@ -22,5 +22,6 @@ export var EventEnum;
     EventEnum["USAGE_STATS"] = "vwo_sdkUsageStats";
     EventEnum["HOLDOUT"] = "vwo_holdout";
     EventEnum["DEBUGGER_EVENT"] = "vwo_sdkDebug";
+    EventEnum["USER_EVALUATED"] = "vwo_feTrackUsage";
 })(EventEnum || (EventEnum = {}));
 //# sourceMappingURL=EventEnum.js.map

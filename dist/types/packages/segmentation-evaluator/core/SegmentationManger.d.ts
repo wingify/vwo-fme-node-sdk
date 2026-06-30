@@ -40,4 +40,10 @@ export declare class SegmentationManager {
    * @returns {Promise<boolean>} True if segmentation is valid, otherwise false.
    */
   validateSegmentation(dsl: Record<string, dynamic>, properties: Record<any, dynamic>): Promise<boolean>;
+  /**
+   * Recursively checks if any node in the DSL tree is a campaignVariation operand.
+   * @param {Record<string, dynamic>} dsl - The segmentation DSL to check.
+   * @returns {boolean} True if the DSL contains a campaignVariation node, otherwise false.
+   */
+  private hasCampaignVariationNode;
 }

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import { getKeyValue, matchWithRegex } from '../utils/SegmentUtil.js';
+import { evaluateWebTestingCampaignVariation, parseWebTestingCampaignsFromContext, } from '../utils/WebTestingSegmentUtil.js';
 import { SegmentOperandValueEnum } from '../enums/SegmentOperandValueEnum.js';
 import { SegmentOperandRegexEnum } from '../enums/SegmentOperandRegexEnum.js';
 import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum.js';
-import { isBoolean } from '../../../utils/DataTypeUtil.js';
+import { getType, isBoolean, isNumber, isString, isUndefined } from '../../../utils/DataTypeUtil.js';
 import { getFromGatewayService } from '../../../utils/GatewayServiceUtil.js';
 import { UrlEnum } from '../../../enums/UrlEnum.js';
 import { ApiEnum } from '../../../enums/ApiEnum.js';
@@ -123,6 +124,55 @@ export class SegmentOperandEvaluator {
         const processedValues = this.processValues(operandValue, tagValue);
         tagValue = processedValues.tagValue; // Fix: Type assertion to ensure tagValue is of type string
         return this.extractResult(operandType, processedValues.operandValue, tagValue);
+    }
+    /**
+     * Evaluates Web Testing pre-segmentation against `context.platformVariables.webTestingCampaigns`.
+     * Operand: "C" (in Campaign, any variation), "C_V", "C_!V", "!C" (not in Campaign C).
+     * @param {unknown} campaignVariationOperand - The DSL operand string representing the campaign variation.
+     * @param {ContextModel} context - The context model containing platform variables for the evaluation.
+     * @returns {boolean} True if the user matches the web testing campaign variation condition, otherwise false.
+     */
+    evaluateCampaignVariationDSL(campaignVariationOperand, context) {
+        // Settings JSON often deserializes campaign ids as numbers; coerce before matching DSL tokens.
+        let operandString;
+        if (isNumber(campaignVariationOperand) && Number.isFinite(campaignVariationOperand)) {
+            operandString = String(campaignVariationOperand);
+        }
+        else if (isString(campaignVariationOperand)) {
+            operandString = campaignVariationOperand;
+        }
+        if (isUndefined(operandString)) {
+            const type = getType(campaignVariationOperand).toLowerCase();
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_TYPE', { type }, { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+            return false;
+        }
+        // Empty operand is invalid.
+        if (operandString.length === 0) {
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY', {}, { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+            return false;
+        }
+        const trimmedCampaignVariationOperand = operandString.trim();
+        // All spaces is invalid.
+        if (trimmedCampaignVariationOperand.length === 0) {
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY', {}, { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+            return false;
+        }
+        // Parse the campaigns from the context.
+        const assignedVariationsByCampaignId = parseWebTestingCampaignsFromContext(context, this.serviceContainer);
+        const { result, invalidFormat } = evaluateWebTestingCampaignVariation(trimmedCampaignVariationOperand, assignedVariationsByCampaignId);
+        // Invalid format of the operand.
+        if (invalidFormat) {
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_FORMAT', { operand: trimmedCampaignVariationOperand }, { an: ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+        }
+        return result;
     }
     /**
      * Pre-processes the tag value to ensure it is in the correct format for evaluation.

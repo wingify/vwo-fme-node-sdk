@@ -60,6 +60,7 @@ var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var ApiEnum_1 = require("../../../enums/ApiEnum");
 var FunctionUtil_1 = require("../../../utils/FunctionUtil");
 var SegmentOperandEvaluator_1 = require("../evaluators/SegmentOperandEvaluator");
+var SegmentOperatorValueEnum_1 = require("../enums/SegmentOperatorValueEnum");
 var SegmentationManager = /** @class */ (function () {
     /**
      * Constructor for SegmentationManager.
@@ -131,13 +132,47 @@ var SegmentationManager = /** @class */ (function () {
      */
     SegmentationManager.prototype.validateSegmentation = function (dsl, properties) {
         return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.evaluator.isSegmentationValid(dsl, properties)];
-                    case 1: return [2 /*return*/, _a.sent()]; // Delegate to evaluator's method
+            var _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        // If the DSL contains any campaignVariation node but no webTestingCampaigns was provided, fail immediately.
+                        // This covers NOT/OR/AND wrappers too — there is no web testing data to evaluate against.
+                        if (this.hasCampaignVariationNode(dsl) && !((_b = (_a = this.evaluator.context) === null || _a === void 0 ? void 0 : _a.getPlatformVariables()) === null || _b === void 0 ? void 0 : _b.webTestingCampaigns)) {
+                            return [2 /*return*/, false];
+                        }
+                        return [4 /*yield*/, this.evaluator.isSegmentationValid(dsl, properties)];
+                    case 1: return [2 /*return*/, _c.sent()];
                 }
             });
         });
+    };
+    /**
+     * Recursively checks if any node in the DSL tree is a campaignVariation operand.
+     * @param {Record<string, dynamic>} dsl - The segmentation DSL to check.
+     * @returns {boolean} True if the DSL contains a campaignVariation node, otherwise false.
+     */
+    SegmentationManager.prototype.hasCampaignVariationNode = function (dsl) {
+        if (!(0, DataTypeUtil_1.isObject)(dsl))
+            return false;
+        for (var _i = 0, _a = Object.keys(dsl); _i < _a.length; _i++) {
+            var operator = _a[_i];
+            if (operator === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.WEB_CAMPAIGN_VARIATION)
+                return true;
+            var operand = dsl[operator];
+            if (Array.isArray(operand)) {
+                for (var _b = 0, operand_1 = operand; _b < operand_1.length; _b++) {
+                    var subDsl = operand_1[_b];
+                    if (this.hasCampaignVariationNode(subDsl))
+                        return true;
+                }
+            }
+            else if ((0, DataTypeUtil_1.isObject)(operand)) {
+                if (this.hasCampaignVariationNode(operand))
+                    return true;
+            }
+        }
+        return false;
     };
     return SegmentationManager;
 }());

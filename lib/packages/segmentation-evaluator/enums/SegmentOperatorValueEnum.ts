@@ -31,4 +31,6 @@ export enum SegmentOperatorValueEnum {
   IP = 'ip_address',
   BROWSER_VERSION = 'browser_version',
   OS_VERSION = 'os_version',
+  // Pre-segment on Web Testing campaign/variation assignment.
+  WEB_CAMPAIGN_VARIATION = 'campaignVariation',
 }

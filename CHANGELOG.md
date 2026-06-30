@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.60.0] - 2026-06-29
+
+### Added
+
+- Support for **Web Testing pre-segmentation**: campaign segmentation can use the `campaignVariation` operand. The SDK evaluates it against **`context.platformVariables.webTestingCampaigns`**, a map of Web Testing campaign ID → variation ID (plain object or JSON string). The customer must pass this data in the context to enable web testing pre-segmentation. Supported operand values in settings: `122` (user in campaign), `122_2` (exact variation), `122_!1` (in campaign but not variation 1), `!122` (not in campaign).
+
+  Example usage:
+
+  ```javascript
+  const context = {
+    id: 'user-123',
+    platformVariables: {
+      // This is an example, replace with actual object
+      webTestingCampaigns: {
+        123: '4',
+        456: '1',
+      },
+    },
+  };
+
+  const flag = await wingifyClient.getFlag('feature-key', context);
+  ```
+
 ## [1.55.0] - 2026-06-09
 
 ### Added

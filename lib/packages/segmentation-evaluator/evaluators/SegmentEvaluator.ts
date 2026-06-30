@@ -73,6 +73,8 @@ export class SegmentEvaluator implements Segmentation {
           this.context,
           SegmentOperatorValueEnum.OS_VERSION,
         );
+      case SegmentOperatorValueEnum.WEB_CAMPAIGN_VARIATION:
+        return this.segmentOperandEvaluator.evaluateCampaignVariationDSL(subDsl, this.context);
       default:
         return false;
     }

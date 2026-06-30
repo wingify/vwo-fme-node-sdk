@@ -188,7 +188,7 @@ export class LogManager extends Logger implements ILogManager {
     try {
       const message = buildMessage(ErrorLogMessagesEnum[template], data);
       this.error(message);
-      if (shouldSendToWingify) {
+      if (shouldSendToWingify && this.serviceContainer) {
         const debugEventProps = {
           ...debugData,
           ...data,

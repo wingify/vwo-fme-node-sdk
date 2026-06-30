@@ -26,6 +26,9 @@ export class ContextModel {
         if (context?.bucketingSeed) {
             this.bucketingSeed = context.bucketingSeed;
         }
+        if (context?.platformVariables) {
+            this.platformVariables = { ...context.platformVariables };
+        }
         if (context?.isDevMode) {
             this.isDevMode = context.isDevMode === true;
         }
@@ -83,6 +86,12 @@ export class ContextModel {
     }
     getBucketingSeed() {
         return this.bucketingSeed?.toString();
+    }
+    getPlatformVariables() {
+        return this.platformVariables;
+    }
+    setPlatformVariables(platformVariables) {
+        this.platformVariables = platformVariables;
     }
     getIsDevMode() {
         return this.isDevMode === true;

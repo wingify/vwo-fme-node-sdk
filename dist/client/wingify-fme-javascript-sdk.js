@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.55.0
+ * vwo-fme-javascript-sdk - v1.60.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.55.0"
+  version: "1.60.0"
 };
 
 /***/ }),
@@ -4308,10 +4308,21 @@ exports.SettingsModel = SettingsModel;
 /*!*****************************************!*\
   !*** ./lib/models/user/ContextModel.ts ***!
   \*****************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ContextModel = void 0;
 var ContextWingifyModel_1 = __webpack_require__(/*! ./ContextWingifyModel */ "./lib/models/user/ContextWingifyModel.ts");
@@ -4344,6 +4355,9 @@ var ContextModel = /** @class */ (function () {
         }
         if (context === null || context === void 0 ? void 0 : context.bucketingSeed) {
             this.bucketingSeed = context.bucketingSeed;
+        }
+        if (context === null || context === void 0 ? void 0 : context.platformVariables) {
+            this.platformVariables = __assign({}, context.platformVariables);
         }
         if (context === null || context === void 0 ? void 0 : context.isDevMode) {
             this.isDevMode = context.isDevMode === true;
@@ -4403,6 +4417,12 @@ var ContextModel = /** @class */ (function () {
     ContextModel.prototype.getBucketingSeed = function () {
         var _a;
         return (_a = this.bucketingSeed) === null || _a === void 0 ? void 0 : _a.toString();
+    };
+    ContextModel.prototype.getPlatformVariables = function () {
+        return this.platformVariables;
+    };
+    ContextModel.prototype.setPlatformVariables = function (platformVariables) {
+        this.platformVariables = platformVariables;
     };
     ContextModel.prototype.getIsDevMode = function () {
         return this.isDevMode === true;
@@ -4869,7 +4889,7 @@ var LogManager = /** @class */ (function (_super) {
         try {
             var message = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum[template], data);
             this.error(message);
-            if (shouldSendToWingify) {
+            if (shouldSendToWingify && this.serviceContainer) {
                 var debugEventProps = __assign(__assign(__assign({}, debugData), data), { msg_t: template, msg: message, lt: LogLevelEnum_1.LogLevelEnum.ERROR.toString(), cg: DebuggerCategoryEnum_1.DebuggerCategoryEnum.ERROR });
                 // send debug event to Wingify
                 (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(this.serviceContainer, debugEventProps);
@@ -6415,6 +6435,7 @@ var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./l
 var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./lib/utils/FunctionUtil.ts");
 var SegmentOperandEvaluator_1 = __webpack_require__(/*! ../evaluators/SegmentOperandEvaluator */ "./lib/packages/segmentation-evaluator/evaluators/SegmentOperandEvaluator.ts");
+var SegmentOperatorValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperatorValueEnum */ "./lib/packages/segmentation-evaluator/enums/SegmentOperatorValueEnum.ts");
 var SegmentationManager = /** @class */ (function () {
     /**
      * Constructor for SegmentationManager.
@@ -6486,13 +6507,47 @@ var SegmentationManager = /** @class */ (function () {
      */
     SegmentationManager.prototype.validateSegmentation = function (dsl, properties) {
         return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.evaluator.isSegmentationValid(dsl, properties)];
-                    case 1: return [2 /*return*/, _a.sent()]; // Delegate to evaluator's method
+            var _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        // If the DSL contains any campaignVariation node but no webTestingCampaigns was provided, fail immediately.
+                        // This covers NOT/OR/AND wrappers too — there is no web testing data to evaluate against.
+                        if (this.hasCampaignVariationNode(dsl) && !((_b = (_a = this.evaluator.context) === null || _a === void 0 ? void 0 : _a.getPlatformVariables()) === null || _b === void 0 ? void 0 : _b.webTestingCampaigns)) {
+                            return [2 /*return*/, false];
+                        }
+                        return [4 /*yield*/, this.evaluator.isSegmentationValid(dsl, properties)];
+                    case 1: return [2 /*return*/, _c.sent()];
                 }
             });
         });
+    };
+    /**
+     * Recursively checks if any node in the DSL tree is a campaignVariation operand.
+     * @param {Record<string, dynamic>} dsl - The segmentation DSL to check.
+     * @returns {boolean} True if the DSL contains a campaignVariation node, otherwise false.
+     */
+    SegmentationManager.prototype.hasCampaignVariationNode = function (dsl) {
+        if (!(0, DataTypeUtil_1.isObject)(dsl))
+            return false;
+        for (var _i = 0, _a = Object.keys(dsl); _i < _a.length; _i++) {
+            var operator = _a[_i];
+            if (operator === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.WEB_CAMPAIGN_VARIATION)
+                return true;
+            var operand = dsl[operator];
+            if (Array.isArray(operand)) {
+                for (var _b = 0, operand_1 = operand; _b < operand_1.length; _b++) {
+                    var subDsl = operand_1[_b];
+                    if (this.hasCampaignVariationNode(subDsl))
+                        return true;
+                }
+            }
+            else if ((0, DataTypeUtil_1.isObject)(operand)) {
+                if (this.hasCampaignVariationNode(operand))
+                    return true;
+            }
+        }
+        return false;
     };
     return SegmentationManager;
 }());
@@ -6631,6 +6686,8 @@ var SegmentOperatorValueEnum;
     SegmentOperatorValueEnum["IP"] = "ip_address";
     SegmentOperatorValueEnum["BROWSER_VERSION"] = "browser_version";
     SegmentOperatorValueEnum["OS_VERSION"] = "os_version";
+    // Pre-segment on Web Testing campaign/variation assignment.
+    SegmentOperatorValueEnum["WEB_CAMPAIGN_VARIATION"] = "campaignVariation";
 })(SegmentOperatorValueEnum || (exports.SegmentOperatorValueEnum = SegmentOperatorValueEnum = {}));
 
 
@@ -6733,8 +6790,9 @@ var SegmentEvaluator = /** @class */ (function () {
                             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP: return [3 /*break*/, 11];
                             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION: return [3 /*break*/, 12];
                             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION: return [3 /*break*/, 13];
+                            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.WEB_CAMPAIGN_VARIATION: return [3 /*break*/, 14];
                         }
-                        return [3 /*break*/, 14];
+                        return [3 /*break*/, 15];
                     case 1: return [4 /*yield*/, this.isSegmentationValid(subDsl, properties)];
                     case 2: return [2 /*return*/, !(_c.sent())];
                     case 3: return [4 /*yield*/, this.every(subDsl, properties)];
@@ -6748,7 +6806,8 @@ var SegmentEvaluator = /** @class */ (function () {
                     case 11: return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP)];
                     case 12: return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION)];
                     case 13: return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION)];
-                    case 14: return [2 /*return*/, false];
+                    case 14: return [2 /*return*/, this.segmentOperandEvaluator.evaluateCampaignVariationDSL(subDsl, this.context)];
+                    case 15: return [2 /*return*/, false];
                 }
             });
         });
@@ -7163,6 +7222,7 @@ exports.SegmentOperandEvaluator = void 0;
  * limitations under the License.
  */
 var SegmentUtil_1 = __webpack_require__(/*! ../utils/SegmentUtil */ "./lib/packages/segmentation-evaluator/utils/SegmentUtil.ts");
+var WebTestingSegmentUtil_1 = __webpack_require__(/*! ../utils/WebTestingSegmentUtil */ "./lib/packages/segmentation-evaluator/utils/WebTestingSegmentUtil.ts");
 var SegmentOperandValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperandValueEnum */ "./lib/packages/segmentation-evaluator/enums/SegmentOperandValueEnum.ts");
 var SegmentOperandRegexEnum_1 = __webpack_require__(/*! ../enums/SegmentOperandRegexEnum */ "./lib/packages/segmentation-evaluator/enums/SegmentOperandRegexEnum.ts");
 var SegmentOperatorValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperatorValueEnum */ "./lib/packages/segmentation-evaluator/enums/SegmentOperatorValueEnum.ts");
@@ -7279,6 +7339,55 @@ var SegmentOperandEvaluator = /** @class */ (function () {
         var processedValues = this.processValues(operandValue, tagValue);
         tagValue = processedValues.tagValue; // Fix: Type assertion to ensure tagValue is of type string
         return this.extractResult(operandType, processedValues.operandValue, tagValue);
+    };
+    /**
+     * Evaluates Web Testing pre-segmentation against `context.platformVariables.webTestingCampaigns`.
+     * Operand: "C" (in Campaign, any variation), "C_V", "C_!V", "!C" (not in Campaign C).
+     * @param {unknown} campaignVariationOperand - The DSL operand string representing the campaign variation.
+     * @param {ContextModel} context - The context model containing platform variables for the evaluation.
+     * @returns {boolean} True if the user matches the web testing campaign variation condition, otherwise false.
+     */
+    SegmentOperandEvaluator.prototype.evaluateCampaignVariationDSL = function (campaignVariationOperand, context) {
+        // Settings JSON often deserializes campaign ids as numbers; coerce before matching DSL tokens.
+        var operandString;
+        if ((0, DataTypeUtil_1.isNumber)(campaignVariationOperand) && Number.isFinite(campaignVariationOperand)) {
+            operandString = String(campaignVariationOperand);
+        }
+        else if ((0, DataTypeUtil_1.isString)(campaignVariationOperand)) {
+            operandString = campaignVariationOperand;
+        }
+        if ((0, DataTypeUtil_1.isUndefined)(operandString)) {
+            var type = (0, DataTypeUtil_1.getType)(campaignVariationOperand).toLowerCase();
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_TYPE', { type: type }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+            return false;
+        }
+        // Empty operand is invalid.
+        if (operandString.length === 0) {
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+            return false;
+        }
+        var trimmedCampaignVariationOperand = operandString.trim();
+        // All spaces is invalid.
+        if (trimmedCampaignVariationOperand.length === 0) {
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+            return false;
+        }
+        // Parse the campaigns from the context.
+        var assignedVariationsByCampaignId = (0, WebTestingSegmentUtil_1.parseWebTestingCampaignsFromContext)(context, this.serviceContainer);
+        var _a = (0, WebTestingSegmentUtil_1.evaluateWebTestingCampaignVariation)(trimmedCampaignVariationOperand, assignedVariationsByCampaignId), result = _a.result, invalidFormat = _a.invalidFormat;
+        // Invalid format of the operand.
+        if (invalidFormat) {
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_FORMAT', { operand: trimmedCampaignVariationOperand }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+        }
+        return result;
     };
     /**
      * Pre-processes the tag value to ensure it is in the correct format for evaluation.
@@ -7674,6 +7783,153 @@ function matchWithRegex(string, regex) {
         // Return null if an error occurs during regex matching
         return null;
     }
+}
+
+
+/***/ }),
+
+/***/ "./lib/packages/segmentation-evaluator/utils/WebTestingSegmentUtil.ts":
+/*!****************************************************************************!*\
+  !*** ./lib/packages/segmentation-evaluator/utils/WebTestingSegmentUtil.ts ***!
+  \****************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.normalizeWebTestingCampaignsMap = normalizeWebTestingCampaignsMap;
+exports.parseWebTestingCampaignsFromContext = parseWebTestingCampaignsFromContext;
+exports.evaluateWebTestingCampaignVariation = evaluateWebTestingCampaignVariation;
+var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+/**
+ * Normalizes Web Testing campaign map keys and variation values to strings.
+ * @param {Record<string, unknown>} rawAssignments - The raw assignments map from the context.
+ * @returns {Record<string, string>} - The normalized assignments map with campaignId as key and variationId as value.
+ */
+function normalizeWebTestingCampaignsMap(rawAssignments) {
+    // Turn the raw assignments map into a simple string map for regex matching.
+    var campaignIdToVariationId = {};
+    for (var _i = 0, _a = Object.keys(rawAssignments); _i < _a.length; _i++) {
+        var campaignId = _a[_i];
+        var assignedVariationId = rawAssignments[campaignId];
+        if (!(0, DataTypeUtil_1.isUndefined)(assignedVariationId) &&
+            !(0, DataTypeUtil_1.isNull)(assignedVariationId) &&
+            String(campaignId).length > 0
+        // Ignore empty keys; null/undefined variations mean nothing assigned for that id.
+        ) {
+            campaignIdToVariationId[String(campaignId)] = String(assignedVariationId);
+        }
+    }
+    return campaignIdToVariationId;
+}
+/**
+ * Parses `context.platformVariables.webTestingCampaigns` (JSON string or plain object).
+ * @param {ContextModel} context - The context model containing platform variables for the evaluation.
+ * @param {ServiceContainer} serviceContainer - The service container for accessing services like the log manager.
+ * @returns {Record<string, string> | null} A record mapping campaign IDs to variation IDs, or null if invalid/missing.
+ */
+function parseWebTestingCampaignsFromContext(context, serviceContainer) {
+    var _a;
+    var webTestingCampaignsInput = (_a = context.getPlatformVariables()) === null || _a === void 0 ? void 0 : _a.webTestingCampaigns;
+    // No payload from the integration means empty assignments map.
+    if ((0, DataTypeUtil_1.isNull)(webTestingCampaignsInput) || (0, DataTypeUtil_1.isUndefined)(webTestingCampaignsInput)) {
+        return null;
+    }
+    // SDK already forwarded a plain campaignId -> variationId object.
+    if ((0, DataTypeUtil_1.isObject)(webTestingCampaignsInput)) {
+        return normalizeWebTestingCampaignsMap(webTestingCampaignsInput);
+    }
+    // Some stacks pass JSON text (cookie, SSR prop, tag); parse it only if it's an object.
+    if ((0, DataTypeUtil_1.isString)(webTestingCampaignsInput)) {
+        var trimmedWebTestingCampaignsJson = webTestingCampaignsInput.trim();
+        if (trimmedWebTestingCampaignsJson === '') {
+            // Empty JSON string is invalid.
+            return null;
+        }
+        try {
+            // extract all "key": tokens and check for duplicates before parsing swallows them
+            var allCampaignIdTokens = trimmedWebTestingCampaignsJson.match(/"([^"\\]*)"\s*:/g);
+            if (allCampaignIdTokens) {
+                var campaignIds = allCampaignIdTokens.map(function (token) { return token.replace(/"\s*:$/, '').slice(1); });
+                var hasDuplicateCampaignId = campaignIds.length !== new Set(campaignIds).size;
+                if (hasDuplicateCampaignId) {
+                    serviceContainer
+                        .getLogManager()
+                        .errorLog('INVALID_WEB_TESTING_CAMPAIGNS_DUPLICATE_KEY', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+                }
+            }
+            // Parse the JSON string into an object.
+            var parsedAssignments = JSON.parse(trimmedWebTestingCampaignsJson);
+            if ((0, DataTypeUtil_1.isObject)(parsedAssignments)) {
+                return normalizeWebTestingCampaignsMap(parsedAssignments);
+            }
+            // Parsed fine but it's an array/string/etc. Invalid shape.
+            serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGNS_JSON', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+        }
+        catch (_b) {
+            // Malformed JSON; treat like missing assignments.
+            serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGNS_JSON', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+        }
+        return null;
+    }
+    // Booleans/numbers/other odd types are invalid.
+    if (!(0, DataTypeUtil_1.isUndefined)(webTestingCampaignsInput) && !(0, DataTypeUtil_1.isNull)(webTestingCampaignsInput)) {
+        var kind = (0, DataTypeUtil_1.isArray)(webTestingCampaignsInput) ? 'array' : (0, DataTypeUtil_1.getType)(webTestingCampaignsInput).toLowerCase();
+        serviceContainer
+            .getLogManager()
+            .errorLog('INVALID_WEB_TESTING_CAMPAIGNS_TYPE', { kind: kind }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+    }
+    return null;
+}
+/**
+ * Evaluates campaignVariation operand encoding:
+ * - "!C" — user is not in campaign C (no entry in map)
+ * - "C_!V" — user is in campaign C and assigned variation is not V
+ * - "C_V" — user is in campaign C with variation V
+ * - "C" (digits only) — user is in campaign C (any variation)
+ */
+function evaluateWebTestingCampaignVariation(campaignVariationOperand, assignedVariationsByCampaignId) {
+    // Null means empty assignments map.
+    var assignments = assignedVariationsByCampaignId !== null && assignedVariationsByCampaignId !== void 0 ? assignedVariationsByCampaignId : {};
+    // !123 — user should not be in campaign 123.
+    var match = /^!(\d+)$/.exec(campaignVariationOperand);
+    if (match) {
+        var campaignId = match[1];
+        return { result: !Object.prototype.hasOwnProperty.call(assignments, campaignId), invalidFormat: false };
+    }
+    // 123_!4 — in campaign 123 but not the variation 4.
+    match = /^(\d+)_!(\d+)$/.exec(campaignVariationOperand);
+    if (match) {
+        var campaignId = match[1];
+        var variationId = match[2];
+        if (!Object.prototype.hasOwnProperty.call(assignments, campaignId)) {
+            return { result: false, invalidFormat: false };
+        }
+        return { result: assignments[campaignId] !== variationId, invalidFormat: false };
+    }
+    // 123_4 — must be exactly that campaign and variation.
+    match = /^(\d+)_(\d+)$/.exec(campaignVariationOperand);
+    if (match) {
+        var campaignId = match[1];
+        var variationId = match[2];
+        if (!Object.prototype.hasOwnProperty.call(assignments, campaignId)) {
+            return { result: false, invalidFormat: false };
+        }
+        return { result: assignments[campaignId] === variationId, invalidFormat: false };
+    }
+    // 123 — in the campaign, any variation counts.
+    match = /^(\d+)$/.exec(campaignVariationOperand);
+    if (match) {
+        var campaignId = match[1];
+        return { result: Object.prototype.hasOwnProperty.call(assignments, campaignId), invalidFormat: false };
+    }
+    // Invalid format.
+    return { result: false, invalidFormat: true };
 }
 
 
@@ -16536,7 +16792,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"{service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown({brand} standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACKING_USAGE":"Impression built for vwo_userEvaluated({brand} standard event for usage tracking call) event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}({brand} internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty, nothing to flush","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}","WEB_UUID_FOUND":"{brand} Web Testing UUID {uuid} identified as the Context ID for API {apiName}","HOLDOUT_SEGMENTATION_FAIL":"User ID: {userId} does not qualify segmentation for Holdout: {holdoutGroupName}","HOLDOUT_SHOULD_NOT_EXCLUDE_USER":"User ID: {userId} is not part of Holdout: {holdoutGroupName} for feature: {featureId}","PART_OF_HOLDOUT_IN_MEG":"MEG: User ID:{userId} is part of holdout: {holdoutId} for feature: {featureKey}","HOLDOUT_SKIP_EVALUATION":"Skip holdout reevaluation for holdout ID: {holdoutId} because {reason}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"{service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown({brand} standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}({brand} internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty, nothing to flush","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}","WEB_UUID_FOUND":"{brand} Web Testing UUID {uuid} identified as the Context ID for API {apiName}","HOLDOUT_SEGMENTATION_FAIL":"User ID: {userId} does not qualify segmentation for Holdout: {holdoutGroupName}","HOLDOUT_SHOULD_NOT_EXCLUDE_USER":"User ID: {userId} is not part of Holdout: {holdoutGroupName} for feature: {featureId}","PART_OF_HOLDOUT_IN_MEG":"MEG: User ID:{userId} is part of holdout: {holdoutId} for feature: {featureKey}","HOLDOUT_SKIP_EVALUATION":"Skip holdout reevaluation for holdout ID: {holdoutId} because {reason}"}');
 
 /***/ }),
 
@@ -16569,7 +16825,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: {logPr
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: {logPrefix} {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: {logPrefix} {date} {brand} settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new {brand} client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new {brand} client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings not matches with the provided sdk-key/account-id. Fetching latest settings from the server","SETTINGS_EXPIRED":"Cached settings expired. Fetching latest settings from server","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings retrieved from storage","SETTINGS_SUCCESSFULLY_STORED":"Settings successfully stored in storage","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings updated with latest settings fetched from the server","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled in the init options","CLIENT_INITIALIZED":"{brand} Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","DECISION_EXPIRED":"Stored decision expired for feature: {featureKey} and user: {userId}, re-evaluating.","MEG_DECISION_EXPIRED":"Stored MEG decision expired for group: {groupId} and user: {userId}, re-evaluating.","MEG_FEATURE_DECISION_EXPIRED":"Stored MEG decision expired for feature: {featureKey} and user: {userId}, re-evaluating.","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments were missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current {brand} client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by {brand} having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by {brand} having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events could not be received by {brand}. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","STORED_HOLDOUT_DECISION_FOUND":"User: {userId} already part of holdout with ID:{holdoutId} for feature: {featureKey}","HOLDOUT_SHOULD_EXCLUDE_USER":"User: {userId} ({bucketValue}%) is in holdout: {holdoutGroupName} with targeted traffic percent: {percentTraffic}% for feature ID: {featureId}","USER_IN_HOLDOUT_GROUP":"User: {userId} is in holdout group: {holdoutGroupName} for feature {featureKey}. Feature not evaluated","USER_NOT_EXCLUDED_DUE_TO_HOLDOUT":"User ID:{userId} is not excluded from feature:{featureKey} due to any holdout groups","HOLDOUT_SEGMENTATION_SKIP":"No segments found for holdout: {holdoutId} and user ID: {userId}. Hence skipping segmentation","API_BLOCKED_BY_PANIC_MODE":"API {apiName} is blocked because panic mode is active.","PANIC_MODE_ACTIVATED":"SDK entered panic mode (panic timestamp: {panicTs}). All client-facing API calls will be no-ops until panic is cleared.","PANIC_MODE_CLEARED_VIA_SETTINGS":"Panic mode cleared via settings update. Feature flag evaluations have resumed.","PANIC_MODE_CLEARED_VIA_RESPONSE":"Panic mode cleared via DaCDN collect response. Feature flag evaluations have resumed.","FORCE_REFRESH_TRIGGERED":"Force settings refresh triggered by {source} (refresh timestamp: {refreshTs}). Fetching latest settings.","FORCE_REFRESH_COMPLETED":"Force settings refresh completed. SDK is now running with updated settings.","USAGE_TRACKING_CALL_SENT":"Usage tracking call dispatched for Account ID:{accountId}, User ID:{userId}, and feature key:{featureKey}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: {logPrefix} {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: {logPrefix} {date} {brand} settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new {brand} client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new {brand} client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings not matches with the provided sdk-key/account-id. Fetching latest settings from the server","SETTINGS_EXPIRED":"Cached settings expired. Fetching latest settings from server","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings retrieved from storage","SETTINGS_SUCCESSFULLY_STORED":"Settings successfully stored in storage","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings updated with latest settings fetched from the server","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled in the init options","CLIENT_INITIALIZED":"{brand} Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments were missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current {brand} client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by {brand} having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by {brand} having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events could not be received by {brand}. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","STORED_HOLDOUT_DECISION_FOUND":"User: {userId} already part of holdout with ID:{holdoutId} for feature: {featureKey}","HOLDOUT_SHOULD_EXCLUDE_USER":"User: {userId} ({bucketValue}%) is in holdout: {holdoutGroupName} with targeted traffic percent: {percentTraffic}% for feature ID: {featureId}","USER_IN_HOLDOUT_GROUP":"User: {userId} is in holdout group: {holdoutGroupName} for feature {featureKey}. Feature not evaluated","USER_NOT_EXCLUDED_DUE_TO_HOLDOUT":"User ID:{userId} is not excluded from feature:{featureKey} due to any holdout groups","HOLDOUT_SEGMENTATION_SKIP":"No segments found for holdout: {holdoutId} and user ID: {userId}. Hence skipping segmentation"}');
 
 /***/ }),
 

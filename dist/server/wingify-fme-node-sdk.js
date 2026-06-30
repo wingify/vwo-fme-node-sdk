@@ -1,5 +1,5 @@
 /*!
- * wingify-fme-node-sdk - v1.55.0
+ * wingify-fme-node-sdk - v1.60.0
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.55.0"
+  version: "1.60.0"
 };
 
 /***/ }),
@@ -4976,11 +4976,21 @@ exports.SettingsModel = SettingsModel;
 /*!**********************************************************!*\
   !*** ./dist/server-unpacked/models/user/ContextModel.js ***!
   \**********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
 
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -5014,6 +5024,9 @@ var ContextModel = /** @class */function () {
     }
     if (context === null || context === void 0 ? void 0 : context.bucketingSeed) {
       this.bucketingSeed = context.bucketingSeed;
+    }
+    if (context === null || context === void 0 ? void 0 : context.platformVariables) {
+      this.platformVariables = __assign({}, context.platformVariables);
     }
     if (context === null || context === void 0 ? void 0 : context.isDevMode) {
       this.isDevMode = context.isDevMode === true;
@@ -5071,6 +5084,12 @@ var ContextModel = /** @class */function () {
   ContextModel.prototype.getBucketingSeed = function () {
     var _a;
     return (_a = this.bucketingSeed) === null || _a === void 0 ? void 0 : _a.toString();
+  };
+  ContextModel.prototype.getPlatformVariables = function () {
+    return this.platformVariables;
+  };
+  ContextModel.prototype.setPlatformVariables = function (platformVariables) {
+    this.platformVariables = platformVariables;
   };
   ContextModel.prototype.getIsDevMode = function () {
     return this.isDevMode === true;
@@ -5550,7 +5569,7 @@ var LogManager = /** @class */function (_super) {
     try {
       var message = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum[template], data);
       this.error(message);
-      if (shouldSendToWingify) {
+      if (shouldSendToWingify && this.serviceContainer) {
         var debugEventProps = __assign(__assign(__assign({}, debugData), data), {
           msg_t: template,
           msg: message,
@@ -7507,6 +7526,7 @@ var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./d
 var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var SegmentOperandEvaluator_1 = __webpack_require__(/*! ../evaluators/SegmentOperandEvaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SegmentOperandEvaluator.js");
+var SegmentOperatorValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperatorValueEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SegmentOperatorValueEnum.js");
 var SegmentationManager = /** @class */function () {
   /**
    * Constructor for SegmentationManager.
@@ -7584,16 +7604,43 @@ var SegmentationManager = /** @class */function () {
    */
   SegmentationManager.prototype.validateSegmentation = function (dsl, properties) {
     return __awaiter(this, void 0, void 0, function () {
-      return __generator(this, function (_a) {
-        switch (_a.label) {
+      var _a, _b;
+      return __generator(this, function (_c) {
+        switch (_c.label) {
           case 0:
+            // If the DSL contains any campaignVariation node but no webTestingCampaigns was provided, fail immediately.
+            // This covers NOT/OR/AND wrappers too — there is no web testing data to evaluate against.
+            if (this.hasCampaignVariationNode(dsl) && !((_b = (_a = this.evaluator.context) === null || _a === void 0 ? void 0 : _a.getPlatformVariables()) === null || _b === void 0 ? void 0 : _b.webTestingCampaigns)) {
+              return [2 /*return*/, false];
+            }
             return [4 /*yield*/, this.evaluator.isSegmentationValid(dsl, properties)];
           case 1:
-            return [2 /*return*/, _a.sent()];
-          // Delegate to evaluator's method
+            return [2 /*return*/, _c.sent()];
         }
       });
     });
+  };
+  /**
+   * Recursively checks if any node in the DSL tree is a campaignVariation operand.
+   * @param {Record<string, dynamic>} dsl - The segmentation DSL to check.
+   * @returns {boolean} True if the DSL contains a campaignVariation node, otherwise false.
+   */
+  SegmentationManager.prototype.hasCampaignVariationNode = function (dsl) {
+    if (!(0, DataTypeUtil_1.isObject)(dsl)) return false;
+    for (var _i = 0, _a = Object.keys(dsl); _i < _a.length; _i++) {
+      var operator = _a[_i];
+      if (operator === SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.WEB_CAMPAIGN_VARIATION) return true;
+      var operand = dsl[operator];
+      if (Array.isArray(operand)) {
+        for (var _b = 0, operand_1 = operand; _b < operand_1.length; _b++) {
+          var subDsl = operand_1[_b];
+          if (this.hasCampaignVariationNode(subDsl)) return true;
+        }
+      } else if ((0, DataTypeUtil_1.isObject)(operand)) {
+        if (this.hasCampaignVariationNode(operand)) return true;
+      }
+    }
+    return false;
   };
   return SegmentationManager;
 }();
@@ -7738,6 +7785,8 @@ var SegmentOperatorValueEnum;
   SegmentOperatorValueEnum["IP"] = "ip_address";
   SegmentOperatorValueEnum["BROWSER_VERSION"] = "browser_version";
   SegmentOperatorValueEnum["OS_VERSION"] = "os_version";
+  // Pre-segment on Web Testing campaign/variation assignment.
+  SegmentOperatorValueEnum["WEB_CAMPAIGN_VARIATION"] = "campaignVariation";
 })(SegmentOperatorValueEnum || (exports.SegmentOperatorValueEnum = SegmentOperatorValueEnum = {}));
 
 /***/ }),
@@ -7925,8 +7974,10 @@ var SegmentEvaluator = /** @class */function () {
                 return [3 /*break*/, 12];
               case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION:
                 return [3 /*break*/, 13];
+              case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.WEB_CAMPAIGN_VARIATION:
+                return [3 /*break*/, 14];
             }
-            return [3 /*break*/, 14];
+            return [3 /*break*/, 15];
           case 1:
             return [4 /*yield*/, this.isSegmentationValid(subDsl, properties)];
           case 2:
@@ -7954,6 +8005,8 @@ var SegmentEvaluator = /** @class */function () {
           case 13:
             return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION)];
           case 14:
+            return [2 /*return*/, this.segmentOperandEvaluator.evaluateCampaignVariationDSL(subDsl, this.context)];
+          case 15:
             return [2 /*return*/, false];
         }
       });
@@ -8469,6 +8522,7 @@ exports.SegmentOperandEvaluator = void 0;
  * limitations under the License.
  */
 var SegmentUtil_1 = __webpack_require__(/*! ../utils/SegmentUtil */ "./dist/server-unpacked/packages/segmentation-evaluator/utils/SegmentUtil.js");
+var WebTestingSegmentUtil_1 = __webpack_require__(/*! ../utils/WebTestingSegmentUtil */ "./dist/server-unpacked/packages/segmentation-evaluator/utils/WebTestingSegmentUtil.js");
 var SegmentOperandValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperandValueEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SegmentOperandValueEnum.js");
 var SegmentOperandRegexEnum_1 = __webpack_require__(/*! ../enums/SegmentOperandRegexEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SegmentOperandRegexEnum.js");
 var SegmentOperatorValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperatorValueEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SegmentOperatorValueEnum.js");
@@ -8597,6 +8651,68 @@ var SegmentOperandEvaluator = /** @class */function () {
     var processedValues = this.processValues(operandValue, tagValue);
     tagValue = processedValues.tagValue; // Fix: Type assertion to ensure tagValue is of type string
     return this.extractResult(operandType, processedValues.operandValue, tagValue);
+  };
+  /**
+   * Evaluates Web Testing pre-segmentation against `context.platformVariables.webTestingCampaigns`.
+   * Operand: "C" (in Campaign, any variation), "C_V", "C_!V", "!C" (not in Campaign C).
+   * @param {unknown} campaignVariationOperand - The DSL operand string representing the campaign variation.
+   * @param {ContextModel} context - The context model containing platform variables for the evaluation.
+   * @returns {boolean} True if the user matches the web testing campaign variation condition, otherwise false.
+   */
+  SegmentOperandEvaluator.prototype.evaluateCampaignVariationDSL = function (campaignVariationOperand, context) {
+    // Settings JSON often deserializes campaign ids as numbers; coerce before matching DSL tokens.
+    var operandString;
+    if ((0, DataTypeUtil_1.isNumber)(campaignVariationOperand) && Number.isFinite(campaignVariationOperand)) {
+      operandString = String(campaignVariationOperand);
+    } else if ((0, DataTypeUtil_1.isString)(campaignVariationOperand)) {
+      operandString = campaignVariationOperand;
+    }
+    if ((0, DataTypeUtil_1.isUndefined)(operandString)) {
+      var type = (0, DataTypeUtil_1.getType)(campaignVariationOperand).toLowerCase();
+      this.serviceContainer.getLogManager().errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_TYPE', {
+        type: type
+      }, {
+        an: ApiEnum_1.ApiEnum.GET_FLAG,
+        uuid: context.getUuid(),
+        sId: context.getSessionId()
+      });
+      return false;
+    }
+    // Empty operand is invalid.
+    if (operandString.length === 0) {
+      this.serviceContainer.getLogManager().errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY', {}, {
+        an: ApiEnum_1.ApiEnum.GET_FLAG,
+        uuid: context.getUuid(),
+        sId: context.getSessionId()
+      });
+      return false;
+    }
+    var trimmedCampaignVariationOperand = operandString.trim();
+    // All spaces is invalid.
+    if (trimmedCampaignVariationOperand.length === 0) {
+      this.serviceContainer.getLogManager().errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY', {}, {
+        an: ApiEnum_1.ApiEnum.GET_FLAG,
+        uuid: context.getUuid(),
+        sId: context.getSessionId()
+      });
+      return false;
+    }
+    // Parse the campaigns from the context.
+    var assignedVariationsByCampaignId = (0, WebTestingSegmentUtil_1.parseWebTestingCampaignsFromContext)(context, this.serviceContainer);
+    var _a = (0, WebTestingSegmentUtil_1.evaluateWebTestingCampaignVariation)(trimmedCampaignVariationOperand, assignedVariationsByCampaignId),
+      result = _a.result,
+      invalidFormat = _a.invalidFormat;
+    // Invalid format of the operand.
+    if (invalidFormat) {
+      this.serviceContainer.getLogManager().errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_FORMAT', {
+        operand: trimmedCampaignVariationOperand
+      }, {
+        an: ApiEnum_1.ApiEnum.GET_FLAG,
+        uuid: context.getUuid(),
+        sId: context.getSessionId()
+      });
+    }
+    return result;
   };
   /**
    * Pre-processes the tag value to ensure it is in the correct format for evaluation.
@@ -8975,6 +9091,185 @@ function matchWithRegex(string, regex) {
     // Return null if an error occurs during regex matching
     return null;
   }
+}
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/packages/segmentation-evaluator/utils/WebTestingSegmentUtil.js":
+/*!*********************************************************************************************!*\
+  !*** ./dist/server-unpacked/packages/segmentation-evaluator/utils/WebTestingSegmentUtil.js ***!
+  \*********************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.normalizeWebTestingCampaignsMap = normalizeWebTestingCampaignsMap;
+exports.parseWebTestingCampaignsFromContext = parseWebTestingCampaignsFromContext;
+exports.evaluateWebTestingCampaignVariation = evaluateWebTestingCampaignVariation;
+var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+/**
+ * Normalizes Web Testing campaign map keys and variation values to strings.
+ * @param {Record<string, unknown>} rawAssignments - The raw assignments map from the context.
+ * @returns {Record<string, string>} - The normalized assignments map with campaignId as key and variationId as value.
+ */
+function normalizeWebTestingCampaignsMap(rawAssignments) {
+  // Turn the raw assignments map into a simple string map for regex matching.
+  var campaignIdToVariationId = {};
+  for (var _i = 0, _a = Object.keys(rawAssignments); _i < _a.length; _i++) {
+    var campaignId = _a[_i];
+    var assignedVariationId = rawAssignments[campaignId];
+    if (!(0, DataTypeUtil_1.isUndefined)(assignedVariationId) && !(0, DataTypeUtil_1.isNull)(assignedVariationId) && String(campaignId).length > 0
+    // Ignore empty keys; null/undefined variations mean nothing assigned for that id.
+    ) {
+      campaignIdToVariationId[String(campaignId)] = String(assignedVariationId);
+    }
+  }
+  return campaignIdToVariationId;
+}
+/**
+ * Parses `context.platformVariables.webTestingCampaigns` (JSON string or plain object).
+ * @param {ContextModel} context - The context model containing platform variables for the evaluation.
+ * @param {ServiceContainer} serviceContainer - The service container for accessing services like the log manager.
+ * @returns {Record<string, string> | null} A record mapping campaign IDs to variation IDs, or null if invalid/missing.
+ */
+function parseWebTestingCampaignsFromContext(context, serviceContainer) {
+  var _a;
+  var webTestingCampaignsInput = (_a = context.getPlatformVariables()) === null || _a === void 0 ? void 0 : _a.webTestingCampaigns;
+  // No payload from the integration means empty assignments map.
+  if ((0, DataTypeUtil_1.isNull)(webTestingCampaignsInput) || (0, DataTypeUtil_1.isUndefined)(webTestingCampaignsInput)) {
+    return null;
+  }
+  // SDK already forwarded a plain campaignId -> variationId object.
+  if ((0, DataTypeUtil_1.isObject)(webTestingCampaignsInput)) {
+    return normalizeWebTestingCampaignsMap(webTestingCampaignsInput);
+  }
+  // Some stacks pass JSON text (cookie, SSR prop, tag); parse it only if it's an object.
+  if ((0, DataTypeUtil_1.isString)(webTestingCampaignsInput)) {
+    var trimmedWebTestingCampaignsJson = webTestingCampaignsInput.trim();
+    if (trimmedWebTestingCampaignsJson === '') {
+      // Empty JSON string is invalid.
+      return null;
+    }
+    try {
+      // extract all "key": tokens and check for duplicates before parsing swallows them
+      var allCampaignIdTokens = trimmedWebTestingCampaignsJson.match(/"([^"\\]*)"\s*:/g);
+      if (allCampaignIdTokens) {
+        var campaignIds = allCampaignIdTokens.map(function (token) {
+          return token.replace(/"\s*:$/, '').slice(1);
+        });
+        var hasDuplicateCampaignId = campaignIds.length !== new Set(campaignIds).size;
+        if (hasDuplicateCampaignId) {
+          serviceContainer.getLogManager().errorLog('INVALID_WEB_TESTING_CAMPAIGNS_DUPLICATE_KEY', {}, {
+            an: ApiEnum_1.ApiEnum.GET_FLAG,
+            uuid: context.getUuid(),
+            sId: context.getSessionId()
+          });
+        }
+      }
+      // Parse the JSON string into an object.
+      var parsedAssignments = JSON.parse(trimmedWebTestingCampaignsJson);
+      if ((0, DataTypeUtil_1.isObject)(parsedAssignments)) {
+        return normalizeWebTestingCampaignsMap(parsedAssignments);
+      }
+      // Parsed fine but it's an array/string/etc. Invalid shape.
+      serviceContainer.getLogManager().errorLog('INVALID_WEB_TESTING_CAMPAIGNS_JSON', {}, {
+        an: ApiEnum_1.ApiEnum.GET_FLAG,
+        uuid: context.getUuid(),
+        sId: context.getSessionId()
+      });
+    } catch (_b) {
+      // Malformed JSON; treat like missing assignments.
+      serviceContainer.getLogManager().errorLog('INVALID_WEB_TESTING_CAMPAIGNS_JSON', {}, {
+        an: ApiEnum_1.ApiEnum.GET_FLAG,
+        uuid: context.getUuid(),
+        sId: context.getSessionId()
+      });
+    }
+    return null;
+  }
+  // Booleans/numbers/other odd types are invalid.
+  if (!(0, DataTypeUtil_1.isUndefined)(webTestingCampaignsInput) && !(0, DataTypeUtil_1.isNull)(webTestingCampaignsInput)) {
+    var kind = (0, DataTypeUtil_1.isArray)(webTestingCampaignsInput) ? 'array' : (0, DataTypeUtil_1.getType)(webTestingCampaignsInput).toLowerCase();
+    serviceContainer.getLogManager().errorLog('INVALID_WEB_TESTING_CAMPAIGNS_TYPE', {
+      kind: kind
+    }, {
+      an: ApiEnum_1.ApiEnum.GET_FLAG,
+      uuid: context.getUuid(),
+      sId: context.getSessionId()
+    });
+  }
+  return null;
+}
+/**
+ * Evaluates campaignVariation operand encoding:
+ * - "!C" — user is not in campaign C (no entry in map)
+ * - "C_!V" — user is in campaign C and assigned variation is not V
+ * - "C_V" — user is in campaign C with variation V
+ * - "C" (digits only) — user is in campaign C (any variation)
+ */
+function evaluateWebTestingCampaignVariation(campaignVariationOperand, assignedVariationsByCampaignId) {
+  // Null means empty assignments map.
+  var assignments = assignedVariationsByCampaignId !== null && assignedVariationsByCampaignId !== void 0 ? assignedVariationsByCampaignId : {};
+  // !123 — user should not be in campaign 123.
+  var match = /^!(\d+)$/.exec(campaignVariationOperand);
+  if (match) {
+    var campaignId = match[1];
+    return {
+      result: !Object.prototype.hasOwnProperty.call(assignments, campaignId),
+      invalidFormat: false
+    };
+  }
+  // 123_!4 — in campaign 123 but not the variation 4.
+  match = /^(\d+)_!(\d+)$/.exec(campaignVariationOperand);
+  if (match) {
+    var campaignId = match[1];
+    var variationId = match[2];
+    if (!Object.prototype.hasOwnProperty.call(assignments, campaignId)) {
+      return {
+        result: false,
+        invalidFormat: false
+      };
+    }
+    return {
+      result: assignments[campaignId] !== variationId,
+      invalidFormat: false
+    };
+  }
+  // 123_4 — must be exactly that campaign and variation.
+  match = /^(\d+)_(\d+)$/.exec(campaignVariationOperand);
+  if (match) {
+    var campaignId = match[1];
+    var variationId = match[2];
+    if (!Object.prototype.hasOwnProperty.call(assignments, campaignId)) {
+      return {
+        result: false,
+        invalidFormat: false
+      };
+    }
+    return {
+      result: assignments[campaignId] === variationId,
+      invalidFormat: false
+    };
+  }
+  // 123 — in the campaign, any variation counts.
+  match = /^(\d+)$/.exec(campaignVariationOperand);
+  if (match) {
+    var campaignId = match[1];
+    return {
+      result: Object.prototype.hasOwnProperty.call(assignments, campaignId),
+      invalidFormat: false
+    };
+  }
+  // Invalid format.
+  return {
+    result: false,
+    invalidFormat: true
+  };
 }
 
 /***/ }),

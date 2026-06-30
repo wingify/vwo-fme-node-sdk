@@ -29,6 +29,9 @@ export interface IWingifyContextModel {
   postSegmentationVariables?: string[];
   bucketingSeed?: string;
   sessionId?: number;
+  platformVariables?: {
+    webTestingCampaigns?: string | Record<string, string | number>;
+  };
   isDevMode?: boolean;
 }
 export class ContextModel implements IWingifyContextModel {
@@ -42,6 +45,9 @@ export class ContextModel implements IWingifyContextModel {
   _wingify_uuid?: string;
   sessionId?: number;
   _wingify?: ContextWingifyModel;
+  platformVariables?: {
+    webTestingCampaigns?: string | Record<string, string | number>;
+  };
   isDevMode?: boolean;
 
   modelFromDictionary(context: Record<string, any>, options: IWingifyOptions): this {
@@ -68,6 +74,9 @@ export class ContextModel implements IWingifyContextModel {
     }
     if (context?.bucketingSeed) {
       this.bucketingSeed = context.bucketingSeed;
+    }
+    if (context?.platformVariables) {
+      this.platformVariables = { ...context.platformVariables };
     }
 
     if (context?.isDevMode) {
@@ -142,6 +151,16 @@ export class ContextModel implements IWingifyContextModel {
 
   getBucketingSeed(): string | undefined {
     return this.bucketingSeed?.toString();
+  }
+
+  getPlatformVariables(): {
+    webTestingCampaigns?: string | Record<string, string | number>;
+  } {
+    return this.platformVariables;
+  }
+
+  setPlatformVariables(platformVariables: { webTestingCampaigns?: string | Record<string, string | number> }): void {
+    this.platformVariables = platformVariables;
   }
 
   getIsDevMode(): boolean {

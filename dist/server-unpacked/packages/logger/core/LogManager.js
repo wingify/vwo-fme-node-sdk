@@ -163,7 +163,7 @@ var LogManager = /** @class */ (function (_super) {
         try {
             var message = (0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum[template], data);
             this.error(message);
-            if (shouldSendToWingify) {
+            if (shouldSendToWingify && this.serviceContainer) {
                 var debugEventProps = __assign(__assign(__assign({}, debugData), data), { msg_t: template, msg: message, lt: LogLevelEnum_1.LogLevelEnum.ERROR.toString(), cg: DebuggerCategoryEnum_1.DebuggerCategoryEnum.ERROR });
                 // send debug event to Wingify
                 (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(this.serviceContainer, debugEventProps);

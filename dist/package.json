@@ -1,6 +1,6 @@
 {
   "name": "wingify-fme-node-sdk",
-  "version": "1.55.0",
+  "version": "1.60.0",
   "description": "Wingify Node/JavaScript SDK for Feature Management and Experimentation",
   "main": "dist/server/wingify-fme-node-sdk.min.js",
   "browser": "dist/client/wingify-fme-javascript-sdk.min.js",

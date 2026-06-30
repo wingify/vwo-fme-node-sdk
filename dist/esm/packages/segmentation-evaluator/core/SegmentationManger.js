@@ -17,10 +17,11 @@ import { SegmentEvaluator } from '../evaluators/SegmentEvaluator.js';
 import { getFromGatewayService, getQueryParams } from '../../../utils/GatewayServiceUtil.js';
 import { UrlEnum } from '../../../enums/UrlEnum.js';
 import { ContextWingifyModel } from '../../../models/user/ContextWingifyModel.js';
-import { isUndefined } from '../../../utils/DataTypeUtil.js';
+import { isObject, isUndefined } from '../../../utils/DataTypeUtil.js';
 import { ApiEnum } from '../../../enums/ApiEnum.js';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
 import { SegmentOperandEvaluator } from '../evaluators/SegmentOperandEvaluator.js';
+import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum.js';
 export class SegmentationManager {
     /**
      * Constructor for SegmentationManager.
@@ -80,7 +81,37 @@ export class SegmentationManager {
      * @returns {Promise<boolean>} True if segmentation is valid, otherwise false.
      */
     async validateSegmentation(dsl, properties) {
-        return await this.evaluator.isSegmentationValid(dsl, properties); // Delegate to evaluator's method
+        // If the DSL contains any campaignVariation node but no webTestingCampaigns was provided, fail immediately.
+        // This covers NOT/OR/AND wrappers too — there is no web testing data to evaluate against.
+        if (this.hasCampaignVariationNode(dsl) && !this.evaluator.context?.getPlatformVariables()?.webTestingCampaigns) {
+            return false;
+        }
+        return await this.evaluator.isSegmentationValid(dsl, properties);
+    }
+    /**
+     * Recursively checks if any node in the DSL tree is a campaignVariation operand.
+     * @param {Record<string, dynamic>} dsl - The segmentation DSL to check.
+     * @returns {boolean} True if the DSL contains a campaignVariation node, otherwise false.
+     */
+    hasCampaignVariationNode(dsl) {
+        if (!isObject(dsl))
+            return false;
+        for (const operator of Object.keys(dsl)) {
+            if (operator === SegmentOperatorValueEnum.WEB_CAMPAIGN_VARIATION)
+                return true;
+            const operand = dsl[operator];
+            if (Array.isArray(operand)) {
+                for (const subDsl of operand) {
+                    if (this.hasCampaignVariationNode(subDsl))
+                        return true;
+                }
+            }
+            else if (isObject(operand)) {
+                if (this.hasCampaignVariationNode(operand))
+                    return true;
+            }
+        }
+        return false;
     }
 }
 //# sourceMappingURL=SegmentationManger.js.map

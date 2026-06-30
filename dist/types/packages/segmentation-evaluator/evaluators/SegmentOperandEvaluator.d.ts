@@ -37,6 +37,14 @@ export declare class SegmentOperandEvaluator {
    */
   evaluateUserAgentDSL(dslOperandValue: Record<string, any>, context: ContextModel): boolean;
   /**
+   * Evaluates Web Testing pre-segmentation against `context.platformVariables.webTestingCampaigns`.
+   * Operand: "C" (in Campaign, any variation), "C_V", "C_!V", "!C" (not in Campaign C).
+   * @param {unknown} campaignVariationOperand - The DSL operand string representing the campaign variation.
+   * @param {ContextModel} context - The context model containing platform variables for the evaluation.
+   * @returns {boolean} True if the user matches the web testing campaign variation condition, otherwise false.
+   */
+  evaluateCampaignVariationDSL(campaignVariationOperand: unknown, context: ContextModel): boolean;
+  /**
    * Pre-processes the tag value to ensure it is in the correct format for evaluation.
    * @param {any} tagValue - The value to be processed.
    * @returns {string | boolean} - The processed tag value, either as a string or a boolean.

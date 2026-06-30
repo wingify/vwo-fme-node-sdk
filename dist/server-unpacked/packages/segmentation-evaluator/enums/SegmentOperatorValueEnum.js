@@ -35,5 +35,7 @@ var SegmentOperatorValueEnum;
     SegmentOperatorValueEnum["IP"] = "ip_address";
     SegmentOperatorValueEnum["BROWSER_VERSION"] = "browser_version";
     SegmentOperatorValueEnum["OS_VERSION"] = "os_version";
+    // Pre-segment on Web Testing campaign/variation assignment.
+    SegmentOperatorValueEnum["WEB_CAMPAIGN_VARIATION"] = "campaignVariation";
 })(SegmentOperatorValueEnum || (exports.SegmentOperatorValueEnum = SegmentOperatorValueEnum = {}));
 //# sourceMappingURL=SegmentOperatorValueEnum.js.map

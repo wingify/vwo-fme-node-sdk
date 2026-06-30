@@ -53,6 +53,7 @@ exports.SegmentOperandEvaluator = void 0;
  * limitations under the License.
  */
 var SegmentUtil_1 = require("../utils/SegmentUtil");
+var WebTestingSegmentUtil_1 = require("../utils/WebTestingSegmentUtil");
 var SegmentOperandValueEnum_1 = require("../enums/SegmentOperandValueEnum");
 var SegmentOperandRegexEnum_1 = require("../enums/SegmentOperandRegexEnum");
 var SegmentOperatorValueEnum_1 = require("../enums/SegmentOperatorValueEnum");
@@ -169,6 +170,55 @@ var SegmentOperandEvaluator = /** @class */ (function () {
         var processedValues = this.processValues(operandValue, tagValue);
         tagValue = processedValues.tagValue; // Fix: Type assertion to ensure tagValue is of type string
         return this.extractResult(operandType, processedValues.operandValue, tagValue);
+    };
+    /**
+     * Evaluates Web Testing pre-segmentation against `context.platformVariables.webTestingCampaigns`.
+     * Operand: "C" (in Campaign, any variation), "C_V", "C_!V", "!C" (not in Campaign C).
+     * @param {unknown} campaignVariationOperand - The DSL operand string representing the campaign variation.
+     * @param {ContextModel} context - The context model containing platform variables for the evaluation.
+     * @returns {boolean} True if the user matches the web testing campaign variation condition, otherwise false.
+     */
+    SegmentOperandEvaluator.prototype.evaluateCampaignVariationDSL = function (campaignVariationOperand, context) {
+        // Settings JSON often deserializes campaign ids as numbers; coerce before matching DSL tokens.
+        var operandString;
+        if ((0, DataTypeUtil_1.isNumber)(campaignVariationOperand) && Number.isFinite(campaignVariationOperand)) {
+            operandString = String(campaignVariationOperand);
+        }
+        else if ((0, DataTypeUtil_1.isString)(campaignVariationOperand)) {
+            operandString = campaignVariationOperand;
+        }
+        if ((0, DataTypeUtil_1.isUndefined)(operandString)) {
+            var type = (0, DataTypeUtil_1.getType)(campaignVariationOperand).toLowerCase();
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_TYPE', { type: type }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+            return false;
+        }
+        // Empty operand is invalid.
+        if (operandString.length === 0) {
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+            return false;
+        }
+        var trimmedCampaignVariationOperand = operandString.trim();
+        // All spaces is invalid.
+        if (trimmedCampaignVariationOperand.length === 0) {
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+            return false;
+        }
+        // Parse the campaigns from the context.
+        var assignedVariationsByCampaignId = (0, WebTestingSegmentUtil_1.parseWebTestingCampaignsFromContext)(context, this.serviceContainer);
+        var _a = (0, WebTestingSegmentUtil_1.evaluateWebTestingCampaignVariation)(trimmedCampaignVariationOperand, assignedVariationsByCampaignId), result = _a.result, invalidFormat = _a.invalidFormat;
+        // Invalid format of the operand.
+        if (invalidFormat) {
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_FORMAT', { operand: trimmedCampaignVariationOperand }, { an: ApiEnum_1.ApiEnum.GET_FLAG, uuid: context.getUuid(), sId: context.getSessionId() });
+        }
+        return result;
     };
     /**
      * Pre-processes the tag value to ensure it is in the correct format for evaluation.

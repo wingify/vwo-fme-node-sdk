@@ -88,8 +88,9 @@ var SegmentEvaluator = /** @class */ (function () {
                             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP: return [3 /*break*/, 11];
                             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION: return [3 /*break*/, 12];
                             case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION: return [3 /*break*/, 13];
+                            case SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.WEB_CAMPAIGN_VARIATION: return [3 /*break*/, 14];
                         }
-                        return [3 /*break*/, 14];
+                        return [3 /*break*/, 15];
                     case 1: return [4 /*yield*/, this.isSegmentationValid(subDsl, properties)];
                     case 2: return [2 /*return*/, !(_c.sent())];
                     case 3: return [4 /*yield*/, this.every(subDsl, properties)];
@@ -103,7 +104,8 @@ var SegmentEvaluator = /** @class */ (function () {
                     case 11: return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.IP)];
                     case 12: return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.BROWSER_VERSION)];
                     case 13: return [2 /*return*/, this.segmentOperandEvaluator.evaluateStringOperandDSL(subDsl, this.context, SegmentOperatorValueEnum_1.SegmentOperatorValueEnum.OS_VERSION)];
-                    case 14: return [2 /*return*/, false];
+                    case 14: return [2 /*return*/, this.segmentOperandEvaluator.evaluateCampaignVariationDSL(subDsl, this.context)];
+                    case 15: return [2 /*return*/, false];
                 }
             });
         });

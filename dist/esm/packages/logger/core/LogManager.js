@@ -129,7 +129,7 @@ export class LogManager extends Logger {
         try {
             const message = buildMessage(ErrorLogMessagesEnum[template], data);
             this.error(message);
-            if (shouldSendToWingify) {
+            if (shouldSendToWingify && this.serviceContainer) {
                 const debugEventProps = {
                     ...debugData,
                     ...data,

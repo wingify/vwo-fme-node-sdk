@@ -20,6 +20,11 @@ The **VWO Feature Management and Experimentation SDK** (VWO FME Node SDK) enable
 
 Install the SDK via [**npm**](https://npmjs.com/package/vwo-fme-node-sdk) or [**yarn**](https://classic.yarnpkg.com/en/package/vwo-fme-node-sdk):
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```bash
 # via npm
 npm install vwo-fme-node-sdk --save
@@ -28,9 +33,29 @@ npm install vwo-fme-node-sdk --save
 yarn add vwo-fme-node-sdk
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```bash
+# via npm
+npm install wingify-fme-node-sdk --save
+
+# via yarn
+yarn add wingify-fme-node-sdk
+```
+
+</details>
+
 ## Basic Usage Example
 
 The following example demonstrates initializing the SDK with a VWO account ID and SDK key, setting a user context, checking if a feature flag is enabled, and tracking a custom event.
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const { init } = require('vwo-fme-node-sdk');
@@ -59,7 +84,46 @@ const { init } = require('vwo-fme-node-sdk');
 })();
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const { init } = require('wingify-fme-node-sdk');
+
+// Initialize Wingify client
+(async function () {
+  const wingifyClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+  });
+
+  // Check if feature is enabled for user
+  const userContext = { id: 'unique_user_id' };
+  const feature = await wingifyClient.getFlag('feature_key', userContext);
+
+  if (feature.isEnabled()) {
+    console.log('Feature is enabled!');
+
+    // Get feature variable
+    const value = feature.getVariable('feature_variable', 'default_value');
+    console.log('Variable value:', value);
+  }
+
+  // Track an event
+  wingifyClient.trackEvent('event_name', userContext);
+})();
+```
+
+</details>
+
 The SDK includes TypeScript type definitions for better type safety and IDE support. Here's how to use the SDK with TypeScript:
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```typescript
 import { init, IVWOClient, IVWOOptions, Flag } from 'vwo-fme-node-sdk';
@@ -81,12 +145,39 @@ const booleanVariable: boolean = flag.getVariable('variable_key', true);
 const numberVariable: number = flag.getVariable('variable_key', 10);
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```typescript
+import { init, IWingifyClient, IWingifyOptions, Flag } from 'wingify-fme-node-sdk';
+// Example of using IWingifyOptions for type-safe configuration
+const options: IWingifyOptions = {
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+};
+
+// Example of using IWingifyClient for type-safe client usage
+const wingifyClient: IWingifyClient = await init(options);
+
+// Example of using Flag interface for type-safe flag handling
+const flag: Flag = await wingifyClient.getFlag('feature-key', { id: 'user-123' });
+const isEnabled: boolean = flag.isEnabled();
+
+const stringVariable: string = flag.getVariable('variable_key', 'default_value');
+const booleanVariable: boolean = flag.getVariable('variable_key', true);
+const numberVariable: number = flag.getVariable('variable_key', 10);
+```
+
+</details>
+
 ## Advanced Configuration Options
 
 To customize the SDK further, additional parameters can be passed to the `init()` API. Here's a table describing each option:
 
 | **Parameter**                | **Description**                                                                                                                                             | **Required** | **Type** | **Example**                                   |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------- | --------------------------------------------- |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------- | --------------------------------------------- |
 | `accountId`                  | VWO Account ID for authentication.                                                                                                                          | Yes          | String   | `'123456'`                                    |
 | `sdkKey`                     | SDK key corresponding to the specific environment to initialize the VWO SDK Client. You can get this key from VWO Application.                              | Yes          | String   | `'32-alpha-numeric-sdk-key'`                  |
 | `pollInterval`               | Time interval for fetching updates from VWO servers (in milliseconds).                                                                                      | No           | Number   | `60000`                                       |
@@ -148,6 +239,11 @@ You can access and manage session IDs through the following methods:
 
 #### Example Usage
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```javascript
 // Session ID is automatically generated if not provided
 const context = { id: 'user-123' };
@@ -158,7 +254,29 @@ const sessionId = flag.getSessionId();
 console.log('Session ID for web client:', sessionId);
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+// Session ID is automatically generated if not provided
+const context = { id: 'user-123' };
+const flag = await wingifyClient.getFlag('feature-key', context);
+
+// Access the session ID to pass to web client for session recording
+const sessionId = flag.getSessionId();
+console.log('Session ID for web client:', sessionId);
+```
+
+</details>
+
 You can also explicitly set a session ID to match web client session
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const context = {
@@ -167,6 +285,21 @@ const context = {
 };
 const flag = await vwoClient.getFlag('feature-key', context);
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const context = {
+  id: 'user-123',
+  sessionId: 1697123456, // Custom session ID matching web client
+};
+const flag = await wingifyClient.getFlag('feature-key', context);
+```
+
+</details>
 
 This enhancement enables seamless integration between server-side feature flag decisions and client-side session recording, allowing for comprehensive user behavior analysis across both server and client environments.
 
@@ -183,6 +316,11 @@ The `getFlag` API provides a simple way to check if a feature is enabled for a s
 
 Example usage:
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```javascript
 const featureFlag = await vwoClient.getFlag('feature_key', { id: 'unique_user_id' });
 const isEnabled = featureFlag.isEnabled();
@@ -198,6 +336,28 @@ if (isEnabled) {
 }
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const featureFlag = await wingifyClient.getFlag('feature_key', { id: 'unique_user_id' });
+const isEnabled = featureFlag.isEnabled();
+
+if (isEnabled) {
+  console.log('Feature is enabled!');
+
+  // Get and use feature variable with type safety
+  const variableValue = featureFlag.getVariable('feature_variable', 'default_value');
+  console.log('Variable value:', variableValue);
+} else {
+  console.log('Feature is not enabled!');
+}
+```
+
+</details>
+
 ### Custom Event Tracking
 
 Feature flags can be enhanced with connected metrics to track key performance indicators (KPIs) for your features. These metrics help measure the effectiveness of your testing rules by comparing control versus variation performance, and evaluate the impact of personalization and rollout campaigns. Use the `trackEvent` API to track custom events like conversions, user interactions, and other important metrics:
@@ -210,9 +370,25 @@ Feature flags can be enhanced with connected metrics to track key performance in
 
 Example usage:
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```javascript
 vwoClient.trackEvent('event_name', { id: 'unique_user_id' }, { amount: 49.99 });
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+wingifyClient.trackEvent('event_name', { id: 'unique_user_id' }, { amount: 49.99 });
+```
+
+</details>
 
 See [Tracking Conversions](https://developers.vwo.com/v2/docs/fme-node-metrics#usage) documentation for more information.
 
@@ -228,9 +404,25 @@ User attributes provide rich contextual information about users, enabling powerf
 
 Example usage:
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```javascript
 vwoClient.setAttribute('attribute_name', 'attribute_value', { id: 'unique_user_id' });
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+wingifyClient.setAttribute('attribute_name', 'attribute_value', { id: 'unique_user_id' });
+```
+
+</details>
 
 See [Pushing Attributes](https://developers.vwo.com/v2/docs/fme-node-attributes#usage) documentation for additional information.
 
@@ -244,6 +436,11 @@ The `pollInterval` is an optional parameter that allows the SDK to automatically
 
 Setting this parameter ensures your application always uses the latest configuration by periodically checking for and applying any updates.
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```javascript
 const vwoClient = await init({
   accountId: '123456',
@@ -251,6 +448,21 @@ const vwoClient = await init({
   pollInterval: 60000,
 });
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  pollInterval: 60000,
+});
+```
+
+</details>
 
 ### Gateway
 
@@ -268,6 +480,11 @@ The Gateway Service is required in the following scenarios:
 
 The gateway can be customized by passing the `gatewayService` parameter in the `init` configuration.
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```javascript
 const vwoClient = await init({
   accountId: '123456',
@@ -277,6 +494,23 @@ const vwoClient = await init({
   },
 });
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  gatewayService: {
+    url: 'https://custom.gateway.com',
+  },
+});
+```
+
+</details>
 
 Refer to the [Gateway Documentation](https://developers.vwo.com/v2/docs/gateway-service) for further details.
 
@@ -291,6 +525,11 @@ Requirements:
 
 Initialization example:
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```javascript
 const vwoClient = await init({
   accountId: '123456',
@@ -300,7 +539,28 @@ const vwoClient = await init({
 });
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  isAliasingEnabled: true,
+  gatewayService: { url: 'https://custom.gateway.com' },
+});
+```
+
+</details>
+
 Usage examples:
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 // Using context object
@@ -309,6 +569,21 @@ const success1 = await vwoClient.setAlias({ id: 'user-123' }, 'alias-abc');
 // Using direct userId
 const success2 = await vwoClient.setAlias('user-123', 'alias-abc');
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+// Using context object
+const success1 = await wingifyClient.setAlias({ id: 'user-123' }, 'alias-abc');
+
+// Using direct userId
+const success2 = await wingifyClient.setAlias('user-123', 'alias-abc');
+```
+
+</details>
 
 Behavior and validations:
 
@@ -328,6 +603,11 @@ By default, the SDK uses the user `id` to determine which variation a user recei
 
 #### Example Usage
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```javascript
 // All employees of company-abc will get the same variation
 const context = {
@@ -336,6 +616,22 @@ const context = {
 };
 const flag = await vwoClient.getFlag('feature-key', context);
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+// All employees of company-abc will get the same variation
+const context = {
+  id: 'employee-123',
+  bucketingSeed: 'company-abc',
+};
+const flag = await wingifyClient.getFlag('feature-key', context);
+```
+
+</details>
 
 ### Storage
 
@@ -350,6 +646,11 @@ Key benefits of implementing storage:
 - Reduced load on your application
 
 The storage mechanism ensures that once a decision is made for a user, it remains consistent even if campaign settings are modified in the VWO Application. This is particularly useful for maintaining a stable user experience during A/B tests and feature rollouts.
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 class StorageConnector extends StorageConnector {
@@ -384,9 +685,54 @@ const vwoClient = await init({
 });
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+class StorageConnector extends StorageConnector {
+  constructor() {
+    super();
+  }
+
+  /**
+   * Get data from storage
+   * @param {string} featureKey
+   * @param {string} userId
+   * @returns {Promise<Object>}
+   */
+  async get(featureKey, userId) {
+    // return await data (based on featureKey and userId)
+  }
+
+  /**
+   * Set data in storage
+   * @param {object} data
+   */
+  async set(data) {
+    // Set data corresponding to a featureKey and user ID
+    // Use data.featureKey and data.userId to store the above data for a specific feature and a user
+  }
+}
+
+const wingifyClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  storage: StorageConnector,
+});
+```
+
+</details>
+
 ### Browser Config
 
 In browser environments, the SDK automatically uses `localStorage` to persist user data and `navigator.sendBeacon` to send tracking events (with XHR fallback). You can customize this behavior using the `browserConfig` option, which exposes both `networkTransportMode` and `clientStorage`:
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const vwoClient = await init({
@@ -407,6 +753,33 @@ const vwoClient = await init({
   },
 });
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  browserConfig: {
+    // Control how tracking calls are sent from the browser
+    // 'sendBeacon' (default) uses navigator.sendBeacon with XHR fallback
+    // 'xhr' forces XHR for all tracking requests including retry functionality
+    networkTransportMode: 'sendBeacon',
+
+    // Configure browser storage behavior
+    clientStorage: {
+      key: 'vwo_data', // defaults to vwo_fme_data
+      provider: sessionStorage, // defaults to localStorage
+      isDisabled: false, // defaults to false, set to true to disable storage
+    },
+  },
+});
+```
+
+</details>
 
 | **browserConfig Property** | **Description**                                                            | **Required** | **Type** | **Default**      |
 | -------------------------- | -------------------------------------------------------------------------- | ------------ | -------- | ---------------- |
@@ -430,6 +803,11 @@ To gain more control over VWO's logging behaviour, you can use the `logger` para
 
 #### Example 1: Set log level to control verbosity of logs
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```javascript
 const vwoClient1 = await init({
   accountId: '123456',
@@ -440,7 +818,29 @@ const vwoClient1 = await init({
 });
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient1 = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  logger: {
+    level: 'DEBUG',
+  },
+});
+```
+
+</details>
+
 #### Example 2: Add custom prefix to log messages for easier identification
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const vwoClient2 = await init({
@@ -452,6 +852,24 @@ const vwoClient2 = await init({
   },
 });
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient2 = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  logger: {
+    level: 'DEBUG',
+    prefix: 'CUSTOM LOG PREFIX',
+  },
+});
+```
+
+</details>
 
 #### Example 3: Implement custom transport to handle logs your way
 
@@ -466,6 +884,11 @@ For example, you could:
 - Route different log levels to different destinations
 
 The transport object should implement handlers for the log levels you want to customize. Each handler receives the log message as a parameter.
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const vwoClient3 = await init({
@@ -482,7 +905,34 @@ const vwoClient3 = await init({
 });
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient3 = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  logger: {
+    transport: {
+      level: 'INFO',
+      log: (level, message) => {
+        // your custom implementation here
+      },
+    },
+  },
+});
+```
+
+</details>
+
 For multiple transports you can use the `transports` parameter. For example:
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const vwoClient3 = await init({
@@ -507,9 +957,44 @@ const vwoClient3 = await init({
 });
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient3 = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  logger: {
+    transports: [
+      {
+        level: 'INFO',
+        log: (level, message) => {
+          // your custom implementation here
+        },
+      },
+      {
+        level: 'ERROR',
+        log: (level, message) => {
+          // your custom implementation here
+        },
+      },
+    ],
+  },
+});
+```
+
+</details>
+
 ### Integrations
 
 VWO FME SDKs provide seamless integration with third-party tools like analytics platforms, monitoring services, customer data platforms (CDPs), and messaging systems. This is achieved through a simple yet powerful callback mechanism that receives VWO-specific properties and can forward them to any third-party tool of your choice.
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const vwoClient = await vwo.init({
@@ -523,11 +1008,35 @@ const vwoClient = await vwo.init({
 });
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient = await wingify.init({
+  sdkKey: '32-alpha-numeric-sdk-key', //replace with the SDK key for your environment
+  accountId: '123456', //replace with your Wingify account ID
+  integrations: {
+    callback(properties) {
+      // your custom implementation here
+    },
+  },
+});
+```
+
+</details>
+
 ### Wait for Tracking Calls
 
 The `shouldWaitForTrackingCalls` is an optional parameter that allows you to control whether the SDK should wait for tracking calls to complete before resolving promises. When enabled, tracking API calls will wait for the server response before resolving.
 
 This is particularly useful for edge computing environments like Cloudflare Workers, where it ensures that tracking calls complete before resolving the promise.
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const vwoClient = await init({
@@ -536,6 +1045,21 @@ const vwoClient = await init({
   shouldWaitForTrackingCalls: true,
 });
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  shouldWaitForTrackingCalls: true,
+});
+```
+
+</details>
 
 ### Batch Events
 
@@ -548,6 +1072,11 @@ The `batchEventData` configuration allows you to optimize network requests by ba
 | `flushCallback`       | Callback function to be executed after events are flushed               | No           | Function | See example |
 
 Example usage:
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const vwoClient = await init({
@@ -564,18 +1093,56 @@ const vwoClient = await init({
 });
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  batchEventData: {
+    requestTimeInterval: 60, // Flush events every 60 seconds
+    eventsPerRequest: 100, // Send up to 100 events per request
+    flushCallback: (error, events) => {
+      console.log('Events flushed successfully');
+      // custom implementation here
+    },
+  },
+});
+```
+
+</details>
+
 You can also manually flush events using the `flushEvents()` method:
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 vwoClient.flushEvents();
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+wingifyClient.flushEvents();
+```
+
+</details>
 
 ### Retry Config
 
 The `retryConfig` parameter allows you to customize the retry behavior for network requests. This is particularly useful for applications that need to handle network failures gracefully with exponential backoff strategies.
 
 | **Parameter**       | **Description**                                           | **Required** | **Type** | **Default** | **Validation**                      |
-| ------------------- | --------------------------------------------------------- | ------------ | -------- | ----------- | ----------------------------------- |
+| ------------------- | --------------------------------------------------------- | ------------ | -------- | ----------- | ------------------------------------ |
 | `shouldRetry`       | Whether to enable automatic retry on network failures     | No           | Boolean  | `true`      | Must be a boolean value             |
 | `maxRetries`        | Maximum number of retry attempts before giving up         | No           | Number   | `3`         | Must be a non-negative integer >= 1 |
 | `initialDelay`      | Initial delay (in seconds) before the first retry attempt | No           | Number   | `2`         | Must be a non-negative integer >= 1 |
@@ -592,6 +1159,11 @@ The SDK implements an exponential backoff strategy for retrying failed network r
 
 #### Example Usage
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```javascript
 const vwoClient = await init({
   accountId: '123456',
@@ -604,6 +1176,26 @@ const vwoClient = await init({
   },
 });
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  retryConfig: {
+    shouldRetry: true, // Enable retries
+    maxRetries: 5, // Retry up to 5 times
+    initialDelay: 3, // Wait 3 seconds before first retry
+    backoffMultiplier: 2, // Double the delay for each subsequent retry
+  },
+});
+```
+
+</details>
 
 With this configuration, the retry delays would be:
 
@@ -626,6 +1218,11 @@ The `httpsAgentConfig` option lets you customize the underlying Node.js HTTPS ag
 
 If any field is missing or below the minimum, the SDK uses the default value for that field.
 
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
+
 ```javascript
 const vwoClient = await init({
   accountId: '123456',
@@ -639,6 +1236,26 @@ const vwoClient = await init({
 });
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  httpsAgentConfig: {
+    keepAlive: true,
+    maxSockets: 100,
+    maxFreeSockets: 20,
+    timeout: 60000, // in milliseconds -- this is socket timeout
+  },
+});
+```
+
+</details>
+
 ### Edge Config
 
 The `edgeConfig` option enables edge/serverless environment optimizations. This configuration should only be passed in serverless environments (e.g., Cloudflare Workers). When used in Cloudflare environments, events are automatically flushed using `ctx.waitUntil(vwoClient.flushEvents());` to ensure proper event tracking after execution completes.
@@ -648,6 +1265,11 @@ The `edgeConfig` option enables edge/serverless environment optimizations. This 
 | `shouldWaitForTrackingCalls` | Ensures tracking calls complete before resolving promises | Yes          | Boolean  | `false`     |
 
 #### Example Usage
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const vwoClient = await init({
@@ -662,6 +1284,26 @@ const vwoClient = await init({
 await vwoClient.flushEvents();
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const wingifyClient = await init({
+  accountId: '123456',
+  sdkKey: '32-alpha-numeric-sdk-key',
+  edgeConfig: {
+    shouldWaitForTrackingCalls: true,
+  },
+});
+
+// at the end flush all events
+await wingifyClient.flushEvents();
+```
+
+</details>
+
 **Note:** In Cloudflare, use `ctx.waitUntil(vwoClient.flushEvents());` to ensure all events flush.
 
 ### Get UUID for a user and VWO account
@@ -671,7 +1313,7 @@ The `getUUID` method allows you to generate a UUID that gets stored on VWO by pr
 #### Parameters
 
 | **Parameter** | **Description**                    | **Required** | **Type** | **Example**  |
-| ------------- | ---------------------------------- | ------------ | -------- | ------------ |
+| ------------- | ----------------------------------- | ------------ | -------- | ------------ |
 | `userId`      | The unique identifier for the user | Yes          | String   | `'user-123'` |
 | `accountId`   | The account ID                     | Yes          | String   | `'123456'`   |
 
@@ -680,6 +1322,11 @@ The `getUUID` method allows you to generate a UUID that gets stored on VWO by pr
 Returns a UUID string formatted without dashes and in uppercase (e.g., `'CC25A368ADA0542699EAD62489811105'`).
 
 #### Example Usage
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const { getUUID } = require('vwo-fme-node-sdk');
@@ -693,9 +1340,33 @@ console.log('Generated UUID:', uuid);
 // Output: Generated UUID: CC25A368ADA0542699EAD62489811105
 ```
 
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const { getUUID } = require('wingify-fme-node-sdk');
+
+// Generate UUID for a user
+const userId = 'user-123';
+const accountId = '123456';
+const uuid = getUUID(userId, accountId);
+
+console.log('Generated UUID:', uuid);
+// Output: Generated UUID: CC25A368ADA0542699EAD62489811105
+```
+
+</details>
+
 ### Multiple SDK Instances
 
 The SDK supports creating multiple instances, each with its own isolated configuration, services, and state. This is particularly useful when you need to work with multiple VWO accounts or environments simultaneously.
+
+If SDK version less than 1.50.0, use the VWO snippet. If SDK version 1.50.0 or later, we recommend switching to the Wingify snippet
+
+<details>
+<summary>VWO (SDK version &lt; 1.50.0)</summary>
 
 ```javascript
 const { init } = require('vwo-fme-node-sdk');
@@ -726,6 +1397,43 @@ const { init } = require('vwo-fme-node-sdk');
   console.log('Staging feature enabled:', stagingFeature.isEnabled());
 })();
 ```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.50.0) — recommended</summary>
+
+```javascript
+const { init } = require('wingify-fme-node-sdk');
+
+// Initialize multiple Wingify clients with different account IDs and SDK keys
+(async function () {
+  // First instance for production environment
+  const wingifyClientProd = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key-prod',
+  });
+
+  // Second instance for staging environment
+  const wingifyClientStaging = await init({
+    accountId: '789012',
+    sdkKey: '32-alpha-numeric-sdk-key-staging',
+  });
+
+  // Each instance operates independently with its own settings and state
+  const userContext = { id: 'unique_user_id' };
+
+  // Use production client
+  const prodFeature = await wingifyClientProd.getFlag('feature_key', userContext);
+  console.log('Production feature enabled:', prodFeature.isEnabled());
+
+  // Use staging client
+  const stagingFeature = await wingifyClientStaging.getFlag('feature_key', userContext);
+  console.log('Staging feature enabled:', stagingFeature.isEnabled());
+})();
+```
+
+</details>
 
 Each SDK instance maintains its own:
 

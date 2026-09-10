@@ -89,11 +89,8 @@ export function getEventsBaseProperties(settingsService, eventName, visitorUserA
         sn: SDKMetaUtil.getInstance().getSdkName(),
         sv: SDKMetaUtil.getInstance().getVersion(),
     });
-    if (!isUsageStatsEvent) {
-        // set env key for standard sdk events
-        properties.env = settingsService.sdkKey;
-    }
-    else {
+    properties.env = settingsService.sdkKey;
+    if (isUsageStatsEvent) {
         // set account id for internal usage stats event
         properties.a = usageStatsAccountId;
     }
@@ -413,11 +410,9 @@ export function getMessagingEventPayload(settingsService, messageType, message, 
  * Constructs the payload for init called event.
  * @param {SettingsService} settingsService - The settings service instance.
  * @param eventName - The name of the event.
- * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
- * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
-export function getSDKInitEventPayload(settingsService, eventName, settingsFetchTime, sdkInitTime) {
+export function getSDKInitEventPayload(settingsService, eventName) {
     const userId = settingsService.accountId + '_' + settingsService.sdkKey;
     const properties = _getEventBasePayload(settingsService, userId, eventName);
     // Set the required fields as specified
@@ -425,8 +420,6 @@ export function getSDKInitEventPayload(settingsService, eventName, settingsFetch
     properties.d.event.props.product = Constants.PRODUCT_NAME;
     const data = {
         isSDKInitialized: true,
-        settingsFetchTime: settingsFetchTime,
-        sdkInitTime: sdkInitTime,
     };
     properties.d.event.props.data = data;
     return properties;
@@ -439,12 +432,18 @@ export function getSDKInitEventPayload(settingsService, eventName, settingsFetch
  * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
-export function getSDKUsageStatsEventPayload(settingsService, eventName, usageStatsAccountId, usageStatsUtil) {
+export function getSDKUsageStatsEventPayload(settingsService, eventName, usageStatsAccountId, usageStatsUtil, settingsFetchTime, sdkInitTime, initConfig) {
     const userId = settingsService.accountId + '_' + settingsService.sdkKey;
     const properties = _getEventBasePayload(settingsService, userId, eventName, '', '', true, usageStatsAccountId);
     // Set the required fields as specified
     properties.d.event.props.product = Constants.PRODUCT_NAME;
     properties.d.event.props.vwoMeta = usageStatsUtil.getUsageStats();
+    const data = {
+        settingsFetchTime: settingsFetchTime,
+        sdkInitTime: sdkInitTime,
+        initConfig: initConfig,
+    };
+    properties.d.event.props.data = data;
     return properties;
 }
 /**

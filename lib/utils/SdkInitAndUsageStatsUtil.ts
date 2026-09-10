@@ -26,23 +26,12 @@ import { UsageStatsUtil } from './UsageStatsUtil';
 /**
  * Sends an init called event to Wingify.
  * This event is triggered when the init function is called.
- * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
- * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @param serviceContainer - The service container instance.
  */
-export async function sendSdkInitEvent(
-  settingsFetchTime: number,
-  sdkInitTime: number,
-  serviceContainer: ServiceContainer,
-): Promise<void> {
+export async function sendSdkInitEvent(serviceContainer: ServiceContainer): Promise<void> {
   const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.INIT_CALLED);
 
-  const payload = getSDKInitEventPayload(
-    serviceContainer.getSettingsService(),
-    EventEnum.INIT_CALLED,
-    settingsFetchTime,
-    sdkInitTime,
-  );
+  const payload = getSDKInitEventPayload(serviceContainer.getSettingsService(), EventEnum.INIT_CALLED);
 
   if (serviceContainer.getBatchEventsQueue()) {
     serviceContainer.getBatchEventsQueue().enqueue(payload);
@@ -63,7 +52,10 @@ export async function sendSDKUsageStatsEvent(
   usageStatsAccountId: number,
   serviceContainer: ServiceContainer,
   usageStatsUtil: UsageStatsUtil,
+  settingsFetchTime?: number,
+  sdkInitTime?: number,
 ): Promise<void> {
+  const initOptions = serviceContainer.getWingifyOptions();
   const properties = getEventsBaseProperties(
     serviceContainer.getSettingsService(),
     EventEnum.USAGE_STATS,
@@ -78,12 +70,11 @@ export async function sendSDKUsageStatsEvent(
     EventEnum.USAGE_STATS,
     usageStatsAccountId,
     usageStatsUtil,
+    settingsFetchTime,
+    sdkInitTime,
+    initOptions,
   );
-
-  if (serviceContainer.getBatchEventsQueue()) {
-    serviceContainer.getBatchEventsQueue().enqueue(payload);
-    return;
-  }
+ 
 
   await sendEvent(serviceContainer, properties, payload, EventEnum.USAGE_STATS).catch(() => {});
 }

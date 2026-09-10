@@ -154,15 +154,11 @@ export declare function getMessagingEventPayload(
  * Constructs the payload for init called event.
  * @param {SettingsService} settingsService - The settings service instance.
  * @param eventName - The name of the event.
- * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
- * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
 export declare function getSDKInitEventPayload(
   settingsService: SettingsService,
   eventName: string,
-  settingsFetchTime?: number,
-  sdkInitTime?: number,
 ): Record<string, any>;
 /**
  * Constructs the payload for sdk usage stats event.
@@ -177,6 +173,9 @@ export declare function getSDKUsageStatsEventPayload(
   eventName: string,
   usageStatsAccountId: number,
   usageStatsUtil: UsageStatsUtil,
+  settingsFetchTime?: number,
+  sdkInitTime?: number,
+  initConfig?: Record<string, any>,
 ): Record<string, any>;
 /**
  * Constructs the payload for debugger event.

@@ -149,18 +149,18 @@ export class WingifyClient implements IWingifyClient {
 
       if (this.isSettingsValid && internalEventsThrottleService.shouldSendSdkInitEvent(this.originalSettings)) {
         if (this.options.shouldWaitForTrackingCalls) {
-          await sendSdkInitEvent(settingsFetchTime, sdkInitTime, this.serviceContainer);
+          await sendSdkInitEvent(this.serviceContainer);
         } else {
-          sendSdkInitEvent(settingsFetchTime, sdkInitTime, this.serviceContainer);
+          sendSdkInitEvent(this.serviceContainer);
         }
       }
 
       const usageStatsAccountId = this.originalSettings?.usageStatsAccountId;
       if (usageStatsAccountId && internalEventsThrottleService.shouldSendUsageStatsEvent(this.originalSettings)) {
         if (this.options.shouldWaitForTrackingCalls) {
-          await sendSDKUsageStatsEvent(usageStatsAccountId, this.serviceContainer, usageStatsUtil);
+          await sendSDKUsageStatsEvent(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime);
         } else {
-          sendSDKUsageStatsEvent(usageStatsAccountId, this.serviceContainer, usageStatsUtil);
+          sendSDKUsageStatsEvent(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime);
         }
       }
     } catch (err) {

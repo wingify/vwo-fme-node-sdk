@@ -134,23 +134,23 @@ var WingifyClient = /** @class */ (function () {
                         internalEventsThrottleService = this.serviceContainer.getInternalEventsThrottleService();
                         if (!(this.isSettingsValid && internalEventsThrottleService.shouldSendSdkInitEvent(this.originalSettings))) return [3 /*break*/, 3];
                         if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 2];
-                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(settingsFetchTime, sdkInitTime, this.serviceContainer)];
+                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer)];
                     case 1:
                         _b.sent();
                         return [3 /*break*/, 3];
                     case 2:
-                        (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(settingsFetchTime, sdkInitTime, this.serviceContainer);
+                        (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer);
                         _b.label = 3;
                     case 3:
                         usageStatsAccountId = (_a = this.originalSettings) === null || _a === void 0 ? void 0 : _a.usageStatsAccountId;
                         if (!(usageStatsAccountId && internalEventsThrottleService.shouldSendUsageStatsEvent(this.originalSettings))) return [3 /*break*/, 6];
                         if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 5];
-                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil)];
+                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime)];
                     case 4:
                         _b.sent();
                         return [3 /*break*/, 6];
                     case 5:
-                        (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil);
+                        (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime);
                         _b.label = 6;
                     case 6: return [3 /*break*/, 8];
                     case 7:

@@ -3,15 +3,9 @@ import { UsageStatsUtil } from './UsageStatsUtil';
 /**
  * Sends an init called event to Wingify.
  * This event is triggered when the init function is called.
- * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
- * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @param serviceContainer - The service container instance.
  */
-export declare function sendSdkInitEvent(
-  settingsFetchTime: number,
-  sdkInitTime: number,
-  serviceContainer: ServiceContainer,
-): Promise<void>;
+export declare function sendSdkInitEvent(serviceContainer: ServiceContainer): Promise<void>;
 /**
  * Sends a usage stats event to Wingify.
  * This event is triggered when the SDK is initialized.
@@ -23,4 +17,6 @@ export declare function sendSDKUsageStatsEvent(
   usageStatsAccountId: number,
   serviceContainer: ServiceContainer,
   usageStatsUtil: UsageStatsUtil,
+  settingsFetchTime?: number,
+  sdkInitTime?: number,
 ): Promise<void>;

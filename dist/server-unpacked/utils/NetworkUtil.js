@@ -158,11 +158,8 @@ function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, i
         sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
         sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
     });
-    if (!isUsageStatsEvent) {
-        // set env key for standard sdk events
-        properties.env = settingsService.sdkKey;
-    }
-    else {
+    properties.env = settingsService.sdkKey;
+    if (isUsageStatsEvent) {
         // set account id for internal usage stats event
         properties.a = usageStatsAccountId;
     }
@@ -502,11 +499,9 @@ function getMessagingEventPayload(settingsService, messageType, message, eventNa
  * Constructs the payload for init called event.
  * @param {SettingsService} settingsService - The settings service instance.
  * @param eventName - The name of the event.
- * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
- * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
-function getSDKInitEventPayload(settingsService, eventName, settingsFetchTime, sdkInitTime) {
+function getSDKInitEventPayload(settingsService, eventName) {
     var userId = settingsService.accountId + '_' + settingsService.sdkKey;
     var properties = _getEventBasePayload(settingsService, userId, eventName);
     // Set the required fields as specified
@@ -514,8 +509,6 @@ function getSDKInitEventPayload(settingsService, eventName, settingsFetchTime, s
     properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     var data = {
         isSDKInitialized: true,
-        settingsFetchTime: settingsFetchTime,
-        sdkInitTime: sdkInitTime,
     };
     properties.d.event.props.data = data;
     return properties;
@@ -528,12 +521,18 @@ function getSDKInitEventPayload(settingsService, eventName, settingsFetchTime, s
  * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
-function getSDKUsageStatsEventPayload(settingsService, eventName, usageStatsAccountId, usageStatsUtil) {
+function getSDKUsageStatsEventPayload(settingsService, eventName, usageStatsAccountId, usageStatsUtil, settingsFetchTime, sdkInitTime, initConfig) {
     var userId = settingsService.accountId + '_' + settingsService.sdkKey;
     var properties = _getEventBasePayload(settingsService, userId, eventName, '', '', true, usageStatsAccountId);
     // Set the required fields as specified
     properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
     properties.d.event.props.vwoMeta = usageStatsUtil.getUsageStats();
+    var data = {
+        settingsFetchTime: settingsFetchTime,
+        sdkInitTime: sdkInitTime,
+        initConfig: initConfig,
+    };
+    properties.d.event.props.data = data;
     return properties;
 }
 /**

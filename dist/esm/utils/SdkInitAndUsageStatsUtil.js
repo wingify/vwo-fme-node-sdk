@@ -18,13 +18,11 @@ import { EventEnum } from '../enums/EventEnum.js';
 /**
  * Sends an init called event to Wingify.
  * This event is triggered when the init function is called.
- * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
- * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @param serviceContainer - The service container instance.
  */
-export async function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceContainer) {
+export async function sendSdkInitEvent(serviceContainer) {
     const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.INIT_CALLED);
-    const payload = getSDKInitEventPayload(serviceContainer.getSettingsService(), EventEnum.INIT_CALLED, settingsFetchTime, sdkInitTime);
+    const payload = getSDKInitEventPayload(serviceContainer.getSettingsService(), EventEnum.INIT_CALLED);
     if (serviceContainer.getBatchEventsQueue()) {
         serviceContainer.getBatchEventsQueue().enqueue(payload);
         return;
@@ -38,13 +36,10 @@ export async function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceCo
  * @param serviceContainer - The service container instance.
  * @param usageStatsUtil - The usage-stats payload builder.
  */
-export async function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStatsUtil) {
+export async function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime) {
+    const initOptions = serviceContainer.getWingifyOptions();
     const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.USAGE_STATS, null, null, true, usageStatsAccountId);
-    const payload = getSDKUsageStatsEventPayload(serviceContainer.getSettingsService(), EventEnum.USAGE_STATS, usageStatsAccountId, usageStatsUtil);
-    if (serviceContainer.getBatchEventsQueue()) {
-        serviceContainer.getBatchEventsQueue().enqueue(payload);
-        return;
-    }
+    const payload = getSDKUsageStatsEventPayload(serviceContainer.getSettingsService(), EventEnum.USAGE_STATS, usageStatsAccountId, usageStatsUtil, settingsFetchTime, sdkInitTime, initOptions);
     await sendEvent(serviceContainer, properties, payload, EventEnum.USAGE_STATS).catch(() => { });
 }
 //# sourceMappingURL=SdkInitAndUsageStatsUtil.js.map

@@ -1,5 +1,5 @@
 /*!
- * wingify-fme-node-sdk - v1.62.0
+ * wingify-fme-node-sdk - v1.65.0
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.62.0"
+  version: "1.65.0"
 };
 
 /***/ }),
@@ -1106,23 +1106,23 @@ var WingifyClient = /** @class */function () {
             internalEventsThrottleService = this.serviceContainer.getInternalEventsThrottleService();
             if (!(this.isSettingsValid && internalEventsThrottleService.shouldSendSdkInitEvent(this.originalSettings))) return [3 /*break*/, 3];
             if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 2];
-            return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(settingsFetchTime, sdkInitTime, this.serviceContainer)];
+            return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer)];
           case 1:
             _b.sent();
             return [3 /*break*/, 3];
           case 2:
-            (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(settingsFetchTime, sdkInitTime, this.serviceContainer);
+            (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer);
             _b.label = 3;
           case 3:
             usageStatsAccountId = (_a = this.originalSettings) === null || _a === void 0 ? void 0 : _a.usageStatsAccountId;
             if (!(usageStatsAccountId && internalEventsThrottleService.shouldSendUsageStatsEvent(this.originalSettings))) return [3 /*break*/, 6];
             if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 5];
-            return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil)];
+            return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime)];
           case 4:
             _b.sent();
             return [3 /*break*/, 6];
           case 5:
-            (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil);
+            (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime);
             _b.label = 6;
           case 6:
             return [3 /*break*/, 8];
@@ -15994,10 +15994,8 @@ function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, i
     sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
     sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion()
   });
-  if (!isUsageStatsEvent) {
-    // set env key for standard sdk events
-    properties.env = settingsService.sdkKey;
-  } else {
+  properties.env = settingsService.sdkKey;
+  if (isUsageStatsEvent) {
     // set account id for internal usage stats event
     properties.a = usageStatsAccountId;
   }
@@ -16339,20 +16337,16 @@ function getMessagingEventPayload(settingsService, messageType, message, eventNa
  * Constructs the payload for init called event.
  * @param {SettingsService} settingsService - The settings service instance.
  * @param eventName - The name of the event.
- * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
- * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
-function getSDKInitEventPayload(settingsService, eventName, settingsFetchTime, sdkInitTime) {
+function getSDKInitEventPayload(settingsService, eventName) {
   var userId = settingsService.accountId + '_' + settingsService.sdkKey;
   var properties = _getEventBasePayload(settingsService, userId, eventName);
   // Set the required fields as specified
   properties.d.event.props[constants_1.Constants.FS_ENVIRONMENT_KEY] = settingsService.sdkKey;
   properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
   var data = {
-    isSDKInitialized: true,
-    settingsFetchTime: settingsFetchTime,
-    sdkInitTime: sdkInitTime
+    isSDKInitialized: true
   };
   properties.d.event.props.data = data;
   return properties;
@@ -16365,12 +16359,18 @@ function getSDKInitEventPayload(settingsService, eventName, settingsFetchTime, s
  * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @returns The constructed payload with required fields.
  */
-function getSDKUsageStatsEventPayload(settingsService, eventName, usageStatsAccountId, usageStatsUtil) {
+function getSDKUsageStatsEventPayload(settingsService, eventName, usageStatsAccountId, usageStatsUtil, settingsFetchTime, sdkInitTime, initConfig) {
   var userId = settingsService.accountId + '_' + settingsService.sdkKey;
   var properties = _getEventBasePayload(settingsService, userId, eventName, '', '', true, usageStatsAccountId);
   // Set the required fields as specified
   properties.d.event.props.product = constants_1.Constants.PRODUCT_NAME;
   properties.d.event.props.vwoMeta = usageStatsUtil.getUsageStats();
+  var data = {
+    settingsFetchTime: settingsFetchTime,
+    sdkInitTime: sdkInitTime,
+    initConfig: initConfig
+  };
+  properties.d.event.props.data = data;
   return properties;
 }
 /**
@@ -16970,18 +16970,16 @@ var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-u
 /**
  * Sends an init called event to Wingify.
  * This event is triggered when the init function is called.
- * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
- * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @param serviceContainer - The service container instance.
  */
-function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceContainer) {
+function sendSdkInitEvent(serviceContainer) {
   return __awaiter(this, void 0, void 0, function () {
     var properties, payload;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
           properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.INIT_CALLED);
-          payload = (0, NetworkUtil_1.getSDKInitEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.INIT_CALLED, settingsFetchTime, sdkInitTime);
+          payload = (0, NetworkUtil_1.getSDKInitEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.INIT_CALLED);
           if (serviceContainer.getBatchEventsQueue()) {
             serviceContainer.getBatchEventsQueue().enqueue(payload);
             return [2 /*return*/];
@@ -17001,18 +16999,15 @@ function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceContainer) {
  * @param serviceContainer - The service container instance.
  * @param usageStatsUtil - The usage-stats payload builder.
  */
-function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStatsUtil) {
+function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime) {
   return __awaiter(this, void 0, void 0, function () {
-    var properties, payload;
+    var initOptions, properties, payload;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
+          initOptions = serviceContainer.getWingifyOptions();
           properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.USAGE_STATS, null, null, true, usageStatsAccountId);
-          payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.USAGE_STATS, usageStatsAccountId, usageStatsUtil);
-          if (serviceContainer.getBatchEventsQueue()) {
-            serviceContainer.getBatchEventsQueue().enqueue(payload);
-            return [2 /*return*/];
-          }
+          payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.USAGE_STATS, usageStatsAccountId, usageStatsUtil, settingsFetchTime, sdkInitTime, initOptions);
           return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.USAGE_STATS).catch(function () {})];
         case 1:
           _a.sent();

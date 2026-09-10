@@ -58,18 +58,16 @@ var EventEnum_1 = require("../enums/EventEnum");
 /**
  * Sends an init called event to Wingify.
  * This event is triggered when the init function is called.
- * @param settingsFetchTime - Time taken to fetch settings in milliseconds.
- * @param sdkInitTime - Time taken to initialize the SDK in milliseconds.
  * @param serviceContainer - The service container instance.
  */
-function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceContainer) {
+function sendSdkInitEvent(serviceContainer) {
     return __awaiter(this, void 0, void 0, function () {
         var properties, payload;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.INIT_CALLED);
-                    payload = (0, NetworkUtil_1.getSDKInitEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.INIT_CALLED, settingsFetchTime, sdkInitTime);
+                    payload = (0, NetworkUtil_1.getSDKInitEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.INIT_CALLED);
                     if (serviceContainer.getBatchEventsQueue()) {
                         serviceContainer.getBatchEventsQueue().enqueue(payload);
                         return [2 /*return*/];
@@ -89,18 +87,15 @@ function sendSdkInitEvent(settingsFetchTime, sdkInitTime, serviceContainer) {
  * @param serviceContainer - The service container instance.
  * @param usageStatsUtil - The usage-stats payload builder.
  */
-function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStatsUtil) {
+function sendSDKUsageStatsEvent(usageStatsAccountId, serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime) {
     return __awaiter(this, void 0, void 0, function () {
-        var properties, payload;
+        var initOptions, properties, payload;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    initOptions = serviceContainer.getWingifyOptions();
                     properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.USAGE_STATS, null, null, true, usageStatsAccountId);
-                    payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.USAGE_STATS, usageStatsAccountId, usageStatsUtil);
-                    if (serviceContainer.getBatchEventsQueue()) {
-                        serviceContainer.getBatchEventsQueue().enqueue(payload);
-                        return [2 /*return*/];
-                    }
+                    payload = (0, NetworkUtil_1.getSDKUsageStatsEventPayload)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.USAGE_STATS, usageStatsAccountId, usageStatsUtil, settingsFetchTime, sdkInitTime, initOptions);
                     return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.USAGE_STATS).catch(function () { })];
                 case 1:
                     _a.sent();

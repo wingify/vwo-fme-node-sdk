@@ -619,7 +619,7 @@ export function getSDKUsageStatsEventPayload(
     sdkInitTime: sdkInitTime,
     initConfig: initConfig,
   };
-  
+
   properties.d.event.props.data = data;
 
   return properties;

@@ -115,6 +115,7 @@ exports.Constants = {
     // Holdout constants
     VARIATION_IS_PART_OF_HOLDOUT: 1,
     VARIATION_NOT_PART_OF_HOLDOUT: 2,
+    KEY_FORCED_USER_CHECK: 'preSegmentationResult',
     // default https agent configuration constants
     DEFAULT_HTTPS_AGENT: {
         keepAlive: true,

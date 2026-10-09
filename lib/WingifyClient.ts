@@ -158,9 +158,21 @@ export class WingifyClient implements IWingifyClient {
       const usageStatsAccountId = this.originalSettings?.usageStatsAccountId;
       if (usageStatsAccountId && internalEventsThrottleService.shouldSendUsageStatsEvent(this.originalSettings)) {
         if (this.options.shouldWaitForTrackingCalls) {
-          await sendSDKUsageStatsEvent(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime);
+          await sendSDKUsageStatsEvent(
+            usageStatsAccountId,
+            this.serviceContainer,
+            usageStatsUtil,
+            settingsFetchTime,
+            sdkInitTime,
+          );
         } else {
-          sendSDKUsageStatsEvent(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime);
+          sendSDKUsageStatsEvent(
+            usageStatsAccountId,
+            this.serviceContainer,
+            usageStatsUtil,
+            settingsFetchTime,
+            sdkInitTime,
+          );
         }
       }
     } catch (err) {

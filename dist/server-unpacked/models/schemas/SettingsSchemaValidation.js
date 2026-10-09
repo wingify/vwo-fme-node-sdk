@@ -41,6 +41,7 @@ var SettingsSchema = /** @class */ (function () {
             name: (0, superstruct_1.string)(),
             weight: (0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]),
             segments: (0, superstruct_1.optional)((0, superstruct_1.object)()),
+            whitelistedSegments: (0, superstruct_1.optional)((0, superstruct_1.object)()),
             variables: (0, superstruct_1.optional)((0, superstruct_1.array)(this.variableObjectSchema)),
             startRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),
             endRangeVariation: (0, superstruct_1.optional)((0, superstruct_1.number)()),

@@ -65,6 +65,7 @@ export declare const Constants: {
   INTERNAL_EVENTS_DEFAULT_ALWAYS_APPLY_SAMPLING: boolean;
   VARIATION_IS_PART_OF_HOLDOUT: number;
   VARIATION_NOT_PART_OF_HOLDOUT: number;
+  KEY_FORCED_USER_CHECK: string;
   DEFAULT_HTTPS_AGENT: {
     keepAlive: boolean;
     maxSockets: number;

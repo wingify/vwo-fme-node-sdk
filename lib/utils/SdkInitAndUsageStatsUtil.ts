@@ -74,7 +74,6 @@ export async function sendSDKUsageStatsEvent(
     sdkInitTime,
     initOptions,
   );
- 
 
   await sendEvent(serviceContainer, properties, payload, EventEnum.USAGE_STATS).catch(() => {});
 }

@@ -5290,10 +5290,10 @@ vscode-textmate@^8.0.0:
   resolved "https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-8.0.0.tgz#2c7a3b1163ef0441097e0b5d6389cd5504b59e5d"
   integrity sha512-AFbieoL7a5LMqcnOF04ji+rpXadgOXnZsxQr//r83kLPr7biP7am3g9zbaZIaBGwBRWeSvoMD4mgPdX3e4NWBg==
 
-vwo-fme-sdk-e2e-test-settings-n-cases@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.npmjs.org/vwo-fme-sdk-e2e-test-settings-n-cases/-/vwo-fme-sdk-e2e-test-settings-n-cases-1.5.0.tgz#6f0db6a97faa2b653a0ebfec67662ca02d22b17a"
-  integrity sha512-GRz2uHe7Oweoh9AAMlwRu9n1DqGQY/SmqT/3h1M3rdJ0sT00ULoPQlOVcCpUPN0OKmF8hsqxA7aTQ52Z6tSjYg==
+vwo-fme-sdk-e2e-test-settings-n-cases@^1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/vwo-fme-sdk-e2e-test-settings-n-cases/-/vwo-fme-sdk-e2e-test-settings-n-cases-1.6.0.tgz#685bdf9a2920b27f44aef6e04ea73b4945fa6209"
+  integrity sha512-nzl3zaUDxUR0SEhEZp8lkGn4zPNha159mkpsNXjyCk0GFPhcr5fmR4rgjfsjTUGkrPIgjvL1/ThBrM11pYMSzw==
 
 walker@^1.0.8:
   version "1.0.8"

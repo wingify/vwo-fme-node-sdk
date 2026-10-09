@@ -37,6 +37,8 @@ export class VariationModel {
 
   private seg: Record<string, dynamic>;
   private segments: Record<string, dynamic>;
+  // Forced IN (Rollout + Personalize) and Forced OUT (Rollout only) user lists
+  private whitelistedSegments: Record<string, dynamic>;
 
   modelFromDictionary(variation: VariationModel): this {
     this.id = variation.i || variation.id;
@@ -49,6 +51,9 @@ export class VariationModel {
     this.setEndRange(variation.endRangeVariation);
     if (variation.seg || variation.segments) {
       this.segments = variation.seg || variation.segments;
+    }
+    if (variation.whitelistedSegments) {
+      this.whitelistedSegments = variation.whitelistedSegments;
     }
 
     if (variation.variables) {
@@ -106,6 +111,11 @@ export class VariationModel {
 
   getSegments(): Record<string, dynamic> {
     return this.segments;
+  }
+
+  // Force In (Rollout + Personalize) and Force Out (Rollout only) user lists from settings.
+  getWhitelistedSegments(): Record<string, dynamic> {
+    return this.whitelistedSegments;
   }
 
   getStartRangeVariation(): number {

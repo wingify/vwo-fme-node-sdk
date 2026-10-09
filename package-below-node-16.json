@@ -26,7 +26,7 @@
     "semver": "^7.6.0",
     "shelljs": "^0.8.5",
     "typescript": "4.9.x",
-    "vwo-fme-sdk-e2e-test-settings-n-cases": "^1.0.0"
+    "vwo-fme-sdk-e2e-test-settings-n-cases": "^1.6.0"
   },
   "engineStrict": true,
   "engines": {

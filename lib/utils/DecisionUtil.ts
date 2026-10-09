@@ -50,18 +50,32 @@ export const checkWhitelistingAndPreSeg = async (
   const vwoUserId = getUUID(context.getId(), serviceContainer.getSettings().getAccountId());
   const campaignId = campaign.getId();
 
-  if (campaign.getType() === CampaignTypeEnum.AB) {
-    // set _wingifyUserId for variation targeting variables
+  // Force/whitelist for Testing, Rollout, and Personalize when enabled
+  if (_isForceWhitelistingEligible(campaign)) {
+    // Rollout/Personalize force lists store UUID hashes; Testing keeps plain ids unless isUserListEnabled
     context.setVariationTargetingVariables(
       Object.assign({}, context.getVariationTargetingVariables(), {
-        _wingifyUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
+        _wingifyUserId: _forceMatchUserId(campaign, context.getId(), vwoUserId),
       }),
     );
 
     Object.assign(decision, { variationTargetingVariables: context.getVariationTargetingVariables() }); // for integration
 
-    // check if the campaign satisfies the whitelisting
     if (campaign.getIsForcedVariationEnabled()) {
+      // Forced OUT (Rollout only): user must not get this rollout at all
+      // check if the user is on the forced off list
+      if (_isRolloutCampaign(campaign) && (await _isUserOnRolloutForceOffList(campaign, context, serviceContainer))) {
+        // Log that Forced OUT matched for this user
+        serviceContainer.getLogManager().info(
+          buildMessage(InfoLogMessagesEnum.WHITELISTING_FORCED_OFF, {
+            userId: context.getId(),
+            ruleType: _forceRuleTypeLabel(campaign),
+            campaignKey: _forceCampaignKey(campaign),
+          }),
+        );
+        return [false, null];
+      }
+
       const whitelistedVariation = await _checkCampaignWhitelisting(campaign, context, serviceContainer);
       if (whitelistedVariation && Object.keys(whitelistedVariation).length > 0) {
         return [true, whitelistedVariation];
@@ -69,8 +83,10 @@ export const checkWhitelistingAndPreSeg = async (
     } else {
       serviceContainer.getLogManager().info(
         buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
-          campaignKey: campaign.getRuleKey(),
           userId: context.getId(),
+          ruleType: _forceRuleTypeLabel(campaign),
+          campaignKey: _forceCampaignKey(campaign),
+          variation: '',
         }),
       );
     }
@@ -239,29 +255,27 @@ export const evaluateTrafficAndGetVariation = (
  ******************/
 
 /**
- * Check for whitelisting
- * @param campaign      Campaign object
- * @param userId        User ID
- * @param variationTargetingVariables   Variation targeting variables
- * @returns
+ * Check for whitelisting and log the result.
+ * @param campaign Campaign object
+ * @param context User context
+ * @param serviceContainer Service container
+ * @returns Whitelisted variation map or undefined if not whitelisted
  */
 const _checkCampaignWhitelisting = async (
   campaign: CampaignModel,
   context: ContextModel,
   serviceContainer: ServiceContainer,
 ): Promise<any> => {
-  // check if the campaign satisfies the whitelisting
   const whitelistingResult = await _evaluateWhitelisting(campaign, context, serviceContainer);
   const status = whitelistingResult ? StatusEnum.PASSED : StatusEnum.FAILED;
-  const variationString = whitelistingResult ? whitelistingResult.variation.getKey() : '';
+  const variationName = whitelistingResult ? whitelistingResult.variation.getKey() : '';
+  const variationString = variationName ? `for variation: ${variationName}` : '';
 
   serviceContainer.getLogManager().info(
     buildMessage(InfoLogMessagesEnum.WHITELISTING_STATUS, {
       userId: context.getId(),
-      campaignKey:
-        campaign.getType() === CampaignTypeEnum.AB
-          ? campaign.getKey()
-          : campaign.getName() + '_' + campaign.getRuleKey(),
+      ruleType: _forceRuleTypeLabel(campaign),
+      campaignKey: _forceCampaignKey(campaign),
       status,
       variationString,
     }),
@@ -278,11 +292,25 @@ const _cloneVariationModelForWhitelisting = (variation: VariationModel): Variati
   return new VariationModel().modelFromDictionary(JSON.parse(JSON.stringify(variation)) as VariationModel);
 };
 
+/**
+ * Evaluate whitelisting for a campaign.
+ * Rollout / Personalize use variations[0].whitelistedSegments; Testing uses variation segments.
+ * @param campaign Campaign object
+ * @param context User context
+ * @param serviceContainer Service container
+ * @returns Whitelisted variation map or undefined if not whitelisted
+ */
 const _evaluateWhitelisting = async (
   campaign: CampaignModel,
   context: ContextModel,
   serviceContainer: ServiceContainer,
 ): Promise<any> => {
+  // Rollout / Personalize: force list lives on variations[0].whitelistedSegments
+  if (campaign.getType() === CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
+    return _evaluateVariationWhitelistedSegments(campaign, context, serviceContainer);
+  }
+
+  // Testing: variation-level segments
   const variations = campaign.getVariations();
 
   const results = await Promise.all(
@@ -290,11 +318,9 @@ const _evaluateWhitelisting = async (
       if (isObject(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
         serviceContainer.getLogManager().info(
           buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
-            campaignKey:
-              campaign.getType() === CampaignTypeEnum.AB
-                ? campaign.getKey()
-                : campaign.getName() + '_' + campaign.getRuleKey(),
             userId: context.getId(),
+            ruleType: _forceRuleTypeLabel(campaign),
+            campaignKey: _forceCampaignKey(campaign),
             variation: variation.getKey() ? `for variation: ${variation.getKey()}` : '',
           }),
         );
@@ -317,12 +343,8 @@ const _evaluateWhitelisting = async (
   }
 
   if (matched.length === 1) {
-    const v = matched[0];
-    return {
-      variation: v,
-      variationName: v.getKey(),
-      variationId: v.getId(),
-    };
+    // return the variation if only one variation is matched
+    return _whitelistingResultMap(matched[0]);
   }
 
   const targetedVariations = matched.map((v) => _cloneVariationModelForWhitelisting(v));
@@ -338,11 +360,256 @@ const _evaluateWhitelisting = async (
     ),
   );
 
-  if (whitelistedVariation) {
-    return {
-      variation: whitelistedVariation,
-      variationName: whitelistedVariation.getKey(),
-      variationId: whitelistedVariation.getId(),
-    };
+  return _whitelistingResultMap(whitelistedVariation);
+};
+
+/**
+ * Log label for force/whitelist messages (parity with Testing "experiment").
+ * @param campaign Campaign being evaluated
+ * @returns Rule type label used in WHITELISTING_* messages
+ */
+const _forceRuleTypeLabel = (campaign: CampaignModel): string => {
+  if (campaign.getType() === CampaignTypeEnum.ROLLOUT) {
+    return 'rollout';
   }
+  if (campaign.getType() === CampaignTypeEnum.PERSONALIZE) {
+    return 'personalize';
+  }
+  return 'experiment';
+};
+
+/**
+ * Campaign key used in force/whitelist log messages.
+ * @param campaign Campaign being evaluated
+ * @returns Campaign key string for logs
+ */
+const _forceCampaignKey = (campaign: CampaignModel): string => {
+  // Testing: variation-level segments
+  if (campaign.getType() === CampaignTypeEnum.AB) {
+    return campaign.getKey();
+  }
+  const campaignName = campaign.getName() || '';
+  const ruleKey = campaign.getRuleKey() || '';
+  if (campaignName && ruleKey) {
+    return `${campaignName}_${ruleKey}`;
+  }
+  // return the campaign key if it is available
+  if (campaign.getKey()) {
+    return campaign.getKey();
+  }
+  // return the rule key or campaign name if it is available
+  return ruleKey || campaignName;
+};
+
+/**
+ * Whether this campaign is a Rollout rule.
+ * @param campaign Campaign being evaluated
+ * @returns True for FLAG_ROLLOUT
+ */
+const _isRolloutCampaign = (campaign: CampaignModel): boolean => {
+  return campaign.getType() === CampaignTypeEnum.ROLLOUT;
+};
+
+/**
+ * Whether this campaign type supports force/whitelisting evaluation.
+ * @param campaign Campaign being evaluated
+ * @returns True if AB, Rollout, or Personalize
+ */
+const _isForceWhitelistingEligible = (campaign: CampaignModel): boolean => {
+  const type = campaign.getType();
+  return type === CampaignTypeEnum.AB || type === CampaignTypeEnum.ROLLOUT || type === CampaignTypeEnum.PERSONALIZE;
+};
+
+/**
+ * User id compared against force lists in variation targeting variables.
+ * Rollout / Personalize always use the hashed UUID (settings store hashed ids).
+ * Testing (AB) uses the hashed id only when isUserListEnabled; otherwise the raw user id.
+ * @param campaign Campaign being evaluated
+ * @param userId Raw user id from context
+ * @param hashedUserId Precomputed getUUID hash
+ * @returns Id to put into _wingifyUserId
+ */
+const _forceMatchUserId = (campaign: CampaignModel, userId: string, hashedUserId: string): string => {
+  const type = campaign.getType();
+  // return the hashed user id if the campaign is a rollout or personalize
+  if (type === CampaignTypeEnum.ROLLOUT || type === CampaignTypeEnum.PERSONALIZE) {
+    return hashedUserId;
+  }
+  return campaign.getIsUserListEnabled() ? hashedUserId : userId;
+};
+
+/**
+ * Rollout-only: true when the user is on the Forced OUT list in whitelistedSegments.
+ * Personalize has Forced IN only (no not / Forced OUT list).
+ * BE encodes Forced OUT as a not operand around a comma-separated user hash list.
+ * @param campaign Rollout campaign
+ * @param context User context (must already have _wingifyUserId set)
+ * @param serviceContainer Service container
+ * @returns True if this user must be hard-excluded from the rollout rule
+ */
+const _isUserOnRolloutForceOffList = async (
+  campaign: CampaignModel,
+  context: ContextModel,
+  serviceContainer: ServiceContainer,
+): Promise<boolean> => {
+  if (!_isRolloutCampaign(campaign)) {
+    return false;
+  }
+  // return false if the campaign does not have any variations
+  const variations = campaign.getVariations();
+  if (!variations || variations.length === 0) {
+    return false;
+  }
+  // return false if the first variation does not have any whitelisted segments
+  const rolloutForceSegments = variations[0].getWhitelistedSegments();
+  if (!isObject(rolloutForceSegments) || !Object.keys(rolloutForceSegments).length) {
+    return false;
+  }
+
+  // Pull out every "not" block — that is the Forced OUT user list
+  const rolloutForceOffOperands: unknown[] = [];
+  _collectRolloutForceOffNotOperands(rolloutForceSegments, rolloutForceOffOperands);
+  if (rolloutForceOffOperands.length === 0) {
+    return false;
+  }
+
+  // Match current user (_wingifyUserId) against each Forced OUT list
+  const targetingVariables = context.getVariationTargetingVariables();
+  for (const rolloutForceOffOperand of rolloutForceOffOperands) {
+    if (!isObject(rolloutForceOffOperand)) {
+      continue;
+    }
+    // validate the segmentation against the targeting variables
+    const matched = await serviceContainer
+      .getSegmentationManager()
+      .validateSegmentation(rolloutForceOffOperand, targetingVariables);
+    if (matched) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
+ * Collects every value under a "not" key in Rollout force-list DSL (Forced OUT lists only).
+ * @param node Current DSL node (object / array / other)
+ * @param results Accumulator for "not" operand values
+ */
+const _collectRolloutForceOffNotOperands = (node: unknown, results: unknown[]): void => {
+  if (isObject(node)) {
+    for (const [key, value] of Object.entries(node)) {
+      // Found a Forced OUT list — keep its inner operand
+      if (key === 'not') {
+        results.push(value);
+      }
+      // Keep searching nested maps/lists for more "not" blocks
+      _collectRolloutForceOffNotOperands(value, results);
+    }
+  } else if (Array.isArray(node)) {
+    for (const item of node) {
+      _collectRolloutForceOffNotOperands(item, results);
+    }
+  }
+};
+
+/**
+ * Drop Forced OUT ("not") nodes so a force-off-only list is not treated as Force On.
+ * Returns undefined when nothing but Forced OUT remains.
+ * @param node Current DSL node
+ * @returns DSL with "not" nodes removed, or undefined when empty
+ */
+const _forceOnSegmentsOnly = (node: unknown): unknown => {
+  if (Array.isArray(node)) {
+    const kept = node.map((item) => _forceOnSegmentsOnly(item)).filter((item) => item !== undefined);
+    return kept.length > 0 ? kept : undefined;
+  }
+  if (!isObject(node)) {
+    return node;
+  }
+
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'not') {
+      continue;
+    }
+    const stripped = _forceOnSegmentsOnly(value);
+    if (stripped !== undefined) {
+      result[key] = stripped;
+    }
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
+};
+
+/**
+ * Force On for Rollout / Personalize using VariationModel.getWhitelistedSegments().
+ * Rollout may also include Force Off (not); that is handled upstream as hard-exclude.
+ * A list that contains only Force Off must not count as a whitelist pass.
+ * Personalize supports Force On only; any "not" there is ignored rather than inverted.
+ * @param campaign Campaign object
+ * @param context User context
+ * @param serviceContainer Service container
+ * @returns Whitelisted variation map or undefined if not forced on
+ */
+const _evaluateVariationWhitelistedSegments = async (
+  campaign: CampaignModel,
+  context: ContextModel,
+  serviceContainer: ServiceContainer,
+): Promise<any> => {
+  const variations = campaign.getVariations();
+  if (!variations || variations.length === 0) {
+    return;
+  }
+
+  // Force On list lives on the first (only) variation
+  const variation = variations[0];
+  const whitelistSegments = variation.getWhitelistedSegments();
+  // return if the variation does not have any whitelisted segments
+  if (!isObject(whitelistSegments) || !Object.keys(whitelistSegments).length) {
+    serviceContainer.getLogManager().info(
+      buildMessage(InfoLogMessagesEnum.WHITELISTING_SKIP, {
+        userId: context.getId(),
+        ruleType: _forceRuleTypeLabel(campaign),
+        campaignKey: _forceCampaignKey(campaign),
+        variation: '',
+      }),
+    );
+    return;
+  }
+
+  // Forced OUT is a "not" list (Rollout applies it earlier as a hard exclude).
+  // Evaluating that "not" here would pass every user who is not on the list and skip pre-segmentation.
+  // Keep only the Forced IN clauses for this check.
+  const forceOnSegments = _forceOnSegmentsOnly(whitelistSegments);
+  if (!isObject(forceOnSegments) || !Object.keys(forceOnSegments).length) {
+    return;
+  }
+
+  // Match hashed _wingifyUserId against whitelistedSegments (Force On)
+  const segmentationResult = await serviceContainer
+    .getSegmentationManager()
+    .validateSegmentation(forceOnSegments, context.getVariationTargetingVariables());
+  if (!segmentationResult) {
+    return;
+  }
+
+  // Force On hit → return a clone of this variation
+  return _whitelistingResultMap(_cloneVariationModelForWhitelisting(variation));
+};
+
+/**
+ * Build the standard whitelisting result map from a variation.
+ * @param whitelistedVariation Variation to wrap, or null/undefined
+ * @returns Map with variation / variationName / variationId, or undefined
+ */
+const _whitelistingResultMap = (whitelistedVariation: VariationModel): Record<string, any> | undefined => {
+  // return if the variation is not found
+  if (!whitelistedVariation) {
+    return;
+  }
+  // return the variation, variation name, and variation id if it is found
+  return {
+    variation: whitelistedVariation,
+    variationName: whitelistedVariation.getKey(),
+    variationId: whitelistedVariation.getId(),
+  };
 };

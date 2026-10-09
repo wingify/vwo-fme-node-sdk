@@ -54,6 +54,7 @@ export class SettingsSchema {
       name: string(),
       weight: union([number(), string()]),
       segments: optional(object()),
+      whitelistedSegments: optional(object()),
       variables: optional(array(this.variableObjectSchema)),
       startRangeVariation: optional(number()),
       endRangeVariation: optional(number()),

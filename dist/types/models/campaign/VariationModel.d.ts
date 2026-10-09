@@ -32,6 +32,7 @@ export declare class VariationModel {
   private variations;
   private seg;
   private segments;
+  private whitelistedSegments;
   modelFromDictionary(variation: VariationModel): this;
   setStartRange(startRange: number): void;
   setEndRange(endRange: number): void;
@@ -41,6 +42,7 @@ export declare class VariationModel {
   getRuleKey(): string;
   getWeight(): number;
   getSegments(): Record<string, dynamic>;
+  getWhitelistedSegments(): Record<string, dynamic>;
   getStartRangeVariation(): number;
   getEndRangeVariation(): number;
   getVariables(): Array<VariableModel | Record<string, any>>;

@@ -177,7 +177,7 @@ const numberVariable: number = flag.getVariable('variable_key', 10);
 To customize the SDK further, additional parameters can be passed to the `init()` API. Here's a table describing each option:
 
 | **Parameter**                | **Description**                                                                                                                                             | **Required** | **Type** | **Example**                                   |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------- | --------------------------------------------- |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------- | --------------------------------------------- |
 | `accountId`                  | VWO Account ID for authentication.                                                                                                                          | Yes          | String   | `'123456'`                                    |
 | `sdkKey`                     | SDK key corresponding to the specific environment to initialize the VWO SDK Client. You can get this key from VWO Application.                              | Yes          | String   | `'32-alpha-numeric-sdk-key'`                  |
 | `pollInterval`               | Time interval for fetching updates from VWO servers (in milliseconds).                                                                                      | No           | Number   | `60000`                                       |
@@ -1142,7 +1142,7 @@ wingifyClient.flushEvents();
 The `retryConfig` parameter allows you to customize the retry behavior for network requests. This is particularly useful for applications that need to handle network failures gracefully with exponential backoff strategies.
 
 | **Parameter**       | **Description**                                           | **Required** | **Type** | **Default** | **Validation**                      |
-| ------------------- | --------------------------------------------------------- | ------------ | -------- | ----------- | ------------------------------------ |
+| ------------------- | --------------------------------------------------------- | ------------ | -------- | ----------- | ----------------------------------- |
 | `shouldRetry`       | Whether to enable automatic retry on network failures     | No           | Boolean  | `true`      | Must be a boolean value             |
 | `maxRetries`        | Maximum number of retry attempts before giving up         | No           | Number   | `3`         | Must be a non-negative integer >= 1 |
 | `initialDelay`      | Initial delay (in seconds) before the first retry attempt | No           | Number   | `2`         | Must be a non-negative integer >= 1 |
@@ -1313,7 +1313,7 @@ The `getUUID` method allows you to generate a UUID that gets stored on VWO by pr
 #### Parameters
 
 | **Parameter** | **Description**                    | **Required** | **Type** | **Example**  |
-| ------------- | ----------------------------------- | ------------ | -------- | ------------ |
+| ------------- | ---------------------------------- | ------------ | -------- | ------------ |
 | `userId`      | The unique identifier for the user | Yes          | String   | `'user-123'` |
 | `accountId`   | The account ID                     | Yes          | String   | `'123456'`   |
 

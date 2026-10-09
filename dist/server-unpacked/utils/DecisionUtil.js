@@ -66,33 +66,53 @@ var MegUtil_1 = require("./MegUtil");
 var UuidUtil_1 = require("./UuidUtil");
 var StorageDecorator_1 = require("../decorators/StorageDecorator");
 var checkWhitelistingAndPreSeg = function (serviceContainer, feature, campaign, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision) { return __awaiter(void 0, void 0, void 0, function () {
-    var vwoUserId, campaignId, whitelistedVariation, groupId, groupWinnerCampaignId, storedData, isPreSegmentationPassed, winnerCampaign;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var vwoUserId, campaignId, _a, whitelistedVariation, groupId, groupWinnerCampaignId, storedData, isPreSegmentationPassed, winnerCampaign;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
                 vwoUserId = (0, UuidUtil_1.getUUID)(context.getId(), serviceContainer.getSettings().getAccountId());
                 campaignId = campaign.getId();
-                if (!(campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB)) return [3 /*break*/, 3];
-                // set _wingifyUserId for variation targeting variables
+                if (!_isForceWhitelistingEligible(campaign)) return [3 /*break*/, 5];
+                // Rollout/Personalize force lists store UUID hashes; Testing keeps plain ids unless isUserListEnabled
                 context.setVariationTargetingVariables(Object.assign({}, context.getVariationTargetingVariables(), {
-                    _wingifyUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
+                    _wingifyUserId: _forceMatchUserId(campaign, context.getId(), vwoUserId),
                 }));
                 Object.assign(decision, { variationTargetingVariables: context.getVariationTargetingVariables() }); // for integration
-                if (!campaign.getIsForcedVariationEnabled()) return [3 /*break*/, 2];
-                return [4 /*yield*/, _checkCampaignWhitelisting(campaign, context, serviceContainer)];
+                if (!campaign.getIsForcedVariationEnabled()) return [3 /*break*/, 4];
+                _a = _isRolloutCampaign(campaign);
+                if (!_a) return [3 /*break*/, 2];
+                return [4 /*yield*/, _isUserOnRolloutForceOffList(campaign, context, serviceContainer)];
             case 1:
-                whitelistedVariation = _a.sent();
+                _a = (_b.sent());
+                _b.label = 2;
+            case 2:
+                // Forced OUT (Rollout only): user must not get this rollout at all
+                // check if the user is on the forced off list
+                if (_a) {
+                    // Log that Forced OUT matched for this user
+                    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_FORCED_OFF, {
+                        userId: context.getId(),
+                        ruleType: _forceRuleTypeLabel(campaign),
+                        campaignKey: _forceCampaignKey(campaign),
+                    }));
+                    return [2 /*return*/, [false, null]];
+                }
+                return [4 /*yield*/, _checkCampaignWhitelisting(campaign, context, serviceContainer)];
+            case 3:
+                whitelistedVariation = _b.sent();
                 if (whitelistedVariation && Object.keys(whitelistedVariation).length > 0) {
                     return [2 /*return*/, [true, whitelistedVariation]];
                 }
-                return [3 /*break*/, 3];
-            case 2:
+                return [3 /*break*/, 5];
+            case 4:
                 serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
-                    campaignKey: campaign.getRuleKey(),
                     userId: context.getId(),
+                    ruleType: _forceRuleTypeLabel(campaign),
+                    campaignKey: _forceCampaignKey(campaign),
+                    variation: '',
                 }));
-                _a.label = 3;
-            case 3:
+                _b.label = 5;
+            case 5:
                 // userlist segment is also available for campaign pre segmentation
                 context.setCustomVariables(Object.assign({}, context.getCustomVariables(), {
                     _wingifyUserId: campaign.getIsUserListEnabled() ? vwoUserId : context.getId(),
@@ -100,7 +120,7 @@ var checkWhitelistingAndPreSeg = function (serviceContainer, feature, campaign, 
                 Object.assign(decision, { customVariables: context.getCustomVariables() }); // for integeration
                 groupId = (0, CampaignUtil_1.getGroupDetailsIfCampaignPartOfIt)(serviceContainer.getSettings(), campaign.getId(), campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? campaign.getVariations()[0].getId() : null).groupId;
                 groupWinnerCampaignId = megGroupWinnerCampaigns === null || megGroupWinnerCampaigns === void 0 ? void 0 : megGroupWinnerCampaigns.get(groupId);
-                if (!groupWinnerCampaignId) return [3 /*break*/, 4];
+                if (!groupWinnerCampaignId) return [3 /*break*/, 6];
                 if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
                     // check if the campaign is the winner of the group
                     if (groupWinnerCampaignId === campaignId) {
@@ -115,11 +135,11 @@ var checkWhitelistingAndPreSeg = function (serviceContainer, feature, campaign, 
                 }
                 // as group is already evaluated, no need to check again, return false directly
                 return [2 /*return*/, [false, null]];
-            case 4:
-                if (!groupId) return [3 /*break*/, 6];
+            case 6:
+                if (!groupId) return [3 /*break*/, 8];
                 return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage("".concat(constants_1.Constants.META_MEG_KEY).concat(groupId), context, storageService, serviceContainer)];
-            case 5:
-                storedData = _a.sent();
+            case 7:
+                storedData = _b.sent();
                 if (storedData && storedData.experimentKey && storedData.experimentId) {
                     serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.MEG_CAMPAIGN_FOUND_IN_STORAGE, {
                         campaignKey: storedData.experimentKey,
@@ -150,14 +170,14 @@ var checkWhitelistingAndPreSeg = function (serviceContainer, feature, campaign, 
                     }
                     return [2 /*return*/, [false, null]];
                 }
-                _a.label = 6;
-            case 6: return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(campaign, context, serviceContainer)];
-            case 7:
-                isPreSegmentationPassed = _a.sent();
-                if (!(isPreSegmentationPassed && groupId)) return [3 /*break*/, 9];
+                _b.label = 8;
+            case 8: return [4 /*yield*/, new CampaignDecisionService_1.CampaignDecisionService().getPreSegmentationDecision(campaign, context, serviceContainer)];
+            case 9:
+                isPreSegmentationPassed = _b.sent();
+                if (!(isPreSegmentationPassed && groupId)) return [3 /*break*/, 11];
                 return [4 /*yield*/, (0, MegUtil_1.evaluateGroups)(serviceContainer, feature, groupId, evaluatedFeatureMap, context, storageService)];
-            case 8:
-                winnerCampaign = _a.sent();
+            case 10:
+                winnerCampaign = _b.sent();
                 if (winnerCampaign && winnerCampaign.id === campaignId) {
                     if (winnerCampaign.type === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
                         return [2 /*return*/, [true, null]];
@@ -184,7 +204,7 @@ var checkWhitelistingAndPreSeg = function (serviceContainer, feature, campaign, 
                 }
                 megGroupWinnerCampaigns.set(groupId, -1);
                 return [2 /*return*/, [false, null]];
-            case 9: return [2 /*return*/, [isPreSegmentationPassed, null]];
+            case 11: return [2 /*return*/, [isPreSegmentationPassed, null]];
         }
     });
 }); };
@@ -218,26 +238,26 @@ exports.evaluateTrafficAndGetVariation = evaluateTrafficAndGetVariation;
  * PRIVATE METHODS
  ******************/
 /**
- * Check for whitelisting
- * @param campaign      Campaign object
- * @param userId        User ID
- * @param variationTargetingVariables   Variation targeting variables
- * @returns
+ * Check for whitelisting and log the result.
+ * @param campaign Campaign object
+ * @param context User context
+ * @param serviceContainer Service container
+ * @returns Whitelisted variation map or undefined if not whitelisted
  */
 var _checkCampaignWhitelisting = function (campaign, context, serviceContainer) { return __awaiter(void 0, void 0, void 0, function () {
-    var whitelistingResult, status, variationString;
+    var whitelistingResult, status, variationName, variationString;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, _evaluateWhitelisting(campaign, context, serviceContainer)];
             case 1:
                 whitelistingResult = _a.sent();
                 status = whitelistingResult ? StatusEnum_1.StatusEnum.PASSED : StatusEnum_1.StatusEnum.FAILED;
-                variationString = whitelistingResult ? whitelistingResult.variation.getKey() : '';
+                variationName = whitelistingResult ? whitelistingResult.variation.getKey() : '';
+                variationString = variationName ? "for variation: ".concat(variationName) : '';
                 serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_STATUS, {
                     userId: context.getId(),
-                    campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
-                        ? campaign.getKey()
-                        : campaign.getName() + '_' + campaign.getRuleKey(),
+                    ruleType: _forceRuleTypeLabel(campaign),
+                    campaignKey: _forceCampaignKey(campaign),
                     status: status,
                     variationString: variationString,
                 }));
@@ -252,11 +272,23 @@ var _checkCampaignWhitelisting = function (campaign, context, serviceContainer) 
 var _cloneVariationModelForWhitelisting = function (variation) {
     return new VariationModel_1.VariationModel().modelFromDictionary(JSON.parse(JSON.stringify(variation)));
 };
+/**
+ * Evaluate whitelisting for a campaign.
+ * Rollout / Personalize use variations[0].whitelistedSegments; Testing uses variation segments.
+ * @param campaign Campaign object
+ * @param context User context
+ * @param serviceContainer Service container
+ * @returns Whitelisted variation map or undefined if not whitelisted
+ */
 var _evaluateWhitelisting = function (campaign, context, serviceContainer) { return __awaiter(void 0, void 0, void 0, function () {
-    var variations, results, matched, v, targetedVariations, i, currentAllocation, stepFactor, whitelistedVariation;
+    var variations, results, matched, targetedVariations, i, currentAllocation, stepFactor, whitelistedVariation;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                // Rollout / Personalize: force list lives on variations[0].whitelistedSegments
+                if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+                    return [2 /*return*/, _evaluateVariationWhitelistedSegments(campaign, context, serviceContainer)];
+                }
                 variations = campaign.getVariations();
                 return [4 /*yield*/, Promise.all(variations.map(function (variation) { return __awaiter(void 0, void 0, void 0, function () {
                         var evaluationResult;
@@ -265,10 +297,9 @@ var _evaluateWhitelisting = function (campaign, context, serviceContainer) { ret
                                 case 0:
                                     if ((0, DataTypeUtil_1.isObject)(variation.getSegments()) && !Object.keys(variation.getSegments()).length) {
                                         serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
-                                            campaignKey: campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB
-                                                ? campaign.getKey()
-                                                : campaign.getName() + '_' + campaign.getRuleKey(),
                                             userId: context.getId(),
+                                            ruleType: _forceRuleTypeLabel(campaign),
+                                            campaignKey: _forceCampaignKey(campaign),
                                             variation: variation.getKey() ? "for variation: ".concat(variation.getKey()) : '',
                                         }));
                                         return [2 /*return*/, { matched: false, variation: variation }];
@@ -292,12 +323,8 @@ var _evaluateWhitelisting = function (campaign, context, serviceContainer) { ret
                     return [2 /*return*/];
                 }
                 if (matched.length === 1) {
-                    v = matched[0];
-                    return [2 /*return*/, {
-                            variation: v,
-                            variationName: v.getKey(),
-                            variationId: v.getId(),
-                        }];
+                    // return the variation if only one variation is matched
+                    return [2 /*return*/, _whitelistingResultMap(matched[0])];
                 }
                 targetedVariations = matched.map(function (v) { return _cloneVariationModelForWhitelisting(v); });
                 (0, CampaignUtil_1.scaleVariationWeights)(targetedVariations);
@@ -306,15 +333,249 @@ var _evaluateWhitelisting = function (campaign, context, serviceContainer) { ret
                     currentAllocation += stepFactor;
                 }
                 whitelistedVariation = new CampaignDecisionService_1.CampaignDecisionService().getVariation(targetedVariations, new decision_maker_1.DecisionMaker().calculateBucketValue((0, CampaignUtil_1.getBucketingSeed)(context.getBucketingSeed() || context.getId(), campaign, null)));
-                if (whitelistedVariation) {
-                    return [2 /*return*/, {
-                            variation: whitelistedVariation,
-                            variationName: whitelistedVariation.getKey(),
-                            variationId: whitelistedVariation.getId(),
-                        }];
-                }
-                return [2 /*return*/];
+                return [2 /*return*/, _whitelistingResultMap(whitelistedVariation)];
         }
     });
 }); };
+/**
+ * Log label for force/whitelist messages (parity with Testing "experiment").
+ * @param campaign Campaign being evaluated
+ * @returns Rule type label used in WHITELISTING_* messages
+ */
+var _forceRuleTypeLabel = function (campaign) {
+    if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT) {
+        return 'rollout';
+    }
+    if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+        return 'personalize';
+    }
+    return 'experiment';
+};
+/**
+ * Campaign key used in force/whitelist log messages.
+ * @param campaign Campaign being evaluated
+ * @returns Campaign key string for logs
+ */
+var _forceCampaignKey = function (campaign) {
+    // Testing: variation-level segments
+    if (campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.AB) {
+        return campaign.getKey();
+    }
+    var campaignName = campaign.getName() || '';
+    var ruleKey = campaign.getRuleKey() || '';
+    if (campaignName && ruleKey) {
+        return "".concat(campaignName, "_").concat(ruleKey);
+    }
+    // return the campaign key if it is available
+    if (campaign.getKey()) {
+        return campaign.getKey();
+    }
+    // return the rule key or campaign name if it is available
+    return ruleKey || campaignName;
+};
+/**
+ * Whether this campaign is a Rollout rule.
+ * @param campaign Campaign being evaluated
+ * @returns True for FLAG_ROLLOUT
+ */
+var _isRolloutCampaign = function (campaign) {
+    return campaign.getType() === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT;
+};
+/**
+ * Whether this campaign type supports force/whitelisting evaluation.
+ * @param campaign Campaign being evaluated
+ * @returns True if AB, Rollout, or Personalize
+ */
+var _isForceWhitelistingEligible = function (campaign) {
+    var type = campaign.getType();
+    return type === CampaignTypeEnum_1.CampaignTypeEnum.AB || type === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || type === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE;
+};
+/**
+ * User id compared against force lists in variation targeting variables.
+ * Rollout / Personalize always use the hashed UUID (settings store hashed ids).
+ * Testing (AB) uses the hashed id only when isUserListEnabled; otherwise the raw user id.
+ * @param campaign Campaign being evaluated
+ * @param userId Raw user id from context
+ * @param hashedUserId Precomputed getUUID hash
+ * @returns Id to put into _wingifyUserId
+ */
+var _forceMatchUserId = function (campaign, userId, hashedUserId) {
+    var type = campaign.getType();
+    // return the hashed user id if the campaign is a rollout or personalize
+    if (type === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || type === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+        return hashedUserId;
+    }
+    return campaign.getIsUserListEnabled() ? hashedUserId : userId;
+};
+/**
+ * Rollout-only: true when the user is on the Forced OUT list in whitelistedSegments.
+ * Personalize has Forced IN only (no not / Forced OUT list).
+ * BE encodes Forced OUT as a not operand around a comma-separated user hash list.
+ * @param campaign Rollout campaign
+ * @param context User context (must already have _wingifyUserId set)
+ * @param serviceContainer Service container
+ * @returns True if this user must be hard-excluded from the rollout rule
+ */
+var _isUserOnRolloutForceOffList = function (campaign, context, serviceContainer) { return __awaiter(void 0, void 0, void 0, function () {
+    var variations, rolloutForceSegments, rolloutForceOffOperands, targetingVariables, _i, rolloutForceOffOperands_1, rolloutForceOffOperand, matched;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                if (!_isRolloutCampaign(campaign)) {
+                    return [2 /*return*/, false];
+                }
+                variations = campaign.getVariations();
+                if (!variations || variations.length === 0) {
+                    return [2 /*return*/, false];
+                }
+                rolloutForceSegments = variations[0].getWhitelistedSegments();
+                if (!(0, DataTypeUtil_1.isObject)(rolloutForceSegments) || !Object.keys(rolloutForceSegments).length) {
+                    return [2 /*return*/, false];
+                }
+                rolloutForceOffOperands = [];
+                _collectRolloutForceOffNotOperands(rolloutForceSegments, rolloutForceOffOperands);
+                if (rolloutForceOffOperands.length === 0) {
+                    return [2 /*return*/, false];
+                }
+                targetingVariables = context.getVariationTargetingVariables();
+                _i = 0, rolloutForceOffOperands_1 = rolloutForceOffOperands;
+                _a.label = 1;
+            case 1:
+                if (!(_i < rolloutForceOffOperands_1.length)) return [3 /*break*/, 4];
+                rolloutForceOffOperand = rolloutForceOffOperands_1[_i];
+                if (!(0, DataTypeUtil_1.isObject)(rolloutForceOffOperand)) {
+                    return [3 /*break*/, 3];
+                }
+                return [4 /*yield*/, serviceContainer
+                        .getSegmentationManager()
+                        .validateSegmentation(rolloutForceOffOperand, targetingVariables)];
+            case 2:
+                matched = _a.sent();
+                if (matched) {
+                    return [2 /*return*/, true];
+                }
+                _a.label = 3;
+            case 3:
+                _i++;
+                return [3 /*break*/, 1];
+            case 4: return [2 /*return*/, false];
+        }
+    });
+}); };
+/**
+ * Collects every value under a "not" key in Rollout force-list DSL (Forced OUT lists only).
+ * @param node Current DSL node (object / array / other)
+ * @param results Accumulator for "not" operand values
+ */
+var _collectRolloutForceOffNotOperands = function (node, results) {
+    if ((0, DataTypeUtil_1.isObject)(node)) {
+        for (var _i = 0, _a = Object.entries(node); _i < _a.length; _i++) {
+            var _b = _a[_i], key = _b[0], value = _b[1];
+            // Found a Forced OUT list — keep its inner operand
+            if (key === 'not') {
+                results.push(value);
+            }
+            // Keep searching nested maps/lists for more "not" blocks
+            _collectRolloutForceOffNotOperands(value, results);
+        }
+    }
+    else if (Array.isArray(node)) {
+        for (var _c = 0, node_1 = node; _c < node_1.length; _c++) {
+            var item = node_1[_c];
+            _collectRolloutForceOffNotOperands(item, results);
+        }
+    }
+};
+/**
+ * Drop Forced OUT ("not") nodes so a force-off-only list is not treated as Force On.
+ * Returns undefined when nothing but Forced OUT remains.
+ * @param node Current DSL node
+ * @returns DSL with "not" nodes removed, or undefined when empty
+ */
+var _forceOnSegmentsOnly = function (node) {
+    if (Array.isArray(node)) {
+        var kept = node.map(function (item) { return _forceOnSegmentsOnly(item); }).filter(function (item) { return item !== undefined; });
+        return kept.length > 0 ? kept : undefined;
+    }
+    if (!(0, DataTypeUtil_1.isObject)(node)) {
+        return node;
+    }
+    var result = {};
+    for (var _i = 0, _a = Object.entries(node); _i < _a.length; _i++) {
+        var _b = _a[_i], key = _b[0], value = _b[1];
+        if (key === 'not') {
+            continue;
+        }
+        var stripped = _forceOnSegmentsOnly(value);
+        if (stripped !== undefined) {
+            result[key] = stripped;
+        }
+    }
+    return Object.keys(result).length > 0 ? result : undefined;
+};
+/**
+ * Force On for Rollout / Personalize using VariationModel.getWhitelistedSegments().
+ * Rollout may also include Force Off (not); that is handled upstream as hard-exclude.
+ * A list that contains only Force Off must not count as a whitelist pass.
+ * Personalize supports Force On only; any "not" there is ignored rather than inverted.
+ * @param campaign Campaign object
+ * @param context User context
+ * @param serviceContainer Service container
+ * @returns Whitelisted variation map or undefined if not forced on
+ */
+var _evaluateVariationWhitelistedSegments = function (campaign, context, serviceContainer) { return __awaiter(void 0, void 0, void 0, function () {
+    var variations, variation, whitelistSegments, forceOnSegments, segmentationResult;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                variations = campaign.getVariations();
+                if (!variations || variations.length === 0) {
+                    return [2 /*return*/];
+                }
+                variation = variations[0];
+                whitelistSegments = variation.getWhitelistedSegments();
+                // return if the variation does not have any whitelisted segments
+                if (!(0, DataTypeUtil_1.isObject)(whitelistSegments) || !Object.keys(whitelistSegments).length) {
+                    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.WHITELISTING_SKIP, {
+                        userId: context.getId(),
+                        ruleType: _forceRuleTypeLabel(campaign),
+                        campaignKey: _forceCampaignKey(campaign),
+                        variation: '',
+                    }));
+                    return [2 /*return*/];
+                }
+                forceOnSegments = _forceOnSegmentsOnly(whitelistSegments);
+                if (!(0, DataTypeUtil_1.isObject)(forceOnSegments) || !Object.keys(forceOnSegments).length) {
+                    return [2 /*return*/];
+                }
+                return [4 /*yield*/, serviceContainer
+                        .getSegmentationManager()
+                        .validateSegmentation(forceOnSegments, context.getVariationTargetingVariables())];
+            case 1:
+                segmentationResult = _a.sent();
+                if (!segmentationResult) {
+                    return [2 /*return*/];
+                }
+                // Force On hit → return a clone of this variation
+                return [2 /*return*/, _whitelistingResultMap(_cloneVariationModelForWhitelisting(variation))];
+        }
+    });
+}); };
+/**
+ * Build the standard whitelisting result map from a variation.
+ * @param whitelistedVariation Variation to wrap, or null/undefined
+ * @returns Map with variation / variationName / variationId, or undefined
+ */
+var _whitelistingResultMap = function (whitelistedVariation) {
+    // return if the variation is not found
+    if (!whitelistedVariation) {
+        return;
+    }
+    // return the variation, variation name, and variation id if it is found
+    return {
+        variation: whitelistedVariation,
+        variationName: whitelistedVariation.getKey(),
+        variationId: whitelistedVariation.getId(),
+    };
+};
 //# sourceMappingURL=DecisionUtil.js.map

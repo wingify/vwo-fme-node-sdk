@@ -318,12 +318,57 @@ export class FlagApi {
         if (rollOutRules.length > 0 && !isEnabled) {
             const rolloutRulesToEvaluate = [];
             for (const rule of rollOutRules) {
-                const { preSegmentationResult, updatedDecision, payload } = await evaluateRule(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision);
+                const evaluateRuleResult = await evaluateRule(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision);
+                const isForceUserApplicable = evaluateRuleResult[Constants.KEY_FORCED_USER_CHECK];
+                const { whitelistedObject, updatedDecision, payload } = evaluateRuleResult;
                 Object.assign(decision, updatedDecision);
                 if (payload) {
                     isVariationShownFired = true;
                 }
-                if (preSegmentationResult) {
+                if (isForceUserApplicable) {
+                    // Forced IN: apply rollout experience and skip traffic
+                    if (isObject(whitelistedObject) && Object.keys(whitelistedObject).length > 0) {
+                        // set the flag to true if the whitelisted object is not null and has some variations
+                        isEnabled = true;
+                        shouldCheckForExperimentsRules = true;
+                        rolloutVariationToReturn = whitelistedObject.variation;
+                        decision['isUserPartOfCampaign'] = true;
+                        // set the evaluated feature map with the rollout id, rollout key, and rollout variation id
+                        evaluatedFeatureMap.set(featureKey, {
+                            rolloutId: rule.getId(),
+                            rolloutKey: rule.getKey(),
+                            rolloutVariationId: whitelistedObject.variationId,
+                        });
+                        _updateIntegrationsDecisionObject(rule, whitelistedObject.variation, passedRulesInformation, decision);
+                        // Track variation-shown for this forced rollout
+                        if (!isDevModeForUser) {
+                            if (serviceContainer.getShouldWaitForTrackingCalls()) {
+                                // send impression for variation shown
+                                if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                                    await sendImpressionForVariationShown(serviceContainer, rule.getId(), whitelistedObject.variationId, context, featureKey, payload);
+                                }
+                                else {
+                                    if (payload != null) {
+                                        // push payload to batch payload if gateway service is not provided
+                                        batchPayload.push(payload);
+                                    }
+                                }
+                            }
+                            else {
+                                // send impression for variation shown
+                                if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
+                                    sendImpressionForVariationShown(serviceContainer, rule.getId(), whitelistedObject.variationId, context, featureKey, payload);
+                                }
+                                else {
+                                    if (payload != null) {
+                                        // push payload to batch payload if gateway service is not provided
+                                        batchPayload.push(payload);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
                     // if pre segment passed, then break the loop and check the traffic allocation
                     rolloutRulesToEvaluate.push(rule);
                     if (serviceContainer.getShouldWaitForTrackingCalls()) {

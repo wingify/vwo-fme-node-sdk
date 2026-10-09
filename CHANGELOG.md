@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.70.2] - 2026-10-09
+
+### Added
+
+- Added Force Users support for Rollout and Personalize rules. Users forced on receive the rule experience regardless of audience targeting or traffic percentage. Rollout Force Off hard-excludes users from that rollout (no audience/traffic fallback), matching dashboard "Users who don't get this experience". Personalize supports Force On only.
+
 ## [1.65.0] - 2026-09-10
 
 ### Added

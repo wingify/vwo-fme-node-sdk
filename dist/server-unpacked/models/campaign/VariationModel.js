@@ -20,6 +20,9 @@ var VariationModel = /** @class */ (function () {
         if (variation.seg || variation.segments) {
             this.segments = variation.seg || variation.segments;
         }
+        if (variation.whitelistedSegments) {
+            this.whitelistedSegments = variation.whitelistedSegments;
+        }
         if (variation.variables) {
             if (variation.variables.constructor === {}.constructor) {
                 this.variables = [];
@@ -67,6 +70,10 @@ var VariationModel = /** @class */ (function () {
     };
     VariationModel.prototype.getSegments = function () {
         return this.segments;
+    };
+    // Force In (Rollout + Personalize) and Force Out (Rollout only) user lists from settings.
+    VariationModel.prototype.getWhitelistedSegments = function () {
+        return this.whitelistedSegments;
     };
     VariationModel.prototype.getStartRangeVariation = function () {
         return this.startRangeVariation;

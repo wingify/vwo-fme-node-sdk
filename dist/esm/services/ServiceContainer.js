@@ -16,6 +16,7 @@
 import { SegmentationManager } from '../packages/segmentation-evaluator/core/SegmentationManger.js';
 import HooksService from './HooksService.js';
 import { isString } from '../utils/DataTypeUtil.js';
+import { getBatchScopedSegmentationManager } from './GetFlagsBatchContext.js';
 import { InternalEventsThrottleService } from './InternalEventsThrottleService.js';
 /**
  * ServiceContainer is a class that contains all the services that are used in the SDK.
@@ -23,6 +24,8 @@ import { InternalEventsThrottleService } from './InternalEventsThrottleService.j
 export class ServiceContainer {
     constructor(options) {
         this.BatchEventsQueue = null;
+        this.suppressTrackingCalls = false;
+        this.suppressMAU = false;
         this.pollingStopCallback = null;
         this.internalEventsThrottleService = null;
         this.originalSettingsDocument = {};
@@ -91,7 +94,8 @@ export class ServiceContainer {
      * @returns SegmentationManager
      */
     getSegmentationManager() {
-        return this.SegmentationManager;
+        // Outside getFlags batch workers ALS is unset, so getFlag/trackEvent keep the shared manager.
+        return getBatchScopedSegmentationManager() ?? this.SegmentationManager;
     }
     /**
      *
@@ -186,6 +190,18 @@ export class ServiceContainer {
      */
     getShouldWaitForTrackingCalls() {
         return this.shouldWaitForTrackingCalls;
+    }
+    setSuppressTrackingCalls(value) {
+        this.suppressTrackingCalls = value;
+    }
+    getSuppressTrackingCalls() {
+        return this.suppressTrackingCalls;
+    }
+    setSuppressMAU(value) {
+        this.suppressMAU = value;
+    }
+    getSuppressMAU() {
+        return this.suppressMAU;
     }
     /**
      * Registers a callback to stop settings polling (called from WingifyBuilder when polling is started).

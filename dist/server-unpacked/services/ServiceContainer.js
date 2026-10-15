@@ -22,6 +22,7 @@ exports.ServiceContainer = void 0;
 var SegmentationManger_1 = require("../packages/segmentation-evaluator/core/SegmentationManger");
 var HooksService_1 = __importDefault(require("./HooksService"));
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
+var GetFlagsBatchContext_1 = require("./GetFlagsBatchContext");
 var InternalEventsThrottleService_1 = require("./InternalEventsThrottleService");
 /**
  * ServiceContainer is a class that contains all the services that are used in the SDK.
@@ -29,6 +30,8 @@ var InternalEventsThrottleService_1 = require("./InternalEventsThrottleService")
 var ServiceContainer = /** @class */ (function () {
     function ServiceContainer(options) {
         this.BatchEventsQueue = null;
+        this.suppressTrackingCalls = false;
+        this.suppressMAU = false;
         this.pollingStopCallback = null;
         this.internalEventsThrottleService = null;
         this.originalSettingsDocument = {};
@@ -97,7 +100,9 @@ var ServiceContainer = /** @class */ (function () {
      * @returns SegmentationManager
      */
     ServiceContainer.prototype.getSegmentationManager = function () {
-        return this.SegmentationManager;
+        var _a;
+        // Outside getFlags batch workers ALS is unset, so getFlag/trackEvent keep the shared manager.
+        return (_a = (0, GetFlagsBatchContext_1.getBatchScopedSegmentationManager)()) !== null && _a !== void 0 ? _a : this.SegmentationManager;
     };
     /**
      *
@@ -193,6 +198,18 @@ var ServiceContainer = /** @class */ (function () {
      */
     ServiceContainer.prototype.getShouldWaitForTrackingCalls = function () {
         return this.shouldWaitForTrackingCalls;
+    };
+    ServiceContainer.prototype.setSuppressTrackingCalls = function (value) {
+        this.suppressTrackingCalls = value;
+    };
+    ServiceContainer.prototype.getSuppressTrackingCalls = function () {
+        return this.suppressTrackingCalls;
+    };
+    ServiceContainer.prototype.setSuppressMAU = function (value) {
+        this.suppressMAU = value;
+    };
+    ServiceContainer.prototype.getSuppressMAU = function () {
+        return this.suppressMAU;
     };
     /**
      * Registers a callback to stop settings polling (called from WingifyBuilder when polling is started).

@@ -1,5 +1,5 @@
 /*!
- * wingify-fme-node-sdk - v1.70.2
+ * wingify-fme-node-sdk - v1.75.0
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.70.2"
+  version: "1.75.0"
 };
 
 /***/ }),
@@ -1019,6 +1019,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.WingifyClient = void 0;
 var GetFlag_1 = __webpack_require__(/*! ./api/GetFlag */ "./dist/server-unpacked/api/GetFlag.js");
+var GetFlags_1 = __webpack_require__(/*! ./api/GetFlags */ "./dist/server-unpacked/api/GetFlags.js");
 var SetAttribute_1 = __webpack_require__(/*! ./api/SetAttribute */ "./dist/server-unpacked/api/SetAttribute.js");
 var TrackEvent_1 = __webpack_require__(/*! ./api/TrackEvent */ "./dist/server-unpacked/api/TrackEvent.js");
 var log_messages_1 = __webpack_require__(/*! ./enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
@@ -1252,6 +1253,104 @@ var WingifyClient = /** @class */function () {
     });
   };
   /**
+   * Evaluates multiple feature flags for a user and returns them keyed by feature key.
+   *
+   * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+   * @param context - User context; must include a valid user id.
+   * @returns Evaluated flags keyed by feature key.
+   */
+  WingifyClient.prototype.getFlags = function (flagNames_1, context_1) {
+    return __awaiter(this, arguments, void 0, function (flagNames, context, shouldSendTrackingCalls) {
+      var apiName, uuid, userId, baseContextCopy, seed, err_3;
+      if (shouldSendTrackingCalls === void 0) {
+        shouldSendTrackingCalls = true;
+      }
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            apiName = ApiEnum_1.ApiEnum.GET_FLAGS;
+            _a.label = 1;
+          case 1:
+            _a.trys.push([1, 4,, 5]);
+            this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+              apiName: apiName
+            }));
+            uuid = this.getUUIDFromContext(context, apiName);
+            if (!this.isSettingsValid) {
+              this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, {
+                an: apiName
+              }, false);
+              throw new Error('TypeError: Invalid Settings');
+            }
+            if (!context || !context.id) {
+              this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, {
+                an: apiName
+              }, false);
+              throw new TypeError('TypeError: Invalid context');
+            }
+            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+          case 2:
+            userId = _a.sent();
+            baseContextCopy = __assign({}, context);
+            baseContextCopy.id = userId;
+            if (baseContextCopy.id !== context.id) {
+              baseContextCopy.uuid = this.getUUIDFromContext(baseContextCopy, apiName);
+            } else {
+              baseContextCopy.uuid = uuid;
+            }
+            if ('bucketingSeed' in baseContextCopy) {
+              seed = baseContextCopy.bucketingSeed;
+              if (seed === undefined || seed === null || (0, DataTypeUtil_1.isNumber)(seed) || (0, DataTypeUtil_1.isObject)(seed) || (0, DataTypeUtil_2.isArray)(seed) || (0, DataTypeUtil_1.isString)(seed) && seed.trim().length === 0) {
+                this.serviceContainer.getLogManager().errorLog('INVALID_BUCKETING_SEED', {
+                  apiName: apiName,
+                  type: (0, DataTypeUtil_1.getType)(seed)
+                }, {
+                  an: apiName
+                }, false);
+                delete baseContextCopy.bucketingSeed;
+              }
+            }
+            return [4 /*yield*/, GetFlags_1.GetFlagsApi.get(flagNames, baseContextCopy, this.serviceContainer, this.options, shouldSendTrackingCalls)];
+          case 3:
+            return [2 /*return*/, _a.sent()];
+          case 4:
+            err_3 = _a.sent();
+            this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
+              apiName: apiName,
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3)
+            }, {
+              an: apiName
+            });
+            return [2 /*return*/, this.buildDisabledFlags(flagNames, context)];
+          case 5:
+            return [2 /*return*/];
+        }
+      });
+    });
+  };
+  /**
+   * Builds disabled flags for the requested keys after validation or execution failure.
+   *
+   * @param flagNames - Requested feature keys from the caller.
+   * @param context - Raw caller context used to populate flag metadata.
+   * @returns Disabled flags keyed by requested feature key.
+   */
+  WingifyClient.prototype.buildDisabledFlags = function (flagNames, context) {
+    var _a, _b, _c;
+    var keys = (_a = flagNames === null || flagNames === void 0 ? void 0 : flagNames.filter(function (key) {
+      return key === null || key === void 0 ? void 0 : key.trim();
+    })) !== null && _a !== void 0 ? _a : [];
+    if (!keys.length) {
+      return {};
+    }
+    var sessionId = (_b = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _b !== void 0 ? _b : (0, FunctionUtil_1.getCurrentUnixTimestamp)();
+    var uuid = (_c = context === null || context === void 0 ? void 0 : context.uuid) !== null && _c !== void 0 ? _c : '';
+    var disabledFlag = new GetFlag_1.Flag(false, sessionId, uuid, new VariationModel_1.VariationModel());
+    return Object.fromEntries(keys.map(function (key) {
+      return [key, disabledFlag];
+    }));
+  };
+  /**
    * Tracks an event with specified properties and context.
    * This method validates the types of the inputs and ensures the settings and user context are valid before proceeding.
    *
@@ -1262,7 +1361,7 @@ var WingifyClient = /** @class */function () {
    */
   WingifyClient.prototype.trackEvent = function (eventName_1, context_1) {
     return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
-      var apiName, deferredObject, userId, contextCopy, contextModel, err_3;
+      var apiName, deferredObject, userId, contextCopy, contextModel, err_4;
       var _a;
       if (eventProperties === void 0) {
         eventProperties = {};
@@ -1334,11 +1433,11 @@ var WingifyClient = /** @class */function () {
             });
             return [3 /*break*/, 4];
           case 3:
-            err_3 = _b.sent();
+            err_4 = _b.sent();
             // Log any errors encountered during the operation
             this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
               apiName: apiName,
-              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3)
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4)
             }, {
               an: ApiEnum_1.ApiEnum.TRACK_EVENT
             });
@@ -1364,7 +1463,7 @@ var WingifyClient = /** @class */function () {
    */
   WingifyClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
     return __awaiter(this, void 0, void 0, function () {
-      var apiName, attributes, userId, contextCopy, contextModel, attributeKey, attributeValue, userId, contextCopy, contextModel, attributeMap, err_4;
+      var apiName, attributes, userId, contextCopy, contextModel, attributeKey, attributeValue, userId, contextCopy, contextModel, attributeMap, err_5;
       var _a;
       return __generator(this, function (_b) {
         switch (_b.label) {
@@ -1454,10 +1553,10 @@ var WingifyClient = /** @class */function () {
           case 7:
             return [3 /*break*/, 9];
           case 8:
-            err_4 = _b.sent();
+            err_5 = _b.sent();
             this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
               apiName: apiName,
-              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4)
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5)
             }, {
               an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE
             });
@@ -1476,7 +1575,7 @@ var WingifyClient = /** @class */function () {
    */
   WingifyClient.prototype.updateSettings = function (settings_1) {
     return __awaiter(this, arguments, void 0, function (settings, isViaWebhook) {
-      var apiName, settingsToUpdate, _a, normalizedSettings, err_5;
+      var apiName, settingsToUpdate, _a, normalizedSettings, err_6;
       if (isViaWebhook === void 0) {
         isViaWebhook = true;
       }
@@ -1516,11 +1615,11 @@ var WingifyClient = /** @class */function () {
             }));
             return [3 /*break*/, 6];
           case 5:
-            err_5 = _b.sent();
+            err_6 = _b.sent();
             this.serviceContainer.getLogManager().errorLog('UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED', {
               apiName: apiName,
               isViaWebhook: isViaWebhook,
-              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5)
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_6)
             }, {
               an: ApiEnum_1.ApiEnum.UPDATE_SETTINGS
             });
@@ -1536,7 +1635,7 @@ var WingifyClient = /** @class */function () {
    */
   WingifyClient.prototype.flushEvents = function () {
     return __awaiter(this, void 0, void 0, function () {
-      var apiName, promises, storageService, flushResult, err_6;
+      var apiName, promises, storageService, flushResult, err_7;
       var _this = this;
       var _a, _b, _c;
       return __generator(this, function (_d) {
@@ -1576,10 +1675,10 @@ var WingifyClient = /** @class */function () {
             flushResult = _d.sent()[0];
             return [2 /*return*/, flushResult];
           case 3:
-            err_6 = _d.sent();
+            err_7 = _d.sent();
             this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
               apiName: apiName,
-              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_6)
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_7)
             }, {
               an: ApiEnum_1.ApiEnum.FLUSH_EVENTS
             });
@@ -1717,7 +1816,7 @@ var WingifyClient = /** @class */function () {
    */
   WingifyClient.prototype.shutdown = function () {
     return __awaiter(this, void 0, void 0, function () {
-      var err_7;
+      var err_8;
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
@@ -1746,10 +1845,10 @@ var WingifyClient = /** @class */function () {
           case 3:
             return [3 /*break*/, 5];
           case 4:
-            err_7 = _a.sent();
+            err_8 = _a.sent();
             this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
               apiName: ApiEnum_1.ApiEnum.SHUTDOWN,
-              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_7)
+              err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_8)
             }, {
               an: ApiEnum_1.ApiEnum.SHUTDOWN
             });
@@ -1943,6 +2042,7 @@ var RuleEvaluationUtil_1 = __webpack_require__(/*! ../utils/RuleEvaluationUtil *
 var DebuggerServiceUtil_1 = __webpack_require__(/*! ../utils/DebuggerServiceUtil */ "./dist/server-unpacked/utils/DebuggerServiceUtil.js");
 var DebuggerCategoryEnum_1 = __webpack_require__(/*! ../enums/DebuggerCategoryEnum */ "./dist/server-unpacked/enums/DebuggerCategoryEnum.js");
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
+var GetFlagsBatchContext_1 = __webpack_require__(/*! ../services/GetFlagsBatchContext */ "./dist/server-unpacked/services/GetFlagsBatchContext.js");
 var HoldoutUtil_1 = __webpack_require__(/*! ../utils/HoldoutUtil */ "./dist/server-unpacked/utils/HoldoutUtil.js");
 var ImpressionUtil_1 = __webpack_require__(/*! ../utils/ImpressionUtil */ "./dist/server-unpacked/utils/ImpressionUtil.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
@@ -1981,10 +2081,10 @@ var FlagApi = /** @class */function () {
   function FlagApi() {}
   FlagApi.get = function (featureKey, context, serviceContainer) {
     return __awaiter(this, void 0, void 0, function () {
-      var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, notInHoldoutIds, batchPayload, isSettingsDevModeEnabled, isUserDevModeEnabled, isDevModeForUser, isTrackingUsageEnabled, isVariationShownFired, feature, decision, debugEventProps, storageService, storedData, storedIsInHoldoutId, storedNotInHoldoutId, applicableHoldouts, _i, applicableHoldouts_1, holdout, _a, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, updatedHoldoutIds, updatedNotInHoldoutIds, _b, holdoutPayloads_1, payload, _c, holdoutPayloads_2, payload, variation, variation, updatedNotInHoldoutIds, featureInfo, _d, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, qualifiedHoldoutNames, _e, holdoutPayloads_3, payload, _f, holdoutPayloads_4, payload, _g, holdoutPayloads_5, payload, _h, holdoutPayloads_6, payload, rollOutRules, rolloutRulesToEvaluate, _j, rollOutRules_1, rule, evaluateRuleResult, isForceUserApplicable, whitelistedObject, updatedDecision, payload, passedRolloutCampaign, variation, payload, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _k, experimentRules_1, rule, _l, preSegmentationResult, whitelistedObject, updatedDecision, payload, campaign, variation, payload, payload, variationToReturn, variationModel;
-      var _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0;
-      return __generator(this, function (_1) {
-        switch (_1.label) {
+      var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, notInHoldoutIds, batchPayload, isSettingsDevModeEnabled, isUserDevModeEnabled, isDevModeForUser, shouldFireImpressionEvents, isTrackingUsageEnabled, isVariationShownFired, feature, decision, debugEventProps, storageService, storedData, storedIsInHoldoutId, storedNotInHoldoutId, applicableHoldouts, _i, applicableHoldouts_1, holdout, _a, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, updatedHoldoutIds, updatedNotInHoldoutIds, _b, holdoutPayloads_1, payload, _c, holdoutPayloads_2, payload, variation, variation, updatedNotInHoldoutIds, featureInfo, _d, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, qualifiedHoldoutNames, _e, holdoutPayloads_3, payload, _f, holdoutPayloads_4, payload, _g, holdoutPayloads_5, payload, _h, holdoutPayloads_6, payload, rollOutRules, rolloutRulesToEvaluate, _j, rollOutRules_1, rule, evaluateRuleResult, isForceUserApplicable, whitelistedObject, updatedDecision, payload, passedRolloutCampaign, variation, payload, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _k, experimentRules_1, rule, _l, preSegmentationResult, whitelistedObject, updatedDecision, payload, campaign, variation, payload, payload, variationToReturn, variationModel;
+      var _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1;
+      return __generator(this, function (_2) {
+        switch (_2.label) {
           case 0:
             isEnabled = false;
             rolloutVariationToReturn = null;
@@ -1998,7 +2098,8 @@ var FlagApi = /** @class */function () {
             isSettingsDevModeEnabled = ((_o = (_m = serviceContainer.getSettings()) === null || _m === void 0 ? void 0 : _m.getDevMode) === null || _o === void 0 ? void 0 : _o.call(_m)) === true;
             isUserDevModeEnabled = ((_p = context === null || context === void 0 ? void 0 : context.getIsDevMode) === null || _p === void 0 ? void 0 : _p.call(context)) === true;
             isDevModeForUser = isSettingsDevModeEnabled && isUserDevModeEnabled;
-            isTrackingUsageEnabled = ((_r = (_q = serviceContainer.getSettings()) === null || _q === void 0 ? void 0 : _q.getIsTrackingUsageEnabled) === null || _r === void 0 ? void 0 : _r.call(_q)) === true;
+            shouldFireImpressionEvents = !isDevModeForUser && !serviceContainer.getSuppressTrackingCalls() && !((_q = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _q === void 0 ? void 0 : _q.suppressTrackingCalls);
+            isTrackingUsageEnabled = ((_s = (_r = serviceContainer.getSettings()) === null || _r === void 0 ? void 0 : _r.getIsTrackingUsageEnabled) === null || _s === void 0 ? void 0 : _s.call(_r)) === true;
             isVariationShownFired = false;
             feature = (0, FunctionUtil_1.getFeatureFromKey)(serviceContainer.getSettings(), featureKey);
             decision = {
@@ -2021,14 +2122,14 @@ var FlagApi = /** @class */function () {
             storageService = new StorageService_1.StorageService(serviceContainer);
             return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer)];
           case 1:
-            storedData = _1.sent();
-            storedIsInHoldoutId = (_s = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _s !== void 0 ? _s : storedData === null || storedData === void 0 ? void 0 : storedData.holdoutGroupId;
-            storedNotInHoldoutId = (_t = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _t !== void 0 ? _t : [];
+            storedData = _2.sent();
+            storedIsInHoldoutId = (_t = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _t !== void 0 ? _t : storedData === null || storedData === void 0 ? void 0 : storedData.holdoutGroupId;
+            storedNotInHoldoutId = (_u = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _u !== void 0 ? _u : [];
             if (!(storedIsInHoldoutId && ((0, DataTypeUtil_1.isArray)(storedIsInHoldoutId) ? storedIsInHoldoutId.length > 0 : true))) return [3 /*break*/, 10];
             applicableHoldouts = (0, HoldoutUtil_1.getApplicableHoldouts)(serviceContainer.getSettings(), feature.getId());
             if (!(applicableHoldouts.length > 0)) return [3 /*break*/, 10];
             _i = 0, applicableHoldouts_1 = applicableHoldouts;
-            _1.label = 2;
+            _2.label = 2;
           case 2:
             if (!(_i < applicableHoldouts_1.length)) return [3 /*break*/, 10];
             holdout = applicableHoldouts_1[_i];
@@ -2040,7 +2141,7 @@ var FlagApi = /** @class */function () {
             }));
             return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature, context, storedData)];
           case 3:
-            _a = _1.sent(), matchedHoldouts = _a.matchedHoldouts, notMatchedHoldouts = _a.notMatchedHoldouts, holdoutPayloads = _a.holdoutPayloads;
+            _a = _2.sent(), matchedHoldouts = _a.matchedHoldouts, notMatchedHoldouts = _a.notMatchedHoldouts, holdoutPayloads = _a.holdoutPayloads;
             updatedHoldoutIds = __spreadArray(__spreadArray([], storedIsInHoldoutId, true), matchedHoldouts.map(function (holdout) {
               return holdout.getId();
             }), true);
@@ -2054,7 +2155,7 @@ var FlagApi = /** @class */function () {
               isInHoldoutId: updatedHoldoutIds,
               notInHoldoutId: updatedNotInHoldoutIds
             }, storageService, serviceContainer);
-            if (!!isDevModeForUser) return [3 /*break*/, 8];
+            if (!shouldFireImpressionEvents) return [3 /*break*/, 8];
             if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 4];
             for (_b = 0, holdoutPayloads_1 = holdoutPayloads; _b < holdoutPayloads_1.length; _b++) {
               payload = holdoutPayloads_1[_b];
@@ -2072,16 +2173,16 @@ var FlagApi = /** @class */function () {
             if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 7];
             return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads)];
           case 6:
-            _1.sent();
+            _2.sent();
             return [3 /*break*/, 8];
           case 7:
             (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads);
-            _1.label = 8;
+            _2.label = 8;
           case 8:
             // Decision served from holdout storage cache.
             // The cached holdout variationShown is NOT re-fired, so server has no usage tracking signal.
             // Send usage tracking call before returning.
-            sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
+            sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey); // fire-and-forget
             deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel()));
             return [2 /*return*/, deferredObject.promise];
           case 9:
@@ -2104,11 +2205,11 @@ var FlagApi = /** @class */function () {
             return [4 /*yield*/, (0, HoldoutUtil_1.sendNetworkCallsForNotInHoldouts)(serviceContainer, feature, context, decision, storedData, storageService)];
           case 11:
             // network calls for holdouts that are newly added in settings and are not present in storage
-            _1.sent();
+            _2.sent();
             // Experiment decision served from storage cache.
             // variationShown is NOT re-fired for cached decisions, so server has no usage tracking signal.
             // Send usage tracking call before returning.
-            sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
+            sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey); // fire-and-forget
             deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
             return [2 /*return*/, deferredObject.promise];
           case 12:
@@ -2129,7 +2230,7 @@ var FlagApi = /** @class */function () {
             }));
             return [4 /*yield*/, (0, HoldoutUtil_1.sendNetworkCallsForNotInHoldouts)(serviceContainer, feature, context, decision, storedData, storageService)];
           case 14:
-            updatedNotInHoldoutIds = _1.sent();
+            updatedNotInHoldoutIds = _2.sent();
             // push the updated not in holdout ids to the notInHoldoutIds array
             notInHoldoutIds.push.apply(notInHoldoutIds, updatedNotInHoldoutIds);
             // Rollout decision served from storage cache.
@@ -2145,7 +2246,7 @@ var FlagApi = /** @class */function () {
             };
             evaluatedFeatureMap.set(featureKey, featureInfo);
             Object.assign(passedRulesInformation, featureInfo);
-            _1.label = 15;
+            _2.label = 15;
           case 15:
             if (!(0, DataTypeUtil_1.isObject)(feature) || feature === undefined) {
               serviceContainer.getLogManager().errorLog('FEATURE_NOT_FOUND', {
@@ -2153,17 +2254,17 @@ var FlagApi = /** @class */function () {
               }, debugEventProps);
               // Feature key not found in settings (flag is OFF or not yet created).
               // No variationShown possible. Send usage tracking call before rejecting.
-              sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
+              sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey); // fire-and-forget
               deferredObject.reject({});
               return [2 /*return*/, deferredObject.promise];
             }
             return [4 /*yield*/, serviceContainer.getSegmentationManager().setContextualData(serviceContainer, feature, context)];
           case 16:
-            _1.sent();
+            _2.sent();
             if (!!isEnabled) return [3 /*break*/, 24];
             return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature, context, storedData)];
           case 17:
-            _d = _1.sent(), matchedHoldouts = _d.matchedHoldouts, notMatchedHoldouts = _d.notMatchedHoldouts, holdoutPayloads = _d.holdoutPayloads;
+            _d = _2.sent(), matchedHoldouts = _d.matchedHoldouts, notMatchedHoldouts = _d.notMatchedHoldouts, holdoutPayloads = _d.holdoutPayloads;
             decision.isPartOfHoldout = matchedHoldouts !== null && matchedHoldouts.length > 0;
             if (matchedHoldouts !== null && matchedHoldouts.length > 0 || notMatchedHoldouts !== null && notMatchedHoldouts.length > 0) {
               decision.isHoldoutPresent = true;
@@ -2194,6 +2295,7 @@ var FlagApi = /** @class */function () {
             decision['isEnabled'] = false;
             serviceContainer.getHooksService().set(decision);
             serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
+            if (!shouldFireImpressionEvents) return [3 /*break*/, 22];
             if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 18];
             for (_e = 0, holdoutPayloads_3 = holdoutPayloads; _e < holdoutPayloads_3.length; _e++) {
               payload = holdoutPayloads_3[_e];
@@ -2211,11 +2313,11 @@ var FlagApi = /** @class */function () {
             if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 21];
             return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads)];
           case 20:
-            _1.sent();
+            _2.sent();
             return [3 /*break*/, 22];
           case 21:
             (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads);
-            _1.label = 22;
+            _2.label = 22;
           case 22:
             // Holdout variationShown(variation=1) was fired above — server handles usage tracking.
             // No explicit usage tracking call needed here.
@@ -2229,7 +2331,7 @@ var FlagApi = /** @class */function () {
             notInHoldoutIds.push.apply(notInHoldoutIds, notMatchedHoldouts.map(function (holdout) {
               return holdout.getId();
             }));
-            if (!isDevModeForUser) {
+            if (shouldFireImpressionEvents) {
               if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
                 for (_g = 0, holdoutPayloads_5 = holdoutPayloads; _g < holdoutPayloads_5.length; _g++) {
                   payload = holdoutPayloads_5[_g];
@@ -2250,19 +2352,19 @@ var FlagApi = /** @class */function () {
                 isVariationShownFired = true;
               }
             }
-            _1.label = 24;
+            _2.label = 24;
           case 24:
             rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
             if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 46];
             rolloutRulesToEvaluate = [];
             _j = 0, rollOutRules_1 = rollOutRules;
-            _1.label = 25;
+            _2.label = 25;
           case 25:
             if (!(_j < rollOutRules_1.length)) return [3 /*break*/, 40];
             rule = rollOutRules_1[_j];
             return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
           case 26:
-            evaluateRuleResult = _1.sent();
+            evaluateRuleResult = _2.sent();
             isForceUserApplicable = evaluateRuleResult[constants_1.Constants.KEY_FORCED_USER_CHECK];
             whitelistedObject = evaluateRuleResult.whitelistedObject, updatedDecision = evaluateRuleResult.updatedDecision, payload = evaluateRuleResult.payload;
             Object.assign(decision, updatedDecision);
@@ -2288,14 +2390,14 @@ var FlagApi = /** @class */function () {
             if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 28];
             return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), whitelistedObject.variationId, context, featureKey, payload)];
           case 27:
-            _1.sent();
+            _2.sent();
             return [3 /*break*/, 29];
           case 28:
             if (payload != null) {
               // push payload to batch payload if gateway service is not provided
               batchPayload.push(payload);
             }
-            _1.label = 29;
+            _2.label = 29;
           case 29:
             return [3 /*break*/, 31];
           case 30:
@@ -2308,7 +2410,7 @@ var FlagApi = /** @class */function () {
                 batchPayload.push(payload);
               }
             }
-            _1.label = 31;
+            _2.label = 31;
           case 31:
             return [3 /*break*/, 40];
           case 32:
@@ -2316,31 +2418,31 @@ var FlagApi = /** @class */function () {
             rolloutRulesToEvaluate.push(rule);
             if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 36];
             if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 34];
-            return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_u = rule.getVariations()[0]) === null || _u === void 0 ? void 0 : _u.getId(), context, featureKey, payload)];
+            return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_v = rule.getVariations()[0]) === null || _v === void 0 ? void 0 : _v.getId(), context, featureKey, payload)];
           case 33:
-            _1.sent();
+            _2.sent();
             return [3 /*break*/, 35];
           case 34:
             if (payload != null) {
               batchPayload.push(payload);
             }
-            _1.label = 35;
+            _2.label = 35;
           case 35:
             return [3 /*break*/, 37];
           case 36:
             if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-              (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_v = rule.getVariations()[0]) === null || _v === void 0 ? void 0 : _v.getId(), context, featureKey, payload);
+              (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_w = rule.getVariations()[0]) === null || _w === void 0 ? void 0 : _w.getId(), context, featureKey, payload);
             } else {
               if (payload != null) {
                 batchPayload.push(payload);
               }
             }
-            _1.label = 37;
+            _2.label = 37;
           case 37:
             evaluatedFeatureMap.set(featureKey, {
               rolloutId: rule.getId(),
               rolloutKey: rule.getKey(),
-              rolloutVariationId: (_w = rule.getVariations()[0]) === null || _w === void 0 ? void 0 : _w.getId()
+              rolloutVariationId: (_x = rule.getVariations()[0]) === null || _x === void 0 ? void 0 : _x.getId()
             });
             return [3 /*break*/, 40];
           case 38:
@@ -2359,7 +2461,7 @@ var FlagApi = /** @class */function () {
             rolloutVariationToReturn = variation;
             decision['isUserPartOfCampaign'] = true;
             _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
-            if (!!isDevModeForUser) return [3 /*break*/, 45];
+            if (!shouldFireImpressionEvents) return [3 /*break*/, 45];
             payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, passedRolloutCampaign.getId(), variation.getId(), context);
             if (payload) {
               isVariationShownFired = true;
@@ -2368,13 +2470,13 @@ var FlagApi = /** @class */function () {
             if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 42];
             return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload)];
           case 41:
-            _1.sent();
+            _2.sent();
             return [3 /*break*/, 43];
           case 42:
             if (payload != null) {
               batchPayload.push(payload);
             }
-            _1.label = 43;
+            _2.label = 43;
           case 43:
             return [3 /*break*/, 45];
           case 44:
@@ -2385,7 +2487,7 @@ var FlagApi = /** @class */function () {
                 batchPayload.push(payload);
               }
             }
-            _1.label = 45;
+            _2.label = 45;
           case 45:
             return [3 /*break*/, 47];
           case 46:
@@ -2393,20 +2495,20 @@ var FlagApi = /** @class */function () {
               serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT));
               shouldCheckForExperimentsRules = true;
             }
-            _1.label = 47;
+            _2.label = 47;
           case 47:
             if (!shouldCheckForExperimentsRules) return [3 /*break*/, 63];
             experimentRulesToEvaluate = [];
             experimentRules = (0, FunctionUtil_1.getAllExperimentRules)(feature);
             megGroupWinnerCampaigns = new Map();
             _k = 0, experimentRules_1 = experimentRules;
-            _1.label = 48;
+            _2.label = 48;
           case 48:
             if (!(_k < experimentRules_1.length)) return [3 /*break*/, 58];
             rule = experimentRules_1[_k];
             return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
           case 49:
-            _l = _1.sent(), preSegmentationResult = _l.preSegmentationResult, whitelistedObject = _l.whitelistedObject, updatedDecision = _l.updatedDecision, payload = _l.payload;
+            _l = _2.sent(), preSegmentationResult = _l.preSegmentationResult, whitelistedObject = _l.whitelistedObject, updatedDecision = _l.updatedDecision, payload = _l.payload;
             Object.assign(decision, updatedDecision);
             if (payload) {
               isVariationShownFired = true;
@@ -2425,18 +2527,18 @@ var FlagApi = /** @class */function () {
               experimentKey: rule.getKey(),
               experimentVariationId: whitelistedObject.variationId
             });
-            if (!!isDevModeForUser) return [3 /*break*/, 55];
+            if (!shouldFireImpressionEvents) return [3 /*break*/, 55];
             if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 54];
             if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 52];
             return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), whitelistedObject.variationId, context, featureKey, payload)];
           case 51:
-            _1.sent();
+            _2.sent();
             return [3 /*break*/, 53];
           case 52:
             if (payload != null) {
               batchPayload.push(payload);
             }
-            _1.label = 53;
+            _2.label = 53;
           case 53:
             return [3 /*break*/, 55];
           case 54:
@@ -2447,7 +2549,7 @@ var FlagApi = /** @class */function () {
                 batchPayload.push(payload);
               }
             }
-            _1.label = 55;
+            _2.label = 55;
           case 55:
             return [3 /*break*/, 58];
           case 56:
@@ -2464,7 +2566,7 @@ var FlagApi = /** @class */function () {
             decision['isUserPartOfCampaign'] = true;
             experimentVariationToReturn = variation;
             _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
-            if (!!isDevModeForUser) return [3 /*break*/, 63];
+            if (!shouldFireImpressionEvents) return [3 /*break*/, 63];
             payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, campaign.getId(), variation.getId(), context);
             if (payload) {
               isVariationShownFired = true;
@@ -2473,13 +2575,13 @@ var FlagApi = /** @class */function () {
             if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 60];
             return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload)];
           case 59:
-            _1.sent();
+            _2.sent();
             return [3 /*break*/, 61];
           case 60:
             if (payload != null) {
               batchPayload.push(payload);
             }
-            _1.label = 61;
+            _2.label = 61;
           case 61:
             return [3 /*break*/, 63];
           case 62:
@@ -2490,7 +2592,7 @@ var FlagApi = /** @class */function () {
                 batchPayload.push(payload);
               }
             }
-            _1.label = 63;
+            _2.label = 63;
           case 63:
             // If flag is enabled, store it in data
             if (isEnabled) {
@@ -2522,63 +2624,63 @@ var FlagApi = /** @class */function () {
               // send debug event
               (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(serviceContainer, debugEventProps);
             }
-            if (!((_x = feature.getImpactCampaign()) === null || _x === void 0 ? void 0 : _x.getCampaignId())) return [3 /*break*/, 68];
+            if (!((_y = feature.getImpactCampaign()) === null || _y === void 0 ? void 0 : _y.getCampaignId())) return [3 /*break*/, 68];
             serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
               userId: context.getId(),
               featureKey: featureKey,
               status: isEnabled ? 'enabled' : 'disabled'
             }));
-            if (!!isDevModeForUser) return [3 /*break*/, 68];
-            payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, (_y = feature.getImpactCampaign()) === null || _y === void 0 ? void 0 : _y.getCampaignId(), isEnabled ? 2 : 1, context);
+            if (!shouldFireImpressionEvents) return [3 /*break*/, 68];
+            payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, (_z = feature.getImpactCampaign()) === null || _z === void 0 ? void 0 : _z.getCampaignId(), isEnabled ? 2 : 1, context);
             if (payload) {
               isVariationShownFired = true;
             }
             if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 67];
             if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 65];
-            return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_z = feature.getImpactCampaign()) === null || _z === void 0 ? void 0 : _z.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload)];
+            return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_0 = feature.getImpactCampaign()) === null || _0 === void 0 ? void 0 : _0.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload)];
           case 64:
-            _1.sent();
+            _2.sent();
             return [3 /*break*/, 66];
           case 65:
             if (payload != null) {
               batchPayload.push(payload);
             }
-            _1.label = 66;
+            _2.label = 66;
           case 66:
             return [3 /*break*/, 68];
           case 67:
             if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-              (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_0 = feature.getImpactCampaign()) === null || _0 === void 0 ? void 0 : _0.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload);
+              (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_1 = feature.getImpactCampaign()) === null || _1 === void 0 ? void 0 : _1.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload);
             } else {
               if (payload != null) {
                 batchPayload.push(payload);
               }
             }
-            _1.label = 68;
+            _2.label = 68;
           case 68:
             if (!!isVariationShownFired) return [3 /*break*/, 71];
             if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 70];
-            return [4 /*yield*/, sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey, true)];
+            return [4 /*yield*/, sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey, true)];
           case 69:
-            _1.sent();
+            _2.sent();
             return [3 /*break*/, 71];
           case 70:
-            sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
-            _1.label = 71;
+            sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey); // fire-and-forget
+            _2.label = 71;
           case 71:
             variationToReturn = experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn;
             variationModel = variationToReturn ? new VariationModel_1.VariationModel().modelFromDictionary(variationToReturn) : new VariationModel_1.VariationModel();
             deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), context.getUuid(), variationModel));
             if (!(!serviceContainer.getSettingsService().isGatewayServiceProvided && batchPayload.length > 0)) return [3 /*break*/, 74];
-            if (!!isDevModeForUser) return [3 /*break*/, 74];
+            if (!shouldFireImpressionEvents) return [3 /*break*/, 74];
             if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 73];
             return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload)];
           case 72:
-            _1.sent();
+            _2.sent();
             return [3 /*break*/, 74];
           case 73:
             (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload);
-            _1.label = 74;
+            _2.label = 74;
           case 74:
             return [2 /*return*/, deferredObject.promise];
         }
@@ -2633,19 +2735,23 @@ function _updateDebugEventProps(debugEventProps, decision) {
  * @param serviceContainer - The service container instance.
  * @param context - The user context model.
  * @param isTrackingUsageEnabled - Whether usage tracking is active for this account.
- * @param isDevModeForUser - Whether dev mode is active (suppresses all tracking).
+ * @param shouldFireImpressionEvents - Whether tracking/impression network calls should be dispatched.
  * @param shouldAwait - When true, awaits the network call (for shouldWaitForTrackingCalls flows).
  */
-function sendTrackingUsage(serviceContainer_1, context_1, isTrackingUsageEnabled_1, isDevModeForUser_1, featureKey_1) {
-  return __awaiter(this, arguments, void 0, function (serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey, shouldAwait) {
-    var trackingPayload, properties;
+function sendTrackingUsage(serviceContainer_1, context_1, isTrackingUsageEnabled_1, shouldFireImpressionEvents_1, featureKey_1) {
+  return __awaiter(this, arguments, void 0, function (serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey, shouldAwait) {
+    var isTrackingSuppressed, isMAUSuppressed, trackingPayload, properties;
+    var _a, _b;
     if (shouldAwait === void 0) {
       shouldAwait = false;
     }
-    return __generator(this, function (_a) {
-      switch (_a.label) {
+    return __generator(this, function (_c) {
+      switch (_c.label) {
         case 0:
-          if (!isTrackingUsageEnabled || isDevModeForUser) return [2 /*return*/];
+          isTrackingSuppressed = serviceContainer.getSuppressTrackingCalls() || !!((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls);
+          isMAUSuppressed = serviceContainer.getSuppressMAU() || !!((_b = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _b === void 0 ? void 0 : _b.suppressMAU);
+          if (!isTrackingUsageEnabled || isMAUSuppressed) return [2 /*return*/];
+          if (!shouldFireImpressionEvents && !isTrackingSuppressed) return [2 /*return*/];
           trackingPayload = (0, NetworkUtil_1.getTrackingUsagePayloadData)(serviceContainer, context);
           serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USAGE_TRACKING_CALL_SENT, {
             accountId: serviceContainer.getSettingsService().accountId.toString(),
@@ -2661,28 +2767,417 @@ function sendTrackingUsage(serviceContainer_1, context_1, isTrackingUsageEnabled
           if (!shouldAwait) return [3 /*break*/, 3];
           return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, trackingPayload, context.getId())];
         case 2:
-          _a.sent();
+          _c.sent();
           return [3 /*break*/, 4];
         case 3:
           (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, trackingPayload, context.getId()); // fire-and-forget
-          _a.label = 4;
+          _c.label = 4;
         case 4:
           return [3 /*break*/, 8];
         case 5:
           if (!shouldAwait) return [3 /*break*/, 7];
           return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, [trackingPayload])];
         case 6:
-          _a.sent();
+          _c.sent();
           return [3 /*break*/, 8];
         case 7:
           (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, [trackingPayload]); // fire-and-forget
-          _a.label = 8;
+          _c.label = 8;
         case 8:
           return [2 /*return*/];
       }
     });
   });
 }
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/api/GetFlags.js":
+/*!**********************************************!*\
+  !*** ./dist/server-unpacked/api/GetFlags.js ***!
+  \**********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
+var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function (resolve) {
+      resolve(value);
+    });
+  }
+  return new (P || (P = Promise))(function (resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator = this && this.__generator || function (thisArg, body) {
+  var _ = {
+      label: 0,
+      sent: function () {
+        if (t[0] & 1) throw t[1];
+        return t[1];
+      },
+      trys: [],
+      ops: []
+    },
+    f,
+    y,
+    t,
+    g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    return this;
+  }), g;
+  function verb(n) {
+    return function (v) {
+      return step([n, v]);
+    };
+  }
+  function step(op) {
+    if (f) throw new TypeError("Generator is already executing.");
+    while (g && (g = 0, op[0] && (_ = 0)), _) try {
+      if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+      if (y = 0, t) op = [op[0] & 2, t.value];
+      switch (op[0]) {
+        case 0:
+        case 1:
+          t = op;
+          break;
+        case 4:
+          _.label++;
+          return {
+            value: op[1],
+            done: false
+          };
+        case 5:
+          _.label++;
+          y = op[1];
+          op = [0];
+          continue;
+        case 7:
+          op = _.ops.pop();
+          _.trys.pop();
+          continue;
+        default:
+          if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+            _ = 0;
+            continue;
+          }
+          if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+            _.label = op[1];
+            break;
+          }
+          if (op[0] === 6 && _.label < t[1]) {
+            _.label = t[1];
+            t = op;
+            break;
+          }
+          if (t && _.label < t[2]) {
+            _.label = t[2];
+            _.ops.push(op);
+            break;
+          }
+          if (t[2]) _.ops.pop();
+          _.trys.pop();
+          continue;
+      }
+      op = body.call(thisArg, _);
+    } catch (e) {
+      op = [6, e];
+      y = 0;
+    } finally {
+      f = t = 0;
+    }
+    if (op[0] & 5) throw op[1];
+    return {
+      value: op[0] ? op[1] : void 0,
+      done: true
+    };
+  }
+};
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GetFlagsApi = void 0;
+var GetFlag_1 = __webpack_require__(/*! ./GetFlag */ "./dist/server-unpacked/api/GetFlag.js");
+var VariationModel_1 = __webpack_require__(/*! ../models/campaign/VariationModel */ "./dist/server-unpacked/models/campaign/VariationModel.js");
+var ContextModel_1 = __webpack_require__(/*! ../models/user/ContextModel */ "./dist/server-unpacked/models/user/ContextModel.js");
+var GetFlagsBatchContext_1 = __webpack_require__(/*! ../services/GetFlagsBatchContext */ "./dist/server-unpacked/services/GetFlagsBatchContext.js");
+var megGroupPartitionUtil_1 = __webpack_require__(/*! ../utils/megGroupPartitionUtil */ "./dist/server-unpacked/utils/megGroupPartitionUtil.js");
+var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var FunctionUtil_1 = __webpack_require__(/*! ../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
+/**
+ * Browser-only promise queue to serialize getFlags calls.
+ * Prevents tracking mode contamination when multiple calls execute concurrently without await.
+ * On Node, parallel execution is safe due to AsyncLocalStorage isolation.
+ */
+var browserGetFlagsQueue = Promise.resolve({});
+/**
+ * Resolves the distinct feature keys to evaluate for getFlags.
+ *
+ * @param flagNames - Requested keys, or null/empty to evaluate all settings features.
+ * @param settings - Processed account settings.
+ * @returns Distinct feature keys to evaluate.
+ */
+function resolveFlagKeys(flagNames, settings) {
+  if (!(flagNames === null || flagNames === void 0 ? void 0 : flagNames.length)) {
+    // Null/empty means evaluate every feature key present in settings.
+    return settings.getFeatures().map(function (feature) {
+      return feature.getKey();
+    }).filter(function (featureKey) {
+      return (0, DataTypeUtil_1.isString)(featureKey) && featureKey.trim().length > 0;
+    });
+  }
+  // Deduplicate caller input.
+  return Array.from(new Set(flagNames.filter(function (featureKey) {
+    return (0, DataTypeUtil_1.isString)(featureKey) && featureKey.trim();
+  })));
+}
+/**
+ * Builds a disabled Flag for an unknown or failed feature key.
+ *
+ * @param baseContextCopy - Validated plain context used for sessionId and uuid.
+ * @returns Disabled Flag instance.
+ */
+function createDisabledFlag(baseContextCopy) {
+  var _a, _b;
+  var sessionId = (_a = baseContextCopy === null || baseContextCopy === void 0 ? void 0 : baseContextCopy.sessionId) !== null && _a !== void 0 ? _a : (0, FunctionUtil_1.getCurrentUnixTimestamp)();
+  var uuid = (_b = baseContextCopy === null || baseContextCopy === void 0 ? void 0 : baseContextCopy.uuid) !== null && _b !== void 0 ? _b : '';
+  return new GetFlag_1.Flag(false, sessionId, uuid, new VariationModel_1.VariationModel());
+}
+/**
+ * Ensures every requested key has a Flag entry, filling gaps with disabled Flags.
+ *
+ * @param requestedFeatureKeys - Feature keys that must appear in the result map.
+ * @param evaluatedFlagsByKey - Flags already evaluated successfully.
+ * @param baseContextCopy - Validated plain context used to build disabled Flags.
+ * @returns Complete flags map keyed by feature key.
+ */
+function ensureAllRequestedFlags(requestedFeatureKeys, evaluatedFlagsByKey, baseContextCopy) {
+  var completeFlagsByKey = __assign({}, evaluatedFlagsByKey);
+  var disabledFlag = createDisabledFlag(baseContextCopy);
+  for (var _i = 0, requestedFeatureKeys_1 = requestedFeatureKeys; _i < requestedFeatureKeys_1.length; _i++) {
+    var featureKey = requestedFeatureKeys_1[_i];
+    if (!completeFlagsByKey[featureKey]) {
+      completeFlagsByKey[featureKey] = disabledFlag;
+    }
+  }
+  return completeFlagsByKey;
+}
+/**
+ * Evaluates one batch sequentially so MEG-linked flags stay ordered within a worker.
+ *
+ * @param evaluationBatch - Feature keys that must stay sequential within one worker.
+ * @param baseContextCopy - Validated plain context object shared across evaluations.
+ * @param serviceContainer - Shared SDK service container.
+ * @param options - SDK init options used to build per-flag ContextModel instances.
+ * @param suppressTrackingCalls - Whether to suppress tracking/impression network calls.
+ * @param suppressMAU - Whether to suppress MAU tracking calls.
+ * @returns Evaluated flags keyed by feature key for this batch.
+ */
+function evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU) {
+  return __awaiter(this, void 0, void 0, function () {
+    var _this = this;
+    return __generator(this, function (_a) {
+      // Each parallel batch worker gets its own SegmentationManager and hooks decision via ALS.
+      return [2 /*return*/, (0, GetFlagsBatchContext_1.runWithGetFlagsBatchContext)(function () {
+        return __awaiter(_this, void 0, void 0, function () {
+          var evaluatedFlagsInBatch, _i, _a, featureKey, contextModel, _b, _c, _d;
+          return __generator(this, function (_e) {
+            switch (_e.label) {
+              case 0:
+                evaluatedFlagsInBatch = {};
+                _i = 0, _a = evaluationBatch.featureKeys;
+                _e.label = 1;
+              case 1:
+                if (!(_i < _a.length)) return [3 /*break*/, 6];
+                featureKey = _a[_i];
+                contextModel = new ContextModel_1.ContextModel().modelFromDictionary(__assign({}, baseContextCopy), options);
+                _e.label = 2;
+              case 2:
+                _e.trys.push([2, 4,, 5]);
+                // Same evaluation path as single getFlag. Unknown/failed keys become disabled Flags.
+                _b = evaluatedFlagsInBatch;
+                _c = featureKey;
+                return [4 /*yield*/, GetFlag_1.FlagApi.get(featureKey, contextModel, serviceContainer)];
+              case 3:
+                // Same evaluation path as single getFlag. Unknown/failed keys become disabled Flags.
+                _b[_c] = _e.sent();
+                return [3 /*break*/, 5];
+              case 4:
+                _d = _e.sent();
+                evaluatedFlagsInBatch[featureKey] = createDisabledFlag(baseContextCopy);
+                return [3 /*break*/, 5];
+              case 5:
+                _i++;
+                return [3 /*break*/, 1];
+              case 6:
+                return [2 /*return*/, evaluatedFlagsInBatch];
+            }
+          });
+        });
+      }, suppressTrackingCalls, suppressMAU)];
+    });
+  });
+}
+/**
+ * Batch feature-flag evaluation used by WingifyClient.getFlags.
+ */
+var GetFlagsApi = /** @class */function () {
+  function GetFlagsApi() {}
+  /**
+   * Evaluates multiple feature flags in MEG-safe batches; unknown or failed keys become disabled Flags.
+   * Node runs independent batches in parallel via ALS; browser evaluates sequentially via a queue.
+   *
+   * @param flagNames - Feature keys to evaluate, or null/empty for all settings features.
+   * @param baseContextCopy - Validated plain context object shared across evaluations.
+   * @param serviceContainer - Shared SDK service container.
+   * @param options - SDK init options used to build per-flag ContextModel instances.
+   * @param shouldSendTrackingCalls - When false, suppresses tracking/impression network calls.
+   * @param shouldSendMAU - When false, suppresses MAU tracking calls.
+   * @returns Evaluated flags keyed by feature key (disabled Flag for unknown/failed keys).
+   */
+  GetFlagsApi.get = function (flagNames_1, baseContextCopy_1, serviceContainer_1, options_1) {
+    return __awaiter(this, arguments, void 0, function (flagNames, baseContextCopy, serviceContainer, options, shouldSendTrackingCalls,
+    // Default to true so that tracking calls are sent in case of getFlags.
+    shouldSendMAU) {
+      var settings, requestedFeatureKeys, suppressTrackingCalls, suppressMAU, evaluationBatches, evaluateFlags_1, batchEvaluationOutcomes, evaluatedFlagsByKey, _i, batchEvaluationOutcomes_1, batchEvaluationOutcome;
+      var _this = this;
+      if (shouldSendTrackingCalls === void 0) {
+        shouldSendTrackingCalls = true;
+      }
+      if (shouldSendMAU === void 0) {
+        shouldSendMAU = true;
+      }
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            settings = serviceContainer.getSettings();
+            requestedFeatureKeys = resolveFlagKeys(flagNames, settings);
+            suppressTrackingCalls = !shouldSendTrackingCalls;
+            suppressMAU = !shouldSendMAU;
+            if (!requestedFeatureKeys.length) {
+              return [2 /*return*/, {}];
+            }
+            evaluationBatches = (0, megGroupPartitionUtil_1.getFeatureFlagBatches)(requestedFeatureKeys, settings);
+            if (!(0, GetFlagsBatchContext_1.supportsParallelGetFlagsBatches)()) {
+              evaluateFlags_1 = function () {
+                return __awaiter(_this, void 0, void 0, function () {
+                  var evaluatedFlagsByKey_1, _i, evaluationBatches_1, evaluationBatch, _a, _b, _c, _d;
+                  return __generator(this, function (_e) {
+                    switch (_e.label) {
+                      case 0:
+                        serviceContainer.setSuppressTrackingCalls(suppressTrackingCalls);
+                        serviceContainer.setSuppressMAU(suppressMAU);
+                        _e.label = 1;
+                      case 1:
+                        _e.trys.push([1,, 8, 9]);
+                        evaluatedFlagsByKey_1 = {};
+                        _i = 0, evaluationBatches_1 = evaluationBatches;
+                        _e.label = 2;
+                      case 2:
+                        if (!(_i < evaluationBatches_1.length)) return [3 /*break*/, 7];
+                        evaluationBatch = evaluationBatches_1[_i];
+                        _e.label = 3;
+                      case 3:
+                        _e.trys.push([3, 5,, 6]);
+                        _b = (_a = Object).assign;
+                        _c = [evaluatedFlagsByKey_1];
+                        return [4 /*yield*/, evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU)];
+                      case 4:
+                        _b.apply(_a, _c.concat([_e.sent()]));
+                        return [3 /*break*/, 6];
+                      case 5:
+                        _d = _e.sent();
+                        return [3 /*break*/, 6];
+                      case 6:
+                        _i++;
+                        return [3 /*break*/, 2];
+                      case 7:
+                        return [2 /*return*/, ensureAllRequestedFlags(requestedFeatureKeys, evaluatedFlagsByKey_1, baseContextCopy)];
+                      case 8:
+                        // Reset shared container flags after this getFlags completes
+                        serviceContainer.setSuppressTrackingCalls(false);
+                        serviceContainer.setSuppressMAU(false);
+                        return [7 /*endfinally*/];
+                      case 9:
+                        return [2 /*return*/];
+                    }
+                  });
+                });
+              };
+              // Chain to queue: ignore previous results/errors, then evaluate
+              browserGetFlagsQueue = browserGetFlagsQueue.then(function () {
+                return evaluateFlags_1();
+              }, function () {
+                return evaluateFlags_1();
+              });
+              return [2 /*return*/, browserGetFlagsQueue];
+            }
+            return [4 /*yield*/, Promise.allSettled(evaluationBatches.map(function (evaluationBatch) {
+              return evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU);
+            }))];
+          case 1:
+            batchEvaluationOutcomes = _a.sent();
+            evaluatedFlagsByKey = {};
+            for (_i = 0, batchEvaluationOutcomes_1 = batchEvaluationOutcomes; _i < batchEvaluationOutcomes_1.length; _i++) {
+              batchEvaluationOutcome = batchEvaluationOutcomes_1[_i];
+              if (batchEvaluationOutcome.status === 'fulfilled') {
+                // Skip rejected batches instead of failing the whole getFlags call.
+                Object.assign(evaluatedFlagsByKey, batchEvaluationOutcome.value);
+              }
+            }
+            // Fill any keys missing from rejected batches with disabled Flags.
+            return [2 /*return*/, ensureAllRequestedFlags(requestedFeatureKeys, evaluatedFlagsByKey, baseContextCopy)];
+        }
+      });
+    });
+  };
+  return GetFlagsApi;
+}();
+exports.GetFlagsApi = GetFlagsApi;
 
 /***/ }),
 
@@ -3658,6 +4153,7 @@ var ApiEnum;
   ApiEnum["INIT"] = "init";
   ApiEnum["ON_INIT"] = "onInit";
   ApiEnum["GET_FLAG"] = "getFlag";
+  ApiEnum["GET_FLAGS"] = "getFlags";
   ApiEnum["TRACK_EVENT"] = "trackEvent";
   ApiEnum["SET_ATTRIBUTE"] = "setAttribute";
   ApiEnum["FLUSH_EVENTS"] = "flushEvents";
@@ -10402,6 +10898,123 @@ exports.CampaignDecisionService = CampaignDecisionService;
 
 /***/ }),
 
+/***/ "./dist/server-unpacked/services/GetFlagsBatchContext.js":
+/*!***************************************************************!*\
+  !*** ./dist/server-unpacked/services/GetFlagsBatchContext.js ***!
+  \***************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.supportsParallelGetFlagsBatches = supportsParallelGetFlagsBatches;
+exports.getBatchScopedSegmentationManager = getBatchScopedSegmentationManager;
+exports.getCurrentGetFlagsBatchContext = getCurrentGetFlagsBatchContext;
+exports.runWithGetFlagsBatchContext = runWithGetFlagsBatchContext;
+var SegmentationManger_1 = __webpack_require__(/*! ../packages/segmentation-evaluator/core/SegmentationManger */ "./dist/server-unpacked/packages/segmentation-evaluator/core/SegmentationManger.js");
+var getFlagsBatchAsyncLocalStorage = null;
+/**
+ * Initializes AsyncLocalStorage on Node so getFlags batch workers stay isolated from getFlag().
+ *
+ * @returns AsyncLocalStorage wrapper when running on Node, otherwise null.
+ */
+function initGetFlagsBatchAsyncLocalStorage() {
+  var _a;
+  if (typeof process === 'undefined' || !((_a = process.versions) === null || _a === void 0 ? void 0 : _a.node)) {
+    // Browser bundle has no Node async_hooks support.
+    return null;
+  }
+  try {
+    // eval('require') keeps browser bundlers from resolving async_hooks at build time.
+    var AsyncLocalStorage = eval('require')('async_hooks').AsyncLocalStorage;
+    var asyncLocalStorage_1 = new AsyncLocalStorage();
+    return {
+      run: function (batchWorkerContext, batchEvaluationCallback) {
+        return asyncLocalStorage_1.run(batchWorkerContext, batchEvaluationCallback);
+      },
+      getStore: function () {
+        return asyncLocalStorage_1.getStore();
+      }
+    };
+  } catch (_b) {
+    return null;
+  }
+}
+getFlagsBatchAsyncLocalStorage = initGetFlagsBatchAsyncLocalStorage();
+/**
+ * Returns true when parallel getFlags batches can run with AsyncLocalStorage isolation.
+ *
+ * @returns Whether parallel batch evaluation is supported in the current runtime.
+ */
+function supportsParallelGetFlagsBatches() {
+  return getFlagsBatchAsyncLocalStorage !== null;
+}
+/**
+ * Returns the segmentation manager scoped to the current getFlags batch worker, if any.
+ *
+ * @returns Batch-scoped segmentation manager, or undefined outside getFlags batch evaluation.
+ */
+function getBatchScopedSegmentationManager() {
+  var _a;
+  // Undefined outside an active getFlags batch worker.
+  return (_a = getFlagsBatchAsyncLocalStorage === null || getFlagsBatchAsyncLocalStorage === void 0 ? void 0 : getFlagsBatchAsyncLocalStorage.getStore()) === null || _a === void 0 ? void 0 : _a.segmentationManager;
+}
+/**
+ * Returns the active getFlags batch worker context, if any.
+ *
+ * @returns Batch worker context, or undefined outside getFlags batch evaluation.
+ */
+function getCurrentGetFlagsBatchContext() {
+  return getFlagsBatchAsyncLocalStorage === null || getFlagsBatchAsyncLocalStorage === void 0 ? void 0 : getFlagsBatchAsyncLocalStorage.getStore();
+}
+/**
+ * Runs getFlags batch evaluation with an isolated segmentation manager and hooks decision.
+ *
+ * @param batchEvaluationCallback - Batch evaluation callback to run inside the scoped context.
+ * @param suppressTrackingCalls - When true, suppresses tracking/impression network calls for this batch worker.
+ * @param suppressMAU - When true, suppresses MAU tracking calls for this batch worker.
+ * @returns The callback result.
+ */
+function runWithGetFlagsBatchContext(batchEvaluationCallback, suppressTrackingCalls, suppressMAU) {
+  if (suppressTrackingCalls === void 0) {
+    suppressTrackingCalls = false;
+  }
+  if (suppressMAU === void 0) {
+    suppressMAU = false;
+  }
+  if (!getFlagsBatchAsyncLocalStorage) {
+    // Browser path: no ALS wrapper, caller must keep batches sequential.
+    return batchEvaluationCallback();
+  }
+  return getFlagsBatchAsyncLocalStorage.run({
+    // Fresh manager per batch worker.
+    segmentationManager: new SegmentationManger_1.SegmentationManager(),
+    hooksDecision: null,
+    suppressTrackingCalls: suppressTrackingCalls,
+    suppressMAU: suppressMAU
+  }, batchEvaluationCallback);
+}
+
+/***/ }),
+
 /***/ "./dist/server-unpacked/services/HooksService.js":
 /*!*******************************************************!*\
   !*** ./dist/server-unpacked/services/HooksService.js ***!
@@ -10415,6 +11028,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var GetFlagsBatchContext_1 = __webpack_require__(/*! ./GetFlagsBatchContext */ "./dist/server-unpacked/services/GetFlagsBatchContext.js");
 var HooksService = /** @class */function () {
   function HooksService(options) {
     var _a;
@@ -10436,15 +11050,29 @@ var HooksService = /** @class */function () {
    * @param {Record<string, any>} properties Properties to set
    */
   HooksService.prototype.set = function (properties) {
-    if (this.isCallBackFunction) {
-      this.decision = properties;
+    if (!this.isCallBackFunction) {
+      return;
     }
+    var activeGetFlagsBatchContext = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)();
+    if (activeGetFlagsBatchContext) {
+      // Route integrations payload to the active getFlags batch worker.
+      activeGetFlagsBatchContext.hooksDecision = properties;
+      return;
+    }
+    // Default shared decision for single getFlag calls.
+    this.decision = properties;
   };
   /**
    * Retrieves the decision object
    * @returns {Record<string, any>} The decision object
    */
   HooksService.prototype.get = function () {
+    var _a;
+    var activeGetFlagsBatchContext = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)();
+    if (activeGetFlagsBatchContext) {
+      // Read batch-scoped decision while getFlags is evaluating.
+      return (_a = activeGetFlagsBatchContext.hooksDecision) !== null && _a !== void 0 ? _a : {};
+    }
     return this.decision;
   };
   return HooksService;
@@ -10584,6 +11212,7 @@ exports.ServiceContainer = void 0;
 var SegmentationManger_1 = __webpack_require__(/*! ../packages/segmentation-evaluator/core/SegmentationManger */ "./dist/server-unpacked/packages/segmentation-evaluator/core/SegmentationManger.js");
 var HooksService_1 = __importDefault(__webpack_require__(/*! ./HooksService */ "./dist/server-unpacked/services/HooksService.js"));
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var GetFlagsBatchContext_1 = __webpack_require__(/*! ./GetFlagsBatchContext */ "./dist/server-unpacked/services/GetFlagsBatchContext.js");
 var InternalEventsThrottleService_1 = __webpack_require__(/*! ./InternalEventsThrottleService */ "./dist/server-unpacked/services/InternalEventsThrottleService.js");
 /**
  * ServiceContainer is a class that contains all the services that are used in the SDK.
@@ -10591,6 +11220,8 @@ var InternalEventsThrottleService_1 = __webpack_require__(/*! ./InternalEventsTh
 var ServiceContainer = /** @class */function () {
   function ServiceContainer(options) {
     this.BatchEventsQueue = null;
+    this.suppressTrackingCalls = false;
+    this.suppressMAU = false;
     this.pollingStopCallback = null;
     this.internalEventsThrottleService = null;
     this.originalSettingsDocument = {};
@@ -10659,7 +11290,9 @@ var ServiceContainer = /** @class */function () {
    * @returns SegmentationManager
    */
   ServiceContainer.prototype.getSegmentationManager = function () {
-    return this.SegmentationManager;
+    var _a;
+    // Outside getFlags batch workers ALS is unset, so getFlag/trackEvent keep the shared manager.
+    return (_a = (0, GetFlagsBatchContext_1.getBatchScopedSegmentationManager)()) !== null && _a !== void 0 ? _a : this.SegmentationManager;
   };
   /**
    *
@@ -10757,6 +11390,18 @@ var ServiceContainer = /** @class */function () {
    */
   ServiceContainer.prototype.getShouldWaitForTrackingCalls = function () {
     return this.shouldWaitForTrackingCalls;
+  };
+  ServiceContainer.prototype.setSuppressTrackingCalls = function (value) {
+    this.suppressTrackingCalls = value;
+  };
+  ServiceContainer.prototype.getSuppressTrackingCalls = function () {
+    return this.suppressTrackingCalls;
+  };
+  ServiceContainer.prototype.setSuppressMAU = function (value) {
+    this.suppressMAU = value;
+  };
+  ServiceContainer.prototype.getSuppressMAU = function () {
+    return this.suppressMAU;
   };
   /**
    * Registers a callback to stop settings polling (called from WingifyBuilder when polling is started).
@@ -12277,6 +12922,7 @@ exports.getCampaignTypeFromCampaignId = getCampaignTypeFromCampaignId;
 exports.isFeatureIdPresentInSettings = isFeatureIdPresentInSettings;
 exports.setCampaignAllocation = setCampaignAllocation;
 exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
+exports.findGroupsFeaturePartOf = findGroupsFeaturePartOf;
 exports.getCampaignsByGroupId = getCampaignsByGroupId;
 exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
@@ -12521,6 +13167,54 @@ function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId) {
   return {};
 }
 /**
+ * Finds MEG groups linked to a feature via its campaign rules.
+ * @param settings - Account settings containing features and campaign groups.
+ * @param featureKey - Feature key to inspect.
+ * @returns Unique group descriptors for the feature, preserving first-seen order.
+ */
+function findGroupsFeaturePartOf(settings, featureKey) {
+  var _a;
+  // No feature key means nothing to look up.
+  if (!featureKey) {
+    return [];
+  }
+  // Find the feature object in settings by its key.
+  var feature = settings.getFeatures().find(function (entry) {
+    return entry.getKey() === featureKey;
+  });
+  if (!feature) {
+    return [];
+  }
+  var groups = [];
+  // Track groupIds we already added so the result has no duplicates.
+  var seenGroupIds = new Set();
+  // Each rule points at a campaign; that campaign may belong to a MEG group.
+  for (var _i = 0, _b = (_a = feature.getRules()) !== null && _a !== void 0 ? _a : []; _i < _b.length; _i++) {
+    var rule = _b[_i];
+    // Personalize campaigns need variationId for MEG lookup; other types do not.
+    var variationId = rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? rule.getVariationId() : null;
+    // Resolve MEG group details (if any) for this rule's campaign.
+    var group = getGroupDetailsIfCampaignPartOfIt(settings, rule.getCampaignId(), variationId);
+    // Campaign is not part of any MEG group — skip it.
+    if (group.groupId == null) {
+      continue;
+    }
+    // Normalize id to string so number/string groupIds compare the same.
+    var groupIdKey = String(group.groupId);
+    if (seenGroupIds.has(groupIdKey)) {
+      // Already recorded this MEG group from an earlier rule.
+      continue;
+    }
+    seenGroupIds.add(groupIdKey);
+    groups.push({
+      groupId: group.groupId,
+      groupName: group.groupName
+    });
+  }
+  // Unique MEG groups this feature belongs to, in first-seen order.
+  return groups;
+}
+/**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
  * @param {any} groupId - The ID of the group.
@@ -12662,6 +13356,7 @@ exports.isArray = isArray;
 exports.isNull = isNull;
 exports.isUndefined = isUndefined;
 exports.isNumber = isNumber;
+exports.isNaN = isNaN;
 exports.isString = isString;
 exports.isBoolean = isBoolean;
 exports.isFunction = isFunction;
@@ -12716,6 +13411,14 @@ function isUndefined(val) {
 function isNumber(val) {
   // Note: NaN is also a number
   return Object.prototype.toString.call(val) === '[object Number]';
+}
+/**
+ * Checks if a value is NaN.
+ * @param val The value to check.
+ * @returns True if the value is NaN, false otherwise.
+ */
+function isNaN(val) {
+  return isNumber(val) && Number.isNaN(val);
 }
 /**
  * Checks if a value is a string.
@@ -12921,6 +13624,7 @@ exports.extractDecisionKeys = extractDecisionKeys;
 exports.sendDebugEventToWingify = sendDebugEventToWingify;
 var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./dist/server-unpacked/enums/EventEnum.js");
+var GetFlagsBatchContext_1 = __webpack_require__(/*! ../services/GetFlagsBatchContext */ "./dist/server-unpacked/services/GetFlagsBatchContext.js");
 var InternalEventsRuntimeUtil_1 = __webpack_require__(/*! ./InternalEventsRuntimeUtil */ "./dist/server-unpacked/utils/InternalEventsRuntimeUtil.js");
 /**
  * Utility functions for handling debugger service operations including
@@ -12963,12 +13667,16 @@ function extractDecisionKeys(decisionObj) {
 function sendDebugEventToWingify(serviceContainer_1) {
   return __awaiter(this, arguments, void 0, function (serviceContainer, eventProps) {
     var messageTemplateKey, isSampledDebugEvent, settings, properties, payload;
+    var _a;
     if (eventProps === void 0) {
       eventProps = {};
     }
-    return __generator(this, function (_a) {
-      switch (_a.label) {
+    return __generator(this, function (_b) {
+      switch (_b.label) {
         case 0:
+          if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
+            return [2 /*return*/];
+          }
           messageTemplateKey = eventProps.msg_t;
           isSampledDebugEvent = messageTemplateKey ? (0, InternalEventsRuntimeUtil_1.isSampledDebugErrorTemplateKey)(messageTemplateKey) : false;
           settings = serviceContainer.getOriginalSettingsDocument();
@@ -12987,7 +13695,7 @@ function sendDebugEventToWingify(serviceContainer_1) {
           return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.DEBUGGER_EVENT).catch(function () {})];
         case 1:
           // send the debug event to the server.
-          _a.sent();
+          _b.sent();
           return [2 /*return*/];
       }
     });
@@ -15084,6 +15792,7 @@ var CampaignUtil_2 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-un
 var constants_1 = __webpack_require__(/*! ../constants */ "./dist/server-unpacked/constants/index.js");
 var BatchEventsDispatcher_1 = __webpack_require__(/*! ./BatchEventsDispatcher */ "./dist/server-unpacked/utils/BatchEventsDispatcher.js");
 var SDKMetaUtil_1 = __webpack_require__(/*! ./SDKMetaUtil */ "./dist/server-unpacked/utils/SDKMetaUtil.js");
+var GetFlagsBatchContext_1 = __webpack_require__(/*! ../services/GetFlagsBatchContext */ "./dist/server-unpacked/services/GetFlagsBatchContext.js");
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -15097,9 +15806,13 @@ var SDKMetaUtil_1 = __webpack_require__(/*! ./SDKMetaUtil */ "./dist/server-unpa
 var sendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey, payload) {
   return __awaiter(void 0, void 0, void 0, function () {
     var properties, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
-    return __generator(this, function (_a) {
-      switch (_a.label) {
+    var _a;
+    return __generator(this, function (_b) {
+      switch (_b.label) {
         case 0:
+          if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
+            return [2 /*return*/];
+          }
           properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()),
           // Encode user agent to ensure URL safety
           context.getIpAddress());
@@ -15125,8 +15838,8 @@ var sendImpressionForVariationShown = function (serviceContainer, campaignId, va
           })];
         case 2:
           // Send the constructed properties and payload as a POST request
-          _a.sent();
-          _a.label = 3;
+          _b.sent();
+          _b.label = 3;
         case 3:
           return [2 /*return*/];
       }
@@ -15146,7 +15859,11 @@ exports.sendImpressionForVariationShown = sendImpressionForVariationShown;
 var sendImpressionForVariationShownInBatch = function (serviceContainer, payloads) {
   return __awaiter(void 0, void 0, void 0, function () {
     var _i, payloads_1, payload;
-    return __generator(this, function (_a) {
+    var _a;
+    return __generator(this, function (_b) {
+      if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
+        return [2 /*return*/];
+      }
       if (serviceContainer.getBatchEventsQueue()) {
         for (_i = 0, payloads_1 = payloads; _i < payloads_1.length; _i++) {
           payload = payloads_1[_i];
@@ -17903,6 +18620,91 @@ function sendRequest(method, options, logManager) {
     }
   }
   executeRequest();
+}
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/utils/megGroupPartitionUtil.js":
+/*!*************************************************************!*\
+  !*** ./dist/server-unpacked/utils/megGroupPartitionUtil.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.getFeatureFlagBatches = getFeatureFlagBatches;
+var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./dist/server-unpacked/utils/CampaignUtil.js");
+var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var MegUtil_1 = __webpack_require__(/*! ./MegUtil */ "./dist/server-unpacked/utils/MegUtil.js");
+/**
+ * Partitions requested keys into evaluation batches for getFlags().
+ * MEG-linked keys share a batch; independent keys form single-key batches.
+ *
+ * @param requestedFeatureKeys - Distinct feature keys requested by the caller.
+ * @param settings - Account settings used to resolve MEG group membership.
+ * @returns Batches where MEG-linked keys share a batch and independent keys are alone.
+ */
+function getFeatureFlagBatches(requestedFeatureKeys, settings) {
+  var _a, _b;
+  if (!requestedFeatureKeys.length) {
+    return [];
+  }
+  var evaluationBatches = [];
+  // Tracks feature keys already placed into a batch.
+  var assignedFeatureKeys = new Set();
+  var _loop_1 = function (featureKey) {
+    if (assignedFeatureKeys.has(featureKey)) {
+      return "continue";
+    }
+    var megGroups = (0, CampaignUtil_1.findGroupsFeaturePartOf)(settings, featureKey);
+    var rawMegGroupId = (_a = megGroups[0]) === null || _a === void 0 ? void 0 : _a.groupId;
+    var megGroupId = rawMegGroupId != null ? Number(rawMegGroupId) : NaN;
+    if (!(0, DataTypeUtil_1.isNaN)(megGroupId)) {
+      var megGroupFeatureKeys_1 = (_b = (0, MegUtil_1.getFeatureKeysFromGroup)(settings, megGroupId).featureKeys) !== null && _b !== void 0 ? _b : [];
+      var requestedMegFeatureKeys = requestedFeatureKeys.filter(function (requestedFeatureKey) {
+        return megGroupFeatureKeys_1.includes(requestedFeatureKey) && !assignedFeatureKeys.has(requestedFeatureKey);
+      });
+      // Never drop a requested key when group lookup is empty or mismatched.
+      var megBatchFeatureKeys = requestedMegFeatureKeys.length > 0 ? requestedMegFeatureKeys : [featureKey];
+      // One batch per MEG group present in this request.
+      evaluationBatches.push({
+        featureKeys: megBatchFeatureKeys
+      });
+      megBatchFeatureKeys.forEach(function (assignedFeatureKey) {
+        return assignedFeatureKeys.add(assignedFeatureKey);
+      });
+      return "continue";
+    }
+    // Independent flags become their own parallelizable batch.
+    evaluationBatches.push({
+      featureKeys: [featureKey]
+    });
+    assignedFeatureKeys.add(featureKey);
+  };
+  for (var _i = 0, requestedFeatureKeys_1 = requestedFeatureKeys; _i < requestedFeatureKeys_1.length; _i++) {
+    var featureKey = requestedFeatureKeys_1[_i];
+    _loop_1(featureKey);
+  }
+  return evaluationBatches;
 }
 
 /***/ }),

@@ -49,6 +49,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WingifyClient = void 0;
 var GetFlag_1 = require("./api/GetFlag");
+var GetFlags_1 = require("./api/GetFlags");
 var SetAttribute_1 = require("./api/SetAttribute");
 var TrackEvent_1 = require("./api/TrackEvent");
 var log_messages_1 = require("./enums/log-messages");
@@ -274,6 +275,94 @@ var WingifyClient = /** @class */ (function () {
         });
     };
     /**
+     * Evaluates multiple feature flags for a user and returns them keyed by feature key.
+     *
+     * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+     * @param context - User context; must include a valid user id.
+     * @returns Evaluated flags keyed by feature key.
+     */
+    WingifyClient.prototype.getFlags = function (flagNames_1, context_1) {
+        return __awaiter(this, arguments, void 0, function (flagNames, context, shouldSendTrackingCalls) {
+            var apiName, uuid, userId, baseContextCopy, seed, err_3;
+            if (shouldSendTrackingCalls === void 0) { shouldSendTrackingCalls = true; }
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        apiName = ApiEnum_1.ApiEnum.GET_FLAGS;
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 4, , 5]);
+                        this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
+                            apiName: apiName,
+                        }));
+                        uuid = this.getUUIDFromContext(context, apiName);
+                        if (!this.isSettingsValid) {
+                            this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: apiName }, false);
+                            throw new Error('TypeError: Invalid Settings');
+                        }
+                        if (!context || !context.id) {
+                            this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: apiName }, false);
+                            throw new TypeError('TypeError: Invalid context');
+                        }
+                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 2:
+                        userId = _a.sent();
+                        baseContextCopy = __assign({}, context);
+                        baseContextCopy.id = userId;
+                        if (baseContextCopy.id !== context.id) {
+                            baseContextCopy.uuid = this.getUUIDFromContext(baseContextCopy, apiName);
+                        }
+                        else {
+                            baseContextCopy.uuid = uuid;
+                        }
+                        if ('bucketingSeed' in baseContextCopy) {
+                            seed = baseContextCopy.bucketingSeed;
+                            if (seed === undefined ||
+                                seed === null ||
+                                (0, DataTypeUtil_1.isNumber)(seed) ||
+                                (0, DataTypeUtil_1.isObject)(seed) ||
+                                (0, DataTypeUtil_2.isArray)(seed) ||
+                                ((0, DataTypeUtil_1.isString)(seed) && seed.trim().length === 0)) {
+                                this.serviceContainer.getLogManager().errorLog('INVALID_BUCKETING_SEED', {
+                                    apiName: apiName,
+                                    type: (0, DataTypeUtil_1.getType)(seed),
+                                }, { an: apiName }, false);
+                                delete baseContextCopy.bucketingSeed;
+                            }
+                        }
+                        return [4 /*yield*/, GetFlags_1.GetFlagsApi.get(flagNames, baseContextCopy, this.serviceContainer, this.options, shouldSendTrackingCalls)];
+                    case 3: return [2 /*return*/, _a.sent()];
+                    case 4:
+                        err_3 = _a.sent();
+                        this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
+                            apiName: apiName,
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3),
+                        }, { an: apiName });
+                        return [2 /*return*/, this.buildDisabledFlags(flagNames, context)];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Builds disabled flags for the requested keys after validation or execution failure.
+     *
+     * @param flagNames - Requested feature keys from the caller.
+     * @param context - Raw caller context used to populate flag metadata.
+     * @returns Disabled flags keyed by requested feature key.
+     */
+    WingifyClient.prototype.buildDisabledFlags = function (flagNames, context) {
+        var _a, _b, _c;
+        var keys = (_a = flagNames === null || flagNames === void 0 ? void 0 : flagNames.filter(function (key) { return key === null || key === void 0 ? void 0 : key.trim(); })) !== null && _a !== void 0 ? _a : [];
+        if (!keys.length) {
+            return {};
+        }
+        var sessionId = (_b = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _b !== void 0 ? _b : (0, FunctionUtil_1.getCurrentUnixTimestamp)();
+        var uuid = (_c = context === null || context === void 0 ? void 0 : context.uuid) !== null && _c !== void 0 ? _c : '';
+        var disabledFlag = new GetFlag_1.Flag(false, sessionId, uuid, new VariationModel_1.VariationModel());
+        return Object.fromEntries(keys.map(function (key) { return [key, disabledFlag]; }));
+    };
+    /**
      * Tracks an event with specified properties and context.
      * This method validates the types of the inputs and ensures the settings and user context are valid before proceeding.
      *
@@ -284,7 +373,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.trackEvent = function (eventName_1, context_1) {
         return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
-            var apiName, deferredObject, userId, contextCopy, contextModel, err_3;
+            var apiName, deferredObject, userId, contextCopy, contextModel, err_4;
             var _a;
             if (eventProperties === void 0) { eventProperties = {}; }
             return __generator(this, function (_b) {
@@ -353,11 +442,11 @@ var WingifyClient = /** @class */ (function () {
                         });
                         return [3 /*break*/, 4];
                     case 3:
-                        err_3 = _b.sent();
+                        err_4 = _b.sent();
                         // Log any errors encountered during the operation
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3),
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4),
                         }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT });
                         deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
                         return [3 /*break*/, 4];
@@ -380,7 +469,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, attributes, userId, contextCopy, contextModel, attributeKey, attributeValue, userId, contextCopy, contextModel, attributeMap, err_4;
+            var apiName, attributes, userId, contextCopy, contextModel, attributeKey, attributeValue, userId, contextCopy, contextModel, attributeMap, err_5;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -468,10 +557,10 @@ var WingifyClient = /** @class */ (function () {
                         _b.label = 7;
                     case 7: return [3 /*break*/, 9];
                     case 8:
-                        err_4 = _b.sent();
+                        err_5 = _b.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4),
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5),
                         }, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE });
                         return [3 /*break*/, 9];
                     case 9: return [2 /*return*/];
@@ -487,7 +576,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.updateSettings = function (settings_1) {
         return __awaiter(this, arguments, void 0, function (settings, isViaWebhook) {
-            var apiName, settingsToUpdate, _a, normalizedSettings, err_5;
+            var apiName, settingsToUpdate, _a, normalizedSettings, err_6;
             if (isViaWebhook === void 0) { isViaWebhook = true; }
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -522,11 +611,11 @@ var WingifyClient = /** @class */ (function () {
                             .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName: apiName, isViaWebhook: isViaWebhook }));
                         return [3 /*break*/, 6];
                     case 5:
-                        err_5 = _b.sent();
+                        err_6 = _b.sent();
                         this.serviceContainer.getLogManager().errorLog('UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED', {
                             apiName: apiName,
                             isViaWebhook: isViaWebhook,
-                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5),
+                            err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_6),
                         }, { an: ApiEnum_1.ApiEnum.UPDATE_SETTINGS });
                         return [3 /*break*/, 6];
                     case 6: return [2 /*return*/];
@@ -539,7 +628,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.flushEvents = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, promises, storageService, flushResult, err_6;
+            var apiName, promises, storageService, flushResult, err_7;
             var _this = this;
             var _a, _b, _c;
             return __generator(this, function (_d) {
@@ -575,10 +664,10 @@ var WingifyClient = /** @class */ (function () {
                         flushResult = (_d.sent())[0];
                         return [2 /*return*/, flushResult];
                     case 3:
-                        err_6 = _d.sent();
+                        err_7 = _d.sent();
                         this.serviceContainer
                             .getLogManager()
-                            .errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_6) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
+                            .errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_7) }, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
                         return [2 /*return*/, { status: 'error', events: [] }];
                     case 4: return [2 /*return*/];
                 }
@@ -704,7 +793,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.shutdown = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var err_7;
+            var err_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -732,10 +821,10 @@ var WingifyClient = /** @class */ (function () {
                         _a.label = 3;
                     case 3: return [3 /*break*/, 5];
                     case 4:
-                        err_7 = _a.sent();
+                        err_8 = _a.sent();
                         this.serviceContainer
                             .getLogManager()
-                            .errorLog('EXECUTION_FAILED', { apiName: ApiEnum_1.ApiEnum.SHUTDOWN, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_7) }, { an: ApiEnum_1.ApiEnum.SHUTDOWN });
+                            .errorLog('EXECUTION_FAILED', { apiName: ApiEnum_1.ApiEnum.SHUTDOWN, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_8) }, { an: ApiEnum_1.ApiEnum.SHUTDOWN });
                         return [3 /*break*/, 5];
                     case 5: return [2 /*return*/];
                 }

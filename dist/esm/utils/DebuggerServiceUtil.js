@@ -15,6 +15,7 @@
  */
 import { getDebuggerEventPayload, getEventsBaseProperties, sendEvent } from './NetworkUtil.js';
 import { EventEnum } from '../enums/EventEnum.js';
+import { getCurrentGetFlagsBatchContext } from '../services/GetFlagsBatchContext.js';
 import { isSampledDebugErrorTemplateKey } from './InternalEventsRuntimeUtil.js';
 /**
  * Utility functions for handling debugger service operations including
@@ -52,6 +53,9 @@ export function extractDecisionKeys(decisionObj = {}) {
  * @returns A promise that resolves when the event is sent or skipped.
  */
 export async function sendDebugEventToWingify(serviceContainer, eventProps = {}) {
+    if (serviceContainer.getSuppressTrackingCalls() || getCurrentGetFlagsBatchContext()?.suppressTrackingCalls) {
+        return;
+    }
     const messageTemplateKey = eventProps.msg_t;
     // check if the message template key is sampled
     const isSampledDebugEvent = messageTemplateKey ? isSampledDebugErrorTemplateKey(messageTemplateKey) : false;

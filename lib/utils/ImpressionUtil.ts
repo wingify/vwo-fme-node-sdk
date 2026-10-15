@@ -22,6 +22,7 @@ import { getVariationNameFromCampaignIdAndVariationId } from './CampaignUtil';
 import { Constants } from '../constants';
 import { BatchEventsDispatcher } from './BatchEventsDispatcher';
 import { SDKMetaUtil } from './SDKMetaUtil';
+import { getCurrentGetFlagsBatchContext } from '../services/GetFlagsBatchContext';
 
 /**
  * Creates and sends an impression for a variation shown event.
@@ -41,6 +42,10 @@ export const sendImpressionForVariationShown = async (
   featureKey: string,
   payload: any,
 ) => {
+  if (serviceContainer.getSuppressTrackingCalls() || getCurrentGetFlagsBatchContext()?.suppressTrackingCalls) {
+    return;
+  }
+
   // Get base properties for the event
   const properties = getEventsBaseProperties(
     serviceContainer.getSettingsService(),
@@ -88,6 +93,10 @@ export const sendImpressionForVariationShown = async (
  * @param {string} featureKey - The feature key.
  */
 export const sendImpressionForVariationShownInBatch = async (serviceContainer, payloads: any[]) => {
+  if (serviceContainer.getSuppressTrackingCalls() || getCurrentGetFlagsBatchContext()?.suppressTrackingCalls) {
+    return;
+  }
+
   if (serviceContainer.getBatchEventsQueue()) {
     for (const payload of payloads) {
       serviceContainer.getBatchEventsQueue().enqueue(payload);

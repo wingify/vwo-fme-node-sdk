@@ -76,6 +76,15 @@ export function isNumber(val: dynamic): val is number {
 }
 
 /**
+ * Checks if a value is NaN.
+ * @param val The value to check.
+ * @returns True if the value is NaN, false otherwise.
+ */
+export function isNaN(val: dynamic): val is number {
+  return isNumber(val) && Number.isNaN(val as number);
+}
+
+/**
  * Checks if a value is a string.
  * @param val The value to check.
  * @returns True if the value is a string, false otherwise.

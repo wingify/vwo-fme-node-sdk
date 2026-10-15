@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.75.0] - 2026-10-09
+
+### Added
+
+- Added **`getFlags`** to evaluate multiple feature flags in one call and return them keyed by feature key.
+
+  Example usage:
+
+  ```javascript
+  const context = { id: 'user-123' };
+
+  // Evaluate specific flags
+  const flags = await wingifyClient.getFlags(['feature-a', 'feature-b'], context);
+
+  console.log(flags['feature-a'].isEnabled());
+  console.log(flags['feature-b'].getVariables());
+
+  // Evaluate all feature flags
+  const allFlags = await wingifyClient.getFlags(null, context);
+  ```
+
 ## [1.70.2] - 2026-10-09
 
 ### Added

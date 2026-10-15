@@ -24,6 +24,7 @@ import { isString } from '../utils/DataTypeUtil';
 import { NetworkManager } from '../packages/network-layer/manager/NetworkManager';
 import { LogManager } from '../packages/logger';
 import { Storage } from '../packages/storage';
+import { getBatchScopedSegmentationManager } from './GetFlagsBatchContext';
 import { InternalEventsThrottleService } from './InternalEventsThrottleService';
 
 /**
@@ -40,6 +41,8 @@ export class ServiceContainer {
   private NetworkManager: NetworkManager;
   private Storage: Storage;
   private shouldWaitForTrackingCalls: boolean;
+  private suppressTrackingCalls: boolean = false;
+  private suppressMAU: boolean = false;
   private pollingStopCallback: (() => void) | null = null;
   private internalEventsThrottleService: InternalEventsThrottleService | null = null;
   private originalSettingsDocument: Record<string, any> = {};
@@ -119,7 +122,8 @@ export class ServiceContainer {
    * @returns SegmentationManager
    */
   public getSegmentationManager(): SegmentationManager {
-    return this.SegmentationManager;
+    // Outside getFlags batch workers ALS is unset, so getFlag/trackEvent keep the shared manager.
+    return getBatchScopedSegmentationManager() ?? this.SegmentationManager;
   }
 
   /**
@@ -224,6 +228,22 @@ export class ServiceContainer {
    */
   public getShouldWaitForTrackingCalls(): boolean {
     return this.shouldWaitForTrackingCalls;
+  }
+
+  public setSuppressTrackingCalls(value: boolean): void {
+    this.suppressTrackingCalls = value;
+  }
+
+  public getSuppressTrackingCalls(): boolean {
+    return this.suppressTrackingCalls;
+  }
+
+  public setSuppressMAU(value: boolean): void {
+    this.suppressMAU = value;
+  }
+
+  public getSuppressMAU(): boolean {
+    return this.suppressMAU;
   }
 
   /**

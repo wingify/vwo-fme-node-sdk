@@ -49,6 +49,14 @@ export function isNumber(val) {
     return Object.prototype.toString.call(val) === '[object Number]';
 }
 /**
+ * Checks if a value is NaN.
+ * @param val The value to check.
+ * @returns True if the value is NaN, false otherwise.
+ */
+export function isNaN(val) {
+    return isNumber(val) && Number.isNaN(val);
+}
+/**
  * Checks if a value is a string.
  * @param val The value to check.
  * @returns True if the value is a string, false otherwise.

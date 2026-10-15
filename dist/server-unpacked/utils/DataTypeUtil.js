@@ -6,6 +6,7 @@ exports.isArray = isArray;
 exports.isNull = isNull;
 exports.isUndefined = isUndefined;
 exports.isNumber = isNumber;
+exports.isNaN = isNaN;
 exports.isString = isString;
 exports.isBoolean = isBoolean;
 exports.isFunction = isFunction;
@@ -60,6 +61,14 @@ function isUndefined(val) {
 function isNumber(val) {
     // Note: NaN is also a number
     return Object.prototype.toString.call(val) === '[object Number]';
+}
+/**
+ * Checks if a value is NaN.
+ * @param val The value to check.
+ * @returns True if the value is NaN, false otherwise.
+ */
+function isNaN(val) {
+    return isNumber(val) && Number.isNaN(val);
 }
 /**
  * Checks if a value is a string.

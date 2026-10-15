@@ -17,6 +17,7 @@ export enum ApiEnum {
   INIT = 'init',
   ON_INIT = 'onInit',
   GET_FLAG = 'getFlag',
+  GET_FLAGS = 'getFlags',
   TRACK_EVENT = 'trackEvent',
   SET_ATTRIBUTE = 'setAttribute',
   FLUSH_EVENTS = 'flushEvents',

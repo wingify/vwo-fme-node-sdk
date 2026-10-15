@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
+var GetFlagsBatchContext_1 = require("./GetFlagsBatchContext");
 var HooksService = /** @class */ (function () {
     function HooksService(options) {
         var _a;
@@ -22,15 +23,29 @@ var HooksService = /** @class */ (function () {
      * @param {Record<string, any>} properties Properties to set
      */
     HooksService.prototype.set = function (properties) {
-        if (this.isCallBackFunction) {
-            this.decision = properties;
+        if (!this.isCallBackFunction) {
+            return;
         }
+        var activeGetFlagsBatchContext = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)();
+        if (activeGetFlagsBatchContext) {
+            // Route integrations payload to the active getFlags batch worker.
+            activeGetFlagsBatchContext.hooksDecision = properties;
+            return;
+        }
+        // Default shared decision for single getFlag calls.
+        this.decision = properties;
     };
     /**
      * Retrieves the decision object
      * @returns {Record<string, any>} The decision object
      */
     HooksService.prototype.get = function () {
+        var _a;
+        var activeGetFlagsBatchContext = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)();
+        if (activeGetFlagsBatchContext) {
+            // Read batch-scoped decision while getFlags is evaluating.
+            return (_a = activeGetFlagsBatchContext.hooksDecision) !== null && _a !== void 0 ? _a : {};
+        }
         return this.decision;
     };
     return HooksService;

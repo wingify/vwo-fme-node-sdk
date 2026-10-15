@@ -235,6 +235,47 @@ export function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variatio
     return {};
 }
 /**
+ * Finds MEG groups linked to a feature via its campaign rules.
+ * @param settings - Account settings containing features and campaign groups.
+ * @param featureKey - Feature key to inspect.
+ * @returns Unique group descriptors for the feature, preserving first-seen order.
+ */
+export function findGroupsFeaturePartOf(settings, featureKey) {
+    // No feature key means nothing to look up.
+    if (!featureKey) {
+        return [];
+    }
+    // Find the feature object in settings by its key.
+    const feature = settings.getFeatures().find((entry) => entry.getKey() === featureKey);
+    if (!feature) {
+        return [];
+    }
+    const groups = [];
+    // Track groupIds we already added so the result has no duplicates.
+    const seenGroupIds = new Set();
+    // Each rule points at a campaign; that campaign may belong to a MEG group.
+    for (const rule of feature.getRules() ?? []) {
+        // Personalize campaigns need variationId for MEG lookup; other types do not.
+        const variationId = rule.getType() === CampaignTypeEnum.PERSONALIZE ? rule.getVariationId() : null;
+        // Resolve MEG group details (if any) for this rule's campaign.
+        const group = getGroupDetailsIfCampaignPartOfIt(settings, rule.getCampaignId(), variationId);
+        // Campaign is not part of any MEG group — skip it.
+        if (group.groupId == null) {
+            continue;
+        }
+        // Normalize id to string so number/string groupIds compare the same.
+        const groupIdKey = String(group.groupId);
+        if (seenGroupIds.has(groupIdKey)) {
+            // Already recorded this MEG group from an earlier rule.
+            continue;
+        }
+        seenGroupIds.add(groupIdKey);
+        groups.push({ groupId: group.groupId, groupName: group.groupName });
+    }
+    // Unique MEG groups this feature belongs to, in first-seen order.
+    return groups;
+}
+/**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
  * @param {any} groupId - The ID of the group.

@@ -27,6 +27,7 @@ export interface IWingifyClient {
   settingsFetchTime: number | undefined;
   isAliasingEnabled: boolean;
   getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
+  getFlags(flagNames: string[] | null | undefined, context: Record<string, any>): Promise<Record<string, Flag>>;
   trackEvent(
     eventName: string,
     context: Record<string, any>,
@@ -79,6 +80,26 @@ export declare class WingifyClient implements IWingifyClient {
    * @returns {Promise<Flag>} - A promise that resolves to the feature flag value.
    */
   getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
+  /**
+   * Evaluates multiple feature flags for a user and returns them keyed by feature key.
+   *
+   * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+   * @param context - User context; must include a valid user id.
+   * @returns Evaluated flags keyed by feature key.
+   */
+  getFlags(
+    flagNames: string[] | null | undefined,
+    context: Record<string, any>,
+    shouldSendTrackingCalls?: boolean,
+  ): Promise<Record<string, Flag>>;
+  /**
+   * Builds disabled flags for the requested keys after validation or execution failure.
+   *
+   * @param flagNames - Requested feature keys from the caller.
+   * @param context - Raw caller context used to populate flag metadata.
+   * @returns Disabled flags keyed by requested feature key.
+   */
+  private buildDisabledFlags;
   /**
    * Tracks an event with specified properties and context.
    * This method validates the types of the inputs and ensures the settings and user context are valid before proceeding.

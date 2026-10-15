@@ -17,6 +17,7 @@
 import { getDebuggerEventPayload, getEventsBaseProperties, sendEvent } from './NetworkUtil';
 import { EventEnum } from '../enums/EventEnum';
 import { ServiceContainer } from '../services/ServiceContainer';
+import { getCurrentGetFlagsBatchContext } from '../services/GetFlagsBatchContext';
 import { isSampledDebugErrorTemplateKey } from './InternalEventsRuntimeUtil';
 
 /**
@@ -65,6 +66,10 @@ export async function sendDebugEventToWingify(
   serviceContainer: ServiceContainer,
   eventProps: Record<string, any> = {},
 ): Promise<void> {
+  if (serviceContainer.getSuppressTrackingCalls() || getCurrentGetFlagsBatchContext()?.suppressTrackingCalls) {
+    return;
+  }
+
   const messageTemplateKey = eventProps.msg_t;
   // check if the message template key is sampled
   const isSampledDebugEvent = messageTemplateKey ? isSampledDebugErrorTemplateKey(messageTemplateKey) : false;

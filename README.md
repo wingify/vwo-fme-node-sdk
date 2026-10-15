@@ -358,6 +358,81 @@ if (isEnabled) {
 
 </details>
 
+### Evalute Multiple Feature Flags
+
+To evaluate several feature flags for the same user in a single call, use the `getFlags` API (available from SDK version 1.75.0).
+It runs the same evaluation as `getFlag` for each requested key and returns an object keyed by feature key, where each value is a feature flag object with the same methods (`isEnabled()`, `getVariable()`, `getVariables()`).
+
+| Parameter   | Description                                                                                   | Required | Type                    | Example                         |
+| ----------- | --------------------------------------------------------------------------------------------- | -------- | ----------------------- | ------------------------------- |
+| `flagNames` | List of feature keys to evaluate. Pass `null` or an empty array to evaluate all feature flags | Yes      | Array of Strings / null | `['new_checkout', 'dark_mode']` |
+| `context`   | Object containing user identification and contextual information                              | Yes      | Object                  | `{ id: 'user_123' }`            |
+
+Things to know about `getFlags`:
+
+- Duplicate feature keys are evaluated only once.
+- Every requested key is present in the result. Unknown keys, or keys that fail to evaluate, are returned as disabled flags (`isEnabled()` returns `false`), so you can safely access any requested key.
+- Impression and tracking calls are sent for each evaluated flag, the same as with `getFlag`.
+- Flags that belong to the same Mutually Exclusive Group are evaluated together, so the group's decision stays consistent within one call.
+
+Example usage:
+
+<details>
+<summary>VWO (SDK version &gt;= 1.75.0)</summary>
+
+```javascript
+const userContext = { id: 'unique_user_id' };
+
+// Evaluate specific feature flags
+const flags = await vwoClient.getFlags(['feature_key_1', 'feature_key_2'], userContext);
+
+if (flags['feature_key_1'].isEnabled()) {
+  console.log('Feature 1 is enabled!');
+
+  const variableValue = flags['feature_key_1'].getVariable('feature_variable', 'default_value');
+  console.log('Variable value:', variableValue);
+}
+
+console.log('Feature 2 variables:', flags['feature_key_2'].getVariables());
+
+// Evaluate all feature flags configured in the account
+const allFlags = await vwoClient.getFlags(null, userContext);
+
+Object.entries(allFlags).forEach(([featureKey, flag]) => {
+  console.log(`${featureKey}: ${flag.isEnabled() ? 'enabled' : 'disabled'}`);
+});
+```
+
+</details>
+
+<details>
+<summary>Wingify (SDK version &gt;= 1.75.0) — recommended</summary>
+
+```javascript
+const userContext = { id: 'unique_user_id' };
+
+// Evaluate specific feature flags
+const flags = await wingifyClient.getFlags(['feature_key_1', 'feature_key_2'], userContext);
+
+if (flags['feature_key_1'].isEnabled()) {
+  console.log('Feature 1 is enabled!');
+
+  const variableValue = flags['feature_key_1'].getVariable('feature_variable', 'default_value');
+  console.log('Variable value:', variableValue);
+}
+
+console.log('Feature 2 variables:', flags['feature_key_2'].getVariables());
+
+// Evaluate all feature flags configured in the account
+const allFlags = await wingifyClient.getFlags(null, userContext);
+
+Object.entries(allFlags).forEach(([featureKey, flag]) => {
+  console.log(`${featureKey}: ${flag.isEnabled() ? 'enabled' : 'disabled'}`);
+});
+```
+
+</details>
+
 ### Custom Event Tracking
 
 Feature flags can be enhanced with connected metrics to track key performance indicators (KPIs) for your features. These metrics help measure the effectiveness of your testing rules by comparing control versus variation performance, and evaluate the impact of personalization and rollout campaigns. Use the `trackEvent` API to track custom events like conversions, user interactions, and other important metrics:

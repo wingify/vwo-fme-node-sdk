@@ -101,6 +101,19 @@ export declare function getGroupDetailsIfCampaignPartOfIt(
       groupName?: undefined;
     };
 /**
+ * Finds MEG groups linked to a feature via its campaign rules.
+ * @param settings - Account settings containing features and campaign groups.
+ * @param featureKey - Feature key to inspect.
+ * @returns Unique group descriptors for the feature, preserving first-seen order.
+ */
+export declare function findGroupsFeaturePartOf(
+  settings: SettingsModel,
+  featureKey: string | null | undefined,
+): Array<{
+  groupId: string | number;
+  groupName?: string;
+}>;
+/**
  * Retrieves campaigns by a specific group ID.
  * @param {SettingsModel} settings - The settings model containing all groups.
  * @param {any} groupId - The ID of the group.

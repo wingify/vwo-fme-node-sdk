@@ -59,6 +59,7 @@ var CampaignUtil_2 = require("./CampaignUtil");
 var constants_1 = require("../constants");
 var BatchEventsDispatcher_1 = require("./BatchEventsDispatcher");
 var SDKMetaUtil_1 = require("./SDKMetaUtil");
+var GetFlagsBatchContext_1 = require("../services/GetFlagsBatchContext");
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -71,9 +72,13 @@ var SDKMetaUtil_1 = require("./SDKMetaUtil");
  */
 var sendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey, payload) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
+                if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
+                    return [2 /*return*/];
+                }
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
                 context.getIpAddress());
                 campaignKeyWithFeatureName = (0, CampaignUtil_1.getCampaignKeyFromCampaignId)(serviceContainer.getSettings(), campaignId);
@@ -94,8 +99,8 @@ var sendImpressionForVariationShown = function (serviceContainer, campaignId, va
             return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId(), {}, { campaignKey: campaignKey, variationName: variationName, featureKey: featureKey, campaignType: campaignType })];
             case 2:
                 // Send the constructed properties and payload as a POST request
-                _a.sent();
-                _a.label = 3;
+                _b.sent();
+                _b.label = 3;
             case 3: return [2 /*return*/];
         }
     });
@@ -112,7 +117,11 @@ exports.sendImpressionForVariationShown = sendImpressionForVariationShown;
  */
 var sendImpressionForVariationShownInBatch = function (serviceContainer, payloads) { return __awaiter(void 0, void 0, void 0, function () {
     var _i, payloads_1, payload;
-    return __generator(this, function (_a) {
+    var _a;
+    return __generator(this, function (_b) {
+        if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
+            return [2 /*return*/];
+        }
         if (serviceContainer.getBatchEventsQueue()) {
             for (_i = 0, payloads_1 = payloads; _i < payloads_1.length; _i++) {
                 payload = payloads_1[_i];

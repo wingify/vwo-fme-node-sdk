@@ -21,6 +21,7 @@ var ApiEnum;
     ApiEnum["INIT"] = "init";
     ApiEnum["ON_INIT"] = "onInit";
     ApiEnum["GET_FLAG"] = "getFlag";
+    ApiEnum["GET_FLAGS"] = "getFlags";
     ApiEnum["TRACK_EVENT"] = "trackEvent";
     ApiEnum["SET_ATTRIBUTE"] = "setAttribute";
     ApiEnum["FLUSH_EVENTS"] = "flushEvents";

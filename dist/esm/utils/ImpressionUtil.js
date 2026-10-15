@@ -20,6 +20,7 @@ import { getVariationNameFromCampaignIdAndVariationId } from './CampaignUtil.js'
 import { Constants } from '../constants/index.js';
 import { BatchEventsDispatcher } from './BatchEventsDispatcher.js';
 import { SDKMetaUtil } from './SDKMetaUtil.js';
+import { getCurrentGetFlagsBatchContext } from '../services/GetFlagsBatchContext.js';
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -31,6 +32,9 @@ import { SDKMetaUtil } from './SDKMetaUtil.js';
  * @param {ContextModel} context - The user context model containing user-specific data.
  */
 export const sendImpressionForVariationShown = async (serviceContainer, campaignId, variationId, context, featureKey, payload) => {
+    if (serviceContainer.getSuppressTrackingCalls() || getCurrentGetFlagsBatchContext()?.suppressTrackingCalls) {
+        return;
+    }
     // Get base properties for the event
     const properties = getEventsBaseProperties(serviceContainer.getSettingsService(), EventEnum.VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
     context.getIpAddress());
@@ -62,6 +66,9 @@ export const sendImpressionForVariationShown = async (serviceContainer, campaign
  * @param {string} featureKey - The feature key.
  */
 export const sendImpressionForVariationShownInBatch = async (serviceContainer, payloads) => {
+    if (serviceContainer.getSuppressTrackingCalls() || getCurrentGetFlagsBatchContext()?.suppressTrackingCalls) {
+        return;
+    }
     if (serviceContainer.getBatchEventsQueue()) {
         for (const payload of payloads) {
             serviceContainer.getBatchEventsQueue().enqueue(payload);

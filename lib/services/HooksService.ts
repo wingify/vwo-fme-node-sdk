@@ -15,6 +15,7 @@
  */
 import { IWingifyOptions } from '../models/WingifyOptionsModel';
 import { isFunction } from '../utils/DataTypeUtil';
+import { getCurrentGetFlagsBatchContext } from './GetFlagsBatchContext';
 
 export interface IHooksService {
   execute(properties: Record<string, any>): void;
@@ -47,9 +48,19 @@ class HooksService implements IHooksService {
    * @param {Record<string, any>} properties Properties to set
    */
   set(properties: Record<string, any>): void {
-    if (this.isCallBackFunction) {
-      this.decision = properties;
+    if (!this.isCallBackFunction) {
+      return;
     }
+
+    const activeGetFlagsBatchContext = getCurrentGetFlagsBatchContext();
+    if (activeGetFlagsBatchContext) {
+      // Route integrations payload to the active getFlags batch worker.
+      activeGetFlagsBatchContext.hooksDecision = properties;
+      return;
+    }
+
+    // Default shared decision for single getFlag calls.
+    this.decision = properties;
   }
 
   /**
@@ -57,6 +68,12 @@ class HooksService implements IHooksService {
    * @returns {Record<string, any>} The decision object
    */
   get(): Record<string, any> {
+    const activeGetFlagsBatchContext = getCurrentGetFlagsBatchContext();
+    if (activeGetFlagsBatchContext) {
+      // Read batch-scoped decision while getFlags is evaluating.
+      return activeGetFlagsBatchContext.hooksDecision ?? {};
+    }
+
     return this.decision;
   }
 }

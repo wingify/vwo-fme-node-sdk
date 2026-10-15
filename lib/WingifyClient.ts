@@ -16,6 +16,7 @@
 import { Storage } from './packages/storage';
 
 import { Flag, FlagApi } from './api/GetFlag';
+import { GetFlagsApi } from './api/GetFlags';
 import { SetAttributeApi } from './api/SetAttribute';
 import { TrackApi } from './api/TrackEvent';
 
@@ -55,6 +56,7 @@ export interface IWingifyClient {
   isAliasingEnabled: boolean;
 
   getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
+  getFlags(flagNames: string[] | null | undefined, context: Record<string, any>): Promise<Record<string, Flag>>;
   trackEvent(
     eventName: string,
     context: Record<string, any>,
@@ -316,6 +318,116 @@ export class WingifyClient implements IWingifyClient {
     }
 
     return deferredObject.promise;
+  }
+
+  /**
+   * Evaluates multiple feature flags for a user and returns them keyed by feature key.
+   *
+   * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+   * @param context - User context; must include a valid user id.
+   * @returns Evaluated flags keyed by feature key.
+   */
+  async getFlags(
+    flagNames: string[] | null | undefined,
+    context: Record<string, any>,
+    shouldSendTrackingCalls = true,
+  ): Promise<Record<string, Flag>> {
+    const apiName = ApiEnum.GET_FLAGS;
+
+    try {
+      this.serviceContainer.getLogManager().debug(
+        buildMessage(DebugLogMessagesEnum.API_CALLED, {
+          apiName,
+        }),
+      );
+
+      const uuid = this.getUUIDFromContext(context, apiName);
+
+      if (!this.isSettingsValid) {
+        this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: apiName }, false);
+        throw new Error('TypeError: Invalid Settings');
+      }
+
+      if (!context || !context.id) {
+        this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: apiName }, false);
+        throw new TypeError('TypeError: Invalid context');
+      }
+
+      const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
+      const baseContextCopy = { ...context };
+      baseContextCopy.id = userId;
+
+      if (baseContextCopy.id !== context.id) {
+        baseContextCopy.uuid = this.getUUIDFromContext(baseContextCopy, apiName);
+      } else {
+        baseContextCopy.uuid = uuid;
+      }
+
+      if ('bucketingSeed' in baseContextCopy) {
+        const seed = baseContextCopy.bucketingSeed;
+        if (
+          seed === undefined ||
+          seed === null ||
+          isNumber(seed) ||
+          isObject(seed) ||
+          isArray(seed) ||
+          (isString(seed) && (seed as string).trim().length === 0)
+        ) {
+          this.serviceContainer.getLogManager().errorLog(
+            'INVALID_BUCKETING_SEED',
+            {
+              apiName,
+              type: getType(seed),
+            },
+            { an: apiName },
+            false,
+          );
+          delete baseContextCopy.bucketingSeed;
+        }
+      }
+
+      return await GetFlagsApi.get(
+        flagNames,
+        baseContextCopy,
+        this.serviceContainer,
+        this.options,
+        shouldSendTrackingCalls,
+      );
+    } catch (err) {
+      this.serviceContainer.getLogManager().errorLog(
+        'EXECUTION_FAILED',
+        {
+          apiName,
+          err: getFormattedErrorMessage(err),
+        },
+        { an: apiName },
+      );
+
+      return this.buildDisabledFlags(flagNames, context);
+    }
+  }
+
+  /**
+   * Builds disabled flags for the requested keys after validation or execution failure.
+   *
+   * @param flagNames - Requested feature keys from the caller.
+   * @param context - Raw caller context used to populate flag metadata.
+   * @returns Disabled flags keyed by requested feature key.
+   */
+  private buildDisabledFlags(
+    flagNames: string[] | null | undefined,
+    context: Record<string, any>,
+  ): Record<string, Flag> {
+    const keys = flagNames?.filter((key) => key?.trim()) ?? [];
+    if (!keys.length) {
+      return {};
+    }
+
+    const sessionId = context?.sessionId ?? getCurrentUnixTimestamp();
+    const uuid = context?.uuid ?? '';
+    const disabledFlag = new Flag(false, sessionId, uuid, new VariationModel());
+
+    return Object.fromEntries(keys.map((key) => [key, disabledFlag]));
   }
 
   /**

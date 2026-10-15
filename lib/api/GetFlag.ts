@@ -35,6 +35,7 @@ import { extractDecisionKeys, sendDebugEventToWingify } from '../utils/DebuggerS
 import { DebuggerCategoryEnum } from '../enums/DebuggerCategoryEnum';
 import { Constants } from '../constants';
 import { ServiceContainer } from '../services/ServiceContainer';
+import { getCurrentGetFlagsBatchContext } from '../services/GetFlagsBatchContext';
 import { getApplicableHoldouts, getMatchedHoldouts, sendNetworkCallsForNotInHoldouts } from '../utils/HoldoutUtil';
 import { sendImpressionForVariationShown, sendImpressionForVariationShownInBatch } from '../utils/ImpressionUtil';
 import { EventEnum } from '../enums/EventEnum';
@@ -109,6 +110,10 @@ export class FlagApi {
     const isSettingsDevModeEnabled = serviceContainer.getSettings()?.getDevMode?.() === true;
     const isUserDevModeEnabled = context?.getIsDevMode?.() === true;
     const isDevModeForUser = isSettingsDevModeEnabled && isUserDevModeEnabled;
+    const shouldFireImpressionEvents =
+      !isDevModeForUser &&
+      !serviceContainer.getSuppressTrackingCalls() &&
+      !getCurrentGetFlagsBatchContext()?.suppressTrackingCalls;
 
     // Check if usage tracking is enabled for this account.
     // isMAU is sent in settings only when the account has usage tracking enabled.
@@ -195,7 +200,7 @@ export class FlagApi {
 
             // send the impression for the new holdouts (only for holdouts newly added to settings
             // that were not previously evaluated for this user)
-            if (!isDevModeForUser) {
+            if (shouldFireImpressionEvents) {
               if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
                 for (const payload of holdoutPayloads) {
                   sendImpressionForVariationShown(
@@ -223,7 +228,13 @@ export class FlagApi {
             // Decision served from holdout storage cache.
             // The cached holdout variationShown is NOT re-fired, so server has no usage tracking signal.
             // Send usage tracking call before returning.
-            sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
+            sendTrackingUsage(
+              serviceContainer,
+              context,
+              isTrackingUsageEnabled,
+              shouldFireImpressionEvents,
+              featureKey,
+            ); // fire-and-forget
 
             deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel()));
             return deferredObject.promise;
@@ -265,7 +276,13 @@ export class FlagApi {
             // Experiment decision served from storage cache.
             // variationShown is NOT re-fired for cached decisions, so server has no usage tracking signal.
             // Send usage tracking call before returning.
-            sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
+            sendTrackingUsage(
+              serviceContainer,
+              context,
+              isTrackingUsageEnabled,
+              shouldFireImpressionEvents,
+              featureKey,
+            ); // fire-and-forget
 
             deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
             return deferredObject.promise;
@@ -336,7 +353,7 @@ export class FlagApi {
 
       // Feature key not found in settings (flag is OFF or not yet created).
       // No variationShown possible. Send usage tracking call before rejecting.
-      sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
+      sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey); // fire-and-forget
 
       deferredObject.reject({});
 
@@ -391,26 +408,28 @@ export class FlagApi {
         serviceContainer.getHooksService().set(decision);
         serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
 
-        if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
-          for (const payload of holdoutPayloads) {
-            sendImpressionForVariationShown(
-              serviceContainer,
-              payload.d.event.props.id,
-              payload.d.event.props.variation,
-              context,
-              featureKey,
-              payload,
-            );
-          }
-        } else if (serviceContainer.getBatchEventsQueue()) {
-          for (const payload of holdoutPayloads) {
-            serviceContainer.getBatchEventsQueue().enqueue(payload);
-          }
-        } else {
-          if (serviceContainer.getShouldWaitForTrackingCalls()) {
-            await sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+        if (shouldFireImpressionEvents) {
+          if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
+            for (const payload of holdoutPayloads) {
+              sendImpressionForVariationShown(
+                serviceContainer,
+                payload.d.event.props.id,
+                payload.d.event.props.variation,
+                context,
+                featureKey,
+                payload,
+              );
+            }
+          } else if (serviceContainer.getBatchEventsQueue()) {
+            for (const payload of holdoutPayloads) {
+              serviceContainer.getBatchEventsQueue().enqueue(payload);
+            }
           } else {
-            sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+            if (serviceContainer.getShouldWaitForTrackingCalls()) {
+              await sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+            } else {
+              sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
+            }
           }
         }
 
@@ -428,7 +447,7 @@ export class FlagApi {
         );
         notInHoldoutIds.push(...notMatchedHoldouts.map((holdout) => holdout.getId()));
 
-        if (!isDevModeForUser) {
+        if (shouldFireImpressionEvents) {
           if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
             for (const payload of holdoutPayloads) {
               sendImpressionForVariationShown(
@@ -598,7 +617,7 @@ export class FlagApi {
 
           _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
 
-          if (!isDevModeForUser) {
+          if (shouldFireImpressionEvents) {
             const payload = getTrackUserPayloadData(
               serviceContainer,
               EventEnum.VARIATION_SHOWN,
@@ -689,7 +708,7 @@ export class FlagApi {
               experimentVariationId: whitelistedObject.variationId,
             });
 
-            if (!isDevModeForUser) {
+            if (shouldFireImpressionEvents) {
               if (serviceContainer.getShouldWaitForTrackingCalls()) {
                 if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
                   await sendImpressionForVariationShown(
@@ -739,7 +758,7 @@ export class FlagApi {
           experimentVariationToReturn = variation;
 
           _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
-          if (!isDevModeForUser) {
+          if (shouldFireImpressionEvents) {
             const payload = getTrackUserPayloadData(
               serviceContainer,
               EventEnum.VARIATION_SHOWN,
@@ -838,7 +857,7 @@ export class FlagApi {
           status: isEnabled ? 'enabled' : 'disabled',
         }),
       );
-      if (!isDevModeForUser) {
+      if (shouldFireImpressionEvents) {
         const payload = getTrackUserPayloadData(
           serviceContainer,
           EventEnum.VARIATION_SHOWN,
@@ -888,9 +907,16 @@ export class FlagApi {
     // here avoids an unnecessary duplicate network round trip (server deduplicates anyway).
     if (!isVariationShownFired) {
       if (serviceContainer.getShouldWaitForTrackingCalls()) {
-        await sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey, true);
+        await sendTrackingUsage(
+          serviceContainer,
+          context,
+          isTrackingUsageEnabled,
+          shouldFireImpressionEvents,
+          featureKey,
+          true,
+        );
       } else {
-        sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, isDevModeForUser, featureKey); // fire-and-forget
+        sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey); // fire-and-forget
       }
     }
 
@@ -902,7 +928,7 @@ export class FlagApi {
     deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), context.getUuid(), variationModel));
 
     if (!serviceContainer.getSettingsService().isGatewayServiceProvided && batchPayload.length > 0) {
-      if (!isDevModeForUser) {
+      if (shouldFireImpressionEvents) {
         if (serviceContainer.getShouldWaitForTrackingCalls()) {
           await sendImpressionForVariationShownInBatch(serviceContainer, batchPayload);
         } else {
@@ -968,18 +994,24 @@ function _updateDebugEventProps(debugEventProps: Record<string, any>, decision: 
  * @param serviceContainer - The service container instance.
  * @param context - The user context model.
  * @param isTrackingUsageEnabled - Whether usage tracking is active for this account.
- * @param isDevModeForUser - Whether dev mode is active (suppresses all tracking).
+ * @param shouldFireImpressionEvents - Whether tracking/impression network calls should be dispatched.
  * @param shouldAwait - When true, awaits the network call (for shouldWaitForTrackingCalls flows).
  */
 async function sendTrackingUsage(
   serviceContainer: ServiceContainer,
   context: ContextModel,
   isTrackingUsageEnabled: boolean,
-  isDevModeForUser: boolean,
+  shouldFireImpressionEvents: boolean,
   featureKey: string,
   shouldAwait = false,
 ): Promise<void> {
-  if (!isTrackingUsageEnabled || isDevModeForUser) return;
+  // Allow MAU when impressions are suppressed; block only if usage tracking is off, MAU is suppressed, or shouldFireImpressionEvents is false for a non-suppression reason (e.g. dev mode).
+  const isTrackingSuppressed =
+    serviceContainer.getSuppressTrackingCalls() || !!getCurrentGetFlagsBatchContext()?.suppressTrackingCalls;
+  const isMAUSuppressed = serviceContainer.getSuppressMAU() || !!getCurrentGetFlagsBatchContext()?.suppressMAU;
+
+  if (!isTrackingUsageEnabled || isMAUSuppressed) return;
+  if (!shouldFireImpressionEvents && !isTrackingSuppressed) return;
   const trackingPayload = getTrackingUsagePayloadData(serviceContainer, context);
 
   serviceContainer.getLogManager().info(

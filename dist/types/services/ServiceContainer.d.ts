@@ -37,6 +37,8 @@ export declare class ServiceContainer {
   private NetworkManager;
   private Storage;
   private shouldWaitForTrackingCalls;
+  private suppressTrackingCalls;
+  private suppressMAU;
   private pollingStopCallback;
   private internalEventsThrottleService;
   private originalSettingsDocument;
@@ -138,6 +140,10 @@ export declare class ServiceContainer {
    * @returns The value to determine if the SDK should wait for a network response.
    */
   getShouldWaitForTrackingCalls(): boolean;
+  setSuppressTrackingCalls(value: boolean): void;
+  getSuppressTrackingCalls(): boolean;
+  setSuppressMAU(value: boolean): void;
+  getSuppressMAU(): boolean;
   /**
    * Registers a callback to stop settings polling (called from WingifyBuilder when polling is started).
    * @param callback - Callback to run when polling should stop, or null to clear.

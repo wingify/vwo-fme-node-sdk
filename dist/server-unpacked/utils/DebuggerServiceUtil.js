@@ -55,6 +55,7 @@ exports.extractDecisionKeys = extractDecisionKeys;
 exports.sendDebugEventToWingify = sendDebugEventToWingify;
 var NetworkUtil_1 = require("./NetworkUtil");
 var EventEnum_1 = require("../enums/EventEnum");
+var GetFlagsBatchContext_1 = require("../services/GetFlagsBatchContext");
 var InternalEventsRuntimeUtil_1 = require("./InternalEventsRuntimeUtil");
 /**
  * Utility functions for handling debugger service operations including
@@ -95,10 +96,14 @@ function extractDecisionKeys(decisionObj) {
 function sendDebugEventToWingify(serviceContainer_1) {
     return __awaiter(this, arguments, void 0, function (serviceContainer, eventProps) {
         var messageTemplateKey, isSampledDebugEvent, settings, properties, payload;
+        var _a;
         if (eventProps === void 0) { eventProps = {}; }
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
+                    if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
+                        return [2 /*return*/];
+                    }
                     messageTemplateKey = eventProps.msg_t;
                     isSampledDebugEvent = messageTemplateKey ? (0, InternalEventsRuntimeUtil_1.isSampledDebugErrorTemplateKey)(messageTemplateKey) : false;
                     settings = serviceContainer.getOriginalSettingsDocument();
@@ -118,7 +123,7 @@ function sendDebugEventToWingify(serviceContainer_1) {
                     return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.DEBUGGER_EVENT).catch(function () { })];
                 case 1:
                     // send the debug event to the server.
-                    _a.sent();
+                    _b.sent();
                     return [2 /*return*/];
             }
         });

@@ -11,6 +11,7 @@ exports.getCampaignTypeFromCampaignId = getCampaignTypeFromCampaignId;
 exports.isFeatureIdPresentInSettings = isFeatureIdPresentInSettings;
 exports.setCampaignAllocation = setCampaignAllocation;
 exports.getGroupDetailsIfCampaignPartOfIt = getGroupDetailsIfCampaignPartOfIt;
+exports.findGroupsFeaturePartOf = findGroupsFeaturePartOf;
 exports.getCampaignsByGroupId = getCampaignsByGroupId;
 exports.getFeatureKeysFromCampaignIds = getFeatureKeysFromCampaignIds;
 exports.getCampaignIdsFromFeatureKey = getCampaignIdsFromFeatureKey;
@@ -251,6 +252,49 @@ function getGroupDetailsIfCampaignPartOfIt(settings, campaignId, variationId) {
         };
     }
     return {};
+}
+/**
+ * Finds MEG groups linked to a feature via its campaign rules.
+ * @param settings - Account settings containing features and campaign groups.
+ * @param featureKey - Feature key to inspect.
+ * @returns Unique group descriptors for the feature, preserving first-seen order.
+ */
+function findGroupsFeaturePartOf(settings, featureKey) {
+    var _a;
+    // No feature key means nothing to look up.
+    if (!featureKey) {
+        return [];
+    }
+    // Find the feature object in settings by its key.
+    var feature = settings.getFeatures().find(function (entry) { return entry.getKey() === featureKey; });
+    if (!feature) {
+        return [];
+    }
+    var groups = [];
+    // Track groupIds we already added so the result has no duplicates.
+    var seenGroupIds = new Set();
+    // Each rule points at a campaign; that campaign may belong to a MEG group.
+    for (var _i = 0, _b = (_a = feature.getRules()) !== null && _a !== void 0 ? _a : []; _i < _b.length; _i++) {
+        var rule = _b[_i];
+        // Personalize campaigns need variationId for MEG lookup; other types do not.
+        var variationId = rule.getType() === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE ? rule.getVariationId() : null;
+        // Resolve MEG group details (if any) for this rule's campaign.
+        var group = getGroupDetailsIfCampaignPartOfIt(settings, rule.getCampaignId(), variationId);
+        // Campaign is not part of any MEG group — skip it.
+        if (group.groupId == null) {
+            continue;
+        }
+        // Normalize id to string so number/string groupIds compare the same.
+        var groupIdKey = String(group.groupId);
+        if (seenGroupIds.has(groupIdKey)) {
+            // Already recorded this MEG group from an earlier rule.
+            continue;
+        }
+        seenGroupIds.add(groupIdKey);
+        groups.push({ groupId: group.groupId, groupName: group.groupName });
+    }
+    // Unique MEG groups this feature belongs to, in first-seen order.
+    return groups;
 }
 /**
  * Retrieves campaigns by a specific group ID.

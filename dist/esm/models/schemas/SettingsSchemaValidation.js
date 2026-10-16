@@ -115,8 +115,10 @@ export class SettingsSchema {
                 debug: optional(runtimeSamplingSchema),
             })),
             alwaysApplySampling: optional(runtimeAlwaysApplySamplingSchema),
-            sdkMetaInfo: optional(object({
+            sdkMetaInfo: optional(type({
                 wasInitializedEarlier: optional(boolean()),
+                panic: optional(union([number(), string()])),
+                refresh: optional(union([number(), string()])),
             })),
             pollInterval: optional(number()),
         });

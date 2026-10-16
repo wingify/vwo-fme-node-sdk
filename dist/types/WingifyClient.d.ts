@@ -19,6 +19,7 @@ import { SettingsModel } from './models/settings/SettingsModel';
 import { dynamic } from './types/Common';
 import { IWingifyOptions } from './models/WingifyOptionsModel';
 import { ServiceContainer } from './services/ServiceContainer';
+import { SettingsControlApplyMode } from './services/PanicModeForcedRefreshControlService';
 export interface IWingifyClient {
   readonly options?: IWingifyOptions;
   settings: SettingsModel;
@@ -39,7 +40,12 @@ export interface IWingifyClient {
     context: Record<string, any>,
   ): Promise<void>;
   setAttribute(attributes: Record<string, boolean | string | number>, context: Record<string, any>): Promise<void>;
-  updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
+  updateSettings(
+    settings?: Record<string, any>,
+    isViaWebhook?: boolean,
+    isRefreshFromPanicClear?: boolean,
+    controlApplyMode?: SettingsControlApplyMode,
+  ): Promise<void>;
   flushEvents(): Promise<Record<string, any>>;
   shutdown(): Promise<void>;
   setAlias(context: Record<string, any> | string, aliasId: string): Promise<boolean>;
@@ -137,7 +143,12 @@ export declare class WingifyClient implements IWingifyClient {
    * @param isViaWebhook - Whether to fetch the settings from the webhook endpoint.
    * @returns Promise<void>
    */
-  updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
+  updateSettings(
+    settings?: Record<string, any>,
+    isViaWebhook?: boolean,
+    isRefreshFromPanicClear?: boolean,
+    controlApplyMode?: SettingsControlApplyMode,
+  ): Promise<void>;
   /**
    * Flushes the events manually from the batch events queue
    */
@@ -161,4 +172,17 @@ export declare class WingifyClient implements IWingifyClient {
    * then clears the batch queue so no further events are enqueued. Idempotent.
    */
   shutdown(): Promise<void>;
+  /**
+   * Applies or defers sdkMetaInfo panic / refresh. Polling confirms panic on/off via collector ping
+   * (stale panic rejected; logs only after ping). Force-refresh is not confirmed via ping from polling.
+   *
+   * @param settings - Normalized settings JSON (must include `lastUpdatedOn` for snapshot detection).
+   * @param mode - How this snapshot was obtained.
+   * @returns void
+   */
+  private handleSettingsControlFlags;
+  /**
+   * Confirms panic with a control ping. DaCDN response is the source of truth.
+   */
+  private confirmControlViaCollectPing;
 }

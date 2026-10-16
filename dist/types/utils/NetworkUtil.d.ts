@@ -38,6 +38,19 @@ export declare function getEventsBaseProperties(
   usageStatsAccountId?: number,
 ): Record<string, any>;
 /**
+ * Reads DaCDN panic / force-refresh fields from a successful collect or batch-events response and updates SDK control state.
+ *
+ * @param serviceContainer - Application service locator holding panic/refresh control and the forced-refresh handler.
+ * @param data - Parsed response body; ignored unless it is a plain object.
+ * @param statusCode - HTTP status; control fields apply only on success (2xx).
+ * @returns void
+ */
+export declare function applyDaCdnControlFromNetworkResponse(
+  serviceContainer: ServiceContainer,
+  data: unknown,
+  statusCode: number,
+): void;
+/**
  * Builds generic payload required by all the different tracking calls.
  * @param {SettingsService} settingsService - The settings service instance.
  * @param {String} userId     user id
@@ -134,6 +147,21 @@ export declare function sendPostApiRequest(
   userId: string,
   eventProperties?: any,
   campaignInfo?: any,
+): Promise<void>;
+/**
+ * Sends a minimal collect during panic so DaCDN can return updated panic / refresh control in the response.
+ *
+ * @param serviceContainer - SDK services used to POST the control ping.
+ * @param pulseContext - Visitor identity fields forwarded into the collect payload.
+ * @returns Promise resolved when the network dispatch completes (errors are logged inside the client layer).
+ */
+export declare function sendPanicCollectHeartbeatRequest(
+  serviceContainer: ServiceContainer,
+  pulseContext: {
+    id: string;
+    uuid: string;
+    sessionId?: number;
+  },
 ): Promise<void>;
 /**
  * Constructs the payload for a messaging event.

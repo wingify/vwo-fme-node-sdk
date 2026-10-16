@@ -77,6 +77,12 @@ export class BatchEventsQueue {
      * @param payload - The event to enqueue
      */
     enqueue(payload) {
+        // Block enqueue while panic mode is active — the event must not be queued or dispatched.
+        if (this.serviceContainer?.getPanicModeForcedRefreshControlService()?.isPanicModeActivated()) {
+            const eventName = payload?.d?.event?.props?.name ?? 'event';
+            this.logManager.info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: eventName }));
+            return;
+        }
         // Enqueue the event in the queue
         this.queue.push(payload);
         this.logManager.info(buildMessage(InfoLogMessagesEnum.EVENT_QUEUE, {
@@ -98,6 +104,16 @@ export class BatchEventsQueue {
      * @param manual - Whether the flush is manual or not
      */
     async flush(manual = false) {
+        if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+            this.logManager.info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: 'flushEvents' }));
+            const discardedCount = this.discardQueuedEvents();
+            if (discardedCount > 0) {
+                this.logManager.info(buildMessage(InfoLogMessagesEnum.EVENTS_DISCARDED_DUE_TO_PANIC_MODE, { count: discardedCount }));
+            }
+            return new Promise((resolve) => {
+                resolve({ status: 'success', events: [] });
+            });
+        }
         // If the queue is not empty, flush the queue
         if (this.queue.length) {
             this.logManager.debug(buildMessage(DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
@@ -109,6 +125,15 @@ export class BatchEventsQueue {
             const tempQueue = manual
                 ? this.queue.splice(0, this.queue.length) // drain everything if manual flush
                 : this.queue.splice(0, this.eventsPerRequest); // drain only events per request if automatic flush
+            // Panic can latch after flush started (TTS-3132). Do not send events already drained.
+            if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+                this.logManager.info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: 'flushEvents' }));
+                const discardedCount = this.discardQueuedEvents();
+                if (discardedCount > 0) {
+                    this.logManager.info(buildMessage(InfoLogMessagesEnum.EVENTS_DISCARDED_DUE_TO_PANIC_MODE, { count: discardedCount }));
+                }
+                return { status: 'success', events: [] };
+            }
             return await BatchEventsDispatcher.dispatch(this.serviceContainer, {
                 ev: tempQueue,
             }, this.flushCallback, Object.assign({}, {
@@ -164,6 +189,21 @@ export class BatchEventsQueue {
     clearRequestTimer() {
         clearTimeout(this.timer);
         this.timer = null;
+    }
+    /**
+     * Drops queued events without sending them and cancels the batch timer.
+     * Called as soon as panic latches from off to on so a later flushEvents cannot
+     * transmit events that were queued before panic (TTS-3132).
+     *
+     * @returns Number of events discarded
+     */
+    discardQueuedEvents() {
+        const discardedCount = this.queue.length;
+        this.queue = [];
+        if (!this.isEdgeEnvironment) {
+            this.clearRequestTimer();
+        }
+        return discardedCount;
     }
     /**
      * Flushes the queue and clears the timer

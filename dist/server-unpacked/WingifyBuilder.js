@@ -65,6 +65,7 @@ var ApiEnum_1 = require("./enums/ApiEnum");
 var EdgeConfigModel_1 = require("./models/edge/EdgeConfigModel");
 var ServiceContainer_1 = require("./services/ServiceContainer");
 var NetworkTransportModeEnum_1 = require("./enums/NetworkTransportModeEnum");
+var PanicModeForcedRefreshControlService_1 = require("./services/PanicModeForcedRefreshControlService");
 var WingifyBuilder = /** @class */ (function () {
     function WingifyBuilder(options) {
         this.originalSettings = {};
@@ -106,6 +107,9 @@ var WingifyBuilder = /** @class */ (function () {
             service: constants_1.Constants.NETWORK_LAYER_NAME,
         }));
         this.defaultServiceContainer.setNetworkManager(this.networkManager);
+        // Inject before initPolling so early init errorLogs (e.g. INVALID_POLLING_CONFIGURATION)
+        // can POST vwo_sdkDebug. Re-injected in initBatching once the batch queue exists.
+        this.defaultServiceContainer.injectServiceContainer(this.defaultServiceContainer);
         return this;
     };
     WingifyBuilder.prototype.initBatching = function () {
@@ -189,7 +193,7 @@ var WingifyBuilder = /** @class */ (function () {
         catch (err) {
             this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
-            }, { an: ApiEnum_1.ApiEnum.INIT }, false);
+            }, { an: ApiEnum_1.ApiEnum.INIT });
             deferredObject.resolve({});
         }
         return deferredObject.promise;
@@ -384,22 +388,29 @@ var WingifyBuilder = /** @class */ (function () {
         var _a;
         this.defaultServiceContainer.setPollingStopCallback(function () { return _this.stopPolling(); });
         var poll = function () { return __awaiter(_this, void 0, void 0, function () {
-            var latestSettings, clonedSettings, ex_1, interval_1;
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var latestSettings, panicService, clonedSettings, ex_1, interval_1;
+            var _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
-                        _b.trys.push([0, 2, 3, 4]);
+                        _c.trys.push([0, 2, 3, 4]);
                         return [4 /*yield*/, this.getSettings()];
                     case 1:
-                        latestSettings = _b.sent();
+                        latestSettings = _c.sent();
                         if (latestSettings &&
                             Object.keys(latestSettings).length > 0 &&
                             JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
+                            panicService = this.defaultServiceContainer.getPanicModeForcedRefreshControlService();
+                            if (!panicService.shouldApplySettingsSnapshot(latestSettings)) {
+                                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.POLLING_SETTINGS_STALE, {
+                                    timestamp: (_a = latestSettings === null || latestSettings === void 0 ? void 0 : latestSettings.lastUpdatedOn) !== null && _a !== void 0 ? _a : latestSettings === null || latestSettings === void 0 ? void 0 : latestSettings.version,
+                                }));
+                                return [2 /*return*/]; // Skip stale polling result
+                            }
                             this.originalSettings = latestSettings;
                             clonedSettings = (0, FunctionUtil_1.cloneObject)(latestSettings);
                             this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS));
-                            this.wingifyInstance.updateSettings(clonedSettings, false);
+                            this.wingifyInstance.updateSettings(clonedSettings, false, false, PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.POLLING);
                             // Reinitialize the poll_interval value if there is a change in settings
                             this.updatePollIntervalAndCheckAndPoll(latestSettings, false);
                         }
@@ -408,14 +419,14 @@ var WingifyBuilder = /** @class */ (function () {
                         }
                         return [3 /*break*/, 4];
                     case 2:
-                        ex_1 = _b.sent();
+                        ex_1 = _c.sent();
                         this.logManager.errorLog('ERROR_FETCHING_SETTINGS_WITH_POLLING', {
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(ex_1),
                         }, { an: constants_1.Constants.POLLING });
                         return [3 /*break*/, 4];
                     case 3:
                         if (!this.isPollingStopped) {
-                            interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
+                            interval_1 = (_b = this.options.pollInterval) !== null && _b !== void 0 ? _b : constants_1.Constants.POLLING_INTERVAL;
                             this.pollTimerId = setTimeout(poll, interval_1);
                         }
                         return [7 /*endfinally*/];

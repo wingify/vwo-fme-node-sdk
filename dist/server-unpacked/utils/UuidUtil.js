@@ -29,7 +29,8 @@ var uuid_2 = require("uuid");
  */
 function getRandomUUID(sdkKey) {
     // Generate a namespace based on the API key using DNS namespace
-    var namespace = (0, uuid_2.v5)(sdkKey, uuid_2.v5.DNS);
+    var safeSdkKey = sdkKey || 'default-sdk-key';
+    var namespace = (0, uuid_2.v5)(safeSdkKey, uuid_2.v5.DNS);
     // Generate a random UUID using the namespace derived from the API key
     var randomUUID = (0, uuid_2.v5)((0, uuid_1.v4)(), namespace);
     return randomUUID;

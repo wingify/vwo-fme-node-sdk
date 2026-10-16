@@ -109,6 +109,7 @@ var BatchEventsDispatcher = /** @class */ (function () {
                         .getNetworkManager()
                         .post(request)
                         .then(function (response) {
+                        (0, NetworkUtil_1.applyDaCdnControlFromNetworkResponse)(serviceContainer, response.getData(), response.getStatusCode());
                         if (response.getTotalAttempts() > 0) {
                             var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', constants_1.Constants.BATCH_EVENTS, extraData);
                             // send debug event

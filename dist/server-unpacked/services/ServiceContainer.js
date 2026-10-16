@@ -22,22 +22,36 @@ exports.ServiceContainer = void 0;
 var SegmentationManger_1 = require("../packages/segmentation-evaluator/core/SegmentationManger");
 var HooksService_1 = __importDefault(require("./HooksService"));
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
+var PanicModeForcedRefreshControlService_1 = __importDefault(require("./PanicModeForcedRefreshControlService"));
 var GetFlagsBatchContext_1 = require("./GetFlagsBatchContext");
 var InternalEventsThrottleService_1 = require("./InternalEventsThrottleService");
+var log_messages_1 = require("../enums/log-messages");
+var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 /**
  * ServiceContainer is a class that contains all the services that are used in the SDK.
  */
 var ServiceContainer = /** @class */ (function () {
     function ServiceContainer(options) {
+        var _this = this;
         this.BatchEventsQueue = null;
         this.suppressTrackingCalls = false;
         this.suppressMAU = false;
         this.pollingStopCallback = null;
+        this.forceRefreshHandler = null;
         this.internalEventsThrottleService = null;
         this.originalSettingsDocument = {};
         this.vwoOptions = options;
         this.HooksService = new HooksService_1.default(this.vwoOptions);
         this.SegmentationManager = new SegmentationManger_1.SegmentationManager();
+        this.panicModeForcedRefreshControlService = new PanicModeForcedRefreshControlService_1.default();
+        this.panicModeForcedRefreshControlService.setOnPanicActivated(function () {
+            if (_this.BatchEventsQueue) {
+                var discardedCount = _this.BatchEventsQueue.discardQueuedEvents();
+                if (discardedCount > 0 && _this.logManager) {
+                    _this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENTS_DISCARDED_DUE_TO_PANIC_MODE, { count: discardedCount }));
+                }
+            }
+        });
     }
     /**
      *
@@ -52,6 +66,9 @@ var ServiceContainer = /** @class */ (function () {
      */
     ServiceContainer.prototype.setLogManager = function (logManager) {
         this.logManager = logManager;
+        if (this.panicModeForcedRefreshControlService) {
+            this.panicModeForcedRefreshControlService.setLogManager(logManager);
+        }
     };
     /**
      *
@@ -168,6 +185,13 @@ var ServiceContainer = /** @class */ (function () {
         this.Storage = storage;
     };
     /**
+     * Returns the service that applies panic-mode and forced settings refresh from settings and DaCDN payloads.
+     * @returns The panic / forced-refresh coordination service instance.
+     */
+    ServiceContainer.prototype.getPanicModeForcedRefreshControlService = function () {
+        return this.panicModeForcedRefreshControlService;
+    };
+    /**
      * Injects the service container into the services.
      * @param serviceContainer - The service container to inject.
      */
@@ -226,6 +250,23 @@ var ServiceContainer = /** @class */ (function () {
             this.pollingStopCallback();
             this.pollingStopCallback = null;
         }
+    };
+    /**
+     * Registers the callback used when a successful collect/batch response signals `forceRefresh`.
+     * Wired by VWOClient to `updateSettings(undefined, true)` to avoid importing VWOClient from network utilities.
+     *
+     * @param handler - Async function to pull latest settings, or `null` to clear.
+     */
+    ServiceContainer.prototype.setForceRefreshHandler = function (handler) {
+        this.forceRefreshHandler = handler;
+    };
+    /**
+     * Returns the handler registered with `setForceRefreshHandler`, if any.
+     *
+     * @returns The registered handler, or `null` when none is set.
+     */
+    ServiceContainer.prototype.getForceRefreshHandler = function () {
+        return this.forceRefreshHandler;
     };
     /**
      * Returns the internal-events throttle service for the current SDK instance.

@@ -19,7 +19,26 @@ import { Deferred } from '../../../utils/PromiseUtil.js';
 import { HTTPS } from '../../../constants/Url.js';
 import { ResponseModel } from '../models/ResponseModel.js';
 import { EventEnum } from '../../../enums/EventEnum.js';
+import { HttpStatusCodeEnum } from '../../../enums/HttpStatusCodeEnum.js';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
+/**
+ * If `trimmedBody` is non-empty, parses it as JSON; on invalid JSON returns `rawBody` unchanged for callers that tolerate plain-text payloads.
+ *
+ * @param trimmedBody - Whitespace-trimmed response body string to attempt JSON parsing on.
+ * @param rawBody - Original raw response body returned as-is when JSON parsing fails.
+ * @returns Parsed JSON object on success, `rawBody` string on invalid JSON, or `undefined` when `trimmedBody` is empty.
+ */
+function parseTrimmedJson(trimmedBody, rawBody) {
+    if (trimmedBody.length === 0) {
+        return undefined;
+    }
+    try {
+        return JSON.parse(trimmedBody);
+    }
+    catch {
+        return rawBody;
+    }
+}
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -75,11 +94,12 @@ export class NetworkClient {
                     res.on('end', () => {
                         try {
                             const parsedData = JSON.parse(rawData);
-                            // Check for successful response status.
-                            if (responseModel.getStatusCode() < 200 || responseModel.getStatusCode() >= 300) {
+                            // Check for successful response status (2xx).
+                            if (responseModel.getStatusCode() < HttpStatusCodeEnum.OK ||
+                                responseModel.getStatusCode() >= HttpStatusCodeEnum.MULTIPLE_CHOICES) {
                                 const error = `${rawData}, Status Code: ${responseModel.getStatusCode()}`;
-                                // if status code is 400, reject the promise as it is a bad request
-                                if (responseModel.getStatusCode() === 400) {
+                                // Bad request: fail immediately without retry.
+                                if (responseModel.getStatusCode() === HttpStatusCodeEnum.BAD_REQUEST) {
                                     responseModel.setError(error);
                                     responseModel.setTotalAttempts(attempt);
                                     deferred.reject(responseModel);
@@ -146,25 +166,33 @@ export class NetworkClient {
                     // Handle the end of the response.
                     res.on('end', () => {
                         try {
-                            if (res.statusCode === 200) {
-                                responseModel.setStatusCode(res.statusCode);
-                                responseModel.setData(request.getBody());
-                                responseModel.setTotalAttempts(attempt);
-                                responseModel.setError(request.getLastError());
-                                deferred.resolve(responseModel);
+                            responseModel.setStatusCode(res.statusCode);
+                            if (res.headers) {
+                                responseModel.setHeaders(res.headers);
                             }
-                            else {
-                                const error = `Raw Data: ${rawData}, Status Code: ${res.statusCode}`;
-                                responseModel.setStatusCode(res.statusCode);
-                                // if status code is 400, reject the promise as it is a bad request
-                                if (res.statusCode === 400) {
-                                    responseModel.setError(error);
+                            const trimmedResponseBody = rawData.trim();
+                            const parsedData = parseTrimmedJson(trimmedResponseBody, rawData);
+                            if (res.statusCode === HttpStatusCodeEnum.OK) {
+                                if (attempt > 0) {
                                     responseModel.setTotalAttempts(attempt);
-                                    deferred.reject(responseModel);
-                                    return;
+                                    responseModel.setError(request.getLastError());
                                 }
-                                return this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request, responseModel);
+                                else {
+                                    responseModel.setTotalAttempts(attempt);
+                                }
+                                responseModel.setData(parsedData);
+                                deferred.resolve(responseModel);
+                                return;
                             }
+                            const error = `Raw Data: ${rawData}, Status Code: ${res.statusCode}`;
+                            // Bad request: fail immediately without retry.
+                            if (res.statusCode === HttpStatusCodeEnum.BAD_REQUEST) {
+                                responseModel.setError(error);
+                                responseModel.setTotalAttempts(attempt);
+                                deferred.reject(responseModel);
+                                return;
+                            }
+                            return this.retryOrReject(error, attempt, deferred, networkOptions, attemptRequest, request, responseModel);
                         }
                         catch (err) {
                             return this.retryOrReject(err, attempt, deferred, networkOptions, attemptRequest, request, responseModel);

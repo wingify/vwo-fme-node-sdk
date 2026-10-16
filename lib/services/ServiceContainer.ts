@@ -24,8 +24,11 @@ import { isString } from '../utils/DataTypeUtil';
 import { NetworkManager } from '../packages/network-layer/manager/NetworkManager';
 import { LogManager } from '../packages/logger';
 import { Storage } from '../packages/storage';
+import PanicModeForcedRefreshControlService from './PanicModeForcedRefreshControlService';
 import { getBatchScopedSegmentationManager } from './GetFlagsBatchContext';
 import { InternalEventsThrottleService } from './InternalEventsThrottleService';
+import { InfoLogMessagesEnum } from '../enums/log-messages';
+import { buildMessage } from '../utils/LogMessageUtil';
 
 /**
  * ServiceContainer is a class that contains all the services that are used in the SDK.
@@ -44,6 +47,8 @@ export class ServiceContainer {
   private suppressTrackingCalls: boolean = false;
   private suppressMAU: boolean = false;
   private pollingStopCallback: (() => void) | null = null;
+  private forceRefreshHandler: ((isRefreshFromPanicClear?: boolean) => Promise<void>) | null = null;
+  private panicModeForcedRefreshControlService: PanicModeForcedRefreshControlService;
   private internalEventsThrottleService: InternalEventsThrottleService | null = null;
   private originalSettingsDocument: Record<string, any> = {};
 
@@ -51,6 +56,17 @@ export class ServiceContainer {
     this.vwoOptions = options;
     this.HooksService = new HooksService(this.vwoOptions);
     this.SegmentationManager = new SegmentationManager();
+    this.panicModeForcedRefreshControlService = new PanicModeForcedRefreshControlService();
+    this.panicModeForcedRefreshControlService.setOnPanicActivated(() => {
+      if (this.BatchEventsQueue) {
+        const discardedCount = this.BatchEventsQueue.discardQueuedEvents();
+        if (discardedCount > 0 && this.logManager) {
+          this.logManager.info(
+            buildMessage(InfoLogMessagesEnum.EVENTS_DISCARDED_DUE_TO_PANIC_MODE, { count: discardedCount }),
+          );
+        }
+      }
+    });
   }
 
   /**
@@ -67,6 +83,9 @@ export class ServiceContainer {
    */
   public setLogManager(logManager: LogManager): void {
     this.logManager = logManager;
+    if (this.panicModeForcedRefreshControlService) {
+      this.panicModeForcedRefreshControlService.setLogManager(logManager);
+    }
   }
 
   /**
@@ -196,6 +215,14 @@ export class ServiceContainer {
   }
 
   /**
+   * Returns the service that applies panic-mode and forced settings refresh from settings and DaCDN payloads.
+   * @returns The panic / forced-refresh coordination service instance.
+   */
+  public getPanicModeForcedRefreshControlService(): PanicModeForcedRefreshControlService {
+    return this.panicModeForcedRefreshControlService;
+  }
+
+  /**
    * Injects the service container into the services.
    * @param serviceContainer - The service container to inject.
    */
@@ -262,6 +289,25 @@ export class ServiceContainer {
       this.pollingStopCallback();
       this.pollingStopCallback = null;
     }
+  }
+
+  /**
+   * Registers the callback used when a successful collect/batch response signals `forceRefresh`.
+   * Wired by VWOClient to `updateSettings(undefined, true)` to avoid importing VWOClient from network utilities.
+   *
+   * @param handler - Async function to pull latest settings, or `null` to clear.
+   */
+  public setForceRefreshHandler(handler: ((isRefreshFromPanicClear?: boolean) => Promise<void>) | null): void {
+    this.forceRefreshHandler = handler;
+  }
+
+  /**
+   * Returns the handler registered with `setForceRefreshHandler`, if any.
+   *
+   * @returns The registered handler, or `null` when none is set.
+   */
+  public getForceRefreshHandler(): ((isRefreshFromPanicClear?: boolean) => Promise<void>) | null {
+    return this.forceRefreshHandler;
   }
 
   /**

@@ -15,6 +15,8 @@
  */
 export declare enum EventEnum {
   VARIATION_SHOWN = 'vwo_variationShown',
+  /** Minimal collect used during panic to receive DaCDN control headers in the response body. */
+  COLLECT_CONTROL_PING = 'vwo_collectControlPing',
   SYNC_VISITOR_PROP = 'vwo_syncVisitorProp',
   LOG_EVENT = 'vwo_log',
   INIT_CALLED = 'vwo_fmeSdkInit',

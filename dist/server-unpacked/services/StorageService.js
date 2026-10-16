@@ -291,14 +291,15 @@ var StorageService = /** @class */ (function () {
                         .getSettingsService()
                         .fetchSettings()
                         .then(function (freshSettings) { return __awaiter(_this, void 0, void 0, function () {
-                        var isSettingsValid;
+                        var normalizedSettings, isSettingsValid;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     if (!freshSettings) return [3 /*break*/, 2];
-                                    isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(freshSettings);
+                                    normalizedSettings = this.serviceContainer.getSettingsService().normalizeSettings(freshSettings);
+                                    isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
                                     if (!isSettingsValid) return [3 /*break*/, 2];
-                                    return [4 /*yield*/, this.setSettingsInStorage(accountId, sdkKey, freshSettings)];
+                                    return [4 /*yield*/, this.setSettingsInStorage(accountId, sdkKey, normalizedSettings)];
                                 case 1:
                                     _a.sent();
                                     this.serviceContainer

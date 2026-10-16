@@ -46,6 +46,9 @@ import { UsageStatsUtil } from './utils/UsageStatsUtil';
 import { StorageService } from './services/StorageService';
 import { getUUID, isWebUuid } from './utils/UuidUtil';
 import { SDKMetaUtil } from './utils/SDKMetaUtil';
+import { sendPanicCollectHeartbeatRequest } from './utils/NetworkUtil';
+import { EventEnum } from './enums/EventEnum';
+import { SettingsControlApplyMode } from './services/PanicModeForcedRefreshControlService';
 
 export interface IWingifyClient {
   readonly options?: IWingifyOptions;
@@ -68,7 +71,12 @@ export interface IWingifyClient {
     context: Record<string, any>,
   ): Promise<void>;
   setAttribute(attributes: Record<string, boolean | string | number>, context: Record<string, any>): Promise<void>;
-  updateSettings(settings?: Record<string, any>, isViaWebhook?: boolean): Promise<void>;
+  updateSettings(
+    settings?: Record<string, any>,
+    isViaWebhook?: boolean,
+    isRefreshFromPanicClear?: boolean,
+    controlApplyMode?: SettingsControlApplyMode,
+  ): Promise<void>;
   flushEvents(): Promise<Record<string, any>>;
   shutdown(): Promise<void>;
   setAlias(context: Record<string, any> | string, aliasId: string): Promise<boolean>;
@@ -100,18 +108,23 @@ export class WingifyClient implements IWingifyClient {
     try {
       this.options = options;
       this.serviceContainer = serviceContainer;
-      this.isSettingsValid = new SettingsSchema().isSettingsValid(settings);
+      const normalizedSettings = this.serviceContainer.getSettingsService().normalizeSettings(settings);
+      this.isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
       this.isAliasingEnabled = options.isAliasingEnabled || false;
       if (this.isSettingsValid && !this.serviceContainer.getSettingsService().isSettingsProvidedInInit) {
         this.serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
       } else if (!this.isSettingsValid && this.options.settings) {
-        this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
+        this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT });
       }
-      setSettingsAndAddCampaignsToRules(settings, this, this.serviceContainer.getLogManager());
+      setSettingsAndAddCampaignsToRules(normalizedSettings, this, this.serviceContainer.getLogManager());
       this.serviceContainer.setSettings(this.settings);
       this.serviceContainer.setOriginalSettingsDocument(this.originalSettings);
       this.serviceContainer.injectServiceContainer(this.serviceContainer);
       this.serviceContainer.setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
+      this.serviceContainer.setForceRefreshHandler((isRefreshFromPanicClear?: boolean) =>
+        this.updateSettings(undefined, true, isRefreshFromPanicClear, SettingsControlApplyMode.POST_PING_FETCH),
+      );
+      this.handleSettingsControlFlags(normalizedSettings, SettingsControlApplyMode.APPLY);
 
       this.serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.CLIENT_INITIALIZED));
       this.wingifyClientInstance = this;
@@ -148,9 +161,16 @@ export class WingifyClient implements IWingifyClient {
       // get sdk init time
       const sdkInitTime = Date.now() - this.serviceContainer.getSettingsService().startTimeForInit;
       const internalEventsThrottleService = this.serviceContainer.getInternalEventsThrottleService();
+      const isPanicModeActivated = this.serviceContainer
+        .getPanicModeForcedRefreshControlService()
+        .isPanicModeActivated();
 
       if (this.isSettingsValid && internalEventsThrottleService.shouldSendSdkInitEvent(this.originalSettings)) {
-        if (this.options.shouldWaitForTrackingCalls) {
+        if (isPanicModeActivated) {
+          this.serviceContainer
+            .getLogManager()
+            .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: EventEnum.INIT_CALLED }));
+        } else if (this.options.shouldWaitForTrackingCalls) {
           await sendSdkInitEvent(this.serviceContainer);
         } else {
           sendSdkInitEvent(this.serviceContainer);
@@ -158,7 +178,11 @@ export class WingifyClient implements IWingifyClient {
       }
 
       const usageStatsAccountId = this.originalSettings?.usageStatsAccountId;
-      if (usageStatsAccountId && internalEventsThrottleService.shouldSendUsageStatsEvent(this.originalSettings)) {
+      if (
+        usageStatsAccountId &&
+        internalEventsThrottleService.shouldSendUsageStatsEvent(this.originalSettings) &&
+        !isPanicModeActivated
+      ) {
         if (this.options.shouldWaitForTrackingCalls) {
           await sendSDKUsageStatsEvent(
             usageStatsAccountId,
@@ -246,7 +270,7 @@ export class WingifyClient implements IWingifyClient {
 
       // Validate settings are loaded and valid
       if (!this.isSettingsValid) {
-        this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.GET_FLAG }, false);
+        this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.GET_FLAG });
         throw new Error('TypeError: Invalid Settings');
       }
 
@@ -254,6 +278,24 @@ export class WingifyClient implements IWingifyClient {
       if (!context || !context.id) {
         this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.GET_FLAG }, false);
         throw new TypeError('TypeError: Invalid context');
+      }
+
+      if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+        this.serviceContainer
+          .getLogManager()
+          .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName }));
+        const heartbeat = sendPanicCollectHeartbeatRequest(this.serviceContainer, {
+          id: String(context.id),
+          uuid,
+          sessionId: isNumber(context.sessionId) ? context.sessionId : undefined,
+        });
+        if (this.serviceContainer.getShouldWaitForTrackingCalls()) {
+          await heartbeat.catch(() => undefined);
+        } else {
+          void heartbeat.catch(() => undefined);
+        }
+        deferredObject.resolve(errorReturnSchema);
+        return deferredObject.promise;
       }
 
       //getUserId from gateway service
@@ -351,6 +393,28 @@ export class WingifyClient implements IWingifyClient {
       if (!context || !context.id) {
         this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: apiName }, false);
         throw new TypeError('TypeError: Invalid context');
+      }
+
+      // check if panic mode is activated
+      if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+        // if panic mode is activated log that the api is blocked by panic mode
+        this.serviceContainer
+          .getLogManager()
+          .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName }));
+        // send heartbeat to the server to collect the panic mode signal to check if the panic mode is still activated
+        const heartbeat = sendPanicCollectHeartbeatRequest(this.serviceContainer, {
+          id: String(context.id),
+          uuid,
+          sessionId: isNumber(context.sessionId) ? context.sessionId : undefined,
+        });
+        // if the shouldWaitForTrackingCalls is true, then we need to wait for the heartbeat to be resolved
+        if (this.serviceContainer.getShouldWaitForTrackingCalls()) {
+          await heartbeat.catch(() => undefined);
+        } else {
+          void heartbeat.catch(() => undefined);
+        }
+        // return the disabled flags
+        return this.buildDisabledFlags(flagNames, context);
       }
 
       const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
@@ -491,9 +555,7 @@ export class WingifyClient implements IWingifyClient {
 
       // Validate settings are loaded and valid
       if (!this.isSettingsValid) {
-        this.serviceContainer
-          .getLogManager()
-          .errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.TRACK_EVENT }, false);
+        this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.TRACK_EVENT });
         throw new Error('TypeError: Invalid Settings');
       }
 
@@ -503,6 +565,25 @@ export class WingifyClient implements IWingifyClient {
           .getLogManager()
           .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.TRACK_EVENT }, false);
         throw new TypeError('TypeError: Invalid context');
+      }
+
+      //send heartbeat if panic mode is activated and early
+      if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+        this.serviceContainer
+          .getLogManager()
+          .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName }));
+        const heartbeat = sendPanicCollectHeartbeatRequest(this.serviceContainer, {
+          id: String(context.id),
+          uuid: this.getUUIDFromContext(context, apiName),
+          sessionId: isNumber(context.sessionId) ? context.sessionId : undefined,
+        });
+        if (this.serviceContainer.getShouldWaitForTrackingCalls()) {
+          await heartbeat.catch(() => undefined);
+        } else {
+          void heartbeat.catch(() => undefined);
+        }
+        deferredObject.resolve({ [eventName]: false });
+        return deferredObject.promise;
       }
 
       //getUserId from gateway service
@@ -607,6 +688,23 @@ export class WingifyClient implements IWingifyClient {
             .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.SET_ATTRIBUTE }, false);
           throw new TypeError('TypeError: Invalid context');
         }
+        //send heartbeat if panic mode is activated and early exit
+        if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+          this.serviceContainer
+            .getLogManager()
+            .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName }));
+          const heartbeat = sendPanicCollectHeartbeatRequest(this.serviceContainer, {
+            id: String(context.id),
+            uuid: this.getUUIDFromContext(context, apiName),
+            sessionId: isNumber(context.sessionId) ? context.sessionId : undefined,
+          });
+          if (this.serviceContainer.getShouldWaitForTrackingCalls()) {
+            await heartbeat.catch(() => undefined);
+          } else {
+            void heartbeat.catch(() => undefined);
+          }
+          return;
+        }
 
         //getUserId from gateway service
         const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
@@ -637,6 +735,24 @@ export class WingifyClient implements IWingifyClient {
         // Validate user ID is present in context
         if (!context || !context.id) {
           throw new TypeError('Invalid context');
+        }
+
+        //send heartbeat if panic mode is activated and early exit
+        if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+          this.serviceContainer
+            .getLogManager()
+            .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName }));
+          const heartbeat = sendPanicCollectHeartbeatRequest(this.serviceContainer, {
+            id: String(context.id),
+            uuid: this.getUUIDFromContext(context, apiName),
+            sessionId: isNumber(context.sessionId) ? context.sessionId : undefined,
+          });
+          if (this.serviceContainer.getShouldWaitForTrackingCalls()) {
+            await heartbeat.catch(() => undefined);
+          } else {
+            void heartbeat.catch(() => undefined);
+          }
+          return;
         }
 
         //getUserId from gateway service
@@ -671,7 +787,12 @@ export class WingifyClient implements IWingifyClient {
    * @param isViaWebhook - Whether to fetch the settings from the webhook endpoint.
    * @returns Promise<void>
    */
-  async updateSettings(settings?: Record<string, any>, isViaWebhook = true): Promise<void> {
+  async updateSettings(
+    settings?: Record<string, any>,
+    isViaWebhook = true,
+    isRefreshFromPanicClear = false,
+    controlApplyMode?: SettingsControlApplyMode,
+  ): Promise<void> {
     const apiName = ApiEnum.UPDATE_SETTINGS;
     try {
       this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName }));
@@ -687,6 +808,18 @@ export class WingifyClient implements IWingifyClient {
         throw new Error('TypeError: Invalid Settings schema');
       }
 
+      // TTS-3135: Check if settings snapshot is stale BEFORE applying campaigns
+      // Prevents polling from applying older cached settings after force-refresh fetched newer ones
+      const panicService = this.serviceContainer.getPanicModeForcedRefreshControlService();
+      if (!panicService.shouldApplySettingsSnapshot(normalizedSettings)) {
+        this.serviceContainer.getLogManager().info(
+          buildMessage(InfoLogMessagesEnum.SETTINGS_UPDATE_SKIPPED_STALE, {
+            timestamp: normalizedSettings?.lastUpdatedOn ?? normalizedSettings?.version,
+          }),
+        );
+        return; // Skip applying stale settings
+      }
+
       // set the settings on the client instance
       setSettingsAndAddCampaignsToRules(
         normalizedSettings,
@@ -696,9 +829,17 @@ export class WingifyClient implements IWingifyClient {
       this.serviceContainer.setSettings(this.wingifyClientInstance.settings);
       this.serviceContainer.setOriginalSettingsDocument(this.wingifyClientInstance.originalSettings);
       this.serviceContainer.injectServiceContainer(this.serviceContainer);
-      this.serviceContainer
-        .getLogManager()
-        .info(buildMessage(InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName, isViaWebhook }));
+      const resolvedControlApplyMode =
+        controlApplyMode ??
+        (settings && Object.keys(settings).length > 0 && !isViaWebhook
+          ? SettingsControlApplyMode.POLLING
+          : SettingsControlApplyMode.APPLY);
+      this.handleSettingsControlFlags(normalizedSettings, resolvedControlApplyMode);
+      if (!isRefreshFromPanicClear) {
+        this.serviceContainer
+          .getLogManager()
+          .info(buildMessage(InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName, isViaWebhook }));
+      }
     } catch (err) {
       this.serviceContainer.getLogManager().errorLog(
         'UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED',
@@ -720,6 +861,13 @@ export class WingifyClient implements IWingifyClient {
 
     try {
       this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, { apiName }));
+
+      if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+        this.serviceContainer
+          .getLogManager()
+          .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName }));
+        return { status: 'error', events: [] };
+      }
 
       if (!this.serviceContainer.getBatchEventsQueue()) {
         this.serviceContainer.getLogManager().errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum.FLUSH_EVENTS });
@@ -799,6 +947,27 @@ export class WingifyClient implements IWingifyClient {
       aliasId = aliasId.trim();
 
       let userId: string;
+      const rawUserId = typeof contextOrUserId === 'string' ? contextOrUserId.trim() : contextOrUserId.id.trim();
+      //send heartbeat if panic mode is activated and early exit
+      if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+        this.serviceContainer
+          .getLogManager()
+          .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName }));
+        const heartbeat = sendPanicCollectHeartbeatRequest(this.serviceContainer, {
+          id: rawUserId,
+          uuid: this.getUUIDFromContext(
+            typeof contextOrUserId === 'string' ? { id: rawUserId } : contextOrUserId,
+            apiName,
+          ),
+          sessionId: undefined,
+        });
+        if (this.serviceContainer.getShouldWaitForTrackingCalls()) {
+          await heartbeat.catch(() => undefined);
+        } else {
+          void heartbeat.catch(() => undefined);
+        }
+        return false;
+      }
 
       if (typeof contextOrUserId === 'string') {
         // trim contextOrUserId before going forward
@@ -917,6 +1086,61 @@ export class WingifyClient implements IWingifyClient {
           { apiName: ApiEnum.SHUTDOWN, err: getFormattedErrorMessage(err) },
           { an: ApiEnum.SHUTDOWN },
         );
+    }
+  }
+
+  /**
+   * Applies or defers sdkMetaInfo panic / refresh. Polling confirms panic on/off via collector ping
+   * (stale panic rejected; logs only after ping). Force-refresh is not confirmed via ping from polling.
+   *
+   * @param settings - Normalized settings JSON (must include `lastUpdatedOn` for snapshot detection).
+   * @param mode - How this snapshot was obtained.
+   * @returns void
+   */
+  private handleSettingsControlFlags(
+    settings: Record<string, any>,
+    mode: SettingsControlApplyMode = SettingsControlApplyMode.APPLY,
+  ): void {
+    const panicModeForcedRefreshControl = this.serviceContainer.getPanicModeForcedRefreshControlService();
+    const settingsSnapshotControlOutcome = panicModeForcedRefreshControl.applySettingsControl(settings, mode);
+
+    if (settingsSnapshotControlOutcome.needsCollectPingConfirmation) {
+      void this.confirmControlViaCollectPing();
+    }
+
+    if (!settingsSnapshotControlOutcome.shouldTriggerForceRefresh || !panicModeForcedRefreshControl.tryStartRefresh()) {
+      return;
+    }
+
+    this.updateSettings(
+      undefined,
+      true,
+      settingsSnapshotControlOutcome.isRefreshFromPanicClear,
+      SettingsControlApplyMode.POST_PING_FETCH,
+    ).finally(() => {
+      panicModeForcedRefreshControl.finishRefresh(settingsSnapshotControlOutcome.isRefreshFromPanicClear);
+    });
+  }
+
+  /**
+   * Confirms panic with a control ping. DaCDN response is the source of truth.
+   */
+  private async confirmControlViaCollectPing(): Promise<void> {
+    const panicModeForcedRefreshControl = this.serviceContainer.getPanicModeForcedRefreshControlService();
+    if (!panicModeForcedRefreshControl.tryStartPanicClearConfirmation()) {
+      return;
+    }
+
+    try {
+      const settingsService = this.serviceContainer.getSettingsService();
+      const userId = `${settingsService.accountId}_${settingsService.sdkKey}`;
+      const uuid = getUUID(`${settingsService.accountId}_${settingsService.sdkKey}`, String(settingsService.accountId));
+
+      await sendPanicCollectHeartbeatRequest(this.serviceContainer, { id: userId, uuid });
+    } catch {
+      // Fail-safe: keep current latch when confirmation ping fails.
+    } finally {
+      panicModeForcedRefreshControl.finishPanicClearConfirmation();
     }
   }
 }

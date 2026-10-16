@@ -50,12 +50,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSettingsPath = getSettingsPath;
 exports.getTrackEventPath = getTrackEventPath;
 exports.getEventsBaseProperties = getEventsBaseProperties;
+exports.applyDaCdnControlFromNetworkResponse = applyDaCdnControlFromNetworkResponse;
 exports._getEventBasePayload = _getEventBasePayload;
 exports.getTrackUserPayloadData = getTrackUserPayloadData;
 exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 exports.getAttributePayloadData = getAttributePayloadData;
 exports.getTrackingUsagePayloadData = getTrackingUsagePayloadData;
 exports.sendPostApiRequest = sendPostApiRequest;
+exports.sendPanicCollectHeartbeatRequest = sendPanicCollectHeartbeatRequest;
 exports.getMessagingEventPayload = getMessagingEventPayload;
 exports.getSDKInitEventPayload = getSDKInitEventPayload;
 exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
@@ -171,6 +173,54 @@ function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, i
         properties.dh = 1;
     }
     return properties;
+}
+function isHttpSuccessStatus(statusCode) {
+    return statusCode >= 200 && statusCode < 300;
+}
+/**
+ * Reads DaCDN panic / force-refresh fields from a successful collect or batch-events response and updates SDK control state.
+ *
+ * @param serviceContainer - Application service locator holding panic/refresh control and the forced-refresh handler.
+ * @param data - Parsed response body; ignored unless it is a plain object.
+ * @param statusCode - HTTP status; control fields apply only on success (2xx).
+ * @returns void
+ */
+function applyDaCdnControlFromNetworkResponse(serviceContainer, data, statusCode) {
+    if (!isHttpSuccessStatus(statusCode)) {
+        return;
+    }
+    var parsedData = data;
+    if (typeof data === 'string') {
+        if (data.trim().length === 0) {
+            // Empty response means no active panic mode or force refresh.
+            parsedData = {};
+        }
+        else {
+            try {
+                parsedData = JSON.parse(data);
+            }
+            catch (e) {
+                // Not a valid JSON string, cannot be a control payload.
+                return;
+            }
+        }
+    }
+    var controlService = serviceContainer.getPanicModeForcedRefreshControlService();
+    // Apply the collect control payload.
+    var result = controlService.applyCollectControlPayload(parsedData);
+    if (!result.shouldTriggerForceRefresh || !controlService.tryStartRefresh()) {
+        return;
+    }
+    // Get the force refresh handler.
+    var handler = serviceContainer.getForceRefreshHandler();
+    if (handler) {
+        void Promise.resolve(handler(result.isRefreshFromPanicClear)).finally(function () {
+            return controlService.finishRefresh(result.isRefreshFromPanicClear);
+        });
+    }
+    else {
+        controlService.finishRefresh(result.isRefreshFromPanicClear);
+    }
 }
 /**
  * Builds generic payload required by all the different tracking calls.
@@ -427,7 +477,8 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
                         }
                         else if (properties.en !== EventEnum_1.EventEnum.DEBUGGER_EVENT &&
                             properties.en !== EventEnum_1.EventEnum.LOG_EVENT &&
-                            properties.en !== EventEnum_1.EventEnum.INIT_CALLED) {
+                            properties.en !== EventEnum_1.EventEnum.LOG_EVENT &&
+                            properties.en !== EventEnum_1.EventEnum.COLLECT_CONTROL_PING) {
                             apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
                             extraDataForMessage = "event: ".concat(properties.en);
                         }
@@ -439,6 +490,7 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
                             .getNetworkManager()
                             .post(request)
                             .then(function (response) {
+                            applyDaCdnControlFromNetworkResponse(serviceContainer, response.getData(), response.getStatusCode());
                             // if attempt is more than 0
                             if (response.getTotalAttempts() > 0) {
                                 var debugEventProps = createNetWorkAndRetryDebugEvent(response, payload, apiName, extraDataForMessage);
@@ -465,6 +517,35 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
                         })];
                 case 1:
                     _b.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+/**
+ * Sends a minimal collect during panic so DaCDN can return updated panic / refresh control in the response.
+ *
+ * @param serviceContainer - SDK services used to POST the control ping.
+ * @param pulseContext - Visitor identity fields forwarded into the collect payload.
+ * @returns Promise resolved when the network dispatch completes (errors are logged inside the client layer).
+ */
+function sendPanicCollectHeartbeatRequest(serviceContainer, pulseContext) {
+    return __awaiter(this, void 0, void 0, function () {
+        var settingsService, visitorUserAgent, visitorIp, properties, payload;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    settingsService = serviceContainer.getSettingsService();
+                    visitorUserAgent = '';
+                    visitorIp = '';
+                    properties = getEventsBaseProperties(settingsService, EventEnum_1.EventEnum.COLLECT_CONTROL_PING, visitorUserAgent, visitorIp);
+                    payload = _getEventBasePayload(settingsService, pulseContext.uuid, EventEnum_1.EventEnum.COLLECT_CONTROL_PING, visitorUserAgent, visitorIp, false, null, false);
+                    if (pulseContext.sessionId !== undefined && pulseContext.sessionId !== null) {
+                        payload.d.sessionId = pulseContext.sessionId;
+                    }
+                    return [4 /*yield*/, sendPostApiRequest(serviceContainer, properties, payload, pulseContext.id, {}, {})];
+                case 1:
+                    _a.sent();
                     return [2 /*return*/];
             }
         });
@@ -600,6 +681,8 @@ function sendEvent(serviceContainer, properties, payload, eventName) {
                     .getNetworkManager()
                     .post(request)
                     .then(function (response) {
+                    // Same as sendPostApiRequest: init / usage-stats / debug responses may carry panicMode / forceRefresh.
+                    applyDaCdnControlFromNetworkResponse(serviceContainer, response.getData(), response.getStatusCode());
                     // Resolve the deferred object with the data from the response
                     deferredObject.resolve(response.getData());
                 })

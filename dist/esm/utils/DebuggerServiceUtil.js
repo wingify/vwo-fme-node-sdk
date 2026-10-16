@@ -53,15 +53,17 @@ export function extractDecisionKeys(decisionObj = {}) {
  * @returns A promise that resolves when the event is sent or skipped.
  */
 export async function sendDebugEventToWingify(serviceContainer, eventProps = {}) {
-    if (serviceContainer.getSuppressTrackingCalls() || getCurrentGetFlagsBatchContext()?.suppressTrackingCalls) {
+    if (!serviceContainer.getSettingsService()?.sdkKey) {
+        return;
+    }
+    if (serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated() ||
+        serviceContainer.getSuppressTrackingCalls() ||
+        getCurrentGetFlagsBatchContext()?.suppressTrackingCalls) {
         return;
     }
     const messageTemplateKey = eventProps.msg_t;
-    // check if the message template key is sampled
     const isSampledDebugEvent = messageTemplateKey ? isSampledDebugErrorTemplateKey(messageTemplateKey) : false;
     const settings = serviceContainer.getOriginalSettingsDocument();
-    // check if the sampled debug event should be sent.
-    // if the sampled debug event should not be sent, return.
     if (isSampledDebugEvent &&
         !serviceContainer.getInternalEventsThrottleService().shouldSendSampledDebugEvent(settings)) {
         return;

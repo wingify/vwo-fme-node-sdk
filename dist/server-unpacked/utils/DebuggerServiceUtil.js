@@ -96,19 +96,22 @@ function extractDecisionKeys(decisionObj) {
 function sendDebugEventToWingify(serviceContainer_1) {
     return __awaiter(this, arguments, void 0, function (serviceContainer, eventProps) {
         var messageTemplateKey, isSampledDebugEvent, settings, properties, payload;
-        var _a;
+        var _a, _b;
         if (eventProps === void 0) { eventProps = {}; }
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
+                    if (!((_a = serviceContainer.getSettingsService()) === null || _a === void 0 ? void 0 : _a.sdkKey)) {
+                        return [2 /*return*/];
+                    }
+                    if (serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated() ||
+                        serviceContainer.getSuppressTrackingCalls() ||
+                        ((_b = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _b === void 0 ? void 0 : _b.suppressTrackingCalls)) {
                         return [2 /*return*/];
                     }
                     messageTemplateKey = eventProps.msg_t;
                     isSampledDebugEvent = messageTemplateKey ? (0, InternalEventsRuntimeUtil_1.isSampledDebugErrorTemplateKey)(messageTemplateKey) : false;
                     settings = serviceContainer.getOriginalSettingsDocument();
-                    // check if the sampled debug event should be sent.
-                    // if the sampled debug event should not be sent, return.
                     if (isSampledDebugEvent &&
                         !serviceContainer.getInternalEventsThrottleService().shouldSendSampledDebugEvent(settings)) {
                         return [2 /*return*/];
@@ -123,7 +126,7 @@ function sendDebugEventToWingify(serviceContainer_1) {
                     return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.DEBUGGER_EVENT).catch(function () { })];
                 case 1:
                     // send the debug event to the server.
-                    _b.sent();
+                    _c.sent();
                     return [2 /*return*/];
             }
         });

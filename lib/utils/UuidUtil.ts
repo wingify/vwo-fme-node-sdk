@@ -24,7 +24,8 @@ import { v5 as uuidv5 } from 'uuid';
  */
 export function getRandomUUID(sdkKey: string): string {
   // Generate a namespace based on the API key using DNS namespace
-  const namespace = uuidv5(sdkKey, uuidv5.DNS);
+  const safeSdkKey = sdkKey || 'default-sdk-key';
+  const namespace = uuidv5(safeSdkKey, uuidv5.DNS);
   // Generate a random UUID using the namespace derived from the API key
   const randomUUID = uuidv5(uuidv4(), namespace);
 

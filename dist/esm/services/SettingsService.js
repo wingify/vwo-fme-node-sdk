@@ -157,6 +157,7 @@ export class SettingsService {
         const deferredObject = new Deferred();
         if (!this.sdkKey || !this.accountId) {
             deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
+            return deferredObject.promise;
         }
         const options = getSettingsPath(this.sdkKey, this.accountId);
         const retryConfig = this.serviceContainer.getNetworkManager().getRetryConfig();
@@ -201,7 +202,7 @@ export class SettingsService {
         catch (err) {
             this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: getFormattedErrorMessage(err),
-            }, { an: isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName }, false);
+            }, { an: isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName });
             deferredObject.reject(err);
             return deferredObject.promise;
         }
@@ -237,7 +238,7 @@ export class SettingsService {
                         deferredObject.resolve(normalizedSettings);
                     }
                     else {
-                        this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
+                        this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT });
                         deferredObject.resolve({});
                     }
                 }
@@ -252,7 +253,7 @@ export class SettingsService {
                     deferredObject.resolve(normalizedSettings);
                 }
                 else {
-                    this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
+                    this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT });
                     deferredObject.resolve({});
                 }
             }
@@ -260,7 +261,7 @@ export class SettingsService {
         catch (error) {
             this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: getFormattedErrorMessage(error),
-            }, { an: ApiEnum.INIT }, false);
+            }, { an: ApiEnum.INIT });
             deferredObject.resolve({});
         }
         return deferredObject.promise;

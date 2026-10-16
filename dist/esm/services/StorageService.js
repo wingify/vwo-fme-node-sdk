@@ -205,9 +205,10 @@ export class StorageService {
                 .fetchSettings()
                 .then(async (freshSettings) => {
                 if (freshSettings) {
-                    const isSettingsValid = new SettingsSchema().isSettingsValid(freshSettings);
+                    const normalizedSettings = this.serviceContainer.getSettingsService().normalizeSettings(freshSettings);
+                    const isSettingsValid = new SettingsSchema().isSettingsValid(normalizedSettings);
                     if (isSettingsValid) {
-                        await this.setSettingsInStorage(accountId, sdkKey, freshSettings);
+                        await this.setSettingsInStorage(accountId, sdkKey, normalizedSettings);
                         this.serviceContainer
                             .getLogManager()
                             .info(buildMessage(InfoLogMessagesEnum.SETTINGS_UPDATED_WITH_FRESH_DATA));

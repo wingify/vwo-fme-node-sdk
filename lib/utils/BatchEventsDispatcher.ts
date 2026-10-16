@@ -26,7 +26,7 @@ import { Deferred } from './PromiseUtil';
 import { getFormattedErrorMessage } from './FunctionUtil';
 import { Constants } from '../constants';
 import { sendDebugEventToWingify } from './DebuggerServiceUtil';
-import { createNetWorkAndRetryDebugEvent } from './NetworkUtil';
+import { applyDaCdnControlFromNetworkResponse, createNetWorkAndRetryDebugEvent } from './NetworkUtil';
 import { EventEnum } from '../enums/EventEnum';
 import { ServiceContainer } from '../services/ServiceContainer';
 
@@ -85,6 +85,7 @@ export class BatchEventsDispatcher {
         .getNetworkManager()
         .post(request)
         .then((response) => {
+          applyDaCdnControlFromNetworkResponse(serviceContainer, response.getData(), response.getStatusCode());
           if (response.getTotalAttempts() > 0) {
             const debugEventProps: Record<string, any> = createNetWorkAndRetryDebugEvent(
               response,

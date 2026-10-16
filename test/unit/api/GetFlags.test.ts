@@ -16,10 +16,13 @@
 
 import { Flag, FlagApi } from '../../../lib/api/GetFlag';
 import { GetFlagsApi } from '../../../lib/api/GetFlags';
+import { WingifyClient } from '../../../lib/WingifyClient';
 import { ServiceContainer } from '../../../lib/services/ServiceContainer';
 import * as GetFlagsBatchContext from '../../../lib/services/GetFlagsBatchContext';
+import * as NetworkUtil from '../../../lib/utils/NetworkUtil';
 import { setSettingsAndAddCampaignsToRules } from '../../../lib/utils/SettingsUtil';
 import { SETTINGS_WITH_DIFFERENT_SALT } from '../../data/Settings';
+import { SettingsControlApplyMode } from '../../../lib/services/PanicModeForcedRefreshControlService';
 
 /** Shared log manager stub used while building settings and ServiceContainer. */
 const mockLogManager = { info: jest.fn(), debug: jest.fn(), errorLog: jest.fn() } as any;
@@ -236,5 +239,54 @@ describe('GetFlagsApi disabled Flag for unknown/failed keys', () => {
     expect(disabledCount).toBe(1);
     // Browser finally block must clear shared suppress flags even when a batch failed.
     expect(serviceContainer.getSuppressTrackingCalls()).toBe(false);
+  });
+});
+
+// Ensures getFlags matches getFlag under panic: block evaluation, send collect heartbeat, return disabled Flags.
+describe('WingifyClient.getFlags panic guard', () => {
+  let serviceContainer: ServiceContainer;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+    serviceContainer = createTestServiceContainer();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  // Panic on → heartbeat only, no GetFlagsApi.get, disabled Flag per requested key.
+  it('returns disabled flags, sends heartbeat, and skips GetFlagsApi when panic is active', async () => {
+    serviceContainer.getPanicModeForcedRefreshControlService().applySettingsControl(
+      {
+        lastUpdatedOn: '1',
+        sdkMetaInfo: { panic: 1700000000 },
+      },
+      SettingsControlApplyMode.APPLY,
+    );
+
+    const heartbeatSpy = jest.spyOn(NetworkUtil, 'sendPanicCollectHeartbeatRequest').mockResolvedValue(undefined);
+    const getFlagsApiSpy = jest.spyOn(GetFlagsApi, 'get').mockResolvedValue({ shouldNotRun: true } as any);
+
+    // Avoid full constructor (settings service / init events); only exercise getFlags.
+    const client = Object.create(WingifyClient.prototype) as WingifyClient;
+    client.serviceContainer = serviceContainer;
+    client.isSettingsValid = true;
+    client.isAliasingEnabled = false;
+    client.options = {} as any;
+    jest.spyOn(client as any, 'getUUIDFromContext').mockReturnValue('uuid-panic');
+
+    const flags = await client.getFlags(['feature1', 'feature2'], { id: 'user-1', sessionId: 42 });
+
+    expect(heartbeatSpy).toHaveBeenCalledTimes(1);
+    expect(heartbeatSpy).toHaveBeenCalledWith(
+      serviceContainer,
+      expect.objectContaining({ id: 'user-1', uuid: 'uuid-panic', sessionId: 42 }),
+    );
+    expect(getFlagsApiSpy).not.toHaveBeenCalled();
+    expect(Object.keys(flags).sort()).toEqual(['feature1', 'feature2']);
+    expect(flags.feature1.isEnabled()).toBe(false);
+    expect(flags.feature2.isEnabled()).toBe(false);
   });
 });

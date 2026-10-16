@@ -211,6 +211,7 @@ var SettingsService = /** @class */ (function () {
         var deferredObject = new PromiseUtil_1.Deferred();
         if (!this.sdkKey || !this.accountId) {
             deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
+            return deferredObject.promise;
         }
         var options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
         var retryConfig = this.serviceContainer.getNetworkManager().getRetryConfig();
@@ -255,7 +256,7 @@ var SettingsService = /** @class */ (function () {
         catch (err) {
             this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
-            }, { an: isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName }, false);
+            }, { an: isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName });
             deferredObject.reject(err);
             return deferredObject.promise;
         }
@@ -303,7 +304,7 @@ var SettingsService = /** @class */ (function () {
                         deferredObject.resolve(normalizedSettings);
                         return [3 /*break*/, 8];
                     case 7:
-                        this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                        this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT });
                         deferredObject.resolve({});
                         _a.label = 8;
                     case 8: return [3 /*break*/, 12];
@@ -319,7 +320,7 @@ var SettingsService = /** @class */ (function () {
                             deferredObject.resolve(normalizedSettings);
                         }
                         else {
-                            this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                            this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT });
                             deferredObject.resolve({});
                         }
                         _a.label = 12;
@@ -328,7 +329,7 @@ var SettingsService = /** @class */ (function () {
                         error_1 = _a.sent();
                         this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1),
-                        }, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                        }, { an: ApiEnum_1.ApiEnum.INIT });
                         deferredObject.resolve({});
                         return [3 /*break*/, 14];
                     case 14: return [2 /*return*/, deferredObject.promise];

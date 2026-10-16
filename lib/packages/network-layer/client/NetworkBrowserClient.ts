@@ -25,6 +25,7 @@ import { buildMessage } from '../../../utils/LogMessageUtil';
 import { DebugLogMessagesEnum } from '../../../enums/log-messages';
 import { isString } from '../../../utils/DataTypeUtil';
 import { NetworkTransportModeEnum } from '../../../enums/NetworkTransportModeEnum';
+import { EventEnum } from '../../../enums/EventEnum';
 
 /**
  * Implements the NetworkClientInterface to handle network requests.
@@ -70,6 +71,13 @@ export class NetworkBrowserClient implements NetworkClientInterface {
    */
   POST(requestModel: RequestModel): Promise<ResponseModel> {
     const deferred = new Deferred();
+
+    // The panic-mode heartbeat ping MUST use XHR (not sendBeacon) so that
+    // the DaCDN response body is readable and applyDaCdnControlFromNetworkResponse
+    // can update isPanicModeActive accordingly.
+    if (requestModel.getEventName() === EventEnum.COLLECT_CONTROL_PING) {
+      return this.POST_XHR(requestModel);
+    }
 
     // if networkTransportMode is SEND_BEACON, and navigator.sendBeacon is defined, use beacon
     // sendBeacon can be undefined for internet explorer 11 - so we will fallback to XHR

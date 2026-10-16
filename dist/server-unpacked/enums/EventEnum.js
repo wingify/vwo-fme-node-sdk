@@ -19,6 +19,8 @@ exports.EventEnum = void 0;
 var EventEnum;
 (function (EventEnum) {
     EventEnum["VARIATION_SHOWN"] = "vwo_variationShown";
+    /** Minimal collect used during panic to receive DaCDN control headers in the response body. */
+    EventEnum["COLLECT_CONTROL_PING"] = "vwo_collectControlPing";
     EventEnum["SYNC_VISITOR_PROP"] = "vwo_syncVisitorProp";
     EventEnum["LOG_EVENT"] = "vwo_log";
     EventEnum["INIT_CALLED"] = "vwo_fmeSdkInit";

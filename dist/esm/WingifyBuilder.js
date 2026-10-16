@@ -15,6 +15,7 @@ import { ApiEnum } from './enums/ApiEnum.js';
 import { EdgeConfigModel } from './models/edge/EdgeConfigModel.js';
 import { ServiceContainer } from './services/ServiceContainer.js';
 import { NetworkTransportModeEnum } from './enums/NetworkTransportModeEnum.js';
+import { SettingsControlApplyMode } from './services/PanicModeForcedRefreshControlService.js';
 export class WingifyBuilder {
     constructor(options) {
         this.originalSettings = {};
@@ -55,6 +56,9 @@ export class WingifyBuilder {
             service: Constants.NETWORK_LAYER_NAME,
         }));
         this.defaultServiceContainer.setNetworkManager(this.networkManager);
+        // Inject before initPolling so early init errorLogs (e.g. INVALID_POLLING_CONFIGURATION)
+        // can POST vwo_sdkDebug. Re-injected in initBatching once the batch queue exists.
+        this.defaultServiceContainer.injectServiceContainer(this.defaultServiceContainer);
         return this;
     }
     initBatching() {
@@ -140,7 +144,7 @@ export class WingifyBuilder {
         catch (err) {
             this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: getFormattedErrorMessage(err),
-            }, { an: ApiEnum.INIT }, false);
+            }, { an: ApiEnum.INIT });
             deferredObject.resolve({});
         }
         return deferredObject.promise;
@@ -341,10 +345,19 @@ export class WingifyBuilder {
                 if (latestSettings &&
                     Object.keys(latestSettings).length > 0 &&
                     JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
+                    // TTS-3135: Check if polling settings are stale BEFORE adopting into originalSettings
+                    // Prevents race where polling returns older cached settings after force-refresh
+                    const panicService = this.defaultServiceContainer.getPanicModeForcedRefreshControlService();
+                    if (!panicService.shouldApplySettingsSnapshot(latestSettings)) {
+                        this.logManager.info(buildMessage(InfoLogMessagesEnum.POLLING_SETTINGS_STALE, {
+                            timestamp: latestSettings?.lastUpdatedOn ?? latestSettings?.version,
+                        }));
+                        return; // Skip stale polling result
+                    }
                     this.originalSettings = latestSettings;
                     const clonedSettings = cloneObject(latestSettings);
                     this.logManager.info(buildMessage(InfoLogMessagesEnum.POLLING_SET_SETTINGS));
-                    this.wingifyInstance.updateSettings(clonedSettings, false);
+                    this.wingifyInstance.updateSettings(clonedSettings, false, false, SettingsControlApplyMode.POLLING);
                     // Reinitialize the poll_interval value if there is a change in settings
                     this.updatePollIntervalAndCheckAndPoll(latestSettings, false);
                 }

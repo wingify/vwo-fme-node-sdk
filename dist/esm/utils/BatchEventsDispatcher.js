@@ -23,7 +23,7 @@ import { Deferred } from './PromiseUtil.js';
 import { getFormattedErrorMessage } from './FunctionUtil.js';
 import { Constants } from '../constants/index.js';
 import { sendDebugEventToWingify } from './DebuggerServiceUtil.js';
-import { createNetWorkAndRetryDebugEvent } from './NetworkUtil.js';
+import { applyDaCdnControlFromNetworkResponse, createNetWorkAndRetryDebugEvent } from './NetworkUtil.js';
 import { EventEnum } from '../enums/EventEnum.js';
 export class BatchEventsDispatcher {
     static async dispatch(serviceContainer, payload, flushCallback, queryParams) {
@@ -57,6 +57,7 @@ export class BatchEventsDispatcher {
                 .getNetworkManager()
                 .post(request)
                 .then((response) => {
+                applyDaCdnControlFromNetworkResponse(serviceContainer, response.getData(), response.getStatusCode());
                 if (response.getTotalAttempts() > 0) {
                     const debugEventProps = createNetWorkAndRetryDebugEvent(response, '', Constants.BATCH_EVENTS, extraData);
                     // send debug event

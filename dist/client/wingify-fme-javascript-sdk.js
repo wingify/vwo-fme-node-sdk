@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.75.0
+ * vwo-fme-javascript-sdk - v1.80.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.75.0"
+  version: "1.80.0"
 };
 
 /***/ }),
@@ -363,6 +363,7 @@ var ApiEnum_1 = __webpack_require__(/*! ./enums/ApiEnum */ "./lib/enums/ApiEnum.
 var EdgeConfigModel_1 = __webpack_require__(/*! ./models/edge/EdgeConfigModel */ "./lib/models/edge/EdgeConfigModel.ts");
 var ServiceContainer_1 = __webpack_require__(/*! ./services/ServiceContainer */ "./lib/services/ServiceContainer.ts");
 var NetworkTransportModeEnum_1 = __webpack_require__(/*! ./enums/NetworkTransportModeEnum */ "./lib/enums/NetworkTransportModeEnum.ts");
+var PanicModeForcedRefreshControlService_1 = __webpack_require__(/*! ./services/PanicModeForcedRefreshControlService */ "./lib/services/PanicModeForcedRefreshControlService.ts");
 var WingifyBuilder = /** @class */ (function () {
     function WingifyBuilder(options) {
         this.originalSettings = {};
@@ -404,6 +405,9 @@ var WingifyBuilder = /** @class */ (function () {
             service: constants_1.Constants.NETWORK_LAYER_NAME,
         }));
         this.defaultServiceContainer.setNetworkManager(this.networkManager);
+        // Inject before initPolling so early init errorLogs (e.g. INVALID_POLLING_CONFIGURATION)
+        // can POST vwo_sdkDebug. Re-injected in initBatching once the batch queue exists.
+        this.defaultServiceContainer.injectServiceContainer(this.defaultServiceContainer);
         return this;
     };
     WingifyBuilder.prototype.initBatching = function () {
@@ -487,7 +491,7 @@ var WingifyBuilder = /** @class */ (function () {
         catch (err) {
             this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
-            }, { an: ApiEnum_1.ApiEnum.INIT }, false);
+            }, { an: ApiEnum_1.ApiEnum.INIT });
             deferredObject.resolve({});
         }
         return deferredObject.promise;
@@ -682,22 +686,29 @@ var WingifyBuilder = /** @class */ (function () {
         var _a;
         this.defaultServiceContainer.setPollingStopCallback(function () { return _this.stopPolling(); });
         var poll = function () { return __awaiter(_this, void 0, void 0, function () {
-            var latestSettings, clonedSettings, ex_1, interval_1;
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var latestSettings, panicService, clonedSettings, ex_1, interval_1;
+            var _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
-                        _b.trys.push([0, 2, 3, 4]);
+                        _c.trys.push([0, 2, 3, 4]);
                         return [4 /*yield*/, this.getSettings()];
                     case 1:
-                        latestSettings = _b.sent();
+                        latestSettings = _c.sent();
                         if (latestSettings &&
                             Object.keys(latestSettings).length > 0 &&
                             JSON.stringify(latestSettings) !== JSON.stringify(this.originalSettings)) {
+                            panicService = this.defaultServiceContainer.getPanicModeForcedRefreshControlService();
+                            if (!panicService.shouldApplySettingsSnapshot(latestSettings)) {
+                                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.POLLING_SETTINGS_STALE, {
+                                    timestamp: (_a = latestSettings === null || latestSettings === void 0 ? void 0 : latestSettings.lastUpdatedOn) !== null && _a !== void 0 ? _a : latestSettings === null || latestSettings === void 0 ? void 0 : latestSettings.version,
+                                }));
+                                return [2 /*return*/]; // Skip stale polling result
+                            }
                             this.originalSettings = latestSettings;
                             clonedSettings = (0, FunctionUtil_1.cloneObject)(latestSettings);
                             this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.POLLING_SET_SETTINGS));
-                            this.wingifyInstance.updateSettings(clonedSettings, false);
+                            this.wingifyInstance.updateSettings(clonedSettings, false, false, PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.POLLING);
                             // Reinitialize the poll_interval value if there is a change in settings
                             this.updatePollIntervalAndCheckAndPoll(latestSettings, false);
                         }
@@ -706,14 +717,14 @@ var WingifyBuilder = /** @class */ (function () {
                         }
                         return [3 /*break*/, 4];
                     case 2:
-                        ex_1 = _b.sent();
+                        ex_1 = _c.sent();
                         this.logManager.errorLog('ERROR_FETCHING_SETTINGS_WITH_POLLING', {
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(ex_1),
                         }, { an: constants_1.Constants.POLLING });
                         return [3 /*break*/, 4];
                     case 3:
                         if (!this.isPollingStopped) {
-                            interval_1 = (_a = this.options.pollInterval) !== null && _a !== void 0 ? _a : constants_1.Constants.POLLING_INTERVAL;
+                            interval_1 = (_b = this.options.pollInterval) !== null && _b !== void 0 ? _b : constants_1.Constants.POLLING_INTERVAL;
                             this.pollTimerId = setTimeout(poll, interval_1);
                         }
                         return [7 /*endfinally*/];
@@ -834,6 +845,9 @@ var UsageStatsUtil_1 = __webpack_require__(/*! ./utils/UsageStatsUtil */ "./lib/
 var StorageService_1 = __webpack_require__(/*! ./services/StorageService */ "./lib/services/StorageService.ts");
 var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./lib/utils/UuidUtil.ts");
 var SDKMetaUtil_1 = __webpack_require__(/*! ./utils/SDKMetaUtil */ "./lib/utils/SDKMetaUtil.ts");
+var NetworkUtil_1 = __webpack_require__(/*! ./utils/NetworkUtil */ "./lib/utils/NetworkUtil.ts");
+var EventEnum_1 = __webpack_require__(/*! ./enums/EventEnum */ "./lib/enums/EventEnum.ts");
+var PanicModeForcedRefreshControlService_1 = __webpack_require__(/*! ./services/PanicModeForcedRefreshControlService */ "./lib/services/PanicModeForcedRefreshControlService.ts");
 var WingifyClient = /** @class */ (function () {
     /**
      * Constructor for the WingifyClient class.
@@ -846,23 +860,29 @@ var WingifyClient = /** @class */ (function () {
      * @param batchEventsQueue - The batch events queue to use for batching events.
      */
     function WingifyClient(settings, options, serviceContainer) {
+        var _this = this;
         this.isShutdown = false;
         try {
             this.options = options;
             this.serviceContainer = serviceContainer;
-            this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(settings);
+            var normalizedSettings = this.serviceContainer.getSettingsService().normalizeSettings(settings);
+            this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
             this.isAliasingEnabled = options.isAliasingEnabled || false;
             if (this.isSettingsValid && !this.serviceContainer.getSettingsService().isSettingsProvidedInInit) {
                 this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
             }
             else if (!this.isSettingsValid && this.options.settings) {
-                this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT });
             }
-            (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settings, this, this.serviceContainer.getLogManager());
+            (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(normalizedSettings, this, this.serviceContainer.getLogManager());
             this.serviceContainer.setSettings(this.settings);
             this.serviceContainer.setOriginalSettingsDocument(this.originalSettings);
             this.serviceContainer.injectServiceContainer(this.serviceContainer);
             this.serviceContainer.setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
+            this.serviceContainer.setForceRefreshHandler(function (isRefreshFromPanicClear) {
+                return _this.updateSettings(undefined, true, isRefreshFromPanicClear, PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.POST_PING_FETCH);
+            });
+            this.handleSettingsControlFlags(normalizedSettings, PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.APPLY);
             this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.CLIENT_INITIALIZED));
             this.wingifyClientInstance = this;
             var usageStatsUtil = new UsageStatsUtil_1.UsageStatsUtil(this.options);
@@ -884,12 +904,12 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.sendSdkInitAndUsageStatsEvents = function (usageStatsUtil) {
         return __awaiter(this, void 0, void 0, function () {
-            var settingsFetchTime, sdkInitTime, internalEventsThrottleService, usageStatsAccountId, err_1;
+            var settingsFetchTime, sdkInitTime, internalEventsThrottleService, isPanicModeActivated, usageStatsAccountId, err_1;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _b.trys.push([0, 7, , 8]);
+                        _b.trys.push([0, 8, , 9]);
                         settingsFetchTime = this.serviceContainer.getSettingsService().settingsFetchTime;
                         if (this.serviceContainer.getSettingsService().isSettingsProvidedInInit) {
                             // if settings are provided in init, then settings fetch time is 0
@@ -897,34 +917,45 @@ var WingifyClient = /** @class */ (function () {
                         }
                         sdkInitTime = Date.now() - this.serviceContainer.getSettingsService().startTimeForInit;
                         internalEventsThrottleService = this.serviceContainer.getInternalEventsThrottleService();
-                        if (!(this.isSettingsValid && internalEventsThrottleService.shouldSendSdkInitEvent(this.originalSettings))) return [3 /*break*/, 3];
-                        if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 2];
-                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer)];
+                        isPanicModeActivated = this.serviceContainer
+                            .getPanicModeForcedRefreshControlService()
+                            .isPanicModeActivated();
+                        if (!(this.isSettingsValid && internalEventsThrottleService.shouldSendSdkInitEvent(this.originalSettings))) return [3 /*break*/, 4];
+                        if (!isPanicModeActivated) return [3 /*break*/, 1];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: EventEnum_1.EventEnum.INIT_CALLED }));
+                        return [3 /*break*/, 4];
                     case 1:
-                        _b.sent();
-                        return [3 /*break*/, 3];
+                        if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 3];
+                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer)];
                     case 2:
-                        (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer);
-                        _b.label = 3;
-                    case 3:
-                        usageStatsAccountId = (_a = this.originalSettings) === null || _a === void 0 ? void 0 : _a.usageStatsAccountId;
-                        if (!(usageStatsAccountId && internalEventsThrottleService.shouldSendUsageStatsEvent(this.originalSettings))) return [3 /*break*/, 6];
-                        if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 5];
-                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime)];
-                    case 4:
                         _b.sent();
-                        return [3 /*break*/, 6];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer);
+                        _b.label = 4;
+                    case 4:
+                        usageStatsAccountId = (_a = this.originalSettings) === null || _a === void 0 ? void 0 : _a.usageStatsAccountId;
+                        if (!(usageStatsAccountId &&
+                            internalEventsThrottleService.shouldSendUsageStatsEvent(this.originalSettings) &&
+                            !isPanicModeActivated)) return [3 /*break*/, 7];
+                        if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 6];
+                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime)];
                     case 5:
+                        _b.sent();
+                        return [3 /*break*/, 7];
+                    case 6:
                         (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime);
-                        _b.label = 6;
-                    case 6: return [3 /*break*/, 8];
-                    case 7:
+                        _b.label = 7;
+                    case 7: return [3 /*break*/, 9];
+                    case 8:
                         err_1 = _b.sent();
                         this.serviceContainer
                             .getLogManager()
                             .error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SDK_INIT_EVENT_FAILED, { err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_1) }));
-                        return [3 /*break*/, 8];
-                    case 8: return [2 /*return*/];
+                        return [3 /*break*/, 9];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -939,7 +970,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.getFlag = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, deferredObject, uuid, errorReturnSchema, userId, contextCopy, seed, contextModel, err_2;
+            var apiName, deferredObject, uuid, errorReturnSchema, heartbeat, userId, contextCopy, seed, contextModel, err_2;
             var _a, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
@@ -965,7 +996,7 @@ var WingifyClient = /** @class */ (function () {
                         errorReturnSchema = new GetFlag_1.Flag(false, (_b = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _b !== void 0 ? _b : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), uuid, new VariationModel_1.VariationModel());
                         _c.label = 1;
                     case 1:
-                        _c.trys.push([1, 3, , 4]);
+                        _c.trys.push([1, 7, , 8]);
                         // Validate featureKey is a string
                         if (!(0, DataTypeUtil_1.isString)(featureKey)) {
                             this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
@@ -978,7 +1009,7 @@ var WingifyClient = /** @class */ (function () {
                         }
                         // Validate settings are loaded and valid
                         if (!this.isSettingsValid) {
-                            this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
+                            this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG });
                             throw new Error('TypeError: Invalid Settings');
                         }
                         // Validate user ID is present in context
@@ -986,8 +1017,28 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: String(context.id),
+                            uuid: uuid,
+                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
+                        _c.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        void heartbeat.catch(function () { return undefined; });
+                        _c.label = 4;
+                    case 4:
+                        deferredObject.resolve(errorReturnSchema);
+                        return [2 /*return*/, deferredObject.promise];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 6:
                         userId = _c.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
@@ -1024,16 +1075,16 @@ var WingifyClient = /** @class */ (function () {
                             .catch(function () {
                             deferredObject.resolve(errorReturnSchema);
                         });
-                        return [3 /*break*/, 4];
-                    case 3:
+                        return [3 /*break*/, 8];
+                    case 7:
                         err_2 = _c.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_2),
                         }, { an: ApiEnum_1.ApiEnum.GET_FLAG });
                         deferredObject.resolve(errorReturnSchema);
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/, deferredObject.promise];
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/, deferredObject.promise];
                 }
             });
         });
@@ -1047,7 +1098,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.getFlags = function (flagNames_1, context_1) {
         return __awaiter(this, arguments, void 0, function (flagNames, context, shouldSendTrackingCalls) {
-            var apiName, uuid, userId, baseContextCopy, seed, err_3;
+            var apiName, uuid, heartbeat, userId, baseContextCopy, seed, err_3;
             if (shouldSendTrackingCalls === void 0) { shouldSendTrackingCalls = true; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -1055,7 +1106,7 @@ var WingifyClient = /** @class */ (function () {
                         apiName = ApiEnum_1.ApiEnum.GET_FLAGS;
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 4, , 5]);
+                        _a.trys.push([1, 8, , 9]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
@@ -1068,8 +1119,29 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: apiName }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
+                        // if panic mode is activated log that the api is blocked by panic mode
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: String(context.id),
+                            uuid: uuid,
+                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
+                        _a.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        void heartbeat.catch(function () { return undefined; });
+                        _a.label = 4;
+                    case 4: 
+                    // return the disabled flags
+                    return [2 /*return*/, this.buildDisabledFlags(flagNames, context)];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 6:
                         userId = _a.sent();
                         baseContextCopy = __assign({}, context);
                         baseContextCopy.id = userId;
@@ -1095,15 +1167,15 @@ var WingifyClient = /** @class */ (function () {
                             }
                         }
                         return [4 /*yield*/, GetFlags_1.GetFlagsApi.get(flagNames, baseContextCopy, this.serviceContainer, this.options, shouldSendTrackingCalls)];
-                    case 3: return [2 /*return*/, _a.sent()];
-                    case 4:
+                    case 7: return [2 /*return*/, _a.sent()];
+                    case 8:
                         err_3 = _a.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3),
                         }, { an: apiName });
                         return [2 /*return*/, this.buildDisabledFlags(flagNames, context)];
-                    case 5: return [2 /*return*/];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -1137,17 +1209,17 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.trackEvent = function (eventName_1, context_1) {
         return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
-            var apiName, deferredObject, userId, contextCopy, contextModel, err_4;
-            var _a;
+            var apiName, deferredObject, heartbeat, userId, contextCopy, contextModel, err_4;
+            var _a, _b;
             if (eventProperties === void 0) { eventProperties = {}; }
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
                         deferredObject = new PromiseUtil_1.Deferred();
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 3, , 4]);
+                        _c.trys.push([1, 7, , 8]);
                         // Log the API call
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
@@ -1174,9 +1246,7 @@ var WingifyClient = /** @class */ (function () {
                         }
                         // Validate settings are loaded and valid
                         if (!this.isSettingsValid) {
-                            this.serviceContainer
-                                .getLogManager()
-                                .errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
+                            this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT });
                             throw new Error('TypeError: Invalid Settings');
                         }
                         // Validate user ID is present in context
@@ -1186,9 +1256,29 @@ var WingifyClient = /** @class */ (function () {
                                 .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: String(context.id),
+                            uuid: this.getUUIDFromContext(context, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
-                        userId = _b.sent();
+                        _c.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        void heartbeat.catch(function () { return undefined; });
+                        _c.label = 4;
+                    case 4:
+                        deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
+                        return [2 /*return*/, deferredObject.promise];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 6:
+                        userId = _c.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
                         // set uuid in the context copy
@@ -1204,17 +1294,17 @@ var WingifyClient = /** @class */ (function () {
                             var _a;
                             deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
                         });
-                        return [3 /*break*/, 4];
-                    case 3:
-                        err_4 = _b.sent();
+                        return [3 /*break*/, 8];
+                    case 7:
+                        err_4 = _c.sent();
                         // Log any errors encountered during the operation
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4),
                         }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT });
-                        deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/, deferredObject.promise];
+                        deferredObject.resolve((_b = {}, _b[eventName] = false, _b));
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/, deferredObject.promise];
                 }
             });
         });
@@ -1233,7 +1323,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, attributes, userId, contextCopy, contextModel, attributeKey, attributeValue, userId, contextCopy, contextModel, attributeMap, err_5;
+            var apiName, attributes, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -1241,8 +1331,8 @@ var WingifyClient = /** @class */ (function () {
                         apiName = ApiEnum_1.ApiEnum.SET_ATTRIBUTE;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 8, , 9]);
-                        if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 4];
+                        _b.trys.push([1, 16, , 17]);
+                        if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 8];
                         // Log the API call
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
@@ -1277,8 +1367,26 @@ var WingifyClient = /** @class */ (function () {
                                 .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: String(context.id),
+                            uuid: this.getUUIDFromContext(context, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
+                        _b.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        void heartbeat.catch(function () { return undefined; });
+                        _b.label = 4;
+                    case 4: return [2 /*return*/];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 6:
                         userId = _b.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
@@ -1287,11 +1395,11 @@ var WingifyClient = /** @class */ (function () {
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         // Proceed with setting the attributes if validation is successful
                         return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.serviceContainer, attributes, contextModel)];
-                    case 3:
+                    case 7:
                         // Proceed with setting the attributes if validation is successful
                         _b.sent();
-                        return [3 /*break*/, 7];
-                    case 4:
+                        return [3 /*break*/, 15];
+                    case 8:
                         attributeKey = attributeOrAttributes;
                         attributeValue = attributeValueOrContext;
                         // Validate attributeKey is a string
@@ -1306,8 +1414,26 @@ var WingifyClient = /** @class */ (function () {
                         if (!context || !context.id) {
                             throw new TypeError('Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
-                    case 5:
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 12];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: String(context.id),
+                            uuid: this.getUUIDFromContext(context, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 10];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
+                    case 9:
+                        _b.sent();
+                        return [3 /*break*/, 11];
+                    case 10:
+                        void heartbeat.catch(function () { return undefined; });
+                        _b.label = 11;
+                    case 11: return [2 /*return*/];
+                    case 12: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 13:
                         userId = _b.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
@@ -1315,19 +1441,19 @@ var WingifyClient = /** @class */ (function () {
                         attributeMap = (_a = {}, _a[attributeKey] = attributeValue, _a);
                         // Proceed with setting the attribute map if validation is successful
                         return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.serviceContainer, attributeMap, contextModel)];
-                    case 6:
+                    case 14:
                         // Proceed with setting the attribute map if validation is successful
                         _b.sent();
-                        _b.label = 7;
-                    case 7: return [3 /*break*/, 9];
-                    case 8:
+                        _b.label = 15;
+                    case 15: return [3 /*break*/, 17];
+                    case 16:
                         err_5 = _b.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5),
                         }, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE });
-                        return [3 /*break*/, 9];
-                    case 9: return [2 /*return*/];
+                        return [3 /*break*/, 17];
+                    case 17: return [2 /*return*/];
                 }
             });
         });
@@ -1339,25 +1465,27 @@ var WingifyClient = /** @class */ (function () {
      * @returns Promise<void>
      */
     WingifyClient.prototype.updateSettings = function (settings_1) {
-        return __awaiter(this, arguments, void 0, function (settings, isViaWebhook) {
-            var apiName, settingsToUpdate, _a, normalizedSettings, err_6;
+        return __awaiter(this, arguments, void 0, function (settings, isViaWebhook, isRefreshFromPanicClear, controlApplyMode) {
+            var apiName, settingsToUpdate, _a, normalizedSettings, panicService, resolvedControlApplyMode, err_6;
+            var _b;
             if (isViaWebhook === void 0) { isViaWebhook = true; }
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            if (isRefreshFromPanicClear === void 0) { isRefreshFromPanicClear = false; }
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.UPDATE_SETTINGS;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 5, , 6]);
+                        _c.trys.push([1, 5, , 6]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
                         if (!(!settings || Object.keys(settings).length === 0)) return [3 /*break*/, 3];
                         return [4 /*yield*/, this.serviceContainer.getSettingsService().fetchSettings(isViaWebhook, apiName)];
                     case 2:
-                        _a = _b.sent();
+                        _a = _c.sent();
                         return [3 /*break*/, 4];
                     case 3:
                         _a = settings;
-                        _b.label = 4;
+                        _c.label = 4;
                     case 4:
                         settingsToUpdate = _a;
                         normalizedSettings = this.serviceContainer.getSettingsService().normalizeSettings(settingsToUpdate);
@@ -1365,17 +1493,30 @@ var WingifyClient = /** @class */ (function () {
                         if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings)) {
                             throw new Error('TypeError: Invalid Settings schema');
                         }
+                        panicService = this.serviceContainer.getPanicModeForcedRefreshControlService();
+                        if (!panicService.shouldApplySettingsSnapshot(normalizedSettings)) {
+                            this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATE_SKIPPED_STALE, {
+                                timestamp: (_b = normalizedSettings === null || normalizedSettings === void 0 ? void 0 : normalizedSettings.lastUpdatedOn) !== null && _b !== void 0 ? _b : normalizedSettings === null || normalizedSettings === void 0 ? void 0 : normalizedSettings.version,
+                            }));
+                            return [2 /*return*/]; // Skip applying stale settings
+                        }
                         // set the settings on the client instance
                         (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(normalizedSettings, this.wingifyClientInstance, this.serviceContainer.getLogManager());
                         this.serviceContainer.setSettings(this.wingifyClientInstance.settings);
                         this.serviceContainer.setOriginalSettingsDocument(this.wingifyClientInstance.originalSettings);
                         this.serviceContainer.injectServiceContainer(this.serviceContainer);
-                        this.serviceContainer
-                            .getLogManager()
-                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName: apiName, isViaWebhook: isViaWebhook }));
+                        resolvedControlApplyMode = controlApplyMode !== null && controlApplyMode !== void 0 ? controlApplyMode : (settings && Object.keys(settings).length > 0 && !isViaWebhook
+                            ? PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.POLLING
+                            : PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.APPLY);
+                        this.handleSettingsControlFlags(normalizedSettings, resolvedControlApplyMode);
+                        if (!isRefreshFromPanicClear) {
+                            this.serviceContainer
+                                .getLogManager()
+                                .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName: apiName, isViaWebhook: isViaWebhook }));
+                        }
                         return [3 /*break*/, 6];
                     case 5:
-                        err_6 = _b.sent();
+                        err_6 = _c.sent();
                         this.serviceContainer.getLogManager().errorLog('UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED', {
                             apiName: apiName,
                             isViaWebhook: isViaWebhook,
@@ -1403,6 +1544,12 @@ var WingifyClient = /** @class */ (function () {
                     case 1:
                         _d.trys.push([1, 3, , 4]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
+                        if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+                            this.serviceContainer
+                                .getLogManager()
+                                .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                            return [2 /*return*/, { status: 'error', events: [] }];
+                        }
                         if (!this.serviceContainer.getBatchEventsQueue()) {
                             this.serviceContainer.getLogManager().errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
                             return [2 /*return*/, { status: 'error', events: [] }];
@@ -1446,14 +1593,14 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.setAlias = function (contextOrUserId, aliasId) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, userId, error_1;
+            var apiName, userId, rawUserId, heartbeat, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.SET_ALIAS;
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
+                        _a.trys.push([1, 7, , 8]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
@@ -1474,6 +1621,26 @@ var WingifyClient = /** @class */ (function () {
                         // trim aliasId before going forward
                         aliasId = aliasId.trim();
                         userId = void 0;
+                        rawUserId = typeof contextOrUserId === 'string' ? contextOrUserId.trim() : contextOrUserId.id.trim();
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: rawUserId,
+                            uuid: this.getUUIDFromContext(typeof contextOrUserId === 'string' ? { id: rawUserId } : contextOrUserId, apiName),
+                            sessionId: undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
+                    case 2:
+                        _a.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        void heartbeat.catch(function () { return undefined; });
+                        _a.label = 4;
+                    case 4: return [2 /*return*/, false];
+                    case 5:
                         if (typeof contextOrUserId === 'string') {
                             // trim contextOrUserId before going forward
                             contextOrUserId = contextOrUserId.trim();
@@ -1505,16 +1672,16 @@ var WingifyClient = /** @class */ (function () {
                             userId = contextOrUserId.id;
                         }
                         return [4 /*yield*/, AliasingUtil_1.AliasingUtil.setAlias(userId, aliasId, this.serviceContainer)];
-                    case 2:
+                    case 6:
                         _a.sent();
                         return [2 /*return*/, true];
-                    case 3:
+                    case 7:
                         error_1 = _a.sent();
                         this.serviceContainer
                             .getLogManager()
                             .errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1) }, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
                         return [2 /*return*/, false];
-                    case 4: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });
@@ -1590,6 +1757,62 @@ var WingifyClient = /** @class */ (function () {
                             .getLogManager()
                             .errorLog('EXECUTION_FAILED', { apiName: ApiEnum_1.ApiEnum.SHUTDOWN, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_8) }, { an: ApiEnum_1.ApiEnum.SHUTDOWN });
                         return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Applies or defers sdkMetaInfo panic / refresh. Polling confirms panic on/off via collector ping
+     * (stale panic rejected; logs only after ping). Force-refresh is not confirmed via ping from polling.
+     *
+     * @param settings - Normalized settings JSON (must include `lastUpdatedOn` for snapshot detection).
+     * @param mode - How this snapshot was obtained.
+     * @returns void
+     */
+    WingifyClient.prototype.handleSettingsControlFlags = function (settings, mode) {
+        if (mode === void 0) { mode = PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.APPLY; }
+        var panicModeForcedRefreshControl = this.serviceContainer.getPanicModeForcedRefreshControlService();
+        var settingsSnapshotControlOutcome = panicModeForcedRefreshControl.applySettingsControl(settings, mode);
+        if (settingsSnapshotControlOutcome.needsCollectPingConfirmation) {
+            void this.confirmControlViaCollectPing();
+        }
+        if (!settingsSnapshotControlOutcome.shouldTriggerForceRefresh || !panicModeForcedRefreshControl.tryStartRefresh()) {
+            return;
+        }
+        this.updateSettings(undefined, true, settingsSnapshotControlOutcome.isRefreshFromPanicClear, PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.POST_PING_FETCH).finally(function () {
+            panicModeForcedRefreshControl.finishRefresh(settingsSnapshotControlOutcome.isRefreshFromPanicClear);
+        });
+    };
+    /**
+     * Confirms panic with a control ping. DaCDN response is the source of truth.
+     */
+    WingifyClient.prototype.confirmControlViaCollectPing = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var panicModeForcedRefreshControl, settingsService, userId, uuid, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        panicModeForcedRefreshControl = this.serviceContainer.getPanicModeForcedRefreshControlService();
+                        if (!panicModeForcedRefreshControl.tryStartPanicClearConfirmation()) {
+                            return [2 /*return*/];
+                        }
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 3, 4, 5]);
+                        settingsService = this.serviceContainer.getSettingsService();
+                        userId = "".concat(settingsService.accountId, "_").concat(settingsService.sdkKey);
+                        uuid = (0, UuidUtil_1.getUUID)("".concat(settingsService.accountId, "_").concat(settingsService.sdkKey), String(settingsService.accountId));
+                        return [4 /*yield*/, (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, { id: userId, uuid: uuid })];
+                    case 2:
+                        _b.sent();
+                        return [3 /*break*/, 5];
+                    case 3:
+                        _a = _b.sent();
+                        return [3 /*break*/, 5];
+                    case 4:
+                        panicModeForcedRefreshControl.finishPanicClearConfirmation();
+                        return [7 /*endfinally*/];
                     case 5: return [2 /*return*/];
                 }
             });
@@ -3044,6 +3267,47 @@ exports.SAMPLED_DEBUG_ERROR_TEMPLATE_KEYS = new Set([
 
 /***/ }),
 
+/***/ "./lib/constants/SdkControlWireKeys.ts":
+/*!*********************************************!*\
+  !*** ./lib/constants/SdkControlWireKeys.ts ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SdkControlWireKeys = void 0;
+/**
+ * Wire-level JSON keys for panic / forced-settings-refresh timestamps.
+ *
+ * **Settings:** only **`sdkMetaInfo.panic`** and **`sdkMetaInfo.refresh`** are read.
+ * **DaCDN** collect/batch bodies use **`panicMode`** and **`forceRefresh`**.
+ */
+exports.SdkControlWireKeys = {
+    SETTINGS_SDK_META_PANIC_TIMESTAMP: 'panic',
+    SETTINGS_SDK_META_REFRESH_TIMESTAMP: 'refresh',
+    PANIC_MODE_TIMESTAMP: 'panicMode',
+    FORCE_REFRESH_TIMESTAMP: 'forceRefresh',
+};
+
+
+/***/ }),
+
 /***/ "./lib/constants/Url.ts":
 /*!******************************!*\
   !*** ./lib/constants/Url.ts ***!
@@ -3526,6 +3790,8 @@ exports.EventEnum = void 0;
 var EventEnum;
 (function (EventEnum) {
     EventEnum["VARIATION_SHOWN"] = "vwo_variationShown";
+    /** Minimal collect used during panic to receive DaCDN control headers in the response body. */
+    EventEnum["COLLECT_CONTROL_PING"] = "vwo_collectControlPing";
     EventEnum["SYNC_VISITOR_PROP"] = "vwo_syncVisitorProp";
     EventEnum["LOG_EVENT"] = "vwo_log";
     EventEnum["INIT_CALLED"] = "vwo_fmeSdkInit";
@@ -4672,8 +4938,10 @@ var SettingsSchema = /** @class */ (function () {
                 debug: (0, superstruct_1.optional)(runtimeSamplingSchema),
             })),
             alwaysApplySampling: (0, superstruct_1.optional)(runtimeAlwaysApplySamplingSchema),
-            sdkMetaInfo: (0, superstruct_1.optional)((0, superstruct_1.object)({
+            sdkMetaInfo: (0, superstruct_1.optional)((0, superstruct_1.type)({
                 wasInitializedEarlier: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
+                panic: (0, superstruct_1.optional)((0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()])),
+                refresh: (0, superstruct_1.optional)((0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()])),
             })),
             pollInterval: (0, superstruct_1.optional)((0, superstruct_1.number)()),
         });
@@ -5768,6 +6036,7 @@ var LogMessageUtil_1 = __webpack_require__(/*! ../../../utils/LogMessageUtil */ 
 var log_messages_1 = __webpack_require__(/*! ../../../enums/log-messages */ "./lib/enums/log-messages/index.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var NetworkTransportModeEnum_1 = __webpack_require__(/*! ../../../enums/NetworkTransportModeEnum */ "./lib/enums/NetworkTransportModeEnum.ts");
+var EventEnum_1 = __webpack_require__(/*! ../../../enums/EventEnum */ "./lib/enums/EventEnum.ts");
 /**
  * Implements the NetworkClientInterface to handle network requests.
  */
@@ -5802,6 +6071,12 @@ var NetworkBrowserClient = /** @class */ (function () {
      */
     NetworkBrowserClient.prototype.POST = function (requestModel) {
         var deferred = new PromiseUtil_1.Deferred();
+        // The panic-mode heartbeat ping MUST use XHR (not sendBeacon) so that
+        // the DaCDN response body is readable and applyDaCdnControlFromNetworkResponse
+        // can update isPanicModeActive accordingly.
+        if (requestModel.getEventName() === EventEnum_1.EventEnum.COLLECT_CONTROL_PING) {
+            return this.POST_XHR(requestModel);
+        }
         // if networkTransportMode is SEND_BEACON, and navigator.sendBeacon is defined, use beacon
         // sendBeacon can be undefined for internet explorer 11 - so we will fallback to XHR
         if (this.networkTransportMode.toLowerCase() !== NetworkTransportModeEnum_1.NetworkTransportModeEnum.XHR.toLowerCase() &&
@@ -8928,6 +9203,13 @@ var BatchEventsQueue = /** @class */ (function () {
      * @param payload - The event to enqueue
      */
     BatchEventsQueue.prototype.enqueue = function (payload) {
+        var _a, _b, _c, _d, _e, _f;
+        // Block enqueue while panic mode is active — the event must not be queued or dispatched.
+        if ((_b = (_a = this.serviceContainer) === null || _a === void 0 ? void 0 : _a.getPanicModeForcedRefreshControlService()) === null || _b === void 0 ? void 0 : _b.isPanicModeActivated()) {
+            var eventName = (_f = (_e = (_d = (_c = payload === null || payload === void 0 ? void 0 : payload.d) === null || _c === void 0 ? void 0 : _c.event) === null || _d === void 0 ? void 0 : _d.props) === null || _e === void 0 ? void 0 : _e.name) !== null && _f !== void 0 ? _f : 'event';
+            this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: eventName }));
+            return;
+        }
         // Enqueue the event in the queue
         this.queue.push(payload);
         this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENT_QUEUE, {
@@ -8950,12 +9232,22 @@ var BatchEventsQueue = /** @class */ (function () {
      */
     BatchEventsQueue.prototype.flush = function () {
         return __awaiter(this, arguments, void 0, function (manual) {
-            var tempQueue_1;
+            var discardedCount, tempQueue_1, discardedCount;
             var _this = this;
             if (manual === void 0) { manual = false; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+                            this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: 'flushEvents' }));
+                            discardedCount = this.discardQueuedEvents();
+                            if (discardedCount > 0) {
+                                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENTS_DISCARDED_DUE_TO_PANIC_MODE, { count: discardedCount }));
+                            }
+                            return [2 /*return*/, new Promise(function (resolve) {
+                                    resolve({ status: 'success', events: [] });
+                                })];
+                        }
                         if (!this.queue.length) return [3 /*break*/, 2];
                         this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EVENT_BATCH_BEFORE_FLUSHING, {
                             manually: manual ? 'manually' : '',
@@ -8966,6 +9258,15 @@ var BatchEventsQueue = /** @class */ (function () {
                         tempQueue_1 = manual
                             ? this.queue.splice(0, this.queue.length) // drain everything if manual flush
                             : this.queue.splice(0, this.eventsPerRequest);
+                        // Panic can latch after flush started (TTS-3132). Do not send events already drained.
+                        if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+                            this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: 'flushEvents' }));
+                            discardedCount = this.discardQueuedEvents();
+                            if (discardedCount > 0) {
+                                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENTS_DISCARDED_DUE_TO_PANIC_MODE, { count: discardedCount }));
+                            }
+                            return [2 /*return*/, { status: 'success', events: [] }];
+                        }
                         return [4 /*yield*/, BatchEventsDispatcher_1.default.dispatch(this.serviceContainer, {
                                 ev: tempQueue_1,
                             }, this.flushCallback, Object.assign({}, {
@@ -8993,8 +9294,7 @@ var BatchEventsQueue = /** @class */ (function () {
                                 _this.queue = tempQueue_1.concat(_this.queue);
                                 return { status: 'error', events: tempQueue_1 };
                             })];
-                    case 1: // drain only events per request if automatic flush
-                    return [2 /*return*/, _a.sent()];
+                    case 1: return [2 /*return*/, _a.sent()];
                     case 2:
                         this.logManager.debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.BATCH_QUEUE_EMPTY));
                         return [2 /*return*/, new Promise(function (resolve) {
@@ -9033,6 +9333,21 @@ var BatchEventsQueue = /** @class */ (function () {
     BatchEventsQueue.prototype.clearRequestTimer = function () {
         clearTimeout(this.timer);
         this.timer = null;
+    };
+    /**
+     * Drops queued events without sending them and cancels the batch timer.
+     * Called as soon as panic latches from off to on so a later flushEvents cannot
+     * transmit events that were queued before panic (TTS-3132).
+     *
+     * @returns Number of events discarded
+     */
+    BatchEventsQueue.prototype.discardQueuedEvents = function () {
+        var discardedCount = this.queue.length;
+        this.queue = [];
+        if (!this.isEdgeEnvironment) {
+            this.clearRequestTimer();
+        }
+        return discardedCount;
     };
     /**
      * Flushes the queue and clears the timer
@@ -9560,6 +9875,503 @@ exports.InternalEventsThrottleService = InternalEventsThrottleService;
 
 /***/ }),
 
+/***/ "./lib/services/PanicModeForcedRefreshControlService.ts":
+/*!**************************************************************!*\
+  !*** ./lib/services/PanicModeForcedRefreshControlService.ts ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PanicModeForcedRefreshControlService = exports.SettingsControlApplyMode = void 0;
+var SdkControlWireKeys_1 = __webpack_require__(/*! ../constants/SdkControlWireKeys */ "./lib/constants/SdkControlWireKeys.ts");
+var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var SettingsControlApplyMode;
+(function (SettingsControlApplyMode) {
+    /** Init / explicit fetch: apply sdkMetaInfo panic and refresh from this snapshot. */
+    SettingsControlApplyMode["APPLY"] = "apply";
+    /** Polling: confirm panic via collector ping; do not ping or extra-fetch for refresh. */
+    SettingsControlApplyMode["POLLING"] = "polling";
+    /** Settings pull after ping: apply campaigns only; do not re-latch control from sdkMetaInfo. */
+    SettingsControlApplyMode["POST_PING_FETCH"] = "postPingFetch";
+})(SettingsControlApplyMode || (exports.SettingsControlApplyMode = SettingsControlApplyMode = {}));
+//Coordinates panic-mode kill-switch and forced settings refresh from settings snapshots and DaCDN responses.
+var PanicModeForcedRefreshControlService = /** @class */ (function () {
+    function PanicModeForcedRefreshControlService() {
+        this.isPanicModeActive = false;
+        this.lastPanicTimestamp = null;
+        this.lastForceRefreshTimestamp = null;
+        this.lastSettingsTimestamp = null;
+        this.isForcedSettingsRefreshInProgress = false;
+        this.isPanicClearConfirmationInProgress = false;
+        this.logManager = null;
+        this.onPanicActivated = null;
+    }
+    PanicModeForcedRefreshControlService.prototype.setLogManager = function (logManager) {
+        this.logManager = logManager;
+    };
+    /**
+     * Called once when panic latches from off to on. Used to discard the batch queue immediately.
+     */
+    PanicModeForcedRefreshControlService.prototype.setOnPanicActivated = function (handler) {
+        this.onPanicActivated = handler;
+    };
+    /**
+     * Applies or defers panic / force-refresh from a settings snapshot.
+     *
+     * Contract:
+     * - `APPLY` (init / explicit fetch): `sdkMetaInfo.panic` latches immediately unless the token is
+     *   stale (`<= last`). A valid `sdkMetaInfo.refresh` on init extra-fetches (TTS-3149). Later
+     *   snapshots extra-fetch only when the token is newer (TTS-3134). Panic-off while latched still
+     *   pings. Do not log a polling-driven on/off until collector ping decides.
+     * - `POLLING`: never apply panic/refresh from v2-settings. Panic currently ON + poll OFF → ping.
+     *   Newer panic tokens → ping. Stale panic tokens → reject. Force-refresh does **not** ping
+     *   and does **not** extra-fetch from polling.
+     * - `POST_PING_FETCH`: record snapshot id only. Ping already decided control; do not re-latch.
+     *
+     * @param settings - Normalized settings document (expects `lastUpdatedOn` and optional `sdkMetaInfo`).
+     * @param mode - How this snapshot was obtained.
+     * @returns Snapshot metadata, current panic latch, and whether ping or extra fetch should run.
+     */
+    PanicModeForcedRefreshControlService.prototype.applySettingsControl = function (settings, mode) {
+        var _a;
+        if (mode === void 0) { mode = SettingsControlApplyMode.APPLY; }
+        var snapshotTimestamp = this.normalizeTimestamp((_a = settings === null || settings === void 0 ? void 0 : settings.lastUpdatedOn) !== null && _a !== void 0 ? _a : settings === null || settings === void 0 ? void 0 : settings.version);
+        var result = {
+            isNewSettingsSnapshot: false,
+            isPanicModeActivated: this.isPanicModeActive,
+            shouldTriggerForceRefresh: false,
+        };
+        if (!snapshotTimestamp) {
+            return result;
+        }
+        // Reject stale or duplicate snapshots: once we've seen a newer timestamp,
+        // never accept older ones (TTS-3135: prevents polling from applying older
+        // settings after force-refresh has fetched newer ones).
+        var isStaleOrDuplicateSnapshot = this.isStaleSettingsSnapshot(snapshotTimestamp);
+        if (isStaleOrDuplicateSnapshot) {
+            if (this.logManager) {
+                this.logManager.info("[SETTINGS_SNAPSHOT_STALE] Rejecting stale/duplicate settings snapshot. " +
+                    "Incoming: ".concat(snapshotTimestamp, ", Last seen: ").concat(this.lastSettingsTimestamp));
+            }
+            result.isPanicModeActivated = this.isPanicModeActive;
+            return result;
+        }
+        this.lastSettingsTimestamp = snapshotTimestamp;
+        result.isNewSettingsSnapshot = true;
+        if (mode === SettingsControlApplyMode.POLLING) {
+            this.evaluatePollingControlSignals(this.resolveSettingsControlTimestamps(settings), result);
+            result.isPanicModeActivated = this.isPanicModeActive;
+            return result;
+        }
+        if (mode === SettingsControlApplyMode.POST_PING_FETCH) {
+            result.isPanicModeActivated = this.isPanicModeActive;
+            return result;
+        }
+        var resolvedTimestamps = this.resolveSettingsControlTimestamps(settings);
+        this.applyPanicModeFromSettingsSdkMeta(resolvedTimestamps, result);
+        this.applyForcedRefreshSignalFromSettingsSdkMeta(resolvedTimestamps, result);
+        result.isPanicModeActivated = this.isPanicModeActive;
+        return result;
+    };
+    /**
+     * Applies panic / force-refresh from a DaCDN collect or batch-events JSON body.
+     * Uses `panicMode` and `forceRefresh` keys from {@link SdkControlWireKeys}.
+     *
+     * @param data - Parsed JSON body from a successful collect/batch response (plain object only).
+     * @returns Snapshot summary fields plus panic latch and whether forced refresh should run.
+     */
+    PanicModeForcedRefreshControlService.prototype.applyCollectControlPayload = function (data) {
+        var wasPanicModeActive = this.isPanicModeActive;
+        var result = {
+            isNewSettingsSnapshot: false,
+            isPanicModeActivated: this.isPanicModeActive,
+            shouldTriggerForceRefresh: false,
+        };
+        // If the data is not a plain object (e.g. primitive '1' or 'ok'), it means
+        // there's no DA CDN control payload, which implies panic mode is OFF.
+        if (!(0, DataTypeUtil_1.isObject)(data)) {
+            if (wasPanicModeActive) {
+                this.isPanicModeActive = false;
+                result.shouldTriggerForceRefresh = true;
+                result.isRefreshFromPanicClear = true;
+                if (this.logManager) {
+                    this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.PANIC_MODE_CLEARED_VIA_RESPONSE));
+                }
+                result.isPanicModeActivated = false;
+            }
+            return result;
+        }
+        var typedData = data;
+        // panicMode / forceRefresh per DaCDN contract (distinct keys from settings sdkMetaInfo).
+        var hasPanicModeProperty = Object.prototype.hasOwnProperty.call(typedData, SdkControlWireKeys_1.SdkControlWireKeys.PANIC_MODE_TIMESTAMP);
+        // Check if the data has a force refresh property.
+        var hasForceRefreshProperty = Object.prototype.hasOwnProperty.call(typedData, SdkControlWireKeys_1.SdkControlWireKeys.FORCE_REFRESH_TIMESTAMP);
+        // Collect echoes often carry only d payload, and batch replies expose ev;
+        // if DaCDN omitted explicit control keys from these echoes, turn panic mode OFF.
+        if ((Object.prototype.hasOwnProperty.call(typedData, 'd') || Object.prototype.hasOwnProperty.call(typedData, 'ev')) &&
+            !hasPanicModeProperty &&
+            !hasForceRefreshProperty) {
+            this.isPanicModeActive = false;
+            if (wasPanicModeActive) {
+                result.shouldTriggerForceRefresh = true;
+                result.isRefreshFromPanicClear = true;
+                if (this.logManager) {
+                    this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.PANIC_MODE_CLEARED_VIA_RESPONSE));
+                }
+            }
+            result.isPanicModeActivated = false;
+            return result;
+        }
+        this.applyPanicModeFromDaCdnPayload(typedData, hasPanicModeProperty, wasPanicModeActive);
+        this.applyForcedRefreshSignalFromDaCdnPayload(typedData, hasForceRefreshProperty, result);
+        if (wasPanicModeActive && !this.isPanicModeActive) {
+            result.shouldTriggerForceRefresh = true;
+            result.isRefreshFromPanicClear = true;
+        }
+        // Reflect latest panic latch into outbound summary for callers/tests.
+        result.isPanicModeActivated = this.isPanicModeActive;
+        return result;
+    };
+    /**
+     * Returns whether panic mode is currently active.
+     *
+     * @returns `true` when panic mode is latched on, `false` otherwise.
+     */
+    PanicModeForcedRefreshControlService.prototype.isPanicModeActivated = function () {
+        return this.isPanicModeActive;
+    };
+    /**
+     * Atomically checks and acquires the forced-refresh mutex.
+     * Sets `isForcedSettingsRefreshInProgress` to `true` only when not already held.
+     *
+     * @returns `true` if the lock was successfully acquired, `false` if a refresh is already in progress.
+     */
+    PanicModeForcedRefreshControlService.prototype.tryStartRefresh = function () {
+        if (this.isForcedSettingsRefreshInProgress) {
+            return false;
+        }
+        this.isForcedSettingsRefreshInProgress = true;
+        return true;
+    };
+    /**
+     * Releases the forced-refresh mutex after `updateSettings` completes or aborts.
+     * Logs `SDK_REENABLED` only when panic is still off (ping is source of truth; post-ping
+     * settings fetch must not re-latch and must not also log disable).
+     *
+     * @param isRefreshFromPanicClear - Whether this refresh was triggered by a panic-mode clear event.
+     * @returns void
+     */
+    PanicModeForcedRefreshControlService.prototype.finishRefresh = function (isRefreshFromPanicClear) {
+        if (isRefreshFromPanicClear === void 0) { isRefreshFromPanicClear = false; }
+        if (this.isForcedSettingsRefreshInProgress && this.logManager) {
+            if (isRefreshFromPanicClear) {
+                // Only claim the SDK is enabled when the post-refresh snapshot did not re-latch panic.
+                if (!this.isPanicModeActive) {
+                    this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SDK_REENABLED));
+                }
+            }
+            else {
+                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.FORCE_REFRESH_COMPLETED));
+            }
+        }
+        this.isForcedSettingsRefreshInProgress = false;
+    };
+    /**
+     * Atomically checks and acquires the panic-clear confirmation mutex (control ping in flight).
+     *
+     * @returns `true` if confirmation may proceed, `false` if one is already in progress.
+     */
+    PanicModeForcedRefreshControlService.prototype.tryStartPanicClearConfirmation = function () {
+        if (this.isPanicClearConfirmationInProgress) {
+            return false;
+        }
+        this.isPanicClearConfirmationInProgress = true;
+        return true;
+    };
+    /**
+     * Releases the panic-clear confirmation mutex after the control ping completes or aborts.
+     *
+     * @returns void
+     */
+    PanicModeForcedRefreshControlService.prototype.finishPanicClearConfirmation = function () {
+        this.isPanicClearConfirmationInProgress = false;
+    };
+    /**
+     * Updates panic latch from settings `sdkMetaInfo.panic` when declared on this snapshot.
+     * When panic is on and this snapshot signals off, defer clearing until DaCDN confirms via control ping.
+     *
+     * @param resolved - Declarations/raw values read from `settings.sdkMetaInfo`.
+     * @param result - Mutable result bag; may set `needsCollectPingConfirmation`.
+     * @returns void
+     */
+    PanicModeForcedRefreshControlService.prototype.applyPanicModeFromSettingsSdkMeta = function (resolved, result) {
+        var wasPanicModeActive = this.isPanicModeActive;
+        if (!resolved.hasPanicTimestampDeclared) {
+            if (wasPanicModeActive) {
+                result.needsCollectPingConfirmation = true;
+                return;
+            }
+            this.isPanicModeActive = false;
+            return;
+        }
+        var normalizedPanicTimestamp = this.normalizeTimestamp(resolved.panicTimestampRaw);
+        if (normalizedPanicTimestamp) {
+            if (this.isStaleControlTimestamp(normalizedPanicTimestamp, this.lastPanicTimestamp)) {
+                return;
+            }
+            this.isPanicModeActive = true;
+            if (wasPanicModeActive && this.lastPanicTimestamp !== normalizedPanicTimestamp && this.logManager) {
+                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.PANIC_MODE_TIMESTAMP_UPDATED, { panicTs: normalizedPanicTimestamp }));
+            }
+            this.lastPanicTimestamp = normalizedPanicTimestamp;
+            if (!wasPanicModeActive && this.logManager) {
+                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.PANIC_MODE_ACTIVATED, { panicTs: normalizedPanicTimestamp }));
+            }
+            this.notifyPanicActivated(wasPanicModeActive);
+        }
+        else if (wasPanicModeActive) {
+            result.needsCollectPingConfirmation = true;
+        }
+        else {
+            this.isPanicModeActive = false;
+        }
+    };
+    /**
+     * Triggers forced-refresh when settings `sdkMetaInfo.refresh` is a valid, non-stale token.
+     * Init APPLY with a refresh timestamp extra-fetches (TTS-3149). Same/older tokens are ignored
+     * (TTS-3134).
+     *
+     * @param resolved - Declarations/raw values read from `settings.sdkMetaInfo`.
+     * @param result - Mutable result bag updated when refresh should extra-fetch.
+     * @returns void
+     */
+    PanicModeForcedRefreshControlService.prototype.applyForcedRefreshSignalFromSettingsSdkMeta = function (resolved, result) {
+        if (!resolved.hasRefreshTimestampDeclared) {
+            return;
+        }
+        // Normalize the refresh timestamp.
+        var normalizedRefreshTimestamp = this.normalizeTimestamp(resolved.refreshTimestampRaw);
+        if (!normalizedRefreshTimestamp) {
+            return;
+        }
+        // Same or older than last seen: do not extra-fetch (TTS-3134, matches DaCDN panicMode).
+        if (this.isStaleControlTimestamp(normalizedRefreshTimestamp, this.lastForceRefreshTimestamp)) {
+            return;
+        }
+        this.lastForceRefreshTimestamp = normalizedRefreshTimestamp;
+        result.shouldTriggerForceRefresh = true;
+        if (this.logManager) {
+            this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.FORCE_REFRESH_TRIGGERED, {
+                source: 'settings',
+                refreshTs: normalizedRefreshTimestamp,
+            }));
+        }
+    };
+    /**
+     * Updates panic latch from DaCDN `panicMode` when present on this payload.
+     *
+     * @param data - Parsed DaCDN control payload (plain object).
+     * @param hasPanicModeProperty - Whether `panicMode` is an own property on `data`.
+     * @param wasPanicModeActive - Previous state of the panic mode latch.
+     * @returns void
+     */
+    PanicModeForcedRefreshControlService.prototype.applyPanicModeFromDaCdnPayload = function (data, hasPanicModeProperty, wasPanicModeActive) {
+        if (!hasPanicModeProperty) {
+            this.isPanicModeActive = false;
+            if (wasPanicModeActive && this.logManager) {
+                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.PANIC_MODE_CLEARED_VIA_RESPONSE));
+            }
+            return;
+        }
+        // Normalize the panic timestamp.
+        var normalizedPanicTimestamp = this.normalizeTimestamp(data[SdkControlWireKeys_1.SdkControlWireKeys.PANIC_MODE_TIMESTAMP]);
+        // Set the panic mode active if the normalized panic timestamp is not null.
+        if (normalizedPanicTimestamp) {
+            if (this.isStaleControlTimestamp(normalizedPanicTimestamp, this.lastPanicTimestamp)) {
+                return; // Ignore stale panic timestamp payload
+            }
+            this.isPanicModeActive = true;
+            if (wasPanicModeActive && this.logManager) {
+                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.PANIC_MODE_TIMESTAMP_UPDATED, { panicTs: normalizedPanicTimestamp }));
+            }
+            this.lastPanicTimestamp = normalizedPanicTimestamp;
+            if (!wasPanicModeActive && this.logManager) {
+                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.PANIC_MODE_ACTIVATED, { panicTs: normalizedPanicTimestamp }));
+            }
+            this.notifyPanicActivated(wasPanicModeActive);
+        }
+        else {
+            this.isPanicModeActive = false;
+            if (wasPanicModeActive && this.logManager) {
+                this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.PANIC_MODE_CLEARED_VIA_RESPONSE));
+            }
+        }
+    };
+    /**
+     * Sets forced-refresh hint when DaCDN `forceRefresh` token is **newer** than last seen.
+     *
+     * @param data - Parsed DaCDN control payload (plain object).
+     * @param hasForceRefreshProperty - Whether `forceRefresh` is an own property on `data`.
+     * @param result - Mutable result bag; may set `shouldTriggerForceRefresh` when token advances.
+     * @returns void
+     */
+    PanicModeForcedRefreshControlService.prototype.applyForcedRefreshSignalFromDaCdnPayload = function (data, hasForceRefreshProperty, result) {
+        if (!hasForceRefreshProperty) {
+            return;
+        }
+        var normalizedForceRefreshTimestamp = this.normalizeTimestamp(data[SdkControlWireKeys_1.SdkControlWireKeys.FORCE_REFRESH_TIMESTAMP]);
+        if (!normalizedForceRefreshTimestamp) {
+            return;
+        }
+        // Same or older than last seen: ignore (TTS-3134, matches DaCDN panicMode stale check).
+        if (this.isStaleControlTimestamp(normalizedForceRefreshTimestamp, this.lastForceRefreshTimestamp)) {
+            return;
+        }
+        this.lastForceRefreshTimestamp = normalizedForceRefreshTimestamp;
+        result.shouldTriggerForceRefresh = true;
+        if (this.logManager) {
+            this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.FORCE_REFRESH_TRIGGERED, {
+                source: 'network response',
+                refreshTs: normalizedForceRefreshTimestamp,
+            }));
+        }
+    };
+    /**
+     * Polling never latches or extra-fetches from sdkMetaInfo. Collector ping is only for panic:
+     * newer panic token, or panic currently ON + poll OFF. Force-refresh is ignored here (no ping).
+     * Logs happen only when the ping payload is applied.
+     */
+    PanicModeForcedRefreshControlService.prototype.evaluatePollingControlSignals = function (resolved, result) {
+        var panicTimestamp = resolved.hasPanicTimestampDeclared
+            ? this.normalizeTimestamp(resolved.panicTimestampRaw)
+            : null;
+        if (panicTimestamp) {
+            if (!this.isStaleControlTimestamp(panicTimestamp, this.lastPanicTimestamp)) {
+                result.needsCollectPingConfirmation = true;
+            }
+            return;
+        }
+        if (this.isPanicModeActive) {
+            result.needsCollectPingConfirmation = true;
+        }
+    };
+    /**
+     * Same/older than last seen is stale. First token (`last` unset) is never stale.
+     */
+    PanicModeForcedRefreshControlService.prototype.isStaleControlTimestamp = function (candidate, lastSeen) {
+        return lastSeen !== null && candidate <= lastSeen;
+    };
+    /**
+     * Public API to check if a settings snapshot should be applied or rejected as stale.
+     * Prevents race condition where polling applies older settings after force-refresh fetched newer ones (TTS-3135).
+     *
+     * This should be called in WingifyClient.updateSettings() BEFORE applying campaigns, and in
+     * WingifyBuilder.checkAndPoll() BEFORE calling updateSettings().
+     *
+     * @param settings - Settings document with lastUpdatedOn or version timestamp.
+     * @returns `true` if settings should be applied (newer or first), `false` if stale/duplicate (should skip).
+     */
+    PanicModeForcedRefreshControlService.prototype.shouldApplySettingsSnapshot = function (settings) {
+        var _a;
+        var snapshotTimestamp = this.normalizeTimestamp((_a = settings === null || settings === void 0 ? void 0 : settings.lastUpdatedOn) !== null && _a !== void 0 ? _a : settings === null || settings === void 0 ? void 0 : settings.version);
+        if (!snapshotTimestamp) {
+            return false; // Invalid timestamp, reject
+        }
+        return !this.isStaleSettingsSnapshot(snapshotTimestamp);
+    };
+    /**
+     * Checks if incoming settings snapshot timestamp is stale (older or equal to last seen).
+     * Prevents race condition where polling applies older settings after force-refresh fetched newer ones (TTS-3135).
+     *
+     * @param incomingTimestamp - The timestamp from the incoming settings snapshot.
+     * @returns `true` if the snapshot is stale or duplicate, `false` if it's newer.
+     */
+    PanicModeForcedRefreshControlService.prototype.isStaleSettingsSnapshot = function (incomingTimestamp) {
+        return this.lastSettingsTimestamp !== null && incomingTimestamp <= this.lastSettingsTimestamp;
+    };
+    /**
+     * Coerces panic/refresh tokens to a comparable string; rejects empty and unsupported shapes.
+     *
+     * @param value - Raw panic or refresh token from settings or DaCDN (number, string, nullish, etc.).
+     * @returns Trimmed non-empty string token, or `null` if unusable.
+     */
+    PanicModeForcedRefreshControlService.prototype.normalizeTimestamp = function (value) {
+        if ((0, DataTypeUtil_1.isUndefined)(value) || (0, DataTypeUtil_1.isNull)(value)) {
+            return null;
+        }
+        if ((0, DataTypeUtil_1.isNumber)(value) && Number.isFinite(value)) {
+            return value.toString();
+        }
+        if ((0, DataTypeUtil_1.isString)(value)) {
+            var trimmedToken = value.trim();
+            return trimmedToken.length > 0 ? trimmedToken : null;
+        }
+        return null;
+    };
+    /**
+     * Reads control timestamps from `sdkMetaInfo` only (plain object); ignores legacy settings root keys.
+     *
+     * @param settings - Settings document containing optional `sdkMetaInfo`.
+     * @returns Declared panic/refresh keys and raw values under `sdkMetaInfo` only.
+     */
+    PanicModeForcedRefreshControlService.prototype.resolveSettingsControlTimestamps = function (settings) {
+        // Read the sdkMetaInfo object from the settings.
+        var sdkMetaRoot = settings === null || settings === void 0 ? void 0 : settings.sdkMetaInfo;
+        var sdkMetaInfo = sdkMetaRoot !== undefined && sdkMetaRoot !== null && (0, DataTypeUtil_1.isObject)(sdkMetaRoot)
+            ? sdkMetaRoot
+            : {};
+        // Check if the sdkMetaInfo object has a panic timestamp property.
+        var hasPanicTimestampDeclared = Object.prototype.hasOwnProperty.call(sdkMetaInfo, SdkControlWireKeys_1.SdkControlWireKeys.SETTINGS_SDK_META_PANIC_TIMESTAMP);
+        // Check if the sdkMetaInfo object has a refresh timestamp property.
+        var hasRefreshTimestampDeclared = Object.prototype.hasOwnProperty.call(sdkMetaInfo, SdkControlWireKeys_1.SdkControlWireKeys.SETTINGS_SDK_META_REFRESH_TIMESTAMP);
+        // Return the resolved settings control timestamps.
+        return {
+            hasPanicTimestampDeclared: hasPanicTimestampDeclared,
+            panicTimestampRaw: sdkMetaInfo[SdkControlWireKeys_1.SdkControlWireKeys.SETTINGS_SDK_META_PANIC_TIMESTAMP],
+            hasRefreshTimestampDeclared: hasRefreshTimestampDeclared,
+            refreshTimestampRaw: sdkMetaInfo[SdkControlWireKeys_1.SdkControlWireKeys.SETTINGS_SDK_META_REFRESH_TIMESTAMP],
+        };
+    };
+    /**
+     * Fires the discard-queue hook only on the off → on latch, not on later timestamp bumps.
+     *
+     * @param wasPanicModeActive - Latch state before this payload was applied.
+     * @returns void
+     */
+    PanicModeForcedRefreshControlService.prototype.notifyPanicActivated = function (wasPanicModeActive) {
+        var _a;
+        if (wasPanicModeActive || !this.isPanicModeActive) {
+            return;
+        }
+        (_a = this.onPanicActivated) === null || _a === void 0 ? void 0 : _a.call(this);
+    };
+    return PanicModeForcedRefreshControlService;
+}());
+exports.PanicModeForcedRefreshControlService = PanicModeForcedRefreshControlService;
+exports["default"] = PanicModeForcedRefreshControlService;
+
+
+/***/ }),
+
 /***/ "./lib/services/ServiceContainer.ts":
 /*!******************************************!*\
   !*** ./lib/services/ServiceContainer.ts ***!
@@ -9591,22 +10403,36 @@ exports.ServiceContainer = void 0;
 var SegmentationManger_1 = __webpack_require__(/*! ../packages/segmentation-evaluator/core/SegmentationManger */ "./lib/packages/segmentation-evaluator/core/SegmentationManger.ts");
 var HooksService_1 = __importDefault(__webpack_require__(/*! ./HooksService */ "./lib/services/HooksService.ts"));
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+var PanicModeForcedRefreshControlService_1 = __importDefault(__webpack_require__(/*! ./PanicModeForcedRefreshControlService */ "./lib/services/PanicModeForcedRefreshControlService.ts"));
 var GetFlagsBatchContext_1 = __webpack_require__(/*! ./GetFlagsBatchContext */ "./lib/services/GetFlagsBatchContext.ts");
 var InternalEventsThrottleService_1 = __webpack_require__(/*! ./InternalEventsThrottleService */ "./lib/services/InternalEventsThrottleService.ts");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 /**
  * ServiceContainer is a class that contains all the services that are used in the SDK.
  */
 var ServiceContainer = /** @class */ (function () {
     function ServiceContainer(options) {
+        var _this = this;
         this.BatchEventsQueue = null;
         this.suppressTrackingCalls = false;
         this.suppressMAU = false;
         this.pollingStopCallback = null;
+        this.forceRefreshHandler = null;
         this.internalEventsThrottleService = null;
         this.originalSettingsDocument = {};
         this.vwoOptions = options;
         this.HooksService = new HooksService_1.default(this.vwoOptions);
         this.SegmentationManager = new SegmentationManger_1.SegmentationManager();
+        this.panicModeForcedRefreshControlService = new PanicModeForcedRefreshControlService_1.default();
+        this.panicModeForcedRefreshControlService.setOnPanicActivated(function () {
+            if (_this.BatchEventsQueue) {
+                var discardedCount = _this.BatchEventsQueue.discardQueuedEvents();
+                if (discardedCount > 0 && _this.logManager) {
+                    _this.logManager.info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.EVENTS_DISCARDED_DUE_TO_PANIC_MODE, { count: discardedCount }));
+                }
+            }
+        });
     }
     /**
      *
@@ -9621,6 +10447,9 @@ var ServiceContainer = /** @class */ (function () {
      */
     ServiceContainer.prototype.setLogManager = function (logManager) {
         this.logManager = logManager;
+        if (this.panicModeForcedRefreshControlService) {
+            this.panicModeForcedRefreshControlService.setLogManager(logManager);
+        }
     };
     /**
      *
@@ -9737,6 +10566,13 @@ var ServiceContainer = /** @class */ (function () {
         this.Storage = storage;
     };
     /**
+     * Returns the service that applies panic-mode and forced settings refresh from settings and DaCDN payloads.
+     * @returns The panic / forced-refresh coordination service instance.
+     */
+    ServiceContainer.prototype.getPanicModeForcedRefreshControlService = function () {
+        return this.panicModeForcedRefreshControlService;
+    };
+    /**
      * Injects the service container into the services.
      * @param serviceContainer - The service container to inject.
      */
@@ -9795,6 +10631,23 @@ var ServiceContainer = /** @class */ (function () {
             this.pollingStopCallback();
             this.pollingStopCallback = null;
         }
+    };
+    /**
+     * Registers the callback used when a successful collect/batch response signals `forceRefresh`.
+     * Wired by VWOClient to `updateSettings(undefined, true)` to avoid importing VWOClient from network utilities.
+     *
+     * @param handler - Async function to pull latest settings, or `null` to clear.
+     */
+    ServiceContainer.prototype.setForceRefreshHandler = function (handler) {
+        this.forceRefreshHandler = handler;
+    };
+    /**
+     * Returns the handler registered with `setForceRefreshHandler`, if any.
+     *
+     * @returns The registered handler, or `null` when none is set.
+     */
+    ServiceContainer.prototype.getForceRefreshHandler = function () {
+        return this.forceRefreshHandler;
     };
     /**
      * Returns the internal-events throttle service for the current SDK instance.
@@ -10047,6 +10900,7 @@ var SettingsService = /** @class */ (function () {
         var deferredObject = new PromiseUtil_1.Deferred();
         if (!this.sdkKey || !this.accountId) {
             deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
+            return deferredObject.promise;
         }
         var options = (0, NetworkUtil_1.getSettingsPath)(this.sdkKey, this.accountId);
         var retryConfig = this.serviceContainer.getNetworkManager().getRetryConfig();
@@ -10091,7 +10945,7 @@ var SettingsService = /** @class */ (function () {
         catch (err) {
             this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
-            }, { an: isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName }, false);
+            }, { an: isViaWebhook ? ApiEnum_1.ApiEnum.UPDATE_SETTINGS : apiName });
             deferredObject.reject(err);
             return deferredObject.promise;
         }
@@ -10139,7 +10993,7 @@ var SettingsService = /** @class */ (function () {
                         deferredObject.resolve(normalizedSettings);
                         return [3 /*break*/, 8];
                     case 7:
-                        this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                        this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT });
                         deferredObject.resolve({});
                         _a.label = 8;
                     case 8: return [3 /*break*/, 12];
@@ -10155,7 +11009,7 @@ var SettingsService = /** @class */ (function () {
                             deferredObject.resolve(normalizedSettings);
                         }
                         else {
-                            this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                            this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT });
                             deferredObject.resolve({});
                         }
                         _a.label = 12;
@@ -10164,7 +11018,7 @@ var SettingsService = /** @class */ (function () {
                         error_1 = _a.sent();
                         this.logManager.errorLog('ERROR_FETCHING_SETTINGS', {
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1),
-                        }, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                        }, { an: ApiEnum_1.ApiEnum.INIT });
                         deferredObject.resolve({});
                         return [3 /*break*/, 14];
                     case 14: return [2 /*return*/, deferredObject.promise];
@@ -10479,14 +11333,15 @@ var StorageService = /** @class */ (function () {
                         .getSettingsService()
                         .fetchSettings()
                         .then(function (freshSettings) { return __awaiter(_this, void 0, void 0, function () {
-                        var isSettingsValid;
+                        var normalizedSettings, isSettingsValid;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     if (!freshSettings) return [3 /*break*/, 2];
-                                    isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(freshSettings);
+                                    normalizedSettings = this.serviceContainer.getSettingsService().normalizeSettings(freshSettings);
+                                    isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
                                     if (!isSettingsValid) return [3 /*break*/, 2];
-                                    return [4 /*yield*/, this.setSettingsInStorage(accountId, sdkKey, freshSettings)];
+                                    return [4 /*yield*/, this.setSettingsInStorage(accountId, sdkKey, normalizedSettings)];
                                 case 1:
                                     _a.sent();
                                     this.serviceContainer
@@ -10851,6 +11706,7 @@ var BatchEventsDispatcher = /** @class */ (function () {
                         .getNetworkManager()
                         .post(request)
                         .then(function (response) {
+                        (0, NetworkUtil_1.applyDaCdnControlFromNetworkResponse)(serviceContainer, response.getData(), response.getStatusCode());
                         if (response.getTotalAttempts() > 0) {
                             var debugEventProps = (0, NetworkUtil_1.createNetWorkAndRetryDebugEvent)(response, '', constants_1.Constants.BATCH_EVENTS, extraData);
                             // send debug event
@@ -11660,19 +12516,22 @@ function extractDecisionKeys(decisionObj) {
 function sendDebugEventToWingify(serviceContainer_1) {
     return __awaiter(this, arguments, void 0, function (serviceContainer, eventProps) {
         var messageTemplateKey, isSampledDebugEvent, settings, properties, payload;
-        var _a;
+        var _a, _b;
         if (eventProps === void 0) { eventProps = {}; }
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
+                    if (!((_a = serviceContainer.getSettingsService()) === null || _a === void 0 ? void 0 : _a.sdkKey)) {
+                        return [2 /*return*/];
+                    }
+                    if (serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated() ||
+                        serviceContainer.getSuppressTrackingCalls() ||
+                        ((_b = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _b === void 0 ? void 0 : _b.suppressTrackingCalls)) {
                         return [2 /*return*/];
                     }
                     messageTemplateKey = eventProps.msg_t;
                     isSampledDebugEvent = messageTemplateKey ? (0, InternalEventsRuntimeUtil_1.isSampledDebugErrorTemplateKey)(messageTemplateKey) : false;
                     settings = serviceContainer.getOriginalSettingsDocument();
-                    // check if the sampled debug event should be sent.
-                    // if the sampled debug event should not be sent, return.
                     if (isSampledDebugEvent &&
                         !serviceContainer.getInternalEventsThrottleService().shouldSendSampledDebugEvent(settings)) {
                         return [2 /*return*/];
@@ -11687,7 +12546,7 @@ function sendDebugEventToWingify(serviceContainer_1) {
                     return [4 /*yield*/, (0, NetworkUtil_1.sendEvent)(serviceContainer, properties, payload, EventEnum_1.EventEnum.DEBUGGER_EVENT).catch(function () { })];
                 case 1:
                     // send the debug event to the server.
-                    _b.sent();
+                    _c.sent();
                     return [2 /*return*/];
             }
         });
@@ -14280,12 +15139,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getSettingsPath = getSettingsPath;
 exports.getTrackEventPath = getTrackEventPath;
 exports.getEventsBaseProperties = getEventsBaseProperties;
+exports.applyDaCdnControlFromNetworkResponse = applyDaCdnControlFromNetworkResponse;
 exports._getEventBasePayload = _getEventBasePayload;
 exports.getTrackUserPayloadData = getTrackUserPayloadData;
 exports.getTrackGoalPayloadData = getTrackGoalPayloadData;
 exports.getAttributePayloadData = getAttributePayloadData;
 exports.getTrackingUsagePayloadData = getTrackingUsagePayloadData;
 exports.sendPostApiRequest = sendPostApiRequest;
+exports.sendPanicCollectHeartbeatRequest = sendPanicCollectHeartbeatRequest;
 exports.getMessagingEventPayload = getMessagingEventPayload;
 exports.getSDKInitEventPayload = getSDKInitEventPayload;
 exports.getSDKUsageStatsEventPayload = getSDKUsageStatsEventPayload;
@@ -14401,6 +15262,54 @@ function getEventsBaseProperties(settingsService, eventName, visitorUserAgent, i
         properties.dh = 1;
     }
     return properties;
+}
+function isHttpSuccessStatus(statusCode) {
+    return statusCode >= 200 && statusCode < 300;
+}
+/**
+ * Reads DaCDN panic / force-refresh fields from a successful collect or batch-events response and updates SDK control state.
+ *
+ * @param serviceContainer - Application service locator holding panic/refresh control and the forced-refresh handler.
+ * @param data - Parsed response body; ignored unless it is a plain object.
+ * @param statusCode - HTTP status; control fields apply only on success (2xx).
+ * @returns void
+ */
+function applyDaCdnControlFromNetworkResponse(serviceContainer, data, statusCode) {
+    if (!isHttpSuccessStatus(statusCode)) {
+        return;
+    }
+    var parsedData = data;
+    if (typeof data === 'string') {
+        if (data.trim().length === 0) {
+            // Empty response means no active panic mode or force refresh.
+            parsedData = {};
+        }
+        else {
+            try {
+                parsedData = JSON.parse(data);
+            }
+            catch (e) {
+                // Not a valid JSON string, cannot be a control payload.
+                return;
+            }
+        }
+    }
+    var controlService = serviceContainer.getPanicModeForcedRefreshControlService();
+    // Apply the collect control payload.
+    var result = controlService.applyCollectControlPayload(parsedData);
+    if (!result.shouldTriggerForceRefresh || !controlService.tryStartRefresh()) {
+        return;
+    }
+    // Get the force refresh handler.
+    var handler = serviceContainer.getForceRefreshHandler();
+    if (handler) {
+        void Promise.resolve(handler(result.isRefreshFromPanicClear)).finally(function () {
+            return controlService.finishRefresh(result.isRefreshFromPanicClear);
+        });
+    }
+    else {
+        controlService.finishRefresh(result.isRefreshFromPanicClear);
+    }
 }
 /**
  * Builds generic payload required by all the different tracking calls.
@@ -14657,7 +15566,8 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
                         }
                         else if (properties.en !== EventEnum_1.EventEnum.DEBUGGER_EVENT &&
                             properties.en !== EventEnum_1.EventEnum.LOG_EVENT &&
-                            properties.en !== EventEnum_1.EventEnum.INIT_CALLED) {
+                            properties.en !== EventEnum_1.EventEnum.LOG_EVENT &&
+                            properties.en !== EventEnum_1.EventEnum.COLLECT_CONTROL_PING) {
                             apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
                             extraDataForMessage = "event: ".concat(properties.en);
                         }
@@ -14669,6 +15579,7 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
                             .getNetworkManager()
                             .post(request)
                             .then(function (response) {
+                            applyDaCdnControlFromNetworkResponse(serviceContainer, response.getData(), response.getStatusCode());
                             // if attempt is more than 0
                             if (response.getTotalAttempts() > 0) {
                                 var debugEventProps = createNetWorkAndRetryDebugEvent(response, payload, apiName, extraDataForMessage);
@@ -14695,6 +15606,35 @@ function sendPostApiRequest(serviceContainer_1, properties_1, payload_1, userId_
                         })];
                 case 1:
                     _b.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+/**
+ * Sends a minimal collect during panic so DaCDN can return updated panic / refresh control in the response.
+ *
+ * @param serviceContainer - SDK services used to POST the control ping.
+ * @param pulseContext - Visitor identity fields forwarded into the collect payload.
+ * @returns Promise resolved when the network dispatch completes (errors are logged inside the client layer).
+ */
+function sendPanicCollectHeartbeatRequest(serviceContainer, pulseContext) {
+    return __awaiter(this, void 0, void 0, function () {
+        var settingsService, visitorUserAgent, visitorIp, properties, payload;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    settingsService = serviceContainer.getSettingsService();
+                    visitorUserAgent = '';
+                    visitorIp = '';
+                    properties = getEventsBaseProperties(settingsService, EventEnum_1.EventEnum.COLLECT_CONTROL_PING, visitorUserAgent, visitorIp);
+                    payload = _getEventBasePayload(settingsService, pulseContext.uuid, EventEnum_1.EventEnum.COLLECT_CONTROL_PING, visitorUserAgent, visitorIp, false, null, false);
+                    if (pulseContext.sessionId !== undefined && pulseContext.sessionId !== null) {
+                        payload.d.sessionId = pulseContext.sessionId;
+                    }
+                    return [4 /*yield*/, sendPostApiRequest(serviceContainer, properties, payload, pulseContext.id, {}, {})];
+                case 1:
+                    _a.sent();
                     return [2 /*return*/];
             }
         });
@@ -14830,6 +15770,8 @@ function sendEvent(serviceContainer, properties, payload, eventName) {
                     .getNetworkManager()
                     .post(request)
                     .then(function (response) {
+                    // Same as sendPostApiRequest: init / usage-stats / debug responses may carry panicMode / forceRefresh.
+                    applyDaCdnControlFromNetworkResponse(serviceContainer, response.getData(), response.getStatusCode());
                     // Resolve the deferred object with the data from the response
                     deferredObject.resolve(response.getData());
                 })
@@ -15519,7 +16461,8 @@ var uuid_2 = __webpack_require__(/*! uuid */ "./node_modules/uuid/dist/commonjs-
  */
 function getRandomUUID(sdkKey) {
     // Generate a namespace based on the API key using DNS namespace
-    var namespace = (0, uuid_2.v5)(sdkKey, uuid_2.v5.DNS);
+    var safeSdkKey = sdkKey || 'default-sdk-key';
+    var namespace = (0, uuid_2.v5)(safeSdkKey, uuid_2.v5.DNS);
     // Generate a random UUID using the namespace derived from the API key
     var randomUUID = (0, uuid_2.v5)((0, uuid_1.v4)(), namespace);
     return randomUUID;

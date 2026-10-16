@@ -207,6 +207,7 @@ export class SettingsService implements ISettingsService {
 
     if (!this.sdkKey || !this.accountId) {
       deferredObject.reject(new Error('sdkKey is required for fetching account settings. Aborting!'));
+      return deferredObject.promise;
     }
 
     const options: Record<string, dynamic> = getSettingsPath(this.sdkKey, this.accountId);
@@ -283,7 +284,6 @@ export class SettingsService implements ISettingsService {
           err: getFormattedErrorMessage(err),
         },
         { an: isViaWebhook ? ApiEnum.UPDATE_SETTINGS : apiName },
-        false,
       );
 
       deferredObject.reject(err);
@@ -324,7 +324,7 @@ export class SettingsService implements ISettingsService {
             await storageService.setSettingsInStorage(this.accountId, this.sdkKey, normalizedSettings);
             deferredObject.resolve(normalizedSettings);
           } else {
-            this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
+            this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT });
             deferredObject.resolve({});
           }
         }
@@ -337,7 +337,7 @@ export class SettingsService implements ISettingsService {
           this.logManager.info(buildMessage(InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
           deferredObject.resolve(normalizedSettings);
         } else {
-          this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT }, false);
+          this.logManager.errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.INIT });
           deferredObject.resolve({});
         }
       }
@@ -348,7 +348,6 @@ export class SettingsService implements ISettingsService {
           err: getFormattedErrorMessage(error),
         },
         { an: ApiEnum.INIT },
-        false,
       );
       deferredObject.resolve({});
     }

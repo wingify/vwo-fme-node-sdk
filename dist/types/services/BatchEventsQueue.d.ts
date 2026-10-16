@@ -57,6 +57,14 @@ export declare class BatchEventsQueue {
    */
   private clearRequestTimer;
   /**
+   * Drops queued events without sending them and cancels the batch timer.
+   * Called as soon as panic latches from off to on so a later flushEvents cannot
+   * transmit events that were queued before panic (TTS-3132).
+   *
+   * @returns Number of events discarded
+   */
+  discardQueuedEvents(): number;
+  /**
    * Flushes the queue and clears the timer
    */
   flushAndClearTimer(): Promise<Record<string, any>>;

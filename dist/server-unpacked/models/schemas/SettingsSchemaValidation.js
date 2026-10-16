@@ -118,8 +118,10 @@ var SettingsSchema = /** @class */ (function () {
                 debug: (0, superstruct_1.optional)(runtimeSamplingSchema),
             })),
             alwaysApplySampling: (0, superstruct_1.optional)(runtimeAlwaysApplySamplingSchema),
-            sdkMetaInfo: (0, superstruct_1.optional)((0, superstruct_1.object)({
+            sdkMetaInfo: (0, superstruct_1.optional)((0, superstruct_1.type)({
                 wasInitializedEarlier: (0, superstruct_1.optional)((0, superstruct_1.boolean)()),
+                panic: (0, superstruct_1.optional)((0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()])),
+                refresh: (0, superstruct_1.optional)((0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()])),
             })),
             pollInterval: (0, superstruct_1.optional)((0, superstruct_1.number)()),
         });

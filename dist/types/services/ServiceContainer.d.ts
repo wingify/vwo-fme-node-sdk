@@ -22,6 +22,7 @@ import HooksService from './HooksService';
 import { NetworkManager } from '../packages/network-layer/manager/NetworkManager';
 import { LogManager } from '../packages/logger';
 import { Storage } from '../packages/storage';
+import PanicModeForcedRefreshControlService from './PanicModeForcedRefreshControlService';
 import { InternalEventsThrottleService } from './InternalEventsThrottleService';
 /**
  * ServiceContainer is a class that contains all the services that are used in the SDK.
@@ -40,6 +41,8 @@ export declare class ServiceContainer {
   private suppressTrackingCalls;
   private suppressMAU;
   private pollingStopCallback;
+  private forceRefreshHandler;
+  private panicModeForcedRefreshControlService;
   private internalEventsThrottleService;
   private originalSettingsDocument;
   constructor(options: IWingifyOptions);
@@ -126,6 +129,11 @@ export declare class ServiceContainer {
    */
   setStorage(storage: Storage): void;
   /**
+   * Returns the service that applies panic-mode and forced settings refresh from settings and DaCDN payloads.
+   * @returns The panic / forced-refresh coordination service instance.
+   */
+  getPanicModeForcedRefreshControlService(): PanicModeForcedRefreshControlService;
+  /**
    * Injects the service container into the services.
    * @param serviceContainer - The service container to inject.
    */
@@ -153,6 +161,19 @@ export declare class ServiceContainer {
    * Stops settings polling if it was started. No-op if polling was not active.
    */
   stopPolling(): void;
+  /**
+   * Registers the callback used when a successful collect/batch response signals `forceRefresh`.
+   * Wired by VWOClient to `updateSettings(undefined, true)` to avoid importing VWOClient from network utilities.
+   *
+   * @param handler - Async function to pull latest settings, or `null` to clear.
+   */
+  setForceRefreshHandler(handler: ((isRefreshFromPanicClear?: boolean) => Promise<void>) | null): void;
+  /**
+   * Returns the handler registered with `setForceRefreshHandler`, if any.
+   *
+   * @returns The registered handler, or `null` when none is set.
+   */
+  getForceRefreshHandler(): ((isRefreshFromPanicClear?: boolean) => Promise<void>) | null;
   /**
    * Returns the internal-events throttle service for the current SDK instance.
    * @returns The lazily initialized internal-events throttle service.

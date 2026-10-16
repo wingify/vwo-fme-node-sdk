@@ -70,6 +70,9 @@ var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
 var StorageService_1 = require("./services/StorageService");
 var UuidUtil_1 = require("./utils/UuidUtil");
 var SDKMetaUtil_1 = require("./utils/SDKMetaUtil");
+var NetworkUtil_1 = require("./utils/NetworkUtil");
+var EventEnum_1 = require("./enums/EventEnum");
+var PanicModeForcedRefreshControlService_1 = require("./services/PanicModeForcedRefreshControlService");
 var WingifyClient = /** @class */ (function () {
     /**
      * Constructor for the WingifyClient class.
@@ -82,23 +85,29 @@ var WingifyClient = /** @class */ (function () {
      * @param batchEventsQueue - The batch events queue to use for batching events.
      */
     function WingifyClient(settings, options, serviceContainer) {
+        var _this = this;
         this.isShutdown = false;
         try {
             this.options = options;
             this.serviceContainer = serviceContainer;
-            this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(settings);
+            var normalizedSettings = this.serviceContainer.getSettingsService().normalizeSettings(settings);
+            this.isSettingsValid = new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings);
             this.isAliasingEnabled = options.isAliasingEnabled || false;
             if (this.isSettingsValid && !this.serviceContainer.getSettingsService().isSettingsProvidedInInit) {
                 this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_FETCH_SUCCESS));
             }
             else if (!this.isSettingsValid && this.options.settings) {
-                this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT }, false);
+                this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.INIT });
             }
-            (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(settings, this, this.serviceContainer.getLogManager());
+            (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(normalizedSettings, this, this.serviceContainer.getLogManager());
             this.serviceContainer.setSettings(this.settings);
             this.serviceContainer.setOriginalSettingsDocument(this.originalSettings);
             this.serviceContainer.injectServiceContainer(this.serviceContainer);
             this.serviceContainer.setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
+            this.serviceContainer.setForceRefreshHandler(function (isRefreshFromPanicClear) {
+                return _this.updateSettings(undefined, true, isRefreshFromPanicClear, PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.POST_PING_FETCH);
+            });
+            this.handleSettingsControlFlags(normalizedSettings, PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.APPLY);
             this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.CLIENT_INITIALIZED));
             this.wingifyClientInstance = this;
             var usageStatsUtil = new UsageStatsUtil_1.UsageStatsUtil(this.options);
@@ -120,12 +129,12 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.sendSdkInitAndUsageStatsEvents = function (usageStatsUtil) {
         return __awaiter(this, void 0, void 0, function () {
-            var settingsFetchTime, sdkInitTime, internalEventsThrottleService, usageStatsAccountId, err_1;
+            var settingsFetchTime, sdkInitTime, internalEventsThrottleService, isPanicModeActivated, usageStatsAccountId, err_1;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _b.trys.push([0, 7, , 8]);
+                        _b.trys.push([0, 8, , 9]);
                         settingsFetchTime = this.serviceContainer.getSettingsService().settingsFetchTime;
                         if (this.serviceContainer.getSettingsService().isSettingsProvidedInInit) {
                             // if settings are provided in init, then settings fetch time is 0
@@ -133,34 +142,45 @@ var WingifyClient = /** @class */ (function () {
                         }
                         sdkInitTime = Date.now() - this.serviceContainer.getSettingsService().startTimeForInit;
                         internalEventsThrottleService = this.serviceContainer.getInternalEventsThrottleService();
-                        if (!(this.isSettingsValid && internalEventsThrottleService.shouldSendSdkInitEvent(this.originalSettings))) return [3 /*break*/, 3];
-                        if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 2];
-                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer)];
+                        isPanicModeActivated = this.serviceContainer
+                            .getPanicModeForcedRefreshControlService()
+                            .isPanicModeActivated();
+                        if (!(this.isSettingsValid && internalEventsThrottleService.shouldSendSdkInitEvent(this.originalSettings))) return [3 /*break*/, 4];
+                        if (!isPanicModeActivated) return [3 /*break*/, 1];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: EventEnum_1.EventEnum.INIT_CALLED }));
+                        return [3 /*break*/, 4];
                     case 1:
-                        _b.sent();
-                        return [3 /*break*/, 3];
+                        if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 3];
+                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer)];
                     case 2:
-                        (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer);
-                        _b.label = 3;
-                    case 3:
-                        usageStatsAccountId = (_a = this.originalSettings) === null || _a === void 0 ? void 0 : _a.usageStatsAccountId;
-                        if (!(usageStatsAccountId && internalEventsThrottleService.shouldSendUsageStatsEvent(this.originalSettings))) return [3 /*break*/, 6];
-                        if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 5];
-                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime)];
-                    case 4:
                         _b.sent();
-                        return [3 /*break*/, 6];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        (0, SdkInitAndUsageStatsUtil_1.sendSdkInitEvent)(this.serviceContainer);
+                        _b.label = 4;
+                    case 4:
+                        usageStatsAccountId = (_a = this.originalSettings) === null || _a === void 0 ? void 0 : _a.usageStatsAccountId;
+                        if (!(usageStatsAccountId &&
+                            internalEventsThrottleService.shouldSendUsageStatsEvent(this.originalSettings) &&
+                            !isPanicModeActivated)) return [3 /*break*/, 7];
+                        if (!this.options.shouldWaitForTrackingCalls) return [3 /*break*/, 6];
+                        return [4 /*yield*/, (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime)];
                     case 5:
+                        _b.sent();
+                        return [3 /*break*/, 7];
+                    case 6:
                         (0, SdkInitAndUsageStatsUtil_1.sendSDKUsageStatsEvent)(usageStatsAccountId, this.serviceContainer, usageStatsUtil, settingsFetchTime, sdkInitTime);
-                        _b.label = 6;
-                    case 6: return [3 /*break*/, 8];
-                    case 7:
+                        _b.label = 7;
+                    case 7: return [3 /*break*/, 9];
+                    case 8:
                         err_1 = _b.sent();
                         this.serviceContainer
                             .getLogManager()
                             .error((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.SDK_INIT_EVENT_FAILED, { err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_1) }));
-                        return [3 /*break*/, 8];
-                    case 8: return [2 /*return*/];
+                        return [3 /*break*/, 9];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -175,7 +195,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.getFlag = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, deferredObject, uuid, errorReturnSchema, userId, contextCopy, seed, contextModel, err_2;
+            var apiName, deferredObject, uuid, errorReturnSchema, heartbeat, userId, contextCopy, seed, contextModel, err_2;
             var _a, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
@@ -201,7 +221,7 @@ var WingifyClient = /** @class */ (function () {
                         errorReturnSchema = new GetFlag_1.Flag(false, (_b = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _b !== void 0 ? _b : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), uuid, new VariationModel_1.VariationModel());
                         _c.label = 1;
                     case 1:
-                        _c.trys.push([1, 3, , 4]);
+                        _c.trys.push([1, 7, , 8]);
                         // Validate featureKey is a string
                         if (!(0, DataTypeUtil_1.isString)(featureKey)) {
                             this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
@@ -214,7 +234,7 @@ var WingifyClient = /** @class */ (function () {
                         }
                         // Validate settings are loaded and valid
                         if (!this.isSettingsValid) {
-                            this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
+                            this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG });
                             throw new Error('TypeError: Invalid Settings');
                         }
                         // Validate user ID is present in context
@@ -222,8 +242,28 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: String(context.id),
+                            uuid: uuid,
+                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
+                        _c.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        void heartbeat.catch(function () { return undefined; });
+                        _c.label = 4;
+                    case 4:
+                        deferredObject.resolve(errorReturnSchema);
+                        return [2 /*return*/, deferredObject.promise];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 6:
                         userId = _c.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
@@ -260,16 +300,16 @@ var WingifyClient = /** @class */ (function () {
                             .catch(function () {
                             deferredObject.resolve(errorReturnSchema);
                         });
-                        return [3 /*break*/, 4];
-                    case 3:
+                        return [3 /*break*/, 8];
+                    case 7:
                         err_2 = _c.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_2),
                         }, { an: ApiEnum_1.ApiEnum.GET_FLAG });
                         deferredObject.resolve(errorReturnSchema);
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/, deferredObject.promise];
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/, deferredObject.promise];
                 }
             });
         });
@@ -283,7 +323,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.getFlags = function (flagNames_1, context_1) {
         return __awaiter(this, arguments, void 0, function (flagNames, context, shouldSendTrackingCalls) {
-            var apiName, uuid, userId, baseContextCopy, seed, err_3;
+            var apiName, uuid, heartbeat, userId, baseContextCopy, seed, err_3;
             if (shouldSendTrackingCalls === void 0) { shouldSendTrackingCalls = true; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -291,7 +331,7 @@ var WingifyClient = /** @class */ (function () {
                         apiName = ApiEnum_1.ApiEnum.GET_FLAGS;
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 4, , 5]);
+                        _a.trys.push([1, 8, , 9]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
@@ -304,8 +344,29 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: apiName }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
+                        // if panic mode is activated log that the api is blocked by panic mode
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: String(context.id),
+                            uuid: uuid,
+                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
+                        _a.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        void heartbeat.catch(function () { return undefined; });
+                        _a.label = 4;
+                    case 4: 
+                    // return the disabled flags
+                    return [2 /*return*/, this.buildDisabledFlags(flagNames, context)];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 6:
                         userId = _a.sent();
                         baseContextCopy = __assign({}, context);
                         baseContextCopy.id = userId;
@@ -331,15 +392,15 @@ var WingifyClient = /** @class */ (function () {
                             }
                         }
                         return [4 /*yield*/, GetFlags_1.GetFlagsApi.get(flagNames, baseContextCopy, this.serviceContainer, this.options, shouldSendTrackingCalls)];
-                    case 3: return [2 /*return*/, _a.sent()];
-                    case 4:
+                    case 7: return [2 /*return*/, _a.sent()];
+                    case 8:
                         err_3 = _a.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3),
                         }, { an: apiName });
                         return [2 /*return*/, this.buildDisabledFlags(flagNames, context)];
-                    case 5: return [2 /*return*/];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -373,17 +434,17 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.trackEvent = function (eventName_1, context_1) {
         return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
-            var apiName, deferredObject, userId, contextCopy, contextModel, err_4;
-            var _a;
+            var apiName, deferredObject, heartbeat, userId, contextCopy, contextModel, err_4;
+            var _a, _b;
             if (eventProperties === void 0) { eventProperties = {}; }
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
                         deferredObject = new PromiseUtil_1.Deferred();
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 3, , 4]);
+                        _c.trys.push([1, 7, , 8]);
                         // Log the API call
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
@@ -410,9 +471,7 @@ var WingifyClient = /** @class */ (function () {
                         }
                         // Validate settings are loaded and valid
                         if (!this.isSettingsValid) {
-                            this.serviceContainer
-                                .getLogManager()
-                                .errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
+                            this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT });
                             throw new Error('TypeError: Invalid Settings');
                         }
                         // Validate user ID is present in context
@@ -422,9 +481,29 @@ var WingifyClient = /** @class */ (function () {
                                 .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: String(context.id),
+                            uuid: this.getUUIDFromContext(context, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
-                        userId = _b.sent();
+                        _c.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        void heartbeat.catch(function () { return undefined; });
+                        _c.label = 4;
+                    case 4:
+                        deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
+                        return [2 /*return*/, deferredObject.promise];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 6:
+                        userId = _c.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
                         // set uuid in the context copy
@@ -440,17 +519,17 @@ var WingifyClient = /** @class */ (function () {
                             var _a;
                             deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
                         });
-                        return [3 /*break*/, 4];
-                    case 3:
-                        err_4 = _b.sent();
+                        return [3 /*break*/, 8];
+                    case 7:
+                        err_4 = _c.sent();
                         // Log any errors encountered during the operation
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4),
                         }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT });
-                        deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/, deferredObject.promise];
+                        deferredObject.resolve((_b = {}, _b[eventName] = false, _b));
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/, deferredObject.promise];
                 }
             });
         });
@@ -469,7 +548,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, attributes, userId, contextCopy, contextModel, attributeKey, attributeValue, userId, contextCopy, contextModel, attributeMap, err_5;
+            var apiName, attributes, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -477,8 +556,8 @@ var WingifyClient = /** @class */ (function () {
                         apiName = ApiEnum_1.ApiEnum.SET_ATTRIBUTE;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 8, , 9]);
-                        if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 4];
+                        _b.trys.push([1, 16, , 17]);
+                        if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 8];
                         // Log the API call
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
@@ -513,8 +592,26 @@ var WingifyClient = /** @class */ (function () {
                                 .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: String(context.id),
+                            uuid: this.getUUIDFromContext(context, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
+                        _b.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        void heartbeat.catch(function () { return undefined; });
+                        _b.label = 4;
+                    case 4: return [2 /*return*/];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 6:
                         userId = _b.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
@@ -523,11 +620,11 @@ var WingifyClient = /** @class */ (function () {
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         // Proceed with setting the attributes if validation is successful
                         return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.serviceContainer, attributes, contextModel)];
-                    case 3:
+                    case 7:
                         // Proceed with setting the attributes if validation is successful
                         _b.sent();
-                        return [3 /*break*/, 7];
-                    case 4:
+                        return [3 /*break*/, 15];
+                    case 8:
                         attributeKey = attributeOrAttributes;
                         attributeValue = attributeValueOrContext;
                         // Validate attributeKey is a string
@@ -542,8 +639,26 @@ var WingifyClient = /** @class */ (function () {
                         if (!context || !context.id) {
                             throw new TypeError('Invalid context');
                         }
-                        return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
-                    case 5:
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 12];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: String(context.id),
+                            uuid: this.getUUIDFromContext(context, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 10];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
+                    case 9:
+                        _b.sent();
+                        return [3 /*break*/, 11];
+                    case 10:
+                        void heartbeat.catch(function () { return undefined; });
+                        _b.label = 11;
+                    case 11: return [2 /*return*/];
+                    case 12: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 13:
                         userId = _b.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
@@ -551,19 +666,19 @@ var WingifyClient = /** @class */ (function () {
                         attributeMap = (_a = {}, _a[attributeKey] = attributeValue, _a);
                         // Proceed with setting the attribute map if validation is successful
                         return [4 /*yield*/, new SetAttribute_1.SetAttributeApi().setAttribute(this.serviceContainer, attributeMap, contextModel)];
-                    case 6:
+                    case 14:
                         // Proceed with setting the attribute map if validation is successful
                         _b.sent();
-                        _b.label = 7;
-                    case 7: return [3 /*break*/, 9];
-                    case 8:
+                        _b.label = 15;
+                    case 15: return [3 /*break*/, 17];
+                    case 16:
                         err_5 = _b.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_5),
                         }, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE });
-                        return [3 /*break*/, 9];
-                    case 9: return [2 /*return*/];
+                        return [3 /*break*/, 17];
+                    case 17: return [2 /*return*/];
                 }
             });
         });
@@ -575,25 +690,27 @@ var WingifyClient = /** @class */ (function () {
      * @returns Promise<void>
      */
     WingifyClient.prototype.updateSettings = function (settings_1) {
-        return __awaiter(this, arguments, void 0, function (settings, isViaWebhook) {
-            var apiName, settingsToUpdate, _a, normalizedSettings, err_6;
+        return __awaiter(this, arguments, void 0, function (settings, isViaWebhook, isRefreshFromPanicClear, controlApplyMode) {
+            var apiName, settingsToUpdate, _a, normalizedSettings, panicService, resolvedControlApplyMode, err_6;
+            var _b;
             if (isViaWebhook === void 0) { isViaWebhook = true; }
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            if (isRefreshFromPanicClear === void 0) { isRefreshFromPanicClear = false; }
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.UPDATE_SETTINGS;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 5, , 6]);
+                        _c.trys.push([1, 5, , 6]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
                         if (!(!settings || Object.keys(settings).length === 0)) return [3 /*break*/, 3];
                         return [4 /*yield*/, this.serviceContainer.getSettingsService().fetchSettings(isViaWebhook, apiName)];
                     case 2:
-                        _a = _b.sent();
+                        _a = _c.sent();
                         return [3 /*break*/, 4];
                     case 3:
                         _a = settings;
-                        _b.label = 4;
+                        _c.label = 4;
                     case 4:
                         settingsToUpdate = _a;
                         normalizedSettings = this.serviceContainer.getSettingsService().normalizeSettings(settingsToUpdate);
@@ -601,17 +718,30 @@ var WingifyClient = /** @class */ (function () {
                         if (!new SettingsSchemaValidation_1.SettingsSchema().isSettingsValid(normalizedSettings)) {
                             throw new Error('TypeError: Invalid Settings schema');
                         }
+                        panicService = this.serviceContainer.getPanicModeForcedRefreshControlService();
+                        if (!panicService.shouldApplySettingsSnapshot(normalizedSettings)) {
+                            this.serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATE_SKIPPED_STALE, {
+                                timestamp: (_b = normalizedSettings === null || normalizedSettings === void 0 ? void 0 : normalizedSettings.lastUpdatedOn) !== null && _b !== void 0 ? _b : normalizedSettings === null || normalizedSettings === void 0 ? void 0 : normalizedSettings.version,
+                            }));
+                            return [2 /*return*/]; // Skip applying stale settings
+                        }
                         // set the settings on the client instance
                         (0, SettingsUtil_1.setSettingsAndAddCampaignsToRules)(normalizedSettings, this.wingifyClientInstance, this.serviceContainer.getLogManager());
                         this.serviceContainer.setSettings(this.wingifyClientInstance.settings);
                         this.serviceContainer.setOriginalSettingsDocument(this.wingifyClientInstance.originalSettings);
                         this.serviceContainer.injectServiceContainer(this.serviceContainer);
-                        this.serviceContainer
-                            .getLogManager()
-                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName: apiName, isViaWebhook: isViaWebhook }));
+                        resolvedControlApplyMode = controlApplyMode !== null && controlApplyMode !== void 0 ? controlApplyMode : (settings && Object.keys(settings).length > 0 && !isViaWebhook
+                            ? PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.POLLING
+                            : PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.APPLY);
+                        this.handleSettingsControlFlags(normalizedSettings, resolvedControlApplyMode);
+                        if (!isRefreshFromPanicClear) {
+                            this.serviceContainer
+                                .getLogManager()
+                                .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.SETTINGS_UPDATED, { apiName: apiName, isViaWebhook: isViaWebhook }));
+                        }
                         return [3 /*break*/, 6];
                     case 5:
-                        err_6 = _b.sent();
+                        err_6 = _c.sent();
                         this.serviceContainer.getLogManager().errorLog('UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED', {
                             apiName: apiName,
                             isViaWebhook: isViaWebhook,
@@ -639,6 +769,12 @@ var WingifyClient = /** @class */ (function () {
                     case 1:
                         _d.trys.push([1, 3, , 4]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, { apiName: apiName }));
+                        if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
+                            this.serviceContainer
+                                .getLogManager()
+                                .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                            return [2 /*return*/, { status: 'error', events: [] }];
+                        }
                         if (!this.serviceContainer.getBatchEventsQueue()) {
                             this.serviceContainer.getLogManager().errorLog('BATCHING_NOT_ENABLED', {}, { an: ApiEnum_1.ApiEnum.FLUSH_EVENTS });
                             return [2 /*return*/, { status: 'error', events: [] }];
@@ -682,14 +818,14 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.setAlias = function (contextOrUserId, aliasId) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, userId, error_1;
+            var apiName, userId, rawUserId, heartbeat, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.SET_ALIAS;
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
+                        _a.trys.push([1, 7, , 8]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
@@ -710,6 +846,26 @@ var WingifyClient = /** @class */ (function () {
                         // trim aliasId before going forward
                         aliasId = aliasId.trim();
                         userId = void 0;
+                        rawUserId = typeof contextOrUserId === 'string' ? contextOrUserId.trim() : contextOrUserId.id.trim();
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
+                        this.serviceContainer
+                            .getLogManager()
+                            .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
+                        heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
+                            id: rawUserId,
+                            uuid: this.getUUIDFromContext(typeof contextOrUserId === 'string' ? { id: rawUserId } : contextOrUserId, apiName),
+                            sessionId: undefined,
+                        });
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
+                    case 2:
+                        _a.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        void heartbeat.catch(function () { return undefined; });
+                        _a.label = 4;
+                    case 4: return [2 /*return*/, false];
+                    case 5:
                         if (typeof contextOrUserId === 'string') {
                             // trim contextOrUserId before going forward
                             contextOrUserId = contextOrUserId.trim();
@@ -741,16 +897,16 @@ var WingifyClient = /** @class */ (function () {
                             userId = contextOrUserId.id;
                         }
                         return [4 /*yield*/, AliasingUtil_1.AliasingUtil.setAlias(userId, aliasId, this.serviceContainer)];
-                    case 2:
+                    case 6:
                         _a.sent();
                         return [2 /*return*/, true];
-                    case 3:
+                    case 7:
                         error_1 = _a.sent();
                         this.serviceContainer
                             .getLogManager()
                             .errorLog('EXECUTION_FAILED', { apiName: apiName, err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_1) }, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
                         return [2 /*return*/, false];
-                    case 4: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });
@@ -826,6 +982,62 @@ var WingifyClient = /** @class */ (function () {
                             .getLogManager()
                             .errorLog('EXECUTION_FAILED', { apiName: ApiEnum_1.ApiEnum.SHUTDOWN, err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_8) }, { an: ApiEnum_1.ApiEnum.SHUTDOWN });
                         return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Applies or defers sdkMetaInfo panic / refresh. Polling confirms panic on/off via collector ping
+     * (stale panic rejected; logs only after ping). Force-refresh is not confirmed via ping from polling.
+     *
+     * @param settings - Normalized settings JSON (must include `lastUpdatedOn` for snapshot detection).
+     * @param mode - How this snapshot was obtained.
+     * @returns void
+     */
+    WingifyClient.prototype.handleSettingsControlFlags = function (settings, mode) {
+        if (mode === void 0) { mode = PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.APPLY; }
+        var panicModeForcedRefreshControl = this.serviceContainer.getPanicModeForcedRefreshControlService();
+        var settingsSnapshotControlOutcome = panicModeForcedRefreshControl.applySettingsControl(settings, mode);
+        if (settingsSnapshotControlOutcome.needsCollectPingConfirmation) {
+            void this.confirmControlViaCollectPing();
+        }
+        if (!settingsSnapshotControlOutcome.shouldTriggerForceRefresh || !panicModeForcedRefreshControl.tryStartRefresh()) {
+            return;
+        }
+        this.updateSettings(undefined, true, settingsSnapshotControlOutcome.isRefreshFromPanicClear, PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.POST_PING_FETCH).finally(function () {
+            panicModeForcedRefreshControl.finishRefresh(settingsSnapshotControlOutcome.isRefreshFromPanicClear);
+        });
+    };
+    /**
+     * Confirms panic with a control ping. DaCDN response is the source of truth.
+     */
+    WingifyClient.prototype.confirmControlViaCollectPing = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var panicModeForcedRefreshControl, settingsService, userId, uuid, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        panicModeForcedRefreshControl = this.serviceContainer.getPanicModeForcedRefreshControlService();
+                        if (!panicModeForcedRefreshControl.tryStartPanicClearConfirmation()) {
+                            return [2 /*return*/];
+                        }
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 3, 4, 5]);
+                        settingsService = this.serviceContainer.getSettingsService();
+                        userId = "".concat(settingsService.accountId, "_").concat(settingsService.sdkKey);
+                        uuid = (0, UuidUtil_1.getUUID)("".concat(settingsService.accountId, "_").concat(settingsService.sdkKey), String(settingsService.accountId));
+                        return [4 /*yield*/, (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, { id: userId, uuid: uuid })];
+                    case 2:
+                        _b.sent();
+                        return [3 /*break*/, 5];
+                    case 3:
+                        _a = _b.sent();
+                        return [3 /*break*/, 5];
+                    case 4:
+                        panicModeForcedRefreshControl.finishPanicClearConfirmation();
+                        return [7 /*endfinally*/];
                     case 5: return [2 /*return*/];
                 }
             });

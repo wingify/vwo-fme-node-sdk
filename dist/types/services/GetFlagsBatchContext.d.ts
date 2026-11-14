@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 import { SegmentationManager } from '../packages/segmentation-evaluator/core/SegmentationManger';
+import { EventDispatchPolicy } from '../utils/EventDispatchPolicyUtil';
 interface GetFlagsBatchWorkerContext {
   segmentationManager: SegmentationManager;
   hooksDecision: Record<string, any> | null;
+  eventDispatchPolicy: EventDispatchPolicy;
   suppressTrackingCalls: boolean;
   suppressMAU: boolean;
 }
@@ -42,12 +44,14 @@ export declare function getCurrentGetFlagsBatchContext(): GetFlagsBatchWorkerCon
  * Runs getFlags batch evaluation with an isolated segmentation manager and hooks decision.
  *
  * @param batchEvaluationCallback - Batch evaluation callback to run inside the scoped context.
+ * @param eventDispatchPolicy - Network dispatch policy for this batch worker.
  * @param suppressTrackingCalls - When true, suppresses tracking/impression network calls for this batch worker.
  * @param suppressMAU - When true, suppresses MAU tracking calls for this batch worker.
  * @returns The callback result.
  */
 export declare function runWithGetFlagsBatchContext<T>(
   batchEvaluationCallback: () => T,
+  eventDispatchPolicy: EventDispatchPolicy,
   suppressTrackingCalls?: boolean,
   suppressMAU?: boolean,
 ): T;

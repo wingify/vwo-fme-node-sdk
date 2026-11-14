@@ -28,7 +28,12 @@ export interface IWingifyClient {
   settingsFetchTime: number | undefined;
   isAliasingEnabled: boolean;
   getFlag(featureKey: string, context: Record<string, any>): Promise<Flag>;
-  getFlags(flagNames: string[] | null | undefined, context: Record<string, any>): Promise<Record<string, Flag>>;
+  getFlags(
+    flagNames: string[] | null | undefined,
+    context: Record<string, any>,
+    shouldSendTrackingCalls?: boolean,
+  ): Promise<Record<string, Flag>>;
+  fetchFlags(flagNames: string[] | null | undefined, context: Record<string, any>): Promise<Record<string, Flag>>;
   trackEvent(
     eventName: string,
     context: Record<string, any>,
@@ -91,7 +96,8 @@ export declare class WingifyClient implements IWingifyClient {
    *
    * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
    * @param context - User context; must include a valid user id.
-   * @returns Evaluated flags keyed by feature key.
+   * @param shouldSendTrackingCalls - When false, drops impression and debugger calls instead of deferring them.
+   * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
    */
   getFlags(
     flagNames: string[] | null | undefined,
@@ -99,11 +105,33 @@ export declare class WingifyClient implements IWingifyClient {
     shouldSendTrackingCalls?: boolean,
   ): Promise<Record<string, Flag>>;
   /**
+   * Evaluates multiple feature flags without sending impression or debugger calls.
+   * MAU usage tracking (`vwo_feTrackUsage`) is still sent when enabled for the account.
+   * Call `Flag.exposeResult()` later to send deferred `vwo_variationShown` impressions.
+   *
+   * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+   * @param context - User context; must include a valid user id.
+   * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
+   */
+  fetchFlags(flagNames: string[] | null | undefined, context: Record<string, any>): Promise<Record<string, Flag>>;
+  /**
+   * Shared validation and evaluation path for getFlags and fetchFlags.
+   *
+   * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+   * @param context - User context; must include a valid user id.
+   * @param apiName - API name used for logging and debug metadata.
+   * @param shouldSendTrackingCalls - When false, suppresses impression and debugger network calls.
+   * @param shouldSendMAU - When false, suppresses MAU usage tracking calls.
+   * @param shouldApplyLegacySuppression - When true, getFlags drops impressions. fetchFlags passes false so they are deferred.
+   * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
+   */
+  private evaluateFlags;
+  /**
    * Builds disabled flags for the requested keys after validation or execution failure.
    *
    * @param flagNames - Requested feature keys from the caller.
    * @param context - Raw caller context used to populate flag metadata.
-   * @returns Disabled flags keyed by requested feature key.
+   * @returns {Record<string, Flag>} Disabled flags keyed by requested feature key.
    */
   private buildDisabledFlags;
   /**

@@ -63,10 +63,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetFlagsApi = void 0;
+exports.resolveFlagKeys = resolveFlagKeys;
 var GetFlag_1 = require("./GetFlag");
 var VariationModel_1 = require("../models/campaign/VariationModel");
 var ContextModel_1 = require("../models/user/ContextModel");
 var GetFlagsBatchContext_1 = require("../services/GetFlagsBatchContext");
+var EventDispatchPolicyUtil_1 = require("../utils/EventDispatchPolicyUtil");
 var megGroupPartitionUtil_1 = require("../utils/megGroupPartitionUtil");
 var DataTypeUtil_1 = require("../utils/DataTypeUtil");
 var FunctionUtil_1 = require("../utils/FunctionUtil");
@@ -132,11 +134,12 @@ function ensureAllRequestedFlags(requestedFeatureKeys, evaluatedFlagsByKey, base
  * @param baseContextCopy - Validated plain context object shared across evaluations.
  * @param serviceContainer - Shared SDK service container.
  * @param options - SDK init options used to build per-flag ContextModel instances.
+ * @param eventDispatchPolicy - Network dispatch policy for this batch worker.
  * @param suppressTrackingCalls - Whether to suppress tracking/impression network calls.
  * @param suppressMAU - Whether to suppress MAU tracking calls.
  * @returns Evaluated flags keyed by feature key for this batch.
  */
-function evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU) {
+function evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, eventDispatchPolicy, suppressTrackingCalls, suppressMAU) {
     return __awaiter(this, void 0, void 0, function () {
         var _this = this;
         return __generator(this, function (_a) {
@@ -174,12 +177,12 @@ function evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, optio
                             case 6: return [2 /*return*/, evaluatedFlagsInBatch];
                         }
                     });
-                }); }, suppressTrackingCalls, suppressMAU)];
+                }); }, eventDispatchPolicy, suppressTrackingCalls, suppressMAU)];
         });
     });
 }
 /**
- * Batch feature-flag evaluation used by WingifyClient.getFlags.
+ * Batch feature-flag evaluation used by WingifyClient.getFlags and WingifyClient.fetchFlags.
  */
 var GetFlagsApi = /** @class */ (function () {
     function GetFlagsApi() {
@@ -194,22 +197,26 @@ var GetFlagsApi = /** @class */ (function () {
      * @param options - SDK init options used to build per-flag ContextModel instances.
      * @param shouldSendTrackingCalls - When false, suppresses tracking/impression network calls.
      * @param shouldSendMAU - When false, suppresses MAU tracking calls.
-     * @returns Evaluated flags keyed by feature key (disabled Flag for unknown/failed keys).
+     * @param shouldApplyLegacySuppression - When true, getFlags drops impressions via suppress flags. fetchFlags passes false so impressions are deferred instead.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key (disabled Flag for unknown/failed keys).
      */
     GetFlagsApi.get = function (flagNames_1, baseContextCopy_1, serviceContainer_1, options_1) {
         return __awaiter(this, arguments, void 0, function (flagNames, baseContextCopy, serviceContainer, options, shouldSendTrackingCalls, // Default to true so that tracking calls are sent in case of getFlags.
-        shouldSendMAU) {
-            var settings, requestedFeatureKeys, suppressTrackingCalls, suppressMAU, evaluationBatches, evaluateFlags_1, batchEvaluationOutcomes, evaluatedFlagsByKey, _i, batchEvaluationOutcomes_1, batchEvaluationOutcome;
+        shouldSendMAU, // Default to true so that MAU calls are sent
+        shouldApplyLegacySuppression) {
+            var settings, requestedFeatureKeys, eventDispatchPolicy, suppressTrackingCalls, suppressMAU, evaluationBatches, evaluateFlags_1, batchEvaluationOutcomes, evaluatedFlagsByKey, _i, batchEvaluationOutcomes_1, batchEvaluationOutcome;
             var _this = this;
             if (shouldSendTrackingCalls === void 0) { shouldSendTrackingCalls = true; }
             if (shouldSendMAU === void 0) { shouldSendMAU = true; }
+            if (shouldApplyLegacySuppression === void 0) { shouldApplyLegacySuppression = true; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         settings = serviceContainer.getSettings();
                         requestedFeatureKeys = resolveFlagKeys(flagNames, settings);
-                        suppressTrackingCalls = !shouldSendTrackingCalls;
-                        suppressMAU = !shouldSendMAU;
+                        eventDispatchPolicy = (0, EventDispatchPolicyUtil_1.createEventDispatchPolicy)(shouldSendTrackingCalls, shouldSendMAU);
+                        suppressTrackingCalls = shouldApplyLegacySuppression && !shouldSendTrackingCalls;
+                        suppressMAU = shouldApplyLegacySuppression && !shouldSendMAU;
                         if (!requestedFeatureKeys.length) {
                             return [2 /*return*/, {}];
                         }
@@ -220,6 +227,7 @@ var GetFlagsApi = /** @class */ (function () {
                                 return __generator(this, function (_e) {
                                     switch (_e.label) {
                                         case 0:
+                                            serviceContainer.setEventDispatchPolicy(eventDispatchPolicy);
                                             serviceContainer.setSuppressTrackingCalls(suppressTrackingCalls);
                                             serviceContainer.setSuppressMAU(suppressMAU);
                                             _e.label = 1;
@@ -236,7 +244,7 @@ var GetFlagsApi = /** @class */ (function () {
                                             _e.trys.push([3, 5, , 6]);
                                             _b = (_a = Object).assign;
                                             _c = [evaluatedFlagsByKey_1];
-                                            return [4 /*yield*/, evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU)];
+                                            return [4 /*yield*/, evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, eventDispatchPolicy, suppressTrackingCalls, suppressMAU)];
                                         case 4:
                                             _b.apply(_a, _c.concat([_e.sent()]));
                                             return [3 /*break*/, 6];
@@ -248,7 +256,8 @@ var GetFlagsApi = /** @class */ (function () {
                                             return [3 /*break*/, 2];
                                         case 7: return [2 /*return*/, ensureAllRequestedFlags(requestedFeatureKeys, evaluatedFlagsByKey_1, baseContextCopy)];
                                         case 8:
-                                            // Reset shared container flags after this getFlags completes
+                                            // Reset shared container policy and legacy suppress flags after this call completes.
+                                            serviceContainer.resetEventDispatchPolicy();
                                             serviceContainer.setSuppressTrackingCalls(false);
                                             serviceContainer.setSuppressMAU(false);
                                             return [7 /*endfinally*/];
@@ -261,7 +270,7 @@ var GetFlagsApi = /** @class */ (function () {
                             return [2 /*return*/, browserGetFlagsQueue];
                         }
                         return [4 /*yield*/, Promise.allSettled(evaluationBatches.map(function (evaluationBatch) {
-                                return evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU);
+                                return evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, eventDispatchPolicy, suppressTrackingCalls, suppressMAU);
                             }))];
                     case 1:
                         batchEvaluationOutcomes = _a.sent();

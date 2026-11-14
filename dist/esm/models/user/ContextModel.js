@@ -32,6 +32,10 @@ export class ContextModel {
         if (context?.isDevMode) {
             this.isDevMode = context.isDevMode === true;
         }
+        // Only an explicit false is stored. A missing field stays treated as consented.
+        if (context?.hasConsented === false) {
+            this.hasConsented = false;
+        }
         // if uuid is provided in the context, use it, otherwise generate a new uuid
         this._wingify_uuid =
             context?.uuid ??
@@ -95,6 +99,15 @@ export class ContextModel {
     }
     getIsDevMode() {
         return this.isDevMode === true;
+    }
+    /**
+     * Whether the user has consented to data being sent to Wingify servers (true by default).
+     *
+     * @returns {boolean} False only when consent was explicitly denied.
+     */
+    getHasConsented() {
+        // Undefined means the caller omitted consent, which is treated as allowed.
+        return this.hasConsented !== false;
     }
 }
 //# sourceMappingURL=ContextModel.js.map

@@ -25,6 +25,7 @@ var DataTypeUtil_1 = require("../utils/DataTypeUtil");
 var PanicModeForcedRefreshControlService_1 = __importDefault(require("./PanicModeForcedRefreshControlService"));
 var GetFlagsBatchContext_1 = require("./GetFlagsBatchContext");
 var InternalEventsThrottleService_1 = require("./InternalEventsThrottleService");
+var EventDispatchPolicyUtil_1 = require("../utils/EventDispatchPolicyUtil");
 var log_messages_1 = require("../enums/log-messages");
 var LogMessageUtil_1 = require("../utils/LogMessageUtil");
 /**
@@ -34,6 +35,7 @@ var ServiceContainer = /** @class */ (function () {
     function ServiceContainer(options) {
         var _this = this;
         this.BatchEventsQueue = null;
+        this.eventDispatchPolicy = EventDispatchPolicyUtil_1.DEFAULT_EVENT_DISPATCH_POLICY;
         this.suppressTrackingCalls = false;
         this.suppressMAU = false;
         this.pollingStopCallback = null;
@@ -234,6 +236,33 @@ var ServiceContainer = /** @class */ (function () {
     };
     ServiceContainer.prototype.getSuppressMAU = function () {
         return this.suppressMAU;
+    };
+    /**
+     * Sets the event dispatch policy for browser getFlags/fetchFlags evaluation.
+     *
+     * @param eventDispatchPolicy - Network dispatch policy for the current evaluation.
+     * @returns {void}
+     */
+    ServiceContainer.prototype.setEventDispatchPolicy = function (eventDispatchPolicy) {
+        // Browser workers share this container, so the policy lives here instead of async storage.
+        this.eventDispatchPolicy = eventDispatchPolicy;
+    };
+    /**
+     * Returns the container-level event dispatch policy (used on browser, where batch workers have no ALS scope).
+     *
+     * @returns {EventDispatchPolicy} Container-level event dispatch policy.
+     */
+    ServiceContainer.prototype.getEventDispatchPolicy = function () {
+        return this.eventDispatchPolicy;
+    };
+    /**
+     * Resets event dispatch policy to the default (all events enabled).
+     *
+     * @returns {void}
+     */
+    ServiceContainer.prototype.resetEventDispatchPolicy = function () {
+        // The next call must not keep a previous fetchFlags block on impressions.
+        this.eventDispatchPolicy = EventDispatchPolicyUtil_1.DEFAULT_EVENT_DISPATCH_POLICY;
     };
     /**
      * Registers a callback to stop settings polling (called from WingifyBuilder when polling is started).

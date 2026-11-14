@@ -15,12 +15,15 @@
  */
 
 import { SegmentationManager } from '../packages/segmentation-evaluator/core/SegmentationManger';
+import { EventDispatchPolicy } from '../utils/EventDispatchPolicyUtil';
 
 interface GetFlagsBatchWorkerContext {
   // Batch-scoped manager used while a getFlags worker runs.
   segmentationManager: SegmentationManager;
   // Batch-scoped integrations decision payload.
   hooksDecision: Record<string, any> | null;
+  // Network dispatch policy scoped to this batch worker.
+  eventDispatchPolicy: EventDispatchPolicy;
   // When true, tracking/impression network calls are suppressed for this batch worker.
   suppressTrackingCalls: boolean;
   // When true, MAU tracking calls are also suppressed for this batch worker.
@@ -92,12 +95,14 @@ export function getCurrentGetFlagsBatchContext(): GetFlagsBatchWorkerContext | u
  * Runs getFlags batch evaluation with an isolated segmentation manager and hooks decision.
  *
  * @param batchEvaluationCallback - Batch evaluation callback to run inside the scoped context.
+ * @param eventDispatchPolicy - Network dispatch policy for this batch worker.
  * @param suppressTrackingCalls - When true, suppresses tracking/impression network calls for this batch worker.
  * @param suppressMAU - When true, suppresses MAU tracking calls for this batch worker.
  * @returns The callback result.
  */
 export function runWithGetFlagsBatchContext<T>(
   batchEvaluationCallback: () => T,
+  eventDispatchPolicy: EventDispatchPolicy,
   suppressTrackingCalls = false,
   suppressMAU = false,
 ): T {
@@ -111,6 +116,7 @@ export function runWithGetFlagsBatchContext<T>(
       // Fresh manager per batch worker.
       segmentationManager: new SegmentationManager(),
       hooksDecision: null,
+      eventDispatchPolicy,
       suppressTrackingCalls,
       suppressMAU,
     },

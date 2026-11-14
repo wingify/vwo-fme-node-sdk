@@ -23,6 +23,9 @@ import { ContextModel } from '../models/user/ContextModel';
  * @param {number} campaignId - The ID of the campaign.
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {string} featureKey - The feature key the impression belongs to.
+ * @param {any} payload - The variationShown payload; held for exposeResult() when impressions are deferred.
+ * @returns {Promise<void>} Resolves when the impression is sent, stashed, or dropped.
  */
 export declare const sendImpressionForVariationShown: (
   serviceContainer: any,
@@ -33,12 +36,11 @@ export declare const sendImpressionForVariationShown: (
   payload: any,
 ) => Promise<void>;
 /**
- * Sends an impression for a variation shown event in batch.
- * This function constructs the necessary properties and payload for the event
- * and uses the NetworkUtil to send a POST API request.
+ * Sends batched event payloads through the SDK batch pipeline.
+ * Legacy getFlags suppression drops the whole batch. Otherwise payloads are filtered by the active event dispatch policy.
  *
- * @param {any[]} payloads - The payloads to send.
- * @param {ContextModel} context - The user context model containing user-specific data.
- * @param {string} featureKey - The feature key.
+ * @param serviceContainer - The service container instance.
+ * @param payloads - Event payloads to send.
+ * @returns {Promise<void>} Resolves when allowed payloads are enqueued, dispatched, or dropped.
  */
 export declare const sendImpressionForVariationShownInBatch: (serviceContainer: any, payloads: any[]) => Promise<void>;

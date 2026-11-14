@@ -68,11 +68,12 @@ export function getCurrentGetFlagsBatchContext() {
  * Runs getFlags batch evaluation with an isolated segmentation manager and hooks decision.
  *
  * @param batchEvaluationCallback - Batch evaluation callback to run inside the scoped context.
+ * @param eventDispatchPolicy - Network dispatch policy for this batch worker.
  * @param suppressTrackingCalls - When true, suppresses tracking/impression network calls for this batch worker.
  * @param suppressMAU - When true, suppresses MAU tracking calls for this batch worker.
  * @returns The callback result.
  */
-export function runWithGetFlagsBatchContext(batchEvaluationCallback, suppressTrackingCalls = false, suppressMAU = false) {
+export function runWithGetFlagsBatchContext(batchEvaluationCallback, eventDispatchPolicy, suppressTrackingCalls = false, suppressMAU = false) {
     if (!getFlagsBatchAsyncLocalStorage) {
         // Browser path: no ALS wrapper, caller must keep batches sequential.
         return batchEvaluationCallback();
@@ -81,6 +82,7 @@ export function runWithGetFlagsBatchContext(batchEvaluationCallback, suppressTra
         // Fresh manager per batch worker.
         segmentationManager: new SegmentationManager(),
         hooksDecision: null,
+        eventDispatchPolicy,
         suppressTrackingCalls,
         suppressMAU,
     }, batchEvaluationCallback);

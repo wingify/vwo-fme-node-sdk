@@ -49,6 +49,10 @@ var ContextModel = /** @class */ (function () {
         if (context === null || context === void 0 ? void 0 : context.isDevMode) {
             this.isDevMode = context.isDevMode === true;
         }
+        // Only an explicit false is stored. A missing field stays treated as consented.
+        if ((context === null || context === void 0 ? void 0 : context.hasConsented) === false) {
+            this.hasConsented = false;
+        }
         // if uuid is provided in the context, use it, otherwise generate a new uuid
         this._wingify_uuid =
             (_a = context === null || context === void 0 ? void 0 : context.uuid) !== null && _a !== void 0 ? _a : (0, UuidUtil_1.getUUID)((_c = (_b = context === null || context === void 0 ? void 0 : context.id) === null || _b === void 0 ? void 0 : _b.toString()) !== null && _c !== void 0 ? _c : "".concat(options === null || options === void 0 ? void 0 : options.accountId, "_").concat(options === null || options === void 0 ? void 0 : options.sdkKey), (_d = options === null || options === void 0 ? void 0 : options.accountId) === null || _d === void 0 ? void 0 : _d.toString());
@@ -113,6 +117,15 @@ var ContextModel = /** @class */ (function () {
     };
     ContextModel.prototype.getIsDevMode = function () {
         return this.isDevMode === true;
+    };
+    /**
+     * Whether the user has consented to data being sent to Wingify servers (true by default).
+     *
+     * @returns {boolean} False only when consent was explicitly denied.
+     */
+    ContextModel.prototype.getHasConsented = function () {
+        // Undefined means the caller omitted consent, which is treated as allowed.
+        return this.hasConsented !== false;
     };
     return ContextModel;
 }());

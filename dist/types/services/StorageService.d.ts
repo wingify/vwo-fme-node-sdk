@@ -48,4 +48,12 @@ export declare class StorageService implements IStorageService {
    * Fetches fresh settings and updates the storage with a new timestamp
    */
   setFreshSettingsInStorage(accountId: number, sdkKey: string): Promise<void>;
+  /**
+   * Removes stored flag decision data for a user from the configured storage connector.
+   *
+   * @param featureKey - Feature to delete, or null to delete every feature for the user.
+   * @param userId - User id whose stored decisions should be removed.
+   * @returns {boolean} True when remove completed without throwing; false when connector has no remove.
+   */
+  removeDataInStorage(featureKey: string | null, userId: string): Promise<boolean>;
 }

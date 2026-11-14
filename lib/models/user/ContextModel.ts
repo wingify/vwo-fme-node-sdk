@@ -33,6 +33,8 @@ export interface IWingifyContextModel {
     webTestingCampaigns?: string | Record<string, string | number>;
   };
   isDevMode?: boolean;
+  /** When false, user-facing APIs no-op for this user. Default is consented when omitted. */
+  hasConsented?: boolean;
 }
 export class ContextModel implements IWingifyContextModel {
   id: string | number;
@@ -49,6 +51,7 @@ export class ContextModel implements IWingifyContextModel {
     webTestingCampaigns?: string | Record<string, string | number>;
   };
   isDevMode?: boolean;
+  hasConsented?: boolean;
 
   modelFromDictionary(context: Record<string, any>, options: IWingifyOptions): this {
     this.id = context.id;
@@ -81,6 +84,11 @@ export class ContextModel implements IWingifyContextModel {
 
     if (context?.isDevMode) {
       this.isDevMode = context.isDevMode === true;
+    }
+
+    // Only an explicit false is stored. A missing field stays treated as consented.
+    if (context?.hasConsented === false) {
+      this.hasConsented = false;
     }
 
     // if uuid is provided in the context, use it, otherwise generate a new uuid
@@ -165,5 +173,15 @@ export class ContextModel implements IWingifyContextModel {
 
   getIsDevMode(): boolean {
     return this.isDevMode === true;
+  }
+
+  /**
+   * Whether the user has consented to data being sent to Wingify servers (true by default).
+   *
+   * @returns {boolean} False only when consent was explicitly denied.
+   */
+  getHasConsented(): boolean {
+    // Undefined means the caller omitted consent, which is treated as allowed.
+    return this.hasConsented !== false;
   }
 }

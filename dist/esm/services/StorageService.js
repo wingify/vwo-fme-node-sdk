@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { StorageEnum } from '../enums/StorageEnum.js';
-import { isEmptyObject, isNull, isUndefined } from '../utils/DataTypeUtil.js';
+import { isEmptyObject, isFunction, isNull, isUndefined } from '../utils/DataTypeUtil.js';
 import { Deferred } from '../utils/PromiseUtil.js';
 import { ApiEnum } from '../enums/ApiEnum.js';
 import { getFormattedErrorMessage } from '../utils/FunctionUtil.js';
@@ -223,6 +223,31 @@ export class StorageService {
                 deferredObject.resolve();
             });
             return deferredObject.promise;
+        }
+    }
+    /**
+     * Removes stored flag decision data for a user from the configured storage connector.
+     *
+     * @param featureKey - Feature to delete, or null to delete every feature for the user.
+     * @param userId - User id whose stored decisions should be removed.
+     * @returns {boolean} True when remove completed without throwing; false when connector has no remove.
+     */
+    async removeDataInStorage(featureKey, userId) {
+        const storageConnector = this.serviceContainer.getStorageConnector();
+        // Connectors that never stored decisions have no remove method, so there is nothing to delete.
+        if (!storageConnector || !isFunction(storageConnector.removeStoredDecisionData)) {
+            return false;
+        }
+        try {
+            await storageConnector.removeStoredDecisionData(featureKey, userId);
+            return true;
+        }
+        catch (error) {
+            // A storage failure must not throw out of the user API that triggered the wipe.
+            this.serviceContainer
+                .getLogManager()
+                .errorLog('ERROR_REMOVING_STORED_DATA_IN_STORAGE', { err: getFormattedErrorMessage(error) }, { an: Constants.STORAGE }, false);
+            return false;
         }
     }
 }

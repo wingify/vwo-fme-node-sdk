@@ -19,12 +19,17 @@ import { ApiEnum } from '../enums/ApiEnum';
 import { CampaignTypeEnum } from '../enums/CampaignTypeEnum';
 import { DebugLogMessagesEnum, InfoLogMessagesEnum } from '../enums/log-messages';
 import { CampaignModel } from '../models/campaign/CampaignModel';
+import { FeatureModel } from '../models/campaign/FeatureModel';
 import { VariableModel } from '../models/campaign/VariableModel';
 import { VariationModel } from '../models/campaign/VariationModel';
 import { ContextModel } from '../models/user/ContextModel';
 import { LogLevelEnum } from '../packages/logger';
 import { StorageService } from '../services/StorageService';
-import { getVariationFromCampaignKey, isFeatureIdPresentInSettings } from '../utils/CampaignUtil';
+import {
+  getCampaignKeyFromCampaignId,
+  getVariationFromCampaignKey,
+  isFeatureIdPresentInSettings,
+} from '../utils/CampaignUtil';
 import { isObject, isArray } from '../utils/DataTypeUtil';
 import { evaluateTrafficAndGetVariation } from '../utils/DecisionUtil';
 import { getAllExperimentRules, getFeatureFromKey, getSpecificRulesBasedOnType } from '../utils/FunctionUtil';
@@ -35,11 +40,20 @@ import { extractDecisionKeys, sendDebugEventToWingify } from '../utils/DebuggerS
 import { DebuggerCategoryEnum } from '../enums/DebuggerCategoryEnum';
 import { Constants } from '../constants';
 import { ServiceContainer } from '../services/ServiceContainer';
+import { getActiveEventDispatchPolicy } from '../utils/EventDispatchPolicyUtil';
 import { getCurrentGetFlagsBatchContext } from '../services/GetFlagsBatchContext';
 import { getApplicableHoldouts, getMatchedHoldouts, sendNetworkCallsForNotInHoldouts } from '../utils/HoldoutUtil';
 import { sendImpressionForVariationShown, sendImpressionForVariationShownInBatch } from '../utils/ImpressionUtil';
+import {
+  collectDeferredImpression,
+  hasDeferredImpressionScope,
+  runWithDeferredImpressionScope,
+  takeDeferredImpressions,
+} from '../utils/DeferredImpressionCollector';
+import { exposeFlagResult, ExposeDependencies } from '../utils/ImpressionExposureUtil';
 import { EventEnum } from '../enums/EventEnum';
 import {
+  createHoldoutPayload,
   getEventsBaseProperties,
   getTrackUserPayloadData,
   getTrackingUsagePayloadData,
@@ -50,6 +64,9 @@ export class Flag {
   private variation: VariationModel | Record<string, any> | undefined;
   private readonly sessionId: number;
   private readonly uuid: string;
+  private deferredImpressionPayloads: any[] = [];
+  private exposeDependencies: ExposeDependencies | undefined;
+  private hasImpressionBeenSent = false;
 
   constructor(
     isEnabled: boolean,
@@ -91,10 +108,169 @@ export class Flag {
 
     return value !== undefined ? (value as T) : defaultValue;
   }
+
+  /**
+   * Sends deferred variationShown impressions stashed during fetchFlags.
+   * Idempotent: subsequent calls are no-ops after the stash is cleared.
+   *
+   * @returns {boolean} True when an impression was enqueued or sent, false otherwise.
+   */
+  async exposeResult(): Promise<boolean> {
+    // Transport and the second-call guard live in the util so Flag stays free of the network stack.
+    return exposeFlagResult(this);
+  }
+
+  /**
+   * Stores the dependencies needed to send deferred impressions from exposeResult().
+   *
+   * @internal
+   * @param exposeDependencies - Service container, context, and feature key used when exposing.
+   * @returns {void}
+   */
+  attachExposeDependencies(exposeDependencies: ExposeDependencies): void {
+    // Keep this flag's enabled state, not whatever the caller passed in.
+    this.exposeDependencies = { ...exposeDependencies, isEnabled: this.enabled };
+  }
+
+  /**
+   * Returns the dependencies attached for exposeResult().
+   *
+   * @internal
+   * @returns {ExposeDependencies | undefined} Expose dependencies, or undefined when none were attached (e.g. error flags).
+   */
+  getExposeDependencies(): ExposeDependencies | undefined {
+    return this.exposeDependencies;
+  }
+
+  /**
+   * Appends deferred variationShown payloads collected during evaluation.
+   *
+   * @internal
+   * @param deferredPayloads - Deferred impression payloads to hold until exposeResult().
+   * @returns {void}
+   */
+  addDeferredImpressions(deferredPayloads: any[]): void {
+    // An empty list means this rule path produced nothing to expose later.
+    if (!deferredPayloads?.length) {
+      return;
+    }
+    this.deferredImpressionPayloads.push(...deferredPayloads);
+  }
+
+  /**
+   * Returns all held impression payloads and clears the stash.
+   *
+   * @internal
+   * @returns {any[]} Copy of the held impression payloads.
+   */
+  consumeDeferredImpressions(): any[] {
+    // Copy before clearing so the caller still has the payloads after the stash is emptied.
+    const consumedPayloads = this.deferredImpressionPayloads.slice();
+    // Empty now so a second exposeResult cannot send the same payloads.
+    this.deferredImpressionPayloads = [];
+    return consumedPayloads;
+  }
+
+  /**
+   * Marks impressions as sent and clears any held payloads, making exposeResult() a no-op.
+   *
+   * @internal
+   * @returns {void}
+   */
+  markImpressionSent(): void {
+    // Later exposeResult calls should no-op even if another payload is added.
+    this.hasImpressionBeenSent = true;
+    this.deferredImpressionPayloads = [];
+  }
+
+  /**
+   * Returns whether impressions for this flag were already sent.
+   *
+   * @internal
+   * @returns {boolean} True when impressions were sent during evaluation or by exposeResult().
+   */
+  isImpressionAlreadySent(): boolean {
+    return this.hasImpressionBeenSent;
+  }
+
+  /**
+   * Returns whether this flag still holds deferred impression payloads.
+   *
+   * @internal
+   * @returns {boolean} True when at least one impression payload is waiting for exposeResult().
+   */
+  hasPendingImpressions(): boolean {
+    return this.deferredImpressionPayloads.length > 0;
+  }
 }
 
 export class FlagApi {
+  /**
+   * Attaches deferred impression stash + expose deps for Flag.exposeResult().
+   *
+   * @param flag - Evaluated flag to finalize.
+   * @param serviceContainer - Shared SDK service container.
+   * @param context - User context used for the evaluation.
+   * @param featureKey - Feature key of the evaluated flag.
+   * @param isImpressionDispatchEnabled - Whether impressions were dispatched during evaluation.
+   * @returns {Flag} The same flag with expose deps and any deferred impressions attached.
+   */
+  private static prepareFlagForExposeResult(
+    flag: Flag,
+    serviceContainer: ServiceContainer,
+    context: ContextModel,
+    featureKey: string,
+    isImpressionDispatchEnabled: boolean,
+  ): Flag {
+    // exposeResult needs the same client, user, and feature that produced this decision.
+    flag.attachExposeDependencies({
+      serviceContainer,
+      context,
+      featureKey,
+      isEnabled: flag.isEnabled(),
+    });
+
+    const deferredPayloads = takeDeferredImpressions();
+    if (deferredPayloads.length > 0) {
+      // fetchFlags held these back so exposeResult can send them later.
+      flag.addDeferredImpressions(deferredPayloads);
+    } else if (isImpressionDispatchEnabled) {
+      // Nothing left to expose: impressions already went out, or this decision had none.
+      flag.markImpressionSent();
+    }
+
+    return flag;
+  }
+
+  /**
+   * Evaluates a feature flag for a user inside a deferred-impression collection scope.
+   *
+   * @param featureKey - Feature key to evaluate.
+   * @param context - User context for the evaluation.
+   * @param serviceContainer - Shared SDK service container.
+   * @returns {Promise<Flag>} The evaluated flag.
+   */
   static async get(featureKey: string, context: ContextModel, serviceContainer: ServiceContainer): Promise<Flag> {
+    // Keep this feature's deferred payloads separate from any parallel evaluation.
+    return runWithDeferredImpressionScope(featureKey, () =>
+      FlagApi.evaluateFlag(featureKey, context, serviceContainer),
+    );
+  }
+
+  /**
+   * Runs the full flag evaluation: stored decisions, holdouts, rollout and experiment rules,
+   * impressions, MAU usage tracking, and storage writes.
+   *
+   * @param featureKey - Feature key to evaluate.
+   * @param context - User context for the evaluation.
+   * @param serviceContainer - Shared SDK service container.
+   * @returns {Promise<Flag>} The evaluated flag, finalized for exposeResult().
+   */
+  private static async evaluateFlag(
+    featureKey: string,
+    context: ContextModel,
+    serviceContainer: ServiceContainer,
+  ): Promise<Flag> {
     let isEnabled = false;
     let rolloutVariationToReturn = null;
     let experimentVariationToReturn = null;
@@ -110,10 +286,15 @@ export class FlagApi {
     const isSettingsDevModeEnabled = serviceContainer.getSettings()?.getDevMode?.() === true;
     const isUserDevModeEnabled = context?.getIsDevMode?.() === true;
     const isDevModeForUser = isSettingsDevModeEnabled && isUserDevModeEnabled;
-    const shouldFireImpressionEvents =
-      !isDevModeForUser &&
-      !serviceContainer.getSuppressTrackingCalls() &&
-      !getCurrentGetFlagsBatchContext()?.suppressTrackingCalls;
+    const eventDispatchPolicy = getActiveEventDispatchPolicy(serviceContainer);
+    const isTrackingSuppressed = !!(
+      serviceContainer.getSuppressTrackingCalls() || getCurrentGetFlagsBatchContext()?.suppressTrackingCalls
+    );
+    // getFlags(shouldSendTrackingCalls: false) sets the legacy suppress flag and must not build impressions.
+    // fetchFlags leaves that flag false and blocks dispatch via policy, so payloads are still built and deferred.
+    const isImpressionDispatchEnabled =
+      !isDevModeForUser && eventDispatchPolicy.shouldDispatchImpressions && !isTrackingSuppressed;
+    const shouldFireImpressionEvents = !isDevModeForUser && !isTrackingSuppressed;
 
     // Check if usage tracking is enabled for this account.
     // isMAU is sent in settings only when the account has usage tracking enabled.
@@ -212,10 +393,6 @@ export class FlagApi {
                     payload,
                   );
                 }
-              } else if (serviceContainer.getBatchEventsQueue()) {
-                for (const payload of holdoutPayloads) {
-                  serviceContainer.getBatchEventsQueue().enqueue(payload);
-                }
               } else {
                 if (serviceContainer.getShouldWaitForTrackingCalls()) {
                   await sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
@@ -236,7 +413,25 @@ export class FlagApi {
               featureKey,
             ); // fire-and-forget
 
-            deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel()));
+            // fetchFlags only: rebuild held impressions from the stored holdout so exposeResult()
+            // still has payloads after a reload. No-op for getFlag / getFlags.
+            if (shouldFireImpressionEvents) {
+              collectStoredDecisionImpressions(serviceContainer, feature, context, storedData, {
+                shouldIncludeExperiment: false,
+                shouldIncludeImpactCampaign: false,
+                isEnabled: false,
+              });
+            }
+
+            deferredObject.resolve(
+              FlagApi.prepareFlagForExposeResult(
+                new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel()),
+                serviceContainer,
+                context,
+                featureKey,
+                isImpressionDispatchEnabled,
+              ),
+            );
             return deferredObject.promise;
           }
         }
@@ -284,7 +479,26 @@ export class FlagApi {
               featureKey,
             ); // fire-and-forget
 
-            deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
+            // fetchFlags only: rebuild held impressions from the stored experiment (plus rollout
+            // and impact, if present) so exposeResult() still has payloads after a reload.
+            // No-op for getFlag / getFlags.
+            if (shouldFireImpressionEvents) {
+              collectStoredDecisionImpressions(serviceContainer, feature, context, storedData, {
+                shouldIncludeExperiment: true,
+                shouldIncludeImpactCampaign: true,
+                isEnabled: true,
+              });
+            }
+
+            deferredObject.resolve(
+              FlagApi.prepareFlagForExposeResult(
+                new Flag(true, context.getSessionId(), context.getUuid(), variation),
+                serviceContainer,
+                context,
+                featureKey,
+                isImpressionDispatchEnabled,
+              ),
+            );
             return deferredObject.promise;
           }
         }
@@ -331,6 +545,18 @@ export class FlagApi {
           isEnabled = true;
           shouldCheckForExperimentsRules = true;
           rolloutVariationToReturn = variation;
+
+          // fetchFlags only: rebuild the stored rollout (and previously stored holdouts).
+          // Experiment rules and the impact campaign are evaluated fresh below, so they are
+          // omitted here. No-op for getFlag / getFlags.
+          if (shouldFireImpressionEvents) {
+            collectStoredDecisionImpressions(serviceContainer, feature, context, storedData, {
+              shouldIncludeExperiment: false,
+              shouldIncludeImpactCampaign: false,
+              isEnabled: true,
+            });
+          }
+
           const featureInfo = {
             rolloutId: storedData.rolloutId,
             rolloutKey: storedData.rolloutKey,
@@ -420,10 +646,6 @@ export class FlagApi {
                 payload,
               );
             }
-          } else if (serviceContainer.getBatchEventsQueue()) {
-            for (const payload of holdoutPayloads) {
-              serviceContainer.getBatchEventsQueue().enqueue(payload);
-            }
           } else {
             if (serviceContainer.getShouldWaitForTrackingCalls()) {
               await sendImpressionForVariationShownInBatch(serviceContainer, holdoutPayloads);
@@ -436,7 +658,15 @@ export class FlagApi {
         // Holdout variationShown(variation=1) was fired above — server handles usage tracking.
         // No explicit usage tracking call needed here.
 
-        deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel()));
+        deferredObject.resolve(
+          FlagApi.prepareFlagForExposeResult(
+            new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel()),
+            serviceContainer,
+            context,
+            featureKey,
+            isImpressionDispatchEnabled,
+          ),
+        );
         return deferredObject.promise;
       } else {
         serviceContainer.getLogManager().info(
@@ -459,17 +689,13 @@ export class FlagApi {
                 payload,
               );
             }
-          } else if (serviceContainer.getBatchEventsQueue()) {
-            for (const payload of holdoutPayloads) {
-              serviceContainer.getBatchEventsQueue().enqueue(payload);
-            }
           } else {
             batchPayload.push(...holdoutPayloads);
           }
           // Usage tracking optimization: holdout variationShown(variation=2) was dispatched above.
           // server will handle usage tracking from that event. Mark flag so Point 4 skips our usage tracking call
           // to avoid an unnecessary duplicate network round trip.
-          if (holdoutPayloads.length > 0) {
+          if (holdoutPayloads.length > 0 && isImpressionDispatchEnabled) {
             isVariationShownFired = true;
           }
         }
@@ -496,7 +722,7 @@ export class FlagApi {
         const { whitelistedObject, updatedDecision, payload } = evaluateRuleResult;
 
         Object.assign(decision, updatedDecision);
-        if (payload) {
+        if (payload && isImpressionDispatchEnabled) {
           isVariationShownFired = true;
         }
 
@@ -625,7 +851,7 @@ export class FlagApi {
               variation.getId(),
               context,
             );
-            if (payload) {
+            if (payload && isImpressionDispatchEnabled) {
               isVariationShownFired = true;
             }
 
@@ -690,7 +916,7 @@ export class FlagApi {
         );
 
         Object.assign(decision, updatedDecision);
-        if (payload) {
+        if (payload && isImpressionDispatchEnabled) {
           isVariationShownFired = true;
         }
 
@@ -766,7 +992,7 @@ export class FlagApi {
               variation.getId(),
               context,
             );
-            if (payload) {
+            if (payload && isImpressionDispatchEnabled) {
               isVariationShownFired = true;
             }
 
@@ -848,15 +1074,18 @@ export class FlagApi {
       sendDebugEventToWingify(serviceContainer, debugEventProps);
     }
 
-    // Send data for Impact Campaign, if defined
+    // Send data for Impact Campaign, if defined.
+    // fetchFlags evaluates with impressions deferred; log only when the impression is sent now.
     if (feature.getImpactCampaign()?.getCampaignId()) {
-      serviceContainer.getLogManager().info(
-        buildMessage(InfoLogMessagesEnum.IMPACT_ANALYSIS, {
-          userId: context.getId(),
-          featureKey,
-          status: isEnabled ? 'enabled' : 'disabled',
-        }),
-      );
+      if (isImpressionDispatchEnabled) {
+        serviceContainer.getLogManager().info(
+          buildMessage(InfoLogMessagesEnum.IMPACT_ANALYSIS, {
+            userId: context.getId(),
+            featureKey,
+            status: isEnabled ? 'enabled' : 'disabled',
+          }),
+        );
+      }
       if (shouldFireImpressionEvents) {
         const payload = getTrackUserPayloadData(
           serviceContainer,
@@ -865,7 +1094,7 @@ export class FlagApi {
           isEnabled ? 2 : 1,
           context,
         );
-        if (payload) {
+        if (payload && isImpressionDispatchEnabled) {
           isVariationShownFired = true;
         }
         if (serviceContainer.getShouldWaitForTrackingCalls()) {
@@ -925,8 +1154,9 @@ export class FlagApi {
       ? new VariationModel().modelFromDictionary(variationToReturn)
       : new VariationModel();
 
-    deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), context.getUuid(), variationModel));
-
+    // Flush before prepareFlagForExposeResult so fetchFlags stashes payloads for exposeResult().
+    // The stash runs before any network call, so skipping the await still attaches them.
+    // getFlag/getFlags wait for the HTTP dispatch only when shouldWaitForTrackingCalls is set.
     if (!serviceContainer.getSettingsService().isGatewayServiceProvided && batchPayload.length > 0) {
       if (shouldFireImpressionEvents) {
         if (serviceContainer.getShouldWaitForTrackingCalls()) {
@@ -936,6 +1166,16 @@ export class FlagApi {
         }
       }
     }
+
+    deferredObject.resolve(
+      FlagApi.prepareFlagForExposeResult(
+        new Flag(isEnabled, context.getSessionId(), context.getUuid(), variationModel),
+        serviceContainer,
+        context,
+        featureKey,
+        isImpressionDispatchEnabled,
+      ),
+    );
 
     return deferredObject.promise;
   }
@@ -984,6 +1224,126 @@ function _updateDebugEventProps(debugEventProps: Record<string, any>, decision: 
 }
 
 /**
+ * Rebuilds variationShown payloads for a decision served from storage and collects them
+ * for Flag.exposeResult().
+ *
+ * Only fetchFlags uses this. Impressions are deferred there, so a stored decision would
+ * otherwise leave exposeResult() with nothing to send after a reload. getFlag / getFlags
+ * dispatch impressions immediately, so this returns without collecting anything on those paths.
+ *
+ * Campaigns, variations, or holdouts that are no longer in settings are skipped.
+ *
+ * @param serviceContainer - Shared SDK service container.
+ * @param feature - Feature being evaluated; used for holdouts and the impact campaign.
+ * @param context - User context for the evaluation.
+ * @param storedData - Decision previously written to storage for this user and feature.
+ * @param options - Which stored campaigns to rebuild. Experiment and impact are omitted
+ *   on the stored-rollout path because those are evaluated fresh afterwards.
+ * @returns {void}
+ */
+function collectStoredDecisionImpressions(
+  serviceContainer: ServiceContainer,
+  feature: FeatureModel,
+  context: ContextModel,
+  storedData: Record<string, any>,
+  options: {
+    shouldIncludeExperiment: boolean;
+    shouldIncludeImpactCampaign: boolean;
+    isEnabled: boolean;
+  },
+): void {
+  // Immediate-dispatch APIs (getFlag / getFlags) must keep skipping stored-path impressions.
+  if (getActiveEventDispatchPolicy(serviceContainer).shouldDispatchImpressions) {
+    return;
+  }
+  // Without an active collector there is nowhere to hold the payloads until exposeResult().
+  if (!hasDeferredImpressionScope() || !storedData || !feature) {
+    return;
+  }
+
+  const settings = serviceContainer.getSettings();
+
+  // Rebuild only holdouts already decided for this user. Holdouts added after the decision
+  // was stored are collected by the existing holdout evaluation above.
+  const storedInHoldoutIds = storedData.isInHoldoutId ?? storedData.holdoutGroupId ?? [];
+  const storedNotInHoldoutIds = storedData.notInHoldoutId ?? [];
+  for (const holdout of getApplicableHoldouts(settings, feature.getId())) {
+    const holdoutId = holdout.getId();
+    if (storedInHoldoutIds.includes(holdoutId)) {
+      // This user was already decided into the holdout, so rebuild that impression for exposeResult.
+      collectDeferredImpression(
+        createHoldoutPayload(
+          serviceContainer,
+          EventEnum.VARIATION_SHOWN,
+          holdoutId,
+          Constants.VARIATION_IS_PART_OF_HOLDOUT,
+          context,
+          feature.getId(),
+        ),
+      );
+
+      // If the user is not in the holdout, collect the payload for the holdout not part of holdout event.
+    } else if (storedNotInHoldoutIds.includes(holdoutId)) {
+      collectDeferredImpression(
+        createHoldoutPayload(
+          serviceContainer,
+          EventEnum.VARIATION_SHOWN,
+          holdoutId,
+          Constants.VARIATION_NOT_PART_OF_HOLDOUT,
+          context,
+          feature.getId(),
+        ),
+      );
+    }
+  }
+  // If the user is in the rollout, collect the payload for the rollout variation shown event.
+  if (storedData.rolloutId && storedData.rolloutVariationId) {
+    // Skip a stored rollout that was removed from settings.
+    if (getCampaignKeyFromCampaignId(settings, storedData.rolloutId)) {
+      collectDeferredImpression(
+        getTrackUserPayloadData(
+          serviceContainer,
+          EventEnum.VARIATION_SHOWN,
+          storedData.rolloutId,
+          storedData.rolloutVariationId,
+          context,
+        ),
+      );
+    }
+  }
+
+  // If the user is in the experiment, collect the payload for the experiment variation shown event.
+  if (options.shouldIncludeExperiment && storedData.experimentId && storedData.experimentVariationId) {
+    // Skip a stored experiment that was removed from settings.
+    if (getCampaignKeyFromCampaignId(settings, storedData.experimentId)) {
+      collectDeferredImpression(
+        getTrackUserPayloadData(
+          serviceContainer,
+          EventEnum.VARIATION_SHOWN,
+          storedData.experimentId,
+          storedData.experimentVariationId,
+          context,
+        ),
+      );
+    }
+  }
+
+  // If the user is in the impact campaign, collect the payload for the impact campaign variation shown event.
+  const impactCampaignId = feature.getImpactCampaign()?.getCampaignId?.();
+  if (options.shouldIncludeImpactCampaign && impactCampaignId) {
+    collectDeferredImpression(
+      getTrackUserPayloadData(
+        serviceContainer,
+        EventEnum.VARIATION_SHOWN,
+        impactCampaignId,
+        options.isEnabled ? 2 : 1,
+        context,
+      ),
+    );
+  }
+}
+
+/**
  * Sends the usage tracking payload to server.
  * Called whenever a user is evaluated via getFlag() but no variationShown event is
  * dispatched by the SDK for that evaluation (decision from storage cache, flag=false, etc.).
@@ -995,7 +1355,9 @@ function _updateDebugEventProps(debugEventProps: Record<string, any>, decision: 
  * @param context - The user context model.
  * @param isTrackingUsageEnabled - Whether usage tracking is active for this account.
  * @param shouldFireImpressionEvents - Whether tracking/impression network calls should be dispatched.
+ * @param featureKey - Feature key being evaluated, used for logging.
  * @param shouldAwait - When true, awaits the network call (for shouldWaitForTrackingCalls flows).
+ * @returns {Promise<void>} Resolves once the usage tracking call is enqueued or sent.
  */
 async function sendTrackingUsage(
   serviceContainer: ServiceContainer,
@@ -1005,13 +1367,17 @@ async function sendTrackingUsage(
   featureKey: string,
   shouldAwait = false,
 ): Promise<void> {
-  // Allow MAU when impressions are suppressed; block only if usage tracking is off, MAU is suppressed, or shouldFireImpressionEvents is false for a non-suppression reason (e.g. dev mode).
-  const isTrackingSuppressed =
-    serviceContainer.getSuppressTrackingCalls() || !!getCurrentGetFlagsBatchContext()?.suppressTrackingCalls;
-  const isMAUSuppressed = serviceContainer.getSuppressMAU() || !!getCurrentGetFlagsBatchContext()?.suppressMAU;
+  // Cover both the batch-worker policy and the legacy suppress flags used by getFlags.
+  const eventDispatchPolicy = getActiveEventDispatchPolicy(serviceContainer);
+  const isTrackingSuppressed = !!(
+    serviceContainer.getSuppressTrackingCalls() || getCurrentGetFlagsBatchContext()?.suppressTrackingCalls
+  );
+  const isMAUSuppressed = !!(serviceContainer.getSuppressMAU() || getCurrentGetFlagsBatchContext()?.suppressMAU);
 
-  if (!isTrackingUsageEnabled || isMAUSuppressed) return;
-  if (!shouldFireImpressionEvents && !isTrackingSuppressed) return;
+  // Account setting, the MAU toggle, and getFlags suppressMAU can each block this call.
+  if (!isTrackingUsageEnabled || !eventDispatchPolicy.shouldDispatchUsageEvents || isMAUSuppressed) return;
+  // Skip MAU in dev mode. Still send it for fetchFlags (policy blocks impressions) and for getFlags tracking suppression.
+  if (!shouldFireImpressionEvents && eventDispatchPolicy.shouldDispatchImpressions && !isTrackingSuppressed) return;
   const trackingPayload = getTrackingUsagePayloadData(serviceContainer, context);
 
   serviceContainer.getLogManager().info(
@@ -1039,7 +1405,7 @@ async function sendTrackingUsage(
       sendPostApiRequest(serviceContainer, properties, trackingPayload, context.getId()); // fire-and-forget
     }
   } else {
-    // No gateway, no user-configured batch queue: use the SDK's internal batch dispatcher.
+    // No gateway, no user-configured batch queue: use the SDK internal batch dispatcher.
     if (shouldAwait) {
       await sendImpressionForVariationShownInBatch(serviceContainer, [trackingPayload]);
     } else {

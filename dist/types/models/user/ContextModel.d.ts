@@ -29,6 +29,8 @@ export interface IWingifyContextModel {
     webTestingCampaigns?: string | Record<string, string | number>;
   };
   isDevMode?: boolean;
+  /** When false, user-facing APIs no-op for this user. Default is consented when omitted. */
+  hasConsented?: boolean;
 }
 export declare class ContextModel implements IWingifyContextModel {
   id: string | number;
@@ -45,6 +47,7 @@ export declare class ContextModel implements IWingifyContextModel {
     webTestingCampaigns?: string | Record<string, string | number>;
   };
   isDevMode?: boolean;
+  hasConsented?: boolean;
   modelFromDictionary(context: Record<string, any>, options: IWingifyOptions): this;
   getId(): string;
   getUserAgent(): string;
@@ -65,4 +68,10 @@ export declare class ContextModel implements IWingifyContextModel {
   };
   setPlatformVariables(platformVariables: { webTestingCampaigns?: string | Record<string, string | number> }): void;
   getIsDevMode(): boolean;
+  /**
+   * Whether the user has consented to data being sent to Wingify servers (true by default).
+   *
+   * @returns {boolean} False only when consent was explicitly denied.
+   */
+  getHasConsented(): boolean;
 }

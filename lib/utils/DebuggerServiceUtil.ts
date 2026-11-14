@@ -19,6 +19,7 @@ import { EventEnum } from '../enums/EventEnum';
 import { ServiceContainer } from '../services/ServiceContainer';
 import { getCurrentGetFlagsBatchContext } from '../services/GetFlagsBatchContext';
 import { isSampledDebugErrorTemplateKey } from './InternalEventsRuntimeUtil';
+import { getActiveEventDispatchPolicy } from './EventDispatchPolicyUtil';
 
 /**
  * Utility functions for handling debugger service operations including
@@ -70,11 +71,17 @@ export async function sendDebugEventToWingify(
     return;
   }
 
+  // getFlags(shouldSendTrackingCalls: false) and panic mode drop debugger events.
   if (
     serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated() ||
     serviceContainer.getSuppressTrackingCalls() ||
     getCurrentGetFlagsBatchContext()?.suppressTrackingCalls
   ) {
+    return;
+  }
+
+  // fetchFlags / event dispatch policy can block debugger events without the legacy suppress flag.
+  if (!getActiveEventDispatchPolicy(serviceContainer).shouldDispatchDebuggerEvents) {
     return;
   }
 

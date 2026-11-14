@@ -17,6 +17,7 @@ import { Flag, FlagApi } from './GetFlag.js';
 import { VariationModel } from '../models/campaign/VariationModel.js';
 import { ContextModel } from '../models/user/ContextModel.js';
 import { runWithGetFlagsBatchContext, supportsParallelGetFlagsBatches } from '../services/GetFlagsBatchContext.js';
+import { createEventDispatchPolicy } from '../utils/EventDispatchPolicyUtil.js';
 import { getFeatureFlagBatches } from '../utils/megGroupPartitionUtil.js';
 import { isString } from '../utils/DataTypeUtil.js';
 import { getCurrentUnixTimestamp } from '../utils/FunctionUtil.js';
@@ -33,7 +34,7 @@ let browserGetFlagsQueue = Promise.resolve({});
  * @param settings - Processed account settings.
  * @returns Distinct feature keys to evaluate.
  */
-function resolveFlagKeys(flagNames, settings) {
+export function resolveFlagKeys(flagNames, settings) {
     if (!flagNames?.length) {
         // Null/empty means evaluate every feature key present in settings.
         return settings
@@ -80,11 +81,12 @@ function ensureAllRequestedFlags(requestedFeatureKeys, evaluatedFlagsByKey, base
  * @param baseContextCopy - Validated plain context object shared across evaluations.
  * @param serviceContainer - Shared SDK service container.
  * @param options - SDK init options used to build per-flag ContextModel instances.
+ * @param eventDispatchPolicy - Network dispatch policy for this batch worker.
  * @param suppressTrackingCalls - Whether to suppress tracking/impression network calls.
  * @param suppressMAU - Whether to suppress MAU tracking calls.
  * @returns Evaluated flags keyed by feature key for this batch.
  */
-async function evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU) {
+async function evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, eventDispatchPolicy, suppressTrackingCalls, suppressMAU) {
     // Each parallel batch worker gets its own SegmentationManager and hooks decision via ALS.
     return runWithGetFlagsBatchContext(async () => {
         const evaluatedFlagsInBatch = {};
@@ -101,10 +103,10 @@ async function evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer,
             }
         }
         return evaluatedFlagsInBatch;
-    }, suppressTrackingCalls, suppressMAU);
+    }, eventDispatchPolicy, suppressTrackingCalls, suppressMAU);
 }
 /**
- * Batch feature-flag evaluation used by WingifyClient.getFlags.
+ * Batch feature-flag evaluation used by WingifyClient.getFlags and WingifyClient.fetchFlags.
  */
 export class GetFlagsApi {
     /**
@@ -117,14 +119,18 @@ export class GetFlagsApi {
      * @param options - SDK init options used to build per-flag ContextModel instances.
      * @param shouldSendTrackingCalls - When false, suppresses tracking/impression network calls.
      * @param shouldSendMAU - When false, suppresses MAU tracking calls.
-     * @returns Evaluated flags keyed by feature key (disabled Flag for unknown/failed keys).
+     * @param shouldApplyLegacySuppression - When true, getFlags drops impressions via suppress flags. fetchFlags passes false so impressions are deferred instead.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key (disabled Flag for unknown/failed keys).
      */
     static async get(flagNames, baseContextCopy, serviceContainer, options, shouldSendTrackingCalls = true, // Default to true so that tracking calls are sent in case of getFlags.
-    shouldSendMAU = true) {
+    shouldSendMAU = true, // Default to true so that MAU calls are sent
+    shouldApplyLegacySuppression = true) {
         const settings = serviceContainer.getSettings();
         const requestedFeatureKeys = resolveFlagKeys(flagNames, settings);
-        const suppressTrackingCalls = !shouldSendTrackingCalls; // If shouldSendTrackingCalls is false, suppress tracking calls.
-        const suppressMAU = !shouldSendMAU; // If shouldSendMAU is false, suppress MAU calls.
+        const eventDispatchPolicy = createEventDispatchPolicy(shouldSendTrackingCalls, shouldSendMAU);
+        // getFlags drops impressions when tracking is off. fetchFlags leaves suppression off and defers them instead.
+        const suppressTrackingCalls = shouldApplyLegacySuppression && !shouldSendTrackingCalls;
+        const suppressMAU = shouldApplyLegacySuppression && !shouldSendMAU;
         if (!requestedFeatureKeys.length) {
             return {};
         }
@@ -141,13 +147,14 @@ export class GetFlagsApi {
              * @returns Complete flags map for the requested keys.
              */
             const evaluateFlags = async () => {
+                serviceContainer.setEventDispatchPolicy(eventDispatchPolicy);
                 serviceContainer.setSuppressTrackingCalls(suppressTrackingCalls);
                 serviceContainer.setSuppressMAU(suppressMAU);
                 try {
                     const evaluatedFlagsByKey = {};
                     for (const evaluationBatch of evaluationBatches) {
                         try {
-                            Object.assign(evaluatedFlagsByKey, await evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU));
+                            Object.assign(evaluatedFlagsByKey, await evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, eventDispatchPolicy, suppressTrackingCalls, suppressMAU));
                         }
                         catch {
                             // Failed batch keys are filled as disabled Flags below.
@@ -156,7 +163,8 @@ export class GetFlagsApi {
                     return ensureAllRequestedFlags(requestedFeatureKeys, evaluatedFlagsByKey, baseContextCopy);
                 }
                 finally {
-                    // Reset shared container flags after this getFlags completes
+                    // Reset shared container policy and legacy suppress flags after this call completes.
+                    serviceContainer.resetEventDispatchPolicy();
                     serviceContainer.setSuppressTrackingCalls(false);
                     serviceContainer.setSuppressMAU(false);
                 }
@@ -166,7 +174,7 @@ export class GetFlagsApi {
             return browserGetFlagsQueue;
         }
         // On Node (Server-side), start every batch without awaiting so independent batches evaluate in parallel.
-        const batchEvaluationOutcomes = await Promise.allSettled(evaluationBatches.map((evaluationBatch) => evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU)));
+        const batchEvaluationOutcomes = await Promise.allSettled(evaluationBatches.map((evaluationBatch) => evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, eventDispatchPolicy, suppressTrackingCalls, suppressMAU)));
         const evaluatedFlagsByKey = {};
         for (const batchEvaluationOutcome of batchEvaluationOutcomes) {
             if (batchEvaluationOutcome.status === 'fulfilled') {

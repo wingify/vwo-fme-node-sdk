@@ -90,4 +90,12 @@ export declare class BrowserStorageConnector extends Connector {
    * @returns {Promise<void>} A promise that resolves when the settings are successfully stored
    */
   setSettings(data: ISettingsData): Promise<void>;
+  /**
+   * Removes stored flag decision data for a user from browser storage.
+   *
+   * @param featureKey - Feature to delete, or null to delete all features for the user.
+   * @param userId - User id whose stored decisions should be removed.
+   * @returns {Promise<void>} Resolves when removal completes.
+   */
+  removeStoredDecisionData(featureKey: string | null, userId: string): Promise<void>;
 }

@@ -17,6 +17,7 @@ import { getDebuggerEventPayload, getEventsBaseProperties, sendEvent } from './N
 import { EventEnum } from '../enums/EventEnum.js';
 import { getCurrentGetFlagsBatchContext } from '../services/GetFlagsBatchContext.js';
 import { isSampledDebugErrorTemplateKey } from './InternalEventsRuntimeUtil.js';
+import { getActiveEventDispatchPolicy } from './EventDispatchPolicyUtil.js';
 /**
  * Utility functions for handling debugger service operations including
  * filtering sensitive properties and extracting decision keys.
@@ -56,9 +57,14 @@ export async function sendDebugEventToWingify(serviceContainer, eventProps = {})
     if (!serviceContainer.getSettingsService()?.sdkKey) {
         return;
     }
+    // getFlags(shouldSendTrackingCalls: false) and panic mode drop debugger events.
     if (serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated() ||
         serviceContainer.getSuppressTrackingCalls() ||
         getCurrentGetFlagsBatchContext()?.suppressTrackingCalls) {
+        return;
+    }
+    // fetchFlags / event dispatch policy can block debugger events without the legacy suppress flag.
+    if (!getActiveEventDispatchPolicy(serviceContainer).shouldDispatchDebuggerEvents) {
         return;
     }
     const messageTemplateKey = eventProps.msg_t;

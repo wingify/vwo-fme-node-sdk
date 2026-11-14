@@ -16,7 +16,7 @@
 import { Constants } from '../../../constants';
 import { Deferred } from '../../../utils/PromiseUtil';
 import { LogManager } from '../../logger';
-import { isNumber, isBoolean } from '../../../utils/DataTypeUtil';
+import { isNumber, isBoolean, isNull, isUndefined } from '../../../utils/DataTypeUtil';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 import { Connector, ISettingsData } from '../Connector';
 
@@ -266,6 +266,55 @@ export class BrowserStorageConnector extends Connector {
       }
     }
 
+    return deferredObject.promise;
+  }
+
+  /**
+   * Removes stored flag decision data for a user from browser storage.
+   *
+   * @param featureKey - Feature to delete, or null to delete all features for the user.
+   * @param userId - User id whose stored decisions should be removed.
+   * @returns {Promise<void>} Resolves when removal completes.
+   */
+  public removeStoredDecisionData(featureKey: string | null, userId: string): Promise<void> {
+    const deferredObject = new Deferred();
+    // Disabled storage and calls without a user id are a successful no-op.
+    if (this.isDisabled || !userId) {
+      deferredObject.resolve();
+      return deferredObject.promise;
+    }
+    try {
+      const storedData = this.getStoredData();
+      // A specific feature is stored under featureKey_userId. Null means wipe every feature.
+      if (!isNull(featureKey) && !isUndefined(featureKey)) {
+        const storageEntryKey = `${featureKey}_${userId}`;
+        delete storedData[storageEntryKey];
+      } else {
+        // Keep cached settings and other users. Only this user's decision rows are removed.
+        Object.keys(storedData).forEach((storageEntryKey) => {
+          if (storageEntryKey === this.SETTINGS_KEY) {
+            return;
+          }
+          const storageEntry = storedData[storageEntryKey];
+          // Match on the stored user id, because the map key also contains the feature name.
+          if (storageEntry && String(storageEntry.userId) === String(userId)) {
+            delete storedData[storageEntryKey];
+          }
+        });
+      }
+      this.storeData(storedData);
+      deferredObject.resolve();
+    } catch (error) {
+      // StorageService logs this rejection and turns it into a false result.
+      this.logManager.errorLog(
+        'ERROR_STORING_DATA_IN_BROWSER_STORAGE',
+        {
+          err: getFormattedErrorMessage(error),
+        },
+        { an: Constants.STORAGE },
+      );
+      deferredObject.reject(error);
+    }
     return deferredObject.promise;
   }
 }

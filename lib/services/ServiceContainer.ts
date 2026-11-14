@@ -27,6 +27,7 @@ import { Storage } from '../packages/storage';
 import PanicModeForcedRefreshControlService from './PanicModeForcedRefreshControlService';
 import { getBatchScopedSegmentationManager } from './GetFlagsBatchContext';
 import { InternalEventsThrottleService } from './InternalEventsThrottleService';
+import { DEFAULT_EVENT_DISPATCH_POLICY, EventDispatchPolicy } from '../utils/EventDispatchPolicyUtil';
 import { InfoLogMessagesEnum } from '../enums/log-messages';
 import { buildMessage } from '../utils/LogMessageUtil';
 
@@ -44,6 +45,7 @@ export class ServiceContainer {
   private NetworkManager: NetworkManager;
   private Storage: Storage;
   private shouldWaitForTrackingCalls: boolean;
+  private eventDispatchPolicy: EventDispatchPolicy = DEFAULT_EVENT_DISPATCH_POLICY;
   private suppressTrackingCalls: boolean = false;
   private suppressMAU: boolean = false;
   private pollingStopCallback: (() => void) | null = null;
@@ -271,6 +273,36 @@ export class ServiceContainer {
 
   public getSuppressMAU(): boolean {
     return this.suppressMAU;
+  }
+
+  /**
+   * Sets the event dispatch policy for browser getFlags/fetchFlags evaluation.
+   *
+   * @param eventDispatchPolicy - Network dispatch policy for the current evaluation.
+   * @returns {void}
+   */
+  public setEventDispatchPolicy(eventDispatchPolicy: EventDispatchPolicy): void {
+    // Browser workers share this container, so the policy lives here instead of async storage.
+    this.eventDispatchPolicy = eventDispatchPolicy;
+  }
+
+  /**
+   * Returns the container-level event dispatch policy (used on browser, where batch workers have no ALS scope).
+   *
+   * @returns {EventDispatchPolicy} Container-level event dispatch policy.
+   */
+  public getEventDispatchPolicy(): EventDispatchPolicy {
+    return this.eventDispatchPolicy;
+  }
+
+  /**
+   * Resets event dispatch policy to the default (all events enabled).
+   *
+   * @returns {void}
+   */
+  public resetEventDispatchPolicy(): void {
+    // The next call must not keep a previous fetchFlags block on impressions.
+    this.eventDispatchPolicy = DEFAULT_EVENT_DISPATCH_POLICY;
   }
 
   /**

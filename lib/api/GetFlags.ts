@@ -21,6 +21,7 @@ import { SettingsModel } from '../models/settings/SettingsModel';
 import { ContextModel } from '../models/user/ContextModel';
 import { ServiceContainer } from '../services/ServiceContainer';
 import { runWithGetFlagsBatchContext, supportsParallelGetFlagsBatches } from '../services/GetFlagsBatchContext';
+import { createEventDispatchPolicy, EventDispatchPolicy } from '../utils/EventDispatchPolicyUtil';
 import { EvaluationBatch, getFeatureFlagBatches } from '../utils/megGroupPartitionUtil';
 import { isString } from '../utils/DataTypeUtil';
 import { getCurrentUnixTimestamp } from '../utils/FunctionUtil';
@@ -39,7 +40,7 @@ let browserGetFlagsQueue: Promise<Record<string, Flag>> = Promise.resolve({});
  * @param settings - Processed account settings.
  * @returns Distinct feature keys to evaluate.
  */
-function resolveFlagKeys(flagNames: string[] | null | undefined, settings: SettingsModel): string[] {
+export function resolveFlagKeys(flagNames: string[] | null | undefined, settings: SettingsModel): string[] {
   if (!flagNames?.length) {
     // Null/empty means evaluate every feature key present in settings.
     return settings
@@ -96,6 +97,7 @@ function ensureAllRequestedFlags(
  * @param baseContextCopy - Validated plain context object shared across evaluations.
  * @param serviceContainer - Shared SDK service container.
  * @param options - SDK init options used to build per-flag ContextModel instances.
+ * @param eventDispatchPolicy - Network dispatch policy for this batch worker.
  * @param suppressTrackingCalls - Whether to suppress tracking/impression network calls.
  * @param suppressMAU - Whether to suppress MAU tracking calls.
  * @returns Evaluated flags keyed by feature key for this batch.
@@ -105,6 +107,7 @@ async function evaluateBatch(
   baseContextCopy: Record<string, any>,
   serviceContainer: ServiceContainer,
   options: IWingifyOptions,
+  eventDispatchPolicy: EventDispatchPolicy,
   suppressTrackingCalls: boolean,
   suppressMAU: boolean,
 ): Promise<Record<string, Flag>> {
@@ -127,13 +130,14 @@ async function evaluateBatch(
 
       return evaluatedFlagsInBatch;
     },
+    eventDispatchPolicy,
     suppressTrackingCalls,
     suppressMAU,
   );
 }
 
 /**
- * Batch feature-flag evaluation used by WingifyClient.getFlags.
+ * Batch feature-flag evaluation used by WingifyClient.getFlags and WingifyClient.fetchFlags.
  */
 export class GetFlagsApi {
   /**
@@ -146,7 +150,8 @@ export class GetFlagsApi {
    * @param options - SDK init options used to build per-flag ContextModel instances.
    * @param shouldSendTrackingCalls - When false, suppresses tracking/impression network calls.
    * @param shouldSendMAU - When false, suppresses MAU tracking calls.
-   * @returns Evaluated flags keyed by feature key (disabled Flag for unknown/failed keys).
+   * @param shouldApplyLegacySuppression - When true, getFlags drops impressions via suppress flags. fetchFlags passes false so impressions are deferred instead.
+   * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key (disabled Flag for unknown/failed keys).
    */
   static async get(
     flagNames: string[] | null | undefined,
@@ -155,11 +160,14 @@ export class GetFlagsApi {
     options: IWingifyOptions,
     shouldSendTrackingCalls = true, // Default to true so that tracking calls are sent in case of getFlags.
     shouldSendMAU = true, // Default to true so that MAU calls are sent
+    shouldApplyLegacySuppression = true,
   ): Promise<Record<string, Flag>> {
     const settings = serviceContainer.getSettings();
     const requestedFeatureKeys = resolveFlagKeys(flagNames, settings);
-    const suppressTrackingCalls = !shouldSendTrackingCalls; // If shouldSendTrackingCalls is false, suppress tracking calls.
-    const suppressMAU = !shouldSendMAU; // If shouldSendMAU is false, suppress MAU calls.
+    const eventDispatchPolicy = createEventDispatchPolicy(shouldSendTrackingCalls, shouldSendMAU);
+    // getFlags drops impressions when tracking is off. fetchFlags leaves suppression off and defers them instead.
+    const suppressTrackingCalls = shouldApplyLegacySuppression && !shouldSendTrackingCalls;
+    const suppressMAU = shouldApplyLegacySuppression && !shouldSendMAU;
 
     if (!requestedFeatureKeys.length) {
       return {};
@@ -179,6 +187,7 @@ export class GetFlagsApi {
        * @returns Complete flags map for the requested keys.
        */
       const evaluateFlags = async (): Promise<Record<string, Flag>> => {
+        serviceContainer.setEventDispatchPolicy(eventDispatchPolicy);
         serviceContainer.setSuppressTrackingCalls(suppressTrackingCalls);
         serviceContainer.setSuppressMAU(suppressMAU);
 
@@ -194,6 +203,7 @@ export class GetFlagsApi {
                   baseContextCopy,
                   serviceContainer,
                   options,
+                  eventDispatchPolicy,
                   suppressTrackingCalls,
                   suppressMAU,
                 ),
@@ -205,7 +215,8 @@ export class GetFlagsApi {
 
           return ensureAllRequestedFlags(requestedFeatureKeys, evaluatedFlagsByKey, baseContextCopy);
         } finally {
-          // Reset shared container flags after this getFlags completes
+          // Reset shared container policy and legacy suppress flags after this call completes.
+          serviceContainer.resetEventDispatchPolicy();
           serviceContainer.setSuppressTrackingCalls(false);
           serviceContainer.setSuppressMAU(false);
         }
@@ -223,7 +234,15 @@ export class GetFlagsApi {
     // On Node (Server-side), start every batch without awaiting so independent batches evaluate in parallel.
     const batchEvaluationOutcomes = await Promise.allSettled(
       evaluationBatches.map((evaluationBatch) =>
-        evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU),
+        evaluateBatch(
+          evaluationBatch,
+          baseContextCopy,
+          serviceContainer,
+          options,
+          eventDispatchPolicy,
+          suppressTrackingCalls,
+          suppressMAU,
+        ),
       ),
     );
     const evaluatedFlagsByKey: Record<string, Flag> = {};

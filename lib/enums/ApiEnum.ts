@@ -18,10 +18,13 @@ export enum ApiEnum {
   ON_INIT = 'onInit',
   GET_FLAG = 'getFlag',
   GET_FLAGS = 'getFlags',
+  FETCH_FLAGS = 'fetchFlags',
   TRACK_EVENT = 'trackEvent',
   SET_ATTRIBUTE = 'setAttribute',
   FLUSH_EVENTS = 'flushEvents',
   UPDATE_SETTINGS = 'updateSettings',
   SET_ALIAS = 'setAlias',
   SHUTDOWN = 'shutdown',
+  // Debug metadata only when logging storage cleanup after consent withdrawal on user APIs.
+  SET_HAS_CONSENTED = 'setHasConsented',
 }

@@ -19,11 +19,14 @@ export var ApiEnum;
     ApiEnum["ON_INIT"] = "onInit";
     ApiEnum["GET_FLAG"] = "getFlag";
     ApiEnum["GET_FLAGS"] = "getFlags";
+    ApiEnum["FETCH_FLAGS"] = "fetchFlags";
     ApiEnum["TRACK_EVENT"] = "trackEvent";
     ApiEnum["SET_ATTRIBUTE"] = "setAttribute";
     ApiEnum["FLUSH_EVENTS"] = "flushEvents";
     ApiEnum["UPDATE_SETTINGS"] = "updateSettings";
     ApiEnum["SET_ALIAS"] = "setAlias";
     ApiEnum["SHUTDOWN"] = "shutdown";
+    // Debug metadata only when logging storage cleanup after consent withdrawal on user APIs.
+    ApiEnum["SET_HAS_CONSENTED"] = "setHasConsented";
 })(ApiEnum || (ApiEnum = {}));
 //# sourceMappingURL=ApiEnum.js.map

@@ -29,4 +29,5 @@ export declare abstract class Connector {
   abstract get(featureKey: string, userId: string): this | Promise<dynamic>;
   getSettings?(accountId: number, sdkKey: string): Promise<ISettingsData>;
   setSettings?(data: ISettingsData): Promise<void>;
+  removeStoredDecisionData?(featureKey: string | null, userId: string): void | Promise<void>;
 }

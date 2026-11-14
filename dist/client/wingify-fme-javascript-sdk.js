@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.80.0
+ * vwo-fme-javascript-sdk - v1.85.0
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.80.0"
+  version: "1.85.0"
 };
 
 /***/ }),
@@ -845,6 +845,8 @@ var UsageStatsUtil_1 = __webpack_require__(/*! ./utils/UsageStatsUtil */ "./lib/
 var StorageService_1 = __webpack_require__(/*! ./services/StorageService */ "./lib/services/StorageService.ts");
 var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./lib/utils/UuidUtil.ts");
 var SDKMetaUtil_1 = __webpack_require__(/*! ./utils/SDKMetaUtil */ "./lib/utils/SDKMetaUtil.ts");
+var ConsentUtil_1 = __webpack_require__(/*! ./utils/ConsentUtil */ "./lib/utils/ConsentUtil.ts");
+var ServiceContainerRegistry_1 = __webpack_require__(/*! ./services/ServiceContainerRegistry */ "./lib/services/ServiceContainerRegistry.ts");
 var NetworkUtil_1 = __webpack_require__(/*! ./utils/NetworkUtil */ "./lib/utils/NetworkUtil.ts");
 var EventEnum_1 = __webpack_require__(/*! ./enums/EventEnum */ "./lib/enums/EventEnum.ts");
 var PanicModeForcedRefreshControlService_1 = __webpack_require__(/*! ./services/PanicModeForcedRefreshControlService */ "./lib/services/PanicModeForcedRefreshControlService.ts");
@@ -879,6 +881,8 @@ var WingifyClient = /** @class */ (function () {
             this.serviceContainer.setOriginalSettingsDocument(this.originalSettings);
             this.serviceContainer.injectServiceContainer(this.serviceContainer);
             this.serviceContainer.setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
+            // Register so consent-denied user APIs can clear storage on every live client in this process.
+            ServiceContainerRegistry_1.ServiceContainerRegistry.register(this.serviceContainer);
             this.serviceContainer.setForceRefreshHandler(function (isRefreshFromPanicClear) {
                 return _this.updateSettings(undefined, true, isRefreshFromPanicClear, PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.POST_PING_FETCH);
             });
@@ -971,9 +975,9 @@ var WingifyClient = /** @class */ (function () {
     WingifyClient.prototype.getFlag = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
             var apiName, deferredObject, uuid, errorReturnSchema, heartbeat, userId, contextCopy, seed, contextModel, err_2;
-            var _a, _b;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var _a, _b, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.GET_FLAG;
                         deferredObject = new PromiseUtil_1.Deferred();
@@ -981,6 +985,11 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                                 apiName: apiName,
                             }));
+                            // Denied consent must not evaluate the flag or send data for this user.
+                            if ((0, ConsentUtil_1.shouldSkipUserApiDueToConsent)(context, apiName, this.serviceContainer)) {
+                                // Callers still receive a flag object, with the feature turned off.
+                                return [2 /*return*/, new GetFlag_1.Flag(false, (_a = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _a !== void 0 ? _a : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), null, new VariationModel_1.VariationModel())];
+                            }
                             // get uuid from context
                             uuid = this.getUUIDFromContext(context, apiName);
                         }
@@ -990,13 +999,13 @@ var WingifyClient = /** @class */ (function () {
                                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
                             }, { an: ApiEnum_1.ApiEnum.GET_FLAG });
                             // return error return schema with null uuid
-                            deferredObject.resolve(new GetFlag_1.Flag(false, (_a = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _a !== void 0 ? _a : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), null, new VariationModel_1.VariationModel()));
+                            deferredObject.resolve(new GetFlag_1.Flag(false, (_b = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _b !== void 0 ? _b : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), null, new VariationModel_1.VariationModel()));
                             return [2 /*return*/, deferredObject.promise];
                         }
-                        errorReturnSchema = new GetFlag_1.Flag(false, (_b = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _b !== void 0 ? _b : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), uuid, new VariationModel_1.VariationModel());
-                        _c.label = 1;
+                        errorReturnSchema = new GetFlag_1.Flag(false, (_c = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _c !== void 0 ? _c : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), uuid, new VariationModel_1.VariationModel());
+                        _d.label = 1;
                     case 1:
-                        _c.trys.push([1, 7, , 8]);
+                        _d.trys.push([1, 7, , 8]);
                         // Validate featureKey is a string
                         if (!(0, DataTypeUtil_1.isString)(featureKey)) {
                             this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
@@ -1029,17 +1038,17 @@ var WingifyClient = /** @class */ (function () {
                         if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
-                        _c.sent();
+                        _d.sent();
                         return [3 /*break*/, 4];
                     case 3:
                         void heartbeat.catch(function () { return undefined; });
-                        _c.label = 4;
+                        _d.label = 4;
                     case 4:
                         deferredObject.resolve(errorReturnSchema);
                         return [2 /*return*/, deferredObject.promise];
                     case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 6:
-                        userId = _c.sent();
+                        userId = _d.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
                         // check if the userId changed after aliasing, by comparing the original userId with the new userId
@@ -1077,7 +1086,7 @@ var WingifyClient = /** @class */ (function () {
                         });
                         return [3 /*break*/, 8];
                     case 7:
-                        err_2 = _c.sent();
+                        err_2 = _d.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_2),
@@ -1094,22 +1103,61 @@ var WingifyClient = /** @class */ (function () {
      *
      * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
      * @param context - User context; must include a valid user id.
-     * @returns Evaluated flags keyed by feature key.
+     * @param shouldSendTrackingCalls - When false, drops impression and debugger calls instead of deferring them.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
      */
     WingifyClient.prototype.getFlags = function (flagNames_1, context_1) {
         return __awaiter(this, arguments, void 0, function (flagNames, context, shouldSendTrackingCalls) {
-            var apiName, uuid, heartbeat, userId, baseContextCopy, seed, err_3;
             if (shouldSendTrackingCalls === void 0) { shouldSendTrackingCalls = true; }
+            return __generator(this, function (_a) {
+                // Legacy third argument drops impressions. fetchFlags defers them instead.
+                return [2 /*return*/, this.evaluateFlags(flagNames, context, ApiEnum_1.ApiEnum.GET_FLAGS, shouldSendTrackingCalls, true, true)];
+            });
+        });
+    };
+    /**
+     * Evaluates multiple feature flags without sending impression or debugger calls.
+     * MAU usage tracking (`vwo_feTrackUsage`) is still sent when enabled for the account.
+     * Call `Flag.exposeResult()` later to send deferred `vwo_variationShown` impressions.
+     *
+     * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+     * @param context - User context; must include a valid user id.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
+     */
+    WingifyClient.prototype.fetchFlags = function (flagNames, context) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                // Block live impressions, keep MAU on, and defer variationShown for exposeResult.
+                return [2 /*return*/, this.evaluateFlags(flagNames, context, ApiEnum_1.ApiEnum.FETCH_FLAGS, false, true, false)];
+            });
+        });
+    };
+    /**
+     * Shared validation and evaluation path for getFlags and fetchFlags.
+     *
+     * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+     * @param context - User context; must include a valid user id.
+     * @param apiName - API name used for logging and debug metadata.
+     * @param shouldSendTrackingCalls - When false, suppresses impression and debugger network calls.
+     * @param shouldSendMAU - When false, suppresses MAU usage tracking calls.
+     * @param shouldApplyLegacySuppression - When true, getFlags drops impressions. fetchFlags passes false so they are deferred.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
+     */
+    WingifyClient.prototype.evaluateFlags = function (flagNames, context, apiName, shouldSendTrackingCalls, shouldSendMAU, shouldApplyLegacySuppression) {
+        return __awaiter(this, void 0, void 0, function () {
+            var featureKeys, uuid, heartbeat, userId, baseContextCopy, seed, err_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        apiName = ApiEnum_1.ApiEnum.GET_FLAGS;
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 8, , 9]);
+                        _a.trys.push([0, 7, , 8]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
+                        // Denied consent skips evaluation and returns the same disabled shape as a failed call.
+                        if ((0, ConsentUtil_1.shouldSkipUserApiDueToConsent)(context, apiName, this.serviceContainer)) {
+                            featureKeys = this.isSettingsValid ? (0, GetFlags_1.resolveFlagKeys)(flagNames, this.settings) : flagNames;
+                            return [2 /*return*/, this.buildDisabledFlags(featureKeys, context)];
+                        }
                         uuid = this.getUUIDFromContext(context, apiName);
                         if (!this.isSettingsValid) {
                             this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: apiName }, false);
@@ -1119,8 +1167,7 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: apiName }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
-                        // if panic mode is activated log that the api is blocked by panic mode
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 4];
                         this.serviceContainer
                             .getLogManager()
                             .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
@@ -1129,22 +1176,23 @@ var WingifyClient = /** @class */ (function () {
                             uuid: uuid,
                             sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
                         });
-                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 2];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
-                    case 2:
+                    case 1:
                         _a.sent();
-                        return [3 /*break*/, 4];
-                    case 3:
+                        return [3 /*break*/, 3];
+                    case 2:
                         void heartbeat.catch(function () { return undefined; });
-                        _a.label = 4;
-                    case 4: 
-                    // return the disabled flags
+                        _a.label = 3;
+                    case 3: 
+                    // Callers still get one disabled flag per requested key.
                     return [2 /*return*/, this.buildDisabledFlags(flagNames, context)];
-                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
-                    case 6:
+                    case 4: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 5:
                         userId = _a.sent();
                         baseContextCopy = __assign({}, context);
                         baseContextCopy.id = userId;
+                        // A replaced id needs a new uuid. The original uuid stays when the id did not change.
                         if (baseContextCopy.id !== context.id) {
                             baseContextCopy.uuid = this.getUUIDFromContext(baseContextCopy, apiName);
                         }
@@ -1166,16 +1214,17 @@ var WingifyClient = /** @class */ (function () {
                                 delete baseContextCopy.bucketingSeed;
                             }
                         }
-                        return [4 /*yield*/, GetFlags_1.GetFlagsApi.get(flagNames, baseContextCopy, this.serviceContainer, this.options, shouldSendTrackingCalls)];
-                    case 7: return [2 /*return*/, _a.sent()];
-                    case 8:
+                        return [4 /*yield*/, GetFlags_1.GetFlagsApi.get(flagNames, baseContextCopy, this.serviceContainer, this.options, shouldSendTrackingCalls, shouldSendMAU, shouldApplyLegacySuppression)];
+                    case 6: return [2 /*return*/, _a.sent()];
+                    case 7:
                         err_3 = _a.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3),
                         }, { an: apiName });
+                        // Callers always receive a map, even when validation or evaluation throws.
                         return [2 /*return*/, this.buildDisabledFlags(flagNames, context)];
-                    case 9: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });
@@ -1185,18 +1234,20 @@ var WingifyClient = /** @class */ (function () {
      *
      * @param flagNames - Requested feature keys from the caller.
      * @param context - Raw caller context used to populate flag metadata.
-     * @returns Disabled flags keyed by requested feature key.
+     * @returns {Record<string, Flag>} Disabled flags keyed by requested feature key.
      */
     WingifyClient.prototype.buildDisabledFlags = function (flagNames, context) {
         var _a, _b, _c;
-        var keys = (_a = flagNames === null || flagNames === void 0 ? void 0 : flagNames.filter(function (key) { return key === null || key === void 0 ? void 0 : key.trim(); })) !== null && _a !== void 0 ? _a : [];
-        if (!keys.length) {
+        // Drop blank keys so the map only contains flags the caller can look up.
+        var featureKeys = (_a = flagNames === null || flagNames === void 0 ? void 0 : flagNames.filter(function (featureKey) { return featureKey === null || featureKey === void 0 ? void 0 : featureKey.trim(); })) !== null && _a !== void 0 ? _a : [];
+        if (!featureKeys.length) {
             return {};
         }
+        // One shared disabled flag is enough because nothing here is mutated per key.
         var sessionId = (_b = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _b !== void 0 ? _b : (0, FunctionUtil_1.getCurrentUnixTimestamp)();
         var uuid = (_c = context === null || context === void 0 ? void 0 : context.uuid) !== null && _c !== void 0 ? _c : '';
         var disabledFlag = new GetFlag_1.Flag(false, sessionId, uuid, new VariationModel_1.VariationModel());
-        return Object.fromEntries(keys.map(function (key) { return [key, disabledFlag]; }));
+        return Object.fromEntries(featureKeys.map(function (featureKey) { return [featureKey, disabledFlag]; }));
     };
     /**
      * Tracks an event with specified properties and context.
@@ -1210,20 +1261,24 @@ var WingifyClient = /** @class */ (function () {
     WingifyClient.prototype.trackEvent = function (eventName_1, context_1) {
         return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
             var apiName, deferredObject, heartbeat, userId, contextCopy, contextModel, err_4;
-            var _a, _b;
+            var _a, _b, _c;
             if (eventProperties === void 0) { eventProperties = {}; }
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
                         deferredObject = new PromiseUtil_1.Deferred();
-                        _c.label = 1;
+                        _d.label = 1;
                     case 1:
-                        _c.trys.push([1, 7, , 8]);
+                        _d.trys.push([1, 7, , 8]);
                         // Log the API call
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
+                        // Denied consent skips the event and reports it as not tracked.
+                        if ((0, ConsentUtil_1.shouldSkipUserApiDueToConsent)(context, apiName, this.serviceContainer)) {
+                            return [2 /*return*/, (_a = {}, _a[eventName] = false, _a)];
+                        }
                         // Validate eventName is a string
                         if (!(0, DataTypeUtil_1.isString)(eventName)) {
                             this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
@@ -1268,17 +1323,17 @@ var WingifyClient = /** @class */ (function () {
                         if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
-                        _c.sent();
+                        _d.sent();
                         return [3 /*break*/, 4];
                     case 3:
                         void heartbeat.catch(function () { return undefined; });
-                        _c.label = 4;
+                        _d.label = 4;
                     case 4:
-                        deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
+                        deferredObject.resolve((_b = {}, _b[eventName] = false, _b));
                         return [2 /*return*/, deferredObject.promise];
                     case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 6:
-                        userId = _c.sent();
+                        userId = _d.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
                         // set uuid in the context copy
@@ -1296,13 +1351,13 @@ var WingifyClient = /** @class */ (function () {
                         });
                         return [3 /*break*/, 8];
                     case 7:
-                        err_4 = _c.sent();
+                        err_4 = _d.sent();
                         // Log any errors encountered during the operation
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4),
                         }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT });
-                        deferredObject.resolve((_b = {}, _b[eventName] = false, _b));
+                        deferredObject.resolve((_c = {}, _c[eventName] = false, _c));
                         return [3 /*break*/, 8];
                     case 8: return [2 /*return*/, deferredObject.promise];
                 }
@@ -1323,7 +1378,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, attributes, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
+            var apiName, contextForConsentCheck, attributes, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -1332,6 +1387,13 @@ var WingifyClient = /** @class */ (function () {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 16, , 17]);
+                        contextForConsentCheck = (0, DataTypeUtil_1.isObject)(attributeOrAttributes)
+                            ? (context !== null && context !== void 0 ? context : attributeValueOrContext)
+                            : context;
+                        // Denied consent skips the attribute write and clears stored decisions for this user.
+                        if ((0, ConsentUtil_1.shouldSkipUserApiDueToConsent)(contextForConsentCheck, apiName, this.serviceContainer)) {
+                            return [2 /*return*/];
+                        }
                         if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 8];
                         // Log the API call
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
@@ -1604,6 +1666,11 @@ var WingifyClient = /** @class */ (function () {
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
+                        // A raw user id string has no consent field. Only a context object can deny consent.
+                        if (!(0, DataTypeUtil_1.isString)(contextOrUserId) &&
+                            (0, ConsentUtil_1.shouldSkipUserApiDueToConsent)(contextOrUserId, apiName, this.serviceContainer)) {
+                            return [2 /*return*/, false];
+                        }
                         if (!this.isAliasingEnabled) {
                             this.serviceContainer.getLogManager().errorLog('ALIAS_CALLED_BUT_NOT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
                             return [2 /*return*/, false];
@@ -1739,6 +1806,7 @@ var WingifyClient = /** @class */ (function () {
                         }
                         // set the isShutdown flag to true to avoid multiple calls to shutdown
                         this.isShutdown = true;
+                        ServiceContainerRegistry_1.ServiceContainerRegistry.unregister(this.serviceContainer);
                         this.serviceContainer.stopPolling();
                         if (!this.serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 2];
                         return [4 /*yield*/, this.flushEvents()];
@@ -1925,13 +1993,18 @@ var RuleEvaluationUtil_1 = __webpack_require__(/*! ../utils/RuleEvaluationUtil *
 var DebuggerServiceUtil_1 = __webpack_require__(/*! ../utils/DebuggerServiceUtil */ "./lib/utils/DebuggerServiceUtil.ts");
 var DebuggerCategoryEnum_1 = __webpack_require__(/*! ../enums/DebuggerCategoryEnum */ "./lib/enums/DebuggerCategoryEnum.ts");
 var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
+var EventDispatchPolicyUtil_1 = __webpack_require__(/*! ../utils/EventDispatchPolicyUtil */ "./lib/utils/EventDispatchPolicyUtil.ts");
 var GetFlagsBatchContext_1 = __webpack_require__(/*! ../services/GetFlagsBatchContext */ "./lib/services/GetFlagsBatchContext.ts");
 var HoldoutUtil_1 = __webpack_require__(/*! ../utils/HoldoutUtil */ "./lib/utils/HoldoutUtil.ts");
 var ImpressionUtil_1 = __webpack_require__(/*! ../utils/ImpressionUtil */ "./lib/utils/ImpressionUtil.ts");
+var DeferredImpressionCollector_1 = __webpack_require__(/*! ../utils/DeferredImpressionCollector */ "./lib/utils/DeferredImpressionCollector.ts");
+var ImpressionExposureUtil_1 = __webpack_require__(/*! ../utils/ImpressionExposureUtil */ "./lib/utils/ImpressionExposureUtil.ts");
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
 var NetworkUtil_1 = __webpack_require__(/*! ../utils/NetworkUtil */ "./lib/utils/NetworkUtil.ts");
 var Flag = /** @class */ (function () {
     function Flag(isEnabled, sessionId, uuid, variation) {
+        this.deferredImpressionPayloads = [];
+        this.hasImpressionBeenSent = false;
         this.enabled = isEnabled;
         this.variation = variation;
         this.sessionId = sessionId;
@@ -1955,18 +2028,165 @@ var Flag = /** @class */ (function () {
         var value = (_b = (_a = this.variation) === null || _a === void 0 ? void 0 : _a.getVariables().find(function (variable) { return VariableModel_1.VariableModel.modelFromDictionary(variable).getKey() === key; })) === null || _b === void 0 ? void 0 : _b.getValue();
         return value !== undefined ? value : defaultValue;
     };
+    /**
+     * Sends deferred variationShown impressions stashed during fetchFlags.
+     * Idempotent: subsequent calls are no-ops after the stash is cleared.
+     *
+     * @returns {boolean} True when an impression was enqueued or sent, false otherwise.
+     */
+    Flag.prototype.exposeResult = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                // Transport and the second-call guard live in the util so Flag stays free of the network stack.
+                return [2 /*return*/, (0, ImpressionExposureUtil_1.exposeFlagResult)(this)];
+            });
+        });
+    };
+    /**
+     * Stores the dependencies needed to send deferred impressions from exposeResult().
+     *
+     * @internal
+     * @param exposeDependencies - Service container, context, and feature key used when exposing.
+     * @returns {void}
+     */
+    Flag.prototype.attachExposeDependencies = function (exposeDependencies) {
+        // Keep this flag's enabled state, not whatever the caller passed in.
+        this.exposeDependencies = __assign(__assign({}, exposeDependencies), { isEnabled: this.enabled });
+    };
+    /**
+     * Returns the dependencies attached for exposeResult().
+     *
+     * @internal
+     * @returns {ExposeDependencies | undefined} Expose dependencies, or undefined when none were attached (e.g. error flags).
+     */
+    Flag.prototype.getExposeDependencies = function () {
+        return this.exposeDependencies;
+    };
+    /**
+     * Appends deferred variationShown payloads collected during evaluation.
+     *
+     * @internal
+     * @param deferredPayloads - Deferred impression payloads to hold until exposeResult().
+     * @returns {void}
+     */
+    Flag.prototype.addDeferredImpressions = function (deferredPayloads) {
+        var _a;
+        // An empty list means this rule path produced nothing to expose later.
+        if (!(deferredPayloads === null || deferredPayloads === void 0 ? void 0 : deferredPayloads.length)) {
+            return;
+        }
+        (_a = this.deferredImpressionPayloads).push.apply(_a, deferredPayloads);
+    };
+    /**
+     * Returns all held impression payloads and clears the stash.
+     *
+     * @internal
+     * @returns {any[]} Copy of the held impression payloads.
+     */
+    Flag.prototype.consumeDeferredImpressions = function () {
+        // Copy before clearing so the caller still has the payloads after the stash is emptied.
+        var consumedPayloads = this.deferredImpressionPayloads.slice();
+        // Empty now so a second exposeResult cannot send the same payloads.
+        this.deferredImpressionPayloads = [];
+        return consumedPayloads;
+    };
+    /**
+     * Marks impressions as sent and clears any held payloads, making exposeResult() a no-op.
+     *
+     * @internal
+     * @returns {void}
+     */
+    Flag.prototype.markImpressionSent = function () {
+        // Later exposeResult calls should no-op even if another payload is added.
+        this.hasImpressionBeenSent = true;
+        this.deferredImpressionPayloads = [];
+    };
+    /**
+     * Returns whether impressions for this flag were already sent.
+     *
+     * @internal
+     * @returns {boolean} True when impressions were sent during evaluation or by exposeResult().
+     */
+    Flag.prototype.isImpressionAlreadySent = function () {
+        return this.hasImpressionBeenSent;
+    };
+    /**
+     * Returns whether this flag still holds deferred impression payloads.
+     *
+     * @internal
+     * @returns {boolean} True when at least one impression payload is waiting for exposeResult().
+     */
+    Flag.prototype.hasPendingImpressions = function () {
+        return this.deferredImpressionPayloads.length > 0;
+    };
     return Flag;
 }());
 exports.Flag = Flag;
 var FlagApi = /** @class */ (function () {
     function FlagApi() {
     }
+    /**
+     * Attaches deferred impression stash + expose deps for Flag.exposeResult().
+     *
+     * @param flag - Evaluated flag to finalize.
+     * @param serviceContainer - Shared SDK service container.
+     * @param context - User context used for the evaluation.
+     * @param featureKey - Feature key of the evaluated flag.
+     * @param isImpressionDispatchEnabled - Whether impressions were dispatched during evaluation.
+     * @returns {Flag} The same flag with expose deps and any deferred impressions attached.
+     */
+    FlagApi.prepareFlagForExposeResult = function (flag, serviceContainer, context, featureKey, isImpressionDispatchEnabled) {
+        // exposeResult needs the same client, user, and feature that produced this decision.
+        flag.attachExposeDependencies({
+            serviceContainer: serviceContainer,
+            context: context,
+            featureKey: featureKey,
+            isEnabled: flag.isEnabled(),
+        });
+        var deferredPayloads = (0, DeferredImpressionCollector_1.takeDeferredImpressions)();
+        if (deferredPayloads.length > 0) {
+            // fetchFlags held these back so exposeResult can send them later.
+            flag.addDeferredImpressions(deferredPayloads);
+        }
+        else if (isImpressionDispatchEnabled) {
+            // Nothing left to expose: impressions already went out, or this decision had none.
+            flag.markImpressionSent();
+        }
+        return flag;
+    };
+    /**
+     * Evaluates a feature flag for a user inside a deferred-impression collection scope.
+     *
+     * @param featureKey - Feature key to evaluate.
+     * @param context - User context for the evaluation.
+     * @param serviceContainer - Shared SDK service container.
+     * @returns {Promise<Flag>} The evaluated flag.
+     */
     FlagApi.get = function (featureKey, context, serviceContainer) {
         return __awaiter(this, void 0, void 0, function () {
-            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, notInHoldoutIds, batchPayload, isSettingsDevModeEnabled, isUserDevModeEnabled, isDevModeForUser, shouldFireImpressionEvents, isTrackingUsageEnabled, isVariationShownFired, feature, decision, debugEventProps, storageService, storedData, storedIsInHoldoutId, storedNotInHoldoutId, applicableHoldouts, _i, applicableHoldouts_1, holdout, _a, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, updatedHoldoutIds, updatedNotInHoldoutIds, _b, holdoutPayloads_1, payload, _c, holdoutPayloads_2, payload, variation, variation, updatedNotInHoldoutIds, featureInfo, _d, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, qualifiedHoldoutNames, _e, holdoutPayloads_3, payload, _f, holdoutPayloads_4, payload, _g, holdoutPayloads_5, payload, _h, holdoutPayloads_6, payload, rollOutRules, rolloutRulesToEvaluate, _j, rollOutRules_1, rule, evaluateRuleResult, isForceUserApplicable, whitelistedObject, updatedDecision, payload, passedRolloutCampaign, variation, payload, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _k, experimentRules_1, rule, _l, preSegmentationResult, whitelistedObject, updatedDecision, payload, campaign, variation, payload, payload, variationToReturn, variationModel;
-            var _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1;
-            return __generator(this, function (_2) {
-                switch (_2.label) {
+            return __generator(this, function (_a) {
+                // Keep this feature's deferred payloads separate from any parallel evaluation.
+                return [2 /*return*/, (0, DeferredImpressionCollector_1.runWithDeferredImpressionScope)(featureKey, function () {
+                        return FlagApi.evaluateFlag(featureKey, context, serviceContainer);
+                    })];
+            });
+        });
+    };
+    /**
+     * Runs the full flag evaluation: stored decisions, holdouts, rollout and experiment rules,
+     * impressions, MAU usage tracking, and storage writes.
+     *
+     * @param featureKey - Feature key to evaluate.
+     * @param context - User context for the evaluation.
+     * @param serviceContainer - Shared SDK service container.
+     * @returns {Promise<Flag>} The evaluated flag, finalized for exposeResult().
+     */
+    FlagApi.evaluateFlag = function (featureKey, context, serviceContainer) {
+        return __awaiter(this, void 0, void 0, function () {
+            var isEnabled, rolloutVariationToReturn, experimentVariationToReturn, shouldCheckForExperimentsRules, passedRulesInformation, deferredObject, evaluatedFeatureMap, notInHoldoutIds, batchPayload, isSettingsDevModeEnabled, isUserDevModeEnabled, isDevModeForUser, eventDispatchPolicy, isTrackingSuppressed, isImpressionDispatchEnabled, shouldFireImpressionEvents, isTrackingUsageEnabled, isVariationShownFired, feature, decision, debugEventProps, storageService, storedData, storedIsInHoldoutId, storedNotInHoldoutId, applicableHoldouts, _i, applicableHoldouts_1, holdout, _a, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, updatedHoldoutIds, updatedNotInHoldoutIds, _b, holdoutPayloads_1, payload, variation, variation, updatedNotInHoldoutIds, featureInfo, _c, matchedHoldouts, notMatchedHoldouts, holdoutPayloads, qualifiedHoldoutNames, _d, holdoutPayloads_2, payload, _e, holdoutPayloads_3, payload, rollOutRules, rolloutRulesToEvaluate, _f, rollOutRules_1, rule, evaluateRuleResult, isForceUserApplicable, whitelistedObject, updatedDecision, payload, passedRolloutCampaign, variation, payload, experimentRulesToEvaluate, experimentRules, megGroupWinnerCampaigns, _g, experimentRules_1, rule, _h, preSegmentationResult, whitelistedObject, updatedDecision, payload, campaign, variation, payload, payload, variationToReturn, variationModel;
+            var _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
+            return __generator(this, function (_z) {
+                switch (_z.label) {
                     case 0:
                         isEnabled = false;
                         rolloutVariationToReturn = null;
@@ -1977,13 +2197,14 @@ var FlagApi = /** @class */ (function () {
                         evaluatedFeatureMap = new Map();
                         notInHoldoutIds = [];
                         batchPayload = [];
-                        isSettingsDevModeEnabled = ((_o = (_m = serviceContainer.getSettings()) === null || _m === void 0 ? void 0 : _m.getDevMode) === null || _o === void 0 ? void 0 : _o.call(_m)) === true;
-                        isUserDevModeEnabled = ((_p = context === null || context === void 0 ? void 0 : context.getIsDevMode) === null || _p === void 0 ? void 0 : _p.call(context)) === true;
+                        isSettingsDevModeEnabled = ((_k = (_j = serviceContainer.getSettings()) === null || _j === void 0 ? void 0 : _j.getDevMode) === null || _k === void 0 ? void 0 : _k.call(_j)) === true;
+                        isUserDevModeEnabled = ((_l = context === null || context === void 0 ? void 0 : context.getIsDevMode) === null || _l === void 0 ? void 0 : _l.call(context)) === true;
                         isDevModeForUser = isSettingsDevModeEnabled && isUserDevModeEnabled;
-                        shouldFireImpressionEvents = !isDevModeForUser &&
-                            !serviceContainer.getSuppressTrackingCalls() &&
-                            !((_q = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _q === void 0 ? void 0 : _q.suppressTrackingCalls);
-                        isTrackingUsageEnabled = ((_s = (_r = serviceContainer.getSettings()) === null || _r === void 0 ? void 0 : _r.getIsTrackingUsageEnabled) === null || _s === void 0 ? void 0 : _s.call(_r)) === true;
+                        eventDispatchPolicy = (0, EventDispatchPolicyUtil_1.getActiveEventDispatchPolicy)(serviceContainer);
+                        isTrackingSuppressed = !!(serviceContainer.getSuppressTrackingCalls() || ((_m = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _m === void 0 ? void 0 : _m.suppressTrackingCalls));
+                        isImpressionDispatchEnabled = !isDevModeForUser && eventDispatchPolicy.shouldDispatchImpressions && !isTrackingSuppressed;
+                        shouldFireImpressionEvents = !isDevModeForUser && !isTrackingSuppressed;
+                        isTrackingUsageEnabled = ((_p = (_o = serviceContainer.getSettings()) === null || _o === void 0 ? void 0 : _o.getIsTrackingUsageEnabled) === null || _p === void 0 ? void 0 : _p.call(_o)) === true;
                         isVariationShownFired = false;
                         feature = (0, FunctionUtil_1.getFeatureFromKey)(serviceContainer.getSettings(), featureKey);
                         decision = {
@@ -2006,18 +2227,18 @@ var FlagApi = /** @class */ (function () {
                         storageService = new StorageService_1.StorageService(serviceContainer);
                         return [4 /*yield*/, new StorageDecorator_1.StorageDecorator().getFeatureFromStorage(featureKey, context, storageService, serviceContainer)];
                     case 1:
-                        storedData = _2.sent();
-                        storedIsInHoldoutId = (_t = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _t !== void 0 ? _t : storedData === null || storedData === void 0 ? void 0 : storedData.holdoutGroupId;
-                        storedNotInHoldoutId = (_u = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _u !== void 0 ? _u : [];
-                        if (!(storedIsInHoldoutId && ((0, DataTypeUtil_1.isArray)(storedIsInHoldoutId) ? storedIsInHoldoutId.length > 0 : true))) return [3 /*break*/, 10];
+                        storedData = _z.sent();
+                        storedIsInHoldoutId = (_q = storedData === null || storedData === void 0 ? void 0 : storedData.isInHoldoutId) !== null && _q !== void 0 ? _q : storedData === null || storedData === void 0 ? void 0 : storedData.holdoutGroupId;
+                        storedNotInHoldoutId = (_r = storedData === null || storedData === void 0 ? void 0 : storedData.notInHoldoutId) !== null && _r !== void 0 ? _r : [];
+                        if (!(storedIsInHoldoutId && ((0, DataTypeUtil_1.isArray)(storedIsInHoldoutId) ? storedIsInHoldoutId.length > 0 : true))) return [3 /*break*/, 9];
                         applicableHoldouts = (0, HoldoutUtil_1.getApplicableHoldouts)(serviceContainer.getSettings(), feature.getId());
-                        if (!(applicableHoldouts.length > 0)) return [3 /*break*/, 10];
+                        if (!(applicableHoldouts.length > 0)) return [3 /*break*/, 9];
                         _i = 0, applicableHoldouts_1 = applicableHoldouts;
-                        _2.label = 2;
+                        _z.label = 2;
                     case 2:
-                        if (!(_i < applicableHoldouts_1.length)) return [3 /*break*/, 10];
+                        if (!(_i < applicableHoldouts_1.length)) return [3 /*break*/, 9];
                         holdout = applicableHoldouts_1[_i];
-                        if (!storedIsInHoldoutId.includes(holdout.getId())) return [3 /*break*/, 9];
+                        if (!storedIsInHoldoutId.includes(holdout.getId())) return [3 /*break*/, 8];
                         serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_HOLDOUT_DECISION_FOUND, {
                             featureKey: featureKey,
                             userId: context.getId(),
@@ -2025,7 +2246,7 @@ var FlagApi = /** @class */ (function () {
                         }));
                         return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature, context, storedData)];
                     case 3:
-                        _a = _2.sent(), matchedHoldouts = _a.matchedHoldouts, notMatchedHoldouts = _a.notMatchedHoldouts, holdoutPayloads = _a.holdoutPayloads;
+                        _a = _z.sent(), matchedHoldouts = _a.matchedHoldouts, notMatchedHoldouts = _a.notMatchedHoldouts, holdoutPayloads = _a.holdoutPayloads;
                         updatedHoldoutIds = __spreadArray(__spreadArray([], storedIsInHoldoutId, true), matchedHoldouts.map(function (holdout) { return holdout.getId(); }), true);
                         updatedNotInHoldoutIds = __spreadArray(__spreadArray([], storedNotInHoldoutId, true), notMatchedHoldouts.map(function (holdout) { return holdout.getId(); }), true);
                         // store the updated holdout ids in storage and push the updated not in holdout ids to the notInHoldoutIds array
@@ -2035,45 +2256,47 @@ var FlagApi = /** @class */ (function () {
                             isInHoldoutId: updatedHoldoutIds,
                             notInHoldoutId: updatedNotInHoldoutIds,
                         }, storageService, serviceContainer);
-                        if (!shouldFireImpressionEvents) return [3 /*break*/, 8];
+                        if (!shouldFireImpressionEvents) return [3 /*break*/, 7];
                         if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 4];
                         for (_b = 0, holdoutPayloads_1 = holdoutPayloads; _b < holdoutPayloads_1.length; _b++) {
                             payload = holdoutPayloads_1[_b];
                             (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
                         }
-                        return [3 /*break*/, 8];
+                        return [3 /*break*/, 7];
                     case 4:
-                        if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 5];
-                        for (_c = 0, holdoutPayloads_2 = holdoutPayloads; _c < holdoutPayloads_2.length; _c++) {
-                            payload = holdoutPayloads_2[_c];
-                            serviceContainer.getBatchEventsQueue().enqueue(payload);
-                        }
-                        return [3 /*break*/, 8];
-                    case 5:
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 7];
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 6];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads)];
+                    case 5:
+                        _z.sent();
+                        return [3 /*break*/, 7];
                     case 6:
-                        _2.sent();
-                        return [3 /*break*/, 8];
-                    case 7:
                         (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads);
-                        _2.label = 8;
-                    case 8:
+                        _z.label = 7;
+                    case 7:
                         // Decision served from holdout storage cache.
                         // The cached holdout variationShown is NOT re-fired, so server has no usage tracking signal.
                         // Send usage tracking call before returning.
                         sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey); // fire-and-forget
-                        deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel()));
+                        // fetchFlags only: rebuild held impressions from the stored holdout so exposeResult()
+                        // still has payloads after a reload. No-op for getFlag / getFlags.
+                        if (shouldFireImpressionEvents) {
+                            collectStoredDecisionImpressions(serviceContainer, feature, context, storedData, {
+                                shouldIncludeExperiment: false,
+                                shouldIncludeImpactCampaign: false,
+                                isEnabled: false,
+                            });
+                        }
+                        deferredObject.resolve(FlagApi.prepareFlagForExposeResult(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel()), serviceContainer, context, featureKey, isImpressionDispatchEnabled));
                         return [2 /*return*/, deferredObject.promise];
-                    case 9:
+                    case 8:
                         _i++;
                         return [3 /*break*/, 2];
-                    case 10:
-                        if (!((storedData === null || storedData === void 0 ? void 0 : storedData.featureId) && (0, CampaignUtil_1.isFeatureIdPresentInSettings)(serviceContainer.getSettings(), storedData.featureId))) return [3 /*break*/, 15];
-                        if (!(storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId)) return [3 /*break*/, 13];
-                        if (!storedData.experimentKey) return [3 /*break*/, 12];
+                    case 9:
+                        if (!((storedData === null || storedData === void 0 ? void 0 : storedData.featureId) && (0, CampaignUtil_1.isFeatureIdPresentInSettings)(serviceContainer.getSettings(), storedData.featureId))) return [3 /*break*/, 14];
+                        if (!(storedData === null || storedData === void 0 ? void 0 : storedData.experimentVariationId)) return [3 /*break*/, 12];
+                        if (!storedData.experimentKey) return [3 /*break*/, 11];
                         variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.experimentKey, storedData.experimentVariationId);
-                        if (!variation) return [3 /*break*/, 12];
+                        if (!variation) return [3 /*break*/, 11];
                         serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
                             variationKey: variation.getKey(),
                             userId: context.getId(),
@@ -2083,20 +2306,30 @@ var FlagApi = /** @class */ (function () {
                         decision.isUserPartOfCampaign = true;
                         // network calls for holdouts that are newly added in settings and are not present in storage
                         return [4 /*yield*/, (0, HoldoutUtil_1.sendNetworkCallsForNotInHoldouts)(serviceContainer, feature, context, decision, storedData, storageService)];
-                    case 11:
+                    case 10:
                         // network calls for holdouts that are newly added in settings and are not present in storage
-                        _2.sent();
+                        _z.sent();
                         // Experiment decision served from storage cache.
                         // variationShown is NOT re-fired for cached decisions, so server has no usage tracking signal.
                         // Send usage tracking call before returning.
                         sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey); // fire-and-forget
-                        deferredObject.resolve(new Flag(true, context.getSessionId(), context.getUuid(), variation));
+                        // fetchFlags only: rebuild held impressions from the stored experiment (plus rollout
+                        // and impact, if present) so exposeResult() still has payloads after a reload.
+                        // No-op for getFlag / getFlags.
+                        if (shouldFireImpressionEvents) {
+                            collectStoredDecisionImpressions(serviceContainer, feature, context, storedData, {
+                                shouldIncludeExperiment: true,
+                                shouldIncludeImpactCampaign: true,
+                                isEnabled: true,
+                            });
+                        }
+                        deferredObject.resolve(FlagApi.prepareFlagForExposeResult(new Flag(true, context.getSessionId(), context.getUuid(), variation), serviceContainer, context, featureKey, isImpressionDispatchEnabled));
                         return [2 /*return*/, deferredObject.promise];
-                    case 12: return [3 /*break*/, 15];
-                    case 13:
-                        if (!((storedData === null || storedData === void 0 ? void 0 : storedData.rolloutKey) && (storedData === null || storedData === void 0 ? void 0 : storedData.rolloutId))) return [3 /*break*/, 15];
+                    case 11: return [3 /*break*/, 14];
+                    case 12:
+                        if (!((storedData === null || storedData === void 0 ? void 0 : storedData.rolloutKey) && (storedData === null || storedData === void 0 ? void 0 : storedData.rolloutId))) return [3 /*break*/, 14];
                         variation = (0, CampaignUtil_1.getVariationFromCampaignKey)(serviceContainer.getSettings(), storedData.rolloutKey, storedData.rolloutVariationId);
-                        if (!variation) return [3 /*break*/, 15];
+                        if (!variation) return [3 /*break*/, 14];
                         serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.STORED_VARIATION_FOUND, {
                             variationKey: variation.getKey(),
                             userId: context.getId(),
@@ -2108,8 +2341,8 @@ var FlagApi = /** @class */ (function () {
                             userId: context.getId(),
                         }));
                         return [4 /*yield*/, (0, HoldoutUtil_1.sendNetworkCallsForNotInHoldouts)(serviceContainer, feature, context, decision, storedData, storageService)];
-                    case 14:
-                        updatedNotInHoldoutIds = _2.sent();
+                    case 13:
+                        updatedNotInHoldoutIds = _z.sent();
                         // push the updated not in holdout ids to the notInHoldoutIds array
                         notInHoldoutIds.push.apply(notInHoldoutIds, updatedNotInHoldoutIds);
                         // Rollout decision served from storage cache.
@@ -2118,6 +2351,16 @@ var FlagApi = /** @class */ (function () {
                         isEnabled = true;
                         shouldCheckForExperimentsRules = true;
                         rolloutVariationToReturn = variation;
+                        // fetchFlags only: rebuild the stored rollout (and previously stored holdouts).
+                        // Experiment rules and the impact campaign are evaluated fresh below, so they are
+                        // omitted here. No-op for getFlag / getFlags.
+                        if (shouldFireImpressionEvents) {
+                            collectStoredDecisionImpressions(serviceContainer, feature, context, storedData, {
+                                shouldIncludeExperiment: false,
+                                shouldIncludeImpactCampaign: false,
+                                isEnabled: true,
+                            });
+                        }
                         featureInfo = {
                             rolloutId: storedData.rolloutId,
                             rolloutKey: storedData.rolloutKey,
@@ -2125,8 +2368,8 @@ var FlagApi = /** @class */ (function () {
                         };
                         evaluatedFeatureMap.set(featureKey, featureInfo);
                         Object.assign(passedRulesInformation, featureInfo);
-                        _2.label = 15;
-                    case 15:
+                        _z.label = 14;
+                    case 14:
                         if (!(0, DataTypeUtil_1.isObject)(feature) || feature === undefined) {
                             serviceContainer.getLogManager().errorLog('FEATURE_NOT_FOUND', {
                                 featureKey: featureKey,
@@ -2138,18 +2381,18 @@ var FlagApi = /** @class */ (function () {
                             return [2 /*return*/, deferredObject.promise];
                         }
                         return [4 /*yield*/, serviceContainer.getSegmentationManager().setContextualData(serviceContainer, feature, context)];
-                    case 16:
-                        _2.sent();
-                        if (!!isEnabled) return [3 /*break*/, 24];
+                    case 15:
+                        _z.sent();
+                        if (!!isEnabled) return [3 /*break*/, 22];
                         return [4 /*yield*/, (0, HoldoutUtil_1.getMatchedHoldouts)(serviceContainer, feature, context, storedData)];
-                    case 17:
-                        _d = _2.sent(), matchedHoldouts = _d.matchedHoldouts, notMatchedHoldouts = _d.notMatchedHoldouts, holdoutPayloads = _d.holdoutPayloads;
+                    case 16:
+                        _c = _z.sent(), matchedHoldouts = _c.matchedHoldouts, notMatchedHoldouts = _c.notMatchedHoldouts, holdoutPayloads = _c.holdoutPayloads;
                         decision.isPartOfHoldout = matchedHoldouts !== null && matchedHoldouts.length > 0;
                         if ((matchedHoldouts !== null && matchedHoldouts.length > 0) ||
                             (notMatchedHoldouts !== null && notMatchedHoldouts.length > 0)) {
                             decision.isHoldoutPresent = true;
                         }
-                        if (!(matchedHoldouts !== null && matchedHoldouts.length > 0)) return [3 /*break*/, 23];
+                        if (!(matchedHoldouts !== null && matchedHoldouts.length > 0)) return [3 /*break*/, 21];
                         qualifiedHoldoutNames = matchedHoldouts.map(function (holdout) { return holdout.getName(); }).join(',');
                         decision.holdoutIDs = matchedHoldouts.map(function (holdout) { return holdout.getId(); });
                         serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_IN_HOLDOUT_GROUP, {
@@ -2167,35 +2410,28 @@ var FlagApi = /** @class */ (function () {
                         decision['isEnabled'] = false;
                         serviceContainer.getHooksService().set(decision);
                         serviceContainer.getHooksService().execute(serviceContainer.getHooksService().get());
-                        if (!shouldFireImpressionEvents) return [3 /*break*/, 22];
-                        if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 18];
-                        for (_e = 0, holdoutPayloads_3 = holdoutPayloads; _e < holdoutPayloads_3.length; _e++) {
-                            payload = holdoutPayloads_3[_e];
+                        if (!shouldFireImpressionEvents) return [3 /*break*/, 20];
+                        if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 17];
+                        for (_d = 0, holdoutPayloads_2 = holdoutPayloads; _d < holdoutPayloads_2.length; _d++) {
+                            payload = holdoutPayloads_2[_d];
                             (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
                         }
-                        return [3 /*break*/, 22];
-                    case 18:
-                        if (!serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 19];
-                        for (_f = 0, holdoutPayloads_4 = holdoutPayloads; _f < holdoutPayloads_4.length; _f++) {
-                            payload = holdoutPayloads_4[_f];
-                            serviceContainer.getBatchEventsQueue().enqueue(payload);
-                        }
-                        return [3 /*break*/, 22];
-                    case 19:
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 21];
+                        return [3 /*break*/, 20];
+                    case 17:
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 19];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads)];
-                    case 20:
-                        _2.sent();
-                        return [3 /*break*/, 22];
-                    case 21:
+                    case 18:
+                        _z.sent();
+                        return [3 /*break*/, 20];
+                    case 19:
                         (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, holdoutPayloads);
-                        _2.label = 22;
-                    case 22:
+                        _z.label = 20;
+                    case 20:
                         // Holdout variationShown(variation=1) was fired above — server handles usage tracking.
                         // No explicit usage tracking call needed here.
-                        deferredObject.resolve(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel()));
+                        deferredObject.resolve(FlagApi.prepareFlagForExposeResult(new Flag(false, context.getSessionId(), context.getUuid(), new VariationModel_1.VariationModel()), serviceContainer, context, featureKey, isImpressionDispatchEnabled));
                         return [2 /*return*/, deferredObject.promise];
-                    case 23:
+                    case 21:
                         serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_NOT_EXCLUDED_DUE_TO_HOLDOUT, {
                             featureKey: featureKey,
                             userId: context.getId(),
@@ -2203,15 +2439,9 @@ var FlagApi = /** @class */ (function () {
                         notInHoldoutIds.push.apply(notInHoldoutIds, notMatchedHoldouts.map(function (holdout) { return holdout.getId(); }));
                         if (shouldFireImpressionEvents) {
                             if (serviceContainer.getSettingsService().isGatewayServiceProvided) {
-                                for (_g = 0, holdoutPayloads_5 = holdoutPayloads; _g < holdoutPayloads_5.length; _g++) {
-                                    payload = holdoutPayloads_5[_g];
+                                for (_e = 0, holdoutPayloads_3 = holdoutPayloads; _e < holdoutPayloads_3.length; _e++) {
+                                    payload = holdoutPayloads_3[_e];
                                     (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, payload.d.event.props.id, payload.d.event.props.variation, context, featureKey, payload);
-                                }
-                            }
-                            else if (serviceContainer.getBatchEventsQueue()) {
-                                for (_h = 0, holdoutPayloads_6 = holdoutPayloads; _h < holdoutPayloads_6.length; _h++) {
-                                    payload = holdoutPayloads_6[_h];
-                                    serviceContainer.getBatchEventsQueue().enqueue(payload);
                                 }
                             }
                             else {
@@ -2220,31 +2450,31 @@ var FlagApi = /** @class */ (function () {
                             // Usage tracking optimization: holdout variationShown(variation=2) was dispatched above.
                             // server will handle usage tracking from that event. Mark flag so Point 4 skips our usage tracking call
                             // to avoid an unnecessary duplicate network round trip.
-                            if (holdoutPayloads.length > 0) {
+                            if (holdoutPayloads.length > 0 && isImpressionDispatchEnabled) {
                                 isVariationShownFired = true;
                             }
                         }
-                        _2.label = 24;
-                    case 24:
+                        _z.label = 22;
+                    case 22:
                         rollOutRules = (0, FunctionUtil_1.getSpecificRulesBasedOnType)(feature, CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT);
-                        if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 46];
+                        if (!(rollOutRules.length > 0 && !isEnabled)) return [3 /*break*/, 44];
                         rolloutRulesToEvaluate = [];
-                        _j = 0, rollOutRules_1 = rollOutRules;
-                        _2.label = 25;
-                    case 25:
-                        if (!(_j < rollOutRules_1.length)) return [3 /*break*/, 40];
-                        rule = rollOutRules_1[_j];
+                        _f = 0, rollOutRules_1 = rollOutRules;
+                        _z.label = 23;
+                    case 23:
+                        if (!(_f < rollOutRules_1.length)) return [3 /*break*/, 38];
+                        rule = rollOutRules_1[_f];
                         return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, null, storageService, decision)];
-                    case 26:
-                        evaluateRuleResult = _2.sent();
+                    case 24:
+                        evaluateRuleResult = _z.sent();
                         isForceUserApplicable = evaluateRuleResult[constants_1.Constants.KEY_FORCED_USER_CHECK];
                         whitelistedObject = evaluateRuleResult.whitelistedObject, updatedDecision = evaluateRuleResult.updatedDecision, payload = evaluateRuleResult.payload;
                         Object.assign(decision, updatedDecision);
-                        if (payload) {
+                        if (payload && isImpressionDispatchEnabled) {
                             isVariationShownFired = true;
                         }
-                        if (!isForceUserApplicable) return [3 /*break*/, 38];
-                        if (!((0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0)) return [3 /*break*/, 32];
+                        if (!isForceUserApplicable) return [3 /*break*/, 36];
+                        if (!((0, DataTypeUtil_1.isObject)(whitelistedObject) && Object.keys(whitelistedObject).length > 0)) return [3 /*break*/, 30];
                         // set the flag to true if the whitelisted object is not null and has some variations
                         isEnabled = true;
                         shouldCheckForExperimentsRules = true;
@@ -2257,21 +2487,21 @@ var FlagApi = /** @class */ (function () {
                             rolloutVariationId: whitelistedObject.variationId,
                         });
                         _updateIntegrationsDecisionObject(rule, whitelistedObject.variation, passedRulesInformation, decision);
-                        if (!!isDevModeForUser) return [3 /*break*/, 31];
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 30];
-                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 28];
+                        if (!!isDevModeForUser) return [3 /*break*/, 29];
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 28];
+                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 26];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), whitelistedObject.variationId, context, featureKey, payload)];
-                    case 27:
-                        _2.sent();
-                        return [3 /*break*/, 29];
-                    case 28:
+                    case 25:
+                        _z.sent();
+                        return [3 /*break*/, 27];
+                    case 26:
                         if (payload != null) {
                             // push payload to batch payload if gateway service is not provided
                             batchPayload.push(payload);
                         }
-                        _2.label = 29;
-                    case 29: return [3 /*break*/, 31];
-                    case 30:
+                        _z.label = 27;
+                    case 27: return [3 /*break*/, 29];
+                    case 28:
                         // send impression for variation shown
                         if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
                             (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), whitelistedObject.variationId, context, featureKey, payload);
@@ -2282,72 +2512,72 @@ var FlagApi = /** @class */ (function () {
                                 batchPayload.push(payload);
                             }
                         }
-                        _2.label = 31;
-                    case 31: return [3 /*break*/, 40];
-                    case 32:
+                        _z.label = 29;
+                    case 29: return [3 /*break*/, 38];
+                    case 30:
                         // if pre segment passed, then break the loop and check the traffic allocation
                         rolloutRulesToEvaluate.push(rule);
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 36];
-                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 34];
-                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_v = rule.getVariations()[0]) === null || _v === void 0 ? void 0 : _v.getId(), context, featureKey, payload)];
-                    case 33:
-                        _2.sent();
-                        return [3 /*break*/, 35];
-                    case 34:
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 34];
+                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 32];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_s = rule.getVariations()[0]) === null || _s === void 0 ? void 0 : _s.getId(), context, featureKey, payload)];
+                    case 31:
+                        _z.sent();
+                        return [3 /*break*/, 33];
+                    case 32:
                         if (payload != null) {
                             batchPayload.push(payload);
                         }
-                        _2.label = 35;
-                    case 35: return [3 /*break*/, 37];
-                    case 36:
+                        _z.label = 33;
+                    case 33: return [3 /*break*/, 35];
+                    case 34:
                         if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_w = rule.getVariations()[0]) === null || _w === void 0 ? void 0 : _w.getId(), context, featureKey, payload);
+                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), (_t = rule.getVariations()[0]) === null || _t === void 0 ? void 0 : _t.getId(), context, featureKey, payload);
                         }
                         else {
                             if (payload != null) {
                                 batchPayload.push(payload);
                             }
                         }
-                        _2.label = 37;
-                    case 37:
+                        _z.label = 35;
+                    case 35:
                         evaluatedFeatureMap.set(featureKey, {
                             rolloutId: rule.getId(),
                             rolloutKey: rule.getKey(),
-                            rolloutVariationId: (_x = rule.getVariations()[0]) === null || _x === void 0 ? void 0 : _x.getId(),
+                            rolloutVariationId: (_u = rule.getVariations()[0]) === null || _u === void 0 ? void 0 : _u.getId(),
                         });
-                        return [3 /*break*/, 40];
-                    case 38: return [3 /*break*/, 39]; // if rule does not satisfy, then check for other ROLLOUT rules
-                    case 39:
-                        _j++;
-                        return [3 /*break*/, 25];
-                    case 40:
-                        if (!(rolloutRulesToEvaluate.length > 0)) return [3 /*break*/, 45];
+                        return [3 /*break*/, 38];
+                    case 36: return [3 /*break*/, 37]; // if rule does not satisfy, then check for other ROLLOUT rules
+                    case 37:
+                        _f++;
+                        return [3 /*break*/, 23];
+                    case 38:
+                        if (!(rolloutRulesToEvaluate.length > 0)) return [3 /*break*/, 43];
                         passedRolloutCampaign = new CampaignModel_1.CampaignModel().modelFromDictionary(rolloutRulesToEvaluate[0]);
                         variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, passedRolloutCampaign, context);
-                        if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 45];
+                        if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 43];
                         isEnabled = true;
                         shouldCheckForExperimentsRules = true;
                         rolloutVariationToReturn = variation;
                         decision['isUserPartOfCampaign'] = true;
                         _updateIntegrationsDecisionObject(passedRolloutCampaign, variation, passedRulesInformation, decision);
-                        if (!shouldFireImpressionEvents) return [3 /*break*/, 45];
+                        if (!shouldFireImpressionEvents) return [3 /*break*/, 43];
                         payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, passedRolloutCampaign.getId(), variation.getId(), context);
-                        if (payload) {
+                        if (payload && isImpressionDispatchEnabled) {
                             isVariationShownFired = true;
                         }
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 44];
-                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 42];
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 42];
+                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 40];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload)];
-                    case 41:
-                        _2.sent();
-                        return [3 /*break*/, 43];
-                    case 42:
+                    case 39:
+                        _z.sent();
+                        return [3 /*break*/, 41];
+                    case 40:
                         if (payload != null) {
                             batchPayload.push(payload);
                         }
-                        _2.label = 43;
-                    case 43: return [3 /*break*/, 45];
-                    case 44:
+                        _z.label = 41;
+                    case 41: return [3 /*break*/, 43];
+                    case 42:
                         if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
                             (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, passedRolloutCampaign.getId(), variation.getId(), context, featureKey, payload);
                         }
@@ -2356,39 +2586,39 @@ var FlagApi = /** @class */ (function () {
                                 batchPayload.push(payload);
                             }
                         }
-                        _2.label = 45;
-                    case 45: return [3 /*break*/, 47];
-                    case 46:
+                        _z.label = 43;
+                    case 43: return [3 /*break*/, 45];
+                    case 44:
                         if (rollOutRules.length === 0) {
                             serviceContainer
                                 .getLogManager()
                                 .debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT));
                             shouldCheckForExperimentsRules = true;
                         }
-                        _2.label = 47;
-                    case 47:
-                        if (!shouldCheckForExperimentsRules) return [3 /*break*/, 63];
+                        _z.label = 45;
+                    case 45:
+                        if (!shouldCheckForExperimentsRules) return [3 /*break*/, 61];
                         experimentRulesToEvaluate = [];
                         experimentRules = (0, FunctionUtil_1.getAllExperimentRules)(feature);
                         megGroupWinnerCampaigns = new Map();
-                        _k = 0, experimentRules_1 = experimentRules;
-                        _2.label = 48;
-                    case 48:
-                        if (!(_k < experimentRules_1.length)) return [3 /*break*/, 58];
-                        rule = experimentRules_1[_k];
+                        _g = 0, experimentRules_1 = experimentRules;
+                        _z.label = 46;
+                    case 46:
+                        if (!(_g < experimentRules_1.length)) return [3 /*break*/, 56];
+                        rule = experimentRules_1[_g];
                         return [4 /*yield*/, (0, RuleEvaluationUtil_1.evaluateRule)(serviceContainer, feature, rule, context, evaluatedFeatureMap, megGroupWinnerCampaigns, storageService, decision)];
-                    case 49:
-                        _l = _2.sent(), preSegmentationResult = _l.preSegmentationResult, whitelistedObject = _l.whitelistedObject, updatedDecision = _l.updatedDecision, payload = _l.payload;
+                    case 47:
+                        _h = _z.sent(), preSegmentationResult = _h.preSegmentationResult, whitelistedObject = _h.whitelistedObject, updatedDecision = _h.updatedDecision, payload = _h.payload;
                         Object.assign(decision, updatedDecision);
-                        if (payload) {
+                        if (payload && isImpressionDispatchEnabled) {
                             isVariationShownFired = true;
                         }
-                        if (!preSegmentationResult) return [3 /*break*/, 56];
-                        if (!(whitelistedObject === null)) return [3 /*break*/, 50];
+                        if (!preSegmentationResult) return [3 /*break*/, 54];
+                        if (!(whitelistedObject === null)) return [3 /*break*/, 48];
                         // whitelistedObject will be null if pre segment passed but whitelisting failed
                         experimentRulesToEvaluate.push(rule);
-                        return [3 /*break*/, 55];
-                    case 50:
+                        return [3 /*break*/, 53];
+                    case 48:
                         isEnabled = true;
                         decision['isUserPartOfCampaign'] = true;
                         experimentVariationToReturn = whitelistedObject.variation;
@@ -2397,20 +2627,20 @@ var FlagApi = /** @class */ (function () {
                             experimentKey: rule.getKey(),
                             experimentVariationId: whitelistedObject.variationId,
                         });
-                        if (!shouldFireImpressionEvents) return [3 /*break*/, 55];
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 54];
-                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 52];
+                        if (!shouldFireImpressionEvents) return [3 /*break*/, 53];
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 52];
+                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 50];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), whitelistedObject.variationId, context, featureKey, payload)];
-                    case 51:
-                        _2.sent();
-                        return [3 /*break*/, 53];
-                    case 52:
+                    case 49:
+                        _z.sent();
+                        return [3 /*break*/, 51];
+                    case 50:
                         if (payload != null) {
                             batchPayload.push(payload);
                         }
-                        _2.label = 53;
-                    case 53: return [3 /*break*/, 55];
-                    case 54:
+                        _z.label = 51;
+                    case 51: return [3 /*break*/, 53];
+                    case 52:
                         if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
                             (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, rule.getId(), whitelistedObject.variationId, context, featureKey, payload);
                         }
@@ -2419,39 +2649,39 @@ var FlagApi = /** @class */ (function () {
                                 batchPayload.push(payload);
                             }
                         }
-                        _2.label = 55;
-                    case 55: return [3 /*break*/, 58];
-                    case 56: return [3 /*break*/, 57];
-                    case 57:
-                        _k++;
-                        return [3 /*break*/, 48];
-                    case 58:
-                        if (!(experimentRulesToEvaluate.length > 0)) return [3 /*break*/, 63];
+                        _z.label = 53;
+                    case 53: return [3 /*break*/, 56];
+                    case 54: return [3 /*break*/, 55];
+                    case 55:
+                        _g++;
+                        return [3 /*break*/, 46];
+                    case 56:
+                        if (!(experimentRulesToEvaluate.length > 0)) return [3 /*break*/, 61];
                         campaign = new CampaignModel_1.CampaignModel().modelFromDictionary(experimentRulesToEvaluate[0]);
                         variation = (0, DecisionUtil_1.evaluateTrafficAndGetVariation)(serviceContainer, campaign, context);
-                        if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 63];
+                        if (!((0, DataTypeUtil_1.isObject)(variation) && Object.keys(variation).length > 0)) return [3 /*break*/, 61];
                         isEnabled = true;
                         decision['isUserPartOfCampaign'] = true;
                         experimentVariationToReturn = variation;
                         _updateIntegrationsDecisionObject(campaign, variation, passedRulesInformation, decision);
-                        if (!shouldFireImpressionEvents) return [3 /*break*/, 63];
+                        if (!shouldFireImpressionEvents) return [3 /*break*/, 61];
                         payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, campaign.getId(), variation.getId(), context);
-                        if (payload) {
+                        if (payload && isImpressionDispatchEnabled) {
                             isVariationShownFired = true;
                         }
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 62];
-                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 60];
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 60];
+                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 58];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload)];
-                    case 59:
-                        _2.sent();
-                        return [3 /*break*/, 61];
-                    case 60:
+                    case 57:
+                        _z.sent();
+                        return [3 /*break*/, 59];
+                    case 58:
                         if (payload != null) {
                             batchPayload.push(payload);
                         }
-                        _2.label = 61;
-                    case 61: return [3 /*break*/, 63];
-                    case 62:
+                        _z.label = 59;
+                    case 59: return [3 /*break*/, 61];
+                    case 60:
                         if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
                             (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, campaign.getId(), variation.getId(), context, featureKey, payload);
                         }
@@ -2460,8 +2690,8 @@ var FlagApi = /** @class */ (function () {
                                 batchPayload.push(payload);
                             }
                         }
-                        _2.label = 63;
-                    case 63:
+                        _z.label = 61;
+                    case 61:
                         // If flag is enabled, store it in data
                         if (isEnabled) {
                             // set storage data
@@ -2487,66 +2717,69 @@ var FlagApi = /** @class */ (function () {
                             // send debug event
                             (0, DebuggerServiceUtil_1.sendDebugEventToWingify)(serviceContainer, debugEventProps);
                         }
-                        if (!((_y = feature.getImpactCampaign()) === null || _y === void 0 ? void 0 : _y.getCampaignId())) return [3 /*break*/, 68];
-                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
-                            userId: context.getId(),
-                            featureKey: featureKey,
-                            status: isEnabled ? 'enabled' : 'disabled',
-                        }));
-                        if (!shouldFireImpressionEvents) return [3 /*break*/, 68];
-                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, (_z = feature.getImpactCampaign()) === null || _z === void 0 ? void 0 : _z.getCampaignId(), isEnabled ? 2 : 1, context);
-                        if (payload) {
+                        if (!((_v = feature.getImpactCampaign()) === null || _v === void 0 ? void 0 : _v.getCampaignId())) return [3 /*break*/, 66];
+                        if (isImpressionDispatchEnabled) {
+                            serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.IMPACT_ANALYSIS, {
+                                userId: context.getId(),
+                                featureKey: featureKey,
+                                status: isEnabled ? 'enabled' : 'disabled',
+                            }));
+                        }
+                        if (!shouldFireImpressionEvents) return [3 /*break*/, 66];
+                        payload = (0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, (_w = feature.getImpactCampaign()) === null || _w === void 0 ? void 0 : _w.getCampaignId(), isEnabled ? 2 : 1, context);
+                        if (payload && isImpressionDispatchEnabled) {
                             isVariationShownFired = true;
                         }
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 67];
-                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 65];
-                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_0 = feature.getImpactCampaign()) === null || _0 === void 0 ? void 0 : _0.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload)];
-                    case 64:
-                        _2.sent();
-                        return [3 /*break*/, 66];
-                    case 65:
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 65];
+                        if (!(serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null)) return [3 /*break*/, 63];
+                        return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_x = feature.getImpactCampaign()) === null || _x === void 0 ? void 0 : _x.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload)];
+                    case 62:
+                        _z.sent();
+                        return [3 /*break*/, 64];
+                    case 63:
                         if (payload != null) {
                             batchPayload.push(payload);
                         }
-                        _2.label = 66;
-                    case 66: return [3 /*break*/, 68];
-                    case 67:
+                        _z.label = 64;
+                    case 64: return [3 /*break*/, 66];
+                    case 65:
                         if (serviceContainer.getSettingsService().isGatewayServiceProvided && payload != null) {
-                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_1 = feature.getImpactCampaign()) === null || _1 === void 0 ? void 0 : _1.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload);
+                            (0, ImpressionUtil_1.sendImpressionForVariationShown)(serviceContainer, (_y = feature.getImpactCampaign()) === null || _y === void 0 ? void 0 : _y.getCampaignId(), isEnabled ? 2 : 1, context, featureKey, payload);
                         }
                         else {
                             if (payload != null) {
                                 batchPayload.push(payload);
                             }
                         }
-                        _2.label = 68;
-                    case 68:
-                        if (!!isVariationShownFired) return [3 /*break*/, 71];
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 70];
+                        _z.label = 66;
+                    case 66:
+                        if (!!isVariationShownFired) return [3 /*break*/, 69];
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 68];
                         return [4 /*yield*/, sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey, true)];
-                    case 69:
-                        _2.sent();
-                        return [3 /*break*/, 71];
-                    case 70:
+                    case 67:
+                        _z.sent();
+                        return [3 /*break*/, 69];
+                    case 68:
                         sendTrackingUsage(serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey); // fire-and-forget
-                        _2.label = 71;
-                    case 71:
+                        _z.label = 69;
+                    case 69:
                         variationToReturn = experimentVariationToReturn !== null && experimentVariationToReturn !== void 0 ? experimentVariationToReturn : rolloutVariationToReturn;
                         variationModel = variationToReturn
                             ? new VariationModel_1.VariationModel().modelFromDictionary(variationToReturn)
                             : new VariationModel_1.VariationModel();
-                        deferredObject.resolve(new Flag(isEnabled, context.getSessionId(), context.getUuid(), variationModel));
-                        if (!(!serviceContainer.getSettingsService().isGatewayServiceProvided && batchPayload.length > 0)) return [3 /*break*/, 74];
-                        if (!shouldFireImpressionEvents) return [3 /*break*/, 74];
-                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 73];
+                        if (!(!serviceContainer.getSettingsService().isGatewayServiceProvided && batchPayload.length > 0)) return [3 /*break*/, 72];
+                        if (!shouldFireImpressionEvents) return [3 /*break*/, 72];
+                        if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 71];
                         return [4 /*yield*/, (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload)];
-                    case 72:
-                        _2.sent();
-                        return [3 /*break*/, 74];
-                    case 73:
+                    case 70:
+                        _z.sent();
+                        return [3 /*break*/, 72];
+                    case 71:
                         (0, ImpressionUtil_1.sendImpressionForVariationShownInBatch)(serviceContainer, batchPayload);
-                        _2.label = 74;
-                    case 74: return [2 /*return*/, deferredObject.promise];
+                        _z.label = 72;
+                    case 72:
+                        deferredObject.resolve(FlagApi.prepareFlagForExposeResult(new Flag(isEnabled, context.getSessionId(), context.getUuid(), variationModel), serviceContainer, context, featureKey, isImpressionDispatchEnabled));
+                        return [2 /*return*/, deferredObject.promise];
                 }
             });
         });
@@ -2590,6 +2823,71 @@ function _updateDebugEventProps(debugEventProps, decision) {
     Object.assign(debugEventProps, decisionKeys);
 }
 /**
+ * Rebuilds variationShown payloads for a decision served from storage and collects them
+ * for Flag.exposeResult().
+ *
+ * Only fetchFlags uses this. Impressions are deferred there, so a stored decision would
+ * otherwise leave exposeResult() with nothing to send after a reload. getFlag / getFlags
+ * dispatch impressions immediately, so this returns without collecting anything on those paths.
+ *
+ * Campaigns, variations, or holdouts that are no longer in settings are skipped.
+ *
+ * @param serviceContainer - Shared SDK service container.
+ * @param feature - Feature being evaluated; used for holdouts and the impact campaign.
+ * @param context - User context for the evaluation.
+ * @param storedData - Decision previously written to storage for this user and feature.
+ * @param options - Which stored campaigns to rebuild. Experiment and impact are omitted
+ *   on the stored-rollout path because those are evaluated fresh afterwards.
+ * @returns {void}
+ */
+function collectStoredDecisionImpressions(serviceContainer, feature, context, storedData, options) {
+    var _a, _b, _c, _d, _e;
+    // Immediate-dispatch APIs (getFlag / getFlags) must keep skipping stored-path impressions.
+    if ((0, EventDispatchPolicyUtil_1.getActiveEventDispatchPolicy)(serviceContainer).shouldDispatchImpressions) {
+        return;
+    }
+    // Without an active collector there is nowhere to hold the payloads until exposeResult().
+    if (!(0, DeferredImpressionCollector_1.hasDeferredImpressionScope)() || !storedData || !feature) {
+        return;
+    }
+    var settings = serviceContainer.getSettings();
+    // Rebuild only holdouts already decided for this user. Holdouts added after the decision
+    // was stored are collected by the existing holdout evaluation above.
+    var storedInHoldoutIds = (_b = (_a = storedData.isInHoldoutId) !== null && _a !== void 0 ? _a : storedData.holdoutGroupId) !== null && _b !== void 0 ? _b : [];
+    var storedNotInHoldoutIds = (_c = storedData.notInHoldoutId) !== null && _c !== void 0 ? _c : [];
+    for (var _i = 0, _f = (0, HoldoutUtil_1.getApplicableHoldouts)(settings, feature.getId()); _i < _f.length; _i++) {
+        var holdout = _f[_i];
+        var holdoutId = holdout.getId();
+        if (storedInHoldoutIds.includes(holdoutId)) {
+            // This user was already decided into the holdout, so rebuild that impression for exposeResult.
+            (0, DeferredImpressionCollector_1.collectDeferredImpression)((0, NetworkUtil_1.createHoldoutPayload)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, holdoutId, constants_1.Constants.VARIATION_IS_PART_OF_HOLDOUT, context, feature.getId()));
+            // If the user is not in the holdout, collect the payload for the holdout not part of holdout event.
+        }
+        else if (storedNotInHoldoutIds.includes(holdoutId)) {
+            (0, DeferredImpressionCollector_1.collectDeferredImpression)((0, NetworkUtil_1.createHoldoutPayload)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, holdoutId, constants_1.Constants.VARIATION_NOT_PART_OF_HOLDOUT, context, feature.getId()));
+        }
+    }
+    // If the user is in the rollout, collect the payload for the rollout variation shown event.
+    if (storedData.rolloutId && storedData.rolloutVariationId) {
+        // Skip a stored rollout that was removed from settings.
+        if ((0, CampaignUtil_1.getCampaignKeyFromCampaignId)(settings, storedData.rolloutId)) {
+            (0, DeferredImpressionCollector_1.collectDeferredImpression)((0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, storedData.rolloutId, storedData.rolloutVariationId, context));
+        }
+    }
+    // If the user is in the experiment, collect the payload for the experiment variation shown event.
+    if (options.shouldIncludeExperiment && storedData.experimentId && storedData.experimentVariationId) {
+        // Skip a stored experiment that was removed from settings.
+        if ((0, CampaignUtil_1.getCampaignKeyFromCampaignId)(settings, storedData.experimentId)) {
+            (0, DeferredImpressionCollector_1.collectDeferredImpression)((0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, storedData.experimentId, storedData.experimentVariationId, context));
+        }
+    }
+    // If the user is in the impact campaign, collect the payload for the impact campaign variation shown event.
+    var impactCampaignId = (_e = (_d = feature.getImpactCampaign()) === null || _d === void 0 ? void 0 : _d.getCampaignId) === null || _e === void 0 ? void 0 : _e.call(_d);
+    if (options.shouldIncludeImpactCampaign && impactCampaignId) {
+        (0, DeferredImpressionCollector_1.collectDeferredImpression)((0, NetworkUtil_1.getTrackUserPayloadData)(serviceContainer, EventEnum_1.EventEnum.VARIATION_SHOWN, impactCampaignId, options.isEnabled ? 2 : 1, context));
+    }
+}
+/**
  * Sends the usage tracking payload to server.
  * Called whenever a user is evaluated via getFlag() but no variationShown event is
  * dispatched by the SDK for that evaluation (decision from storage cache, flag=false, etc.).
@@ -2601,21 +2899,26 @@ function _updateDebugEventProps(debugEventProps, decision) {
  * @param context - The user context model.
  * @param isTrackingUsageEnabled - Whether usage tracking is active for this account.
  * @param shouldFireImpressionEvents - Whether tracking/impression network calls should be dispatched.
+ * @param featureKey - Feature key being evaluated, used for logging.
  * @param shouldAwait - When true, awaits the network call (for shouldWaitForTrackingCalls flows).
+ * @returns {Promise<void>} Resolves once the usage tracking call is enqueued or sent.
  */
 function sendTrackingUsage(serviceContainer_1, context_1, isTrackingUsageEnabled_1, shouldFireImpressionEvents_1, featureKey_1) {
     return __awaiter(this, arguments, void 0, function (serviceContainer, context, isTrackingUsageEnabled, shouldFireImpressionEvents, featureKey, shouldAwait) {
-        var isTrackingSuppressed, isMAUSuppressed, trackingPayload, properties;
+        var eventDispatchPolicy, isTrackingSuppressed, isMAUSuppressed, trackingPayload, properties;
         var _a, _b;
         if (shouldAwait === void 0) { shouldAwait = false; }
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    isTrackingSuppressed = serviceContainer.getSuppressTrackingCalls() || !!((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls);
-                    isMAUSuppressed = serviceContainer.getSuppressMAU() || !!((_b = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _b === void 0 ? void 0 : _b.suppressMAU);
-                    if (!isTrackingUsageEnabled || isMAUSuppressed)
+                    eventDispatchPolicy = (0, EventDispatchPolicyUtil_1.getActiveEventDispatchPolicy)(serviceContainer);
+                    isTrackingSuppressed = !!(serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls));
+                    isMAUSuppressed = !!(serviceContainer.getSuppressMAU() || ((_b = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _b === void 0 ? void 0 : _b.suppressMAU));
+                    // Account setting, the MAU toggle, and getFlags suppressMAU can each block this call.
+                    if (!isTrackingUsageEnabled || !eventDispatchPolicy.shouldDispatchUsageEvents || isMAUSuppressed)
                         return [2 /*return*/];
-                    if (!shouldFireImpressionEvents && !isTrackingSuppressed)
+                    // Skip MAU in dev mode. Still send it for fetchFlags (policy blocks impressions) and for getFlags tracking suppression.
+                    if (!shouldFireImpressionEvents && eventDispatchPolicy.shouldDispatchImpressions && !isTrackingSuppressed)
                         return [2 /*return*/];
                     trackingPayload = (0, NetworkUtil_1.getTrackingUsagePayloadData)(serviceContainer, context);
                     serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USAGE_TRACKING_CALL_SENT, {
@@ -2728,10 +3031,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetFlagsApi = void 0;
+exports.resolveFlagKeys = resolveFlagKeys;
 var GetFlag_1 = __webpack_require__(/*! ./GetFlag */ "./lib/api/GetFlag.ts");
 var VariationModel_1 = __webpack_require__(/*! ../models/campaign/VariationModel */ "./lib/models/campaign/VariationModel.ts");
 var ContextModel_1 = __webpack_require__(/*! ../models/user/ContextModel */ "./lib/models/user/ContextModel.ts");
 var GetFlagsBatchContext_1 = __webpack_require__(/*! ../services/GetFlagsBatchContext */ "./lib/services/GetFlagsBatchContext.ts");
+var EventDispatchPolicyUtil_1 = __webpack_require__(/*! ../utils/EventDispatchPolicyUtil */ "./lib/utils/EventDispatchPolicyUtil.ts");
 var megGroupPartitionUtil_1 = __webpack_require__(/*! ../utils/megGroupPartitionUtil */ "./lib/utils/megGroupPartitionUtil.ts");
 var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ../utils/FunctionUtil */ "./lib/utils/FunctionUtil.ts");
@@ -2797,11 +3102,12 @@ function ensureAllRequestedFlags(requestedFeatureKeys, evaluatedFlagsByKey, base
  * @param baseContextCopy - Validated plain context object shared across evaluations.
  * @param serviceContainer - Shared SDK service container.
  * @param options - SDK init options used to build per-flag ContextModel instances.
+ * @param eventDispatchPolicy - Network dispatch policy for this batch worker.
  * @param suppressTrackingCalls - Whether to suppress tracking/impression network calls.
  * @param suppressMAU - Whether to suppress MAU tracking calls.
  * @returns Evaluated flags keyed by feature key for this batch.
  */
-function evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU) {
+function evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, eventDispatchPolicy, suppressTrackingCalls, suppressMAU) {
     return __awaiter(this, void 0, void 0, function () {
         var _this = this;
         return __generator(this, function (_a) {
@@ -2839,12 +3145,12 @@ function evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, optio
                             case 6: return [2 /*return*/, evaluatedFlagsInBatch];
                         }
                     });
-                }); }, suppressTrackingCalls, suppressMAU)];
+                }); }, eventDispatchPolicy, suppressTrackingCalls, suppressMAU)];
         });
     });
 }
 /**
- * Batch feature-flag evaluation used by WingifyClient.getFlags.
+ * Batch feature-flag evaluation used by WingifyClient.getFlags and WingifyClient.fetchFlags.
  */
 var GetFlagsApi = /** @class */ (function () {
     function GetFlagsApi() {
@@ -2859,22 +3165,26 @@ var GetFlagsApi = /** @class */ (function () {
      * @param options - SDK init options used to build per-flag ContextModel instances.
      * @param shouldSendTrackingCalls - When false, suppresses tracking/impression network calls.
      * @param shouldSendMAU - When false, suppresses MAU tracking calls.
-     * @returns Evaluated flags keyed by feature key (disabled Flag for unknown/failed keys).
+     * @param shouldApplyLegacySuppression - When true, getFlags drops impressions via suppress flags. fetchFlags passes false so impressions are deferred instead.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key (disabled Flag for unknown/failed keys).
      */
     GetFlagsApi.get = function (flagNames_1, baseContextCopy_1, serviceContainer_1, options_1) {
         return __awaiter(this, arguments, void 0, function (flagNames, baseContextCopy, serviceContainer, options, shouldSendTrackingCalls, // Default to true so that tracking calls are sent in case of getFlags.
-        shouldSendMAU) {
-            var settings, requestedFeatureKeys, suppressTrackingCalls, suppressMAU, evaluationBatches, evaluateFlags_1, batchEvaluationOutcomes, evaluatedFlagsByKey, _i, batchEvaluationOutcomes_1, batchEvaluationOutcome;
+        shouldSendMAU, // Default to true so that MAU calls are sent
+        shouldApplyLegacySuppression) {
+            var settings, requestedFeatureKeys, eventDispatchPolicy, suppressTrackingCalls, suppressMAU, evaluationBatches, evaluateFlags_1, batchEvaluationOutcomes, evaluatedFlagsByKey, _i, batchEvaluationOutcomes_1, batchEvaluationOutcome;
             var _this = this;
             if (shouldSendTrackingCalls === void 0) { shouldSendTrackingCalls = true; }
             if (shouldSendMAU === void 0) { shouldSendMAU = true; }
+            if (shouldApplyLegacySuppression === void 0) { shouldApplyLegacySuppression = true; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         settings = serviceContainer.getSettings();
                         requestedFeatureKeys = resolveFlagKeys(flagNames, settings);
-                        suppressTrackingCalls = !shouldSendTrackingCalls;
-                        suppressMAU = !shouldSendMAU;
+                        eventDispatchPolicy = (0, EventDispatchPolicyUtil_1.createEventDispatchPolicy)(shouldSendTrackingCalls, shouldSendMAU);
+                        suppressTrackingCalls = shouldApplyLegacySuppression && !shouldSendTrackingCalls;
+                        suppressMAU = shouldApplyLegacySuppression && !shouldSendMAU;
                         if (!requestedFeatureKeys.length) {
                             return [2 /*return*/, {}];
                         }
@@ -2885,6 +3195,7 @@ var GetFlagsApi = /** @class */ (function () {
                                 return __generator(this, function (_e) {
                                     switch (_e.label) {
                                         case 0:
+                                            serviceContainer.setEventDispatchPolicy(eventDispatchPolicy);
                                             serviceContainer.setSuppressTrackingCalls(suppressTrackingCalls);
                                             serviceContainer.setSuppressMAU(suppressMAU);
                                             _e.label = 1;
@@ -2901,7 +3212,7 @@ var GetFlagsApi = /** @class */ (function () {
                                             _e.trys.push([3, 5, , 6]);
                                             _b = (_a = Object).assign;
                                             _c = [evaluatedFlagsByKey_1];
-                                            return [4 /*yield*/, evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU)];
+                                            return [4 /*yield*/, evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, eventDispatchPolicy, suppressTrackingCalls, suppressMAU)];
                                         case 4:
                                             _b.apply(_a, _c.concat([_e.sent()]));
                                             return [3 /*break*/, 6];
@@ -2913,7 +3224,8 @@ var GetFlagsApi = /** @class */ (function () {
                                             return [3 /*break*/, 2];
                                         case 7: return [2 /*return*/, ensureAllRequestedFlags(requestedFeatureKeys, evaluatedFlagsByKey_1, baseContextCopy)];
                                         case 8:
-                                            // Reset shared container flags after this getFlags completes
+                                            // Reset shared container policy and legacy suppress flags after this call completes.
+                                            serviceContainer.resetEventDispatchPolicy();
                                             serviceContainer.setSuppressTrackingCalls(false);
                                             serviceContainer.setSuppressMAU(false);
                                             return [7 /*endfinally*/];
@@ -2926,7 +3238,7 @@ var GetFlagsApi = /** @class */ (function () {
                             return [2 /*return*/, browserGetFlagsQueue];
                         }
                         return [4 /*yield*/, Promise.allSettled(evaluationBatches.map(function (evaluationBatch) {
-                                return evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, suppressTrackingCalls, suppressMAU);
+                                return evaluateBatch(evaluationBatch, baseContextCopy, serviceContainer, options, eventDispatchPolicy, suppressTrackingCalls, suppressMAU);
                             }))];
                     case 1:
                         batchEvaluationOutcomes = _a.sent();
@@ -3679,12 +3991,15 @@ var ApiEnum;
     ApiEnum["ON_INIT"] = "onInit";
     ApiEnum["GET_FLAG"] = "getFlag";
     ApiEnum["GET_FLAGS"] = "getFlags";
+    ApiEnum["FETCH_FLAGS"] = "fetchFlags";
     ApiEnum["TRACK_EVENT"] = "trackEvent";
     ApiEnum["SET_ATTRIBUTE"] = "setAttribute";
     ApiEnum["FLUSH_EVENTS"] = "flushEvents";
     ApiEnum["UPDATE_SETTINGS"] = "updateSettings";
     ApiEnum["SET_ALIAS"] = "setAlias";
     ApiEnum["SHUTDOWN"] = "shutdown";
+    // Debug metadata only when logging storage cleanup after consent withdrawal on user APIs.
+    ApiEnum["SET_HAS_CONSENTED"] = "setHasConsented";
 })(ApiEnum || (exports.ApiEnum = ApiEnum = {}));
 
 
@@ -5156,6 +5471,10 @@ var ContextModel = /** @class */ (function () {
         if (context === null || context === void 0 ? void 0 : context.isDevMode) {
             this.isDevMode = context.isDevMode === true;
         }
+        // Only an explicit false is stored. A missing field stays treated as consented.
+        if ((context === null || context === void 0 ? void 0 : context.hasConsented) === false) {
+            this.hasConsented = false;
+        }
         // if uuid is provided in the context, use it, otherwise generate a new uuid
         this._wingify_uuid =
             (_a = context === null || context === void 0 ? void 0 : context.uuid) !== null && _a !== void 0 ? _a : (0, UuidUtil_1.getUUID)((_c = (_b = context === null || context === void 0 ? void 0 : context.id) === null || _b === void 0 ? void 0 : _b.toString()) !== null && _c !== void 0 ? _c : "".concat(options === null || options === void 0 ? void 0 : options.accountId, "_").concat(options === null || options === void 0 ? void 0 : options.sdkKey), (_d = options === null || options === void 0 ? void 0 : options.accountId) === null || _d === void 0 ? void 0 : _d.toString());
@@ -5220,6 +5539,15 @@ var ContextModel = /** @class */ (function () {
     };
     ContextModel.prototype.getIsDevMode = function () {
         return this.isDevMode === true;
+    };
+    /**
+     * Whether the user has consented to data being sent to Wingify servers (true by default).
+     *
+     * @returns {boolean} False only when consent was explicitly denied.
+     */
+    ContextModel.prototype.getHasConsented = function () {
+        // Undefined means the caller omitted consent, which is treated as allowed.
+        return this.hasConsented !== false;
     };
     return ContextModel;
 }());
@@ -9036,6 +9364,53 @@ var BrowserStorageConnector = /** @class */ (function (_super) {
         }
         return deferredObject.promise;
     };
+    /**
+     * Removes stored flag decision data for a user from browser storage.
+     *
+     * @param featureKey - Feature to delete, or null to delete all features for the user.
+     * @param userId - User id whose stored decisions should be removed.
+     * @returns {Promise<void>} Resolves when removal completes.
+     */
+    BrowserStorageConnector.prototype.removeStoredDecisionData = function (featureKey, userId) {
+        var _this = this;
+        var deferredObject = new PromiseUtil_1.Deferred();
+        // Disabled storage and calls without a user id are a successful no-op.
+        if (this.isDisabled || !userId) {
+            deferredObject.resolve();
+            return deferredObject.promise;
+        }
+        try {
+            var storedData_1 = this.getStoredData();
+            // A specific feature is stored under featureKey_userId. Null means wipe every feature.
+            if (!(0, DataTypeUtil_1.isNull)(featureKey) && !(0, DataTypeUtil_1.isUndefined)(featureKey)) {
+                var storageEntryKey = "".concat(featureKey, "_").concat(userId);
+                delete storedData_1[storageEntryKey];
+            }
+            else {
+                // Keep cached settings and other users. Only this user's decision rows are removed.
+                Object.keys(storedData_1).forEach(function (storageEntryKey) {
+                    if (storageEntryKey === _this.SETTINGS_KEY) {
+                        return;
+                    }
+                    var storageEntry = storedData_1[storageEntryKey];
+                    // Match on the stored user id, because the map key also contains the feature name.
+                    if (storageEntry && String(storageEntry.userId) === String(userId)) {
+                        delete storedData_1[storageEntryKey];
+                    }
+                });
+            }
+            this.storeData(storedData_1);
+            deferredObject.resolve();
+        }
+        catch (error) {
+            // StorageService logs this rejection and turns it into a false result.
+            this.logManager.errorLog('ERROR_STORING_DATA_IN_BROWSER_STORAGE', {
+                err: (0, FunctionUtil_1.getFormattedErrorMessage)(error),
+            }, { an: constants_1.Constants.STORAGE });
+            deferredObject.reject(error);
+        }
+        return deferredObject.promise;
+    };
     return BrowserStorageConnector;
 }(Connector_1.Connector));
 exports.BrowserStorageConnector = BrowserStorageConnector;
@@ -9703,11 +10078,12 @@ function getCurrentGetFlagsBatchContext() {
  * Runs getFlags batch evaluation with an isolated segmentation manager and hooks decision.
  *
  * @param batchEvaluationCallback - Batch evaluation callback to run inside the scoped context.
+ * @param eventDispatchPolicy - Network dispatch policy for this batch worker.
  * @param suppressTrackingCalls - When true, suppresses tracking/impression network calls for this batch worker.
  * @param suppressMAU - When true, suppresses MAU tracking calls for this batch worker.
  * @returns The callback result.
  */
-function runWithGetFlagsBatchContext(batchEvaluationCallback, suppressTrackingCalls, suppressMAU) {
+function runWithGetFlagsBatchContext(batchEvaluationCallback, eventDispatchPolicy, suppressTrackingCalls, suppressMAU) {
     if (suppressTrackingCalls === void 0) { suppressTrackingCalls = false; }
     if (suppressMAU === void 0) { suppressMAU = false; }
     if (!getFlagsBatchAsyncLocalStorage) {
@@ -9718,6 +10094,7 @@ function runWithGetFlagsBatchContext(batchEvaluationCallback, suppressTrackingCa
         // Fresh manager per batch worker.
         segmentationManager: new SegmentationManger_1.SegmentationManager(),
         hooksDecision: null,
+        eventDispatchPolicy: eventDispatchPolicy,
         suppressTrackingCalls: suppressTrackingCalls,
         suppressMAU: suppressMAU,
     }, batchEvaluationCallback);
@@ -10406,6 +10783,7 @@ var DataTypeUtil_1 = __webpack_require__(/*! ../utils/DataTypeUtil */ "./lib/uti
 var PanicModeForcedRefreshControlService_1 = __importDefault(__webpack_require__(/*! ./PanicModeForcedRefreshControlService */ "./lib/services/PanicModeForcedRefreshControlService.ts"));
 var GetFlagsBatchContext_1 = __webpack_require__(/*! ./GetFlagsBatchContext */ "./lib/services/GetFlagsBatchContext.ts");
 var InternalEventsThrottleService_1 = __webpack_require__(/*! ./InternalEventsThrottleService */ "./lib/services/InternalEventsThrottleService.ts");
+var EventDispatchPolicyUtil_1 = __webpack_require__(/*! ../utils/EventDispatchPolicyUtil */ "./lib/utils/EventDispatchPolicyUtil.ts");
 var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
 var LogMessageUtil_1 = __webpack_require__(/*! ../utils/LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
 /**
@@ -10415,6 +10793,7 @@ var ServiceContainer = /** @class */ (function () {
     function ServiceContainer(options) {
         var _this = this;
         this.BatchEventsQueue = null;
+        this.eventDispatchPolicy = EventDispatchPolicyUtil_1.DEFAULT_EVENT_DISPATCH_POLICY;
         this.suppressTrackingCalls = false;
         this.suppressMAU = false;
         this.pollingStopCallback = null;
@@ -10617,6 +10996,33 @@ var ServiceContainer = /** @class */ (function () {
         return this.suppressMAU;
     };
     /**
+     * Sets the event dispatch policy for browser getFlags/fetchFlags evaluation.
+     *
+     * @param eventDispatchPolicy - Network dispatch policy for the current evaluation.
+     * @returns {void}
+     */
+    ServiceContainer.prototype.setEventDispatchPolicy = function (eventDispatchPolicy) {
+        // Browser workers share this container, so the policy lives here instead of async storage.
+        this.eventDispatchPolicy = eventDispatchPolicy;
+    };
+    /**
+     * Returns the container-level event dispatch policy (used on browser, where batch workers have no ALS scope).
+     *
+     * @returns {EventDispatchPolicy} Container-level event dispatch policy.
+     */
+    ServiceContainer.prototype.getEventDispatchPolicy = function () {
+        return this.eventDispatchPolicy;
+    };
+    /**
+     * Resets event dispatch policy to the default (all events enabled).
+     *
+     * @returns {void}
+     */
+    ServiceContainer.prototype.resetEventDispatchPolicy = function () {
+        // The next call must not keep a previous fetchFlags block on impressions.
+        this.eventDispatchPolicy = EventDispatchPolicyUtil_1.DEFAULT_EVENT_DISPATCH_POLICY;
+    };
+    /**
      * Registers a callback to stop settings polling (called from WingifyBuilder when polling is started).
      * @param callback - Callback to run when polling should stop, or null to clear.
      */
@@ -10676,6 +11082,64 @@ var ServiceContainer = /** @class */ (function () {
     return ServiceContainer;
 }());
 exports.ServiceContainer = ServiceContainer;
+
+
+/***/ }),
+
+/***/ "./lib/services/ServiceContainerRegistry.ts":
+/*!**************************************************!*\
+  !*** ./lib/services/ServiceContainerRegistry.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ServiceContainerRegistry = void 0;
+var registeredServiceContainers = new Set();
+/**
+ * Tracks every initialized SDK client so consent withdrawal can clear storage on all of them.
+ */
+exports.ServiceContainerRegistry = {
+    /**
+     * Adds a client container when init completes.
+     *
+     * @param serviceContainer - Container for one initialized client instance.
+     * @returns {void}
+     */
+    register: function (serviceContainer) {
+        // Consent withdrawal later walks every live client, so init must record this one.
+        registeredServiceContainers.add(serviceContainer);
+    },
+    /**
+     * Removes a client container when shutdown completes.
+     *
+     * @param serviceContainer - Container that is shutting down.
+     * @returns {void}
+     */
+    unregister: function (serviceContainer) {
+        // A shut-down client must not receive later storage deletes.
+        registeredServiceContainers.delete(serviceContainer);
+    },
+    /**
+     * Returns all live client containers in this process.
+     *
+     * @returns {ServiceContainer[]} Array of registered service containers.
+     */
+    getAll: function () {
+        // Copy the set so callers cannot mutate the registry by editing the array.
+        return Array.from(registeredServiceContainers);
+    },
+    /**
+     * Clears the registry. Used by tests only.
+     *
+     * @returns {void}
+     */
+    clearForTests: function () {
+        // Tests share one process, so leftover clients would leak into the next case.
+        registeredServiceContainers.clear();
+    },
+};
 
 
 /***/ }),
@@ -11363,6 +11827,43 @@ var StorageService = /** @class */ (function () {
                     return [2 /*return*/, deferredObject.promise];
                 }
                 return [2 /*return*/];
+            });
+        });
+    };
+    /**
+     * Removes stored flag decision data for a user from the configured storage connector.
+     *
+     * @param featureKey - Feature to delete, or null to delete every feature for the user.
+     * @param userId - User id whose stored decisions should be removed.
+     * @returns {boolean} True when remove completed without throwing; false when connector has no remove.
+     */
+    StorageService.prototype.removeDataInStorage = function (featureKey, userId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var storageConnector, error_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        storageConnector = this.serviceContainer.getStorageConnector();
+                        // Connectors that never stored decisions have no remove method, so there is nothing to delete.
+                        if (!storageConnector || !(0, DataTypeUtil_1.isFunction)(storageConnector.removeStoredDecisionData)) {
+                            return [2 /*return*/, false];
+                        }
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, storageConnector.removeStoredDecisionData(featureKey, userId)];
+                    case 2:
+                        _a.sent();
+                        return [2 /*return*/, true];
+                    case 3:
+                        error_3 = _a.sent();
+                        // A storage failure must not throw out of the user API that triggered the wipe.
+                        this.serviceContainer
+                            .getLogManager()
+                            .errorLog('ERROR_REMOVING_STORED_DATA_IN_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_3) }, { an: constants_1.Constants.STORAGE }, false);
+                        return [2 /*return*/, false];
+                    case 4: return [2 /*return*/];
+                }
             });
         });
     };
@@ -12260,6 +12761,153 @@ function _handleRolloutCampaign(campaign, logManager) {
 
 /***/ }),
 
+/***/ "./lib/utils/ConsentUtil.ts":
+/*!**********************************!*\
+  !*** ./lib/utils/ConsentUtil.ts ***!
+  \**********************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isConsentDenied = isConsentDenied;
+exports.shouldSkipUserApiDueToConsent = shouldSkipUserApiDueToConsent;
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var ApiEnum_1 = __webpack_require__(/*! ../enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var ServiceContainerRegistry_1 = __webpack_require__(/*! ../services/ServiceContainerRegistry */ "./lib/services/ServiceContainerRegistry.ts");
+var StorageService_1 = __webpack_require__(/*! ../services/StorageService */ "./lib/services/StorageService.ts");
+var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
+var FunctionUtil_1 = __webpack_require__(/*! ./FunctionUtil */ "./lib/utils/FunctionUtil.ts");
+/**
+ * Returns true when the user has explicitly denied consent.
+ *
+ * @param context - User context object from a public API call.
+ * @returns {boolean} True when hasConsented is false.
+ */
+function isConsentDenied(context) {
+    // Only an explicit false counts. A missing field means the user is treated as consented.
+    return (context === null || context === void 0 ? void 0 : context.hasConsented) === false;
+}
+/**
+ * Resolves the user id from context for storage operations.
+ *
+ * @param context - User context from a public API call.
+ * @returns {string | null} String user id when present; null when id is missing or empty.
+ */
+function resolveStorageUserIdFromContext(context) {
+    // Storage rows are keyed by user id, so a missing or blank id cannot be deleted.
+    if ((0, DataTypeUtil_1.isUndefined)(context === null || context === void 0 ? void 0 : context.id) || (0, DataTypeUtil_1.isNull)(context === null || context === void 0 ? void 0 : context.id) || (context === null || context === void 0 ? void 0 : context.id) === '') {
+        return null;
+    }
+    return String(context.id);
+}
+/**
+ * Deletes stored flag decision data for one user on every initialized SDK client.
+ *
+ * @param userId - User whose stored decisions should be removed.
+ * @returns {Promise<void>} Resolves when every registered client has finished the delete.
+ */
+function removeStoredDecisionsForUserAcrossAllClients(userId) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: 
+                // The same user can have decisions cached on each client initialized in this process.
+                return [4 /*yield*/, Promise.all(ServiceContainerRegistry_1.ServiceContainerRegistry.getAll().map(function (registeredServiceContainer) {
+                        // A null feature key tells the connector to drop every feature for this user.
+                        return new StorageService_1.StorageService(registeredServiceContainer).removeDataInStorage(null, userId);
+                    }))];
+                case 1:
+                    // The same user can have decisions cached on each client initialized in this process.
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+/**
+ * When consent is denied, logs, optionally wipes stored decisions, and signals that the user API should not run.
+ * Wipe runs on every denied call when context.id is set (connectors should treat remove as idempotent).
+ *
+ * @param context - User context object from a public API call.
+ * @param apiName - Name of the API that would be skipped.
+ * @param serviceContainer - Container used for logging.
+ * @returns {boolean} True when the caller should no-op for this user.
+ */
+function shouldSkipUserApiDueToConsent(context, apiName, serviceContainer) {
+    // Consented users, and calls with no context, continue into the API.
+    if (!isConsentDenied(context)) {
+        return false;
+    }
+    serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.USER_CONSENT_DENIED, { apiName: apiName }));
+    // Without an id there is no storage row to delete, but the API is still skipped.
+    var storageUserId = context ? resolveStorageUserIdFromContext(context) : null;
+    if (storageUserId) {
+        // Storage cleanup must not delay the no-op response. Failures are only logged.
+        void removeStoredDecisionsForUserAcrossAllClients(storageUserId).catch(function (error) {
+            serviceContainer
+                .getLogManager()
+                .errorLog('ERROR_REMOVING_STORED_DATA_IN_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error) }, { an: ApiEnum_1.ApiEnum.SET_HAS_CONSENTED }, false);
+        });
+    }
+    return true;
+}
+
+
+/***/ }),
+
 /***/ "./lib/utils/DataTypeUtil.ts":
 /*!***********************************!*\
   !*** ./lib/utils/DataTypeUtil.ts ***!
@@ -12477,6 +13125,7 @@ var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/Networ
 var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
 var GetFlagsBatchContext_1 = __webpack_require__(/*! ../services/GetFlagsBatchContext */ "./lib/services/GetFlagsBatchContext.ts");
 var InternalEventsRuntimeUtil_1 = __webpack_require__(/*! ./InternalEventsRuntimeUtil */ "./lib/utils/InternalEventsRuntimeUtil.ts");
+var EventDispatchPolicyUtil_1 = __webpack_require__(/*! ./EventDispatchPolicyUtil */ "./lib/utils/EventDispatchPolicyUtil.ts");
 /**
  * Utility functions for handling debugger service operations including
  * filtering sensitive properties and extracting decision keys.
@@ -12524,9 +13173,14 @@ function sendDebugEventToWingify(serviceContainer_1) {
                     if (!((_a = serviceContainer.getSettingsService()) === null || _a === void 0 ? void 0 : _a.sdkKey)) {
                         return [2 /*return*/];
                     }
+                    // getFlags(shouldSendTrackingCalls: false) and panic mode drop debugger events.
                     if (serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated() ||
                         serviceContainer.getSuppressTrackingCalls() ||
                         ((_b = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _b === void 0 ? void 0 : _b.suppressTrackingCalls)) {
+                        return [2 /*return*/];
+                    }
+                    // fetchFlags / event dispatch policy can block debugger events without the legacy suppress flag.
+                    if (!(0, EventDispatchPolicyUtil_1.getActiveEventDispatchPolicy)(serviceContainer).shouldDispatchDebuggerEvents) {
                         return [2 /*return*/];
                     }
                     messageTemplateKey = eventProps.msg_t;
@@ -13143,6 +13797,257 @@ var _whitelistingResultMap = function (whitelistedVariation) {
         variationId: whitelistedVariation.getId(),
     };
 };
+
+
+/***/ }),
+
+/***/ "./lib/utils/DeferredImpressionCollector.ts":
+/*!**************************************************!*\
+  !*** ./lib/utils/DeferredImpressionCollector.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.runWithDeferredImpressionScope = runWithDeferredImpressionScope;
+exports.collectDeferredImpression = collectDeferredImpression;
+exports.takeDeferredImpressions = takeDeferredImpressions;
+exports.hasDeferredImpressionScope = hasDeferredImpressionScope;
+var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+var deferredImpressionAsyncLocalStorage = null;
+var fallbackScopeStack = [];
+/**
+ * Initializes AsyncLocalStorage on Node so parallel flag evaluations keep separate scopes.
+ *
+ * @returns {typeof deferredImpressionAsyncLocalStorage} AsyncLocalStorage wrapper when running on Node, otherwise null.
+ */
+function initDeferredImpressionAsyncLocalStorage() {
+    var _a;
+    // Browser bundles have no Node process. typeof is required because reading an undeclared process throws.
+    if (true) {
+        return null;
+    }
+    try {
+        // Load async_hooks only on Node so the browser bundle does not depend on it.
+        var AsyncLocalStorage = eval('require')('async_hooks').AsyncLocalStorage;
+        var asyncLocalStorage_1 = new AsyncLocalStorage();
+        return {
+            run: function (scope, callback) { return asyncLocalStorage_1.run(scope, callback); },
+            getStore: function () { return asyncLocalStorage_1.getStore(); },
+        };
+    }
+    catch (_b) {
+        // Runtimes without async_hooks keep using the fallback stack.
+        return null;
+    }
+}
+deferredImpressionAsyncLocalStorage = initDeferredImpressionAsyncLocalStorage();
+/**
+ * Returns the deferred-impression scope of the current evaluation.
+ *
+ * @returns {DeferredImpressionScope | undefined} Active scope from AsyncLocalStorage, or the top of the fallback stack.
+ */
+function getActiveDeferredImpressionScope() {
+    var _a;
+    // Prefer the Node scope. The stack is only used when AsyncLocalStorage is unavailable.
+    return (_a = deferredImpressionAsyncLocalStorage === null || deferredImpressionAsyncLocalStorage === void 0 ? void 0 : deferredImpressionAsyncLocalStorage.getStore()) !== null && _a !== void 0 ? _a : fallbackScopeStack[fallbackScopeStack.length - 1];
+}
+/**
+ * Checks whether a value is a promise or thenable.
+ *
+ * @param value - Value to check.
+ * @returns {boolean} True when the value has a callable `then`.
+ */
+function isPromiseLike(value) {
+    // Thenables must keep the scope alive until they settle. Plain return values do not.
+    return !!value && (0, DataTypeUtil_1.isFunction)(value.then);
+}
+/**
+ * Runs flag evaluation inside a deferred-impression collection scope.
+ * Supports async callbacks (scope stays active until the promise settles).
+ *
+ * @param featureKey - Feature key being evaluated.
+ * @param flagEvaluationCallback - Evaluation callback to run inside the scope.
+ * @returns {T} The callback result.
+ */
+function runWithDeferredImpressionScope(featureKey, flagEvaluationCallback) {
+    // Each evaluation gets its own bucket so parallel flags cannot mix payloads.
+    var scope = { payloads: [], featureKey: featureKey };
+    // On Node the scope follows the async call stack, including across awaits.
+    if (deferredImpressionAsyncLocalStorage) {
+        return deferredImpressionAsyncLocalStorage.run(scope, flagEvaluationCallback);
+    }
+    // Browser has no AsyncLocalStorage, so a stack stands in for the current evaluation.
+    fallbackScopeStack.push(scope);
+    try {
+        var callbackResult = flagEvaluationCallback();
+        // Leave the scope in place until the promise settles, or an await would lose it.
+        if (isPromiseLike(callbackResult)) {
+            return Promise.resolve(callbackResult).finally(function () {
+                // Pop only this scope, so a nested evaluation that is still on top stays put.
+                if (fallbackScopeStack[fallbackScopeStack.length - 1] === scope) {
+                    fallbackScopeStack.pop();
+                }
+            });
+        }
+        fallbackScopeStack.pop();
+        return callbackResult;
+    }
+    catch (error) {
+        // A sync throw must not leave a stale scope for the next evaluation.
+        fallbackScopeStack.pop();
+        throw error;
+    }
+}
+/**
+ * Collects a variationShown payload when impressions are deferred (fetchFlags).
+ *
+ * @param payload - Impression payload to hold in the active scope.
+ * @returns {void}
+ */
+function collectDeferredImpression(payload) {
+    // Empty payloads are ignored so exposeResult does not try to send them later.
+    if (!payload) {
+        return;
+    }
+    var scope = getActiveDeferredImpressionScope();
+    // Outside a deferred evaluation there is nowhere to hold the payload.
+    if (scope) {
+        scope.payloads.push(payload);
+    }
+}
+/**
+ * Returns (and clears) payloads collected in the active evaluation scope.
+ *
+ * @returns {any[]} Collected payloads, or an empty array when no scope is active.
+ */
+function takeDeferredImpressions() {
+    var scope = getActiveDeferredImpressionScope();
+    // No active evaluation means nothing was collected for exposeResult.
+    if (!scope) {
+        return [];
+    }
+    // Copy first so the caller still has the payloads after the scope is cleared.
+    var payloads = scope.payloads.slice();
+    // Clear in place so a second read in the same evaluation cannot duplicate them.
+    scope.payloads.length = 0;
+    return payloads;
+}
+/**
+ * Returns whether an active deferred-impression scope exists.
+ *
+ * @returns {boolean} True when called during a flag evaluation.
+ */
+function hasDeferredImpressionScope() {
+    return !!getActiveDeferredImpressionScope();
+}
+
+
+/***/ }),
+
+/***/ "./lib/utils/EventDispatchPolicyUtil.ts":
+/*!**********************************************!*\
+  !*** ./lib/utils/EventDispatchPolicyUtil.ts ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DEFAULT_EVENT_DISPATCH_POLICY = void 0;
+exports.createEventDispatchPolicy = createEventDispatchPolicy;
+exports.getActiveEventDispatchPolicy = getActiveEventDispatchPolicy;
+exports.canDispatchEvent = canDispatchEvent;
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
+var GetFlagsBatchContext_1 = __webpack_require__(/*! ../services/GetFlagsBatchContext */ "./lib/services/GetFlagsBatchContext.ts");
+/** Default policy for getFlag/getFlags: all events enabled. */
+exports.DEFAULT_EVENT_DISPATCH_POLICY = {
+    shouldDispatchImpressions: true,
+    shouldDispatchUsageEvents: true,
+    shouldDispatchDebuggerEvents: true,
+};
+/**
+ * Builds an event dispatch policy from getFlags/fetchFlags network toggles.
+ *
+ * @param shouldSendTrackingCalls - When false, blocks impressions and debugger events.
+ * @param shouldSendMAU - When false, blocks MAU usage events.
+ * @returns {EventDispatchPolicy} Event dispatch policy for the current evaluation.
+ */
+function createEventDispatchPolicy(shouldSendTrackingCalls, shouldSendMAU) {
+    // Impressions and debugger calls share the tracking toggle. MAU stays separate so fetchFlags can still send usage.
+    return {
+        shouldDispatchImpressions: shouldSendTrackingCalls,
+        shouldDispatchUsageEvents: shouldSendMAU,
+        shouldDispatchDebuggerEvents: shouldSendTrackingCalls,
+    };
+}
+/**
+ * Resolves the active event dispatch policy for the current evaluation worker.
+ * Batch ALS policy takes precedence; browser falls back to the service container.
+ *
+ * @param serviceContainer - Shared SDK service container.
+ * @returns {EventDispatchPolicy} Active event dispatch policy.
+ */
+function getActiveEventDispatchPolicy(serviceContainer) {
+    var _a;
+    // Parallel workers keep their own policy so one batch cannot overwrite another.
+    var batchEventDispatchPolicy = (_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.eventDispatchPolicy;
+    if (batchEventDispatchPolicy) {
+        return batchEventDispatchPolicy;
+    }
+    // Browser runs one getFlags call at a time, so the shared container holds the policy.
+    return serviceContainer.getEventDispatchPolicy();
+}
+/**
+ * Returns whether an event may be dispatched under the given policy.
+ *
+ * @param eventDispatchPolicy - Active event dispatch policy.
+ * @param eventName - Event name from the payload, when present.
+ * @returns {boolean} True when the event should be dispatched.
+ */
+function canDispatchEvent(eventDispatchPolicy, eventName) {
+    // Usage tracking follows the MAU toggle, not the impression toggle.
+    if (eventName === EventEnum_1.EventEnum.USER_EVALUATED) {
+        return eventDispatchPolicy.shouldDispatchUsageEvents;
+    }
+    // Debugger events follow the same tracking toggle as impressions.
+    if (eventName === EventEnum_1.EventEnum.DEBUGGER_EVENT) {
+        return eventDispatchPolicy.shouldDispatchDebuggerEvents;
+    }
+    // variationShown, and any payload without a name, is treated as an impression.
+    return eventDispatchPolicy.shouldDispatchImpressions;
+}
 
 
 /***/ }),
@@ -14136,6 +15041,204 @@ function sendNetworkCallsForNotInHoldouts(serviceContainer, feature, context, de
 
 /***/ }),
 
+/***/ "./lib/utils/ImpressionExposureUtil.ts":
+/*!*********************************************!*\
+  !*** ./lib/utils/ImpressionExposureUtil.ts ***!
+  \*********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.sendDeferredVariationShownPayloads = sendDeferredVariationShownPayloads;
+exports.exposeFlagResult = exposeFlagResult;
+var BatchEventsDispatcher_1 = __webpack_require__(/*! ./BatchEventsDispatcher */ "./lib/utils/BatchEventsDispatcher.ts");
+var NetworkUtil_1 = __webpack_require__(/*! ./NetworkUtil */ "./lib/utils/NetworkUtil.ts");
+var EventEnum_1 = __webpack_require__(/*! ../enums/EventEnum */ "./lib/enums/EventEnum.ts");
+var SDKMetaUtil_1 = __webpack_require__(/*! ./SDKMetaUtil */ "./lib/utils/SDKMetaUtil.ts");
+var CampaignUtil_1 = __webpack_require__(/*! ./CampaignUtil */ "./lib/utils/CampaignUtil.ts");
+var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
+/**
+ * Sends deferred variationShown payloads, bypassing the fetchFlags dispatch policy.
+ * Uses the same transport paths as normal impression sending.
+ *
+ * @param serviceContainer - Shared SDK service container.
+ * @param context - User context from the original evaluation.
+ * @param featureKey - Feature key the payloads belong to.
+ * @param payloads - Deferred variationShown payloads to send.
+ * @returns {boolean} True when payloads were enqueued or sent, false when there was nothing to send.
+ */
+function sendDeferredVariationShownPayloads(serviceContainer, context, featureKey, payloads) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _i, payloads_1, payload, _a, payloads_2, payload, campaignId, variationId, properties, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
+        var _b, _c, _d, _e, _f, _g;
+        return __generator(this, function (_h) {
+            switch (_h.label) {
+                case 0:
+                    // Nothing was held back, so exposeResult should report that it did not send.
+                    if (!(payloads === null || payloads === void 0 ? void 0 : payloads.length)) {
+                        return [2 /*return*/, false];
+                    }
+                    // A user-configured queue delivers on its own schedule. Enqueueing counts as a successful expose.
+                    if (serviceContainer.getBatchEventsQueue()) {
+                        for (_i = 0, payloads_1 = payloads; _i < payloads_1.length; _i++) {
+                            payload = payloads_1[_i];
+                            serviceContainer.getBatchEventsQueue().enqueue(payload);
+                        }
+                        serviceContainer.getLogManager().info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.DEFERRED_EXPOSE_ENQUEUED, {
+                            count: payloads.length.toString(),
+                            featureKey: featureKey,
+                        }));
+                        return [2 /*return*/, true];
+                    }
+                    if (!serviceContainer.getSettingsService().isGatewayServiceProvided) return [3 /*break*/, 6];
+                    _a = 0, payloads_2 = payloads;
+                    _h.label = 1;
+                case 1:
+                    if (!(_a < payloads_2.length)) return [3 /*break*/, 5];
+                    payload = payloads_2[_a];
+                    campaignId = (_d = (_c = (_b = payload === null || payload === void 0 ? void 0 : payload.d) === null || _b === void 0 ? void 0 : _b.event) === null || _c === void 0 ? void 0 : _c.props) === null || _d === void 0 ? void 0 : _d.id;
+                    variationId = (_g = (_f = (_e = payload === null || payload === void 0 ? void 0 : payload.d) === null || _e === void 0 ? void 0 : _e.event) === null || _f === void 0 ? void 0 : _f.props) === null || _g === void 0 ? void 0 : _g.variation;
+                    properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), context.getIpAddress());
+                    campaignKeyWithFeatureName = (0, CampaignUtil_1.getCampaignKeyFromCampaignId)(serviceContainer.getSettings(), campaignId);
+                    variationName = (0, CampaignUtil_1.getVariationNameFromCampaignIdAndVariationId)(serviceContainer.getSettings(), campaignId, variationId);
+                    campaignKey = '';
+                    if (featureKey === campaignKeyWithFeatureName) {
+                        campaignKey = constants_1.Constants.IMPACT_ANALYSIS;
+                    }
+                    else {
+                        campaignKey = campaignKeyWithFeatureName === null || campaignKeyWithFeatureName === void 0 ? void 0 : campaignKeyWithFeatureName.split("".concat(featureKey, "_"))[1];
+                    }
+                    campaignType = (0, CampaignUtil_1.getCampaignTypeFromCampaignId)(serviceContainer.getSettings(), campaignId);
+                    if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                    return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId(), {}, { campaignKey: campaignKey, variationName: variationName, featureKey: featureKey, campaignType: campaignType })];
+                case 2:
+                    _h.sent();
+                    return [3 /*break*/, 4];
+                case 3:
+                    (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId(), {}, { campaignKey: campaignKey, variationName: variationName, featureKey: featureKey, campaignType: campaignType });
+                    _h.label = 4;
+                case 4:
+                    _a++;
+                    return [3 /*break*/, 1];
+                case 5: return [2 /*return*/, true];
+                case 6:
+                    if (!serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 8];
+                    return [4 /*yield*/, BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch(serviceContainer, { ev: payloads }, function () { }, {
+                            a: serviceContainer.getSettingsService().accountId,
+                            env: serviceContainer.getSettingsService().sdkKey,
+                            sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+                            sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
+                        })];
+                case 7:
+                    _h.sent();
+                    return [3 /*break*/, 9];
+                case 8:
+                    // Fire-and-forget when the client does not wait on tracking calls.
+                    BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch(serviceContainer, { ev: payloads }, function () { }, {
+                        a: serviceContainer.getSettingsService().accountId,
+                        env: serviceContainer.getSettingsService().sdkKey,
+                        sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+                        sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
+                    });
+                    _h.label = 9;
+                case 9: return [2 /*return*/, true];
+            }
+        });
+    });
+}
+/**
+ * Enqueues deferred variationShown impressions for a Flag result (Android-style exposeResult).
+ * Idempotent: second call is a no-op after stash is cleared / marked sent.
+ *
+ * @param flag - Flag holding deferred impressions and expose deps.
+ * @returns {boolean} True when impressions were enqueued or sent, false otherwise.
+ */
+function exposeFlagResult(flag) {
+    return __awaiter(this, void 0, void 0, function () {
+        var exposeDependencies, payloads, isSent;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    // A later exposeResult call must not send the same impressions again.
+                    if (flag.isImpressionAlreadySent()) {
+                        return [2 /*return*/, false];
+                    }
+                    exposeDependencies = flag.getExposeDependencies();
+                    payloads = flag.consumeDeferredImpressions();
+                    // Error flags and evaluations that produced no impression have nothing to send.
+                    if (!exposeDependencies || !payloads.length) {
+                        return [2 /*return*/, false];
+                    }
+                    return [4 /*yield*/, sendDeferredVariationShownPayloads(exposeDependencies.serviceContainer, exposeDependencies.context, exposeDependencies.featureKey, payloads)];
+                case 1:
+                    isSent = _a.sent();
+                    // Mark sent only after transport accepted the payloads.
+                    if (isSent) {
+                        flag.markImpressionSent();
+                    }
+                    return [2 /*return*/, isSent];
+            }
+        });
+    });
+}
+
+
+/***/ }),
+
 /***/ "./lib/utils/ImpressionUtil.ts":
 /*!*************************************!*\
   !*** ./lib/utils/ImpressionUtil.ts ***!
@@ -14204,7 +15307,21 @@ var CampaignUtil_2 = __webpack_require__(/*! ./CampaignUtil */ "./lib/utils/Camp
 var constants_1 = __webpack_require__(/*! ../constants */ "./lib/constants/index.ts");
 var BatchEventsDispatcher_1 = __webpack_require__(/*! ./BatchEventsDispatcher */ "./lib/utils/BatchEventsDispatcher.ts");
 var SDKMetaUtil_1 = __webpack_require__(/*! ./SDKMetaUtil */ "./lib/utils/SDKMetaUtil.ts");
+var EventDispatchPolicyUtil_1 = __webpack_require__(/*! ./EventDispatchPolicyUtil */ "./lib/utils/EventDispatchPolicyUtil.ts");
+var DeferredImpressionCollector_1 = __webpack_require__(/*! ./DeferredImpressionCollector */ "./lib/utils/DeferredImpressionCollector.ts");
 var GetFlagsBatchContext_1 = __webpack_require__(/*! ../services/GetFlagsBatchContext */ "./lib/services/GetFlagsBatchContext.ts");
+/**
+ * Returns whether getFlags has asked to drop tracking calls.
+ * Legacy suppress flags take precedence over the event dispatch policy so existing getFlags callers stay unchanged.
+ *
+ * @param serviceContainer - The service container instance.
+ * @returns {boolean} True when impressions must be dropped and not deferred.
+ */
+function isTrackingSuppressed(serviceContainer) {
+    var _a;
+    // Either the shared container flag or the current batch worker can request the drop.
+    return !!(serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls));
+}
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -14214,14 +15331,24 @@ var GetFlagsBatchContext_1 = __webpack_require__(/*! ../services/GetFlagsBatchCo
  * @param {number} campaignId - The ID of the campaign.
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {string} featureKey - The feature key the impression belongs to.
+ * @param {any} payload - The variationShown payload; held for exposeResult() when impressions are deferred.
+ * @returns {Promise<void>} Resolves when the impression is sent, stashed, or dropped.
  */
 var sendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey, payload) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
-    var _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
+                // getFlags(shouldSendTrackingCalls: false) drops the impression. Do not stash it for exposeResult.
+                if (isTrackingSuppressed(serviceContainer)) {
+                    return [2 /*return*/];
+                }
+                if (!(0, EventDispatchPolicyUtil_1.getActiveEventDispatchPolicy)(serviceContainer).shouldDispatchImpressions) {
+                    // fetchFlags / deferred mode: stash payload for Flag.exposeResult() instead of dropping it.
+                    if ((0, DeferredImpressionCollector_1.hasDeferredImpressionScope)()) {
+                        (0, DeferredImpressionCollector_1.collectDeferredImpression)(payload);
+                    }
                     return [2 /*return*/];
                 }
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
@@ -14244,44 +15371,64 @@ var sendImpressionForVariationShown = function (serviceContainer, campaignId, va
             return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId(), {}, { campaignKey: campaignKey, variationName: variationName, featureKey: featureKey, campaignType: campaignType })];
             case 2:
                 // Send the constructed properties and payload as a POST request
-                _b.sent();
-                _b.label = 3;
+                _a.sent();
+                _a.label = 3;
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.sendImpressionForVariationShown = sendImpressionForVariationShown;
 /**
- * Sends an impression for a variation shown event in batch.
- * This function constructs the necessary properties and payload for the event
- * and uses the NetworkUtil to send a POST API request.
+ * Sends batched event payloads through the SDK batch pipeline.
+ * Legacy getFlags suppression drops the whole batch. Otherwise payloads are filtered by the active event dispatch policy.
  *
- * @param {any[]} payloads - The payloads to send.
- * @param {ContextModel} context - The user context model containing user-specific data.
- * @param {string} featureKey - The feature key.
+ * @param serviceContainer - The service container instance.
+ * @param payloads - Event payloads to send.
+ * @returns {Promise<void>} Resolves when allowed payloads are enqueued, dispatched, or dropped.
  */
 var sendImpressionForVariationShownInBatch = function (serviceContainer, payloads) { return __awaiter(void 0, void 0, void 0, function () {
-    var _i, payloads_1, payload;
-    var _a;
-    return __generator(this, function (_b) {
-        if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
-            return [2 /*return*/];
+    var eventDispatchPolicy, _i, payloads_1, payload, payloadsToDispatch, _a, payloadsToDispatch_1, payload;
+    var _b, _c, _d, _e;
+    return __generator(this, function (_f) {
+        switch (_f.label) {
+            case 0:
+                // getFlags(shouldSendTrackingCalls: false) drops the batch. Those impressions must not be deferred.
+                if (isTrackingSuppressed(serviceContainer)) {
+                    return [2 /*return*/];
+                }
+                eventDispatchPolicy = (0, EventDispatchPolicyUtil_1.getActiveEventDispatchPolicy)(serviceContainer);
+                // fetchFlags blocks live impressions but still wants variationShown later via exposeResult.
+                if (!eventDispatchPolicy.shouldDispatchImpressions && (0, DeferredImpressionCollector_1.hasDeferredImpressionScope)()) {
+                    for (_i = 0, payloads_1 = payloads; _i < payloads_1.length; _i++) {
+                        payload = payloads_1[_i];
+                        // Unnamed payloads in this batch are variationShown. Usage and debugger stay for the filter below.
+                        if (((_c = (_b = payload === null || payload === void 0 ? void 0 : payload.d) === null || _b === void 0 ? void 0 : _b.event) === null || _c === void 0 ? void 0 : _c.name) === EventEnum_1.EventEnum.VARIATION_SHOWN || !((_e = (_d = payload === null || payload === void 0 ? void 0 : payload.d) === null || _d === void 0 ? void 0 : _d.event) === null || _e === void 0 ? void 0 : _e.name)) {
+                            (0, DeferredImpressionCollector_1.collectDeferredImpression)(payload);
+                        }
+                    }
+                }
+                payloadsToDispatch = payloads.filter(function (payload) { var _a, _b; return (0, EventDispatchPolicyUtil_1.canDispatchEvent)(eventDispatchPolicy, (_b = (_a = payload === null || payload === void 0 ? void 0 : payload.d) === null || _a === void 0 ? void 0 : _a.event) === null || _b === void 0 ? void 0 : _b.name); });
+                if (!payloadsToDispatch.length) {
+                    return [2 /*return*/];
+                }
+                // A user-configured queue sends on its own schedule, so enqueue and return.
+                if (serviceContainer.getBatchEventsQueue()) {
+                    for (_a = 0, payloadsToDispatch_1 = payloadsToDispatch; _a < payloadsToDispatch_1.length; _a++) {
+                        payload = payloadsToDispatch_1[_a];
+                        serviceContainer.getBatchEventsQueue().enqueue(payload);
+                    }
+                    return [2 /*return*/];
+                }
+                return [4 /*yield*/, BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch(serviceContainer, { ev: payloadsToDispatch }, function () { }, {
+                        a: serviceContainer.getSettingsService().accountId,
+                        env: serviceContainer.getSettingsService().sdkKey,
+                        sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+                        sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
+                    })];
+            case 1:
+                _f.sent();
+                return [2 /*return*/];
         }
-        if (serviceContainer.getBatchEventsQueue()) {
-            for (_i = 0, payloads_1 = payloads; _i < payloads_1.length; _i++) {
-                payload = payloads_1[_i];
-                serviceContainer.getBatchEventsQueue().enqueue(payload);
-            }
-        }
-        else {
-            BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch(serviceContainer, { ev: payloads }, function () { }, {
-                a: serviceContainer.getSettingsService().accountId,
-                env: serviceContainer.getSettingsService().sdkKey,
-                sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
-                sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
-            });
-        }
-        return [2 /*return*/];
     });
 }); };
 exports.sendImpressionForVariationShownInBatch = sendImpressionForVariationShownInBatch;
@@ -19072,7 +20219,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"{service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown({brand} standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}({brand} internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty, nothing to flush","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}","WEB_UUID_FOUND":"{brand} Web Testing UUID {uuid} identified as the Context ID for API {apiName}","HOLDOUT_SEGMENTATION_FAIL":"User ID: {userId} does not qualify segmentation for Holdout: {holdoutGroupName}","HOLDOUT_SHOULD_NOT_EXCLUDE_USER":"User ID: {userId} is not part of Holdout: {holdoutGroupName} for feature: {featureId}","PART_OF_HOLDOUT_IN_MEG":"MEG: User ID:{userId} is part of holdout: {holdoutId} for feature: {featureKey}","HOLDOUT_SKIP_EVALUATION":"Skip holdout reevaluation for holdout ID: {holdoutId} because {reason}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"{service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown({brand} standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}({brand} internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty, nothing to flush","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}","WEB_UUID_FOUND":"{brand} Web Testing UUID {uuid} identified as the Context ID for API {apiName}","HOLDOUT_SEGMENTATION_FAIL":"User ID: {userId} does not qualify segmentation for Holdout: {holdoutGroupName}","HOLDOUT_SHOULD_NOT_EXCLUDE_USER":"User ID: {userId} is not part of Holdout: {holdoutGroupName} for feature: {featureId}","PART_OF_HOLDOUT_IN_MEG":"MEG: User ID:{userId} is part of holdout: {holdoutId} for feature: {featureKey}","HOLDOUT_SKIP_EVALUATION":"Skip holdout reevaluation for holdout ID: {holdoutId} because {reason}","INVALID_TTL_USING_DEFAULT":"TTL is not passed or invalid (less than 1 minute), using default value of 2 hours","INVALID_ALWAYS_USE_CACHED_SETTINGS":"AlwaysUseCachedSettings is not passed or invalid, using default value of false"}');
 
 /***/ }),
 
@@ -19083,7 +20230,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. {brand} client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Failed to read data from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","ERROR_STORING_SETTINGS_IN_STORAGE":"Failed to store settings in storage. Error: {err}","ERROR_READING_SETTINGS_FROM_STORAGE":"Failed to read settings from storage. Error: {err}","ERROR_STORING_FRESH_SETTINGS_IN_STORAGE":"Failed to store latest settings in storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for {brand} Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY":"Web Testing pre-segmentation: campaignVariation must be a non-empty string after trimming whitespace. Expected: \\"C\\" (e.g. 122), \\"C_V\\" (122_2), \\"C_!V\\" (122_!1), or \\"!C\\" (!122).","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_FORMAT":"Web Testing pre-segmentation: unrecognized campaignVariation \\"{operand}\\". Expected: \\"C\\", \\"C_V\\", \\"C_!V\\", or \\"!C\\"; use an underscore before ! (e.g. 122_!1), not a colon.","INVALID_WEB_TESTING_CAMPAIGNS_JSON":"Web Testing pre-segmentation: platformVariables.webTestingCampaigns must be JSON that parses to a plain object (campaign id → variation id), not an array or primitive.","INVALID_WEB_TESTING_CAMPAIGNS_TYPE":"Web Testing pre-segmentation: platformVariables.webTestingCampaigns must be a plain object or a JSON string of an object (campaign id → variation id). Received type: {kind}.","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_TYPE":"Web Testing pre-segmentation: campaignVariation must be a string (e.g. \\"122\\", \\"122_2\\", \\"122_!1\\", \\"!122\\"). Received type: {type}.","ERROR_FETCHING_DATA_FROM_GATEWAY":"Failed to fetch data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API","ERROR_INITIALIZING_FETCH":"Failed to initialize the fetch API. Error: {error}","INVALID_NETWORK_TRANSPORT_MODE":"Invalid network transport mode. Expected one of: {validModes}. Received: {networkTransportMode}. Falling back to default mode: {defaultMode}","SEND_BEACON_ERROR":"Failed to send sendBeacon request to {brand}. Error: {err}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. {brand} client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Failed to read data from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","ERROR_STORING_SETTINGS_IN_STORAGE":"Failed to store settings in storage. Error: {err}","ERROR_READING_SETTINGS_FROM_STORAGE":"Failed to read settings from storage. Error: {err}","ERROR_STORING_FRESH_SETTINGS_IN_STORAGE":"Failed to store latest settings in storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for {brand} Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY":"Web Testing pre-segmentation: campaignVariation must be a non-empty string after trimming whitespace. Expected: \\"C\\" (e.g. 122), \\"C_V\\" (122_2), \\"C_!V\\" (122_!1), or \\"!C\\" (!122).","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_FORMAT":"Web Testing pre-segmentation: unrecognized campaignVariation \\"{operand}\\". Expected: \\"C\\", \\"C_V\\", \\"C_!V\\", or \\"!C\\"; use an underscore before ! (e.g. 122_!1), not a colon.","INVALID_WEB_TESTING_CAMPAIGNS_JSON":"Web Testing pre-segmentation: platformVariables.webTestingCampaigns must be JSON that parses to a plain object (campaign id → variation id), not an array or primitive.","INVALID_WEB_TESTING_CAMPAIGNS_TYPE":"Web Testing pre-segmentation: platformVariables.webTestingCampaigns must be a plain object or a JSON string of an object (campaign id → variation id). Received type: {kind}.","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_TYPE":"Web Testing pre-segmentation: campaignVariation must be a string (e.g. \\"122\\", \\"122_2\\", \\"122_!1\\", \\"!122\\"). Received type: {type}.","ERROR_FETCHING_DATA_FROM_GATEWAY":"Failed to fetch data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API","ERROR_INITIALIZING_FETCH":"Failed to initialize the fetch API. Error: {error}","INVALID_NETWORK_TRANSPORT_MODE":"Invalid network transport mode. Expected one of: {validModes}. Received: {networkTransportMode}. Falling back to default mode: {defaultMode}","SEND_BEACON_ERROR":"Failed to send sendBeacon request to {brand}. Error: {err}","PULSE_PRE_SEGMENTATION_UUID_COOKIE_MISSING":"Pulse pre-segmentation skipped: _vwo_uuid cookie is not present, so the Pulse visitor cannot be identified","PULSE_PRE_SEGMENTATION_FE_USER_MISMATCH":"Pulse pre-segmentation skipped: FE user does not match Pulse user (_vwo_uuid), skipping user evaluation for Pulse segments"}');
 
 /***/ }),
 
@@ -19105,7 +20252,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: {logPr
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: {logPrefix} {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: {logPrefix} {date} {brand} settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new {brand} client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new {brand} client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings not matches with the provided sdk-key/account-id. Fetching latest settings from the server","SETTINGS_EXPIRED":"Cached settings expired. Fetching latest settings from server","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings retrieved from storage","SETTINGS_SUCCESSFULLY_STORED":"Settings successfully stored in storage","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings updated with latest settings fetched from the server","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled in the init options","CLIENT_INITIALIZED":"{brand} Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments were missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current {brand} client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by {brand} having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by {brand} having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events could not be received by {brand}. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","STORED_HOLDOUT_DECISION_FOUND":"User: {userId} already part of holdout with ID:{holdoutId} for feature: {featureKey}","HOLDOUT_SHOULD_EXCLUDE_USER":"User: {userId} ({bucketValue}%) is in holdout: {holdoutGroupName} with targeted traffic percent: {percentTraffic}% for feature ID: {featureId}","USER_IN_HOLDOUT_GROUP":"User: {userId} is in holdout group: {holdoutGroupName} for feature {featureKey}. Feature not evaluated","USER_NOT_EXCLUDED_DUE_TO_HOLDOUT":"User ID:{userId} is not excluded from feature:{featureKey} due to any holdout groups","HOLDOUT_SEGMENTATION_SKIP":"No segments found for holdout: {holdoutId} and user ID: {userId}. Hence skipping segmentation"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: {logPrefix} {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: {logPrefix} {date} {brand} settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new {brand} client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new {brand} client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings not matches with the provided sdk-key/account-id. Fetching latest settings from the server","SETTINGS_EXPIRED":"Cached settings expired. Fetching latest settings from server","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings retrieved from storage","SETTINGS_SUCCESSFULLY_STORED":"Settings successfully stored in storage","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings updated with latest settings fetched from the server","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled in the init options","CLIENT_INITIALIZED":"{brand} Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments were missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current {brand} client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by {brand} having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by {brand} having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events could not be received by {brand}. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","STORED_HOLDOUT_DECISION_FOUND":"User: {userId} already part of holdout with ID:{holdoutId} for feature: {featureKey}","HOLDOUT_SHOULD_EXCLUDE_USER":"User: {userId} ({bucketValue}%) is in holdout: {holdoutGroupName} with targeted traffic percent: {percentTraffic}% for feature ID: {featureId}","USER_IN_HOLDOUT_GROUP":"User: {userId} is in holdout group: {holdoutGroupName} for feature {featureKey}. Feature not evaluated","USER_NOT_EXCLUDED_DUE_TO_HOLDOUT":"User ID:{userId} is not excluded from feature:{featureKey} due to any holdout groups","HOLDOUT_SEGMENTATION_SKIP":"No segments found for holdout: {holdoutId} and user ID: {userId}. Hence skipping segmentation","MISSING_IP_ADDRESS_FOR_SEGMENTATION":"To evaluate IP segmentation, please provide ipAddress in context","MISSING_USER_AGENT_FOR_BROWSER_VERSION_SEGMENTATION":"To evaluate browser version segmentation, please provide userAgent in context","MISSING_USER_AGENT_FOR_OS_VERSION_SEGMENTATION":"To evaluate OS version segmentation, please provide userAgent in context","STORED_DATA_IN_STORAGE":"Stored data in storage for key: {key}","RETRIEVED_DATA_FROM_STORAGE":"Retrieved data from storage for key: {key}","MEG_NO_WINNER_CAMPAIGN":"No winner campaign found for MEG group: {groupId}","USING_ALREADY_FETCHED_SETTINGS":"Using already fetched and cached settings","SETTINGS_SNAPSHOT_STALE":"[SETTINGS_SNAPSHOT_STALE] Rejecting stale/duplicate settings snapshot. Incoming: {incomingTimestamp}, Last seen: {lastSeenTimestamp}"}');
 
 /***/ }),
 

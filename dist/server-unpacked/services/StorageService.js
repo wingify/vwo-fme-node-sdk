@@ -324,6 +324,43 @@ var StorageService = /** @class */ (function () {
             });
         });
     };
+    /**
+     * Removes stored flag decision data for a user from the configured storage connector.
+     *
+     * @param featureKey - Feature to delete, or null to delete every feature for the user.
+     * @param userId - User id whose stored decisions should be removed.
+     * @returns {boolean} True when remove completed without throwing; false when connector has no remove.
+     */
+    StorageService.prototype.removeDataInStorage = function (featureKey, userId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var storageConnector, error_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        storageConnector = this.serviceContainer.getStorageConnector();
+                        // Connectors that never stored decisions have no remove method, so there is nothing to delete.
+                        if (!storageConnector || !(0, DataTypeUtil_1.isFunction)(storageConnector.removeStoredDecisionData)) {
+                            return [2 /*return*/, false];
+                        }
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, storageConnector.removeStoredDecisionData(featureKey, userId)];
+                    case 2:
+                        _a.sent();
+                        return [2 /*return*/, true];
+                    case 3:
+                        error_3 = _a.sent();
+                        // A storage failure must not throw out of the user API that triggered the wipe.
+                        this.serviceContainer
+                            .getLogManager()
+                            .errorLog('ERROR_REMOVING_STORED_DATA_IN_STORAGE', { err: (0, FunctionUtil_1.getFormattedErrorMessage)(error_3) }, { an: constants_1.Constants.STORAGE }, false);
+                        return [2 /*return*/, false];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     return StorageService;
 }());
 exports.StorageService = StorageService;

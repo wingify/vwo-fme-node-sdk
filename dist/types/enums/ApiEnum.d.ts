@@ -18,10 +18,12 @@ export declare enum ApiEnum {
   ON_INIT = 'onInit',
   GET_FLAG = 'getFlag',
   GET_FLAGS = 'getFlags',
+  FETCH_FLAGS = 'fetchFlags',
   TRACK_EVENT = 'trackEvent',
   SET_ATTRIBUTE = 'setAttribute',
   FLUSH_EVENTS = 'flushEvents',
   UPDATE_SETTINGS = 'updateSettings',
   SET_ALIAS = 'setAlias',
   SHUTDOWN = 'shutdown',
+  SET_HAS_CONSENTED = 'setHasConsented',
 }

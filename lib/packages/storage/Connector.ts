@@ -37,6 +37,9 @@ export abstract class Connector {
 
   setSettings?(data: ISettingsData): Promise<void>;
 
+  // Optional method to remove stored flag decision data for a user.
+  removeStoredDecisionData?(featureKey: string | null, userId: string): void | Promise<void>;
+
   // abstract getAll(): Record<string, dynamic> | Promise<Array<Record<string, dynamic>>>;
 
   // abstract getKeys(): string[] | Promise<dynamic>;

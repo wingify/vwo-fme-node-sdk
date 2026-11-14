@@ -24,6 +24,7 @@ import { LogManager } from '../packages/logger';
 import { Storage } from '../packages/storage';
 import PanicModeForcedRefreshControlService from './PanicModeForcedRefreshControlService';
 import { InternalEventsThrottleService } from './InternalEventsThrottleService';
+import { EventDispatchPolicy } from '../utils/EventDispatchPolicyUtil';
 /**
  * ServiceContainer is a class that contains all the services that are used in the SDK.
  */
@@ -38,6 +39,7 @@ export declare class ServiceContainer {
   private NetworkManager;
   private Storage;
   private shouldWaitForTrackingCalls;
+  private eventDispatchPolicy;
   private suppressTrackingCalls;
   private suppressMAU;
   private pollingStopCallback;
@@ -152,6 +154,25 @@ export declare class ServiceContainer {
   getSuppressTrackingCalls(): boolean;
   setSuppressMAU(value: boolean): void;
   getSuppressMAU(): boolean;
+  /**
+   * Sets the event dispatch policy for browser getFlags/fetchFlags evaluation.
+   *
+   * @param eventDispatchPolicy - Network dispatch policy for the current evaluation.
+   * @returns {void}
+   */
+  setEventDispatchPolicy(eventDispatchPolicy: EventDispatchPolicy): void;
+  /**
+   * Returns the container-level event dispatch policy (used on browser, where batch workers have no ALS scope).
+   *
+   * @returns {EventDispatchPolicy} Container-level event dispatch policy.
+   */
+  getEventDispatchPolicy(): EventDispatchPolicy;
+  /**
+   * Resets event dispatch policy to the default (all events enabled).
+   *
+   * @returns {void}
+   */
+  resetEventDispatchPolicy(): void;
   /**
    * Registers a callback to stop settings polling (called from WingifyBuilder when polling is started).
    * @param callback - Callback to run when polling should stop, or null to clear.

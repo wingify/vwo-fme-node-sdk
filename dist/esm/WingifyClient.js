@@ -1,5 +1,5 @@
 import { Flag, FlagApi } from './api/GetFlag.js';
-import { GetFlagsApi } from './api/GetFlags.js';
+import { GetFlagsApi, resolveFlagKeys } from './api/GetFlags.js';
 import { SetAttributeApi } from './api/SetAttribute.js';
 import { TrackApi } from './api/TrackEvent.js';
 import { DebugLogMessagesEnum, InfoLogMessagesEnum, ErrorLogMessagesEnum } from './enums/log-messages/index.js';
@@ -20,6 +20,8 @@ import { UsageStatsUtil } from './utils/UsageStatsUtil.js';
 import { StorageService } from './services/StorageService.js';
 import { getUUID, isWebUuid } from './utils/UuidUtil.js';
 import { SDKMetaUtil } from './utils/SDKMetaUtil.js';
+import { shouldSkipUserApiDueToConsent } from './utils/ConsentUtil.js';
+import { ServiceContainerRegistry } from './services/ServiceContainerRegistry.js';
 import { sendPanicCollectHeartbeatRequest } from './utils/NetworkUtil.js';
 import { EventEnum } from './enums/EventEnum.js';
 import { SettingsControlApplyMode } from './services/PanicModeForcedRefreshControlService.js';
@@ -53,6 +55,8 @@ export class WingifyClient {
             this.serviceContainer.setOriginalSettingsDocument(this.originalSettings);
             this.serviceContainer.injectServiceContainer(this.serviceContainer);
             this.serviceContainer.setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
+            // Register so consent-denied user APIs can clear storage on every live client in this process.
+            ServiceContainerRegistry.register(this.serviceContainer);
             this.serviceContainer.setForceRefreshHandler((isRefreshFromPanicClear) => this.updateSettings(undefined, true, isRefreshFromPanicClear, SettingsControlApplyMode.POST_PING_FETCH));
             this.handleSettingsControlFlags(normalizedSettings, SettingsControlApplyMode.APPLY);
             this.serviceContainer.getLogManager().info(buildMessage(InfoLogMessagesEnum.CLIENT_INITIALIZED));
@@ -135,6 +139,11 @@ export class WingifyClient {
             this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
                 apiName,
             }));
+            // Denied consent must not evaluate the flag or send data for this user.
+            if (shouldSkipUserApiDueToConsent(context, apiName, this.serviceContainer)) {
+                // Callers still receive a flag object, with the feature turned off.
+                return new Flag(false, context?.sessionId ?? getCurrentUnixTimestamp(), null, new VariationModel());
+            }
             // get uuid from context
             uuid = this.getUUIDFromContext(context, apiName);
         }
@@ -240,14 +249,49 @@ export class WingifyClient {
      *
      * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
      * @param context - User context; must include a valid user id.
-     * @returns Evaluated flags keyed by feature key.
+     * @param shouldSendTrackingCalls - When false, drops impression and debugger calls instead of deferring them.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
      */
     async getFlags(flagNames, context, shouldSendTrackingCalls = true) {
-        const apiName = ApiEnum.GET_FLAGS;
+        // Legacy third argument drops impressions. fetchFlags defers them instead.
+        return this.evaluateFlags(flagNames, context, ApiEnum.GET_FLAGS, shouldSendTrackingCalls, true, true);
+    }
+    /**
+     * Evaluates multiple feature flags without sending impression or debugger calls.
+     * MAU usage tracking (`vwo_feTrackUsage`) is still sent when enabled for the account.
+     * Call `Flag.exposeResult()` later to send deferred `vwo_variationShown` impressions.
+     *
+     * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+     * @param context - User context; must include a valid user id.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
+     */
+    async fetchFlags(flagNames, context) {
+        // Block live impressions, keep MAU on, and defer variationShown for exposeResult.
+        return this.evaluateFlags(flagNames, context, ApiEnum.FETCH_FLAGS, false, true, false);
+    }
+    /**
+     * Shared validation and evaluation path for getFlags and fetchFlags.
+     *
+     * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+     * @param context - User context; must include a valid user id.
+     * @param apiName - API name used for logging and debug metadata.
+     * @param shouldSendTrackingCalls - When false, suppresses impression and debugger network calls.
+     * @param shouldSendMAU - When false, suppresses MAU usage tracking calls.
+     * @param shouldApplyLegacySuppression - When true, getFlags drops impressions. fetchFlags passes false so they are deferred.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
+     */
+    async evaluateFlags(flagNames, context, apiName, shouldSendTrackingCalls, shouldSendMAU, shouldApplyLegacySuppression) {
         try {
             this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
                 apiName,
             }));
+            // Denied consent skips evaluation and returns the same disabled shape as a failed call.
+            if (shouldSkipUserApiDueToConsent(context, apiName, this.serviceContainer)) {
+                // Use settings keys when the caller asked for every flag, so the map is not empty.
+                const featureKeys = this.isSettingsValid ? resolveFlagKeys(flagNames, this.settings) : flagNames;
+                return this.buildDisabledFlags(featureKeys, context);
+            }
+            // Computed before later throws so error metadata can still identify the user.
             const uuid = this.getUUIDFromContext(context, apiName);
             if (!this.isSettingsValid) {
                 this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: apiName }, false);
@@ -257,31 +301,31 @@ export class WingifyClient {
                 this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: apiName }, false);
                 throw new TypeError('TypeError: Invalid context');
             }
-            // check if panic mode is activated
+            // Panic mode blocks decisions and only pings collect to see if the mode is still on.
             if (this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) {
-                // if panic mode is activated log that the api is blocked by panic mode
                 this.serviceContainer
                     .getLogManager()
                     .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName }));
-                // send heartbeat to the server to collect the panic mode signal to check if the panic mode is still activated
                 const heartbeat = sendPanicCollectHeartbeatRequest(this.serviceContainer, {
                     id: String(context.id),
                     uuid,
                     sessionId: isNumber(context.sessionId) ? context.sessionId : undefined,
                 });
-                // if the shouldWaitForTrackingCalls is true, then we need to wait for the heartbeat to be resolved
+                // Block on the ping only when the client is configured to wait for tracking calls.
                 if (this.serviceContainer.getShouldWaitForTrackingCalls()) {
                     await heartbeat.catch(() => undefined);
                 }
                 else {
                     void heartbeat.catch(() => undefined);
                 }
-                // return the disabled flags
+                // Callers still get one disabled flag per requested key.
                 return this.buildDisabledFlags(flagNames, context);
             }
+            // Alias resolution can replace the id, so copy context before evaluation mutates it.
             const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
             const baseContextCopy = { ...context };
             baseContextCopy.id = userId;
+            // A replaced id needs a new uuid. The original uuid stays when the id did not change.
             if (baseContextCopy.id !== context.id) {
                 baseContextCopy.uuid = this.getUUIDFromContext(baseContextCopy, apiName);
             }
@@ -303,13 +347,14 @@ export class WingifyClient {
                     delete baseContextCopy.bucketingSeed;
                 }
             }
-            return await GetFlagsApi.get(flagNames, baseContextCopy, this.serviceContainer, this.options, shouldSendTrackingCalls);
+            return await GetFlagsApi.get(flagNames, baseContextCopy, this.serviceContainer, this.options, shouldSendTrackingCalls, shouldSendMAU, shouldApplyLegacySuppression);
         }
         catch (err) {
             this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                 apiName,
                 err: getFormattedErrorMessage(err),
             }, { an: apiName });
+            // Callers always receive a map, even when validation or evaluation throws.
             return this.buildDisabledFlags(flagNames, context);
         }
     }
@@ -318,17 +363,19 @@ export class WingifyClient {
      *
      * @param flagNames - Requested feature keys from the caller.
      * @param context - Raw caller context used to populate flag metadata.
-     * @returns Disabled flags keyed by requested feature key.
+     * @returns {Record<string, Flag>} Disabled flags keyed by requested feature key.
      */
     buildDisabledFlags(flagNames, context) {
-        const keys = flagNames?.filter((key) => key?.trim()) ?? [];
-        if (!keys.length) {
+        // Drop blank keys so the map only contains flags the caller can look up.
+        const featureKeys = flagNames?.filter((featureKey) => featureKey?.trim()) ?? [];
+        if (!featureKeys.length) {
             return {};
         }
+        // One shared disabled flag is enough because nothing here is mutated per key.
         const sessionId = context?.sessionId ?? getCurrentUnixTimestamp();
         const uuid = context?.uuid ?? '';
         const disabledFlag = new Flag(false, sessionId, uuid, new VariationModel());
-        return Object.fromEntries(keys.map((key) => [key, disabledFlag]));
+        return Object.fromEntries(featureKeys.map((featureKey) => [featureKey, disabledFlag]));
     }
     /**
      * Tracks an event with specified properties and context.
@@ -347,6 +394,10 @@ export class WingifyClient {
             this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
                 apiName,
             }));
+            // Denied consent skips the event and reports it as not tracked.
+            if (shouldSkipUserApiDueToConsent(context, apiName, this.serviceContainer)) {
+                return { [eventName]: false };
+            }
             // Validate eventName is a string
             if (!isString(eventName)) {
                 this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
@@ -441,6 +492,14 @@ export class WingifyClient {
     async setAttribute(attributeOrAttributes, attributeValueOrContext, context) {
         const apiName = ApiEnum.SET_ATTRIBUTE;
         try {
+            // Map form puts context in the third argument. Single-attribute form puts it in the second.
+            const contextForConsentCheck = isObject(attributeOrAttributes)
+                ? (context ?? attributeValueOrContext)
+                : context;
+            // Denied consent skips the attribute write and clears stored decisions for this user.
+            if (shouldSkipUserApiDueToConsent(contextForConsentCheck, apiName, this.serviceContainer)) {
+                return;
+            }
             if (isObject(attributeOrAttributes)) {
                 // Log the API call
                 this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
@@ -665,6 +724,11 @@ export class WingifyClient {
             this.serviceContainer.getLogManager().debug(buildMessage(DebugLogMessagesEnum.API_CALLED, {
                 apiName,
             }));
+            // A raw user id string has no consent field. Only a context object can deny consent.
+            if (!isString(contextOrUserId) &&
+                shouldSkipUserApiDueToConsent(contextOrUserId, apiName, this.serviceContainer)) {
+                return false;
+            }
             if (!this.isAliasingEnabled) {
                 this.serviceContainer.getLogManager().errorLog('ALIAS_CALLED_BUT_NOT_PASSED', {}, { an: ApiEnum.SET_ALIAS });
                 return false;
@@ -788,6 +852,7 @@ export class WingifyClient {
             }
             // set the isShutdown flag to true to avoid multiple calls to shutdown
             this.isShutdown = true;
+            ServiceContainerRegistry.unregister(this.serviceContainer);
             this.serviceContainer.stopPolling();
             if (this.serviceContainer.getBatchEventsQueue()) {
                 await this.flushEvents();

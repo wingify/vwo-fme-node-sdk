@@ -59,7 +59,21 @@ var CampaignUtil_2 = require("./CampaignUtil");
 var constants_1 = require("../constants");
 var BatchEventsDispatcher_1 = require("./BatchEventsDispatcher");
 var SDKMetaUtil_1 = require("./SDKMetaUtil");
+var EventDispatchPolicyUtil_1 = require("./EventDispatchPolicyUtil");
+var DeferredImpressionCollector_1 = require("./DeferredImpressionCollector");
 var GetFlagsBatchContext_1 = require("../services/GetFlagsBatchContext");
+/**
+ * Returns whether getFlags has asked to drop tracking calls.
+ * Legacy suppress flags take precedence over the event dispatch policy so existing getFlags callers stay unchanged.
+ *
+ * @param serviceContainer - The service container instance.
+ * @returns {boolean} True when impressions must be dropped and not deferred.
+ */
+function isTrackingSuppressed(serviceContainer) {
+    var _a;
+    // Either the shared container flag or the current batch worker can request the drop.
+    return !!(serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls));
+}
 /**
  * Creates and sends an impression for a variation shown event.
  * This function constructs the necessary properties and payload for the event
@@ -69,14 +83,24 @@ var GetFlagsBatchContext_1 = require("../services/GetFlagsBatchContext");
  * @param {number} campaignId - The ID of the campaign.
  * @param {number} variationId - The ID of the variation shown to the user.
  * @param {ContextModel} context - The user context model containing user-specific data.
+ * @param {string} featureKey - The feature key the impression belongs to.
+ * @param {any} payload - The variationShown payload; held for exposeResult() when impressions are deferred.
+ * @returns {Promise<void>} Resolves when the impression is sent, stashed, or dropped.
  */
 var sendImpressionForVariationShown = function (serviceContainer, campaignId, variationId, context, featureKey, payload) { return __awaiter(void 0, void 0, void 0, function () {
     var properties, campaignKeyWithFeatureName, variationName, campaignKey, campaignType;
-    var _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
+                // getFlags(shouldSendTrackingCalls: false) drops the impression. Do not stash it for exposeResult.
+                if (isTrackingSuppressed(serviceContainer)) {
+                    return [2 /*return*/];
+                }
+                if (!(0, EventDispatchPolicyUtil_1.getActiveEventDispatchPolicy)(serviceContainer).shouldDispatchImpressions) {
+                    // fetchFlags / deferred mode: stash payload for Flag.exposeResult() instead of dropping it.
+                    if ((0, DeferredImpressionCollector_1.hasDeferredImpressionScope)()) {
+                        (0, DeferredImpressionCollector_1.collectDeferredImpression)(payload);
+                    }
                     return [2 /*return*/];
                 }
                 properties = (0, NetworkUtil_1.getEventsBaseProperties)(serviceContainer.getSettingsService(), EventEnum_1.EventEnum.VARIATION_SHOWN, encodeURIComponent(context.getUserAgent()), // Encode user agent to ensure URL safety
@@ -99,44 +123,64 @@ var sendImpressionForVariationShown = function (serviceContainer, campaignId, va
             return [4 /*yield*/, (0, NetworkUtil_1.sendPostApiRequest)(serviceContainer, properties, payload, context.getId(), {}, { campaignKey: campaignKey, variationName: variationName, featureKey: featureKey, campaignType: campaignType })];
             case 2:
                 // Send the constructed properties and payload as a POST request
-                _b.sent();
-                _b.label = 3;
+                _a.sent();
+                _a.label = 3;
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.sendImpressionForVariationShown = sendImpressionForVariationShown;
 /**
- * Sends an impression for a variation shown event in batch.
- * This function constructs the necessary properties and payload for the event
- * and uses the NetworkUtil to send a POST API request.
+ * Sends batched event payloads through the SDK batch pipeline.
+ * Legacy getFlags suppression drops the whole batch. Otherwise payloads are filtered by the active event dispatch policy.
  *
- * @param {any[]} payloads - The payloads to send.
- * @param {ContextModel} context - The user context model containing user-specific data.
- * @param {string} featureKey - The feature key.
+ * @param serviceContainer - The service container instance.
+ * @param payloads - Event payloads to send.
+ * @returns {Promise<void>} Resolves when allowed payloads are enqueued, dispatched, or dropped.
  */
 var sendImpressionForVariationShownInBatch = function (serviceContainer, payloads) { return __awaiter(void 0, void 0, void 0, function () {
-    var _i, payloads_1, payload;
-    var _a;
-    return __generator(this, function (_b) {
-        if (serviceContainer.getSuppressTrackingCalls() || ((_a = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _a === void 0 ? void 0 : _a.suppressTrackingCalls)) {
-            return [2 /*return*/];
+    var eventDispatchPolicy, _i, payloads_1, payload, payloadsToDispatch, _a, payloadsToDispatch_1, payload;
+    var _b, _c, _d, _e;
+    return __generator(this, function (_f) {
+        switch (_f.label) {
+            case 0:
+                // getFlags(shouldSendTrackingCalls: false) drops the batch. Those impressions must not be deferred.
+                if (isTrackingSuppressed(serviceContainer)) {
+                    return [2 /*return*/];
+                }
+                eventDispatchPolicy = (0, EventDispatchPolicyUtil_1.getActiveEventDispatchPolicy)(serviceContainer);
+                // fetchFlags blocks live impressions but still wants variationShown later via exposeResult.
+                if (!eventDispatchPolicy.shouldDispatchImpressions && (0, DeferredImpressionCollector_1.hasDeferredImpressionScope)()) {
+                    for (_i = 0, payloads_1 = payloads; _i < payloads_1.length; _i++) {
+                        payload = payloads_1[_i];
+                        // Unnamed payloads in this batch are variationShown. Usage and debugger stay for the filter below.
+                        if (((_c = (_b = payload === null || payload === void 0 ? void 0 : payload.d) === null || _b === void 0 ? void 0 : _b.event) === null || _c === void 0 ? void 0 : _c.name) === EventEnum_1.EventEnum.VARIATION_SHOWN || !((_e = (_d = payload === null || payload === void 0 ? void 0 : payload.d) === null || _d === void 0 ? void 0 : _d.event) === null || _e === void 0 ? void 0 : _e.name)) {
+                            (0, DeferredImpressionCollector_1.collectDeferredImpression)(payload);
+                        }
+                    }
+                }
+                payloadsToDispatch = payloads.filter(function (payload) { var _a, _b; return (0, EventDispatchPolicyUtil_1.canDispatchEvent)(eventDispatchPolicy, (_b = (_a = payload === null || payload === void 0 ? void 0 : payload.d) === null || _a === void 0 ? void 0 : _a.event) === null || _b === void 0 ? void 0 : _b.name); });
+                if (!payloadsToDispatch.length) {
+                    return [2 /*return*/];
+                }
+                // A user-configured queue sends on its own schedule, so enqueue and return.
+                if (serviceContainer.getBatchEventsQueue()) {
+                    for (_a = 0, payloadsToDispatch_1 = payloadsToDispatch; _a < payloadsToDispatch_1.length; _a++) {
+                        payload = payloadsToDispatch_1[_a];
+                        serviceContainer.getBatchEventsQueue().enqueue(payload);
+                    }
+                    return [2 /*return*/];
+                }
+                return [4 /*yield*/, BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch(serviceContainer, { ev: payloadsToDispatch }, function () { }, {
+                        a: serviceContainer.getSettingsService().accountId,
+                        env: serviceContainer.getSettingsService().sdkKey,
+                        sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
+                        sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
+                    })];
+            case 1:
+                _f.sent();
+                return [2 /*return*/];
         }
-        if (serviceContainer.getBatchEventsQueue()) {
-            for (_i = 0, payloads_1 = payloads; _i < payloads_1.length; _i++) {
-                payload = payloads_1[_i];
-                serviceContainer.getBatchEventsQueue().enqueue(payload);
-            }
-        }
-        else {
-            BatchEventsDispatcher_1.BatchEventsDispatcher.dispatch(serviceContainer, { ev: payloads }, function () { }, {
-                a: serviceContainer.getSettingsService().accountId,
-                env: serviceContainer.getSettingsService().sdkKey,
-                sn: SDKMetaUtil_1.SDKMetaUtil.getInstance().getSdkName(),
-                sv: SDKMetaUtil_1.SDKMetaUtil.getInstance().getVersion(),
-            });
-        }
-        return [2 /*return*/];
     });
 }); };
 exports.sendImpressionForVariationShownInBatch = sendImpressionForVariationShownInBatch;

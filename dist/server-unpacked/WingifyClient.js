@@ -70,6 +70,8 @@ var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
 var StorageService_1 = require("./services/StorageService");
 var UuidUtil_1 = require("./utils/UuidUtil");
 var SDKMetaUtil_1 = require("./utils/SDKMetaUtil");
+var ConsentUtil_1 = require("./utils/ConsentUtil");
+var ServiceContainerRegistry_1 = require("./services/ServiceContainerRegistry");
 var NetworkUtil_1 = require("./utils/NetworkUtil");
 var EventEnum_1 = require("./enums/EventEnum");
 var PanicModeForcedRefreshControlService_1 = require("./services/PanicModeForcedRefreshControlService");
@@ -104,6 +106,8 @@ var WingifyClient = /** @class */ (function () {
             this.serviceContainer.setOriginalSettingsDocument(this.originalSettings);
             this.serviceContainer.injectServiceContainer(this.serviceContainer);
             this.serviceContainer.setShouldWaitForTrackingCalls(this.options.shouldWaitForTrackingCalls || false);
+            // Register so consent-denied user APIs can clear storage on every live client in this process.
+            ServiceContainerRegistry_1.ServiceContainerRegistry.register(this.serviceContainer);
             this.serviceContainer.setForceRefreshHandler(function (isRefreshFromPanicClear) {
                 return _this.updateSettings(undefined, true, isRefreshFromPanicClear, PanicModeForcedRefreshControlService_1.SettingsControlApplyMode.POST_PING_FETCH);
             });
@@ -196,9 +200,9 @@ var WingifyClient = /** @class */ (function () {
     WingifyClient.prototype.getFlag = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
             var apiName, deferredObject, uuid, errorReturnSchema, heartbeat, userId, contextCopy, seed, contextModel, err_2;
-            var _a, _b;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var _a, _b, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.GET_FLAG;
                         deferredObject = new PromiseUtil_1.Deferred();
@@ -206,6 +210,11 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                                 apiName: apiName,
                             }));
+                            // Denied consent must not evaluate the flag or send data for this user.
+                            if ((0, ConsentUtil_1.shouldSkipUserApiDueToConsent)(context, apiName, this.serviceContainer)) {
+                                // Callers still receive a flag object, with the feature turned off.
+                                return [2 /*return*/, new GetFlag_1.Flag(false, (_a = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _a !== void 0 ? _a : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), null, new VariationModel_1.VariationModel())];
+                            }
                             // get uuid from context
                             uuid = this.getUUIDFromContext(context, apiName);
                         }
@@ -215,13 +224,13 @@ var WingifyClient = /** @class */ (function () {
                                 err: (0, FunctionUtil_1.getFormattedErrorMessage)(err),
                             }, { an: ApiEnum_1.ApiEnum.GET_FLAG });
                             // return error return schema with null uuid
-                            deferredObject.resolve(new GetFlag_1.Flag(false, (_a = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _a !== void 0 ? _a : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), null, new VariationModel_1.VariationModel()));
+                            deferredObject.resolve(new GetFlag_1.Flag(false, (_b = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _b !== void 0 ? _b : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), null, new VariationModel_1.VariationModel()));
                             return [2 /*return*/, deferredObject.promise];
                         }
-                        errorReturnSchema = new GetFlag_1.Flag(false, (_b = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _b !== void 0 ? _b : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), uuid, new VariationModel_1.VariationModel());
-                        _c.label = 1;
+                        errorReturnSchema = new GetFlag_1.Flag(false, (_c = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _c !== void 0 ? _c : (0, FunctionUtil_1.getCurrentUnixTimestamp)(), uuid, new VariationModel_1.VariationModel());
+                        _d.label = 1;
                     case 1:
-                        _c.trys.push([1, 7, , 8]);
+                        _d.trys.push([1, 7, , 8]);
                         // Validate featureKey is a string
                         if (!(0, DataTypeUtil_1.isString)(featureKey)) {
                             this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
@@ -254,17 +263,17 @@ var WingifyClient = /** @class */ (function () {
                         if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
-                        _c.sent();
+                        _d.sent();
                         return [3 /*break*/, 4];
                     case 3:
                         void heartbeat.catch(function () { return undefined; });
-                        _c.label = 4;
+                        _d.label = 4;
                     case 4:
                         deferredObject.resolve(errorReturnSchema);
                         return [2 /*return*/, deferredObject.promise];
                     case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 6:
-                        userId = _c.sent();
+                        userId = _d.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
                         // check if the userId changed after aliasing, by comparing the original userId with the new userId
@@ -302,7 +311,7 @@ var WingifyClient = /** @class */ (function () {
                         });
                         return [3 /*break*/, 8];
                     case 7:
-                        err_2 = _c.sent();
+                        err_2 = _d.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_2),
@@ -319,22 +328,61 @@ var WingifyClient = /** @class */ (function () {
      *
      * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
      * @param context - User context; must include a valid user id.
-     * @returns Evaluated flags keyed by feature key.
+     * @param shouldSendTrackingCalls - When false, drops impression and debugger calls instead of deferring them.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
      */
     WingifyClient.prototype.getFlags = function (flagNames_1, context_1) {
         return __awaiter(this, arguments, void 0, function (flagNames, context, shouldSendTrackingCalls) {
-            var apiName, uuid, heartbeat, userId, baseContextCopy, seed, err_3;
             if (shouldSendTrackingCalls === void 0) { shouldSendTrackingCalls = true; }
+            return __generator(this, function (_a) {
+                // Legacy third argument drops impressions. fetchFlags defers them instead.
+                return [2 /*return*/, this.evaluateFlags(flagNames, context, ApiEnum_1.ApiEnum.GET_FLAGS, shouldSendTrackingCalls, true, true)];
+            });
+        });
+    };
+    /**
+     * Evaluates multiple feature flags without sending impression or debugger calls.
+     * MAU usage tracking (`vwo_feTrackUsage`) is still sent when enabled for the account.
+     * Call `Flag.exposeResult()` later to send deferred `vwo_variationShown` impressions.
+     *
+     * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+     * @param context - User context; must include a valid user id.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
+     */
+    WingifyClient.prototype.fetchFlags = function (flagNames, context) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                // Block live impressions, keep MAU on, and defer variationShown for exposeResult.
+                return [2 /*return*/, this.evaluateFlags(flagNames, context, ApiEnum_1.ApiEnum.FETCH_FLAGS, false, true, false)];
+            });
+        });
+    };
+    /**
+     * Shared validation and evaluation path for getFlags and fetchFlags.
+     *
+     * @param flagNames - Feature keys to evaluate, or null/empty to evaluate all settings features.
+     * @param context - User context; must include a valid user id.
+     * @param apiName - API name used for logging and debug metadata.
+     * @param shouldSendTrackingCalls - When false, suppresses impression and debugger network calls.
+     * @param shouldSendMAU - When false, suppresses MAU usage tracking calls.
+     * @param shouldApplyLegacySuppression - When true, getFlags drops impressions. fetchFlags passes false so they are deferred.
+     * @returns {Promise<Record<string, Flag>>} Evaluated flags keyed by feature key.
+     */
+    WingifyClient.prototype.evaluateFlags = function (flagNames, context, apiName, shouldSendTrackingCalls, shouldSendMAU, shouldApplyLegacySuppression) {
+        return __awaiter(this, void 0, void 0, function () {
+            var featureKeys, uuid, heartbeat, userId, baseContextCopy, seed, err_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        apiName = ApiEnum_1.ApiEnum.GET_FLAGS;
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 8, , 9]);
+                        _a.trys.push([0, 7, , 8]);
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
+                        // Denied consent skips evaluation and returns the same disabled shape as a failed call.
+                        if ((0, ConsentUtil_1.shouldSkipUserApiDueToConsent)(context, apiName, this.serviceContainer)) {
+                            featureKeys = this.isSettingsValid ? (0, GetFlags_1.resolveFlagKeys)(flagNames, this.settings) : flagNames;
+                            return [2 /*return*/, this.buildDisabledFlags(featureKeys, context)];
+                        }
                         uuid = this.getUUIDFromContext(context, apiName);
                         if (!this.isSettingsValid) {
                             this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: apiName }, false);
@@ -344,8 +392,7 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: apiName }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
-                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 5];
-                        // if panic mode is activated log that the api is blocked by panic mode
+                        if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 4];
                         this.serviceContainer
                             .getLogManager()
                             .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
@@ -354,22 +401,23 @@ var WingifyClient = /** @class */ (function () {
                             uuid: uuid,
                             sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
                         });
-                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
+                        if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 2];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
-                    case 2:
+                    case 1:
                         _a.sent();
-                        return [3 /*break*/, 4];
-                    case 3:
+                        return [3 /*break*/, 3];
+                    case 2:
                         void heartbeat.catch(function () { return undefined; });
-                        _a.label = 4;
-                    case 4: 
-                    // return the disabled flags
+                        _a.label = 3;
+                    case 3: 
+                    // Callers still get one disabled flag per requested key.
                     return [2 /*return*/, this.buildDisabledFlags(flagNames, context)];
-                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
-                    case 6:
+                    case 4: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 5:
                         userId = _a.sent();
                         baseContextCopy = __assign({}, context);
                         baseContextCopy.id = userId;
+                        // A replaced id needs a new uuid. The original uuid stays when the id did not change.
                         if (baseContextCopy.id !== context.id) {
                             baseContextCopy.uuid = this.getUUIDFromContext(baseContextCopy, apiName);
                         }
@@ -391,16 +439,17 @@ var WingifyClient = /** @class */ (function () {
                                 delete baseContextCopy.bucketingSeed;
                             }
                         }
-                        return [4 /*yield*/, GetFlags_1.GetFlagsApi.get(flagNames, baseContextCopy, this.serviceContainer, this.options, shouldSendTrackingCalls)];
-                    case 7: return [2 /*return*/, _a.sent()];
-                    case 8:
+                        return [4 /*yield*/, GetFlags_1.GetFlagsApi.get(flagNames, baseContextCopy, this.serviceContainer, this.options, shouldSendTrackingCalls, shouldSendMAU, shouldApplyLegacySuppression)];
+                    case 6: return [2 /*return*/, _a.sent()];
+                    case 7:
                         err_3 = _a.sent();
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_3),
                         }, { an: apiName });
+                        // Callers always receive a map, even when validation or evaluation throws.
                         return [2 /*return*/, this.buildDisabledFlags(flagNames, context)];
-                    case 9: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });
@@ -410,18 +459,20 @@ var WingifyClient = /** @class */ (function () {
      *
      * @param flagNames - Requested feature keys from the caller.
      * @param context - Raw caller context used to populate flag metadata.
-     * @returns Disabled flags keyed by requested feature key.
+     * @returns {Record<string, Flag>} Disabled flags keyed by requested feature key.
      */
     WingifyClient.prototype.buildDisabledFlags = function (flagNames, context) {
         var _a, _b, _c;
-        var keys = (_a = flagNames === null || flagNames === void 0 ? void 0 : flagNames.filter(function (key) { return key === null || key === void 0 ? void 0 : key.trim(); })) !== null && _a !== void 0 ? _a : [];
-        if (!keys.length) {
+        // Drop blank keys so the map only contains flags the caller can look up.
+        var featureKeys = (_a = flagNames === null || flagNames === void 0 ? void 0 : flagNames.filter(function (featureKey) { return featureKey === null || featureKey === void 0 ? void 0 : featureKey.trim(); })) !== null && _a !== void 0 ? _a : [];
+        if (!featureKeys.length) {
             return {};
         }
+        // One shared disabled flag is enough because nothing here is mutated per key.
         var sessionId = (_b = context === null || context === void 0 ? void 0 : context.sessionId) !== null && _b !== void 0 ? _b : (0, FunctionUtil_1.getCurrentUnixTimestamp)();
         var uuid = (_c = context === null || context === void 0 ? void 0 : context.uuid) !== null && _c !== void 0 ? _c : '';
         var disabledFlag = new GetFlag_1.Flag(false, sessionId, uuid, new VariationModel_1.VariationModel());
-        return Object.fromEntries(keys.map(function (key) { return [key, disabledFlag]; }));
+        return Object.fromEntries(featureKeys.map(function (featureKey) { return [featureKey, disabledFlag]; }));
     };
     /**
      * Tracks an event with specified properties and context.
@@ -435,20 +486,24 @@ var WingifyClient = /** @class */ (function () {
     WingifyClient.prototype.trackEvent = function (eventName_1, context_1) {
         return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
             var apiName, deferredObject, heartbeat, userId, contextCopy, contextModel, err_4;
-            var _a, _b;
+            var _a, _b, _c;
             if (eventProperties === void 0) { eventProperties = {}; }
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         apiName = ApiEnum_1.ApiEnum.TRACK_EVENT;
                         deferredObject = new PromiseUtil_1.Deferred();
-                        _c.label = 1;
+                        _d.label = 1;
                     case 1:
-                        _c.trys.push([1, 7, , 8]);
+                        _d.trys.push([1, 7, , 8]);
                         // Log the API call
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
+                        // Denied consent skips the event and reports it as not tracked.
+                        if ((0, ConsentUtil_1.shouldSkipUserApiDueToConsent)(context, apiName, this.serviceContainer)) {
+                            return [2 /*return*/, (_a = {}, _a[eventName] = false, _a)];
+                        }
                         // Validate eventName is a string
                         if (!(0, DataTypeUtil_1.isString)(eventName)) {
                             this.serviceContainer.getLogManager().errorLog('INVALID_PARAM', {
@@ -493,17 +548,17 @@ var WingifyClient = /** @class */ (function () {
                         if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
                     case 2:
-                        _c.sent();
+                        _d.sent();
                         return [3 /*break*/, 4];
                     case 3:
                         void heartbeat.catch(function () { return undefined; });
-                        _c.label = 4;
+                        _d.label = 4;
                     case 4:
-                        deferredObject.resolve((_a = {}, _a[eventName] = false, _a));
+                        deferredObject.resolve((_b = {}, _b[eventName] = false, _b));
                         return [2 /*return*/, deferredObject.promise];
                     case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 6:
-                        userId = _c.sent();
+                        userId = _d.sent();
                         contextCopy = __assign({}, context);
                         contextCopy.id = userId;
                         // set uuid in the context copy
@@ -521,13 +576,13 @@ var WingifyClient = /** @class */ (function () {
                         });
                         return [3 /*break*/, 8];
                     case 7:
-                        err_4 = _c.sent();
+                        err_4 = _d.sent();
                         // Log any errors encountered during the operation
                         this.serviceContainer.getLogManager().errorLog('EXECUTION_FAILED', {
                             apiName: apiName,
                             err: (0, FunctionUtil_1.getFormattedErrorMessage)(err_4),
                         }, { an: ApiEnum_1.ApiEnum.TRACK_EVENT });
-                        deferredObject.resolve((_b = {}, _b[eventName] = false, _b));
+                        deferredObject.resolve((_c = {}, _c[eventName] = false, _c));
                         return [3 /*break*/, 8];
                     case 8: return [2 /*return*/, deferredObject.promise];
                 }
@@ -548,7 +603,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, attributes, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
+            var apiName, contextForConsentCheck, attributes, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -557,6 +612,13 @@ var WingifyClient = /** @class */ (function () {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 16, , 17]);
+                        contextForConsentCheck = (0, DataTypeUtil_1.isObject)(attributeOrAttributes)
+                            ? (context !== null && context !== void 0 ? context : attributeValueOrContext)
+                            : context;
+                        // Denied consent skips the attribute write and clears stored decisions for this user.
+                        if ((0, ConsentUtil_1.shouldSkipUserApiDueToConsent)(contextForConsentCheck, apiName, this.serviceContainer)) {
+                            return [2 /*return*/];
+                        }
                         if (!(0, DataTypeUtil_1.isObject)(attributeOrAttributes)) return [3 /*break*/, 8];
                         // Log the API call
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
@@ -829,6 +891,11 @@ var WingifyClient = /** @class */ (function () {
                         this.serviceContainer.getLogManager().debug((0, LogMessageUtil_1.buildMessage)(log_messages_1.DebugLogMessagesEnum.API_CALLED, {
                             apiName: apiName,
                         }));
+                        // A raw user id string has no consent field. Only a context object can deny consent.
+                        if (!(0, DataTypeUtil_1.isString)(contextOrUserId) &&
+                            (0, ConsentUtil_1.shouldSkipUserApiDueToConsent)(contextOrUserId, apiName, this.serviceContainer)) {
+                            return [2 /*return*/, false];
+                        }
                         if (!this.isAliasingEnabled) {
                             this.serviceContainer.getLogManager().errorLog('ALIAS_CALLED_BUT_NOT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ALIAS });
                             return [2 /*return*/, false];
@@ -964,6 +1031,7 @@ var WingifyClient = /** @class */ (function () {
                         }
                         // set the isShutdown flag to true to avoid multiple calls to shutdown
                         this.isShutdown = true;
+                        ServiceContainerRegistry_1.ServiceContainerRegistry.unregister(this.serviceContainer);
                         this.serviceContainer.stopPolling();
                         if (!this.serviceContainer.getBatchEventsQueue()) return [3 /*break*/, 2];
                         return [4 /*yield*/, this.flushEvents()];

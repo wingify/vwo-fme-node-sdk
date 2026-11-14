@@ -21,6 +21,7 @@ import { ServiceContainer } from '../../../lib/services/ServiceContainer';
 import * as GetFlagsBatchContext from '../../../lib/services/GetFlagsBatchContext';
 import * as NetworkUtil from '../../../lib/utils/NetworkUtil';
 import { setSettingsAndAddCampaignsToRules } from '../../../lib/utils/SettingsUtil';
+import { DEFAULT_EVENT_DISPATCH_POLICY } from '../../../lib/utils/EventDispatchPolicyUtil';
 import { SETTINGS_WITH_DIFFERENT_SALT } from '../../data/Settings';
 import { SettingsControlApplyMode } from '../../../lib/services/PanicModeForcedRefreshControlService';
 
@@ -66,8 +67,8 @@ describe('GetFlagsApi tracking suppression with browser queue', () => {
     // shouldSendTrackingCalls = false sets suppress=true during evaluation.
     await GetFlagsApi.get(['feature1'], { id: 'user-1', customVariables: {} }, serviceContainer, {} as any, false);
 
-    // After the call, shared container suppress flag must be back to false.
-    expect(serviceContainer.getSuppressTrackingCalls()).toBe(false);
+    // After the call, shared container event dispatch policy must be back to the default.
+    expect(serviceContainer.getEventDispatchPolicy()).toEqual(DEFAULT_EVENT_DISPATCH_POLICY);
   });
 
   // Per-flag failures become disabled Flags and still reset suppress flags.
@@ -86,7 +87,7 @@ describe('GetFlagsApi tracking suppression with browser queue', () => {
     // Requested key is still present, but disabled because FlagApi.get threw.
     expect(Object.keys(flags)).toEqual(['feature1']);
     expect(flags.feature1.isEnabled()).toBe(false);
-    expect(serviceContainer.getSuppressTrackingCalls()).toBe(false);
+    expect(serviceContainer.getEventDispatchPolicy()).toEqual(DEFAULT_EVENT_DISPATCH_POLICY);
   });
 
   // Concurrent browser getFlags must not interleave (shared suppress flags / manager).
@@ -237,8 +238,8 @@ describe('GetFlagsApi disabled Flag for unknown/failed keys', () => {
     const disabledCount = Object.values(flags).filter((flag) => !flag.isEnabled()).length;
     expect(enabledCount).toBe(1);
     expect(disabledCount).toBe(1);
-    // Browser finally block must clear shared suppress flags even when a batch failed.
-    expect(serviceContainer.getSuppressTrackingCalls()).toBe(false);
+    // Browser finally block must reset the shared event dispatch policy even when a batch failed.
+    expect(serviceContainer.getEventDispatchPolicy()).toEqual(DEFAULT_EVENT_DISPATCH_POLICY);
   });
 });
 

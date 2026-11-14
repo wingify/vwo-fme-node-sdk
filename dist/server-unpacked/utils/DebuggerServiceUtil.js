@@ -57,6 +57,7 @@ var NetworkUtil_1 = require("./NetworkUtil");
 var EventEnum_1 = require("../enums/EventEnum");
 var GetFlagsBatchContext_1 = require("../services/GetFlagsBatchContext");
 var InternalEventsRuntimeUtil_1 = require("./InternalEventsRuntimeUtil");
+var EventDispatchPolicyUtil_1 = require("./EventDispatchPolicyUtil");
 /**
  * Utility functions for handling debugger service operations including
  * filtering sensitive properties and extracting decision keys.
@@ -104,9 +105,14 @@ function sendDebugEventToWingify(serviceContainer_1) {
                     if (!((_a = serviceContainer.getSettingsService()) === null || _a === void 0 ? void 0 : _a.sdkKey)) {
                         return [2 /*return*/];
                     }
+                    // getFlags(shouldSendTrackingCalls: false) and panic mode drop debugger events.
                     if (serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated() ||
                         serviceContainer.getSuppressTrackingCalls() ||
                         ((_b = (0, GetFlagsBatchContext_1.getCurrentGetFlagsBatchContext)()) === null || _b === void 0 ? void 0 : _b.suppressTrackingCalls)) {
+                        return [2 /*return*/];
+                    }
+                    // fetchFlags / event dispatch policy can block debugger events without the legacy suppress flag.
+                    if (!(0, EventDispatchPolicyUtil_1.getActiveEventDispatchPolicy)(serviceContainer).shouldDispatchDebuggerEvents) {
                         return [2 /*return*/];
                     }
                     messageTemplateKey = eventProps.msg_t;

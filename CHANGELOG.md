@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.90.1] - 2026-11-25
+
+### Changed
+
+- Updated `wingify-fme-sdk-log-messages` to 2.5.0.
+
+## [1.90.0] - 2026-11-18
+
+### Added
+
+- Added support for **Pulse survey pre-segmentation** in the JavaScript SDK only. This does not apply to the Node SDK: it reads the SmartCode `_vwo_uuid` cookie and survey activity from `localStorage`. Enable with `isPulsePreSegmentEnabled: true` in `init`.
+
+  Example usage:
+
+  ```javascript
+  const wingifyClient = await init({
+    accountId: '123456',
+    sdkKey: '32-alpha-numeric-sdk-key',
+    isPulsePreSegmentEnabled: true,
+  });
+
+  // Omit id to use the _vwo_uuid cookie for features with Pulse conditions
+  const flag = await wingifyClient.getFlag('feature-key', {});
+  ```
+
+- When `isPulsePreSegmentEnabled` is `true`, `trackEvent` and `setAttribute` also read `_vwo_uuid` and may use it as `context.id` when `id` is omitted (JavaScript SDK only). `getFlag` is unchanged: cookie identity still applies only for features with Pulse survey pre-segmentation.
+
 ## [1.85.0] - 2026-11-13
 
 ### Added

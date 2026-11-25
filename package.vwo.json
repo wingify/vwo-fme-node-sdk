@@ -1,6 +1,6 @@
 {
   "name": "vwo-fme-node-sdk",
-  "version": "1.85.0",
+  "version": "1.90.1",
   "description": "VWO Node/JavaScript SDK for Feature Management and Experimentation",
   "main": "dist/server/vwo-fme-node-sdk.min.js",
   "browser": "dist/client/vwo-fme-javascript-sdk.min.js",
@@ -86,7 +86,7 @@
     "murmurhash": "^2.0.1",
     "superstruct": "^0.14.x",
     "uuid": "^9.0.1",
-    "wingify-fme-sdk-log-messages": "^2.0.0"
+    "wingify-fme-sdk-log-messages": "^2.5.0"
   },
   "optionalDependencies": {
     "node-fetch": "^3.3.2"

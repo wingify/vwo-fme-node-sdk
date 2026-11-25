@@ -80,7 +80,15 @@ export class WingifyOptionsModel {
         }
         // default to false if not provided
         this.isBatchingDisabled = options?.isBatchingDisabled ?? false;
+        this.isPulsePreSegmentEnabled = options?.isPulsePreSegmentEnabled ?? false;
         return this;
+    }
+    /**
+     * Whether Pulse survey pre-segmentation is enabled for this client.
+     * @returns {boolean} True when Pulse pre-seg should run on getFlag.
+     */
+    getIsPulsePreSegmentEnabled() {
+        return this.isPulsePreSegmentEnabled === true;
     }
     /**
      * Gets the flag indicating whether batching is disabled.

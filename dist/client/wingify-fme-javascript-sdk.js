@@ -1,5 +1,5 @@
 /*!
- * vwo-fme-javascript-sdk - v1.85.0
+ * vwo-fme-javascript-sdk - v1.90.1
  * URL - https://github.com/wingify/vwo-fme-javascript-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -20,7 +20,7 @@
  *  1. murmurhash - ^2.0.1
  *  2. superstruct - ^0.14.x
  *  3. uuid - ^9.0.1
- *  4. wingify-fme-sdk-log-messages - ^2.0.0
+ *  4. wingify-fme-sdk-log-messages - ^2.5.0
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	// CommonJS2
@@ -46,7 +46,7 @@ return /******/ (() => { // webpackBootstrap
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.85.0"
+  version: "1.90.1"
 };
 
 /***/ }),
@@ -845,6 +845,7 @@ var UsageStatsUtil_1 = __webpack_require__(/*! ./utils/UsageStatsUtil */ "./lib/
 var StorageService_1 = __webpack_require__(/*! ./services/StorageService */ "./lib/services/StorageService.ts");
 var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./lib/utils/UuidUtil.ts");
 var SDKMetaUtil_1 = __webpack_require__(/*! ./utils/SDKMetaUtil */ "./lib/utils/SDKMetaUtil.ts");
+var PulsePreSegmentationUtil_1 = __webpack_require__(/*! ./utils/PulsePreSegmentationUtil */ "./lib/utils/PulsePreSegmentationUtil.ts");
 var ConsentUtil_1 = __webpack_require__(/*! ./utils/ConsentUtil */ "./lib/utils/ConsentUtil.ts");
 var ServiceContainerRegistry_1 = __webpack_require__(/*! ./services/ServiceContainerRegistry */ "./lib/services/ServiceContainerRegistry.ts");
 var NetworkUtil_1 = __webpack_require__(/*! ./utils/NetworkUtil */ "./lib/utils/NetworkUtil.ts");
@@ -974,7 +975,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.getFlag = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, deferredObject, uuid, errorReturnSchema, heartbeat, userId, contextCopy, seed, contextModel, err_2;
+            var apiName, deferredObject, uuid, errorReturnSchema, contextForEvaluation, heartbeat, userId, contextCopy, seed, contextModel, err_2;
             var _a, _b, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
@@ -1021,8 +1022,11 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG });
                             throw new Error('TypeError: Invalid Settings');
                         }
+                        contextForEvaluation = this.applyPulsePreSegmentationIdentity(featureKey, context, apiName);
+                        // get the uuid from the context
+                        uuid = this.getUUIDFromContext(contextForEvaluation, apiName);
                         // Validate user ID is present in context
-                        if (!context || !context.id) {
+                        if (!contextForEvaluation || !contextForEvaluation.id) {
                             this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
@@ -1046,13 +1050,13 @@ var WingifyClient = /** @class */ (function () {
                     case 4:
                         deferredObject.resolve(errorReturnSchema);
                         return [2 /*return*/, deferredObject.promise];
-                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 6:
                         userId = _d.sent();
-                        contextCopy = __assign({}, context);
+                        contextCopy = __assign({}, contextForEvaluation);
                         contextCopy.id = userId;
                         // check if the userId changed after aliasing, by comparing the original userId with the new userId
-                        if (contextCopy.id !== context.id) {
+                        if (contextCopy.id !== contextForEvaluation.id) {
                             // if the userId changed, then we need to generate a new uuid
                             contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
                         }
@@ -1260,7 +1264,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.trackEvent = function (eventName_1, context_1) {
         return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
-            var apiName, deferredObject, heartbeat, userId, contextCopy, contextModel, err_4;
+            var apiName, deferredObject, contextForEvaluation, heartbeat, userId, contextCopy, contextModel, err_4;
             var _a, _b, _c;
             if (eventProperties === void 0) { eventProperties = {}; }
             return __generator(this, function (_d) {
@@ -1304,8 +1308,9 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT });
                             throw new Error('TypeError: Invalid Settings');
                         }
+                        contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
                         // Validate user ID is present in context
-                        if (!context || !context.id) {
+                        if (!contextForEvaluation || !contextForEvaluation.id) {
                             this.serviceContainer
                                 .getLogManager()
                                 .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
@@ -1316,9 +1321,9 @@ var WingifyClient = /** @class */ (function () {
                             .getLogManager()
                             .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
                         heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
-                            id: String(context.id),
-                            uuid: this.getUUIDFromContext(context, apiName),
-                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                            id: String(contextForEvaluation.id),
+                            uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined,
                         });
                         if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
@@ -1331,10 +1336,10 @@ var WingifyClient = /** @class */ (function () {
                     case 4:
                         deferredObject.resolve((_b = {}, _b[eventName] = false, _b));
                         return [2 /*return*/, deferredObject.promise];
-                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 6:
                         userId = _d.sent();
-                        contextCopy = __assign({}, context);
+                        contextCopy = __assign({}, contextForEvaluation);
                         contextCopy.id = userId;
                         // set uuid in the context copy
                         contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
@@ -1378,7 +1383,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, contextForConsentCheck, attributes, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
+            var apiName, contextForConsentCheck, attributes, contextForEvaluation, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, contextForEvaluation, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -1422,8 +1427,9 @@ var WingifyClient = /** @class */ (function () {
                         if (!context && attributeValueOrContext) {
                             context = attributeValueOrContext; // Assign context explicitly
                         }
+                        contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
                         // Validate user ID is present in context
-                        if (!context || !context.id) {
+                        if (!contextForEvaluation || !contextForEvaluation.id) {
                             this.serviceContainer
                                 .getLogManager()
                                 .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE }, false);
@@ -1434,9 +1440,9 @@ var WingifyClient = /** @class */ (function () {
                             .getLogManager()
                             .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
                         heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
-                            id: String(context.id),
-                            uuid: this.getUUIDFromContext(context, apiName),
-                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                            id: String(contextForEvaluation.id),
+                            uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined,
                         });
                         if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
@@ -1447,10 +1453,10 @@ var WingifyClient = /** @class */ (function () {
                         void heartbeat.catch(function () { return undefined; });
                         _b.label = 4;
                     case 4: return [2 /*return*/];
-                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 6:
                         userId = _b.sent();
-                        contextCopy = __assign({}, context);
+                        contextCopy = __assign({}, contextForEvaluation);
                         contextCopy.id = userId;
                         // set uuid in the context copy
                         contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
@@ -1472,8 +1478,9 @@ var WingifyClient = /** @class */ (function () {
                         if (!(0, DataTypeUtil_1.isBoolean)(attributeValue) && !(0, DataTypeUtil_1.isString)(attributeValue) && !(0, DataTypeUtil_1.isNumber)(attributeValue)) {
                             throw new TypeError('attributeValue should be a boolean, string, or number');
                         }
+                        contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
                         // Validate user ID is present in context
-                        if (!context || !context.id) {
+                        if (!contextForEvaluation || !contextForEvaluation.id) {
                             throw new TypeError('Invalid context');
                         }
                         if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 12];
@@ -1481,9 +1488,9 @@ var WingifyClient = /** @class */ (function () {
                             .getLogManager()
                             .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
                         heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
-                            id: String(context.id),
-                            uuid: this.getUUIDFromContext(context, apiName),
-                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                            id: String(contextForEvaluation.id),
+                            uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined,
                         });
                         if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 10];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
@@ -1494,11 +1501,13 @@ var WingifyClient = /** @class */ (function () {
                         void heartbeat.catch(function () { return undefined; });
                         _b.label = 11;
                     case 11: return [2 /*return*/];
-                    case 12: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 12: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 13:
                         userId = _b.sent();
-                        contextCopy = __assign({}, context);
+                        contextCopy = __assign({}, contextForEvaluation);
                         contextCopy.id = userId;
+                        // Keep web uuid aligned with trackEvent and bulk setAttribute when id is a SmartCode visitor
+                        contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         attributeMap = (_a = {}, _a[attributeKey] = attributeValue, _a);
                         // Proceed with setting the attribute map if validation is successful
@@ -1751,6 +1760,59 @@ var WingifyClient = /** @class */ (function () {
                     case 8: return [2 /*return*/];
                 }
             });
+        });
+    };
+    /**
+     * Applies the Pulse identity rules when Pulse pre-seg is enabled and the feature uses survey segments.
+     * @param featureKey - Feature being evaluated.
+     * @param context - Original getFlag context.
+     * @param apiName - Calling API name for UUID derivation logs.
+     * @returns {Record<string, any>} Context to continue evaluation with (may use `_vwo_uuid` as id).
+     */
+    WingifyClient.prototype.applyPulsePreSegmentationIdentity = function (featureKey, context, apiName) {
+        var _a;
+        // Pulse identity is inactive unless the init flag is on
+        var isPulsePreSegmentEnabled = ((_a = this.serviceContainer.getWingifyOptions()) === null || _a === void 0 ? void 0 : _a.isPulsePreSegmentEnabled) === true;
+        if (!isPulsePreSegmentEnabled) {
+            return (0, DataTypeUtil_1.isObject)(context) ? __assign({}, context) : {};
+        }
+        // getFlag only adopts the cookie when this feature's rules use Pulse survey segments
+        var feature = (0, FunctionUtil_1.getFeatureFromKey)(this.serviceContainer.getSettings(), featureKey);
+        var hasPulseSurveyPreSegmentation = (0, PulsePreSegmentationUtil_1.featureHasPulseSurveyPreSegmentation)(feature, this.serviceContainer.getSettings());
+        if (!hasPulseSurveyPreSegmentation) {
+            return (0, DataTypeUtil_1.isObject)(context) ? __assign({}, context) : {};
+        }
+        return this.applyPulseCookieIdentity(context, apiName);
+    };
+    /**
+     * Applies SmartCode `_vwo_uuid` cookie identity when Pulse pre-segmentation is enabled at init.
+     * Shared by getFlag (after feature gate), trackEvent, and setAttribute.
+     *
+     * @param context - Caller context; may omit `id` when the cookie should identify the visitor.
+     * @param apiName - Calling API name for UUID derivation when comparing ids.
+     * @returns {Record<string, any>} Context to evaluate with (may set `id` from the cookie).
+     */
+    WingifyClient.prototype.applyPulseCookieIdentity = function (context, apiName) {
+        var _this = this;
+        var _a;
+        var isPulsePreSegmentEnabled = ((_a = this.serviceContainer.getWingifyOptions()) === null || _a === void 0 ? void 0 : _a.isPulsePreSegmentEnabled) === true;
+        // Leave context unchanged when Pulse pre-seg is disabled at init
+        if (!isPulsePreSegmentEnabled) {
+            return (0, DataTypeUtil_1.isObject)(context) ? __assign({}, context) : {};
+        }
+        var pulseVisitorUuid = (0, PulsePreSegmentationUtil_1.getVwoUuidFromCookie)();
+        var convertedUserUuid = null;
+        if (context === null || context === void 0 ? void 0 : context.id) {
+            try {
+                // Compare the caller's id to the cookie using the same uuid rules as getFlag
+                convertedUserUuid = this.getUUIDFromContext(context, apiName);
+            }
+            catch (_b) {
+                convertedUserUuid = null;
+            }
+        }
+        return (0, PulsePreSegmentationUtil_1.resolvePulsePreSegmentationIdentity)(context, pulseVisitorUuid, convertedUserUuid, function (message) {
+            return _this.serviceContainer.getLogManager().error(message);
         });
     };
     /**
@@ -7495,6 +7557,44 @@ exports.ResponseModel = ResponseModel;
 
 /***/ }),
 
+/***/ "./lib/packages/segmentation-evaluator/constants/SurveyDslKeyPattern.ts":
+/*!******************************************************************************!*\
+  !*** ./lib/packages/segmentation-evaluator/constants/SurveyDslKeyPattern.ts ***!
+  \******************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SURVEY_DSL_KEY_PATTERN = exports.SURVEY_EVENT_PREFIX = void 0;
+var SurveyEventNameEnum_1 = __webpack_require__(/*! ../enums/SurveyEventNameEnum */ "./lib/packages/segmentation-evaluator/enums/SurveyEventNameEnum.ts");
+/** Prefix shared by Pulse survey DSL keys and `_vwo_eventHist` event types. */
+exports.SURVEY_EVENT_PREFIX = 'vwo_survey';
+var SURVEY_EVENT_NAME_ALTERNATION = Object.values(SurveyEventNameEnum_1.SurveyEventNameEnum).join('|');
+/**
+ * Pulse survey DSL leaf: `{surveyId}_vwo_survey{Event}_{questionId}`.
+ * Survey id and question id are optional.
+ */
+exports.SURVEY_DSL_KEY_PATTERN = new RegExp("^(?:(\\d+)_)?".concat(exports.SURVEY_EVENT_PREFIX, "(").concat(SURVEY_EVENT_NAME_ALTERNATION, ")(?:_(\\d+))?$"));
+
+
+/***/ }),
+
 /***/ "./lib/packages/segmentation-evaluator/core/SegmentationManger.ts":
 /*!************************************************************************!*\
   !*** ./lib/packages/segmentation-evaluator/core/SegmentationManger.ts ***!
@@ -7564,6 +7664,7 @@ var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./l
 var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./lib/utils/FunctionUtil.ts");
 var SegmentOperandEvaluator_1 = __webpack_require__(/*! ../evaluators/SegmentOperandEvaluator */ "./lib/packages/segmentation-evaluator/evaluators/SegmentOperandEvaluator.ts");
+var SurveyEventOperandEvaluator_1 = __webpack_require__(/*! ../evaluators/SurveyEventOperandEvaluator */ "./lib/packages/segmentation-evaluator/evaluators/SurveyEventOperandEvaluator.ts");
 var SegmentOperatorValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperatorValueEnum */ "./lib/packages/segmentation-evaluator/enums/SegmentOperatorValueEnum.ts");
 var SegmentationManager = /** @class */ (function () {
     /**
@@ -7588,6 +7689,9 @@ var SegmentationManager = /** @class */ (function () {
                         this.evaluator.context = context; // Set context in evaluator
                         this.evaluator.feature = feature; // Set feature in evaluator
                         this.evaluator.segmentOperandEvaluator = new SegmentOperandEvaluator_1.SegmentOperandEvaluator(serviceContainer);
+                        // A user can answer a survey between two getFlag calls, so drop the cached read and let this call re-read.
+                        this.evaluator.surveyEventStore.resetCache();
+                        this.evaluator.surveyEventOperandEvaluator = new SurveyEventOperandEvaluator_1.SurveyEventOperandEvaluator(serviceContainer, this.evaluator.surveyEventStore);
                         // if both user agent and ip is null then we should not get data from gateway service
                         if ((context === null || context === void 0 ? void 0 : context.getUserAgent()) === null && (context === null || context === void 0 ? void 0 : context.getIpAddress()) === null) {
                             return [2 /*return*/];
@@ -7822,6 +7926,47 @@ var SegmentOperatorValueEnum;
 
 /***/ }),
 
+/***/ "./lib/packages/segmentation-evaluator/enums/SurveyEventNameEnum.ts":
+/*!**************************************************************************!*\
+  !*** ./lib/packages/segmentation-evaluator/enums/SurveyEventNameEnum.ts ***!
+  \**************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SurveyEventNameEnum = void 0;
+/** Event names that appear in Pulse survey DSL keys, after `vwo_survey`. */
+var SurveyEventNameEnum;
+(function (SurveyEventNameEnum) {
+    SurveyEventNameEnum["DISPLAYED"] = "Displayed";
+    SurveyEventNameEnum["ATTEMPTED"] = "Attempted";
+    SurveyEventNameEnum["COMPLETED"] = "Completed";
+    SurveyEventNameEnum["CLOSED"] = "Closed";
+    SurveyEventNameEnum["REACHED_THANKYOU"] = "ReachedThankyou";
+    SurveyEventNameEnum["QUESTION_DISPLAYED"] = "QuestionDisplayed";
+    SurveyEventNameEnum["QUESTION_ATTEMPTED"] = "QuestionAttempted";
+    SurveyEventNameEnum["QUESTION_SUBMITTED"] = "QuestionSubmitted";
+})(SurveyEventNameEnum || (exports.SurveyEventNameEnum = SurveyEventNameEnum = {}));
+
+
+/***/ }),
+
 /***/ "./lib/packages/segmentation-evaluator/evaluators/SegmentEvaluator.ts":
 /*!****************************************************************************!*\
   !*** ./lib/packages/segmentation-evaluator/evaluators/SegmentEvaluator.ts ***!
@@ -7888,10 +8033,15 @@ var StorageService_1 = __webpack_require__(/*! ../../../services/StorageService 
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
 var SegmentOperatorValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperatorValueEnum */ "./lib/packages/segmentation-evaluator/enums/SegmentOperatorValueEnum.ts");
 var SegmentUtil_1 = __webpack_require__(/*! ../utils/SegmentUtil */ "./lib/packages/segmentation-evaluator/utils/SegmentUtil.ts");
+var SurveyEventOperandEvaluator_1 = __webpack_require__(/*! ./SurveyEventOperandEvaluator */ "./lib/packages/segmentation-evaluator/evaluators/SurveyEventOperandEvaluator.ts");
+var SurveySegmentDslAdapter_1 = __webpack_require__(/*! ./SurveySegmentDslAdapter */ "./lib/packages/segmentation-evaluator/evaluators/SurveySegmentDslAdapter.ts");
+var SurveyEventStoreUtil_1 = __webpack_require__(/*! ../utils/SurveyEventStoreUtil */ "./lib/packages/segmentation-evaluator/utils/SurveyEventStoreUtil.ts");
 var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./lib/enums/ApiEnum.ts");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./lib/utils/FunctionUtil.ts");
+var PulsePreSegmentationUtil_1 = __webpack_require__(/*! ../../../utils/PulsePreSegmentationUtil */ "./lib/utils/PulsePreSegmentationUtil.ts");
 var SegmentEvaluator = /** @class */ (function () {
     function SegmentEvaluator() {
+        this.surveyEventStore = new SurveyEventStoreUtil_1.SurveyEventStore();
     }
     /**
      * Validates if the segmentation defined in the DSL is applicable based on the provided properties.
@@ -7901,10 +8051,14 @@ var SegmentEvaluator = /** @class */ (function () {
      */
     SegmentEvaluator.prototype.isSegmentationValid = function (dsl, properties) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, key, value, operator, subDsl, _b;
+            var surveyOperand, _a, key, value, operator, subDsl, _b, customVariableSurveyResult;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
+                        surveyOperand = SurveySegmentDslAdapter_1.SurveySegmentDslAdapter.normalizeToSurveyOperand(dsl);
+                        if (surveyOperand) {
+                            return [2 /*return*/, this.evaluateSurveyOperand(surveyOperand) === true];
+                        }
                         _a = (0, SegmentUtil_1.getKeyValue)(dsl), key = _a.key, value = _a.value;
                         operator = key;
                         subDsl = value;
@@ -7928,7 +8082,12 @@ var SegmentEvaluator = /** @class */ (function () {
                     case 4: return [2 /*return*/, _c.sent()];
                     case 5: return [4 /*yield*/, this.some(subDsl, properties)];
                     case 6: return [2 /*return*/, _c.sent()];
-                    case 7: return [4 /*yield*/, this.segmentOperandEvaluator.evaluateCustomVariableDSL(subDsl, properties, this.context)];
+                    case 7:
+                        customVariableSurveyResult = this.evaluateSurveyOperand(subDsl);
+                        if (customVariableSurveyResult !== null) {
+                            return [2 /*return*/, customVariableSurveyResult];
+                        }
+                        return [4 /*yield*/, this.segmentOperandEvaluator.evaluateCustomVariableDSL(subDsl, properties, this.context)];
                     case 8: return [2 /*return*/, _c.sent()];
                     case 9: return [2 /*return*/, this.segmentOperandEvaluator.evaluateUserDSL(subDsl, properties)];
                     case 10: return [2 /*return*/, this.segmentOperandEvaluator.evaluateUserAgentDSL(subDsl, this.context)];
@@ -8281,6 +8440,32 @@ var SegmentEvaluator = /** @class */ (function () {
         }
         // Remove quotes and trim whitespace
         return value.toString().replace(/^"|"$/g, '').trim();
+    };
+    /**
+     * Evaluates a Pulse survey operand against SmartCode localStorage events.
+     * @param surveyOperand - Bare or custom_variable survey `{ key: value }` leaf.
+     * @returns {boolean | null} Match result, or null when the operand is not a survey key.
+     */
+    SegmentEvaluator.prototype.evaluateSurveyOperand = function (surveyOperand) {
+        var _a, _b, _c;
+        if (!SurveyEventOperandEvaluator_1.SurveyEventOperandEvaluator.isSurveyEventKey(Object.keys(surveyOperand || {})[0] || '')) {
+            return null;
+        }
+        // Checked per leaf against the evaluated user's uuid, not a flag set earlier in getFlag:
+        // parallel getFlag calls share this evaluator and would overwrite such a flag across awaits.
+        var isPulsePreSegmentEnabled = ((_b = (_a = this.serviceContainer) === null || _a === void 0 ? void 0 : _a.getWingifyOptions()) === null || _b === void 0 ? void 0 : _b.isPulsePreSegmentEnabled) === true;
+        if (!isPulsePreSegmentEnabled || !(0, PulsePreSegmentationUtil_1.isPulseVisitorVerified)((_c = this.context) === null || _c === void 0 ? void 0 : _c.getUuid())) {
+            return false;
+        }
+        // if the surveyEventOperandEvaluator is not set, then create a new instance
+        if (!this.surveyEventOperandEvaluator && this.serviceContainer) {
+            this.surveyEventOperandEvaluator = new SurveyEventOperandEvaluator_1.SurveyEventOperandEvaluator(this.serviceContainer, this.surveyEventStore);
+        }
+        if (!this.surveyEventOperandEvaluator) {
+            return false;
+        }
+        // evaluate the survey operand
+        return this.surveyEventOperandEvaluator.evaluate(surveyOperand);
     };
     return SegmentEvaluator;
 }());
@@ -8850,6 +9035,485 @@ exports.SegmentOperandEvaluator = SegmentOperandEvaluator;
 
 /***/ }),
 
+/***/ "./lib/packages/segmentation-evaluator/evaluators/SurveyDslKey.ts":
+/*!************************************************************************!*\
+  !*** ./lib/packages/segmentation-evaluator/evaluators/SurveyDslKey.ts ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SurveyDslKey = void 0;
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+var SurveyDslKeyPattern_1 = __webpack_require__(/*! ../constants/SurveyDslKeyPattern */ "./lib/packages/segmentation-evaluator/constants/SurveyDslKeyPattern.ts");
+var SurveyEventNameEnum_1 = __webpack_require__(/*! ../enums/SurveyEventNameEnum */ "./lib/packages/segmentation-evaluator/enums/SurveyEventNameEnum.ts");
+/**
+ * Parsed Pulse survey DSL leaf key.
+ *
+ * Dashboard "Any survey" / "Any question" omit the id. Stored web events always include ids.
+ * `covers` maps an omitted id onto those stored events.
+ *
+ * Shapes: `{surveyId}_vwo_survey{Event}_{questionId}` with optional surveyId and questionId.
+ */
+var SurveyDslKey = /** @class */ (function () {
+    /**
+     * Creates a parsed Pulse survey DSL leaf key.
+     * @param surveyId - Survey id (`sId`) or null for any survey.
+     * @param eventName - Pulse survey event name.
+     * @param questionId - Question id (`qId`) or null when not applicable / any question.
+     * @param raw - Original DSL key string.
+     */
+    function SurveyDslKey(surveyId, eventName, questionId, raw) {
+        this.surveyId = surveyId;
+        this.eventName = eventName;
+        this.questionId = questionId;
+        this.raw = raw;
+    }
+    Object.defineProperty(SurveyDslKey.prototype, "isAggregate", {
+        /**
+         * True when this DSL leaf must scan per-id stored events.
+         *
+         * `vwo_surveyDisplayed` (no survey id) = any survey.
+         * `255_vwo_surveyQuestionSubmitted` (Question* event, no question id) = any question.
+         * `255_vwo_surveyDisplayed` is a specific survey, not aggregate.
+         * @returns {boolean} True when the survey id is omitted, or a question event omits the question id.
+         */
+        get: function () {
+            return (0, DataTypeUtil_1.isNull)(this.surveyId) || (this.isQuestionEvent && (0, DataTypeUtil_1.isNull)(this.questionId));
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SurveyDslKey.prototype, "isQuestionEvent", {
+        /**
+         * Question-scoped events carry a `qId`; survey-level ones never do.
+         * @returns {boolean} True for question displayed, attempted, and submitted events.
+         */
+        get: function () {
+            return (this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_DISPLAYED ||
+                this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_ATTEMPTED ||
+                this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_SUBMITTED);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SurveyDslKey.prototype, "isDisplayedOrAttempted", {
+        /**
+         * True for events whose DSL value is a boolean presence check rather than an answer.
+         * SmartCode only records that they happened, so `true` matches presence and `false` absence.
+         * @returns {boolean} True for displayed and attempted events at survey or question level.
+         */
+        get: function () {
+            return (this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.DISPLAYED ||
+                this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.ATTEMPTED ||
+                this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_DISPLAYED ||
+                this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_ATTEMPTED);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SurveyDslKey.prototype, "storageEventType", {
+        /**
+         * Key this event is stored under inside `_vwo_eventHist`.
+         * @returns {string} The storage key, for example `vwo_surveyDisplayed`.
+         */
+        get: function () {
+            return "".concat(SurveyDslKeyPattern_1.SURVEY_EVENT_PREFIX).concat(this.eventName);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    /**
+     * Whether a stored event identity satisfies this DSL leaf.
+     *
+     * Omitted survey/question id is a wildcard. A present id must match exactly.
+     * @param stored - Parsed identity of a stored survey event.
+     * @returns {boolean} True when the stored event is in scope for this leaf.
+     */
+    SurveyDslKey.prototype.covers = function (stored) {
+        if (this.eventName !== stored.eventName) {
+            return false;
+        }
+        if (!(0, DataTypeUtil_1.isNull)(this.surveyId) && this.surveyId !== stored.surveyId) {
+            return false;
+        }
+        if (!(0, DataTypeUtil_1.isNull)(this.questionId) && this.questionId !== stored.questionId) {
+            return false;
+        }
+        return true;
+    };
+    /**
+     * Parses a DSL key. Returns null when the key is not a Pulse survey event.
+     * @param dslKey - Segment leaf key from settings.
+     * @returns {SurveyDslKey | null} Parsed key, or null when the key is not a Pulse survey event.
+     */
+    SurveyDslKey.parse = function (dslKey) {
+        if (!(0, DataTypeUtil_1.isString)(dslKey)) {
+            return null;
+        }
+        var match = SurveyDslKeyPattern_1.SURVEY_DSL_KEY_PATTERN.exec(dslKey);
+        if (!match) {
+            return null;
+        }
+        // Capture groups: 1 = optional survey id, 2 = event name, 3 = optional question id.
+        var surveyId = match[1] || null;
+        var eventName = Object.values(SurveyEventNameEnum_1.SurveyEventNameEnum).find(function (name) { return name === match[2]; });
+        if (!eventName) {
+            return null;
+        }
+        var questionId = match[3] || null;
+        return new SurveyDslKey(surveyId, eventName, questionId, dslKey);
+    };
+    return SurveyDslKey;
+}());
+exports.SurveyDslKey = SurveyDslKey;
+
+
+/***/ }),
+
+/***/ "./lib/packages/segmentation-evaluator/evaluators/SurveyEventOperandEvaluator.ts":
+/*!***************************************************************************************!*\
+  !*** ./lib/packages/segmentation-evaluator/evaluators/SurveyEventOperandEvaluator.ts ***!
+  \***************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SurveyEventOperandEvaluator = void 0;
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+var SurveyDslKeyPattern_1 = __webpack_require__(/*! ../constants/SurveyDslKeyPattern */ "./lib/packages/segmentation-evaluator/constants/SurveyDslKeyPattern.ts");
+var SurveyEventNameEnum_1 = __webpack_require__(/*! ../enums/SurveyEventNameEnum */ "./lib/packages/segmentation-evaluator/enums/SurveyEventNameEnum.ts");
+var SegmentUtil_1 = __webpack_require__(/*! ../utils/SegmentUtil */ "./lib/packages/segmentation-evaluator/utils/SegmentUtil.ts");
+var SegmentOperandEvaluator_1 = __webpack_require__(/*! ./SegmentOperandEvaluator */ "./lib/packages/segmentation-evaluator/evaluators/SegmentOperandEvaluator.ts");
+var SurveyDslKey_1 = __webpack_require__(/*! ./SurveyDslKey */ "./lib/packages/segmentation-evaluator/evaluators/SurveyDslKey.ts");
+/**
+ * Evaluates Pulse survey DSL operands against SmartCode localStorage events.
+ *
+ * Displayed/Attempted (survey and question level) are boolean presence checks.
+ * `QuestionSubmitted` matches the answer, taken from `responses[qId]` and unwrapping
+ * `{ id, value }` objects so multi-select "other" text can still match.
+ * `Completed`/`Closed`/`ReachedThankyou` fail closed — web does not drop them yet.
+ */
+var SurveyEventOperandEvaluator = /** @class */ (function () {
+    /**
+     * Creates an evaluator that matches Pulse survey DSL leaves against stored events.
+     * @param serviceContainer - SDK service container (operand matching).
+     * @param surveyEventStore - Store that lazily reads `_vwo_eventHist`.
+     */
+    function SurveyEventOperandEvaluator(serviceContainer, surveyEventStore) {
+        this.serviceContainer = serviceContainer;
+        this.surveyEventStore = surveyEventStore;
+    }
+    /**
+     * Returns true when `dslKey` is a Pulse survey event key.
+     * @param dslKey - Segment leaf key.
+     * @returns {boolean} True when the key parses as a Pulse survey event.
+     */
+    SurveyEventOperandEvaluator.isSurveyEventKey = function (dslKey) {
+        return SurveyDslKey_1.SurveyDslKey.parse(dslKey) !== null;
+    };
+    /**
+     * Evaluates a survey-event operand when applicable.
+     * @param subDsl - `{ dslKey: expectedValue }` operand.
+     * @returns {boolean | null} True or false for a survey key, or null when it should be handled as a custom variable.
+     */
+    SurveyEventOperandEvaluator.prototype.evaluate = function (subDsl) {
+        var _this = this;
+        var entry = (0, SegmentUtil_1.getKeyValue)(subDsl);
+        if (!entry) {
+            return null;
+        }
+        var parsedKey = SurveyDslKey_1.SurveyDslKey.parse(entry.key);
+        if (!parsedKey) {
+            return null;
+        }
+        // Presence events store no answer, so the operand is a boolean: true = happened, false = did not.
+        if (parsedKey.isDisplayedOrAttempted) {
+            var expectedPresence = this.booleanOrNull(entry.value);
+            if (expectedPresence === null) {
+                return false;
+            }
+            var eventHappened = this.findCoveredEvents(parsedKey).length > 0;
+            return expectedPresence === eventHappened;
+        }
+        // Web does not drop Completed/Closed/ReachedThankyou yet, so they fail closed.
+        if (parsedKey.eventName !== SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_SUBMITTED) {
+            return false;
+        }
+        var matchingAnswerValues = this.findMatchingAnswerValues(parsedKey);
+        if (matchingAnswerValues.length === 0) {
+            return false;
+        }
+        if (parsedKey.isAggregate && this.isBooleanTrue(entry.value)) {
+            return true;
+        }
+        var expectedValue = this.expectedValueAsString(entry.value);
+        return matchingAnswerValues.some(function (storedValue) { return _this.valuesMatch(expectedValue, storedValue); });
+    };
+    /**
+     * Collects answer candidate strings from stored events covered by this DSL leaf.
+     * @param dslKey - Parsed survey DSL key.
+     * @returns {string[]} Flattened answer candidates (ids and free-text values).
+     */
+    SurveyEventOperandEvaluator.prototype.findMatchingAnswerValues = function (dslKey) {
+        var _a;
+        var answerValues = [];
+        // find the covered events
+        for (var _i = 0, _b = this.findCoveredEvents(dslKey); _i < _b.length; _i++) {
+            var submittedEvent = _b[_i];
+            // get the question id
+            var questionId = (_a = dslKey.questionId) !== null && _a !== void 0 ? _a : (submittedEvent.qId != null ? String(submittedEvent.qId) : null);
+            // extract the answer candidates
+            answerValues.push.apply(answerValues, this.extractAnswerCandidates(submittedEvent, questionId));
+        }
+        return answerValues;
+    };
+    /**
+     * Stored events of this key's type whose survey/question ids the DSL leaf covers.
+     * @param dslKey - Parsed survey DSL key.
+     * @returns {SurveyEvent[]} Stored events in scope for this leaf.
+     */
+    SurveyEventOperandEvaluator.prototype.findCoveredEvents = function (dslKey) {
+        var _this = this;
+        // get the events by type
+        return this.surveyEventStore.getEventsByType(dslKey.storageEventType).filter(function (event) {
+            // build the stored key
+            var storedKey = _this.toStoredSurveyDslKey(event, dslKey);
+            // check if the stored key covers the dsl key
+            return storedKey !== null && dslKey.covers(storedKey);
+        });
+    };
+    /**
+     * Builds a SurveyDslKey from a stored event so `covers` can compare ids.
+     * @param event - One localStorage event.
+     * @param dslKey - Leaf being evaluated, which fixes the event name and whether a `qId` is required.
+     * @returns {SurveyDslKey | null} Parsed stored identity, or null when `sId` or a required `qId` is missing.
+     */
+    SurveyEventOperandEvaluator.prototype.toStoredSurveyDslKey = function (event, dslKey) {
+        if (event.sId == null) {
+            return null;
+        }
+        // get the survey id
+        var surveyId = String(event.sId);
+        // get the event name
+        var eventName = dslKey.eventName;
+        if (!dslKey.isQuestionEvent) {
+            return new SurveyDslKey_1.SurveyDslKey(surveyId, eventName, null, "".concat(surveyId, "_").concat(SurveyDslKeyPattern_1.SURVEY_EVENT_PREFIX).concat(eventName));
+        }
+        // get the question id
+        if (event.qId == null) {
+            return null;
+        }
+        var questionId = String(event.qId);
+        return new SurveyDslKey_1.SurveyDslKey(surveyId, eventName, questionId, "".concat(surveyId, "_").concat(SurveyDslKeyPattern_1.SURVEY_EVENT_PREFIX).concat(eventName, "_").concat(questionId));
+    };
+    /**
+     * Reads `responses[questionId]` and expands object entries into id + value strings.
+     * @param submittedEvent - Stored submission.
+     * @param questionId - Question id to read.
+     * @returns {string[]} Answer candidate strings, or an empty array when the question has no responses.
+     */
+    SurveyEventOperandEvaluator.prototype.extractAnswerCandidates = function (submittedEvent, questionId) {
+        var _a;
+        var responses = submittedEvent.responses;
+        // check if the responses are not null and the question id is not null
+        if (!responses || !questionId) {
+            // return an empty array
+            return [];
+        }
+        // get the raw answers
+        var rawAnswers = (_a = responses[questionId]) !== null && _a !== void 0 ? _a : responses[String(submittedEvent.qId)];
+        // check if the raw answers are not an array
+        if (!Array.isArray(rawAnswers)) {
+            return [];
+        }
+        var answerCandidates = [];
+        // iterate over the raw answers
+        for (var _i = 0, rawAnswers_1 = rawAnswers; _i < rawAnswers_1.length; _i++) {
+            var rawAnswer = rawAnswers_1[_i];
+            // check if the raw answer is not null and is an object and is not an array
+            if (rawAnswer !== null && typeof rawAnswer === 'object' && !Array.isArray(rawAnswer)) {
+                var otherOption = rawAnswer;
+                // check if the id is not null
+                if (otherOption.id != null) {
+                    // add the id to the answer candidates
+                    answerCandidates.push(String(otherOption.id));
+                }
+                if (otherOption.value != null) {
+                    answerCandidates.push(String(otherOption.value));
+                }
+                continue;
+            }
+            if (rawAnswer != null) {
+                answerCandidates.push(String(rawAnswer));
+            }
+        }
+        return answerCandidates;
+    };
+    /**
+     * Compares a DSL expected value to one stored answer using existing operand matching.
+     * @param expectedValue - Normalized DSL operand string.
+     * @param storedValue - One answer candidate.
+     * @returns {boolean} True when the stored answer matches the expected value.
+     */
+    SurveyEventOperandEvaluator.prototype.valuesMatch = function (expectedValue, storedValue) {
+        var operandEvaluator = new SegmentOperandEvaluator_1.SegmentOperandEvaluator(this.serviceContainer);
+        var _a = operandEvaluator.preProcessOperandValue(expectedValue), operandType = _a.operandType, operandValue = _a.operandValue;
+        // check if the operand type and value match the stored value
+        if (operandEvaluator.extractResult(operandType, operandValue, storedValue)) {
+            return true;
+        }
+        if (storedValue.toLowerCase() === expectedValue.toLowerCase()) {
+            return true;
+        }
+        return this.matchesJsonArrayString(expectedValue, storedValue);
+    };
+    /**
+     * Insights-style JSON array strings such as `["1"]` can still appear as stored values.
+     * @param expectedValue - DSL expected value.
+     * @param storedValue - Stored answer string.
+     * @returns {boolean} True when the expected value is one item in a JSON-array-shaped stored string.
+     */
+    SurveyEventOperandEvaluator.prototype.matchesJsonArrayString = function (expectedValue, storedValue) {
+        if (!storedValue.startsWith('[') || !storedValue.endsWith(']')) {
+            return false;
+        }
+        var normalizedExpected = expectedValue.trim().replace(/^"|"$/g, '');
+        return storedValue
+            .substring(1, storedValue.length - 1)
+            .split(',')
+            .some(function (item) { return item.trim().replace(/^"|"$/g, '').toLowerCase() === normalizedExpected.toLowerCase(); });
+    };
+    /**
+     * Checks whether a DSL leaf value is boolean true.
+     * @param value - DSL leaf value.
+     * @returns {boolean} True when the operand is boolean true.
+     */
+    SurveyEventOperandEvaluator.prototype.isBooleanTrue = function (value) {
+        return value === true;
+    };
+    /**
+     * Reads a DSL leaf value as a boolean presence operand.
+     * @param value - DSL leaf value.
+     * @returns {boolean | null} The boolean operand, or null when the DSL sent something else.
+     */
+    SurveyEventOperandEvaluator.prototype.booleanOrNull = function (value) {
+        return (0, DataTypeUtil_1.isBoolean)(value) ? value : null;
+    };
+    /**
+     * Normalizes booleans/numbers to strings for operand comparison.
+     * @param value - DSL leaf value.
+     * @returns {string} The string form of the value, or an empty string when it is null or undefined.
+     */
+    SurveyEventOperandEvaluator.prototype.expectedValueAsString = function (value) {
+        if ((0, DataTypeUtil_1.isNull)(value) || (0, DataTypeUtil_1.isUndefined)(value)) {
+            return '';
+        }
+        return String(value);
+    };
+    return SurveyEventOperandEvaluator;
+}());
+exports.SurveyEventOperandEvaluator = SurveyEventOperandEvaluator;
+
+
+/***/ }),
+
+/***/ "./lib/packages/segmentation-evaluator/evaluators/SurveySegmentDslAdapter.ts":
+/*!***********************************************************************************!*\
+  !*** ./lib/packages/segmentation-evaluator/evaluators/SurveySegmentDslAdapter.ts ***!
+  \***********************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SurveySegmentDslAdapter = void 0;
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+var SurveyDslKey_1 = __webpack_require__(/*! ./SurveyDslKey */ "./lib/packages/segmentation-evaluator/evaluators/SurveyDslKey.ts");
+/**
+ * Recognizes bare survey segment leaves and returns them for SurveyEventOperandEvaluator.
+ *
+ * Bare leaf examples (no `custom_variable` wrapper):
+ * - `{ "vwo_surveyQuestionSubmitted": true }` — any survey
+ * - `{ "252_vwo_surveyQuestionSubmitted": true }` — any question in a survey
+ * - `{ "252_vwo_surveyQuestionSubmitted_1783": "wildcard(*…*)" }` — specific answer
+ */
+var SurveySegmentDslAdapter = /** @class */ (function () {
+    function SurveySegmentDslAdapter() {
+    }
+    /**
+     * Recognizes a single-field bare survey leaf.
+     * @param dsl - A segmentation DSL node.
+     * @returns {Record<string, dynamic> | null} The same node when it is a bare survey leaf, otherwise null.
+     */
+    SurveySegmentDslAdapter.normalizeToSurveyOperand = function (dsl) {
+        if (!(0, DataTypeUtil_1.isObject)(dsl)) {
+            return null;
+        }
+        var keys = Object.keys(dsl);
+        // Bare survey leaves are always a single key/value pair.
+        if (keys.length !== 1) {
+            return null;
+        }
+        if (!SurveyDslKey_1.SurveyDslKey.parse(keys[0])) {
+            return null;
+        }
+        return dsl;
+    };
+    return SurveySegmentDslAdapter;
+}());
+exports.SurveySegmentDslAdapter = SurveySegmentDslAdapter;
+
+
+/***/ }),
+
 /***/ "./lib/packages/segmentation-evaluator/utils/SegmentUtil.ts":
 /*!******************************************************************!*\
   !*** ./lib/packages/segmentation-evaluator/utils/SegmentUtil.ts ***!
@@ -8913,6 +9577,158 @@ function matchWithRegex(string, regex) {
         return null;
     }
 }
+
+
+/***/ }),
+
+/***/ "./lib/packages/segmentation-evaluator/utils/SurveyEventStoreUtil.ts":
+/*!***************************************************************************!*\
+  !*** ./lib/packages/segmentation-evaluator/utils/SurveyEventStoreUtil.ts ***!
+  \***************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SurveyEventStore = exports.SURVEY_EVENT_HISTORY_LAST_SESSION_KEY = exports.SURVEY_EVENT_HISTORY_SESSION_KEY = exports.SURVEY_EVENT_HISTORY_PRIMARY_KEY = void 0;
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+/** Primary SmartCode event-history key. */
+exports.SURVEY_EVENT_HISTORY_PRIMARY_KEY = '_vwo_eventHist';
+/** Fallback when the primary key is missing. */
+exports.SURVEY_EVENT_HISTORY_SESSION_KEY = '_vwo_eventHistSession';
+/** Fallback when primary and session keys are missing. */
+exports.SURVEY_EVENT_HISTORY_LAST_SESSION_KEY = '_vwo_eventHistLastSession';
+/**
+ * Reads Pulse survey events from SmartCode localStorage.
+ *
+ * Fallback order (never merged): `_vwo_eventHist` → `_vwo_eventHistSession` → `_vwo_eventHistLastSession`.
+ * Results are memoized until {@link resetCache} so one `getFlag` parses history at most once,
+ * however many event types and leaves it evaluates.
+ */
+var SurveyEventStore = /** @class */ (function () {
+    /**
+     * Creates a store that reads Pulse survey events from SmartCode localStorage.
+     * @param storageProvider - Optional injectable storage (tests). Defaults to `window.localStorage`.
+     */
+    function SurveyEventStore(storageProvider) {
+        this.cachedHistory = null;
+        this.hasReadHistory = false;
+        this.cachedEventsByType = new Map();
+        this.storageProvider = storageProvider !== null && storageProvider !== void 0 ? storageProvider : null;
+    }
+    /**
+     * Clears the per-call memo so the next read hits storage again.
+     * @returns {void} Nothing. The next read loads history from storage again.
+     */
+    SurveyEventStore.prototype.resetCache = function () {
+        this.cachedHistory = null;
+        this.hasReadHistory = false;
+        this.cachedEventsByType.clear();
+    };
+    /**
+     * Returns stored events for one SmartCode event type, or an empty array when unavailable.
+     * @param eventType - Event-history key, e.g. `vwo_surveyDisplayed`.
+     * @returns {SurveyEvent[]} Events of that type, memoized until {@link resetCache}.
+     */
+    SurveyEventStore.prototype.getEventsByType = function (eventType) {
+        var cachedEvents = this.cachedEventsByType.get(eventType);
+        if (cachedEvents) {
+            return cachedEvents;
+        }
+        var events = this.readEventsByType(eventType);
+        this.cachedEventsByType.set(eventType, events);
+        return events;
+    };
+    /**
+     * Reads the first present history key. Does not merge fallbacks.
+     * @returns {string | null} Raw JSON string, or null when storage is missing or every history key is empty.
+     */
+    SurveyEventStore.prototype.readRawHistory = function () {
+        var storage = this.getStorage();
+        if (!storage) {
+            return null;
+        }
+        return (storage.getItem(exports.SURVEY_EVENT_HISTORY_PRIMARY_KEY) ||
+            storage.getItem(exports.SURVEY_EVENT_HISTORY_SESSION_KEY) ||
+            storage.getItem(exports.SURVEY_EVENT_HISTORY_LAST_SESSION_KEY) ||
+            null);
+    };
+    /**
+     * Resolves the storage used to read SmartCode event history.
+     * @returns {SurveyEventStorageProvider | null} Injected provider, or `window.localStorage` on the client, otherwise null.
+     */
+    SurveyEventStore.prototype.getStorage = function () {
+        if (this.storageProvider) {
+            return this.storageProvider;
+        }
+        if (typeof window !== 'undefined' && window.localStorage) {
+            return window.localStorage;
+        }
+        return null;
+    };
+    /**
+     * Pulls one event type out of the parsed history.
+     * @param eventType - Event-history key to pull out of the parsed history.
+     * @returns {SurveyEvent[]} Object entries of that type, or an empty array when the type is missing or not an array.
+     */
+    SurveyEventStore.prototype.readEventsByType = function (eventType) {
+        var _a;
+        var events = (_a = this.getHistory()) === null || _a === void 0 ? void 0 : _a[eventType];
+        if (!(0, DataTypeUtil_1.isArray)(events)) {
+            return [];
+        }
+        return events.filter(function (event) { return (0, DataTypeUtil_1.isObject)(event); });
+    };
+    /**
+     * Parses the event history once per {@link resetCache} cycle, however many types are read.
+     * @returns {Record<string, unknown> | null} Parsed history object, or null when absent or malformed.
+     */
+    SurveyEventStore.prototype.getHistory = function () {
+        if (this.hasReadHistory) {
+            return this.cachedHistory;
+        }
+        this.hasReadHistory = true;
+        this.cachedHistory = this.parseHistory(this.readRawHistory());
+        return this.cachedHistory;
+    };
+    /**
+     * Parses the SmartCode event-history JSON string.
+     * @param rawHistory - JSON string of the SmartCode event-history object.
+     * @returns {Record<string, unknown> | null} The parsed history object, or null when the string is empty, not an object, or invalid JSON.
+     */
+    SurveyEventStore.prototype.parseHistory = function (rawHistory) {
+        if (!rawHistory) {
+            return null;
+        }
+        try {
+            var parsedHistory = JSON.parse(rawHistory);
+            if (!(0, DataTypeUtil_1.isObject)(parsedHistory)) {
+                return null;
+            }
+            return parsedHistory;
+        }
+        catch (_a) {
+            return null;
+        }
+    };
+    return SurveyEventStore;
+}());
+exports.SurveyEventStore = SurveyEventStore;
 
 
 /***/ }),
@@ -17051,6 +17867,214 @@ function Deferred() {
 
 /***/ }),
 
+/***/ "./lib/utils/PulsePreSegmentationUtil.ts":
+/*!***********************************************!*\
+  !*** ./lib/utils/PulsePreSegmentationUtil.ts ***!
+  \***********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.VWO_UUID_COOKIE_NAME = void 0;
+exports.dslContainsPulseSurveyKey = dslContainsPulseSurveyKey;
+exports.getCampaignPreSegmentationDsl = getCampaignPreSegmentationDsl;
+exports.featureHasPulseSurveyPreSegmentation = featureHasPulseSurveyPreSegmentation;
+exports.getVwoUuidFromCookie = getVwoUuidFromCookie;
+exports.doesConvertedUuidMatchPulseVisitor = doesConvertedUuidMatchPulseVisitor;
+exports.isPulseVisitorVerified = isPulseVisitorVerified;
+exports.resolvePulsePreSegmentationIdentity = resolvePulsePreSegmentationIdentity;
+var CampaignTypeEnum_1 = __webpack_require__(/*! ../enums/CampaignTypeEnum */ "./lib/enums/CampaignTypeEnum.ts");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./lib/enums/log-messages/index.ts");
+var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./lib/utils/DataTypeUtil.ts");
+var HoldoutUtil_1 = __webpack_require__(/*! ./HoldoutUtil */ "./lib/utils/HoldoutUtil.ts");
+var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./lib/utils/LogMessageUtil.ts");
+var SurveyDslKey_1 = __webpack_require__(/*! ../packages/segmentation-evaluator/evaluators/SurveyDslKey */ "./lib/packages/segmentation-evaluator/evaluators/SurveyDslKey.ts");
+/** SmartCode visitor cookie written once per browser. */
+exports.VWO_UUID_COOKIE_NAME = '_vwo_uuid';
+/**
+ * Recursively returns true when any DSL node is a Pulse survey event key.
+ * @param dsl - Campaign/variation/holdout segments object.
+ * @returns {boolean} True when a Pulse survey event key is found, false otherwise.
+ */
+function dslContainsPulseSurveyKey(dsl) {
+    if (!(0, DataTypeUtil_1.isObject)(dsl)) {
+        return false;
+    }
+    for (var _i = 0, _a = Object.keys(dsl); _i < _a.length; _i++) {
+        var operator = _a[_i];
+        if (SurveyDslKey_1.SurveyDslKey.parse(operator)) {
+            return true;
+        }
+        var operand = dsl[operator];
+        if ((0, DataTypeUtil_1.isArray)(operand)) {
+            for (var _b = 0, operand_1 = operand; _b < operand_1.length; _b++) {
+                var subDsl = operand_1[_b];
+                if (dslContainsPulseSurveyKey(subDsl)) {
+                    return true;
+                }
+            }
+        }
+        else if ((0, DataTypeUtil_1.isObject)(operand) && dslContainsPulseSurveyKey(operand)) {
+            return true;
+        }
+    }
+    return false;
+}
+/**
+ * Segments live on the campaign for AB, and on variation[0] for rollout/personalize.
+ * @param campaign - Linked campaign or rule campaign.
+ * @returns {Record<string, dynamic>} Pre-segmentation DSL for the campaign, or an empty object when none is set.
+ */
+function getCampaignPreSegmentationDsl(campaign) {
+    var _a, _b;
+    var campaignType = campaign.getType();
+    if (campaignType === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaignType === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+        return ((_b = (_a = campaign.getVariations()) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.getSegments()) || {};
+    }
+    return campaign.getSegments() || {};
+}
+/**
+ * True when any linked campaign or applicable holdout uses Pulse survey pre-segmentation.
+ * @param feature - Feature being evaluated.
+ * @param settings - Full settings (needed for holdouts).
+ * @returns {boolean} True when a linked campaign or applicable holdout contains a Pulse survey key, false otherwise.
+ */
+function featureHasPulseSurveyPreSegmentation(feature, settings) {
+    if (!feature) {
+        return false;
+    }
+    // check if the feature has linked campaigns with pulse survey pre-segmentation
+    var linkedCampaigns = feature.getRulesLinkedCampaign() || [];
+    for (var _i = 0, linkedCampaigns_1 = linkedCampaigns; _i < linkedCampaigns_1.length; _i++) {
+        var campaign = linkedCampaigns_1[_i];
+        if (dslContainsPulseSurveyKey(getCampaignPreSegmentationDsl(campaign))) {
+            return true;
+        }
+    }
+    if (!settings) {
+        return false;
+    }
+    // check if the feature has applicable holdouts with pulse survey pre-segmentation
+    var applicableHoldouts = (0, HoldoutUtil_1.getApplicableHoldouts)(settings, feature.getId());
+    for (var _a = 0, applicableHoldouts_1 = applicableHoldouts; _a < applicableHoldouts_1.length; _a++) {
+        var holdout = applicableHoldouts_1[_a];
+        if (dslContainsPulseSurveyKey(holdout.getSegments())) {
+            return true;
+        }
+    }
+    return false;
+}
+/**
+ * Reads `_vwo_uuid` from `document.cookie`. Returns null on the server or when missing.
+ * @param cookieString - Optional cookie string for tests; defaults to `document.cookie`.
+ * @returns {string | null} The cookie value, or null when it is missing or this is not a browser.
+ */
+function getVwoUuidFromCookie(cookieString) {
+    var source = cookieString !== null && cookieString !== void 0 ? cookieString : (typeof document !== 'undefined' ? document.cookie : '');
+    if (!source) {
+        return null;
+    }
+    var cookies = source.split(';');
+    for (var _i = 0, cookies_1 = cookies; _i < cookies_1.length; _i++) {
+        var cookie = cookies_1[_i];
+        var separatorIndex = cookie.indexOf('=');
+        if (separatorIndex === -1) {
+            continue;
+        }
+        var cookieName = cookie.slice(0, separatorIndex).trim();
+        if (cookieName !== exports.VWO_UUID_COOKIE_NAME) {
+            continue;
+        }
+        var cookieValue = decodeURIComponent(cookie.slice(separatorIndex + 1).trim());
+        return cookieValue || null;
+    }
+    return null;
+}
+/**
+ * Case-insensitive equality for visitor ids (FME uuid is uppercase; cookie casing may differ).
+ * @param convertedUserUuid - UUID derived from context.id (web uuid as-is, or v5 hash).
+ * @param pulseVisitorUuid - Value of `_vwo_uuid`.
+ * @returns {boolean} True when both ids are present and equal ignoring case.
+ */
+function doesConvertedUuidMatchPulseVisitor(convertedUserUuid, pulseVisitorUuid) {
+    if (!convertedUserUuid || !pulseVisitorUuid) {
+        return false;
+    }
+    return convertedUserUuid.toLowerCase() === pulseVisitorUuid.toLowerCase();
+}
+/**
+ * True when the evaluated user is the SmartCode visitor, so survey leaves may read their events.
+ * @param contextUuid - UUID of the user being evaluated (`ContextModel.getUuid()`).
+ * @param cookieString - Optional cookie string for tests; defaults to `document.cookie`.
+ * @returns {boolean} True when the context UUID matches `_vwo_uuid`.
+ */
+function isPulseVisitorVerified(contextUuid, cookieString) {
+    return doesConvertedUuidMatchPulseVisitor(contextUuid !== null && contextUuid !== void 0 ? contextUuid : null, getVwoUuidFromCookie(cookieString));
+}
+/**
+ * Applies the Pulse identity rules for getFlag and logs why survey leaves will fail.
+ *
+ * 1. Cookie missing → log; survey leaves fail.
+ * 2. Cookie present, no context.id → use cookie as id.
+ * 3. Cookie + userId → compare converted uuid to cookie; mismatch logs and survey leaves fail.
+ * 4. Caller should not invoke this when the feature has no Pulse survey segments.
+ *
+ * Survey leaves enforce the result themselves via {@link isPulseVisitorVerified}.
+ * `trackEvent` and `setAttribute` call the same resolver when Pulse is enabled at init (no per-feature gate).
+ *
+ * @param context - Original getFlag context.
+ * @param pulseVisitorUuid - `_vwo_uuid` cookie value.
+ * @param convertedUserUuid - Result of getUUIDFromContext when context.id is present.
+ * @param logError - Logger for failure cases.
+ * @returns {Record<string, any>} Context to evaluate with (id filled from the cookie in case 2).
+ */
+function resolvePulsePreSegmentationIdentity(context, pulseVisitorUuid, convertedUserUuid, logError) {
+    var safeContext = (0, DataTypeUtil_1.isObject)(context) ? __assign({}, context) : {};
+    if (!pulseVisitorUuid) {
+        logError((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.PULSE_PRE_SEGMENTATION_UUID_COOKIE_MISSING));
+        return safeContext;
+    }
+    if (!safeContext.id) {
+        // Flow 2: treat the SmartCode visitor as the FME user for this evaluation.
+        safeContext.id = pulseVisitorUuid;
+        return safeContext;
+    }
+    if (!doesConvertedUuidMatchPulseVisitor(convertedUserUuid, pulseVisitorUuid)) {
+        logError((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.PULSE_PRE_SEGMENTATION_FE_USER_MISMATCH));
+    }
+    return safeContext;
+}
+
+
+/***/ }),
+
 /***/ "./lib/utils/RuleEvaluationUtil.ts":
 /*!*****************************************!*\
   !*** ./lib/utils/RuleEvaluationUtil.ts ***!
@@ -20219,7 +21243,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"{service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown({brand} standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}({brand} internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty, nothing to flush","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}","WEB_UUID_FOUND":"{brand} Web Testing UUID {uuid} identified as the Context ID for API {apiName}","HOLDOUT_SEGMENTATION_FAIL":"User ID: {userId} does not qualify segmentation for Holdout: {holdoutGroupName}","HOLDOUT_SHOULD_NOT_EXCLUDE_USER":"User ID: {userId} is not part of Holdout: {holdoutGroupName} for feature: {featureId}","PART_OF_HOLDOUT_IN_MEG":"MEG: User ID:{userId} is part of holdout: {holdoutId} for feature: {featureKey}","HOLDOUT_SKIP_EVALUATION":"Skip holdout reevaluation for holdout ID: {holdoutId} because {reason}","INVALID_TTL_USING_DEFAULT":"TTL is not passed or invalid (less than 1 minute), using default value of 2 hours","INVALID_ALWAYS_USE_CACHED_SETTINGS":"AlwaysUseCachedSettings is not passed or invalid, using default value of false"}');
+module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called","SERVICE_INITIALIZED":"{service} initialized while creating an instance of SDK","EXPERIMENTS_EVALUATION_WHEN_ROLLOUT_PASSED":"Rollout rule got passed for user {userId}. Hence, evaluating experiments","EXPERIMENTS_EVALUATION_WHEN_NO_ROLLOUT_PRESENT":"No Rollout rules present for the feature. Hence, checking experiment rules","USER_BUCKET_TO_VARIATION":"User ID:{userId} for experiment:{campaignKey} having percent traffic:{percentTraffic} got bucket-value:{bucketValue} and hash-value:{hashValue}","IMPRESSION_FOR_TRACK_USER":"Impression built for vwo_variationShown({brand} standard event for tracking user) event haivng Account ID:{accountId}, User ID:{userId}, and experiment ID:{campaignId}","IMPRESSION_FOR_TRACKING_USAGE":"Impression built for vwo_feTrackUsage({brand} standard event for usage tracking call) event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_TRACK_GOAL":"Impression built for event:{eventName} event having Account ID:{accountId}, and user ID:{userId}","IMPRESSION_FOR_SYNC_VISITOR_PROP":"Impression built for {eventName}({brand} internal event) event for Account ID:{accountId}, and user ID:{userId}","CONFIG_BATCH_EVENT_LIMIT_EXCEEDED":"Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits","EVENT_BATCH_BEFORE_FLUSHING":"Flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}","EVENT_BATCH_FLUSH":"Manually flushing batch events for Account ID:{accountId} having {queueLength} events","BATCH_QUEUE_EMPTY":"Batch queue is empty, nothing to flush","USING_POLL_INTERVAL_FROM_SETTINGS":"key: pollInterval not found or invalid. Using pollInterval from {source} {pollInterval}","USING_API_WITH_PROCESS":"API: {api} is being used with process: {process}","WEB_UUID_FOUND":"{brand} Web Testing UUID {uuid} identified as the Context ID for API {apiName}","HOLDOUT_SEGMENTATION_FAIL":"User ID: {userId} does not qualify segmentation for Holdout: {holdoutGroupName}","HOLDOUT_SHOULD_NOT_EXCLUDE_USER":"User ID: {userId} is not part of Holdout: {holdoutGroupName} for feature: {featureId}","PART_OF_HOLDOUT_IN_MEG":"MEG: User ID:{userId} is part of holdout: {holdoutId} for feature: {featureKey}","HOLDOUT_SKIP_EVALUATION":"Skip holdout reevaluation for holdout ID: {holdoutId} because {reason}","INVALID_TTL_USING_DEFAULT":"TTL is not passed or invalid (less than 1 minute), using default value of 2 hours","INVALID_ALWAYS_USE_CACHED_SETTINGS":"AlwaysUseCachedSettings is not passed or invalid, using default value of false"}');
 
 /***/ }),
 
@@ -20230,7 +21254,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"API_CALLED":"API - {apiName} called"
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. {brand} client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Failed to read data from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","ERROR_STORING_SETTINGS_IN_STORAGE":"Failed to store settings in storage. Error: {err}","ERROR_READING_SETTINGS_FROM_STORAGE":"Failed to read settings from storage. Error: {err}","ERROR_STORING_FRESH_SETTINGS_IN_STORAGE":"Failed to store latest settings in storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for {brand} Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY":"Web Testing pre-segmentation: campaignVariation must be a non-empty string after trimming whitespace. Expected: \\"C\\" (e.g. 122), \\"C_V\\" (122_2), \\"C_!V\\" (122_!1), or \\"!C\\" (!122).","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_FORMAT":"Web Testing pre-segmentation: unrecognized campaignVariation \\"{operand}\\". Expected: \\"C\\", \\"C_V\\", \\"C_!V\\", or \\"!C\\"; use an underscore before ! (e.g. 122_!1), not a colon.","INVALID_WEB_TESTING_CAMPAIGNS_JSON":"Web Testing pre-segmentation: platformVariables.webTestingCampaigns must be JSON that parses to a plain object (campaign id → variation id), not an array or primitive.","INVALID_WEB_TESTING_CAMPAIGNS_TYPE":"Web Testing pre-segmentation: platformVariables.webTestingCampaigns must be a plain object or a JSON string of an object (campaign id → variation id). Received type: {kind}.","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_TYPE":"Web Testing pre-segmentation: campaignVariation must be a string (e.g. \\"122\\", \\"122_2\\", \\"122_!1\\", \\"!122\\"). Received type: {type}.","ERROR_FETCHING_DATA_FROM_GATEWAY":"Failed to fetch data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API","ERROR_INITIALIZING_FETCH":"Failed to initialize the fetch API. Error: {error}","INVALID_NETWORK_TRANSPORT_MODE":"Invalid network transport mode. Expected one of: {validModes}. Received: {networkTransportMode}. Falling back to default mode: {defaultMode}","SEND_BEACON_ERROR":"Failed to send sendBeacon request to {brand}. Error: {err}","PULSE_PRE_SEGMENTATION_UUID_COOKIE_MISSING":"Pulse pre-segmentation skipped: _vwo_uuid cookie is not present, so the Pulse visitor cannot be identified","PULSE_PRE_SEGMENTATION_FE_USER_MISMATCH":"Pulse pre-segmentation skipped: FE user does not match Pulse user (_vwo_uuid), skipping user evaluation for Pulse segments"}');
+module.exports = /*#__PURE__*/JSON.parse('{"INVALID_OPTIONS":"Options should be of type:object","INVALID_SDK_KEY_IN_OPTIONS":"SDK Key is required in the options and should be of type:string","INVALID_ACCOUNT_ID_IN_OPTIONS":"Account ID is required in the options and should be of type:string|number","INVALID_POLLING_CONFIGURATION":"Invalid key:{key} passed in options. Should be of type:{correctType} and greater than equal to 1000","ERROR_FETCHING_SETTINGS":"Settings could not be fetched. Error:{err}","ERROR_FETCHING_SETTINGS_WITH_POLLING":"Settings could not be fetched with polling. Error:{err}","UPDATING_CLIENT_INSTANCE_FAILED_WHEN_WEBHOOK_TRIGGERED":"Failed to fetch settings. {brand} client instance couldn\'t be updated. API:{apiName} called having isViaWebhook:{isViaWebhook}. Error: {err}","INVALID_SETTINGS_SCHEMA":"Settings are not valid. Failed schema validation","EXECUTION_FAILED":"API - {apiName} failed to execute. Error:{err}","INVALID_PARAM":"Key:{key} passed to API:{apiName} is not of valid type. Got type:{type}, should be:{correctType}","INVALID_CONTEXT_PASSED":"Context should be of type:object and must contain a mandatory key: id, which is User ID","FEATURE_NOT_FOUND":"Feature not found for the key:{featureKey}","FEATURE_NOT_FOUND_WITH_ID":"Feature not found for the id:{featureId}","EVENT_NOT_FOUND":"Event:{eventName} not found in any of the features\' metrics","ERROR_READING_STORED_DATA_IN_STORAGE":"Error reading data from storage. Error:{err}","ERROR_STORING_DATA_IN_STORAGE":"Key:{featureKey} is not valid. Unable to store data into storage","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Failed to read data from browser storage. Error: {err}","ERROR_STORING_DATA_IN_BROWSER_STORAGE":"Error while writing to browserstorage. Error: {err}","ERROR_DECODING_SDK_KEY_FROM_STORAGE":"Failed to decode sdkKey from browser storage. Error: {err}","ERROR_STORING_SETTINGS_IN_STORAGE":"Failed to store settings in storage. Error: {err}","ERROR_READING_SETTINGS_FROM_STORAGE":"Failed to read settings from storage. Error: {err}","ERROR_STORING_FRESH_SETTINGS_IN_STORAGE":"Failed to store latest settings in storage. Error: {err}","INVALID_GATEWAY_URL":"Invalid URL for {brand} Gateway Service while initializing the SDK","NETWORK_CALL_FAILED":"Error occurred while sending {method} request. Error:{err}","ATTEMPTING_RETRY_FOR_FAILED_NETWORK_CALL":"Request failed for {endPoint}. Error: {err}. Retrying in {delay} seconds, attempt {attempt} of {maxRetries}","NETWORK_CALL_FAILURE_AFTER_MAX_RETRIES":"Network call for {extraData} failed after {attempts} retry attempt(s). Got Error: {err}","INVALID_RETRY_CONFIG":"Retry config is invalid. Should be of type:object","SDK_INIT_EVENT_FAILED":"Error occurred while sending SDK init event. Error:{err}","INVALID_NETWORK_RESPONSE_DATA":"Received invalid or empty response data from the network request","ALIAS_CALLED_BUT_NOT_PASSED":"Aliasing is not enabled. Set isAliasingEnabled:true in init to enable","ERROR_SETTING_SEGMENTATION_CONTEXT":"Error in setting contextual data for segmentation. Error: {err}","USER_AGENT_VALIDATION_ERROR":"Failed to validate user agent. Error: {err}","INVALID_IP_ADDRESS_IN_CONTEXT_FOR_PRE_SEGMENTATION":"ipAddress is required in context to evaluate location pre-segmentation","INVALID_USER_AGENT_IN_CONTEXT_FOR_PRE_SEGMENTATION":"userAgent is required in context to evaluate user-agent pre-segmentation","INVALID_ATTRIBUTE_LIST_FORMAT":"Invalid inList operand format","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_EMPTY":"Web Testing pre-segmentation: campaignVariation must be a non-empty string after trimming whitespace. Expected: \\"C\\" (e.g. 122), \\"C_V\\" (122_2), \\"C_!V\\" (122_!1), or \\"!C\\" (!122).","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_FORMAT":"Web Testing pre-segmentation: unrecognized campaignVariation \\"{operand}\\". Expected: \\"C\\", \\"C_V\\", \\"C_!V\\", or \\"!C\\"; use an underscore before ! (e.g. 122_!1), not a colon.","INVALID_WEB_TESTING_CAMPAIGNS_JSON":"Web Testing pre-segmentation: platformVariables.webTestingCampaigns must be JSON that parses to a plain object (campaign id → variation id), not an array or primitive.","INVALID_WEB_TESTING_CAMPAIGNS_TYPE":"Web Testing pre-segmentation: platformVariables.webTestingCampaigns must be a plain object or a JSON string of an object (campaign id → variation id). Received type: {kind}.","INVALID_WEB_TESTING_CAMPAIGN_VARIATION_OPERAND_TYPE":"Web Testing pre-segmentation: campaignVariation must be a string (e.g. \\"122\\", \\"122_2\\", \\"122_!1\\", \\"!122\\"). Received type: {type}.","ERROR_FETCHING_DATA_FROM_GATEWAY":"Failed to fetch data from gateway. Error: {err}","INVALID_BATCH_EVENTS_CONFIG":"Invalid batch events config. Should be an object - eventsPerRequest and requestTimeInterval should be of type:number and > 0","BATCHING_NOT_ENABLED":"Batching is not enabled. Pass batchEventData in the SDK configuration while invoking init API","ERROR_INITIALIZING_FETCH":"Failed to initialize the fetch API. Error: {error}","INVALID_NETWORK_TRANSPORT_MODE":"Invalid network transport mode. Expected one of: {validModes}. Received: {networkTransportMode}. Falling back to default mode: {defaultMode}","SEND_BEACON_ERROR":"Failed to send sendBeacon request to {brand}. Error: {err}","ERROR_REMOVING_STORED_DATA_IN_STORAGE":"Error removing stored data from storage. Error: {err}","PULSE_PRE_SEGMENTATION_UUID_COOKIE_MISSING":"Pulse pre-segmentation skipped: _vwo_uuid cookie is not present, so the Pulse visitor cannot be identified","PULSE_PRE_SEGMENTATION_FE_USER_MISMATCH":"Pulse pre-segmentation skipped: FE user does not match Pulse user (_vwo_uuid), skipping user evaluation for Pulse segments"}');
 
 /***/ }),
 
@@ -20252,7 +21276,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"INIT_OPTIONS_ERROR":"[ERROR]: {logPr
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: {logPrefix} {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: {logPrefix} {date} {brand} settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new {brand} client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new {brand} client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings not matches with the provided sdk-key/account-id. Fetching latest settings from the server","SETTINGS_EXPIRED":"Cached settings expired. Fetching latest settings from server","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings retrieved from storage","SETTINGS_SUCCESSFULLY_STORED":"Settings successfully stored in storage","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings updated with latest settings fetched from the server","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled in the init options","CLIENT_INITIALIZED":"{brand} Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments were missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for experiment:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for experiment:{campaignKey} {status} whitelisting {variationString}","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current {brand} client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by {brand} having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by {brand} having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events could not be received by {brand}. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","STORED_HOLDOUT_DECISION_FOUND":"User: {userId} already part of holdout with ID:{holdoutId} for feature: {featureKey}","HOLDOUT_SHOULD_EXCLUDE_USER":"User: {userId} ({bucketValue}%) is in holdout: {holdoutGroupName} with targeted traffic percent: {percentTraffic}% for feature ID: {featureId}","USER_IN_HOLDOUT_GROUP":"User: {userId} is in holdout group: {holdoutGroupName} for feature {featureKey}. Feature not evaluated","USER_NOT_EXCLUDED_DUE_TO_HOLDOUT":"User ID:{userId} is not excluded from feature:{featureKey} due to any holdout groups","HOLDOUT_SEGMENTATION_SKIP":"No segments found for holdout: {holdoutId} and user ID: {userId}. Hence skipping segmentation","MISSING_IP_ADDRESS_FOR_SEGMENTATION":"To evaluate IP segmentation, please provide ipAddress in context","MISSING_USER_AGENT_FOR_BROWSER_VERSION_SEGMENTATION":"To evaluate browser version segmentation, please provide userAgent in context","MISSING_USER_AGENT_FOR_OS_VERSION_SEGMENTATION":"To evaluate OS version segmentation, please provide userAgent in context","STORED_DATA_IN_STORAGE":"Stored data in storage for key: {key}","RETRIEVED_DATA_FROM_STORAGE":"Retrieved data from storage for key: {key}","MEG_NO_WINNER_CAMPAIGN":"No winner campaign found for MEG group: {groupId}","USING_ALREADY_FETCHED_SETTINGS":"Using already fetched and cached settings","SETTINGS_SNAPSHOT_STALE":"[SETTINGS_SNAPSHOT_STALE] Rejecting stale/duplicate settings snapshot. Incoming: {incomingTimestamp}, Last seen: {lastSeenTimestamp}"}');
+module.exports = /*#__PURE__*/JSON.parse('{"ON_INIT_ALREADY_RESOLVED":"[INFO]: {logPrefix} {date} {apiName} already resolved","ON_INIT_SETTINGS_FAILED":"[INFO]: {logPrefix} {date} {brand} settings could not be fetched","POLLING_SET_SETTINGS":"There\'s a change in settings from the last settings fetched. Hence, instantiating a new {brand} client internally","POLLING_NO_CHANGE_IN_SETTINGS":"No change in settings with the last settings fetched. Hence, not instantiating new {brand} client","SETTINGS_FETCH_SUCCESS":"Settings fetched successfully","SETTINGS_FETCH_FROM_CACHE":"Settings retrieved from cache","SETTINGS_BACKGROUND_UPDATE":"Settings asynchronously fetched and cache updated","SETTINGS_CACHE_MISS":"Settings not in cache; fetching from server","SETTINGS_PASSED_IN_INIT_VALID":"Settings passed in init are valid","SETTINGS_CACHE_MISS_KEY_ACCOUNT_ID_MISMATCH":"Cached settings not matches with the provided sdk-key/account-id. Fetching latest settings from the server","SETTINGS_EXPIRED":"Cached settings expired. Fetching latest settings from server","SETTINGS_RETRIEVED_FROM_STORAGE":"Valid settings retrieved from storage","SETTINGS_SUCCESSFULLY_STORED":"Settings successfully stored in storage","SETTINGS_UPDATED_WITH_FRESH_DATA":"Settings updated with latest settings fetched from the server","SETTINGS_USING_CACHED_SETTINGS":"Serving settings from cache because alwaysUseCachedSettings is enabled in the init options","CLIENT_INITIALIZED":"{brand} Client initialized","STORED_VARIATION_FOUND":"Variation {variationKey} found in storage for the user {userId} for the {experimentType} experiment:{experimentKey}","DECISION_EXPIRED":"Stored decision expired for feature: {featureKey} and user: {userId}, re-evaluating.","MEG_DECISION_EXPIRED":"Stored MEG decision expired for group: {groupId} and user: {userId}, re-evaluating.","MEG_FEATURE_DECISION_EXPIRED":"Stored MEG decision expired for feature: {featureKey} and user: {userId}, re-evaluating.","USER_PART_OF_CAMPAIGN":"User ID:{userId} is {notPart} part of experiment:{campaignKey}","SEGMENTATION_SKIP":"For userId:{userId} of experiment:{campaignKey}, segments were missing. Hence, skipping segmentation","SEGMENTATION_STATUS":"Segmentation {status} for userId:{userId} of experiment:{campaignKey}","USER_CAMPAIGN_BUCKET_INFO":"User ID:{userId} for experiment:{campaignKey} {status}","WHITELISTING_SKIP":"Whitelisting is not used for {ruleType}:{campaignKey}, hence skipping evaluating whitelisting {variation} for User ID:{userId}","WHITELISTING_STATUS":"User ID:{userId} for {ruleType}:{campaignKey} {status} whitelisting {variationString}","WHITELISTING_FORCED_OFF":"User ID:{userId} for {ruleType}:{campaignKey} is forced off and excluded from the rule","VARIATION_RANGE_ALLOCATION":"Variation:{variationKey} of experiment:{campaignKey} having weight:{variationWeight} got bucketing range: ({startRange} - {endRange})","IMPACT_ANALYSIS":"Tracking feature:{featureKey} being {status} for Impact Analysis Campaign for the user {userId}","MEG_SKIP_ROLLOUT_EVALUATE_EXPERIMENTS":"No rollout rule found for feature:{featureKey}. Hence, evaluating experiments","MEG_CAMPAIGN_FOUND_IN_STORAGE":"Campaign {campaignKey} found in storage for user ID:{userId}","MEG_CAMPAIGN_ELIGIBLE":"Campaign {campaignKey} is eligible for user ID:{userId}","MEG_WINNER_CAMPAIGN":"MEG: Campaign {campaignKey} is the winner for group {groupId} for user ID:{userId} {algo}","SETTINGS_UPDATED":"Settings fetched and updated successfully on the current {brand} client instance when API: {apiName} got called having isViaWebhook param as {isViaWebhook}","SETTINGS_UPDATE_SKIPPED_STALE":"Skipping stale settings update. Timestamp: {timestamp} (already seen newer).","POLLING_SETTINGS_STALE":"Polling skipped stale settings. Timestamp: {timestamp} (already seen newer).","NETWORK_CALL_SUCCESS":"Impression for {event} - {endPoint} was successfully received by {brand} having Account ID:{accountId}, User ID:{userId} and UUID: {uuid}","EVENT_BATCH_DEFAULTS":"{parameter} in SDK configuration is missing or invalid (should be greater than {minLimit}). Using default value: {defaultValue}","EVENT_QUEUE":"Event with payload:{event} pushed to the {queueType} queue","EVENT_BATCH_After_FLUSHING":"Event queue having {length} events has been flushed {manually}","IMPRESSION_BATCH_SUCCESS":"Impression event - {endPoint} was successfully received by {brand} having Account ID:{accountId}","IMPRESSION_BATCH_FAILED":"Batch events could not be received by {brand}. Calling Flush Callback with error and data","EVENT_BATCH_MAX_LIMIT":"{parameter} passed in SDK configuration is greater than the maximum limit of {maxLimit}. Setting it to the maximum limit","GATEWAY_AND_BATCH_EVENTS_CONFIG_MISMATCH":"Batch Events config passed in SDK configuration will not work as the gatewayService is already configured. Please check the documentation for more details","PROXY_URL_SET":"Proxy URL is set and will be used for all network requests","ALIAS_ENABLED":"Aliasing enabled, using {userId} as userId","NETWORK_CALL_SUCCESS_WITH_RETRIES":"Network call for {extraData} succeeded after {attempts} retry attempt(s). Previous attempts failed with error: {err}","ERROR_READING_DATA_FROM_BROWSER_STORAGE":"Error while reading from browser storage. Error: {err}","STORED_HOLDOUT_DECISION_FOUND":"User: {userId} already part of holdout with ID:{holdoutId} for feature: {featureKey}","HOLDOUT_SHOULD_EXCLUDE_USER":"User: {userId} ({bucketValue}%) is in holdout: {holdoutGroupName} with targeted traffic percent: {percentTraffic}% for feature ID: {featureId}","USER_IN_HOLDOUT_GROUP":"User: {userId} is in holdout group: {holdoutGroupName} for feature {featureKey}. Feature not evaluated","USER_NOT_EXCLUDED_DUE_TO_HOLDOUT":"User ID:{userId} is not excluded from feature:{featureKey} due to any holdout groups","HOLDOUT_SEGMENTATION_SKIP":"No segments found for holdout: {holdoutId} and user ID: {userId}. Hence skipping segmentation","API_BLOCKED_BY_PANIC_MODE":"API {apiName} is blocked because SDK is in disable mode.","EVENTS_DISCARDED_DUE_TO_PANIC_MODE":"Discarded {count} queued batch event(s) because SDK entered disable mode.","PANIC_MODE_ACTIVATED":"SDK is in disable mode (disable timestamp: {panicTs}). All client-facing API calls will not execute until the SDK is enabled again.","PANIC_MODE_CLEARED_VIA_SETTINGS":"SDK enabled again via settings update. Feature flag evaluations have resumed.","PANIC_MODE_CLEARED_VIA_RESPONSE":"SDK enabled again via network response. Feature flag evaluations have resumed.","PANIC_MODE_TIMESTAMP_UPDATED":"SDK disable mode control timestamp updated to {panicTs}.","SDK_REENABLED":"SDK is enabled again and updated settings fetched.","FORCE_REFRESH_TRIGGERED":"Force settings refresh triggered by {source} (refresh timestamp: {refreshTs}). Fetching latest settings.","FORCE_REFRESH_COMPLETED":"Force settings refresh completed. SDK is now running with updated settings.","USAGE_TRACKING_CALL_SENT":"FE track usage call dispatched for Account ID:{accountId}, User ID:{userId}, and feature key:{featureKey}","SHUTDOWN_ALREADY_COMPLETED":"Shutdown has already been completed.","SHUTDOWN_COMPLETED_WITH_FLUSH":"Shutdown completed. Pending batch events have been flushed.","SHUTDOWN_COMPLETED_WITHOUT_FLUSH":"Shutdown completed.","DEFERRED_EXPOSE_ENQUEUED":"Deferred exposeResult: enqueued {count} variationShown impression(s) for feature:{featureKey}","USER_CONSENT_DENIED":"User has not consented. Skipping {apiName} for this user.","MISSING_IP_ADDRESS_FOR_SEGMENTATION":"To evaluate IP segmentation, please provide ipAddress in context","MISSING_USER_AGENT_FOR_BROWSER_VERSION_SEGMENTATION":"To evaluate browser version segmentation, please provide userAgent in context","MISSING_USER_AGENT_FOR_OS_VERSION_SEGMENTATION":"To evaluate OS version segmentation, please provide userAgent in context","STORED_DATA_IN_STORAGE":"Stored data in storage for key: {key}","RETRIEVED_DATA_FROM_STORAGE":"Retrieved data from storage for key: {key}","MEG_NO_WINNER_CAMPAIGN":"No winner campaign found for MEG group: {groupId}","USING_ALREADY_FETCHED_SETTINGS":"Using already fetched and cached settings","SETTINGS_SNAPSHOT_STALE":"[SETTINGS_SNAPSHOT_STALE] Rejecting stale/duplicate settings snapshot. Incoming: {incomingTimestamp}, Last seen: {lastSeenTimestamp}"}');
 
 /***/ }),
 

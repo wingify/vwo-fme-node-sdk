@@ -60,6 +60,7 @@ var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var ApiEnum_1 = require("../../../enums/ApiEnum");
 var FunctionUtil_1 = require("../../../utils/FunctionUtil");
 var SegmentOperandEvaluator_1 = require("../evaluators/SegmentOperandEvaluator");
+var SurveyEventOperandEvaluator_1 = require("../evaluators/SurveyEventOperandEvaluator");
 var SegmentOperatorValueEnum_1 = require("../enums/SegmentOperatorValueEnum");
 var SegmentationManager = /** @class */ (function () {
     /**
@@ -84,6 +85,9 @@ var SegmentationManager = /** @class */ (function () {
                         this.evaluator.context = context; // Set context in evaluator
                         this.evaluator.feature = feature; // Set feature in evaluator
                         this.evaluator.segmentOperandEvaluator = new SegmentOperandEvaluator_1.SegmentOperandEvaluator(serviceContainer);
+                        // A user can answer a survey between two getFlag calls, so drop the cached read and let this call re-read.
+                        this.evaluator.surveyEventStore.resetCache();
+                        this.evaluator.surveyEventOperandEvaluator = new SurveyEventOperandEvaluator_1.SurveyEventOperandEvaluator(serviceContainer, this.evaluator.surveyEventStore);
                         // if both user agent and ip is null then we should not get data from gateway service
                         if ((context === null || context === void 0 ? void 0 : context.getUserAgent()) === null && (context === null || context === void 0 ? void 0 : context.getIpAddress()) === null) {
                             return [2 /*return*/];

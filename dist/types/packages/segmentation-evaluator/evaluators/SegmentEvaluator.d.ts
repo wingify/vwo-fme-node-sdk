@@ -2,6 +2,8 @@ import { SettingsModel } from '../../../models/settings/SettingsModel';
 import { dynamic } from '../../../types/Common';
 import { Segmentation } from '../Segmentation';
 import { SegmentOperandEvaluator } from './SegmentOperandEvaluator';
+import { SurveyEventOperandEvaluator } from './SurveyEventOperandEvaluator';
+import { SurveyEventStore } from '../utils/SurveyEventStoreUtil';
 import { ContextModel } from '../../../models/user/ContextModel';
 import { FeatureModel } from '../../../models/campaign/FeatureModel';
 import { ServiceContainer } from '../../../services/ServiceContainer';
@@ -10,6 +12,8 @@ export declare class SegmentEvaluator implements Segmentation {
   serviceContainer: ServiceContainer;
   feature: FeatureModel;
   segmentOperandEvaluator: SegmentOperandEvaluator;
+  surveyEventStore: SurveyEventStore;
+  surveyEventOperandEvaluator: SurveyEventOperandEvaluator;
   /**
    * Validates if the segmentation defined in the DSL is applicable based on the provided properties.
    * @param dsl The domain-specific language defining the segmentation rules.
@@ -77,4 +81,10 @@ export declare class SegmentEvaluator implements Segmentation {
    * @returns The normalized value.
    */
   normalizeValue(value: any): any;
+  /**
+   * Evaluates a Pulse survey operand against SmartCode localStorage events.
+   * @param surveyOperand - Bare or custom_variable survey `{ key: value }` leaf.
+   * @returns {boolean | null} Match result, or null when the operand is not a survey key.
+   */
+  private evaluateSurveyOperand;
 }

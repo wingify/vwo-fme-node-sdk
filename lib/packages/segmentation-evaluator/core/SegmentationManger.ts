@@ -25,6 +25,7 @@ import { ApiEnum } from '../../../enums/ApiEnum';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil';
 import { ServiceContainer } from '../../../services/ServiceContainer';
 import { SegmentOperandEvaluator } from '../evaluators/SegmentOperandEvaluator';
+import { SurveyEventOperandEvaluator } from '../evaluators/SurveyEventOperandEvaluator';
 import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum';
 
 export class SegmentationManager {
@@ -48,6 +49,12 @@ export class SegmentationManager {
     this.evaluator.context = context; // Set context in evaluator
     this.evaluator.feature = feature; // Set feature in evaluator
     this.evaluator.segmentOperandEvaluator = new SegmentOperandEvaluator(serviceContainer);
+    // A user can answer a survey between two getFlag calls, so drop the cached read and let this call re-read.
+    this.evaluator.surveyEventStore.resetCache();
+    this.evaluator.surveyEventOperandEvaluator = new SurveyEventOperandEvaluator(
+      serviceContainer,
+      this.evaluator.surveyEventStore,
+    );
 
     // if both user agent and ip is null then we should not get data from gateway service
     if (context?.getUserAgent() === null && context?.getIpAddress() === null) {

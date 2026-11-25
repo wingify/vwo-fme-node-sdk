@@ -69,6 +69,7 @@ export interface IWingifyOptions {
   browserConfig?: IBrowserConfig;
   sdkMeta?: ISdkMetaConfig;
   isBatchingDisabled?: boolean;
+  isPulsePreSegmentEnabled?: boolean;
 }
 
 export class WingifyOptionsModel implements IWingifyOptions {
@@ -98,6 +99,7 @@ export class WingifyOptionsModel implements IWingifyOptions {
   browserConfig?: IBrowserConfig;
   sdkMeta?: ISdkMetaConfig;
   isBatchingDisabled?: boolean;
+  isPulsePreSegmentEnabled?: boolean;
 
   modelFromDictionary(options: WingifyOptionsModel): this {
     this.accountId = options.accountId;
@@ -178,7 +180,16 @@ export class WingifyOptionsModel implements IWingifyOptions {
 
     // default to false if not provided
     this.isBatchingDisabled = options?.isBatchingDisabled ?? false;
+    this.isPulsePreSegmentEnabled = options?.isPulsePreSegmentEnabled ?? false;
     return this;
+  }
+
+  /**
+   * Whether Pulse survey pre-segmentation is enabled for this client.
+   * @returns {boolean} True when Pulse pre-seg should run on getFlag.
+   */
+  getIsPulsePreSegmentEnabled(): boolean {
+    return this.isPulsePreSegmentEnabled === true;
   }
 
   /**

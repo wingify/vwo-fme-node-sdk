@@ -57,10 +57,15 @@ var StorageService_1 = require("../../../services/StorageService");
 var DataTypeUtil_1 = require("../../../utils/DataTypeUtil");
 var SegmentOperatorValueEnum_1 = require("../enums/SegmentOperatorValueEnum");
 var SegmentUtil_1 = require("../utils/SegmentUtil");
+var SurveyEventOperandEvaluator_1 = require("./SurveyEventOperandEvaluator");
+var SurveySegmentDslAdapter_1 = require("./SurveySegmentDslAdapter");
+var SurveyEventStoreUtil_1 = require("../utils/SurveyEventStoreUtil");
 var ApiEnum_1 = require("../../../enums/ApiEnum");
 var FunctionUtil_1 = require("../../../utils/FunctionUtil");
+var PulsePreSegmentationUtil_1 = require("../../../utils/PulsePreSegmentationUtil");
 var SegmentEvaluator = /** @class */ (function () {
     function SegmentEvaluator() {
+        this.surveyEventStore = new SurveyEventStoreUtil_1.SurveyEventStore();
     }
     /**
      * Validates if the segmentation defined in the DSL is applicable based on the provided properties.
@@ -70,10 +75,14 @@ var SegmentEvaluator = /** @class */ (function () {
      */
     SegmentEvaluator.prototype.isSegmentationValid = function (dsl, properties) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, key, value, operator, subDsl, _b;
+            var surveyOperand, _a, key, value, operator, subDsl, _b, customVariableSurveyResult;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
+                        surveyOperand = SurveySegmentDslAdapter_1.SurveySegmentDslAdapter.normalizeToSurveyOperand(dsl);
+                        if (surveyOperand) {
+                            return [2 /*return*/, this.evaluateSurveyOperand(surveyOperand) === true];
+                        }
                         _a = (0, SegmentUtil_1.getKeyValue)(dsl), key = _a.key, value = _a.value;
                         operator = key;
                         subDsl = value;
@@ -97,7 +106,12 @@ var SegmentEvaluator = /** @class */ (function () {
                     case 4: return [2 /*return*/, _c.sent()];
                     case 5: return [4 /*yield*/, this.some(subDsl, properties)];
                     case 6: return [2 /*return*/, _c.sent()];
-                    case 7: return [4 /*yield*/, this.segmentOperandEvaluator.evaluateCustomVariableDSL(subDsl, properties, this.context)];
+                    case 7:
+                        customVariableSurveyResult = this.evaluateSurveyOperand(subDsl);
+                        if (customVariableSurveyResult !== null) {
+                            return [2 /*return*/, customVariableSurveyResult];
+                        }
+                        return [4 /*yield*/, this.segmentOperandEvaluator.evaluateCustomVariableDSL(subDsl, properties, this.context)];
                     case 8: return [2 /*return*/, _c.sent()];
                     case 9: return [2 /*return*/, this.segmentOperandEvaluator.evaluateUserDSL(subDsl, properties)];
                     case 10: return [2 /*return*/, this.segmentOperandEvaluator.evaluateUserAgentDSL(subDsl, this.context)];
@@ -455,6 +469,32 @@ var SegmentEvaluator = /** @class */ (function () {
         }
         // Remove quotes and trim whitespace
         return value.toString().replace(/^"|"$/g, '').trim();
+    };
+    /**
+     * Evaluates a Pulse survey operand against SmartCode localStorage events.
+     * @param surveyOperand - Bare or custom_variable survey `{ key: value }` leaf.
+     * @returns {boolean | null} Match result, or null when the operand is not a survey key.
+     */
+    SegmentEvaluator.prototype.evaluateSurveyOperand = function (surveyOperand) {
+        var _a, _b, _c;
+        if (!SurveyEventOperandEvaluator_1.SurveyEventOperandEvaluator.isSurveyEventKey(Object.keys(surveyOperand || {})[0] || '')) {
+            return null;
+        }
+        // Checked per leaf against the evaluated user's uuid, not a flag set earlier in getFlag:
+        // parallel getFlag calls share this evaluator and would overwrite such a flag across awaits.
+        var isPulsePreSegmentEnabled = ((_b = (_a = this.serviceContainer) === null || _a === void 0 ? void 0 : _a.getWingifyOptions()) === null || _b === void 0 ? void 0 : _b.isPulsePreSegmentEnabled) === true;
+        if (!isPulsePreSegmentEnabled || !(0, PulsePreSegmentationUtil_1.isPulseVisitorVerified)((_c = this.context) === null || _c === void 0 ? void 0 : _c.getUuid())) {
+            return false;
+        }
+        // if the surveyEventOperandEvaluator is not set, then create a new instance
+        if (!this.surveyEventOperandEvaluator && this.serviceContainer) {
+            this.surveyEventOperandEvaluator = new SurveyEventOperandEvaluator_1.SurveyEventOperandEvaluator(this.serviceContainer, this.surveyEventStore);
+        }
+        if (!this.surveyEventOperandEvaluator) {
+            return false;
+        }
+        // evaluate the survey operand
+        return this.surveyEventOperandEvaluator.evaluate(surveyOperand);
     };
     return SegmentEvaluator;
 }());

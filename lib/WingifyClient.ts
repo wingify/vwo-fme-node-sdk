@@ -39,13 +39,18 @@ import { ApiEnum } from './enums/ApiEnum';
 import { AliasingUtil } from './utils/AliasingUtil';
 import { getUserId } from './utils/UserIdUtil';
 import { isArray } from './utils/DataTypeUtil';
-import { getCurrentUnixTimestamp, getFormattedErrorMessage } from './utils/FunctionUtil';
+import { getCurrentUnixTimestamp, getFormattedErrorMessage, getFeatureFromKey } from './utils/FunctionUtil';
 import { ServiceContainer } from './services/ServiceContainer';
 import { sendSdkInitEvent, sendSDKUsageStatsEvent } from './utils/SdkInitAndUsageStatsUtil';
 import { UsageStatsUtil } from './utils/UsageStatsUtil';
 import { StorageService } from './services/StorageService';
 import { getUUID, isWebUuid } from './utils/UuidUtil';
 import { SDKMetaUtil } from './utils/SDKMetaUtil';
+import {
+  featureHasPulseSurveyPreSegmentation,
+  getVwoUuidFromCookie,
+  resolvePulsePreSegmentationIdentity,
+} from './utils/PulsePreSegmentationUtil';
 import { shouldSkipUserApiDueToConsent } from './utils/ConsentUtil';
 import { ServiceContainerRegistry } from './services/ServiceContainerRegistry';
 import { sendPanicCollectHeartbeatRequest } from './utils/NetworkUtil';
@@ -287,9 +292,13 @@ export class WingifyClient implements IWingifyClient {
         this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum.GET_FLAG });
         throw new Error('TypeError: Invalid Settings');
       }
+      // check if the feature has pulse survey pre-segmentation and apply it to the context
+      const contextForEvaluation = this.applyPulsePreSegmentationIdentity(featureKey, context, apiName);
+      // get the uuid from the context
+      uuid = this.getUUIDFromContext(contextForEvaluation, apiName);
 
       // Validate user ID is present in context
-      if (!context || !context.id) {
+      if (!contextForEvaluation || !contextForEvaluation.id) {
         this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.GET_FLAG }, false);
         throw new TypeError('TypeError: Invalid context');
       }
@@ -313,13 +322,13 @@ export class WingifyClient implements IWingifyClient {
       }
 
       //getUserId from gateway service
-      const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
+      const userId = await getUserId(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer);
       // Create a copy of context to avoid modifying the original
-      const contextCopy = { ...context };
+      const contextCopy = { ...contextForEvaluation };
       contextCopy.id = userId;
 
       // check if the userId changed after aliasing, by comparing the original userId with the new userId
-      if (contextCopy.id !== context.id) {
+      if (contextCopy.id !== contextForEvaluation.id) {
         // if the userId changed, then we need to generate a new uuid
         contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
       } else {
@@ -628,8 +637,11 @@ export class WingifyClient implements IWingifyClient {
         throw new Error('TypeError: Invalid Settings');
       }
 
+      // When Pulse pre-seg is on, adopt `_vwo_uuid` as context.id when the caller omitted id
+      const contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
+
       // Validate user ID is present in context
-      if (!context || !context.id) {
+      if (!contextForEvaluation || !contextForEvaluation.id) {
         this.serviceContainer
           .getLogManager()
           .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.TRACK_EVENT }, false);
@@ -642,9 +654,9 @@ export class WingifyClient implements IWingifyClient {
           .getLogManager()
           .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName }));
         const heartbeat = sendPanicCollectHeartbeatRequest(this.serviceContainer, {
-          id: String(context.id),
-          uuid: this.getUUIDFromContext(context, apiName),
-          sessionId: isNumber(context.sessionId) ? context.sessionId : undefined,
+          id: String(contextForEvaluation.id),
+          uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+          sessionId: isNumber(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined,
         });
         if (this.serviceContainer.getShouldWaitForTrackingCalls()) {
           await heartbeat.catch(() => undefined);
@@ -656,9 +668,9 @@ export class WingifyClient implements IWingifyClient {
       }
 
       //getUserId from gateway service
-      const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
+      const userId = await getUserId(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer);
       // Create a copy of context to avoid modifying the original
-      const contextCopy = { ...context };
+      const contextCopy = { ...contextForEvaluation };
       contextCopy.id = userId;
       // set uuid in the context copy
       contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
@@ -759,8 +771,11 @@ export class WingifyClient implements IWingifyClient {
           context = attributeValueOrContext as Record<string, any>; // Assign context explicitly
         }
 
+        // When Pulse pre-seg is on, adopt `_vwo_uuid` as context.id when the caller omitted id
+        const contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
+
         // Validate user ID is present in context
-        if (!context || !context.id) {
+        if (!contextForEvaluation || !contextForEvaluation.id) {
           this.serviceContainer
             .getLogManager()
             .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum.SET_ATTRIBUTE }, false);
@@ -772,9 +787,9 @@ export class WingifyClient implements IWingifyClient {
             .getLogManager()
             .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName }));
           const heartbeat = sendPanicCollectHeartbeatRequest(this.serviceContainer, {
-            id: String(context.id),
-            uuid: this.getUUIDFromContext(context, apiName),
-            sessionId: isNumber(context.sessionId) ? context.sessionId : undefined,
+            id: String(contextForEvaluation.id),
+            uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+            sessionId: isNumber(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined,
           });
           if (this.serviceContainer.getShouldWaitForTrackingCalls()) {
             await heartbeat.catch(() => undefined);
@@ -785,9 +800,9 @@ export class WingifyClient implements IWingifyClient {
         }
 
         //getUserId from gateway service
-        const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
+        const userId = await getUserId(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer);
         // Create a copy of context to avoid modifying the original
-        const contextCopy = { ...context };
+        const contextCopy = { ...contextForEvaluation };
         contextCopy.id = userId;
         // set uuid in the context copy
         contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
@@ -810,8 +825,11 @@ export class WingifyClient implements IWingifyClient {
           throw new TypeError('attributeValue should be a boolean, string, or number');
         }
 
+        // When Pulse pre-seg is on, adopt `_vwo_uuid` as context.id when the caller omitted id
+        const contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
+
         // Validate user ID is present in context
-        if (!context || !context.id) {
+        if (!contextForEvaluation || !contextForEvaluation.id) {
           throw new TypeError('Invalid context');
         }
 
@@ -821,9 +839,9 @@ export class WingifyClient implements IWingifyClient {
             .getLogManager()
             .info(buildMessage(InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName }));
           const heartbeat = sendPanicCollectHeartbeatRequest(this.serviceContainer, {
-            id: String(context.id),
-            uuid: this.getUUIDFromContext(context, apiName),
-            sessionId: isNumber(context.sessionId) ? context.sessionId : undefined,
+            id: String(contextForEvaluation.id),
+            uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+            sessionId: isNumber(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined,
           });
           if (this.serviceContainer.getShouldWaitForTrackingCalls()) {
             await heartbeat.catch(() => undefined);
@@ -834,10 +852,12 @@ export class WingifyClient implements IWingifyClient {
         }
 
         //getUserId from gateway service
-        const userId = await getUserId(context.id, this.isAliasingEnabled, this.serviceContainer);
+        const userId = await getUserId(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer);
         // Create a copy of context to avoid modifying the original
-        const contextCopy = { ...context };
+        const contextCopy = { ...contextForEvaluation };
         contextCopy.id = userId;
+        // Keep web uuid aligned with trackEvent and bulk setAttribute when id is a SmartCode visitor
+        contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
 
         const contextModel = new ContextModel().modelFromDictionary(contextCopy, this.options);
 
@@ -1099,6 +1119,64 @@ export class WingifyClient implements IWingifyClient {
         .errorLog('EXECUTION_FAILED', { apiName, err: getFormattedErrorMessage(error) }, { an: ApiEnum.SET_ALIAS });
       return false;
     }
+  }
+
+  /**
+   * Applies the Pulse identity rules when Pulse pre-seg is enabled and the feature uses survey segments.
+   * @param featureKey - Feature being evaluated.
+   * @param context - Original getFlag context.
+   * @param apiName - Calling API name for UUID derivation logs.
+   * @returns {Record<string, any>} Context to continue evaluation with (may use `_vwo_uuid` as id).
+   */
+  private applyPulsePreSegmentationIdentity(
+    featureKey: string,
+    context: Record<string, any>,
+    apiName: string,
+  ): Record<string, any> {
+    // Pulse identity is inactive unless the init flag is on
+    const isPulsePreSegmentEnabled = this.serviceContainer.getWingifyOptions()?.isPulsePreSegmentEnabled === true;
+    if (!isPulsePreSegmentEnabled) {
+      return isObject(context) ? { ...context } : {};
+    }
+    // getFlag only adopts the cookie when this feature's rules use Pulse survey segments
+    const feature = getFeatureFromKey(this.serviceContainer.getSettings(), featureKey);
+    const hasPulseSurveyPreSegmentation = featureHasPulseSurveyPreSegmentation(
+      feature,
+      this.serviceContainer.getSettings(),
+    );
+    if (!hasPulseSurveyPreSegmentation) {
+      return isObject(context) ? { ...context } : {};
+    }
+    return this.applyPulseCookieIdentity(context, apiName);
+  }
+
+  /**
+   * Applies SmartCode `_vwo_uuid` cookie identity when Pulse pre-segmentation is enabled at init.
+   * Shared by getFlag (after feature gate), trackEvent, and setAttribute.
+   *
+   * @param context - Caller context; may omit `id` when the cookie should identify the visitor.
+   * @param apiName - Calling API name for UUID derivation when comparing ids.
+   * @returns {Record<string, any>} Context to evaluate with (may set `id` from the cookie).
+   */
+  private applyPulseCookieIdentity(context: Record<string, any> | undefined, apiName: string): Record<string, any> {
+    const isPulsePreSegmentEnabled = this.serviceContainer.getWingifyOptions()?.isPulsePreSegmentEnabled === true;
+    // Leave context unchanged when Pulse pre-seg is disabled at init
+    if (!isPulsePreSegmentEnabled) {
+      return isObject(context) ? { ...context } : {};
+    }
+    const pulseVisitorUuid = getVwoUuidFromCookie();
+    let convertedUserUuid: string | null = null;
+    if (context?.id) {
+      try {
+        // Compare the caller's id to the cookie using the same uuid rules as getFlag
+        convertedUserUuid = this.getUUIDFromContext(context, apiName);
+      } catch {
+        convertedUserUuid = null;
+      }
+    }
+    return resolvePulsePreSegmentationIdentity(context, pulseVisitorUuid, convertedUserUuid, (message) =>
+      this.serviceContainer.getLogManager().error(message),
+    );
   }
 
   /**

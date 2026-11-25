@@ -189,6 +189,23 @@ export declare class WingifyClient implements IWingifyClient {
    */
   setAlias(contextOrUserId: Record<string, any> | string, aliasId: string): Promise<boolean>;
   /**
+   * Applies the Pulse identity rules when Pulse pre-seg is enabled and the feature uses survey segments.
+   * @param featureKey - Feature being evaluated.
+   * @param context - Original getFlag context.
+   * @param apiName - Calling API name for UUID derivation logs.
+   * @returns {Record<string, any>} Context to continue evaluation with (may use `_vwo_uuid` as id).
+   */
+  private applyPulsePreSegmentationIdentity;
+  /**
+   * Applies SmartCode `_vwo_uuid` cookie identity when Pulse pre-segmentation is enabled at init.
+   * Shared by getFlag (after feature gate), trackEvent, and setAttribute.
+   *
+   * @param context - Caller context; may omit `id` when the cookie should identify the visitor.
+   * @param apiName - Calling API name for UUID derivation when comparing ids.
+   * @returns {Record<string, any>} Context to evaluate with (may set `id` from the cookie).
+   */
+  private applyPulseCookieIdentity;
+  /**
    * Generates a UUID from the context.id
    * @param context - The context to generate the UUID from
    * @param apiName - The name of the API calling this method

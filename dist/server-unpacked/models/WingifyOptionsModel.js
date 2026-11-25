@@ -20,7 +20,7 @@ var WingifyOptionsModel = /** @class */ (function () {
     function WingifyOptionsModel() {
     }
     WingifyOptionsModel.prototype.modelFromDictionary = function (options) {
-        var _a;
+        var _a, _b;
         this.accountId = options.accountId;
         this.sdkKey = options.sdkKey;
         this.wingifyBuilder = options.wingifyBuilder || options.vwoBuilder;
@@ -86,7 +86,15 @@ var WingifyOptionsModel = /** @class */ (function () {
         }
         // default to false if not provided
         this.isBatchingDisabled = (_a = options === null || options === void 0 ? void 0 : options.isBatchingDisabled) !== null && _a !== void 0 ? _a : false;
+        this.isPulsePreSegmentEnabled = (_b = options === null || options === void 0 ? void 0 : options.isPulsePreSegmentEnabled) !== null && _b !== void 0 ? _b : false;
         return this;
+    };
+    /**
+     * Whether Pulse survey pre-segmentation is enabled for this client.
+     * @returns {boolean} True when Pulse pre-seg should run on getFlag.
+     */
+    WingifyOptionsModel.prototype.getIsPulsePreSegmentEnabled = function () {
+        return this.isPulsePreSegmentEnabled === true;
     };
     /**
      * Gets the flag indicating whether batching is disabled.

@@ -18,9 +18,16 @@ import { StorageService } from '../../../services/StorageService.js';
 import { isObject } from '../../../utils/DataTypeUtil.js';
 import { SegmentOperatorValueEnum } from '../enums/SegmentOperatorValueEnum.js';
 import { getKeyValue } from '../utils/SegmentUtil.js';
+import { SurveyEventOperandEvaluator } from './SurveyEventOperandEvaluator.js';
+import { SurveySegmentDslAdapter } from './SurveySegmentDslAdapter.js';
+import { SurveyEventStore } from '../utils/SurveyEventStoreUtil.js';
 import { ApiEnum } from '../../../enums/ApiEnum.js';
 import { getFormattedErrorMessage } from '../../../utils/FunctionUtil.js';
+import { isPulseVisitorVerified } from '../../../utils/PulsePreSegmentationUtil.js';
 export class SegmentEvaluator {
+    constructor() {
+        this.surveyEventStore = new SurveyEventStore();
+    }
     /**
      * Validates if the segmentation defined in the DSL is applicable based on the provided properties.
      * @param dsl The domain-specific language defining the segmentation rules.
@@ -28,6 +35,11 @@ export class SegmentEvaluator {
      * @returns A Promise resolving to a boolean indicating if the segmentation is valid.
      */
     async isSegmentationValid(dsl, properties) {
+        // Bare survey leaves are not SegmentOperatorValueEnum values — route them before the switch.
+        const surveyOperand = SurveySegmentDslAdapter.normalizeToSurveyOperand(dsl);
+        if (surveyOperand) {
+            return this.evaluateSurveyOperand(surveyOperand) === true;
+        }
         const { key, value } = getKeyValue(dsl);
         const operator = key;
         const subDsl = value;
@@ -39,8 +51,13 @@ export class SegmentEvaluator {
                 return await this.every(subDsl, properties);
             case SegmentOperatorValueEnum.OR:
                 return await this.some(subDsl, properties);
-            case SegmentOperatorValueEnum.CUSTOM_VARIABLE:
+            case SegmentOperatorValueEnum.CUSTOM_VARIABLE: {
+                const customVariableSurveyResult = this.evaluateSurveyOperand(subDsl);
+                if (customVariableSurveyResult !== null) {
+                    return customVariableSurveyResult;
+                }
                 return await this.segmentOperandEvaluator.evaluateCustomVariableDSL(subDsl, properties, this.context);
+            }
             case SegmentOperatorValueEnum.USER:
                 return this.segmentOperandEvaluator.evaluateUserDSL(subDsl, properties);
             case SegmentOperatorValueEnum.UA:
@@ -307,6 +324,31 @@ export class SegmentEvaluator {
         }
         // Remove quotes and trim whitespace
         return value.toString().replace(/^"|"$/g, '').trim();
+    }
+    /**
+     * Evaluates a Pulse survey operand against SmartCode localStorage events.
+     * @param surveyOperand - Bare or custom_variable survey `{ key: value }` leaf.
+     * @returns {boolean | null} Match result, or null when the operand is not a survey key.
+     */
+    evaluateSurveyOperand(surveyOperand) {
+        if (!SurveyEventOperandEvaluator.isSurveyEventKey(Object.keys(surveyOperand || {})[0] || '')) {
+            return null;
+        }
+        // Checked per leaf against the evaluated user's uuid, not a flag set earlier in getFlag:
+        // parallel getFlag calls share this evaluator and would overwrite such a flag across awaits.
+        const isPulsePreSegmentEnabled = this.serviceContainer?.getWingifyOptions()?.isPulsePreSegmentEnabled === true;
+        if (!isPulsePreSegmentEnabled || !isPulseVisitorVerified(this.context?.getUuid())) {
+            return false;
+        }
+        // if the surveyEventOperandEvaluator is not set, then create a new instance
+        if (!this.surveyEventOperandEvaluator && this.serviceContainer) {
+            this.surveyEventOperandEvaluator = new SurveyEventOperandEvaluator(this.serviceContainer, this.surveyEventStore);
+        }
+        if (!this.surveyEventOperandEvaluator) {
+            return false;
+        }
+        // evaluate the survey operand
+        return this.surveyEventOperandEvaluator.evaluate(surveyOperand);
     }
 }
 //# sourceMappingURL=SegmentEvaluator.js.map

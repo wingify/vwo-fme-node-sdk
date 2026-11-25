@@ -70,6 +70,7 @@ var UsageStatsUtil_1 = require("./utils/UsageStatsUtil");
 var StorageService_1 = require("./services/StorageService");
 var UuidUtil_1 = require("./utils/UuidUtil");
 var SDKMetaUtil_1 = require("./utils/SDKMetaUtil");
+var PulsePreSegmentationUtil_1 = require("./utils/PulsePreSegmentationUtil");
 var ConsentUtil_1 = require("./utils/ConsentUtil");
 var ServiceContainerRegistry_1 = require("./services/ServiceContainerRegistry");
 var NetworkUtil_1 = require("./utils/NetworkUtil");
@@ -199,7 +200,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.getFlag = function (featureKey, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, deferredObject, uuid, errorReturnSchema, heartbeat, userId, contextCopy, seed, contextModel, err_2;
+            var apiName, deferredObject, uuid, errorReturnSchema, contextForEvaluation, heartbeat, userId, contextCopy, seed, contextModel, err_2;
             var _a, _b, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
@@ -246,8 +247,11 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG });
                             throw new Error('TypeError: Invalid Settings');
                         }
+                        contextForEvaluation = this.applyPulsePreSegmentationIdentity(featureKey, context, apiName);
+                        // get the uuid from the context
+                        uuid = this.getUUIDFromContext(contextForEvaluation, apiName);
                         // Validate user ID is present in context
-                        if (!context || !context.id) {
+                        if (!contextForEvaluation || !contextForEvaluation.id) {
                             this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.GET_FLAG }, false);
                             throw new TypeError('TypeError: Invalid context');
                         }
@@ -271,13 +275,13 @@ var WingifyClient = /** @class */ (function () {
                     case 4:
                         deferredObject.resolve(errorReturnSchema);
                         return [2 /*return*/, deferredObject.promise];
-                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 6:
                         userId = _d.sent();
-                        contextCopy = __assign({}, context);
+                        contextCopy = __assign({}, contextForEvaluation);
                         contextCopy.id = userId;
                         // check if the userId changed after aliasing, by comparing the original userId with the new userId
-                        if (contextCopy.id !== context.id) {
+                        if (contextCopy.id !== contextForEvaluation.id) {
                             // if the userId changed, then we need to generate a new uuid
                             contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
                         }
@@ -485,7 +489,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.trackEvent = function (eventName_1, context_1) {
         return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
-            var apiName, deferredObject, heartbeat, userId, contextCopy, contextModel, err_4;
+            var apiName, deferredObject, contextForEvaluation, heartbeat, userId, contextCopy, contextModel, err_4;
             var _a, _b, _c;
             if (eventProperties === void 0) { eventProperties = {}; }
             return __generator(this, function (_d) {
@@ -529,8 +533,9 @@ var WingifyClient = /** @class */ (function () {
                             this.serviceContainer.getLogManager().errorLog('INVALID_SETTINGS_SCHEMA', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT });
                             throw new Error('TypeError: Invalid Settings');
                         }
+                        contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
                         // Validate user ID is present in context
-                        if (!context || !context.id) {
+                        if (!contextForEvaluation || !contextForEvaluation.id) {
                             this.serviceContainer
                                 .getLogManager()
                                 .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.TRACK_EVENT }, false);
@@ -541,9 +546,9 @@ var WingifyClient = /** @class */ (function () {
                             .getLogManager()
                             .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
                         heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
-                            id: String(context.id),
-                            uuid: this.getUUIDFromContext(context, apiName),
-                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                            id: String(contextForEvaluation.id),
+                            uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined,
                         });
                         if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
@@ -556,10 +561,10 @@ var WingifyClient = /** @class */ (function () {
                     case 4:
                         deferredObject.resolve((_b = {}, _b[eventName] = false, _b));
                         return [2 /*return*/, deferredObject.promise];
-                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 6:
                         userId = _d.sent();
-                        contextCopy = __assign({}, context);
+                        contextCopy = __assign({}, contextForEvaluation);
                         contextCopy.id = userId;
                         // set uuid in the context copy
                         contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
@@ -603,7 +608,7 @@ var WingifyClient = /** @class */ (function () {
      */
     WingifyClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
         return __awaiter(this, void 0, void 0, function () {
-            var apiName, contextForConsentCheck, attributes, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
+            var apiName, contextForConsentCheck, attributes, contextForEvaluation, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, contextForEvaluation, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -647,8 +652,9 @@ var WingifyClient = /** @class */ (function () {
                         if (!context && attributeValueOrContext) {
                             context = attributeValueOrContext; // Assign context explicitly
                         }
+                        contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
                         // Validate user ID is present in context
-                        if (!context || !context.id) {
+                        if (!contextForEvaluation || !contextForEvaluation.id) {
                             this.serviceContainer
                                 .getLogManager()
                                 .errorLog('INVALID_CONTEXT_PASSED', {}, { an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE }, false);
@@ -659,9 +665,9 @@ var WingifyClient = /** @class */ (function () {
                             .getLogManager()
                             .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
                         heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
-                            id: String(context.id),
-                            uuid: this.getUUIDFromContext(context, apiName),
-                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                            id: String(contextForEvaluation.id),
+                            uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined,
                         });
                         if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
@@ -672,10 +678,10 @@ var WingifyClient = /** @class */ (function () {
                         void heartbeat.catch(function () { return undefined; });
                         _b.label = 4;
                     case 4: return [2 /*return*/];
-                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 5: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 6:
                         userId = _b.sent();
-                        contextCopy = __assign({}, context);
+                        contextCopy = __assign({}, contextForEvaluation);
                         contextCopy.id = userId;
                         // set uuid in the context copy
                         contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
@@ -697,8 +703,9 @@ var WingifyClient = /** @class */ (function () {
                         if (!(0, DataTypeUtil_1.isBoolean)(attributeValue) && !(0, DataTypeUtil_1.isString)(attributeValue) && !(0, DataTypeUtil_1.isNumber)(attributeValue)) {
                             throw new TypeError('attributeValue should be a boolean, string, or number');
                         }
+                        contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
                         // Validate user ID is present in context
-                        if (!context || !context.id) {
+                        if (!contextForEvaluation || !contextForEvaluation.id) {
                             throw new TypeError('Invalid context');
                         }
                         if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 12];
@@ -706,9 +713,9 @@ var WingifyClient = /** @class */ (function () {
                             .getLogManager()
                             .info((0, LogMessageUtil_1.buildMessage)(log_messages_1.InfoLogMessagesEnum.API_BLOCKED_BY_PANIC_MODE, { apiName: apiName }));
                         heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
-                            id: String(context.id),
-                            uuid: this.getUUIDFromContext(context, apiName),
-                            sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined,
+                            id: String(contextForEvaluation.id),
+                            uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+                            sessionId: (0, DataTypeUtil_1.isNumber)(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined,
                         });
                         if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 10];
                         return [4 /*yield*/, heartbeat.catch(function () { return undefined; })];
@@ -719,11 +726,13 @@ var WingifyClient = /** @class */ (function () {
                         void heartbeat.catch(function () { return undefined; });
                         _b.label = 11;
                     case 11: return [2 /*return*/];
-                    case 12: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+                    case 12: return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
                     case 13:
                         userId = _b.sent();
-                        contextCopy = __assign({}, context);
+                        contextCopy = __assign({}, contextForEvaluation);
                         contextCopy.id = userId;
+                        // Keep web uuid aligned with trackEvent and bulk setAttribute when id is a SmartCode visitor
+                        contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
                         contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
                         attributeMap = (_a = {}, _a[attributeKey] = attributeValue, _a);
                         // Proceed with setting the attribute map if validation is successful
@@ -976,6 +985,59 @@ var WingifyClient = /** @class */ (function () {
                     case 8: return [2 /*return*/];
                 }
             });
+        });
+    };
+    /**
+     * Applies the Pulse identity rules when Pulse pre-seg is enabled and the feature uses survey segments.
+     * @param featureKey - Feature being evaluated.
+     * @param context - Original getFlag context.
+     * @param apiName - Calling API name for UUID derivation logs.
+     * @returns {Record<string, any>} Context to continue evaluation with (may use `_vwo_uuid` as id).
+     */
+    WingifyClient.prototype.applyPulsePreSegmentationIdentity = function (featureKey, context, apiName) {
+        var _a;
+        // Pulse identity is inactive unless the init flag is on
+        var isPulsePreSegmentEnabled = ((_a = this.serviceContainer.getWingifyOptions()) === null || _a === void 0 ? void 0 : _a.isPulsePreSegmentEnabled) === true;
+        if (!isPulsePreSegmentEnabled) {
+            return (0, DataTypeUtil_1.isObject)(context) ? __assign({}, context) : {};
+        }
+        // getFlag only adopts the cookie when this feature's rules use Pulse survey segments
+        var feature = (0, FunctionUtil_1.getFeatureFromKey)(this.serviceContainer.getSettings(), featureKey);
+        var hasPulseSurveyPreSegmentation = (0, PulsePreSegmentationUtil_1.featureHasPulseSurveyPreSegmentation)(feature, this.serviceContainer.getSettings());
+        if (!hasPulseSurveyPreSegmentation) {
+            return (0, DataTypeUtil_1.isObject)(context) ? __assign({}, context) : {};
+        }
+        return this.applyPulseCookieIdentity(context, apiName);
+    };
+    /**
+     * Applies SmartCode `_vwo_uuid` cookie identity when Pulse pre-segmentation is enabled at init.
+     * Shared by getFlag (after feature gate), trackEvent, and setAttribute.
+     *
+     * @param context - Caller context; may omit `id` when the cookie should identify the visitor.
+     * @param apiName - Calling API name for UUID derivation when comparing ids.
+     * @returns {Record<string, any>} Context to evaluate with (may set `id` from the cookie).
+     */
+    WingifyClient.prototype.applyPulseCookieIdentity = function (context, apiName) {
+        var _this = this;
+        var _a;
+        var isPulsePreSegmentEnabled = ((_a = this.serviceContainer.getWingifyOptions()) === null || _a === void 0 ? void 0 : _a.isPulsePreSegmentEnabled) === true;
+        // Leave context unchanged when Pulse pre-seg is disabled at init
+        if (!isPulsePreSegmentEnabled) {
+            return (0, DataTypeUtil_1.isObject)(context) ? __assign({}, context) : {};
+        }
+        var pulseVisitorUuid = (0, PulsePreSegmentationUtil_1.getVwoUuidFromCookie)();
+        var convertedUserUuid = null;
+        if (context === null || context === void 0 ? void 0 : context.id) {
+            try {
+                // Compare the caller's id to the cookie using the same uuid rules as getFlag
+                convertedUserUuid = this.getUUIDFromContext(context, apiName);
+            }
+            catch (_b) {
+                convertedUserUuid = null;
+            }
+        }
+        return (0, PulsePreSegmentationUtil_1.resolvePulsePreSegmentationIdentity)(context, pulseVisitorUuid, convertedUserUuid, function (message) {
+            return _this.serviceContainer.getLogManager().error(message);
         });
     };
     /**

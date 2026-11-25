@@ -1,5 +1,5 @@
 /*!
- * wingify-fme-node-sdk - v1.85.0
+ * wingify-fme-node-sdk - v1.90.0
  * URL - https://github.com/wingify/vwo-fme-node-sdk
  *
  * Copyright 2024-2026 Wingify Software Pvt. Ltd.
@@ -32,7 +32,7 @@
 /***/ ((module) => {
 
 module.exports = {
-  version: "1.85.0"
+  version: "1.90.0"
 };
 
 /***/ }),
@@ -1051,6 +1051,7 @@ var UsageStatsUtil_1 = __webpack_require__(/*! ./utils/UsageStatsUtil */ "./dist
 var StorageService_1 = __webpack_require__(/*! ./services/StorageService */ "./dist/server-unpacked/services/StorageService.js");
 var UuidUtil_1 = __webpack_require__(/*! ./utils/UuidUtil */ "./dist/server-unpacked/utils/UuidUtil.js");
 var SDKMetaUtil_1 = __webpack_require__(/*! ./utils/SDKMetaUtil */ "./dist/server-unpacked/utils/SDKMetaUtil.js");
+var PulsePreSegmentationUtil_1 = __webpack_require__(/*! ./utils/PulsePreSegmentationUtil */ "./dist/server-unpacked/utils/PulsePreSegmentationUtil.js");
 var ConsentUtil_1 = __webpack_require__(/*! ./utils/ConsentUtil */ "./dist/server-unpacked/utils/ConsentUtil.js");
 var ServiceContainerRegistry_1 = __webpack_require__(/*! ./services/ServiceContainerRegistry */ "./dist/server-unpacked/services/ServiceContainerRegistry.js");
 var NetworkUtil_1 = __webpack_require__(/*! ./utils/NetworkUtil */ "./dist/server-unpacked/utils/NetworkUtil.js");
@@ -1180,7 +1181,7 @@ var WingifyClient = /** @class */function () {
    */
   WingifyClient.prototype.getFlag = function (featureKey, context) {
     return __awaiter(this, void 0, void 0, function () {
-      var apiName, deferredObject, uuid, errorReturnSchema, heartbeat, userId, contextCopy, seed, contextModel, err_2;
+      var apiName, deferredObject, uuid, errorReturnSchema, contextForEvaluation, heartbeat, userId, contextCopy, seed, contextModel, err_2;
       var _a, _b, _c;
       return __generator(this, function (_d) {
         switch (_d.label) {
@@ -1232,8 +1233,11 @@ var WingifyClient = /** @class */function () {
               });
               throw new Error('TypeError: Invalid Settings');
             }
+            contextForEvaluation = this.applyPulsePreSegmentationIdentity(featureKey, context, apiName);
+            // get the uuid from the context
+            uuid = this.getUUIDFromContext(contextForEvaluation, apiName);
             // Validate user ID is present in context
-            if (!context || !context.id) {
+            if (!contextForEvaluation || !contextForEvaluation.id) {
               this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, {
                 an: ApiEnum_1.ApiEnum.GET_FLAG
               }, false);
@@ -1264,13 +1268,13 @@ var WingifyClient = /** @class */function () {
             deferredObject.resolve(errorReturnSchema);
             return [2 /*return*/, deferredObject.promise];
           case 5:
-            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
           case 6:
             userId = _d.sent();
-            contextCopy = __assign({}, context);
+            contextCopy = __assign({}, contextForEvaluation);
             contextCopy.id = userId;
             // check if the userId changed after aliasing, by comparing the original userId with the new userId
-            if (contextCopy.id !== context.id) {
+            if (contextCopy.id !== contextForEvaluation.id) {
               // if the userId changed, then we need to generate a new uuid
               contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
             } else {
@@ -1490,7 +1494,7 @@ var WingifyClient = /** @class */function () {
    */
   WingifyClient.prototype.trackEvent = function (eventName_1, context_1) {
     return __awaiter(this, arguments, void 0, function (eventName, context, eventProperties) {
-      var apiName, deferredObject, heartbeat, userId, contextCopy, contextModel, err_4;
+      var apiName, deferredObject, contextForEvaluation, heartbeat, userId, contextCopy, contextModel, err_4;
       var _a, _b, _c;
       if (eventProperties === void 0) {
         eventProperties = {};
@@ -1542,8 +1546,9 @@ var WingifyClient = /** @class */function () {
               });
               throw new Error('TypeError: Invalid Settings');
             }
+            contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
             // Validate user ID is present in context
-            if (!context || !context.id) {
+            if (!contextForEvaluation || !contextForEvaluation.id) {
               this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, {
                 an: ApiEnum_1.ApiEnum.TRACK_EVENT
               }, false);
@@ -1554,9 +1559,9 @@ var WingifyClient = /** @class */function () {
               apiName: apiName
             }));
             heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
-              id: String(context.id),
-              uuid: this.getUUIDFromContext(context, apiName),
-              sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined
+              id: String(contextForEvaluation.id),
+              uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+              sessionId: (0, DataTypeUtil_1.isNumber)(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined
             });
             if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
             return [4 /*yield*/, heartbeat.catch(function () {
@@ -1574,10 +1579,10 @@ var WingifyClient = /** @class */function () {
             deferredObject.resolve((_b = {}, _b[eventName] = false, _b));
             return [2 /*return*/, deferredObject.promise];
           case 5:
-            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
           case 6:
             userId = _d.sent();
-            contextCopy = __assign({}, context);
+            contextCopy = __assign({}, contextForEvaluation);
             contextCopy.id = userId;
             // set uuid in the context copy
             contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
@@ -1621,7 +1626,7 @@ var WingifyClient = /** @class */function () {
    */
   WingifyClient.prototype.setAttribute = function (attributeOrAttributes, attributeValueOrContext, context) {
     return __awaiter(this, void 0, void 0, function () {
-      var apiName, contextForConsentCheck, attributes, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
+      var apiName, contextForConsentCheck, attributes, contextForEvaluation, heartbeat, userId, contextCopy, contextModel, attributeKey, attributeValue, contextForEvaluation, heartbeat, userId, contextCopy, contextModel, attributeMap, err_5;
       var _a;
       return __generator(this, function (_b) {
         switch (_b.label) {
@@ -1664,8 +1669,9 @@ var WingifyClient = /** @class */function () {
             if (!context && attributeValueOrContext) {
               context = attributeValueOrContext; // Assign context explicitly
             }
+            contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
             // Validate user ID is present in context
-            if (!context || !context.id) {
+            if (!contextForEvaluation || !contextForEvaluation.id) {
               this.serviceContainer.getLogManager().errorLog('INVALID_CONTEXT_PASSED', {}, {
                 an: ApiEnum_1.ApiEnum.SET_ATTRIBUTE
               }, false);
@@ -1676,9 +1682,9 @@ var WingifyClient = /** @class */function () {
               apiName: apiName
             }));
             heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
-              id: String(context.id),
-              uuid: this.getUUIDFromContext(context, apiName),
-              sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined
+              id: String(contextForEvaluation.id),
+              uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+              sessionId: (0, DataTypeUtil_1.isNumber)(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined
             });
             if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 3];
             return [4 /*yield*/, heartbeat.catch(function () {
@@ -1695,10 +1701,10 @@ var WingifyClient = /** @class */function () {
           case 4:
             return [2 /*return*/];
           case 5:
-            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
           case 6:
             userId = _b.sent();
-            contextCopy = __assign({}, context);
+            contextCopy = __assign({}, contextForEvaluation);
             contextCopy.id = userId;
             // set uuid in the context copy
             contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
@@ -1720,8 +1726,9 @@ var WingifyClient = /** @class */function () {
             if (!(0, DataTypeUtil_1.isBoolean)(attributeValue) && !(0, DataTypeUtil_1.isString)(attributeValue) && !(0, DataTypeUtil_1.isNumber)(attributeValue)) {
               throw new TypeError('attributeValue should be a boolean, string, or number');
             }
+            contextForEvaluation = this.applyPulseCookieIdentity(context, apiName);
             // Validate user ID is present in context
-            if (!context || !context.id) {
+            if (!contextForEvaluation || !contextForEvaluation.id) {
               throw new TypeError('Invalid context');
             }
             if (!this.serviceContainer.getPanicModeForcedRefreshControlService().isPanicModeActivated()) return [3 /*break*/, 12];
@@ -1729,9 +1736,9 @@ var WingifyClient = /** @class */function () {
               apiName: apiName
             }));
             heartbeat = (0, NetworkUtil_1.sendPanicCollectHeartbeatRequest)(this.serviceContainer, {
-              id: String(context.id),
-              uuid: this.getUUIDFromContext(context, apiName),
-              sessionId: (0, DataTypeUtil_1.isNumber)(context.sessionId) ? context.sessionId : undefined
+              id: String(contextForEvaluation.id),
+              uuid: this.getUUIDFromContext(contextForEvaluation, apiName),
+              sessionId: (0, DataTypeUtil_1.isNumber)(contextForEvaluation.sessionId) ? contextForEvaluation.sessionId : undefined
             });
             if (!this.serviceContainer.getShouldWaitForTrackingCalls()) return [3 /*break*/, 10];
             return [4 /*yield*/, heartbeat.catch(function () {
@@ -1748,11 +1755,13 @@ var WingifyClient = /** @class */function () {
           case 11:
             return [2 /*return*/];
           case 12:
-            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(context.id, this.isAliasingEnabled, this.serviceContainer)];
+            return [4 /*yield*/, (0, UserIdUtil_1.getUserId)(contextForEvaluation.id, this.isAliasingEnabled, this.serviceContainer)];
           case 13:
             userId = _b.sent();
-            contextCopy = __assign({}, context);
+            contextCopy = __assign({}, contextForEvaluation);
             contextCopy.id = userId;
+            // Keep web uuid aligned with trackEvent and bulk setAttribute when id is a SmartCode visitor
+            contextCopy.uuid = this.getUUIDFromContext(contextCopy, apiName);
             contextModel = new ContextModel_1.ContextModel().modelFromDictionary(contextCopy, this.options);
             attributeMap = (_a = {}, _a[attributeKey] = attributeValue, _a);
             // Proceed with setting the attribute map if validation is successful
@@ -2044,6 +2053,58 @@ var WingifyClient = /** @class */function () {
             return [2 /*return*/];
         }
       });
+    });
+  };
+  /**
+   * Applies the Pulse identity rules when Pulse pre-seg is enabled and the feature uses survey segments.
+   * @param featureKey - Feature being evaluated.
+   * @param context - Original getFlag context.
+   * @param apiName - Calling API name for UUID derivation logs.
+   * @returns {Record<string, any>} Context to continue evaluation with (may use `_vwo_uuid` as id).
+   */
+  WingifyClient.prototype.applyPulsePreSegmentationIdentity = function (featureKey, context, apiName) {
+    var _a;
+    // Pulse identity is inactive unless the init flag is on
+    var isPulsePreSegmentEnabled = ((_a = this.serviceContainer.getWingifyOptions()) === null || _a === void 0 ? void 0 : _a.isPulsePreSegmentEnabled) === true;
+    if (!isPulsePreSegmentEnabled) {
+      return (0, DataTypeUtil_1.isObject)(context) ? __assign({}, context) : {};
+    }
+    // getFlag only adopts the cookie when this feature's rules use Pulse survey segments
+    var feature = (0, FunctionUtil_1.getFeatureFromKey)(this.serviceContainer.getSettings(), featureKey);
+    var hasPulseSurveyPreSegmentation = (0, PulsePreSegmentationUtil_1.featureHasPulseSurveyPreSegmentation)(feature, this.serviceContainer.getSettings());
+    if (!hasPulseSurveyPreSegmentation) {
+      return (0, DataTypeUtil_1.isObject)(context) ? __assign({}, context) : {};
+    }
+    return this.applyPulseCookieIdentity(context, apiName);
+  };
+  /**
+   * Applies SmartCode `_vwo_uuid` cookie identity when Pulse pre-segmentation is enabled at init.
+   * Shared by getFlag (after feature gate), trackEvent, and setAttribute.
+   *
+   * @param context - Caller context; may omit `id` when the cookie should identify the visitor.
+   * @param apiName - Calling API name for UUID derivation when comparing ids.
+   * @returns {Record<string, any>} Context to evaluate with (may set `id` from the cookie).
+   */
+  WingifyClient.prototype.applyPulseCookieIdentity = function (context, apiName) {
+    var _this = this;
+    var _a;
+    var isPulsePreSegmentEnabled = ((_a = this.serviceContainer.getWingifyOptions()) === null || _a === void 0 ? void 0 : _a.isPulsePreSegmentEnabled) === true;
+    // Leave context unchanged when Pulse pre-seg is disabled at init
+    if (!isPulsePreSegmentEnabled) {
+      return (0, DataTypeUtil_1.isObject)(context) ? __assign({}, context) : {};
+    }
+    var pulseVisitorUuid = (0, PulsePreSegmentationUtil_1.getVwoUuidFromCookie)();
+    var convertedUserUuid = null;
+    if (context === null || context === void 0 ? void 0 : context.id) {
+      try {
+        // Compare the caller's id to the cookie using the same uuid rules as getFlag
+        convertedUserUuid = this.getUUIDFromContext(context, apiName);
+      } catch (_b) {
+        convertedUserUuid = null;
+      }
+    }
+    return (0, PulsePreSegmentationUtil_1.resolvePulsePreSegmentationIdentity)(context, pulseVisitorUuid, convertedUserUuid, function (message) {
+      return _this.serviceContainer.getLogManager().error(message);
     });
   };
   /**
@@ -8718,6 +8779,46 @@ exports.ResponseModel = ResponseModel;
 
 /***/ }),
 
+/***/ "./dist/server-unpacked/packages/segmentation-evaluator/constants/SurveyDslKeyPattern.js":
+/*!***********************************************************************************************!*\
+  !*** ./dist/server-unpacked/packages/segmentation-evaluator/constants/SurveyDslKeyPattern.js ***!
+  \***********************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.SURVEY_DSL_KEY_PATTERN = exports.SURVEY_EVENT_PREFIX = void 0;
+var SurveyEventNameEnum_1 = __webpack_require__(/*! ../enums/SurveyEventNameEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SurveyEventNameEnum.js");
+/** Prefix shared by Pulse survey DSL keys and `_vwo_eventHist` event types. */
+exports.SURVEY_EVENT_PREFIX = 'vwo_survey';
+var SURVEY_EVENT_NAME_ALTERNATION = Object.values(SurveyEventNameEnum_1.SurveyEventNameEnum).join('|');
+/**
+ * Pulse survey DSL leaf: `{surveyId}_vwo_survey{Event}_{questionId}`.
+ * Survey id and question id are optional.
+ */
+exports.SURVEY_DSL_KEY_PATTERN = new RegExp("^(?:(\\d+)_)?".concat(exports.SURVEY_EVENT_PREFIX, "(").concat(SURVEY_EVENT_NAME_ALTERNATION, ")(?:_(\\d+))?$"));
+
+/***/ }),
+
 /***/ "./dist/server-unpacked/packages/segmentation-evaluator/core/SegmentationManger.js":
 /*!*****************************************************************************************!*\
   !*** ./dist/server-unpacked/packages/segmentation-evaluator/core/SegmentationManger.js ***!
@@ -8865,6 +8966,7 @@ var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./d
 var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
 var SegmentOperandEvaluator_1 = __webpack_require__(/*! ../evaluators/SegmentOperandEvaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SegmentOperandEvaluator.js");
+var SurveyEventOperandEvaluator_1 = __webpack_require__(/*! ../evaluators/SurveyEventOperandEvaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveyEventOperandEvaluator.js");
 var SegmentOperatorValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperatorValueEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SegmentOperatorValueEnum.js");
 var SegmentationManager = /** @class */function () {
   /**
@@ -8889,6 +8991,9 @@ var SegmentationManager = /** @class */function () {
             this.evaluator.context = context; // Set context in evaluator
             this.evaluator.feature = feature; // Set feature in evaluator
             this.evaluator.segmentOperandEvaluator = new SegmentOperandEvaluator_1.SegmentOperandEvaluator(serviceContainer);
+            // A user can answer a survey between two getFlag calls, so drop the cached read and let this call re-read.
+            this.evaluator.surveyEventStore.resetCache();
+            this.evaluator.surveyEventOperandEvaluator = new SurveyEventOperandEvaluator_1.SurveyEventOperandEvaluator(serviceContainer, this.evaluator.surveyEventStore);
             // if both user agent and ip is null then we should not get data from gateway service
             if ((context === null || context === void 0 ? void 0 : context.getUserAgent()) === null && (context === null || context === void 0 ? void 0 : context.getIpAddress()) === null) {
               return [2 /*return*/];
@@ -9130,6 +9235,49 @@ var SegmentOperatorValueEnum;
 
 /***/ }),
 
+/***/ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SurveyEventNameEnum.js":
+/*!*******************************************************************************************!*\
+  !*** ./dist/server-unpacked/packages/segmentation-evaluator/enums/SurveyEventNameEnum.js ***!
+  \*******************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.SurveyEventNameEnum = void 0;
+/** Event names that appear in Pulse survey DSL keys, after `vwo_survey`. */
+var SurveyEventNameEnum;
+(function (SurveyEventNameEnum) {
+  SurveyEventNameEnum["DISPLAYED"] = "Displayed";
+  SurveyEventNameEnum["ATTEMPTED"] = "Attempted";
+  SurveyEventNameEnum["COMPLETED"] = "Completed";
+  SurveyEventNameEnum["CLOSED"] = "Closed";
+  SurveyEventNameEnum["REACHED_THANKYOU"] = "ReachedThankyou";
+  SurveyEventNameEnum["QUESTION_DISPLAYED"] = "QuestionDisplayed";
+  SurveyEventNameEnum["QUESTION_ATTEMPTED"] = "QuestionAttempted";
+  SurveyEventNameEnum["QUESTION_SUBMITTED"] = "QuestionSubmitted";
+})(SurveyEventNameEnum || (exports.SurveyEventNameEnum = SurveyEventNameEnum = {}));
+
+/***/ }),
+
 /***/ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SegmentEvaluator.js":
 /*!*********************************************************************************************!*\
   !*** ./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SegmentEvaluator.js ***!
@@ -9274,10 +9422,16 @@ var StorageService_1 = __webpack_require__(/*! ../../../services/StorageService 
 var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
 var SegmentOperatorValueEnum_1 = __webpack_require__(/*! ../enums/SegmentOperatorValueEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SegmentOperatorValueEnum.js");
 var SegmentUtil_1 = __webpack_require__(/*! ../utils/SegmentUtil */ "./dist/server-unpacked/packages/segmentation-evaluator/utils/SegmentUtil.js");
+var SurveyEventOperandEvaluator_1 = __webpack_require__(/*! ./SurveyEventOperandEvaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveyEventOperandEvaluator.js");
+var SurveySegmentDslAdapter_1 = __webpack_require__(/*! ./SurveySegmentDslAdapter */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveySegmentDslAdapter.js");
+var SurveyEventStoreUtil_1 = __webpack_require__(/*! ../utils/SurveyEventStoreUtil */ "./dist/server-unpacked/packages/segmentation-evaluator/utils/SurveyEventStoreUtil.js");
 var ApiEnum_1 = __webpack_require__(/*! ../../../enums/ApiEnum */ "./dist/server-unpacked/enums/ApiEnum.js");
 var FunctionUtil_1 = __webpack_require__(/*! ../../../utils/FunctionUtil */ "./dist/server-unpacked/utils/FunctionUtil.js");
+var PulsePreSegmentationUtil_1 = __webpack_require__(/*! ../../../utils/PulsePreSegmentationUtil */ "./dist/server-unpacked/utils/PulsePreSegmentationUtil.js");
 var SegmentEvaluator = /** @class */function () {
-  function SegmentEvaluator() {}
+  function SegmentEvaluator() {
+    this.surveyEventStore = new SurveyEventStoreUtil_1.SurveyEventStore();
+  }
   /**
    * Validates if the segmentation defined in the DSL is applicable based on the provided properties.
    * @param dsl The domain-specific language defining the segmentation rules.
@@ -9286,10 +9440,14 @@ var SegmentEvaluator = /** @class */function () {
    */
   SegmentEvaluator.prototype.isSegmentationValid = function (dsl, properties) {
     return __awaiter(this, void 0, void 0, function () {
-      var _a, key, value, operator, subDsl, _b;
+      var surveyOperand, _a, key, value, operator, subDsl, _b, customVariableSurveyResult;
       return __generator(this, function (_c) {
         switch (_c.label) {
           case 0:
+            surveyOperand = SurveySegmentDslAdapter_1.SurveySegmentDslAdapter.normalizeToSurveyOperand(dsl);
+            if (surveyOperand) {
+              return [2 /*return*/, this.evaluateSurveyOperand(surveyOperand) === true];
+            }
             _a = (0, SegmentUtil_1.getKeyValue)(dsl), key = _a.key, value = _a.value;
             operator = key;
             subDsl = value;
@@ -9330,6 +9488,10 @@ var SegmentEvaluator = /** @class */function () {
           case 6:
             return [2 /*return*/, _c.sent()];
           case 7:
+            customVariableSurveyResult = this.evaluateSurveyOperand(subDsl);
+            if (customVariableSurveyResult !== null) {
+              return [2 /*return*/, customVariableSurveyResult];
+            }
             return [4 /*yield*/, this.segmentOperandEvaluator.evaluateCustomVariableDSL(subDsl, properties, this.context)];
           case 8:
             return [2 /*return*/, _c.sent()];
@@ -9714,6 +9876,32 @@ var SegmentEvaluator = /** @class */function () {
     }
     // Remove quotes and trim whitespace
     return value.toString().replace(/^"|"$/g, '').trim();
+  };
+  /**
+   * Evaluates a Pulse survey operand against SmartCode localStorage events.
+   * @param surveyOperand - Bare or custom_variable survey `{ key: value }` leaf.
+   * @returns {boolean | null} Match result, or null when the operand is not a survey key.
+   */
+  SegmentEvaluator.prototype.evaluateSurveyOperand = function (surveyOperand) {
+    var _a, _b, _c;
+    if (!SurveyEventOperandEvaluator_1.SurveyEventOperandEvaluator.isSurveyEventKey(Object.keys(surveyOperand || {})[0] || '')) {
+      return null;
+    }
+    // Checked per leaf against the evaluated user's uuid, not a flag set earlier in getFlag:
+    // parallel getFlag calls share this evaluator and would overwrite such a flag across awaits.
+    var isPulsePreSegmentEnabled = ((_b = (_a = this.serviceContainer) === null || _a === void 0 ? void 0 : _a.getWingifyOptions()) === null || _b === void 0 ? void 0 : _b.isPulsePreSegmentEnabled) === true;
+    if (!isPulsePreSegmentEnabled || !(0, PulsePreSegmentationUtil_1.isPulseVisitorVerified)((_c = this.context) === null || _c === void 0 ? void 0 : _c.getUuid())) {
+      return false;
+    }
+    // if the surveyEventOperandEvaluator is not set, then create a new instance
+    if (!this.surveyEventOperandEvaluator && this.serviceContainer) {
+      this.surveyEventOperandEvaluator = new SurveyEventOperandEvaluator_1.SurveyEventOperandEvaluator(this.serviceContainer, this.surveyEventStore);
+    }
+    if (!this.surveyEventOperandEvaluator) {
+      return false;
+    }
+    // evaluate the survey operand
+    return this.surveyEventOperandEvaluator.evaluate(surveyOperand);
   };
   return SegmentEvaluator;
 }();
@@ -10366,6 +10554,490 @@ exports.SegmentOperandEvaluator = SegmentOperandEvaluator;
 
 /***/ }),
 
+/***/ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveyDslKey.js":
+/*!*****************************************************************************************!*\
+  !*** ./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveyDslKey.js ***!
+  \*****************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.SurveyDslKey = void 0;
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var SurveyDslKeyPattern_1 = __webpack_require__(/*! ../constants/SurveyDslKeyPattern */ "./dist/server-unpacked/packages/segmentation-evaluator/constants/SurveyDslKeyPattern.js");
+var SurveyEventNameEnum_1 = __webpack_require__(/*! ../enums/SurveyEventNameEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SurveyEventNameEnum.js");
+/**
+ * Parsed Pulse survey DSL leaf key.
+ *
+ * Dashboard "Any survey" / "Any question" omit the id. Stored web events always include ids.
+ * `covers` maps an omitted id onto those stored events.
+ *
+ * Shapes: `{surveyId}_vwo_survey{Event}_{questionId}` with optional surveyId and questionId.
+ */
+var SurveyDslKey = /** @class */function () {
+  /**
+   * Creates a parsed Pulse survey DSL leaf key.
+   * @param surveyId - Survey id (`sId`) or null for any survey.
+   * @param eventName - Pulse survey event name.
+   * @param questionId - Question id (`qId`) or null when not applicable / any question.
+   * @param raw - Original DSL key string.
+   */
+  function SurveyDslKey(surveyId, eventName, questionId, raw) {
+    this.surveyId = surveyId;
+    this.eventName = eventName;
+    this.questionId = questionId;
+    this.raw = raw;
+  }
+  Object.defineProperty(SurveyDslKey.prototype, "isAggregate", {
+    /**
+     * True when this DSL leaf must scan per-id stored events.
+     *
+     * `vwo_surveyDisplayed` (no survey id) = any survey.
+     * `255_vwo_surveyQuestionSubmitted` (Question* event, no question id) = any question.
+     * `255_vwo_surveyDisplayed` is a specific survey, not aggregate.
+     * @returns {boolean} True when the survey id is omitted, or a question event omits the question id.
+     */
+    get: function () {
+      return (0, DataTypeUtil_1.isNull)(this.surveyId) || this.isQuestionEvent && (0, DataTypeUtil_1.isNull)(this.questionId);
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(SurveyDslKey.prototype, "isQuestionEvent", {
+    /**
+     * Question-scoped events carry a `qId`; survey-level ones never do.
+     * @returns {boolean} True for question displayed, attempted, and submitted events.
+     */
+    get: function () {
+      return this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_DISPLAYED || this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_ATTEMPTED || this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_SUBMITTED;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(SurveyDslKey.prototype, "isDisplayedOrAttempted", {
+    /**
+     * True for events whose DSL value is a boolean presence check rather than an answer.
+     * SmartCode only records that they happened, so `true` matches presence and `false` absence.
+     * @returns {boolean} True for displayed and attempted events at survey or question level.
+     */
+    get: function () {
+      return this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.DISPLAYED || this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.ATTEMPTED || this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_DISPLAYED || this.eventName === SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_ATTEMPTED;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(SurveyDslKey.prototype, "storageEventType", {
+    /**
+     * Key this event is stored under inside `_vwo_eventHist`.
+     * @returns {string} The storage key, for example `vwo_surveyDisplayed`.
+     */
+    get: function () {
+      return "".concat(SurveyDslKeyPattern_1.SURVEY_EVENT_PREFIX).concat(this.eventName);
+    },
+    enumerable: false,
+    configurable: true
+  });
+  /**
+   * Whether a stored event identity satisfies this DSL leaf.
+   *
+   * Omitted survey/question id is a wildcard. A present id must match exactly.
+   * @param stored - Parsed identity of a stored survey event.
+   * @returns {boolean} True when the stored event is in scope for this leaf.
+   */
+  SurveyDslKey.prototype.covers = function (stored) {
+    if (this.eventName !== stored.eventName) {
+      return false;
+    }
+    if (!(0, DataTypeUtil_1.isNull)(this.surveyId) && this.surveyId !== stored.surveyId) {
+      return false;
+    }
+    if (!(0, DataTypeUtil_1.isNull)(this.questionId) && this.questionId !== stored.questionId) {
+      return false;
+    }
+    return true;
+  };
+  /**
+   * Parses a DSL key. Returns null when the key is not a Pulse survey event.
+   * @param dslKey - Segment leaf key from settings.
+   * @returns {SurveyDslKey | null} Parsed key, or null when the key is not a Pulse survey event.
+   */
+  SurveyDslKey.parse = function (dslKey) {
+    if (!(0, DataTypeUtil_1.isString)(dslKey)) {
+      return null;
+    }
+    var match = SurveyDslKeyPattern_1.SURVEY_DSL_KEY_PATTERN.exec(dslKey);
+    if (!match) {
+      return null;
+    }
+    // Capture groups: 1 = optional survey id, 2 = event name, 3 = optional question id.
+    var surveyId = match[1] || null;
+    var eventName = Object.values(SurveyEventNameEnum_1.SurveyEventNameEnum).find(function (name) {
+      return name === match[2];
+    });
+    if (!eventName) {
+      return null;
+    }
+    var questionId = match[3] || null;
+    return new SurveyDslKey(surveyId, eventName, questionId, dslKey);
+  };
+  return SurveyDslKey;
+}();
+exports.SurveyDslKey = SurveyDslKey;
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveyEventOperandEvaluator.js":
+/*!********************************************************************************************************!*\
+  !*** ./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveyEventOperandEvaluator.js ***!
+  \********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.SurveyEventOperandEvaluator = void 0;
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var SurveyDslKeyPattern_1 = __webpack_require__(/*! ../constants/SurveyDslKeyPattern */ "./dist/server-unpacked/packages/segmentation-evaluator/constants/SurveyDslKeyPattern.js");
+var SurveyEventNameEnum_1 = __webpack_require__(/*! ../enums/SurveyEventNameEnum */ "./dist/server-unpacked/packages/segmentation-evaluator/enums/SurveyEventNameEnum.js");
+var SegmentUtil_1 = __webpack_require__(/*! ../utils/SegmentUtil */ "./dist/server-unpacked/packages/segmentation-evaluator/utils/SegmentUtil.js");
+var SegmentOperandEvaluator_1 = __webpack_require__(/*! ./SegmentOperandEvaluator */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SegmentOperandEvaluator.js");
+var SurveyDslKey_1 = __webpack_require__(/*! ./SurveyDslKey */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveyDslKey.js");
+/**
+ * Evaluates Pulse survey DSL operands against SmartCode localStorage events.
+ *
+ * Displayed/Attempted (survey and question level) are boolean presence checks.
+ * `QuestionSubmitted` matches the answer, taken from `responses[qId]` and unwrapping
+ * `{ id, value }` objects so multi-select "other" text can still match.
+ * `Completed`/`Closed`/`ReachedThankyou` fail closed — web does not drop them yet.
+ */
+var SurveyEventOperandEvaluator = /** @class */function () {
+  /**
+   * Creates an evaluator that matches Pulse survey DSL leaves against stored events.
+   * @param serviceContainer - SDK service container (operand matching).
+   * @param surveyEventStore - Store that lazily reads `_vwo_eventHist`.
+   */
+  function SurveyEventOperandEvaluator(serviceContainer, surveyEventStore) {
+    this.serviceContainer = serviceContainer;
+    this.surveyEventStore = surveyEventStore;
+  }
+  /**
+   * Returns true when `dslKey` is a Pulse survey event key.
+   * @param dslKey - Segment leaf key.
+   * @returns {boolean} True when the key parses as a Pulse survey event.
+   */
+  SurveyEventOperandEvaluator.isSurveyEventKey = function (dslKey) {
+    return SurveyDslKey_1.SurveyDslKey.parse(dslKey) !== null;
+  };
+  /**
+   * Evaluates a survey-event operand when applicable.
+   * @param subDsl - `{ dslKey: expectedValue }` operand.
+   * @returns {boolean | null} True or false for a survey key, or null when it should be handled as a custom variable.
+   */
+  SurveyEventOperandEvaluator.prototype.evaluate = function (subDsl) {
+    var _this = this;
+    var entry = (0, SegmentUtil_1.getKeyValue)(subDsl);
+    if (!entry) {
+      return null;
+    }
+    var parsedKey = SurveyDslKey_1.SurveyDslKey.parse(entry.key);
+    if (!parsedKey) {
+      return null;
+    }
+    // Presence events store no answer, so the operand is a boolean: true = happened, false = did not.
+    if (parsedKey.isDisplayedOrAttempted) {
+      var expectedPresence = this.booleanOrNull(entry.value);
+      if (expectedPresence === null) {
+        return false;
+      }
+      var eventHappened = this.findCoveredEvents(parsedKey).length > 0;
+      return expectedPresence === eventHappened;
+    }
+    // Web does not drop Completed/Closed/ReachedThankyou yet, so they fail closed.
+    if (parsedKey.eventName !== SurveyEventNameEnum_1.SurveyEventNameEnum.QUESTION_SUBMITTED) {
+      return false;
+    }
+    var matchingAnswerValues = this.findMatchingAnswerValues(parsedKey);
+    if (matchingAnswerValues.length === 0) {
+      return false;
+    }
+    if (parsedKey.isAggregate && this.isBooleanTrue(entry.value)) {
+      return true;
+    }
+    var expectedValue = this.expectedValueAsString(entry.value);
+    return matchingAnswerValues.some(function (storedValue) {
+      return _this.valuesMatch(expectedValue, storedValue);
+    });
+  };
+  /**
+   * Collects answer candidate strings from stored events covered by this DSL leaf.
+   * @param dslKey - Parsed survey DSL key.
+   * @returns {string[]} Flattened answer candidates (ids and free-text values).
+   */
+  SurveyEventOperandEvaluator.prototype.findMatchingAnswerValues = function (dslKey) {
+    var _a;
+    var answerValues = [];
+    // find the covered events
+    for (var _i = 0, _b = this.findCoveredEvents(dslKey); _i < _b.length; _i++) {
+      var submittedEvent = _b[_i];
+      // get the question id
+      var questionId = (_a = dslKey.questionId) !== null && _a !== void 0 ? _a : submittedEvent.qId != null ? String(submittedEvent.qId) : null;
+      // extract the answer candidates
+      answerValues.push.apply(answerValues, this.extractAnswerCandidates(submittedEvent, questionId));
+    }
+    return answerValues;
+  };
+  /**
+   * Stored events of this key's type whose survey/question ids the DSL leaf covers.
+   * @param dslKey - Parsed survey DSL key.
+   * @returns {SurveyEvent[]} Stored events in scope for this leaf.
+   */
+  SurveyEventOperandEvaluator.prototype.findCoveredEvents = function (dslKey) {
+    var _this = this;
+    // get the events by type
+    return this.surveyEventStore.getEventsByType(dslKey.storageEventType).filter(function (event) {
+      // build the stored key
+      var storedKey = _this.toStoredSurveyDslKey(event, dslKey);
+      // check if the stored key covers the dsl key
+      return storedKey !== null && dslKey.covers(storedKey);
+    });
+  };
+  /**
+   * Builds a SurveyDslKey from a stored event so `covers` can compare ids.
+   * @param event - One localStorage event.
+   * @param dslKey - Leaf being evaluated, which fixes the event name and whether a `qId` is required.
+   * @returns {SurveyDslKey | null} Parsed stored identity, or null when `sId` or a required `qId` is missing.
+   */
+  SurveyEventOperandEvaluator.prototype.toStoredSurveyDslKey = function (event, dslKey) {
+    if (event.sId == null) {
+      return null;
+    }
+    // get the survey id
+    var surveyId = String(event.sId);
+    // get the event name
+    var eventName = dslKey.eventName;
+    if (!dslKey.isQuestionEvent) {
+      return new SurveyDslKey_1.SurveyDslKey(surveyId, eventName, null, "".concat(surveyId, "_").concat(SurveyDslKeyPattern_1.SURVEY_EVENT_PREFIX).concat(eventName));
+    }
+    // get the question id
+    if (event.qId == null) {
+      return null;
+    }
+    var questionId = String(event.qId);
+    return new SurveyDslKey_1.SurveyDslKey(surveyId, eventName, questionId, "".concat(surveyId, "_").concat(SurveyDslKeyPattern_1.SURVEY_EVENT_PREFIX).concat(eventName, "_").concat(questionId));
+  };
+  /**
+   * Reads `responses[questionId]` and expands object entries into id + value strings.
+   * @param submittedEvent - Stored submission.
+   * @param questionId - Question id to read.
+   * @returns {string[]} Answer candidate strings, or an empty array when the question has no responses.
+   */
+  SurveyEventOperandEvaluator.prototype.extractAnswerCandidates = function (submittedEvent, questionId) {
+    var _a;
+    var responses = submittedEvent.responses;
+    // check if the responses are not null and the question id is not null
+    if (!responses || !questionId) {
+      // return an empty array
+      return [];
+    }
+    // get the raw answers
+    var rawAnswers = (_a = responses[questionId]) !== null && _a !== void 0 ? _a : responses[String(submittedEvent.qId)];
+    // check if the raw answers are not an array
+    if (!Array.isArray(rawAnswers)) {
+      return [];
+    }
+    var answerCandidates = [];
+    // iterate over the raw answers
+    for (var _i = 0, rawAnswers_1 = rawAnswers; _i < rawAnswers_1.length; _i++) {
+      var rawAnswer = rawAnswers_1[_i];
+      // check if the raw answer is not null and is an object and is not an array
+      if (rawAnswer !== null && typeof rawAnswer === 'object' && !Array.isArray(rawAnswer)) {
+        var otherOption = rawAnswer;
+        // check if the id is not null
+        if (otherOption.id != null) {
+          // add the id to the answer candidates
+          answerCandidates.push(String(otherOption.id));
+        }
+        if (otherOption.value != null) {
+          answerCandidates.push(String(otherOption.value));
+        }
+        continue;
+      }
+      if (rawAnswer != null) {
+        answerCandidates.push(String(rawAnswer));
+      }
+    }
+    return answerCandidates;
+  };
+  /**
+   * Compares a DSL expected value to one stored answer using existing operand matching.
+   * @param expectedValue - Normalized DSL operand string.
+   * @param storedValue - One answer candidate.
+   * @returns {boolean} True when the stored answer matches the expected value.
+   */
+  SurveyEventOperandEvaluator.prototype.valuesMatch = function (expectedValue, storedValue) {
+    var operandEvaluator = new SegmentOperandEvaluator_1.SegmentOperandEvaluator(this.serviceContainer);
+    var _a = operandEvaluator.preProcessOperandValue(expectedValue),
+      operandType = _a.operandType,
+      operandValue = _a.operandValue;
+    // check if the operand type and value match the stored value
+    if (operandEvaluator.extractResult(operandType, operandValue, storedValue)) {
+      return true;
+    }
+    if (storedValue.toLowerCase() === expectedValue.toLowerCase()) {
+      return true;
+    }
+    return this.matchesJsonArrayString(expectedValue, storedValue);
+  };
+  /**
+   * Insights-style JSON array strings such as `["1"]` can still appear as stored values.
+   * @param expectedValue - DSL expected value.
+   * @param storedValue - Stored answer string.
+   * @returns {boolean} True when the expected value is one item in a JSON-array-shaped stored string.
+   */
+  SurveyEventOperandEvaluator.prototype.matchesJsonArrayString = function (expectedValue, storedValue) {
+    if (!storedValue.startsWith('[') || !storedValue.endsWith(']')) {
+      return false;
+    }
+    var normalizedExpected = expectedValue.trim().replace(/^"|"$/g, '');
+    return storedValue.substring(1, storedValue.length - 1).split(',').some(function (item) {
+      return item.trim().replace(/^"|"$/g, '').toLowerCase() === normalizedExpected.toLowerCase();
+    });
+  };
+  /**
+   * Checks whether a DSL leaf value is boolean true.
+   * @param value - DSL leaf value.
+   * @returns {boolean} True when the operand is boolean true.
+   */
+  SurveyEventOperandEvaluator.prototype.isBooleanTrue = function (value) {
+    return value === true;
+  };
+  /**
+   * Reads a DSL leaf value as a boolean presence operand.
+   * @param value - DSL leaf value.
+   * @returns {boolean | null} The boolean operand, or null when the DSL sent something else.
+   */
+  SurveyEventOperandEvaluator.prototype.booleanOrNull = function (value) {
+    return (0, DataTypeUtil_1.isBoolean)(value) ? value : null;
+  };
+  /**
+   * Normalizes booleans/numbers to strings for operand comparison.
+   * @param value - DSL leaf value.
+   * @returns {string} The string form of the value, or an empty string when it is null or undefined.
+   */
+  SurveyEventOperandEvaluator.prototype.expectedValueAsString = function (value) {
+    if ((0, DataTypeUtil_1.isNull)(value) || (0, DataTypeUtil_1.isUndefined)(value)) {
+      return '';
+    }
+    return String(value);
+  };
+  return SurveyEventOperandEvaluator;
+}();
+exports.SurveyEventOperandEvaluator = SurveyEventOperandEvaluator;
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveySegmentDslAdapter.js":
+/*!****************************************************************************************************!*\
+  !*** ./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveySegmentDslAdapter.js ***!
+  \****************************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.SurveySegmentDslAdapter = void 0;
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var SurveyDslKey_1 = __webpack_require__(/*! ./SurveyDslKey */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveyDslKey.js");
+/**
+ * Recognizes bare survey segment leaves and returns them for SurveyEventOperandEvaluator.
+ *
+ * Bare leaf examples (no `custom_variable` wrapper):
+ * - `{ "vwo_surveyQuestionSubmitted": true }` — any survey
+ * - `{ "252_vwo_surveyQuestionSubmitted": true }` — any question in a survey
+ * - `{ "252_vwo_surveyQuestionSubmitted_1783": "wildcard(*…*)" }` — specific answer
+ */
+var SurveySegmentDslAdapter = /** @class */function () {
+  function SurveySegmentDslAdapter() {}
+  /**
+   * Recognizes a single-field bare survey leaf.
+   * @param dsl - A segmentation DSL node.
+   * @returns {Record<string, dynamic> | null} The same node when it is a bare survey leaf, otherwise null.
+   */
+  SurveySegmentDslAdapter.normalizeToSurveyOperand = function (dsl) {
+    if (!(0, DataTypeUtil_1.isObject)(dsl)) {
+      return null;
+    }
+    var keys = Object.keys(dsl);
+    // Bare survey leaves are always a single key/value pair.
+    if (keys.length !== 1) {
+      return null;
+    }
+    if (!SurveyDslKey_1.SurveyDslKey.parse(keys[0])) {
+      return null;
+    }
+    return dsl;
+  };
+  return SurveySegmentDslAdapter;
+}();
+exports.SurveySegmentDslAdapter = SurveySegmentDslAdapter;
+
+/***/ }),
+
 /***/ "./dist/server-unpacked/packages/segmentation-evaluator/utils/SegmentUtil.js":
 /*!***********************************************************************************!*\
   !*** ./dist/server-unpacked/packages/segmentation-evaluator/utils/SegmentUtil.js ***!
@@ -10431,6 +11103,158 @@ function matchWithRegex(string, regex) {
     return null;
   }
 }
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/packages/segmentation-evaluator/utils/SurveyEventStoreUtil.js":
+/*!********************************************************************************************!*\
+  !*** ./dist/server-unpacked/packages/segmentation-evaluator/utils/SurveyEventStoreUtil.js ***!
+  \********************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.SurveyEventStore = exports.SURVEY_EVENT_HISTORY_LAST_SESSION_KEY = exports.SURVEY_EVENT_HISTORY_SESSION_KEY = exports.SURVEY_EVENT_HISTORY_PRIMARY_KEY = void 0;
+var DataTypeUtil_1 = __webpack_require__(/*! ../../../utils/DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+/** Primary SmartCode event-history key. */
+exports.SURVEY_EVENT_HISTORY_PRIMARY_KEY = '_vwo_eventHist';
+/** Fallback when the primary key is missing. */
+exports.SURVEY_EVENT_HISTORY_SESSION_KEY = '_vwo_eventHistSession';
+/** Fallback when primary and session keys are missing. */
+exports.SURVEY_EVENT_HISTORY_LAST_SESSION_KEY = '_vwo_eventHistLastSession';
+/**
+ * Reads Pulse survey events from SmartCode localStorage.
+ *
+ * Fallback order (never merged): `_vwo_eventHist` → `_vwo_eventHistSession` → `_vwo_eventHistLastSession`.
+ * Results are memoized until {@link resetCache} so one `getFlag` parses history at most once,
+ * however many event types and leaves it evaluates.
+ */
+var SurveyEventStore = /** @class */function () {
+  /**
+   * Creates a store that reads Pulse survey events from SmartCode localStorage.
+   * @param storageProvider - Optional injectable storage (tests). Defaults to `window.localStorage`.
+   */
+  function SurveyEventStore(storageProvider) {
+    this.cachedHistory = null;
+    this.hasReadHistory = false;
+    this.cachedEventsByType = new Map();
+    this.storageProvider = storageProvider !== null && storageProvider !== void 0 ? storageProvider : null;
+  }
+  /**
+   * Clears the per-call memo so the next read hits storage again.
+   * @returns {void} Nothing. The next read loads history from storage again.
+   */
+  SurveyEventStore.prototype.resetCache = function () {
+    this.cachedHistory = null;
+    this.hasReadHistory = false;
+    this.cachedEventsByType.clear();
+  };
+  /**
+   * Returns stored events for one SmartCode event type, or an empty array when unavailable.
+   * @param eventType - Event-history key, e.g. `vwo_surveyDisplayed`.
+   * @returns {SurveyEvent[]} Events of that type, memoized until {@link resetCache}.
+   */
+  SurveyEventStore.prototype.getEventsByType = function (eventType) {
+    var cachedEvents = this.cachedEventsByType.get(eventType);
+    if (cachedEvents) {
+      return cachedEvents;
+    }
+    var events = this.readEventsByType(eventType);
+    this.cachedEventsByType.set(eventType, events);
+    return events;
+  };
+  /**
+   * Reads the first present history key. Does not merge fallbacks.
+   * @returns {string | null} Raw JSON string, or null when storage is missing or every history key is empty.
+   */
+  SurveyEventStore.prototype.readRawHistory = function () {
+    var storage = this.getStorage();
+    if (!storage) {
+      return null;
+    }
+    return storage.getItem(exports.SURVEY_EVENT_HISTORY_PRIMARY_KEY) || storage.getItem(exports.SURVEY_EVENT_HISTORY_SESSION_KEY) || storage.getItem(exports.SURVEY_EVENT_HISTORY_LAST_SESSION_KEY) || null;
+  };
+  /**
+   * Resolves the storage used to read SmartCode event history.
+   * @returns {SurveyEventStorageProvider | null} Injected provider, or `window.localStorage` on the client, otherwise null.
+   */
+  SurveyEventStore.prototype.getStorage = function () {
+    if (this.storageProvider) {
+      return this.storageProvider;
+    }
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage;
+    }
+    return null;
+  };
+  /**
+   * Pulls one event type out of the parsed history.
+   * @param eventType - Event-history key to pull out of the parsed history.
+   * @returns {SurveyEvent[]} Object entries of that type, or an empty array when the type is missing or not an array.
+   */
+  SurveyEventStore.prototype.readEventsByType = function (eventType) {
+    var _a;
+    var events = (_a = this.getHistory()) === null || _a === void 0 ? void 0 : _a[eventType];
+    if (!(0, DataTypeUtil_1.isArray)(events)) {
+      return [];
+    }
+    return events.filter(function (event) {
+      return (0, DataTypeUtil_1.isObject)(event);
+    });
+  };
+  /**
+   * Parses the event history once per {@link resetCache} cycle, however many types are read.
+   * @returns {Record<string, unknown> | null} Parsed history object, or null when absent or malformed.
+   */
+  SurveyEventStore.prototype.getHistory = function () {
+    if (this.hasReadHistory) {
+      return this.cachedHistory;
+    }
+    this.hasReadHistory = true;
+    this.cachedHistory = this.parseHistory(this.readRawHistory());
+    return this.cachedHistory;
+  };
+  /**
+   * Parses the SmartCode event-history JSON string.
+   * @param rawHistory - JSON string of the SmartCode event-history object.
+   * @returns {Record<string, unknown> | null} The parsed history object, or null when the string is empty, not an object, or invalid JSON.
+   */
+  SurveyEventStore.prototype.parseHistory = function (rawHistory) {
+    if (!rawHistory) {
+      return null;
+    }
+    try {
+      var parsedHistory = JSON.parse(rawHistory);
+      if (!(0, DataTypeUtil_1.isObject)(parsedHistory)) {
+        return null;
+      }
+      return parsedHistory;
+    } catch (_a) {
+      return null;
+    }
+  };
+  return SurveyEventStore;
+}();
+exports.SurveyEventStore = SurveyEventStore;
 
 /***/ }),
 
@@ -20013,6 +20837,214 @@ function Deferred() {
     _this.reject = reject; // Method to reject the promise
   });
   return this; // Return the Deferred object with attached methods
+}
+
+/***/ }),
+
+/***/ "./dist/server-unpacked/utils/PulsePreSegmentationUtil.js":
+/*!****************************************************************!*\
+  !*** ./dist/server-unpacked/utils/PulsePreSegmentationUtil.js ***!
+  \****************************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Copyright 2024-2026 Wingify Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VWO_UUID_COOKIE_NAME = void 0;
+exports.dslContainsPulseSurveyKey = dslContainsPulseSurveyKey;
+exports.getCampaignPreSegmentationDsl = getCampaignPreSegmentationDsl;
+exports.featureHasPulseSurveyPreSegmentation = featureHasPulseSurveyPreSegmentation;
+exports.getVwoUuidFromCookie = getVwoUuidFromCookie;
+exports.doesConvertedUuidMatchPulseVisitor = doesConvertedUuidMatchPulseVisitor;
+exports.isPulseVisitorVerified = isPulseVisitorVerified;
+exports.resolvePulsePreSegmentationIdentity = resolvePulsePreSegmentationIdentity;
+var CampaignTypeEnum_1 = __webpack_require__(/*! ../enums/CampaignTypeEnum */ "./dist/server-unpacked/enums/CampaignTypeEnum.js");
+var log_messages_1 = __webpack_require__(/*! ../enums/log-messages */ "./dist/server-unpacked/enums/log-messages/index.js");
+var DataTypeUtil_1 = __webpack_require__(/*! ./DataTypeUtil */ "./dist/server-unpacked/utils/DataTypeUtil.js");
+var HoldoutUtil_1 = __webpack_require__(/*! ./HoldoutUtil */ "./dist/server-unpacked/utils/HoldoutUtil.js");
+var LogMessageUtil_1 = __webpack_require__(/*! ./LogMessageUtil */ "./dist/server-unpacked/utils/LogMessageUtil.js");
+var SurveyDslKey_1 = __webpack_require__(/*! ../packages/segmentation-evaluator/evaluators/SurveyDslKey */ "./dist/server-unpacked/packages/segmentation-evaluator/evaluators/SurveyDslKey.js");
+/** SmartCode visitor cookie written once per browser. */
+exports.VWO_UUID_COOKIE_NAME = '_vwo_uuid';
+/**
+ * Recursively returns true when any DSL node is a Pulse survey event key.
+ * @param dsl - Campaign/variation/holdout segments object.
+ * @returns {boolean} True when a Pulse survey event key is found, false otherwise.
+ */
+function dslContainsPulseSurveyKey(dsl) {
+  if (!(0, DataTypeUtil_1.isObject)(dsl)) {
+    return false;
+  }
+  for (var _i = 0, _a = Object.keys(dsl); _i < _a.length; _i++) {
+    var operator = _a[_i];
+    if (SurveyDslKey_1.SurveyDslKey.parse(operator)) {
+      return true;
+    }
+    var operand = dsl[operator];
+    if ((0, DataTypeUtil_1.isArray)(operand)) {
+      for (var _b = 0, operand_1 = operand; _b < operand_1.length; _b++) {
+        var subDsl = operand_1[_b];
+        if (dslContainsPulseSurveyKey(subDsl)) {
+          return true;
+        }
+      }
+    } else if ((0, DataTypeUtil_1.isObject)(operand) && dslContainsPulseSurveyKey(operand)) {
+      return true;
+    }
+  }
+  return false;
+}
+/**
+ * Segments live on the campaign for AB, and on variation[0] for rollout/personalize.
+ * @param campaign - Linked campaign or rule campaign.
+ * @returns {Record<string, dynamic>} Pre-segmentation DSL for the campaign, or an empty object when none is set.
+ */
+function getCampaignPreSegmentationDsl(campaign) {
+  var _a, _b;
+  var campaignType = campaign.getType();
+  if (campaignType === CampaignTypeEnum_1.CampaignTypeEnum.ROLLOUT || campaignType === CampaignTypeEnum_1.CampaignTypeEnum.PERSONALIZE) {
+    return ((_b = (_a = campaign.getVariations()) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.getSegments()) || {};
+  }
+  return campaign.getSegments() || {};
+}
+/**
+ * True when any linked campaign or applicable holdout uses Pulse survey pre-segmentation.
+ * @param feature - Feature being evaluated.
+ * @param settings - Full settings (needed for holdouts).
+ * @returns {boolean} True when a linked campaign or applicable holdout contains a Pulse survey key, false otherwise.
+ */
+function featureHasPulseSurveyPreSegmentation(feature, settings) {
+  if (!feature) {
+    return false;
+  }
+  // check if the feature has linked campaigns with pulse survey pre-segmentation
+  var linkedCampaigns = feature.getRulesLinkedCampaign() || [];
+  for (var _i = 0, linkedCampaigns_1 = linkedCampaigns; _i < linkedCampaigns_1.length; _i++) {
+    var campaign = linkedCampaigns_1[_i];
+    if (dslContainsPulseSurveyKey(getCampaignPreSegmentationDsl(campaign))) {
+      return true;
+    }
+  }
+  if (!settings) {
+    return false;
+  }
+  // check if the feature has applicable holdouts with pulse survey pre-segmentation
+  var applicableHoldouts = (0, HoldoutUtil_1.getApplicableHoldouts)(settings, feature.getId());
+  for (var _a = 0, applicableHoldouts_1 = applicableHoldouts; _a < applicableHoldouts_1.length; _a++) {
+    var holdout = applicableHoldouts_1[_a];
+    if (dslContainsPulseSurveyKey(holdout.getSegments())) {
+      return true;
+    }
+  }
+  return false;
+}
+/**
+ * Reads `_vwo_uuid` from `document.cookie`. Returns null on the server or when missing.
+ * @param cookieString - Optional cookie string for tests; defaults to `document.cookie`.
+ * @returns {string | null} The cookie value, or null when it is missing or this is not a browser.
+ */
+function getVwoUuidFromCookie(cookieString) {
+  var source = cookieString !== null && cookieString !== void 0 ? cookieString : typeof document !== 'undefined' ? document.cookie : '';
+  if (!source) {
+    return null;
+  }
+  var cookies = source.split(';');
+  for (var _i = 0, cookies_1 = cookies; _i < cookies_1.length; _i++) {
+    var cookie = cookies_1[_i];
+    var separatorIndex = cookie.indexOf('=');
+    if (separatorIndex === -1) {
+      continue;
+    }
+    var cookieName = cookie.slice(0, separatorIndex).trim();
+    if (cookieName !== exports.VWO_UUID_COOKIE_NAME) {
+      continue;
+    }
+    var cookieValue = decodeURIComponent(cookie.slice(separatorIndex + 1).trim());
+    return cookieValue || null;
+  }
+  return null;
+}
+/**
+ * Case-insensitive equality for visitor ids (FME uuid is uppercase; cookie casing may differ).
+ * @param convertedUserUuid - UUID derived from context.id (web uuid as-is, or v5 hash).
+ * @param pulseVisitorUuid - Value of `_vwo_uuid`.
+ * @returns {boolean} True when both ids are present and equal ignoring case.
+ */
+function doesConvertedUuidMatchPulseVisitor(convertedUserUuid, pulseVisitorUuid) {
+  if (!convertedUserUuid || !pulseVisitorUuid) {
+    return false;
+  }
+  return convertedUserUuid.toLowerCase() === pulseVisitorUuid.toLowerCase();
+}
+/**
+ * True when the evaluated user is the SmartCode visitor, so survey leaves may read their events.
+ * @param contextUuid - UUID of the user being evaluated (`ContextModel.getUuid()`).
+ * @param cookieString - Optional cookie string for tests; defaults to `document.cookie`.
+ * @returns {boolean} True when the context UUID matches `_vwo_uuid`.
+ */
+function isPulseVisitorVerified(contextUuid, cookieString) {
+  return doesConvertedUuidMatchPulseVisitor(contextUuid !== null && contextUuid !== void 0 ? contextUuid : null, getVwoUuidFromCookie(cookieString));
+}
+/**
+ * Applies the Pulse identity rules for getFlag and logs why survey leaves will fail.
+ *
+ * 1. Cookie missing → log; survey leaves fail.
+ * 2. Cookie present, no context.id → use cookie as id.
+ * 3. Cookie + userId → compare converted uuid to cookie; mismatch logs and survey leaves fail.
+ * 4. Caller should not invoke this when the feature has no Pulse survey segments.
+ *
+ * Survey leaves enforce the result themselves via {@link isPulseVisitorVerified}.
+ * `trackEvent` and `setAttribute` call the same resolver when Pulse is enabled at init (no per-feature gate).
+ *
+ * @param context - Original getFlag context.
+ * @param pulseVisitorUuid - `_vwo_uuid` cookie value.
+ * @param convertedUserUuid - Result of getUUIDFromContext when context.id is present.
+ * @param logError - Logger for failure cases.
+ * @returns {Record<string, any>} Context to evaluate with (id filled from the cookie in case 2).
+ */
+function resolvePulsePreSegmentationIdentity(context, pulseVisitorUuid, convertedUserUuid, logError) {
+  var safeContext = (0, DataTypeUtil_1.isObject)(context) ? __assign({}, context) : {};
+  if (!pulseVisitorUuid) {
+    logError((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.PULSE_PRE_SEGMENTATION_UUID_COOKIE_MISSING));
+    return safeContext;
+  }
+  if (!safeContext.id) {
+    // Flow 2: treat the SmartCode visitor as the FME user for this evaluation.
+    safeContext.id = pulseVisitorUuid;
+    return safeContext;
+  }
+  if (!doesConvertedUuidMatchPulseVisitor(convertedUserUuid, pulseVisitorUuid)) {
+    logError((0, LogMessageUtil_1.buildMessage)(log_messages_1.ErrorLogMessagesEnum.PULSE_PRE_SEGMENTATION_FE_USER_MISMATCH));
+  }
+  return safeContext;
 }
 
 /***/ }),
